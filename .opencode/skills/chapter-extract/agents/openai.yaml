@@ -1,0 +1,4 @@
+interface:
+  display_name: "Chapter Extract"
+  short_description: "Extract concepts and relations from a lesson"
+  default_prompt: "Extract concepts, relations, and evidence from one lesson of a textbook."

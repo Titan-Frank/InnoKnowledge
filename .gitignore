@@ -1,0 +1,8 @@
+.DS_Store
+__pycache__/
+tmp/
+lesson1_*.txt
+*.pdf
+.opencode/node_modules/
+.opencode/package.json
+.opencode/bun.lock

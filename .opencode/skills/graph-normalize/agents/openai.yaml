@@ -1,0 +1,4 @@
+interface:
+  display_name: "Graph Normalize"
+  short_description: "Deduplicate and normalize textbook graph data"
+  default_prompt: "Deduplicate nodes, normalize aliases, and clean graph relations."

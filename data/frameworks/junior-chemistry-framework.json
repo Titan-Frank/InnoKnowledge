@@ -1,0 +1,736 @@
+{
+  "framework_id": "framework:cn-chem-junior",
+  "title": "初中化学课程参考框架",
+  "source_path": "/Users/titan-frank/Documents/hsd/research/Knowledge/化学课标.xlsx",
+  "generated_at": "2026-03-23T11:52:22.305634+00:00",
+  "filters": {
+    "subject": "化学",
+    "school_stage": "初中"
+  },
+  "domains": [
+    {
+      "id": "framework:cn-chem-junior:domain:bb69576f5c",
+      "title": "科学探究与化学实验",
+      "topics": [
+        {
+          "id": "framework:cn-chem-junior:topic:e6fc8db169",
+          "title": "化学科学本质",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:133087b859",
+              "text": "知道化学是研究物质的组成、结构、性质、转化及应用的一门基础学科，其特征是从分子层次认识物质，通过化学变化创造物质；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:11b3f31c92",
+              "text": "初步了解化学科学的发展历程，体会实验探究和模型建构是化学科学研究的基本方法；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:9d34e64237",
+              "text": "认识化学科学、技术、社会、环境的相互关系，了解化学科学对社会发展和人类文明进步的重要价值。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:02485b8117",
+              "text": "感悟科学家崇尚真理、严谨求实的科学态度，勇于质疑、批判和创新的精神；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:d3278e108d",
+              "text": "学习科学家爱国、奉献的精神，团结协作、攻坚克难的品格。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:e2c4fbb4ac",
+          "title": "实验探究-科学探究的能力",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:71ab84b193",
+              "text": "知道科学探究是收集证据和作出解释，进行发现、创造与应用的科学实践活动，也是获取科学知识、理解科学本质、认识客观世界的重要途径。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:c990215f48",
+              "text": "了解科学探究过程包括提出问题、形成假设、设计并实施实验或调查方案、获取证据、分析解释数据、形成结论及建构模型、反思评价及表达交流等要素。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:68a6344a74",
+              "text": "经历科学探究的一般过程，认识从问题和假设出发确定探究目标、依据探究目标设计并实施实验方案、通过观察和实验等方法获取证据、基于证据进行分析推理及形成结论等对于科学探究的意义，体会合作与交流在科学探究中的重要作用。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:22811f5741",
+          "title": "实验探究-基本的化学实验技能",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:bd3e74c4c4",
+              "text": "知道化学实验是进行科学探究的重要方式，具备基本的化学实验技能是学习化学和进行探究活动的基础和保证。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:c4c9bea41c",
+              "text": "熟悉化学实验室安全警示标志，学会正确使用安全防护设施，学习妥善应对实验安全问题的必要措施。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:6217a0a1cf",
+              "text": "学会试剂的取用、简单仪器的使用及连接、加热等实验基本操作。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:e5f39df42f",
+              "text": "初步学会在教师指导下根据实验需要选择实验试剂和仪器，并能安全操作。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:02f5561aa5",
+              "text": "初步学会配制一定溶质质量分数的溶液。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:1ffee60e1e",
+              "text": "学会用酸碱指示剂、pH试纸检验溶液的酸碱性。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:db13299522",
+              "text": "初步学会根据某些性质检验和区分一些常见的物质。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:14d76e6ddc",
+              "text": "初步学习使用过滤、蒸发的方法对混合物进行分离。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:bba7cd9bd8",
+              "text": "初步学习运用简单的装置和方法制取某些气体。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:3dd59bbe3e",
+              "text": "初步学会观察实验现象，并如实记录、处理实验数据，撰写实验报告等技能。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:a4917e36d0",
+          "title": "化学实验探究的思路与方法",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:c046d88e04",
+              "text": "通过具体的实验活动初步形成化学实验探究的一般思路与方法，知道围绕实验目的确定实验原理，选择实验仪器，组装实验装置，设计实验步骤，实施实验并完成实验记录，基于实验事实得出结论。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:20261b58b1",
+              "text": "通过具体的化学实验探究活动，学习研究物质性质，探究物质组成和反应规律，进行物质分离、检验和制备等不同类型化学实验探究活动的一般思路与基本方法；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:89d386f45e",
+              "text": "学习控制变量和对比实验的实验设计方法。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:e341d4b93c",
+              "text": "通过化学科学发展历程中的经典实验，学习和体会化学家进行科学探究的智慧和方法，理解科学探究的本质。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:06be2259b3",
+          "title": "科学探究的态度",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:46de4284fa",
+              "text": "发展科学探究的好奇心、想象力与探究欲；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:0c18ce9cfa",
+              "text": "通过探究活动，初步养成注重实证、严谨求实的科学态度，初步学会批判性思维方法，具有敢于提出并坚持自己的见解、勇于修正或放弃错误观点、反对伪科学的科学精神。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:f049953e86",
+              "text": "树立自觉的安全意识和观念，知道化学实验存在安全风险，明确化学实验室安全规则和实验操作规范，了解实验室基本布局，学会正确使用安全防护设施，养成节约和环保的习惯。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:89182aa100",
+          "title": "学生必做实验及实践活动",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:3c5c8c000c",
+              "text": "粗盐中难溶性杂质的去除。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:716707a198",
+              "text": "氧气的实验室制取与性质。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:905f989c42",
+              "text": "二氧化碳的实验室制取与性质。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:885723e59e",
+              "text": "常见金属的物理性质和化学性质。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:64a3d0983e",
+              "text": "常见酸、碱的化学性质。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:9aa745a571",
+              "text": "一定溶质质量分数的氯化钠溶液的配制。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:89e9f63cec",
+              "text": "水的组成及变化的探究。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:34a367159f",
+              "text": "燃烧条件的探究。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:422fe623f6",
+              "text": "跨学科实践活动(原则上从学习主题5中选择，所用课时不少于本学科总课时的10%)。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "framework:cn-chem-junior:domain:76d28f4343",
+      "title": "物质的性质与应用",
+      "topics": [
+        {
+          "id": "framework:cn-chem-junior:topic:ea2811fff2",
+          "title": "物质的多样性",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:c25e1cb3da",
+              "text": "认识物质是多样的，知道物质既有天然存在的也有人工创造的,既有无机物也有有机物；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:68980548de",
+              "text": "认识依据物质的组成和性质可以对物质进行分类，知道物质可以分为纯净物和混合物、单质和化合物等；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:2a3eab53fb",
+              "text": "知道物质具有独特的物理性质和化学性质，同类物质在性质上具有一定的相似性；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:949cd97908",
+              "text": "知道物质具有广泛的应用价值，物质的性质决定用途。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:3661297d9c",
+          "title": "常见的物质-空气、氧气、二氧化碳",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:7bd60a133e",
+              "text": "了解空气的主要成分；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:decda30694",
+              "text": "通过实验探究认识氧气、二氧化碳的主要性质，认识物质的性质与用途的关系；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:d1df953d3e",
+              "text": "初步学习氧气和二氧化碳的实验室制法，归纳实验室制取气体的一般思路与方法；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:0b4b2f1f0c",
+              "text": "以自然界中的氧循环和碳循环为例，认识物质在自然界中可以相互转化及其对维持人类生活与生态平衡的意义。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:d35e8171e6",
+          "title": "常见的物质-水和溶液",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:c638790706",
+              "text": "认识水的组成，知道水是一种重要的溶剂，了解吸附、沉降、过滤和蒸馅是净化水的常用方法。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:df502e92f5",
+              "text": "认识溶解和结晶现象；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:0ca47439a0",
+              "text": "知道溶液是由溶质和溶剂组成的，具有均一性和稳定性；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:12915ff4b5",
+              "text": "知道绝大多数物质在溶剂中的溶解是有限度的，了解饱和溶液和溶解度的含义。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:32d5067ac9",
+              "text": "知道溶质质量分数可以表示浓度，认识溶质质量分数的含义，学习计算溶质质量分数和配制一定溶质质量分数的溶液的基本方法，初步感受定量研究的意义；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:e2c809d340",
+              "text": "体会溶液在生产生活中的应用价值。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:5de7e9d3a9",
+          "title": "常见的物质-金属与金属矿物",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:94bf8d7876",
+              "text": "知道大多数金属在自然界中是以金属矿物形式存在的，体会化学方法在金属冶炼中的重要性；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:4e6f98ccf8",
+              "text": "知道金属具有一些共同的物理性质，通过实验探究等活动认识常见金属的主要化学性质及金属活动性顺序。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:2d9b177f5f",
+              "text": "知道在金属中加入其他元素形成合金可以改变金属材料的性能；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:bc712657e3",
+              "text": "了解金属、金属材料在生产生活和社会发展中的重要作用；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:39f878be5d",
+              "text": "以铁生锈为例，了解防止金属腐蚀的常用方法；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:cf8099a0ea",
+              "text": "了解废弃金属对环境的影响及金属回收再利用的价值。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:db5150714e",
+          "title": "常见的物质-常见的酸、碱、盐",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:88748206ee",
+              "text": "以盐酸、硫酸、氢氧化钠和氢氧化钙为例，通过实验探究认识酸、碱的主要性质和用途；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:3281a55ba9",
+              "text": "了解检验溶液酸碱性的基本方法，知道酸碱性对人体健康和农作物生长的影响；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:77c730dc1e",
+              "text": "了解食盐、纯碱、小苏打和碳酸钙等盐在日常生活中的应用；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:a02126e09c",
+              "text": "知道一些常用化肥及其在农业生产中的作用。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:61e07b71d8",
+          "title": "认识物质性质的思路与方法",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:aa0dac0aca",
+              "text": "了解物质性质包括物理性质和化学性质，知道可以从物质的存在、组成、变化和用途等视角认识物质的性质。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:949f751234",
+              "text": "知道可以通过物质类别认识具体物质的性质，了解通过物质的共性和差异性认识一类物质性质的方法。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:7fb951caed",
+              "text": "了解观察、实验，以及对事实进行归纳概括、分析解释等认识物质性质的基本方法。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:87086c1999",
+          "title": "物质性质的广泛应用及化学品的合理使用",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:b2e2714893",
+              "text": "认识物质性质在生活、生产、科技发展等方面的广泛应用，体会科学地利用物质性质对提高人们的生活质量具有重要作用。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:d7788898b5",
+              "text": "结合实例体会化学品的保存、选择和使用与物质性质的重要关系，认识合理使用化学品对保护环境的重要意义，形成合理使用化学品的意识。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:7468bebc9e",
+              "text": "认识空气、水、金属矿物是宝贵的自然资源，形成保护和节约资源的可持续发展意识与社会责任。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:3826d6ab6f",
+          "title": "学生必做实验及实践活动",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:6d4fa97c34",
+              "text": "粗盐中难溶性杂质的去除。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:63f5d31351",
+              "text": "氧气的实验室制取与性质。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:70d0efa39d",
+              "text": "二氧化碳的实验室制取与性质。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:bcc1ad557d",
+              "text": "常见金属的物理性质和化学性质。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:15ecd7370a",
+              "text": "常见酸、碱的化学性质。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:ddf20da6a8",
+              "text": "一定溶质质量分数的氯化钠溶液的配制。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:653df669f1",
+              "text": "跨学科实践活动(从学习主题5中选择)。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "framework:cn-chem-junior:domain:5a1c2e2ec6",
+      "title": "物质的组成与结构",
+      "topics": [
+        {
+          "id": "framework:cn-chem-junior:topic:5fc9fbece8",
+          "title": "物质的组成",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:9e025380e6",
+              "text": "初步形成基于元素和分子、原子认识物质及其变化的视角，建立认识物质的宏观和微观视角之间的关联，知道物质的性质与组成、结构有关。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:94fd79e9dc",
+          "title": "元素、分子、原子与物质-元素",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:dd95202815",
+              "text": "认识物质是由元素组成的，知道质子数相同的一类原子属于同种元素，了解在化学反应中元素的种类是不变的，初步认识元素周期表。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:85347f38d0",
+          "title": "元素、分子、原子与物质-分子、原子",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:0faf4e20e5",
+              "text": "知道物质是由分子、原子等微观粒子构成的；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:7fa8b34bd5",
+              "text": "认识原子是由原子核和核外电子构成的；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:42786ec1f1",
+              "text": "知道原子可以结合成分子，也可以转变为离子。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:2423fe8a28",
+          "title": "元素、分子、原子与物质-物质组成的表示",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:195e9af0c8",
+              "text": "知道可以用符号表示物质的组成，认识表示分子、原子、离子的符号，知道常见元素的化合价，学习用化学式表示常见物质组成的方法，认识相对原子质量、相对分子质量的含义及应用。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:f0f5f00bce",
+          "title": "认识物质的组成与结构的思路与方法",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:8d2684008f",
+              "text": "通过科学史实体会科学家探索物质的组成与结构的智慧，知道可以通过实验、想象、推理、假说、模型等方法探索物质的结构；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:56d46046ef",
+              "text": "初步学习利用物质的性质和化学反应探究物质组成的基本思路与方法。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:91475f2e08",
+          "title": "研究物质的组成与结构的意义",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:cb038a9ad8",
+              "text": "了解人类对物质的组成与结构的探索是不断发展的，初步认识物质的组成、结构与性质之间的关系，了解研究物质的组成与结构对认识和创造物质的重要意义。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:b64c1822f7",
+              "text": "了解人类对物质的组成与结构的探索是不断发展的，初步认识物质的组成、结构与性质之间的关系，了解研究物质的组成与结构对认识和创造物质的重要意义。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:23213b7894",
+          "title": "学生必做实验及实践活动",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:c29bbdda4a",
+              "text": "水的组成及变化的探究。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:de518a836d",
+              "text": "跨学科实践活动(从学习主题5中选择)。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "framework:cn-chem-junior:domain:9a29dc026d",
+      "title": "物质的化学变化",
+      "topics": [
+        {
+          "id": "framework:cn-chem-junior:topic:6f206236b3",
+          "title": "物质的变化与转化",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:473fece96b",
+              "text": "知道物质是在不断变化的，物质变化分为物理变化和化学变化；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:6ff51ec97d",
+              "text": "认识物质的变化过程伴随着能量变化，在一定条件下通过化学反应可以实现物质转化，化学反应中的各物质间存在定量关系，初步形成变化观。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:521768b8a5",
+          "title": "化学反应及质量守恒定律-化学变化的特征及化学反应的基本类型",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:210b6b8a91",
+              "text": "认识化学变化是产生新物质的过程，知道化学变化常伴随生成沉淀、产生气体、发生颜色变化、发光，以及吸热或放热等现象。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:f9ec048420",
+              "text": "理解化学反应的本质是原子的重新组合，化学反应前后，原子的种类和数量不变，分子的种类发生改变；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:35d5595e80",
+              "text": "认识常见的化合反应、分解反应、置换反应和复分解反应及简单应用。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:ff518734a1",
+              "text": "了解化学反应需要一定的条件，知道催化剂对化学反应的重要作用；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:eb9a7143e5",
+              "text": "通过实验探究认识燃烧的条件，理解燃烧和灭火的原理及其在生活中的应用，初步体会调控化学反应的重要意义。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:001ad20fa6",
+          "title": "化学反应及质量守恒定律-化学反应的定量关系与质量守恒定律",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:848d6f63a4",
+              "text": "认识化学反应中的各物质间存在定量关系，化学反应遵守质量守恒定律；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:94b22f7f71",
+              "text": "理解质量守恒定律的微观本质。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:a3f3229c2c",
+          "title": "认识化学反应的思路与方法",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:e9c631e2d7",
+              "text": "学习从物质变化、能量变化、反应条件、反应现象、反应类型和元素守恒等视角认识化学反应，初步形成认识化学反应的系统思维意识。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:ea03cafa62",
+              "text": "学习利用质量关系、比例关系定量认识化学反应，认识定量研究对化学科学发展的重大作用。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:38c1e878c1",
+              "text": "初步形成利用化学反应探究物质性质和组成、解决物质制备和检验等实际问题的思路，初步体会化学反应与技术、工程的关系。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:e6a64b77a3",
+          "title": "化学反应的应用价值及合理调控",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:aa8955bab3",
+              "text": "认识化学变化在自然界和生产生活中的广泛存在及重要应用，感受大自然中化学变化的神奇；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:facff97ea1",
+              "text": "结合实例体会通过化学反应实现物质转化的意义和价值；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:8c3ed31b79",
+              "text": "欣赏化学反应造福人类的独特价值，学习化学家的创新精神。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:db0465ef94",
+          "title": "学生必做实验及实践活动",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:aa8ca9662d",
+              "text": "燃烧条件的探究。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:478175e870",
+              "text": "跨学科实践活动(从学习主题5中选择)。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "framework:cn-chem-junior:domain:2fdacd192e",
+      "title": "化学与社会·跨学科实践",
+      "topics": [
+        {
+          "id": "framework:cn-chem-junior:topic:f9fa3c09ca",
+          "title": "化学与可持续发展",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:506b1ea0d2",
+              "text": "知道科学和技术有助于解决社会问题，使用科学和技术时要考虑其对社会和环境的影响，理解科学、技术、社会、环境的相互关系；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:a887461010",
+              "text": "认识化学在解决与资源、能源、材料、环境、人类健康等相关的问题中的作用，体会化学是推动人类社会可持续发展的重要力量，树立建设美丽中国、为全球生态安全作贡献的信念；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:0080177e56",
+              "text": "主动践行节约资源、环境友好的生活方式，树立人与自然和谐共生的科学自然观和绿色发展观。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:1c4b4b7fd5",
+          "title": "化学与资源、能源、材料、环境、健康",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:7b6fe1208c",
+              "text": "结合实例，从物质及其变化的视角，认识资源的综合利用与新能源的开发、材料的科学利用与新材料的研发，理解化学与生态环境保护、医药研制及营养健康的关系；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:72d428e4b4",
+              "text": "了解酒精、天然气、有机高分子材料等在社会生活中的应用；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:7a4579dbe1",
+              "text": "知道资源开发、能源利用和材料使用可能会对环境产生影响，树立环保意识。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:1a5cbf2472",
+          "title": "化学、技术、工程融合解决跨学科问题的思路与方法",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:4df9fac1c6",
+              "text": "通过实践活动，初步形成应用元素观、变化观等化学观念和科学探究方法解决问题的思路；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:5238a24650",
+              "text": "认识在解决实际问题时，需要综合运用各学科知识，采用合适的方法和工具，以及系统规划和实施；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:72ecb3834d",
+              "text": "体会有效使用科学技术，以及合作、协同创新解决问题的重要性。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:c0bfcdfa6b",
+          "title": "应对未来不确定性挑战-科学伦理及法律规范",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:33ebece9b0",
+              "text": "通过实例分析或参加与化学相关的职业体验活动，认识到应用科学知识解决问题时，应恪守科学伦理；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:28ce02159b",
+              "text": "知道国家在生态环境保护，化学品、食品、药品安全等方面颁布了法律法规，增强遵纪守法、自我保护及维护社会安全的意识。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:1d0fe633a3",
+          "title": "应对未来不确定性挑战-社会性科学议题的合理应对",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:41dde7f7bd",
+              "text": "知道现代科学技术的开发和应用可能会引起与生态环境、伦理道德、经济发展等相关的问题；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:3ff75ce11f",
+              "text": "知道人类生存与发展会面临来自环境、能源、资源、健康和公共卫生等方面的危机与不确定性挑战；"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:229d430199",
+              "text": "通过参与社会性科学议题的探讨活动，体会以理性、积极的态度和系统、创新的思维应对挑战的重要性。"
+            }
+          ]
+        },
+        {
+          "id": "framework:cn-chem-junior:topic:915ebaa37c",
+          "title": "跨学科实践活动",
+          "expectations": [
+            {
+              "id": "framework:cn-chem-junior:expectation:83f4aee231",
+              "text": "微型空气质量“检测站”的组装与使用。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:70f2232a92",
+              "text": "基于特定需求设计和制作简易供氧器。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:6a8c63938b",
+              "text": "水质检测及自制净水器。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:fdfe6422a9",
+              "text": "基于碳中和理念设计低碳行动方案。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:bf7d3d80ad",
+              "text": "垃圾的分类与回收利用。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:88de907ea0",
+              "text": "探究土壤酸碱性对植物生长的影响。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:679a7d491b",
+              "text": "海洋资源的综合利用与制盐。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:fb0eaee068",
+              "text": "制作模型并展示科学家探索物质组成与结构的历程。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:084da7384b",
+              "text": "调查家用燃料的变迁与合理使用。"
+            },
+            {
+              "id": "framework:cn-chem-junior:expectation:6744958ebd",
+              "text": "调查我国航天科技领域中新型材料、新型能源的应用。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

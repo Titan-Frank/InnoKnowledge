@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Curriculum Framework",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "framework_id",
+    "title",
+    "source_path",
+    "generated_at",
+    "filters",
+    "domains"
+  ],
+  "properties": {
+    "framework_id": {
+      "type": "string",
+      "pattern": "^framework:[a-z0-9:-]+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "filters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject",
+        "school_stage"
+      ],
+      "properties": {
+        "subject": {
+          "type": "string"
+        },
+        "school_stage": {
+          "type": "string"
+        }
+      }
+    },
+    "domains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "topics"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^framework:[a-z0-9:-]+$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "title",
+                "expectations"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^framework:[a-z0-9:-]+$"
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "expectations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "text"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^framework:[a-z0-9:-]+$"
+                      },
+                      "text": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

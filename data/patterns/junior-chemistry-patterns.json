@@ -1,0 +1,365 @@
+{
+  "library_id": "pattern-library:junior-chemistry",
+  "title": "初中化学知识扩展模式库",
+  "summary": "用于指导知识主干节点如何扩展为一致、可比较、可复用的节点说明卡。",
+  "generated_at": "2026-03-24T00:00:00+08:00",
+  "patterns": [
+    {
+      "id": "pattern:concept-core",
+      "node_type": "concept",
+      "title": "概念型知识点",
+      "summary": "适用于定义、原理、规律、分类等概念节点。",
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "required": true,
+          "prompt": "给出该概念在教材语境中的定义或核心表述。",
+          "guidance": [
+            "优先使用教材原义进行归纳。",
+            "避免引入超出当前学段的术语。"
+          ]
+        },
+        {
+          "id": "essence",
+          "title": "本质理解",
+          "required": true,
+          "prompt": "说明这个概念为什么重要，它在更大知识结构中的作用是什么。 "
+        },
+        {
+          "id": "key-points",
+          "title": "核心要点",
+          "required": true,
+          "prompt": "列出必须掌握的核心判断点、特征或结论。 "
+        },
+        {
+          "id": "examples",
+          "title": "典型例子",
+          "required": false,
+          "prompt": "列出能帮助理解该概念的正例。 "
+        },
+        {
+          "id": "non-examples",
+          "title": "易混反例",
+          "required": false,
+          "prompt": "列出容易混淆但不属于该概念的情况。 "
+        },
+        {
+          "id": "next-steps",
+          "title": "后续延伸",
+          "required": false,
+          "prompt": "列出学习该概念后适合继续连接的下一个知识点。 "
+        }
+      ],
+      "recommended_edge_types": [
+        "contains",
+        "explains",
+        "part_of",
+        "prerequisite_for",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "它是什么？",
+        "它与哪个上位知识点相关？",
+        "它最容易和什么混淆？"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:substance-profile",
+      "node_type": "substance",
+      "title": "物质型知识点",
+      "summary": "适用于氧气、二氧化碳、水、酸、碱、盐等物质节点。",
+      "sections": [
+        {
+          "id": "identity",
+          "title": "基本身份",
+          "required": true,
+          "prompt": "说明该物质的类别、组成或最基本的识别信息。 "
+        },
+        {
+          "id": "properties",
+          "title": "主要性质",
+          "required": true,
+          "prompt": "列出教材重点强调的物理性质和化学性质。 "
+        },
+        {
+          "id": "applications",
+          "title": "用途与应用",
+          "required": false,
+          "prompt": "列出教材涉及的用途、作用或现实应用。 "
+        },
+        {
+          "id": "preparation",
+          "title": "制取与获得",
+          "required": false,
+          "prompt": "列出教材涉及的制法、来源或获得方式。 "
+        },
+        {
+          "id": "tests",
+          "title": "检验与区分",
+          "required": false,
+          "prompt": "列出检验该物质或区分相关物质的方法。 "
+        },
+        {
+          "id": "common-mistakes",
+          "title": "常见误解",
+          "required": false,
+          "prompt": "列出学习时最常见的误解或错误说法。 "
+        }
+      ],
+      "recommended_edge_types": [
+        "uses",
+        "produces",
+        "consumes",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "这是什么物质？",
+        "它有哪些关键性质？",
+        "它在实验或生活中如何被使用？"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:experiment-procedure",
+      "node_type": "experiment",
+      "title": "实验型知识点",
+      "summary": "适用于实验室制取、性质探究、条件探究等实验节点。",
+      "sections": [
+        {
+          "id": "goal",
+          "title": "实验目的",
+          "required": true,
+          "prompt": "说明实验要证明、制取、比较或探究什么。 "
+        },
+        {
+          "id": "principle",
+          "title": "实验原理",
+          "required": true,
+          "prompt": "说明实验背后的反应原理、判断逻辑或探究思路。 "
+        },
+        {
+          "id": "materials",
+          "title": "试剂与仪器",
+          "required": false,
+          "prompt": "列出教材明确提到的试剂、装置或仪器。 "
+        },
+        {
+          "id": "procedure",
+          "title": "基本步骤",
+          "required": true,
+          "prompt": "概括实验步骤，不要复制整段原文。 "
+        },
+        {
+          "id": "observations",
+          "title": "现象与结论",
+          "required": true,
+          "prompt": "列出关键实验现象以及可得出的结论。 "
+        },
+        {
+          "id": "precautions",
+          "title": "注意事项",
+          "required": false,
+          "prompt": "列出教材强调的操作风险、误差来源或注意事项。 "
+        }
+      ],
+      "recommended_edge_types": [
+        "uses",
+        "measures",
+        "produces",
+        "consumes",
+        "explains",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "实验想解决什么问题？",
+        "步骤中哪些环节最关键？",
+        "如何从现象推出结论？"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:method-playbook",
+      "node_type": "method",
+      "title": "方法型知识点",
+      "summary": "适用于过滤、蒸发、收集气体、检验等操作方法节点。",
+      "sections": [
+        {
+          "id": "purpose",
+          "title": "用途",
+          "required": true,
+          "prompt": "说明这个方法是为了解决什么类型的问题。 "
+        },
+        {
+          "id": "conditions",
+          "title": "适用条件",
+          "required": false,
+          "prompt": "说明什么时候适合使用这个方法。 "
+        },
+        {
+          "id": "steps",
+          "title": "操作要点",
+          "required": true,
+          "prompt": "列出该方法的关键操作步骤或判断点。 "
+        },
+        {
+          "id": "signals",
+          "title": "成功标志",
+          "required": false,
+          "prompt": "说明如何判断该方法执行正确或得到有效结果。 "
+        },
+        {
+          "id": "mistakes",
+          "title": "常见错误",
+          "required": false,
+          "prompt": "列出最常见的操作失误。 "
+        }
+      ],
+      "recommended_edge_types": [
+        "uses",
+        "measures",
+        "produces",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "这个方法是干什么用的？",
+        "适用条件是什么？",
+        "有哪些关键操作错误需要避免？"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:skill-practice",
+      "node_type": "skill",
+      "title": "技能型知识点",
+      "summary": "适用于化学语言、观察记录、实验表达等技能节点。",
+      "sections": [
+        {
+          "id": "skill-target",
+          "title": "技能目标",
+          "required": true,
+          "prompt": "说明这个技能要训练学生做什么。 "
+        },
+        {
+          "id": "core-rules",
+          "title": "核心规则",
+          "required": true,
+          "prompt": "列出这项技能必须遵循的规则或标准。 "
+        },
+        {
+          "id": "practice-points",
+          "title": "练习重点",
+          "required": false,
+          "prompt": "列出练习时需要反复关注的点。 "
+        },
+        {
+          "id": "common-mistakes",
+          "title": "常见错误",
+          "required": false,
+          "prompt": "列出该技能最常见的错误表现。 "
+        }
+      ],
+      "recommended_edge_types": [
+        "uses",
+        "explains",
+        "prerequisite_for",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "这项技能训练的核心是什么？",
+        "有哪些必须遵守的规则？"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:symbol-notation",
+      "node_type": "symbol",
+      "title": "符号与表征型知识点",
+      "summary": "适用于元素符号、化学式、方程式等表征节点。",
+      "sections": [
+        {
+          "id": "meaning",
+          "title": "表示含义",
+          "required": true,
+          "prompt": "说明该符号或表征表示什么。 "
+        },
+        {
+          "id": "reading",
+          "title": "读写规则",
+          "required": true,
+          "prompt": "说明如何正确读写或书写。 "
+        },
+        {
+          "id": "structure",
+          "title": "结构解释",
+          "required": false,
+          "prompt": "说明各部分符号、数字或箭头的意义。 "
+        },
+        {
+          "id": "examples",
+          "title": "示例",
+          "required": false,
+          "prompt": "给出教材中的典型示例。 "
+        },
+        {
+          "id": "common-mistakes",
+          "title": "常见错误",
+          "required": false,
+          "prompt": "列出最常见的误写、误读或误解。 "
+        }
+      ],
+      "recommended_edge_types": [
+        "explains",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "这个符号表示什么？",
+        "应如何正确书写和理解它？"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:question-inquiry",
+      "node_type": "question",
+      "title": "问题驱动型知识点",
+      "summary": "适用于探究问题、核心疑问或学习驱动问题节点。",
+      "sections": [
+        {
+          "id": "question",
+          "title": "问题内容",
+          "required": true,
+          "prompt": "准确表述这个问题本身。 "
+        },
+        {
+          "id": "why-it-matters",
+          "title": "问题意义",
+          "required": true,
+          "prompt": "说明这个问题为什么值得探究。 "
+        },
+        {
+          "id": "possible-paths",
+          "title": "探究路径",
+          "required": false,
+          "prompt": "列出教材给出的观察、实验或推理路径。 "
+        },
+        {
+          "id": "connected-knowledge",
+          "title": "关联知识",
+          "required": false,
+          "prompt": "列出为理解该问题需要调用的相关知识点。 "
+        }
+      ],
+      "recommended_edge_types": [
+        "explains",
+        "prerequisite_for",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "这个问题在探究什么？",
+        "回答它需要哪些知识和证据？"
+      ],
+      "properties": {}
+    }
+  ]
+}

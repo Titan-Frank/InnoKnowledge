@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Textbook Outline",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "book_id",
+    "title",
+    "source_path",
+    "generated_at",
+    "toc_pages",
+    "items"
+  ],
+  "properties": {
+    "book_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9:-]+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "toc_pages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "title",
+          "page_start",
+          "level",
+          "order_path",
+          "raw_line"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^struct:[a-z0-9:-]+$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "theme",
+              "topic",
+              "lesson",
+              "activity",
+              "review"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "page_start": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "order_path": {
+            "type": "string",
+            "pattern": "^[0-9]+(\\.[0-9]+)*$"
+          },
+          "raw_line": {
+            "type": "string",
+            "minLength": 1
+          },
+          "parent_id": {
+            "type": "string",
+            "pattern": "^struct:[a-z0-9:-]+$"
+          }
+        }
+      }
+    }
+  }
+}
