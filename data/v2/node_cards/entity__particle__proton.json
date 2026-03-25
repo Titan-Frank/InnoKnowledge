@@ -1,0 +1,17 @@
+{
+  "id": "node-card:entity__particle__proton",
+  "node_id": "entity/particle:proton",
+  "title": "质子",
+  "node_kind": "entity",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "质子是构成原子核的微粒之一，带一个单位正电荷，质量约为电子的1836倍。"
+    }
+  ],
+  "source_refs": [],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

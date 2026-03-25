@@ -1,0 +1,50 @@
+{
+  "node_id": "skill:write-equation",
+  "title": "书写化学方程式",
+  "pattern_refs": ["pattern:skill-practice"],
+  "summary": "正确书写化学方程式的技能。",
+  "sections": [
+    {
+      "id": "skill-target",
+      "title": "技能目标",
+      "content": [
+        "学会书写化学方程式",
+        "能够正确配平化学方程式"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-2-core"]
+    },
+    {
+      "id": "core-rules",
+      "title": "核心规则",
+      "content": [
+        "正确书写反应物和生成物的化学式",
+        "配平化学方程式，使两边原子数目相等",
+        "标注反应条件和生成物状态"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-2-core"]
+    },
+    {
+      "id": "practice-points",
+      "title": "练习重点",
+      "content": [
+        "熟练掌握化学式的书写",
+        "掌握配平方法",
+        "注意反应条件的标注"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-2-core"]
+    },
+    {
+      "id": "common-mistakes",
+      "title": "常见错误",
+      "content": [
+        "化学式书写错误",
+        "配平不正确",
+        "遗漏反应条件或状态符号"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-2-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-2-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson4-1-2-1"],
+  "properties": {}
+}

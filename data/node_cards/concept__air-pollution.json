@@ -1,0 +1,38 @@
+{
+  "node_id": "concept:air-pollution",
+  "title": "空气污染",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "空气污染是指空气中有害气体和烟尘含量升高导致空气质量下降的现象，主要污染物包括二氧化硫、二氧化氮、一氧化碳、臭氧、PM10 和 PM2.5 等。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "计入空气质量指数的污染物主要包括：二氧化硫、二氧化氮、一氧化碳、臭氧、PM10（粒径小于等于 10 μm 的颗粒物）、PM2.5（粒径小于等于 2.5 μm 的颗粒物）等。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-6"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "空气污染的本质是空气中混入了有害物质，导致空气质量下降，影响人类健康和生态环境",
+        "空气质量指数（AQI）是评价空气质量的重要指标，数值越高表示污染越严重"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-6"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "主要污染物包括：二氧化硫、二氧化氮、一氧化碳、臭氧",
+        "颗粒物污染物：PM10（粒径≤10 μm）、PM2.5（粒径≤2.5 μm）",
+        "空气质量监测和报告是了解和控制空气污染的重要手段"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-6"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-6"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:air-pollution"],
+  "properties": {}
+}

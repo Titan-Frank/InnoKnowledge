@@ -1,0 +1,37 @@
+{
+  "node_id": "substance:carbonic-acid",
+  "title": "碳酸",
+  "pattern_refs": ["pattern:substance-profile"],
+  "summary": "二氧化碳溶于水后与水反应生成的物质，能使紫色石蕊试液变红，不稳定，加热易分解。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "content": [
+        "碳酸是一种弱酸，化学式为 H2CO3。",
+        "由二氧化碳与水反应生成。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:co2-water-reaction"]
+    },
+    {
+      "id": "properties",
+      "title": "主要性质",
+      "content": [
+        "能使紫色石蕊试液变红",
+        "不稳定，加热易分解"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:co2-water-reaction"]
+    },
+    {
+      "id": "tests",
+      "title": "检验与区分",
+      "content": [
+        "使紫色石蕊试液变红可验证碳酸的存在"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:co2-water-reaction"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:co2-water-reaction"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:carbonic-acid"],
+  "properties": {}
+}

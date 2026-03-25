@@ -1,0 +1,40 @@
+{
+  "node_id": "concept:ignition-point",
+  "title": "着火点",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "着火点是可燃物燃烧所需的最低温度，是物质固有的属性。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "着火点是可燃物燃烧所需的最低温度。",
+        "物质的温度达到着火点是燃烧的必要条件之一。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-1:01"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "着火点是物质固有的属性，一般不随外界条件改变。",
+        "不同物质有着火点不同。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-1:01"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "着火点是燃烧三条件之一。",
+        "着火点是物质本身的属性。",
+        "不同可燃物有着火点差异。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-1:01"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-1:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

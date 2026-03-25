@@ -1,0 +1,47 @@
+{
+  "id": "node-card:representation__equation__chemical-equation",
+  "node_id": "representation/equation:chemical-equation",
+  "title": "化学方程式",
+  "pattern_refs": ["pattern:representation-form-v2"],
+  "summary": "化学方程式是用化学式来表示化学反应的式子，具有简洁、科学、国际通用的特点，是化学语言中表达化学反应的重要方式。",
+  "sections": [
+    {
+      "id": "representation-meaning",
+      "title": "表示含义",
+      "section_type": "definition",
+      "content": [
+        "化学方程式是用化学式来表示化学反应的式子。",
+        "相较于文字表达式，化学方程式不仅简洁，而且更科学，同时还具有国际通用性。",
+        "不同国家、使用不同语言文字的人们都可以理解，并用这种表示方法进行交流与合作。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:chemical-equation-definition"]
+    },
+    {
+      "id": "reading-rules",
+      "title": "读写规则",
+      "section_type": "procedure",
+      "content": [
+        "化学方程式用化学式表示反应物和生成物。",
+        "反应物写在箭头左边，生成物写在箭头右边。",
+        "反应条件标注在箭头上方。",
+        "例如：碳在氧气中燃烧可表示为 C + O₂ → CO₂（点燃条件）。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:chemical-equation-definition"]
+    },
+    {
+      "id": "connections",
+      "title": "关联对象",
+      "section_type": "comparison",
+      "content": [
+        "化学方程式是元素符号和化学式的综合应用。",
+        "化学方程式表示化学反应，与化学变化概念相关。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:chemical-equation-definition"],
+      "related_node_refs": ["representation/symbol:element-symbol", "representation/formula:chemical-formula", "concept:chemical-change"]
+    }
+  ],
+  "profile_refs": ["profile:representation-chemical-equation-junior-chem"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

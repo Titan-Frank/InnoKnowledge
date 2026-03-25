@@ -1,0 +1,41 @@
+{
+  "node_id": "concept:solubility-curve",
+  "title": "溶解度曲线",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "溶解度曲线是表示物质溶解度随温度变化的曲线图。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "溶解度曲线是以温度为横坐标、溶解度为纵坐标绘制的曲线。",
+        "曲线上的每一点表示某温度下该物质的溶解度。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-2:02"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "溶解度曲线直观反映物质溶解度随温度的变化规律。",
+        "不同物质的溶解度曲线形状不同，反映其溶解性特点。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-2:02"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "大多数固体物质的溶解度随温度升高而增大，如硝酸钾、硝酸钠等。",
+        "少数固体物质的溶解度受温度变化影响很小，如氯化钠。",
+        "极少数固体物质的溶解度随温度升高而减小，如氢氧化钙。",
+        "曲线交点表示两物质在该温度下溶解度相等。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-2:02"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-2:02"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

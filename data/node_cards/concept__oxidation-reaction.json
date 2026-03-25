@@ -1,0 +1,50 @@
+{
+  "node_id": "concept:oxidation-reaction",
+  "title": "氧化反应",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "物质与氧气发生的化学反应，是自然界中普遍存在和不断发生的一类反应。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "物质与氧气发生的化学反应，这类化学反应属于氧化反应。",
+        "在自然界中，普遍存在和不断发生着氧化反应。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxidation-reaction"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "氧化反应的核心特征是物质与氧气发生反应。",
+        "氧化反应是自然界中最基本的化学反应类型之一。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxidation-reaction"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "氧化反应的共同特点：物质与氧气发生反应",
+        "碳与氧气反应生成二氧化碳属于氧化反应",
+        "铁与氧气反应生成四氧化三铁属于氧化反应"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxidation-reaction"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "content": [
+        "碳 + 氧气 → 二氧化碳",
+        "铁 + 氧气 → 四氧化三铁",
+        "钢铁锈蚀",
+        "生物体内糖类与脂肪氧化分解"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxidation-reaction"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:oxidation-reaction"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:oxidation-reaction"],
+  "properties": {}
+}

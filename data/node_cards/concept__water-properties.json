@@ -1,0 +1,38 @@
+{
+  "node_id": "concept:water-properties",
+  "title": "水的物理性质",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "水是无色、无味、透明液体，沸点100℃，凝固点0℃。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "水的物理性质包括颜色、气味、状态、沸点、凝固点等。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-1-core"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "水的物理性质是水在不发生化学变化时表现出的性质。",
+        "是认识水这种物质的基础。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-1-core"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "无色、无味、透明液体",
+        "沸点：100℃",
+        "凝固点：0℃"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-1-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-1-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson3-1-1-1"],
+  "properties": {}
+}

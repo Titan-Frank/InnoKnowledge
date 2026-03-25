@@ -1,0 +1,20 @@
+{
+  "id": "node-card:entity__substance__air",
+  "node_id": "entity/substance:air",
+  "title": "空气",
+  "node_kind": "entity",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "空气是地球周围存在的无色、无气味的混合气体，主要由氮气、氧气、稀有气体、二氧化碳等成分组成，是动植物生存的必要条件和重要的自然资源。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:2-1-1:air-composition",
+    "evidence:chem-grade8-all-in-one:lesson:2-1-1:mixture-pure-substance"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

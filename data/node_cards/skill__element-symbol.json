@@ -1,0 +1,48 @@
+{
+  "node_id": "skill:element-symbol",
+  "title": "元素符号的读写",
+  "pattern_refs": ["pattern:skill-practice"],
+  "summary": "国际上统一规定采用每种元素拉丁文名称的首字母（大写）来表示元素，称为元素符号。",
+  "sections": [
+    {
+      "id": "skill-target",
+      "title": "技能目标",
+      "content": [
+        "认识元素符号的意义",
+        "能够正确读写常见元素符号"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"]
+    },
+    {
+      "id": "core-rules",
+      "title": "核心规则",
+      "content": [
+        "采用元素拉丁文名称的首字母（大写）表示",
+        "若首字母相同，则附加一个小写字母区分",
+        "元素符号表示一种元素，还可表示该元素的一个原子"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"]
+    },
+    {
+      "id": "practice-points",
+      "title": "练习重点",
+      "content": [
+        "熟记常见元素符号：H、O、C、N等",
+        "注意大小写规范：首字母大写，第二个字母小写"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"]
+    },
+    {
+      "id": "common-mistakes",
+      "title": "常见错误",
+      "content": [
+        "大小写混淆：如将 Co 写成 CO",
+        "符号记忆混淆"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-1-2-element-symbol"],
+  "properties": {}
+}

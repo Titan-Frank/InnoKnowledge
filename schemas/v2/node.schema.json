@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Canonical Knowledge Node V2",
+  "description": "Stable backbone node for the cross-disciplinary knowledge map.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "canonical_name",
+    "node_kind",
+    "aliases",
+    "definition",
+    "learning_modes",
+    "properties",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$",
+      "description": "Allows both legacy ids like concept:chemical-change and v2 ids like entity/substance:oxygen."
+    },
+    "canonical_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "node_kind": {
+      "type": "string",
+      "enum": [
+        "entity",
+        "concept",
+        "process",
+        "principle",
+        "method",
+        "skill",
+        "representation",
+        "activity",
+        "event",
+        "issue"
+      ]
+    },
+    "node_subkind": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "definition": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A concise definition that remains stable across textbooks."
+    },
+    "learning_modes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "factual",
+          "conceptual",
+          "procedural",
+          "metacognitive"
+        ]
+      }
+    },
+    "bridge_tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "system",
+          "structure",
+          "function",
+          "change",
+          "interaction",
+          "energy",
+          "matter",
+          "evidence",
+          "model",
+          "representation",
+          "measurement",
+          "classification",
+          "rule",
+          "scale",
+          "causality",
+          "uncertainty"
+        ]
+      }
+    },
+    "framework_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^framework:[a-z0-9:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "profile_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^profile:[a-z0-9:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "card_ref": {
+      "type": "string",
+      "pattern": "^node-card:[a-z0-9:-]+$"
+    },
+    "same_as_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9/_:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "properties": {
+      "type": "object"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "candidate",
+        "active",
+        "merged",
+        "deprecated"
+      ]
+    },
+    "deprecated_by": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

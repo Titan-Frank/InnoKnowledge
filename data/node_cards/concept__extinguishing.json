@@ -1,0 +1,42 @@
+{
+  "node_id": "concept:extinguishing",
+  "title": "灭火",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "灭火是通过控制燃烧条件使燃烧停止的方法。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "燃烧一旦失控，可以通过控制燃烧的条件，使燃烧停止。",
+        "灭火就是破坏燃烧的条件。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-2:01"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "灭火原理是破坏燃烧三条件中的任意一个。",
+        "不同火灾需要选择不同的灭火方法。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-2:01"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "阻止燃烧的方法有：",
+        "① 移走可燃物；",
+        "② 将氧气或空气与可燃物隔离；",
+        "③ 降低温度到着火点以下。",
+        "三种方法分别对应破坏燃烧的三个条件。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-2:01"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-2:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

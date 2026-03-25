@@ -1,0 +1,64 @@
+{
+  "id": "node-card:entity-substance-calcium-carbonate",
+  "node_id": "entity/substance:calcium-carbonate",
+  "title": "碳酸钙",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "碳酸钙是一种白色固体，化学式为CaCO3，是石灰石和大理石的主要成分。碳酸钙与稀盐酸反应可制取二氧化碳，是实验室制取二氧化碳的常用原料。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "碳酸钙是一种白色固体，化学式为CaCO3。",
+        "碳酸钙是纯净物，由钙、碳、氧三种元素组成。",
+        "碳酸钙是一种碳酸盐，属于盐类。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:2-1-3:co2-lab-preparation"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "物理性质：白色固体，难溶于水。",
+        "化学性质：与稀盐酸反应生成氯化钙、水和二氧化碳。",
+        "与盐酸反应方程式：CaCO3 + 2HCl → CaCl2 + H2O + CO2↑",
+        "高温分解生成氧化钙和二氧化碳：CaCO3 --高温--> CaO + CO2↑",
+        "天然存在：石灰石、大理石的主要成分。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:2-1-3:co2-lab-preparation"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "实验室制取二氧化碳的原料（石灰石或大理石）。",
+        "建筑材料（石灰石、大理石）。",
+        "工业上制取生石灰（氧化钙）的原料。",
+        "补钙剂的主要成分。",
+        "牙膏中的摩擦剂。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:2-1-3:co2-lab-preparation"]
+    },
+    {
+      "id": "tests",
+      "title": "检验与区分",
+      "section_type": "procedure",
+      "content": [
+        "碳酸盐的检验方法：滴加稀盐酸，产生使澄清石灰水变浑浊的气体（二氧化碳）。",
+        "碳酸钙与稀盐酸反应产生大量气泡。",
+        "实验室选用块状石灰石或大理石，便于反应控制。",
+        "不用粉末状碳酸钙的原因：反应太快，不便收集。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:2-1-3:co2-lab-preparation"]
+    }
+  ],
+  "framework_refs": ["framework:cn-chem-junior:expectation:d1df953d3e"],
+  "profile_refs": ["profile:entity-substance-calcium-carbonate-junior-chem"],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson:2-1-3:co2-lab-preparation"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T18:00:00+08:00"
+}

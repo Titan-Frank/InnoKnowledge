@@ -1,0 +1,19 @@
+{
+  "id": "node-card:concept__solubility",
+  "node_id": "concept:solubility",
+  "title": "溶解度",
+  "node_kind": "concept",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "溶解度表示在一定温度下，某固体物质在100g溶剂里达到饱和状态时所溶解的质量，单位是克。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade9-all-in-one:lesson:1-1-2:solubility"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

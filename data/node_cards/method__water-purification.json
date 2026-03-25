@@ -1,0 +1,42 @@
+{
+  "node_id": "method:water-purification",
+  "title": "水的净化方法",
+  "pattern_refs": ["pattern:method-playbook"],
+  "summary": "包括吸附、沉降、过滤、蒸馏等方法。",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "用途",
+      "content": [
+        "净化水",
+        "去除水中的杂质"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-2-core"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "content": [
+        "吸附：去除水中的色素和异味",
+        "沉降：使不溶性杂质沉淀",
+        "过滤：分离液体和不溶性固体",
+        "蒸馏：分离沸点不同的液体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-2-core"]
+    },
+    {
+      "id": "steps",
+      "title": "操作要点",
+      "content": [
+        "吸附：加入活性炭吸附杂质",
+        "沉降：静置使杂质沉淀",
+        "过滤：使用过滤装置分离",
+        "蒸馏：加热使水蒸发后冷凝收集"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-2-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-2-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson3-1-2-1"],
+  "properties": {}
+}

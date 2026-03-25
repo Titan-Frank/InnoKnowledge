@@ -1,0 +1,39 @@
+{
+  "id": "node-card:entity__substance__carbonic-acid",
+  "node_id": "entity/substance:carbonic-acid",
+  "pattern_ref": "pattern:entity-profile-v2",
+  "title": "碳酸",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "碳酸是二氧化碳与水反应生成的弱酸，化学式为H₂CO₃，是一种不稳定的二元弱酸。"
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": "化学式：H₂CO₃\n酸性强弱：弱酸\n稳定性：不稳定，易分解\n形成方式：CO₂ + H₂O → H₂CO₃"
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": "碳酸存在于碳酸饮料中。在自然界中，雨水溶解空气中的二氧化碳形成稀碳酸，参与岩石的风化过程。"
+    },
+    {
+      "id": "tests",
+      "title": "检验与区分",
+      "section_type": "procedure",
+      "content": "碳酸能使紫色石蕊试液变红。加热碳酸溶液，碳酸分解产生二氧化碳气体，红色褪去。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:2-1-2:co2-properties"
+  ],
+  "properties": {},
+  "status": "active",
+  "created_at": "2026-03-25T16:00:00+08:00",
+  "updated_at": "2026-03-25T16:00:00+08:00"
+}

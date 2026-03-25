@@ -1,0 +1,19 @@
+{
+  "id": "node-card:concept__atomic-structure",
+  "node_id": "concept:atomic-structure",
+  "title": "原子结构",
+  "node_kind": "concept",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "原子结构是指原子的内部组成，原子由原子核和核外电子构成，原子核由质子和中子构成。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-2-1:atomic-structure"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

@@ -1,0 +1,49 @@
+{
+  "node_id": "experiment:prepare-oxygen",
+  "title": "实验室制取氧气",
+  "pattern_refs": ["pattern:experiment-procedure"],
+  "summary": "用分解过氧化氢或加热高锰酸钾的方法制取氧气。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "实验目的",
+      "content": [
+        "学习实验室制取氧气的方法",
+        "掌握气体制取的基本操作"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson2-1-3-core"]
+    },
+    {
+      "id": "principle",
+      "title": "实验原理",
+      "content": [
+        "过氧化氢在二氧化锰催化下分解产生氧气",
+        "高锰酸钾加热分解产生氧气"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson2-1-3-core"]
+    },
+    {
+      "id": "materials",
+      "title": "试剂与仪器",
+      "content": [
+        "试剂：过氧化氢、二氧化锰、高锰酸钾",
+        "仪器：试管、酒精灯、集气瓶、导管"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson2-1-3-core"]
+    },
+    {
+      "id": "procedure",
+      "title": "基本步骤",
+      "content": [
+        "组装仪器，检查气密性",
+        "加入试剂",
+        "收集气体",
+        "验满"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson2-1-3-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson2-1-3-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson2-1-3-0"],
+  "properties": {}
+}

@@ -1,0 +1,20 @@
+{
+  "id": "node-card:entity__substance__red-phosphorus",
+  "node_id": "entity/substance:red-phosphorus",
+  "title": "红磷",
+  "node_kind": "entity",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "红磷是一种暗红色粉末状固体，着火点较低，能在空气中燃烧生成五氧化二磷，常用于测定空气中氧气含量的实验。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:2-1-1:red-phosphorus-reaction",
+    "evidence:chem-grade8-all-in-one:lesson:2-1-1:exp-oxygen-measurement"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

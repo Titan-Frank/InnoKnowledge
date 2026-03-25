@@ -1,0 +1,43 @@
+{
+  "node_id": "concept:solution",
+  "title": "溶液",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "溶液是由溶质和溶剂组成的均一、稳定的混合物。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "溶液是由溶质和溶剂组成的。",
+        "溶液具有均一性和稳定性。",
+        "溶质是被溶解的物质。",
+        "溶剂是能溶解其他物质的物质。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-1:01"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "溶液是一种特殊的混合物，其中溶质以分子或离子形式分散在溶剂中。",
+        "溶液的形成过程涉及物质的溶解和分散。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-1:01"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "溶液由溶质和溶剂两部分组成。",
+        "溶液具有均一性：各部分性质相同。",
+        "溶液具有稳定性：静置后不分层。",
+        "水是最常用的溶剂。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-1:01"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-1:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

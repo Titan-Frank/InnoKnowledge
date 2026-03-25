@@ -1,0 +1,35 @@
+{
+  "id": "node-card:representation__diagram__atomic-structure",
+  "node_id": "representation/diagram:atomic-structure",
+  "pattern_ref": "pattern:representation-form-v2",
+  "sections": [
+    {
+      "id": "meaning",
+      "title": "表示含义",
+      "section_type": "definition",
+      "content": "原子结构示意图是用简明方式表示原子核外电子分层排布的图示方法。图中用圆圈表示电子层，圈内数字表示原子核内的质子数（核电荷数），圆圈上的数字表示该层电子数。",
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-1:electron-shell"]
+    },
+    {
+      "id": "reading-rules",
+      "title": "读写规则",
+      "section_type": "procedure",
+      "content": "1. 圆圈内数字表示质子数；2. 圆圈表示电子层，由内向外依次为第一层、第二层等；3. 圆圈上的数字表示该层电子数；4. 最外层电子数通常写在小圆圈内或旁边。例如氧原子结构示意图：+8(2,6)表示质子数为8，第一层2个电子，第二层6个电子。",
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-1:electron-shell"]
+    },
+    {
+      "id": "connections",
+      "title": "关联对象",
+      "section_type": "comparison",
+      "content": "原子结构示意图表示原子的核外电子排布，可以用来判断原子种类、原子得失电子的倾向、以及形成离子的类型。例如钠原子(+11, 2,8,1)容易失去1个电子形成钠离子，氯原子(+17, 2,8,7)容易得到1个电子形成氯离子。",
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-1:electron-shell", "evidence:chem-grade8-all-in-one:lesson:3-2-1:ion-formation"]
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-2-1:electron-shell",
+    "evidence:chem-grade8-all-in-one:lesson:3-2-1:ion-formation"
+  ],
+  "status": "active",
+  "created_at": "2026-03-25T16:00:00+08:00",
+  "updated_at": "2026-03-25T16:00:00+08:00"
+}

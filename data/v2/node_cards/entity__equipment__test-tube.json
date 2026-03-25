@@ -1,0 +1,17 @@
+{
+  "id": "node-card:entity__equipment__test-tube",
+  "node_id": "entity/equipment:test-tube",
+  "title": "试管",
+  "node_kind": "entity",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "试管是化学实验中最常用的仪器之一，用于少量试剂的反应容器，可直接加热。"
+    }
+  ],
+  "source_refs": [],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

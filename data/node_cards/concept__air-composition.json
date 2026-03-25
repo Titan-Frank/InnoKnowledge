@@ -1,0 +1,37 @@
+{
+  "node_id": "concept:air-composition",
+  "title": "空气的组成",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "按体积计算，空气中大约含有氮气 78%、氧气 21%、其他物质 1%（稀有气体 0.94%、二氧化碳 0.03%、其他气体和杂质 0.03%）。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "按体积计算，空气中大约含有氮气 78%、氧气 21%、其他物质 1%（稀有气体 0.94%、二氧化碳 0.03%、其他气体和杂质 0.03%）。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-3"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "空气是由多种气体组成的混合物，其中氮气和氧气是主要成分，占总体积的 99%。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-3"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "氮气占空气体积的 78%",
+        "氧气占空气体积的 21%",
+        "稀有气体、二氧化碳和其他杂质共占约 1%"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-3"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-3"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:air-composition"],
+  "properties": {}
+}

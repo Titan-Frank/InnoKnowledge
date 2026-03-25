@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Curriculum Profile V2",
+  "description": "Stage-, subject-, and curriculum-specific projection of a canonical knowledge node.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "node_id",
+    "subject",
+    "school_stage",
+    "grade_band",
+    "curriculum_role",
+    "mastery_level",
+    "framework_refs",
+    "learning_objectives",
+    "properties",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^profile:[a-z0-9:-]+$"
+    },
+    "node_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$"
+    },
+    "subject": {
+      "type": "string",
+      "minLength": 1
+    },
+    "school_stage": {
+      "type": "string",
+      "enum": [
+        "primary",
+        "junior_secondary",
+        "senior_secondary",
+        "higher",
+        "cross_stage"
+      ]
+    },
+    "grade_band": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Examples: 1-2, 3-4, 7-9, 10-12."
+    },
+    "curriculum_role": {
+      "type": "string",
+      "enum": [
+        "introduced",
+        "reinforced",
+        "developed",
+        "integrated",
+        "transferred",
+        "assessed"
+      ]
+    },
+    "mastery_level": {
+      "type": "string",
+      "enum": [
+        "aware",
+        "identify",
+        "understand",
+        "apply",
+        "analyze",
+        "model",
+        "transfer",
+        "evaluate",
+        "create"
+      ]
+    },
+    "framework_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^framework:[a-z0-9:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "textbook_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^struct:[a-z0-9:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "textbook_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "learning_objectives": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "assessment_signals": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^evidence:[a-z0-9:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "properties": {
+      "type": "object"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "reviewed",
+        "validated"
+      ]
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

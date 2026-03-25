@@ -1,0 +1,39 @@
+{
+  "id": "node-card:concept__oxygen-cycle",
+  "node_id": "concept:oxygen-cycle",
+  "pattern_ref": "pattern:concept-core-v2",
+  "title": "氧循环",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "氧循环是指氧气在自然界中通过生物呼吸、燃烧、光合作用等过程不断循环的过程，是维持生态平衡的重要机制。"
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": "氧循环体现了自然界物质循环的基本规律。氧气作为生物呼吸必需的物质和燃烧反应的重要参与者，在自然界中通过光合作用不断产生，通过呼吸作用和燃烧不断消耗，形成一个动态平衡的循环系统。"
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": "1. 氧气的主要来源：植物光合作用\n2. 氧气的主要消耗：生物呼吸、物质燃烧\n3. 氧循环维持大气中氧气含量的相对稳定\n4. 氧循环与碳循环相互关联、相互影响"
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": "白天植物进行光合作用释放氧气，动物呼吸消耗氧气；森林火灾消耗大量氧气，植物恢复后通过光合作用补充氧气。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:2-1-2:oxygen-carbon-cycle"
+  ],
+  "properties": {},
+  "status": "active",
+  "created_at": "2026-03-25T16:00:00+08:00",
+  "updated_at": "2026-03-25T16:00:00+08:00"
+}

@@ -1,0 +1,35 @@
+{
+  "id": "node-card:concept__electron-shell",
+  "node_id": "concept:electron-shell",
+  "pattern_ref": "pattern:concept-core-v2",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "电子层是原子核外电子运动区域的分层表示。电子在离核远近不同的区域运动，科学家将其简化为分层排布。离核最近的电子层称为第一层，其余由近及远依次为第二、三、四、五、六、七电子层，离核最远的常称为最外层。",
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-1:electron-shell"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": "电子层模型是将电子在核外复杂的三维运动简化为分层表示的方法。这种简化有助于理解原子的化学性质。最外层电子数决定了原子的化学性质和化学反应行为。",
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-1:electron-shell"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": "1. 电子层分为第一至第七层；2. 最外层电子数不超过8个（只有一层时不超过2个）；3. 最外层电子数决定原子的化学性质；4. 可用原子结构示意图表示电子层排布。",
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-1:electron-shell", "evidence:chem-grade8-all-in-one:lesson:3-2-1:stable-structure"]
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-2-1:electron-shell",
+    "evidence:chem-grade8-all-in-one:lesson:3-2-1:stable-structure"
+  ],
+  "status": "active",
+  "created_at": "2026-03-25T16:00:00+08:00",
+  "updated_at": "2026-03-25T16:00:00+08:00"
+}

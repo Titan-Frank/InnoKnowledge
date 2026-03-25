@@ -1,0 +1,61 @@
+{
+  "id": "node-card:concept-states-of-matter",
+  "node_id": "concept:states-of-matter",
+  "title": "物质的三态",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "物质通常有三种存在状态：固态、液态和气态。物质的三态变化是由于温度变化导致分子能量、运动速率和分子间间隔发生改变的结果，是物理变化。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "物质通常有三种存在状态：固态、液态和气态。",
+        "物质的三态变化是物理变化，没有生成新物质。",
+        "三态变化的本质是分子间隔和分子排列方式的改变。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-1:water-three-states"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "物质三态变化的微观本质是分子能量、运动速率和分子间间隔的改变。",
+        "水分子在三态变化中大小和数目不变，只是排列方式和间隔改变。",
+        "分子排列从有序逐渐变为无序，或从无序逐渐变为有序。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-1:water-three-states"],
+      "related_node_refs": ["entity/particle:molecule"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "固态：分子排列有序，分子间间隔小，分子只能在固定位置振动",
+        "液态：分子排列较无序，分子间间隔较大，分子可以自由移动",
+        "气态：分子排列无序，分子间间隔很大，分子高速运动",
+        "温度升高时，分子能量增大、运动速率加快、分子间间隔增大"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-1:water-three-states"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": [
+        "水的三态：固态（冰）、液态（水）、气态（水蒸气）",
+        "冰融化为水、水蒸发为水蒸气都是物理变化",
+        "冬天自来水管结冰膨胀爆裂说明水分子间隔增大"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-1:water-three-states"],
+      "related_node_refs": ["entity/substance:water"]
+    }
+  ],
+  "profile_refs": ["profile:concept-states-of-matter-junior-chem"],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-1:water-three-states"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T20:00:00+08:00"
+}

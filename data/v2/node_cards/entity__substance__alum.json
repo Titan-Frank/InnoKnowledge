@@ -1,0 +1,36 @@
+{
+  "id": "node-card:entity__substance__alum",
+  "node_id": "entity/substance:alum",
+  "pattern_ref": "pattern:entity-profile-v2",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "明矾是一种常用的净水剂，化学式为KAl(SO4)2·12H2O（十二水合硫酸铝钾）。它是无色透明或白色的晶体，溶于水后可形成胶体。"
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": "化学式：KAl(SO4)2·12H2O。外观：无色透明或白色晶体。溶解性：易溶于水。特性：溶于水后形成氢氧化铝胶体，具有吸附悬浮物的能力。"
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": "净水剂：使水中微小悬浮物聚集沉降，达到净水目的。食品加工：传统食品添加剂（现已较少使用）。医药用途：收敛剂、止血剂。工业应用：造纸、印染、涂料工业。"
+    },
+    {
+      "id": "tests",
+      "title": "检验与区分",
+      "section_type": "procedure",
+      "content": "明矾净水原理：明矾溶于水后，铝离子与水反应生成氢氧化铝胶体。氢氧化铝胶体表面积大，吸附能力强，能吸附水中悬浮物使其聚集成大颗粒而沉降。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-1-2:tap-water-production"
+  ],
+  "created_at": "2026-03-25T22:00:00+08:00",
+  "updated_at": "2026-03-25T22:00:00+08:00"
+}

@@ -1,0 +1,57 @@
+{
+  "id": "node-card:method-filtration",
+  "node_id": "method:filtration",
+  "title": "过滤操作",
+  "pattern_refs": ["pattern:method-procedure-v2"],
+  "summary": "过滤是分离固体和液体的常用方法，通过滤纸将不溶性固体与液体分离，需遵循一贴二低三靠的操作规范。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": [
+        "过滤是一种分离固体和液体的常用方法。",
+        "用于分离液体中不溶性的固体杂质。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:filtration"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "section_type": "assessment",
+      "content": [
+        "适用于分离不溶性固体和液体的混合物",
+        "常用于去除溶液中的难溶性杂质"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:filtration"]
+    },
+    {
+      "id": "steps",
+      "title": "操作步骤",
+      "section_type": "procedure",
+      "content": [
+        "1. 制作过滤器：取圆形滤纸，先对折再对折，展开成圆锥形后放入漏斗中，用水湿润滤纸使其紧贴漏斗内壁",
+        "2. 搭建装置：将漏斗放在铁架台的铁圈上，漏斗颈末端紧靠烧杯内壁",
+        "3. 过滤：将待过滤的液体沿玻璃棒缓缓倒入漏斗中，玻璃棒轻靠在三层滤纸一侧",
+        "4. 观察：难溶性杂质残留在滤纸上，滤液流入烧杯"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:filtration"]
+    },
+    {
+      "id": "errors",
+      "title": "操作要点（一贴二低三靠）",
+      "section_type": "key_points",
+      "content": [
+        "一贴：滤纸紧贴漏斗内壁",
+        "二低：液面低于滤纸边缘、滤纸边缘低于漏斗边缘",
+        "三靠：玻璃棒靠在三层滤纸一侧、烧杯靠在玻璃棒上、漏斗颈末端紧靠烧杯内壁"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:filtration"]
+    }
+  ],
+  "profile_refs": ["profile:method-filtration-junior-chem"],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:filtration"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T12:00:00+08:00"
+}

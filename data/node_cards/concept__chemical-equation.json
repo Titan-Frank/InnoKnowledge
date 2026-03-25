@@ -1,0 +1,38 @@
+{
+  "node_id": "concept:chemical-equation",
+  "title": "化学方程式",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "用化学式表示化学反应的式子。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "用化学式表示化学反应的式子叫做化学方程式。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-2-core"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "化学方程式是化学语言的书面表达。",
+        "能表示反应物、生成物和反应条件。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-2-core"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "用化学式表示化学反应",
+        "必须遵守质量守恒定律",
+        "包含反应物、生成物、反应条件等信息"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-2-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-2-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson4-1-2-0"],
+  "properties": {}
+}

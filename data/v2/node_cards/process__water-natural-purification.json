@@ -1,0 +1,36 @@
+{
+  "id": "node-card:process__water-natural-purification",
+  "node_id": "process:water-natural-purification",
+  "pattern_ref": "pattern:process-flow-v2",
+  "sections": [
+    {
+      "id": "process-description",
+      "title": "过程描述",
+      "section_type": "definition",
+      "content": "水的自然净化是水在循环过程中，通过物理、化学和生物作用不断去除污浊和杂质，保持水体洁净的过程。这是水体自我恢复的重要机制。"
+    },
+    {
+      "id": "inputs-outputs",
+      "title": "输入与输出",
+      "section_type": "structure",
+      "content": "输入：含有污染物的水体、溶解氧、微生物。输出：净化后的水体、沉积物、降解产物。净化后污染物浓度降低，水体恢复到受污染前的状态。"
+    },
+    {
+      "id": "conditions",
+      "title": "条件与影响因素",
+      "section_type": "key_points",
+      "content": "净化途径：稀释、挥发、过滤、沉淀、吸附、氧化、分解、微生物降解。关键条件：充足的溶解氧、适宜的微生物群落、足够的净化时间和空间。限制因素：水体自净能力有限，污染物超过自净能力会导致水体污染。"
+    },
+    {
+      "id": "phenomena",
+      "title": "典型现象",
+      "section_type": "example",
+      "content": "自然现象：河流自净、湿地净化、地下水过滤。生物作用：微生物分解有机物、藻类光合作用产氧。化学作用：氧化还原反应、沉淀反应。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-1-2:water-natural-purification"
+  ],
+  "created_at": "2026-03-25T22:00:00+08:00",
+  "updated_at": "2026-03-25T22:00:00+08:00"
+}

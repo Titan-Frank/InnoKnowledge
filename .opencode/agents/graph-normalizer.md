@@ -1,5 +1,5 @@
 ---
-description: Normalizes graph outputs for one textbook by deduplicating aliases and consolidating duplicate relations.
+description: Normalizes shared V2 graph outputs by deduplicating aliases, consolidating duplicate relations, and preserving provenance links.
 mode: subagent
 ---
 
@@ -13,7 +13,15 @@ Before normalizing:
 
 Rules:
 
-- Normalize the canonical graph first and preserve book-local mentions.
+- Normalize the canonical graph first, then curriculum profiles, and preserve book-local mentions.
 - Preserve all provenance references.
 - Prefer alias merging over semantic guessing.
 - Keep output schema-valid.
+
+Write targets:
+
+- `data/v2/graph/knowledge.nodes.jsonl`
+- `data/v2/graph/knowledge.edges.jsonl`
+- `data/v2/profiles/knowledge.profiles.jsonl`
+- `data/v2/graph/<book-id>.mentions.jsonl` when target ids change
+- `data/v2/node_cards/<safe-node-id>.json` when canonical node ids change

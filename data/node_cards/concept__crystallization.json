@@ -1,0 +1,40 @@
+{
+  "node_id": "concept:crystallization",
+  "title": "结晶",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "结晶是从溶液中析出晶体的过程，常用方法有蒸发结晶和降温结晶。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "结晶是指溶质从溶液中析出形成晶体的过程。",
+        "常见的结晶方法包括蒸发结晶和降温结晶。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-2:03"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "结晶是溶解的逆过程。",
+        "结晶方法的选择取决于物质的溶解度随温度的变化特点。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-2:03"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "蒸发结晶：通过蒸发使溶剂不断减少，直至形成饱和溶液，继而析出晶体。",
+        "降温结晶：对于溶解度受温度影响较大的物质，可采用冷却热饱和溶液的方法使溶质结晶析出。",
+        "分离溶解度差异较大的混合物可利用结晶法。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-2:03"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-2:03"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

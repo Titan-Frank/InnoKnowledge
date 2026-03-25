@@ -1,0 +1,40 @@
+{
+  "node_id": "concept:acid-base-indicator",
+  "title": "酸碱指示剂",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "酸碱指示剂是能跟酸或碱的溶液起作用而显示不同颜色的物质，常用于检验溶液的酸碱性。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "酸碱指示剂是能跟酸或碱的溶液起作用而显示不同颜色的物质。",
+        "常见的酸碱指示剂有石蕊试液和酚酞试液。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-1:01"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "酸碱指示剂是检验溶液酸碱性的简便方法。",
+        "指示剂的颜色变化反映了溶液的酸碱性。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-1:01"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "紫色石蕊试液遇酸溶液变成红色，遇碱溶液变成蓝色，遇中性溶液不变色。",
+        "无色酚酞试液遇碱溶液变成红色，遇酸溶液和中性溶液不变色。",
+        "指示剂可用于判断溶液的酸碱性。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-1:01"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-1:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

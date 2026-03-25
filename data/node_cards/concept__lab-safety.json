@@ -1,0 +1,38 @@
+{
+  "node_id": "concept:lab-safety",
+  "title": "实验室安全",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "化学实验室安全规则和注意事项，是进行化学实验的前提和保障。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "化学实验室安全规则和注意事项。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "实验室安全是进行化学实验的前提和保障。",
+        "遵守安全规则是化学学习的基本要求。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "遵守实验室安全规则",
+        "了解化学药品的危险性",
+        "正确使用实验仪器"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-2-1-0"],
+  "properties": {}
+}

@@ -1,0 +1,73 @@
+{
+  "id": "node-card:activity-experiment-oxygen-lab-preparation",
+  "node_id": "activity/experiment:oxygen-lab-preparation",
+  "title": "实验室制取氧气实验",
+  "pattern_refs": ["pattern:activity-task-v2"],
+  "summary": "实验室制取氧气是初中化学必做实验之一，主要包括加热高锰酸钾分解法、过氧化氢分解法和加热氯酸钾分解法三种方法。通过该实验学习气体制取的基本操作技能和实验思路。",
+  "sections": [
+    {
+      "id": "activity-goal",
+      "title": "活动目标",
+      "section_type": "definition",
+      "content": [
+        "掌握实验室制取氧气的三种方法及其原理。",
+        "学会使用排水法和向上排空气法收集氧气。",
+        "理解催化剂在化学反应中的作用。",
+        "养成规范的实验操作习惯和安全意识。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:2-1-3:potassium-permanganate-decomposition", "evidence:chem-grade8-all-in-one:lesson:2-1-3:gas-collection-methods"]
+    },
+    {
+      "id": "setup",
+      "title": "材料与条件",
+      "section_type": "structure",
+      "content": [
+        "方法一（加热高锰酸钾）：高锰酸钾、试管、酒精灯、集气瓶、水槽、导管、玻璃棉。",
+        "方法二（过氧化氢分解）：过氧化氢溶液、二氧化锰、锥形瓶、长颈漏斗、导管、集气瓶。",
+        "方法三（加热氯酸钾）：氯酸钾、二氧化锰、试管、酒精灯、导管、集气瓶。",
+        "反应条件：方法一和方法三需要加热，方法二常温下进行。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:2-1-3:potassium-permanganate-decomposition", "evidence:chem-grade8-all-in-one:lesson:2-1-3:potassium-chlorate-decomposition"]
+    },
+    {
+      "id": "procedure",
+      "title": "实施过程",
+      "section_type": "procedure",
+      "content": [
+        "加热高锰酸钾制取氧气步骤：",
+        "(1) 在试管中加入少量高锰酸钾，试管口放一团玻璃棉防止粉末进入导管。",
+        "(2) 按从下到上、从左到右的顺序搭建装置，准备好盛满水的集气瓶。",
+        "(3) 点燃酒精灯，先预热试管，再集中加热高锰酸钾。",
+        "(4) 待导管口出现稳定气流后，将导管伸入集气瓶开始收集。",
+        "(5) 集气瓶水排完后，用玻璃片盖住瓶口取出集气瓶。",
+        "(6) 先将导管移出水槽，再熄灭酒精灯（防止水倒吸入试管）。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:2-1-3:potassium-permanganate-decomposition"]
+    },
+    {
+      "id": "observations",
+      "title": "关键观察",
+      "section_type": "evidence",
+      "content": [
+        "高锰酸钾为暗紫色固体，加热后分解产生氧气。",
+        "用排水法收集时，集气瓶中的水被排出，说明产生了气体。",
+        "用带火星的木条检验，木条复燃，证明收集的是氧气。",
+        "氯酸钾分解时，二氧化锰在反应前后质量和性质不变，体现了催化剂的特点。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:2-1-3:potassium-permanganate-decomposition"]
+    }
+  ],
+  "framework_refs": ["framework:cn-chem-junior:expectation:716707a198", "framework:cn-chem-junior:expectation:d1df953d3e"],
+  "profile_refs": ["profile:activity-experiment-oxygen-lab-preparation-junior-chem"],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:2-1-3:potassium-permanganate-decomposition",
+    "evidence:chem-grade8-all-in-one:lesson:2-1-3:potassium-chlorate-decomposition",
+    "evidence:chem-grade8-all-in-one:lesson:2-1-3:catalyst-definition",
+    "evidence:chem-grade8-all-in-one:lesson:2-1-3:gas-collection-methods"
+  ],
+  "properties": {
+    "student_required_experiment": true
+  },
+  "status": "reviewed",
+  "updated_at": "2026-03-25T18:00:00+08:00"
+}

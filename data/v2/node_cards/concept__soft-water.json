@@ -1,0 +1,36 @@
+{
+  "id": "node-card:concept__soft-water",
+  "node_id": "concept:soft-water",
+  "pattern_ref": "pattern:concept-core-v2",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "软水是指不含或含较少可溶性含钙元素或镁元素物质的水。与硬水相对，软水中钙、镁离子含量低。"
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": "软水的本质是水中钙、镁离子含量低。软水不形成水垢，洗涤效果好，是生活和工业用水的理想选择。"
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": "1. 软水不含或含较少钙、镁离子；2. 软水不形成水垢；3. 软水洗涤效果好；4. 软水可通过硬水软化得到。"
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": "蒸馏水是典型的软水。雨水是软水。经过软化处理的自来水是软水。离子交换树脂处理后的水是软水。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-1-2:hard-soft-water"
+  ],
+  "created_at": "2026-03-25T22:00:00+08:00",
+  "updated_at": "2026-03-25T22:00:00+08:00"
+}

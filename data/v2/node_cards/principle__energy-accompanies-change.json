@@ -1,0 +1,37 @@
+{
+  "id": "node-card:principle__energy-accompanies-change",
+  "node_id": "principle:energy-accompanies-change",
+  "title": "化学变化伴随能量变化",
+  "node_kind": "principle",
+  "sections": [
+    {
+      "id": "statement",
+      "title": "核心表述",
+      "section_type": "definition",
+      "content": "物质发生化学变化时不但生成新物质，还会伴随着能量的变化。"
+    },
+    {
+      "id": "meaning",
+      "title": "含义理解",
+      "section_type": "essence",
+      "content": "化学变化中能量的释放或吸收是化学反应的重要特征，能量变化通常表现为热量、电能和光能。"
+    },
+    {
+      "id": "applications",
+      "title": "应用场景",
+      "section_type": "application",
+      "content": "① 汽油、天然气等燃料通过化学反应释放能量供使用；② 绿色植物通过光合作用将太阳能储存起来；③ 人体通过食物、氧气、水等的化学反应获得能量。"
+    },
+    {
+      "id": "limits",
+      "title": "适用边界",
+      "section_type": "assessment",
+      "content": "能量变化的形式和大小取决于具体的化学反应。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:1-1-1:energy-change"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T12:00:00+08:00"
+}

@@ -1,0 +1,57 @@
+{
+  "id": "node-card:entity-equipment-electronic-balance",
+  "node_id": "entity/equipment:electronic-balance",
+  "title": "电子天平",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "电子天平是用于称量固体质量的精密仪器，初中化学实验常用分度值为0.1g的电子天平，称量时需在秤盘上放置称量纸。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "电子天平是一种用于称量固体质量的精密仪器。",
+        "初中化学实验常用分度值为0.1g的电子天平。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:electronic-balance"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "分度值：常用0.1g",
+        "功能：称量固体质量",
+        "特点：操作简便、读数直观"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:electronic-balance"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "称量固体试剂的质量",
+        "定量实验中精确称取试剂"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:electronic-balance"]
+    },
+    {
+      "id": "tests",
+      "title": "使用注意事项",
+      "section_type": "procedure",
+      "content": [
+        "称量时需在秤盘上放置称量纸，不可将固体直接放在秤盘上",
+        "具有腐蚀性、潮湿或易潮解的固体应放在烧杯或表面皿内称量",
+        "过冷或过热的物体应放置至室温后再称量",
+        "使用前应检查是否水平放置，使用完毕后关闭电源"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:electronic-balance"]
+    }
+  ],
+  "profile_refs": ["profile:entity-equipment-electronic-balance-junior-chem"],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:electronic-balance"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T12:00:00+08:00"
+}

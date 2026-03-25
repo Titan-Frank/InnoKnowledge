@@ -8,9 +8,9 @@ Use `$knowledge-schema`.
 Before expanding:
 
 1. Read `AGENTS.md`.
-2. Read `schemas/node-card.schema.json`.
-3. Read `schemas/node.schema.json`, `schemas/mention.schema.json`, and `schemas/evidence.schema.json`.
-4. Read `data/patterns/junior-chemistry-patterns.json`.
+2. Read `schemas/v2/node-card.schema.json`.
+3. Read `schemas/v2/node.schema.json`, `schemas/v2/curriculum-profile.schema.json`, `schemas/v2/mention.schema.json`, and `schemas/v2/evidence.schema.json`.
+4. Read `data/patterns/unified-knowledge-patterns.v2.json`.
 5. Read `.opencode/skills/knowledge-schema/references/node-card-usage.md`.
 6. Read `.opencode/skills/knowledge-schema/references/schema-guide.md`.
 
@@ -25,8 +25,8 @@ Execution rules:
 
 Write target:
 
-- `data/node_cards/<safe-node-id>.json`
+- `data/v2/node_cards/<safe-node-id>.json`
 
 Where:
 
-- `safe-node-id = node_id.replace(":", "__")`
+- `safe-node-id = node_id.replace(":", "__").replace("/", "__")`

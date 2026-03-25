@@ -1,0 +1,38 @@
+{
+  "node_id": "substance:rare-gases",
+  "title": "稀有气体",
+  "pattern_refs": ["pattern:substance-profile"],
+  "summary": "稀有气体是空气的组成成分之一，约占空气体积的 0.94%。稀有气体一般不与其他物质反应，曾被称'惰性气体'，在通电时能发出不同颜色的光。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "content": [
+        "稀有气体是空气的组成成分，按体积计算约占空气的 0.94%",
+        "稀有气体一般不与其他物质反应，曾被称为'惰性气体'"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-3", "evidence:chem-grade8-all-in-one:air-composition-5"]
+    },
+    {
+      "id": "properties",
+      "title": "主要性质",
+      "content": [
+        "化学性质：一般不与其他物质反应",
+        "物理性质：在通电时能发出不同颜色的光"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-5"]
+    },
+    {
+      "id": "applications",
+      "title": "用途与应用",
+      "content": [
+        "用作保护气：如焊接金属时用以隔绝空气",
+        "制成多种用途的电光源：如氙气灯"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-5"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-3", "evidence:chem-grade8-all-in-one:air-composition-5"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:rare-gases"],
+  "properties": {}
+}

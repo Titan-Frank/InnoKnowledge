@@ -1,0 +1,20 @@
+{
+  "id": "node-card:entity__substance__oxygen",
+  "node_id": "entity/substance:oxygen",
+  "title": "氧气",
+  "node_kind": "entity",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "氧气是一种无色、无气味的气体，不易溶于水，密度略大于空气，化学性质较活泼，能支持燃烧和供给呼吸，是空气的重要成分（约占21%）。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:2-1-1:air-composition",
+    "evidence:chem-grade8-all-in-one:lesson:2-1-1:exp-oxygen-measurement"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

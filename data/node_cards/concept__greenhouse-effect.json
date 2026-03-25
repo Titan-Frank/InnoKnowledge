@@ -1,0 +1,39 @@
+{
+  "node_id": "concept:greenhouse-effect",
+  "title": "温室效应",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "大气中二氧化碳含量持续上升导致的环境现象，引发全球变暖和一系列环境问题。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "大气中二氧化碳含量持续上升导致的环境现象。",
+        "引发全球变暖和一系列环境问题。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-carbon-cycle"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "碳循环的平衡被打破是温室效应加剧的重要原因。",
+        "与二氧化碳排放密切相关。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-carbon-cycle"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "二氧化碳含量持续上升是主要原因",
+        "引发全球变暖等环境问题",
+        "应对措施：低碳生活、低碳经济"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-carbon-cycle"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-carbon-cycle"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:greenhouse-effect"],
+  "properties": {}
+}

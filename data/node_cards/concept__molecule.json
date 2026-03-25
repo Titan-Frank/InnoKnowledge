@@ -1,0 +1,38 @@
+{
+  "node_id": "concept:molecule",
+  "title": "分子",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "保持物质化学性质的最小粒子。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "分子是保持物质化学性质的最小粒子。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-2-1-core"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "分子是构成物质的一种微观粒子。",
+        "分子很小，肉眼不可见，但真实存在。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-2-1-core"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "分子是保持物质化学性质的最小粒子",
+        "分子由原子构成",
+        "分子在不断地运动"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-2-1-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-2-1-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson3-2-1-0"],
+  "properties": {}
+}

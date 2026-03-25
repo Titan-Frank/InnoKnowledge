@@ -1,0 +1,19 @@
+{
+  "id": "node-card:entity__substance__phosphorus-pentoxide",
+  "node_id": "entity/substance:phosphorus-pentoxide",
+  "title": "五氧化二磷",
+  "node_kind": "entity",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "五氧化二磷是红磷在氧气中燃烧生成的白色固体，化学式为P2O5。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:2-1-1:red-phosphorus-reaction"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

@@ -1,0 +1,58 @@
+{
+  "id": "node-card:entity-equipment-reagent-bottle",
+  "node_id": "entity/equipment:reagent-bottle",
+  "title": "试剂瓶",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "试剂瓶是用于存放化学试剂的容器，固体试剂存放于广口瓶中，液体试剂存放于细口瓶中，临时使用少量液体试剂常用滴瓶存放。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "试剂瓶是用于存放化学试剂的容器。",
+        "根据试剂的状态选择不同类型的试剂瓶。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:reagent-storage"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "广口瓶：用于存放固体试剂，瓶口较大便于取用",
+        "细口瓶：用于存放液体试剂，瓶口较小便于倾倒",
+        "滴瓶：用于临时存放少量液体试剂，配有胶头滴管"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:reagent-storage"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "存放固体试剂（广口瓶）",
+        "存放液体试剂（细口瓶）",
+        "临时存放少量液体试剂（滴瓶）"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:reagent-storage"]
+    },
+    {
+      "id": "tests",
+      "title": "使用注意事项",
+      "section_type": "procedure",
+      "content": [
+        "打开试剂瓶后应将瓶塞倒放在实验桌上",
+        "取用后应及时盖好瓶塞，防止试剂污染或变质",
+        "见光易分解物质应保存在棕色试剂瓶中",
+        "危险化学品应保存在危险化学品柜中"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:reagent-storage"]
+    }
+  ],
+  "profile_refs": ["profile:entity-equipment-reagent-bottle-junior-chem"],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:reagent-storage"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T12:00:00+08:00"
+}

@@ -1,0 +1,38 @@
+{
+  "node_id": "symbol:h",
+  "title": "氢元素符号",
+  "pattern_refs": ["pattern:symbol-notation"],
+  "summary": "表示氢元素的化学符号，来源于拉丁文 Hydrogenium 的首字母。",
+  "sections": [
+    {
+      "id": "meaning",
+      "title": "表示含义",
+      "content": [
+        "表示氢元素",
+        "表示一个氢原子"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"]
+    },
+    {
+      "id": "reading",
+      "title": "读写规则",
+      "content": [
+        "读作\"氢\"或\"氢元素\"",
+        "来源于拉丁文 Hydrogenium 的首字母"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"]
+    },
+    {
+      "id": "examples",
+      "title": "示例",
+      "content": [
+        "H2O 中的 H 表示氢元素",
+        "H2 表示氢气分子，含两个氢原子"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-1-2-symbol-h"],
+  "properties": {}
+}

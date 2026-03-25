@@ -1,0 +1,59 @@
+{
+  "id": "node-card:concept-anomalous-expansion",
+  "node_id": "concept:anomalous-expansion",
+  "title": "水的反常膨胀",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "水的反常膨胀是指水在0~4℃时随温度升高体积减小，在4℃时密度最大（1 g/cm³）的特性，这使得冰的密度比水小，冰能浮在水面上。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "水的反常膨胀是指水在0~4℃范围内随温度升高体积减小的特殊性质。",
+        "大多数物质随温度升高体积增大，但水在0~4℃时表现相反。",
+        "在4℃时，水的密度最大，为1 g/cm³。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-1:water-physical-properties"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "水的反常膨胀与水分子间的特殊作用（氢键）有关。",
+        "温度高于4℃时，水与大多数物质一样，随温度升高体积增大。",
+        "温度在0~4℃时，水随温度升高体积减小，密度增大。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-1:water-physical-properties"],
+      "related_node_refs": ["entity/substance:water"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "水的密度在4℃时最大（1 g/cm³）",
+        "冰的密度比水小（约0.9 g/cm³），因此冰浮在水面上",
+        "冬天深水底部水温约为4℃，保护水生生物生存"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-1:water-physical-properties"]
+    },
+    {
+      "id": "significance",
+      "title": "实际意义",
+      "section_type": "application",
+      "content": [
+        "冰浮在水面上，形成隔热层，保护水下生物过冬",
+        "冬天自来水管容易爆裂是因为水结冰时体积膨胀",
+        "深水湖泊底部在冬天保持约4℃，有利于水生生物生存"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-1:water-physical-properties"]
+    }
+  ],
+  "profile_refs": ["profile:concept-anomalous-expansion-junior-chem"],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-1:water-physical-properties"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T20:00:00+08:00"
+}

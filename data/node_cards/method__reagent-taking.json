@@ -1,0 +1,40 @@
+{
+  "node_id": "method:reagent-taking",
+  "title": "试剂取用",
+  "pattern_refs": ["pattern:method-playbook"],
+  "summary": "正确取用固体和液体试剂的方法。",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "用途",
+      "content": [
+        "正确取用固体试剂",
+        "正确取用液体试剂"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"]
+    },
+    {
+      "id": "steps",
+      "title": "操作要点",
+      "content": [
+        "固体试剂：用药匙或镊子取用",
+        "液体试剂：用滴管或倾倒法取用",
+        "注意用量，避免浪费"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"]
+    },
+    {
+      "id": "mistakes",
+      "title": "常见错误",
+      "content": [
+        "用药量过多",
+        "滴管倒置",
+        "标签未朝向手心"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-2-1-1"],
+  "properties": {}
+}

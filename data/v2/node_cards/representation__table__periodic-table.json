@@ -1,0 +1,63 @@
+{
+  "id": "node-card:representation__table__periodic-table",
+  "node_id": "representation/table:periodic-table",
+  "title": "元素周期表",
+  "pattern_refs": ["pattern:representation-form-v2"],
+  "summary": "元素周期表是按原子序数递增顺序排列元素的表格，由门捷列夫于1869年首次编制，是化学研究的重要工具。",
+  "sections": [
+    {
+      "id": "representation-meaning",
+      "title": "表示含义",
+      "section_type": "definition",
+      "content": [
+        "元素周期表是按原子序数递增顺序排列元素的表格。",
+        "1869年，俄国化学家门捷列夫在总结前人经验和大量科学实践的基础上编制了元素周期表。",
+        "元素周期表是化学研究的重要工具，可以查找元素的元素符号、元素名称、原子序数、相对原子质量等信息。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-2:periodic-table"]
+    },
+    {
+      "id": "reading-rules",
+      "title": "读写规则",
+      "section_type": "procedure",
+      "content": [
+        "元素周期表中的元素按原子序数从左往右、从上到下递增的顺序排列。",
+        "每个元素在周期表中都有一个序号，称为原子序数。",
+        "原子序数与元素原子的核电荷数（质子数）在数值上相同。",
+        "从元素周期表可获知：原子序数、元素符号、元素名称、相对原子质量等信息。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-2:periodic-table"]
+    },
+    {
+      "id": "connections",
+      "title": "关联对象",
+      "section_type": "comparison",
+      "content": [
+        "元素周期表与元素：周期表按原子序数排列所有元素，揭示元素性质的周期性变化规律。",
+        "元素周期表与原子序数：原子序数是元素在周期表中的序号，等于质子数。",
+        "金属元素与非金属元素：金属元素集中在周期表左边，非金属元素集中在右上部。",
+        "元素周期表与相对原子质量：周期表中可以查到每种元素的相对原子质量。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-2:periodic-table","evidence:chem-grade8-all-in-one:lesson:3-2-2:metallic-nonmetallic"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "元素周期表由门捷列夫于1869年编制，当时包含63种元素。",
+        "元素按原子序数递增顺序排列。",
+        "绝大多数元素是金属元素，集中在周期表左边。",
+        "非金属元素主要集中在周期表右上部。",
+        "周期表是查找元素信息的重要工具。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-2:periodic-table","evidence:chem-grade8-all-in-one:lesson:3-2-2:metallic-nonmetallic"]
+    }
+  ],
+  "framework_refs": ["framework:cn-chem-junior:expectation:dd95202815"],
+  "profile_refs": ["profile:representation-periodic-table-junior-chem"],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-2:periodic-table"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-26T00:00:00+08:00"
+}

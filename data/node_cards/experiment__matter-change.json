@@ -1,0 +1,49 @@
+{
+  "node_id": "experiment:matter-change",
+  "title": "物质的变化实验",
+  "pattern_refs": ["pattern:experiment-procedure"],
+  "summary": "通过水沸腾、维生素C泡腾片投入水中、镁带剪断和镁带燃烧四个实验，对比物理变化和化学变化的特征。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "实验目的",
+      "content": [
+        "区分物理变化和化学变化",
+        "认识化学变化的特征"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-physical-change", "evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"]
+    },
+    {
+      "id": "principle",
+      "title": "实验原理",
+      "content": [
+        "物理变化：没有生成新物质",
+        "化学变化：生成了新物质"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-physical-change", "evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"]
+    },
+    {
+      "id": "procedure",
+      "title": "基本步骤",
+      "content": [
+        "水沸腾实验：观察水的状态变化",
+        "维生素C泡腾片投入水中：观察变化",
+        "镁带剪断：观察形状变化",
+        "镁带燃烧：观察燃烧现象"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-physical-change", "evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"]
+    },
+    {
+      "id": "observations",
+      "title": "现象与结论",
+      "content": [
+        "水沸腾、镁带剪断：没有生成新物质，属于物理变化",
+        "维生素C泡腾片反应、镁带燃烧：生成了新物质，属于化学变化"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-physical-change", "evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-physical-change", "evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-1-1-experiment"],
+  "properties": {}
+}

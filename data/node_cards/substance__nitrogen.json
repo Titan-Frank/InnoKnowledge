@@ -1,0 +1,37 @@
+{
+  "node_id": "substance:nitrogen",
+  "title": "氮气",
+  "pattern_refs": ["pattern:substance-profile"],
+  "summary": "氮气是空气的主要成分，约占空气体积的 78%。氮气无色、无气味、难溶于水，化学性质不活泼，常用作保护气。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "content": [
+        "氮气是空气的主要成分，按体积计算约占空气的 78%",
+        "氮气是一种无色、无气味的气体，难溶于水"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-3", "evidence:chem-grade8-all-in-one:air-composition-4"]
+    },
+    {
+      "id": "properties",
+      "title": "主要性质",
+      "content": [
+        "物理性质：无色、无气味的气体，难溶于水",
+        "化学性质：不活泼，在低温或常温下难与其他物质发生反应"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-4"]
+    },
+    {
+      "id": "applications",
+      "title": "用途与应用",
+      "content": [
+        "用作保护气：充入食品袋、灯泡中用以隔绝氧气"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-4"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:air-composition-3", "evidence:chem-grade8-all-in-one:air-composition-4"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:nitrogen"],
+  "properties": {}
+}

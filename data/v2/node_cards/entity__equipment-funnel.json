@@ -1,0 +1,57 @@
+{
+  "id": "node-card:entity-equipment-funnel",
+  "node_id": "entity/equipment:funnel",
+  "title": "漏斗",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "漏斗是用于分离固体和液体的仪器，主要用于过滤操作，使用时滤纸应紧贴漏斗内壁，漏斗颈末端应紧靠承接容器内壁。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "漏斗是一种用于分离固体和液体的玻璃仪器。",
+        "主要用于过滤操作，与滤纸配合使用。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:filtration"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "材质：玻璃",
+        "结构：上部为锥形，下部为细长的漏斗颈",
+        "用途：分离固体和液体（过滤）"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:filtration"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "过滤操作中支撑滤纸",
+        "分离固体和液体混合物",
+        "引导液体流入容器"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:filtration"]
+    },
+    {
+      "id": "tests",
+      "title": "使用注意事项",
+      "section_type": "procedure",
+      "content": [
+        "滤纸应紧贴漏斗内壁",
+        "漏斗颈末端应紧靠承接容器（如烧杯）内壁",
+        "使用铁架台固定漏斗时位置要适当"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:filtration"]
+    }
+  ],
+  "profile_refs": ["profile:entity-equipment-funnel-junior-chem"],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:filtration"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T12:00:00+08:00"
+}

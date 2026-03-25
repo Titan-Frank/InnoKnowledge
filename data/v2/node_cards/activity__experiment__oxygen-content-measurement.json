@@ -1,0 +1,20 @@
+{
+  "id": "node-card:activity__experiment__oxygen-content-measurement",
+  "node_id": "activity/experiment:oxygen-content-measurement",
+  "title": "测定空气中氧气含量的实验",
+  "node_kind": "activity",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "利用红磷燃烧消耗密闭容器内空气中的氧气，通过测量进入容器的水的体积来测定空气中氧气含量的实验方法。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:2-1-1:red-phosphorus-reaction",
+    "evidence:chem-grade8-all-in-one:lesson:2-1-1:exp-oxygen-measurement"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

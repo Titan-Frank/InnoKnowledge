@@ -1,0 +1,48 @@
+{
+  "node_id": "concept:chemical-language",
+  "title": "化学语言",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "化学家创造出来的一套能够表达物质组成、结构和变化的符号体系，是全世界通用的化学规范语言。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "化学也有专用语言，它是化学家创造出来的一套能够表达物质组成、结构和变化的符号体系。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-chemical-language"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "化学语言是全世界通用的化学规范语言。",
+        "通过符号体系表达化学信息。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-chemical-language"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "化学语言是符号体系",
+        "用于表达物质组成、结构和变化",
+        "是全世界通用的化学规范语言"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-chemical-language"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "content": [
+        "元素符号：如 H、O、C 分别表示氢、氧、碳元素",
+        "化学式：如 H2O 表示水分子",
+        "化学方程式：表示化学反应"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-chemical-language", "evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-chemical-language"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-1-2-chemical-language"],
+  "properties": {}
+}

@@ -1,0 +1,47 @@
+{
+  "node_id": "concept:reactant-product",
+  "title": "反应物与生成物",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "化学反应前的原物质叫反应物，化学反应后产生的新物质叫生成物或产物。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "化学反应前的原物质叫反应物，化学反应后产生的新物质叫生成物或产物。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "反应物和生成物是化学反应的基本组成要素。",
+        "通过化学反应，反应物转化为生成物。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "反应物：化学反应前的原物质",
+        "生成物（产物）：化学反应后产生的新物质",
+        "利用化学反应可以实现物质的转化"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "content": [
+        "镁带燃烧：反应物是镁和氧气，生成物是氧化镁",
+        "碳燃烧：反应物是碳和氧气，生成物是二氧化碳"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-1-1-reactant-product"],
+  "properties": {}
+}

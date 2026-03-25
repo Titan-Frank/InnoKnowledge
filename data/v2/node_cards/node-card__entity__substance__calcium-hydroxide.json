@@ -1,0 +1,37 @@
+{
+  "id": "node-card:entity__substance__calcium-hydroxide",
+  "node_id": "entity/substance:calcium-hydroxide",
+  "pattern_id": "pattern:entity-profile-v2",
+  "title": "氢氧化钙",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "氢氧化钙（Ca(OH)₂）是一种白色粉末状固体，微溶于水，其水溶液俗称石灰水，呈碱性。氢氧化钙俗称熟石灰或消石灰，是常见的碱类物质，广泛用于建筑、化工和实验室。"
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": "物理性质：\n- 化学式：Ca(OH)₂\n- 状态：白色粉末状固体\n- 溶解性：微溶于水\n- 溶液：水溶液呈无色透明，俗称石灰水\n\n化学性质：\n- 碱性：石灰水呈碱性，能使酸碱指示剂变色\n- 与二氧化碳反应：Ca(OH)₂ + CO₂ → CaCO₃↓ + H₂O\n  生成白色沉淀（碳酸钙），使澄清石灰水变浑浊\n- 与酸反应：发生中和反应生成盐和水"
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": "氢氧化钙的主要用途：\n- 建筑材料：用于配制石灰砂浆、抹墙等\n- 实验室：澄清石灰水用于检验二氧化碳\n- 农业：配制农药、改良酸性土壤\n- 工业：制取漂白粉、硬水软化剂\n- 食品：部分食品的添加剂（如皮蛋制作）"
+    },
+    {
+      "id": "tests",
+      "title": "检验与区分",
+      "section_type": "procedure",
+      "content": "氢氧化钙的检验与应用：\n- 检验二氧化碳：将气体通入澄清石灰水，若变浑浊则含有二氧化碳\n- 检验碱性：用酚酞试液或石蕊试液检验，酚酞变红、石蕊变蓝\n- 与碳酸钠反应：生成白色碳酸钙沉淀，可用于制备氢氧化钠"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:1-2-2:candle-products"
+  ],
+  "created_at": "2026-03-25T14:30:00+08:00",
+  "updated_at": "2026-03-25T14:30:00+08:00"
+}

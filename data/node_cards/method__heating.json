@@ -1,0 +1,49 @@
+{
+  "node_id": "method:heating",
+  "title": "加热操作",
+  "pattern_refs": ["pattern:method-playbook"],
+  "summary": "使用酒精灯等加热设备进行加热的正确方法。",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "用途",
+      "content": [
+        "使用酒精灯加热物质",
+        "控制加热温度和时间"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "content": [
+        "需要加热的化学反应",
+        "需要加热的实验操作"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"]
+    },
+    {
+      "id": "steps",
+      "title": "操作要点",
+      "content": [
+        "使用外焰加热",
+        "试管加热时试管口略向下倾斜",
+        "先均匀加热，后集中加热"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"]
+    },
+    {
+      "id": "mistakes",
+      "title": "常见错误",
+      "content": [
+        "用内焰或焰心加热",
+        "试管口向上倾斜",
+        "加热时试管口对着人"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-1-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-2-1-2"],
+  "properties": {}
+}

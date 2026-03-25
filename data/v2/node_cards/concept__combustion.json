@@ -1,0 +1,19 @@
+{
+  "id": "node-card:concept__combustion",
+  "node_id": "concept:combustion",
+  "title": "燃烧",
+  "node_kind": "concept",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "燃烧是可燃物与氧气发生的一种发光、放热的剧烈的氧化反应，需要同时满足三个条件才能发生。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade9-all-in-one:lesson:2-1-1:combustion"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

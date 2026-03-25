@@ -1,0 +1,73 @@
+{
+  "id": "node-card:concept__simple-substance",
+  "node_id": "concept:simple-substance",
+  "title": "单质",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "单质是由同种元素组成的纯净物，是纯净物的一个重要类别。单质的组成元素只有一种，与化合物相对。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "单质是由同种元素组成的纯净物。",
+        "例如：氮气(N₂)、氯气(Cl₂)、铁(Fe)、氧气(O₂)、氢气(H₂)等都是单质。",
+        "单质是纯净物的一种，其组成元素只有一种。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-2:simple-substance-compound"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "单质是物质分类中的一个重要概念，反映了物质的元素组成特征。",
+        "单质强调的是元素种类的单一性，即只含有一种元素。",
+        "单质与纯净物的区别：单质一定是纯净物，但纯净物不一定是单质。",
+        "单质与化合物的区别：单质由一种元素组成，化合物由两种或两种以上元素组成。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-2:simple-substance-compound"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "单质必须同时满足两个条件：(1)是纯净物；(2)只含有一种元素。",
+        "同种元素可以组成不同的单质，如氧气(O₂)和臭氧(O₃)都是由氧元素组成的单质。",
+        "判断物质是否为单质，要看其组成元素的种类，而不是分子的原子数。",
+        "金属单质（如铁、铜）和稀有气体（如氦、氖）也是单质。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-2:simple-substance-compound"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": [
+        "氮气(N₂)：由氮元素组成的单质，空气的主要成分。",
+        "氯气(Cl₂)：由氯元素组成的单质，黄绿色有刺激性气味的气体。",
+        "铁(Fe)：由铁元素组成的金属单质，银白色固体。",
+        "氧气(O₂)：由氧元素组成的单质，无色无味气体。",
+        "氢气(H₂)：由氢元素组成的单质，密度最小的气体。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-2:simple-substance-compound"]
+    },
+    {
+      "id": "misconceptions",
+      "title": "易混辨析",
+      "section_type": "misconception",
+      "content": [
+        "纯净物不一定是单质：水(H₂O)是纯净物但不是单质，因为含有两种元素。",
+        "单质分子不一定只含一个原子：氧气(O₂)分子含两个氧原子，但仍是由氧元素组成的单质。",
+        "同种元素可形成不同单质：金刚石和石墨都是碳元素形成的单质（同素异形体）。"
+      ]
+    }
+  ],
+  "framework_refs": ["framework:cn-chem-junior:expectation:68980548de"],
+  "profile_refs": ["profile:concept-simple-substance-junior-chem"],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-2:simple-substance-compound"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-26T00:00:00+08:00"
+}

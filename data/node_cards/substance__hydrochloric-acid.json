@@ -1,0 +1,42 @@
+{
+  "node_id": "substance:hydrochloric-acid",
+  "title": "盐酸",
+  "pattern_refs": ["pattern:substance-profile"],
+  "summary": "盐酸是氯化氢的水溶液，是常见的酸，在水溶液中能离解出H+和Cl-。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "content": [
+        "盐酸是氯化氢的水溶液。",
+        "盐酸是一种常见的酸。",
+        "盐酸在水溶液中能离解出H+和酸根离子。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-1:02"]
+    },
+    {
+      "id": "properties",
+      "title": "主要性质",
+      "content": [
+        "盐酸具有酸的通性。",
+        "盐酸能与一些金属反应生成盐和氢气。",
+        "盐酸能与一些金属氧化物反应。",
+        "盐酸能使酸碱指示剂变色。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-1:02", "evidence:chem-grade9-all-in-one:lesson-1-2-2:01"]
+    },
+    {
+      "id": "applications",
+      "title": "用途与应用",
+      "content": [
+        "盐酸在工业中有广泛应用。",
+        "盐酸可用于金属表面除锈。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-1:02"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-1:02", "evidence:chem-grade9-all-in-one:lesson-1-2-2:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

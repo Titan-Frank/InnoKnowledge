@@ -1,0 +1,51 @@
+{
+  "node_id": "method:ph-test",
+  "title": "pH测定方法",
+  "pattern_refs": ["pattern:method-playbook"],
+  "summary": "pH测定方法是使用pH试纸或pH计测定溶液酸碱性强弱的方法。",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "用途",
+      "content": [
+        "pH测定用于定量判断溶液的酸碱性强弱。",
+        "pH测定可帮助了解溶液的性质。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-3:01"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "content": [
+        "pH试纸适用于粗略测定溶液的pH。",
+        "pH计适用于精确测定溶液的pH。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-3:01"]
+    },
+    {
+      "id": "steps",
+      "title": "操作要点",
+      "content": [
+        "使用pH试纸测定方法：",
+        "① 用玻璃棒蘸取待测液滴在pH试纸上；",
+        "② 将试纸显示的颜色与标准比色卡对照；",
+        "③ 读出相应的pH值。",
+        "注意：不能将pH试纸直接浸入待测液中。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-3:01"]
+    },
+    {
+      "id": "signals",
+      "title": "成功标志",
+      "content": [
+        "pH试纸变色并与比色卡对比后得出pH值。",
+        "pH值在0-14范围内有效。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-3:01"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-3:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

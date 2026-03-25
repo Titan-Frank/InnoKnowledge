@@ -1,0 +1,42 @@
+{
+  "node_id": "substance:sodium-hydroxide",
+  "title": "氢氧化钠",
+  "pattern_refs": ["pattern:substance-profile"],
+  "summary": "氢氧化钠俗称烧碱、火碱或苛性钠，是一种常见的碱，在水溶液中能离解出Na+和OH-。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "content": [
+        "氢氧化钠俗称烧碱、火碱或苛性钠。",
+        "氢氧化钠是一种常见的碱。",
+        "氢氧化钠在水溶液中能离解出金属离子和OH-。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-1:02"]
+    },
+    {
+      "id": "properties",
+      "title": "主要性质",
+      "content": [
+        "氢氧化钠具有碱的通性。",
+        "氢氧化钠是白色固体。",
+        "氢氧化钠易溶于水，溶解时放出热量。",
+        "氢氧化钠有强腐蚀性。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-1:02", "evidence:chem-grade9-all-in-one:lesson-1-2-2:02"]
+    },
+    {
+      "id": "applications",
+      "title": "用途与应用",
+      "content": [
+        "氢氧化钠是重要的化工原料。",
+        "氢氧化钠可用于制取肥皂、造纸等。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-1:02"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-1:02", "evidence:chem-grade9-all-in-one:lesson-1-2-2:02"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

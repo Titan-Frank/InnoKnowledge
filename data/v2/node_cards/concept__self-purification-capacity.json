@@ -1,0 +1,36 @@
+{
+  "id": "node-card:concept__self-purification-capacity",
+  "node_id": "concept:self-purification-capacity",
+  "pattern_ref": "pattern:concept-core-v2",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "水体自净能力是指水体通过物理、化学和生物作用去除污染物的能力。这是水体的一种重要特性，但能力有限。"
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": "水体自净能力是水体生态系统的自我调节和恢复功能。它反映了水体对污染物的承受和处理能力，是水环境保护的重要概念。当污染物超过自净能力时，水体就会受到污染。"
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": "1. 自净能力包括物理、化学和生物三种作用机制；2. 自净能力是有限的，不是无限的；3. 污染物数量超过自净能力会导致水体污染；4. 不同水体的自净能力不同。"
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": "河流的自净：污染物排入河流后，随着水流和微生物作用逐渐被净化。湿地的净化：湿地植物和微生物共同作用净化水质。湖泊的自净：沉淀和生物降解作用去除污染物。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-1-2:self-purification-capacity"
+  ],
+  "created_at": "2026-03-25T22:00:00+08:00",
+  "updated_at": "2026-03-25T22:00:00+08:00"
+}

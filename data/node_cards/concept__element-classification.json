@@ -1,0 +1,38 @@
+{
+  "node_id": "concept:element-classification",
+  "title": "元素分类",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "元素分为金属元素和非金属元素。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "元素分为金属元素和非金属元素。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-2-2-core"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "元素分类是认识元素性质的重要方法。",
+        "金属元素和非金属元素具有不同的性质特点。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-2-2-core"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "元素分为金属元素和非金属元素",
+        "金属元素名称通常带「钅」字旁",
+        "非金属元素名称通常带「石」、「气」、「氵」等偏旁"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-2-2-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-2-2-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson3-2-2-0"],
+  "properties": {}
+}

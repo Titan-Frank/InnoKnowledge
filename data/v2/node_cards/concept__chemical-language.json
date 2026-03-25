@@ -1,0 +1,56 @@
+{
+  "id": "node-card:concept__chemical-language",
+  "node_id": "concept:chemical-language",
+  "title": "化学语言",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "化学语言是化学家创造的一套能够表达物质组成、结构和变化的符号体系，具有简明直观和国际通用的特点。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "化学语言是化学家创造出来的一套能够表达物质组成、结构和变化的符号体系。",
+        "这些符号既简明直观，又有利于表达和交流，成为全世界通用的化学规范语言。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:chemical-language"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "化学语言起到了表达化学概念和思想的作用，促进了化学知识的交流与传播。",
+        "化学语言使不同国家、使用不同语言文字的人们能够进行沟通和合作。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:chemical-language"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "化学语言包括元素符号、化学式、化学方程式等组成部分。",
+        "化学语言具有简明直观、国际通用的特点。",
+        "化学语言是表达物质组成、结构和变化的符号体系。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:chemical-language"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": [
+        "元素符号：H表示氢元素，O表示氧元素，C表示碳元素。",
+        "化学式：O₂表示氧气，H₂O表示水，CO₂表示二氧化碳。",
+        "化学方程式：C + O₂ → CO₂ 表示碳在氧气中燃烧的反应。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:element-symbol-definition", "evidence:chem-grade8-all-in-one:lesson:1-1-2:chemical-formula-definition", "evidence:chem-grade8-all-in-one:lesson:1-1-2:chemical-equation-definition"],
+      "related_node_refs": ["representation/symbol:element-symbol", "representation/formula:chemical-formula", "representation/equation:chemical-equation"]
+    }
+  ],
+  "profile_refs": ["profile:concept-chemical-language-junior-chem"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

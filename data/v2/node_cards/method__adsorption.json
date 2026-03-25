@@ -1,0 +1,36 @@
+{
+  "id": "node-card:method__adsorption",
+  "node_id": "method:adsorption",
+  "pattern_ref": "pattern:method-procedure-v2",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": "吸附用于去除水中的杂质和异味，是净化水的常用方法之一。利用多孔性固体（如活性炭）的吸附作用，将水中的污染物吸附在其表面。"
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "section_type": "assessment",
+      "content": "适用于：去除水中的色素、异味、有机物和部分重金属离子。常用吸附剂：活性炭、木炭。吸附属于物理变化，吸附剂可以再生使用。"
+    },
+    {
+      "id": "steps",
+      "title": "操作步骤",
+      "section_type": "procedure",
+      "content": "1. 选择合适的吸附剂（如活性炭）；2. 将吸附剂放入需要净化的水中；3. 静置一段时间让吸附剂充分吸附杂质；4. 过滤分离吸附剂和净化后的水。自来水厂生产过程中常用活性炭吸附水中杂质。"
+    },
+    {
+      "id": "errors",
+      "title": "常见错误",
+      "section_type": "misconception",
+      "content": "错误1：认为吸附是化学变化。吸附是物理变化，吸附剂和被吸附物质不发生化学反应。错误2：忽视吸附剂的饱和问题。吸附剂吸附达到饱和后需要更换或再生。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-1-2:tap-water-production"
+  ],
+  "created_at": "2026-03-25T22:00:00+08:00",
+  "updated_at": "2026-03-25T22:00:00+08:00"
+}

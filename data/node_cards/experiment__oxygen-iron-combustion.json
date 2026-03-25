@@ -1,0 +1,57 @@
+{
+  "node_id": "experiment:oxygen-iron-combustion",
+  "title": "铁丝在氧气中燃烧实验",
+  "pattern_refs": ["pattern:experiment-procedure"],
+  "summary": "将点燃火柴的铁丝插入盛有氧气的集气瓶中，观察铁丝剧烈燃烧，火星四射。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "实验目的",
+      "content": [
+        "观察铁丝在氧气中燃烧的现象",
+        "认识铁丝在空气中和氧气中燃烧的差异"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-properties-2"]
+    },
+    {
+      "id": "principle",
+      "title": "实验原理",
+      "content": [
+        "铁与氧气发生氧化反应生成四氧化三铁",
+        "铁丝在空气中很难燃烧，但在氧气中可以剧烈燃烧"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-properties-2"]
+    },
+    {
+      "id": "procedure",
+      "title": "基本步骤",
+      "content": [
+        "将铁丝绕成螺旋状",
+        "在铁丝末端系一根火柴",
+        "点燃火柴后插入盛有氧气的集气瓶中",
+        "观察燃烧现象"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-properties-2"]
+    },
+    {
+      "id": "observations",
+      "title": "现象与结论",
+      "content": [
+        "现象：铁丝剧烈燃烧，火星四射，生成黑色固体",
+        "结论：氧气支持燃烧，铁丝在氧气中燃烧生成四氧化三铁"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-properties-2"]
+    },
+    {
+      "id": "precautions",
+      "title": "注意事项",
+      "content": [
+        "集气瓶底部预先放入少量水或细沙，防止高温熔融物溅落炸裂瓶底"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-properties-2"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-properties-2"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:iron-exp"],
+  "properties": {}
+}

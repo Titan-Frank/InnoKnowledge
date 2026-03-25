@@ -1,0 +1,39 @@
+{
+  "node_id": "skill:hypothesis-formation",
+  "title": "形成假设",
+  "pattern_refs": ["pattern:skill-practice"],
+  "summary": "根据已有知识和经验提出可检验的假设。",
+  "sections": [
+    {
+      "id": "skill-target",
+      "title": "技能目标",
+      "content": [
+        "学会根据已有知识提出假设",
+        "能够设计可检验的假设"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-2-core"]
+    },
+    {
+      "id": "core-rules",
+      "title": "核心规则",
+      "content": [
+        "假设要有依据",
+        "假设要可检验",
+        "假设要与问题相关"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-2-core"]
+    },
+    {
+      "id": "practice-points",
+      "title": "练习重点",
+      "content": [
+        "基于已有知识和经验提出假设",
+        "假设表述要清晰明确"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-2-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-2-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-2-2-2"],
+  "properties": {}
+}

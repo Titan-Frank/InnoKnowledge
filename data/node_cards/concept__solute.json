@@ -1,0 +1,40 @@
+{
+  "node_id": "concept:solute",
+  "title": "溶质",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "溶质是溶液中被溶解的物质，可以是固体、液体或气体。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "溶质是被溶解的物质。",
+        "溶质以分子或离子形式分散在溶剂中。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-1:01"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "溶质是溶液的组成成分之一。",
+        "溶质的状态可以是固体、液体或气体。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-1:01"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "溶质是被溶解的物质。",
+        "溶质与溶剂共同组成溶液。",
+        "溶质的质量是溶液质量的一部分。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-1:01"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-1:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

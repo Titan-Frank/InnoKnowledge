@@ -1,0 +1,37 @@
+{
+  "node_id": "concept:carbon-cycle",
+  "title": "碳循环",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "自然界通过含有碳元素的物质的转化使得二氧化碳在自然界中保持一定含量的过程。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "自然界通过含有碳元素的物质的转化实现了碳循环，使得二氧化碳在自然界中保持一定的含量。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-carbon-cycle"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "碳循环维持了自然界中二氧化碳的动态平衡。",
+        "与氧循环相互关联，共同维持大气成分稳定。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-carbon-cycle"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "通过含碳物质的转化实现",
+        "使二氧化碳在自然界中保持一定含量"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-carbon-cycle"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-carbon-cycle"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:carbon-cycle"],
+  "properties": {}
+}

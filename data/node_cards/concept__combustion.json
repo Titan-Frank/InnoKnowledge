@@ -1,0 +1,42 @@
+{
+  "node_id": "concept:combustion",
+  "title": "燃烧",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "燃烧是可燃物与氧气发生强烈化学反应并伴有发光发热的现象。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "燃烧是指在通常情况下，可燃物与氧气发生强烈化学反应并伴有发光发热的现象。",
+        "燃烧是一种剧烈的氧化反应。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-1:01"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "燃烧是可燃物与氧气的化学反应。",
+        "燃烧伴随能量的释放，表现为发光发热。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-1:01"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "燃烧需要同时具备三个条件：",
+        "① 物质具有可燃性；",
+        "② 物质与有助燃作用的氧气或空气接触；",
+        "③ 物质的温度达到着火点。",
+        "三个条件缺一不可。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-1:01"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-1:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

@@ -1,0 +1,38 @@
+{
+  "node_id": "concept:water-cycle",
+  "title": "水循环",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "自然界中水的蒸发、凝结、降水等循环过程。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "自然界中水的蒸发、凝结、降水等循环过程。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-2-core"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "水循环是自然界中水资源的自然更新过程。",
+        "水循环维持了地球上水资源的相对稳定。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-2-core"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "包括蒸发、凝结、降水等过程",
+        "是自然界水资源的循环更新",
+        "与水的净化方法相关"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-2-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-2-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson3-1-2-0"],
+  "properties": {}
+}

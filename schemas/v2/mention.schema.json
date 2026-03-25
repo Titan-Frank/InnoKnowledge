@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Knowledge Mention V2",
+  "description": "Generalized mention linking a source anchor to a graph object.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "source_type",
+    "source_id",
+    "anchor_ref",
+    "target_type",
+    "target_id",
+    "role",
+    "source_refs",
+    "confidence",
+    "properties"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^mention:[a-z0-9:-]+$"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "textbook",
+        "curriculum",
+        "exercise",
+        "assessment",
+        "note",
+        "media",
+        "other"
+      ]
+    },
+    "source_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9:-]+$"
+    },
+    "anchor_ref": {
+      "type": "string",
+      "pattern": "^[a-z0-9:-]+$"
+    },
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "node",
+        "edge",
+        "profile",
+        "card"
+      ]
+    },
+    "target_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "introduces",
+        "defines",
+        "focuses_on",
+        "demonstrates",
+        "applies",
+        "reviews",
+        "mentions",
+        "supports",
+        "assesses",
+        "extends"
+      ]
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^evidence:[a-z0-9:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "properties": {
+      "type": "object"
+    }
+  }
+}

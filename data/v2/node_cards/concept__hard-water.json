@@ -1,0 +1,42 @@
+{
+  "id": "node-card:concept__hard-water",
+  "node_id": "concept:hard-water",
+  "pattern_ref": "pattern:concept-core-v2",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "硬水是指溶有较多可溶性含钙元素或镁元素物质的水。这些钙、镁离子以可溶性盐的形式存在，是判断水质硬度的重要依据。"
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": "硬水的本质是水中含有较高浓度的钙离子和镁离子。这些离子会在加热时形成水垢，影响日常生活和工业生产。硬水需要软化处理后使用。"
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": "1. 硬水含有较多可溶性钙盐和镁盐；2. 硬水加热会形成水垢；3. 硬水会影响洗涤效果；4. 硬水需要软化处理；5. 硬水与软水是相对概念。"
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": "水垢形成：烧水壶内壁的白色水垢是硬水中的钙、镁离子受热生成的沉淀。洗涤问题：用硬水洗衣服，肥皂不易起泡且洗不干净。工业问题：锅炉使用硬水会产生水垢，影响传热效率。"
+    },
+    {
+      "id": "misconceptions",
+      "title": "易混辨析",
+      "section_type": "misconception",
+      "content": "硬水与软水的区别在于钙、镁离子含量，不是外观或气味。硬水不一定浑浊，软水不一定清澈。井水、泉水通常硬度较高，雨水、蒸馏水是软水。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-1-2:hard-soft-water"
+  ],
+  "created_at": "2026-03-25T22:00:00+08:00",
+  "updated_at": "2026-03-25T22:00:00+08:00"
+}

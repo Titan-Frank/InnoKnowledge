@@ -1,0 +1,19 @@
+{
+  "id": "node-card:issue__air-quality",
+  "node_id": "issue:air-quality",
+  "title": "空气质量",
+  "node_kind": "issue",
+  "sections": [
+    {
+      "id": "issue-definition",
+      "title": "核心定义",
+      "section_type": "definition",
+      "content": "空气质量是指空气的清洁程度，通常用空气质量指数（AQI）定量描述，受二氧化硫、二氧化氮、一氧化碳、臭氧、PM10、PM2.5等污染物影响。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:2-1-1:air-quality"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

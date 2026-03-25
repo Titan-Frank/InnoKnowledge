@@ -1,0 +1,48 @@
+{
+  "node_id": "concept:energy-in-reaction",
+  "title": "化学反应中的能量变化",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "物质发生化学变化时不但生成新物质，还会伴随着能量的变化。这种能量变化通常表现为热量、电能和光能的释放或吸收。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "物质发生化学变化时不但生成新物质，还会伴随着能量的变化。",
+        "这种能量变化通常表现为热量、电能和光能的释放或吸收。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-energy"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "化学反应不仅涉及物质的转化，还涉及能量的转化。",
+        "能量变化是化学反应的重要特征之一。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-energy"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "化学反应伴随着能量变化",
+        "能量形式：热量、电能、光能",
+        "能量可以释放或吸收"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-energy"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "content": [
+        "燃烧反应释放热量和光能",
+        "电池中的化学反应释放电能"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-energy"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-energy"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-1-1-energy"],
+  "properties": {}
+}

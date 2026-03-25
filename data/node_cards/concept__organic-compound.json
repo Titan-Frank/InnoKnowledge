@@ -1,0 +1,40 @@
+{
+  "node_id": "concept:organic-compound",
+  "title": "有机化合物",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "有机化合物是含碳的化合物，糖类、脂类、蛋白质与维生素都属于有机化合物。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "有机化合物是含碳的化合物（一氧化碳、二氧化碳、碳酸盐等除外）。",
+        "糖类、脂类、蛋白质与维生素均属于有机化合物。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-2:01"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "有机化合物是生命活动的重要物质基础。",
+        "有机化合物的种类繁多，性质各异。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-2:01"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "有机化合物含有碳元素。",
+        "食物中的营养成分很多属于有机化合物。",
+        "有机化合物在生活和生产中有广泛应用。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-2:01"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-2:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

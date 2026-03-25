@@ -7,6 +7,7 @@ Use node cards to expand one canonical node into a readable, evidence-backed exp
 - keep the backbone graph sparse
 - make each important node easy to read and reuse
 - separate stable graph structure from richer explanatory detail
+- allow different node kinds to expand through different section patterns
 
 ## Writing Rules
 
@@ -14,37 +15,39 @@ Use node cards to expand one canonical node into a readable, evidence-backed exp
 - Read the matching pattern or patterns first.
 - Use section titles and section ids that match the pattern library.
 - Prefer short bullet-like statements inside `content` arrays instead of long prose paragraphs.
-- Every card must keep a concise `summary` at the top.
-- Every card must include `source_refs`.
+- Keep `summary` concise and stable.
+- Every card should keep section-level or card-level `source_refs`.
 - If a section is weakly supported, omit it instead of guessing.
 
 ## File Path
 
 Write cards to:
 
-- `data/node_cards/<safe-node-id>.json`
+- `data/v2/node_cards/<safe-node-id>.json`
 
 Where:
 
-- `safe-node-id = node_id.replace(":", "__")`
+- `safe-node-id = node_id.replace(":", "__").replace("/", "__")`
 
 Example:
 
-- `substance:oxygen` -> `data/node_cards/substance__oxygen.json`
+- `entity/substance:oxygen` -> `data/v2/node_cards/entity__substance__oxygen.json`
 
 ## What Belongs In A Card
 
-- definitions
+- definition expansions
 - key properties
 - examples and non-examples
 - applications
-- related experiments
+- related activities or experiments
 - common mistakes
-- next learning directions
+- progression hints
+- evidence-backed explanations
 
 ## What Does Not Belong In A Card
 
-- unsupported claims from outside the textbook corpus
+- unsupported claims from outside the source corpus
 - whole-book summaries
-- duplicate copies of the entire lesson text
+- duplicate copies of the lesson text
 - relationship clutter that should stay in the backbone graph
+- subject or grade metadata that should live in curriculum profiles

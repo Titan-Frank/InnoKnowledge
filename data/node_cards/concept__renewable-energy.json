@@ -1,0 +1,40 @@
+{
+  "node_id": "concept:renewable-energy",
+  "title": "可再生能源",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "可再生能源是可以不断再生、永续利用的能源，如太阳能、水能、风能等。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "能源按其可否再生，分为可再生能源和不可再生能源。",
+        "可再生能源包括太阳能、水能、风能等。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-1:01"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "可再生能源是可持续利用的能源。",
+        "可再生能源对环境影响较小。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-1:01"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "可再生能源可以不断再生、永续利用。",
+        "太阳能、水能、风能属于可再生能源。",
+        "煤炭、石油、天然气等化石燃料属于不可再生能源。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-1:01"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-1:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

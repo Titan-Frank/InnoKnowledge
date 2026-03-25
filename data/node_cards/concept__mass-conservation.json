@@ -1,0 +1,38 @@
+{
+  "node_id": "concept:mass-conservation",
+  "title": "质量守恒定律",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "参加化学反应的各物质的质量总和等于反应后生成的各物质的质量总和。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "参加化学反应的各物质的质量总和等于反应后生成的各物质的质量总和。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-1-core"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "质量守恒定律是化学变化的基本规律。",
+        "化学反应前后原子的种类和数目不变。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-1-core"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "化学反应前后质量守恒",
+        "原子种类和数目不变",
+        "是书写化学方程式的理论基础"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-1-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson4-1-1-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson4-1-1-0"],
+  "properties": {}
+}

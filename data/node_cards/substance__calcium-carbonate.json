@@ -1,0 +1,38 @@
+{
+  "node_id": "substance:calcium-carbonate",
+  "title": "碳酸钙",
+  "pattern_refs": ["pattern:substance-profile"],
+  "summary": "二氧化碳与氢氧化钙反应生成的白色沉淀，难溶于水。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "content": [
+        "碳酸钙是一种白色固体，化学式为 CaCO3。",
+        "是石灰石的主要成分。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:co2-limewater"]
+    },
+    {
+      "id": "properties",
+      "title": "主要性质",
+      "content": [
+        "难溶于水",
+        "与酸反应产生二氧化碳"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:co2-limewater"]
+    },
+    {
+      "id": "tests",
+      "title": "检验与区分",
+      "content": [
+        "二氧化碳通入澄清石灰水产生白色沉淀（碳酸钙）",
+        "此反应可用于检验二氧化碳"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:co2-limewater"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:co2-limewater"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:calcium-carbonate"],
+  "properties": {}
+}

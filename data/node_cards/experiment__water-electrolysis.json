@@ -1,0 +1,48 @@
+{
+  "node_id": "experiment:water-electrolysis",
+  "title": "水的电解实验",
+  "pattern_refs": ["pattern:experiment-procedure"],
+  "summary": "电解水产生氢气和氧气，验证水的组成。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "实验目的",
+      "content": [
+        "验证水的组成",
+        "认识水电解产生氢气和氧气"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-3-core"]
+    },
+    {
+      "id": "principle",
+      "title": "实验原理",
+      "content": [
+        "水在通电条件下分解产生氢气和氧气",
+        "正极产生氧气，负极产生氢气"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-3-core"]
+    },
+    {
+      "id": "procedure",
+      "title": "基本步骤",
+      "content": [
+        "在水中加入少量电解质增强导电性",
+        "接通电源",
+        "观察两极产生气体的体积比"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-3-core"]
+    },
+    {
+      "id": "observations",
+      "title": "现象与结论",
+      "content": [
+        "现象：两极产生气泡，负极气体体积约为正极的两倍",
+        "结论：水由氢元素和氧元素组成，氢氧原子个数比为2:1"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-3-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-3-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson3-1-3-0"],
+  "properties": {}
+}

@@ -1,0 +1,40 @@
+{
+  "node_id": "concept:saturated-solution",
+  "title": "饱和溶液",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "饱和溶液是在一定温度下，不能再继续溶解某种溶质的溶液。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "在一定温度下，向一定量溶剂里加入某种溶质，当溶质不能继续溶解时，所得到的溶液叫做这种溶质的饱和溶液。",
+        "饱和溶液与不饱和溶液在一定条件下可以相互转化。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-2:01"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "饱和溶液是指溶质在溶剂中达到溶解平衡的状态。",
+        "饱和溶液的概念与温度和溶剂量有关。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-2:01"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "饱和溶液的条件：一定温度下，一定量溶剂中。",
+        "判断标准：溶质不能继续溶解。",
+        "改变温度或溶剂量，饱和溶液可能变为不饱和溶液。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-2:01"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-2:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

@@ -1,0 +1,38 @@
+{
+  "node_id": "symbol:o",
+  "title": "氧元素符号",
+  "pattern_refs": ["pattern:symbol-notation"],
+  "summary": "表示氧元素的化学符号，来源于拉丁文 Oxygenium 的首字母。",
+  "sections": [
+    {
+      "id": "meaning",
+      "title": "表示含义",
+      "content": [
+        "表示氧元素",
+        "表示一个氧原子"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"]
+    },
+    {
+      "id": "reading",
+      "title": "读写规则",
+      "content": [
+        "读作\"氧\"或\"氧元素\"",
+        "来源于拉丁文 Oxygenium 的首字母"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"]
+    },
+    {
+      "id": "examples",
+      "title": "示例",
+      "content": [
+        "O2 中的 O 表示氧元素",
+        "H2O 中的 O 表示氧元素"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-2-symbol"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-1-2-symbol-o"],
+  "properties": {}
+}

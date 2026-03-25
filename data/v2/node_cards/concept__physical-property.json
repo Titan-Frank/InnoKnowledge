@@ -1,0 +1,43 @@
+{
+  "id": "node-card:concept__physical-property",
+  "node_id": "concept:physical-property",
+  "title": "物理性质",
+  "node_kind": "concept",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "物理性质是物质不需要发生化学变化就能表现出来的性质，如颜色、气味、熔点、沸点、密度、硬度、导电性、导热性等。"
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": "物理性质是物质可以直接观察或测量的属性，不需要通过化学变化来体现。"
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": "① 物理性质不需要化学变化就能表现；② 常见的物理性质包括颜色、气味、熔点、沸点、密度、硬度、导电性、导热性；③ 物理性质和化学性质是物质的两类基本属性。"
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": "镁带呈银白色、有金属光泽；水是无色、无气味、无味道的液体；酒精易挥发。"
+    },
+    {
+      "id": "misconceptions",
+      "title": "易混辨析",
+      "section_type": "misconception",
+      "content": "颜色变化不一定是物理性质的表现（可能是化学变化的结果）。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:1-1-1:physical-chemical-properties"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T12:00:00+08:00"
+}

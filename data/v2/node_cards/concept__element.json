@@ -1,0 +1,71 @@
+{
+  "id": "node-card:concept__element",
+  "node_id": "concept:element",
+  "title": "元素",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "元素是组成物质的基本成分，世间万物都是由化学元素组成的。同种元素具有相同的质子数（即核电荷数）。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "元素是具有相同的核电荷数（即质子数）的一类原子的总称。",
+        "氧分子、二氧化碳分子、水分子和过氧化氢分子中的氧原子，原子核内都含有8个质子，核电荷数均为8，统称为氧元素。",
+        "元素是组成物质的基本成分，世间万物都是由化学元素组成的。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-2:element-definition", "evidence:chem-grade8-all-in-one:lesson:1-1-1:microscopic-particles", "evidence:chem-grade8-all-in-one:lesson:1-1-2:element-composition"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "元素是物质组成的宏观概念，是化学研究的基础。",
+        "尽管世界上存在的物质种类数以亿计，但组成它们的元素不过近百种。",
+        "就像用一些基本笔画通过一定组合就可以写出数以万计的汉字一样，近百种元素也组成了数以亿计的物质。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-1:microscopic-particles", "evidence:chem-grade8-all-in-one:lesson:1-1-2:element-composition"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "元素是组成物质的基本成分。",
+        "同种元素具有相同的质子数（核电荷数）。",
+        "近百种元素组成数以亿计的物质。",
+        "少数物质仅由一种元素组成，大部分物质由两种或更多种元素组成。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-1:microscopic-particles", "evidence:chem-grade8-all-in-one:lesson:1-1-2:element-composition"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": [
+        "氧气由氧元素组成，氢气由氢元素组成，石墨由碳元素组成。",
+        "水由氢元素和氧元素组成。",
+        "二氧化碳和一氧化碳都由碳元素和氧元素组成。",
+        "蔗糖由碳、氢、氧三种元素组成。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:element-composition"],
+      "related_node_refs": ["entity/substance:oxygen", "entity/substance:hydrogen", "entity/substance:carbon", "entity/substance:water", "entity/substance:carbon-dioxide"]
+    },
+    {
+      "id": "misconceptions",
+      "title": "易混辨析",
+      "section_type": "misconception",
+      "content": [
+        "元素不同于原子，元素是宏观概念，原子是微观粒子。",
+        "元素描述物质的组成，原子描述物质的结构。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-1:microscopic-particles"]
+    }
+  ],
+  "profile_refs": ["profile:concept-element-junior-chem", "profile:concept-element-lesson-3-2-2"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson:1-1-1:element", "mention:chem-grade8-all-in-one:lesson:3-2-2:element"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-26T00:00:00+08:00"
+}

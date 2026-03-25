@@ -1,0 +1,52 @@
+{
+  "node_id": "method:solution-preparation",
+  "title": "溶液配制方法",
+  "pattern_refs": ["pattern:method-playbook"],
+  "summary": "溶液配制方法是按照一定溶质质量分数配制溶液的方法。",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "用途",
+      "content": [
+        "溶液配制用于获得指定浓度的溶液。",
+        "溶液配制是化学实验和生产中的基本操作。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-3:01"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "content": [
+        "需要知道目标溶质质量分数。",
+        "需要计算所需溶质和溶剂的质量。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-3:01"]
+    },
+    {
+      "id": "steps",
+      "title": "操作要点",
+      "content": [
+        "溶液配制的基本步骤：",
+        "① 计算：根据溶质质量分数计算所需溶质和溶剂的质量；",
+        "② 称量：用天平称取溶质，用量筒量取溶剂；",
+        "③ 溶解：将溶质放入烧杯中，加入溶剂搅拌溶解；",
+        "④ 装瓶：将配制好的溶液装入试剂瓶，贴上标签。",
+        "溶质质量分数 = 溶质质量/溶液质量 × 100%"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-3:01"]
+    },
+    {
+      "id": "signals",
+      "title": "成功标志",
+      "content": [
+        "溶质完全溶解，溶液均匀。",
+        "溶质质量分数符合要求。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-3:01"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-1-3:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

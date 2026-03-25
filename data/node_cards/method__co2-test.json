@@ -1,0 +1,47 @@
+{
+  "node_id": "method:co2-test",
+  "title": "二氧化碳检验方法",
+  "pattern_refs": ["pattern:method-playbook"],
+  "summary": "将气体通入澄清石灰水中，若石灰水变浑浊则证明是二氧化碳。",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "用途",
+      "content": [
+        "检验二氧化碳",
+        "验满二氧化碳"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:co2-limewater"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "content": [
+        "用于检验气体是否为二氧化碳",
+        "使用澄清石灰水作为检验试剂"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:co2-limewater"]
+    },
+    {
+      "id": "steps",
+      "title": "操作要点",
+      "content": [
+        "将气体通入澄清石灰水中",
+        "观察石灰水是否变浑浊"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:co2-limewater"]
+    },
+    {
+      "id": "signals",
+      "title": "成功标志",
+      "content": [
+        "澄清石灰水变浑浊，证明是二氧化碳",
+        "石灰水不变浑浊，不是二氧化碳"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:co2-limewater"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:co2-limewater"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:co2-test"],
+  "properties": {}
+}

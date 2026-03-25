@@ -1,0 +1,19 @@
+{
+  "id": "node-card:concept__base",
+  "node_id": "concept:base",
+  "title": "碱",
+  "node_kind": "concept",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "碱是电离时生成的阴离子全部是氢氧根离子的化合物，具有碱的通性。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade9-all-in-one:lesson:1-2-1:acid-base"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

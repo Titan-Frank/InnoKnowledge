@@ -1,0 +1,19 @@
+{
+  "id": "node-card:entity__substance__carbon-dioxide",
+  "node_id": "entity/substance:carbon-dioxide",
+  "title": "二氧化碳",
+  "node_kind": "entity",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "二氧化碳是一种无色、无气味的气体，密度比空气大，能溶于水，是空气的成分之一（约占0.03%），是植物光合作用的原料。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:2-1-1:air-composition"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

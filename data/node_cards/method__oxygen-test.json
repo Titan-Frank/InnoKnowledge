@@ -1,0 +1,47 @@
+{
+  "node_id": "method:oxygen-test",
+  "title": "氧气检验方法",
+  "pattern_refs": ["pattern:method-playbook"],
+  "summary": "将带火星的木条伸入集气瓶中，若木条复燃则证明是氧气。",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "用途",
+      "content": [
+        "检验氧气",
+        "验满氧气"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-properties-2"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "content": [
+        "用于检验集气瓶中的气体是否为氧气",
+        "用于检验氧气是否收集满"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-properties-2"]
+    },
+    {
+      "id": "steps",
+      "title": "操作要点",
+      "content": [
+        "将带火星的木条伸入集气瓶中",
+        "观察木条是否复燃"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-properties-2"]
+    },
+    {
+      "id": "signals",
+      "title": "成功标志",
+      "content": [
+        "木条复燃，证明是氧气",
+        "木条不复燃，不是氧气或氧气不足"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-properties-2"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:oxygen-properties-2"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:oxygen-test"],
+  "properties": {}
+}

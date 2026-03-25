@@ -1,0 +1,488 @@
+{
+  "library_id": "pattern-library:unified-knowledge-v2",
+  "title": "Unified Knowledge Map Pattern Library V2",
+  "summary": "Generic node-card expansion patterns for the v2 cross-disciplinary knowledge map.",
+  "generated_at": "2026-03-25T00:00:00+08:00",
+  "patterns": [
+    {
+      "id": "pattern:concept-core-v2",
+      "node_kind": "concept",
+      "title": "Concept Node",
+      "summary": "For abstract concepts, categories, and definitions.",
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "required": true,
+          "prompt": "Give a stable definition for this concept in the source learning context."
+        },
+        {
+          "id": "essence",
+          "title": "本质理解",
+          "section_type": "essence",
+          "required": true,
+          "prompt": "Explain why this concept matters and how it functions in the larger knowledge structure."
+        },
+        {
+          "id": "key-points",
+          "title": "核心要点",
+          "section_type": "key_points",
+          "required": true,
+          "prompt": "List the key judgment points, features, or conclusions learners must grasp."
+        },
+        {
+          "id": "examples",
+          "title": "典型例子",
+          "section_type": "example",
+          "required": false,
+          "prompt": "List representative examples that help explain the concept."
+        },
+        {
+          "id": "misconceptions",
+          "title": "易混辨析",
+          "section_type": "misconception",
+          "required": false,
+          "prompt": "List common confusions or non-examples."
+        }
+      ],
+      "recommended_edge_types": [
+        "is_a",
+        "explains",
+        "extends",
+        "prerequisite_for",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "What is this concept?",
+        "What should a learner be able to distinguish after learning it?",
+        "What other concepts does it connect to?"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:entity-profile-v2",
+      "node_kind": "entity",
+      "title": "Entity Node",
+      "summary": "For substances, organisms, places, people, institutions, and other named objects.",
+      "sections": [
+        {
+          "id": "identity",
+          "title": "基本身份",
+          "section_type": "definition",
+          "required": true,
+          "prompt": "State what kind of entity it is and how it is basically identified."
+        },
+        {
+          "id": "properties",
+          "title": "关键属性",
+          "section_type": "structure",
+          "required": true,
+          "prompt": "List the most important stable properties or characteristics."
+        },
+        {
+          "id": "functions",
+          "title": "功能与用途",
+          "section_type": "application",
+          "required": false,
+          "prompt": "Describe key functions, roles, or uses."
+        },
+        {
+          "id": "tests",
+          "title": "检验与区分",
+          "section_type": "procedure",
+          "required": false,
+          "prompt": "Describe how it is identified, tested, or distinguished when relevant."
+        }
+      ],
+      "recommended_edge_types": [
+        "is_a",
+        "has_property",
+        "contains",
+        "part_of",
+        "represented_by",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "What kind of object is it?",
+        "What are its most important properties?",
+        "How is it recognized or used?"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:process-flow-v2",
+      "node_kind": "process",
+      "title": "Process Node",
+      "summary": "For change processes, mechanisms, and procedural transformations in the world.",
+      "sections": [
+        {
+          "id": "process-description",
+          "title": "过程描述",
+          "section_type": "definition",
+          "required": true,
+          "prompt": "Describe what the process is."
+        },
+        {
+          "id": "inputs-outputs",
+          "title": "输入与输出",
+          "section_type": "structure",
+          "required": true,
+          "prompt": "Describe the inputs, outputs, or before-after states."
+        },
+        {
+          "id": "conditions",
+          "title": "条件与影响因素",
+          "section_type": "key_points",
+          "required": false,
+          "prompt": "Describe conditions, triggers, and influencing factors."
+        },
+        {
+          "id": "phenomena",
+          "title": "典型现象",
+          "section_type": "example",
+          "required": false,
+          "prompt": "List the observable signs or effects of this process."
+        }
+      ],
+      "recommended_edge_types": [
+        "depends_on",
+        "causes",
+        "affects",
+        "produces",
+        "consumes",
+        "explains"
+      ],
+      "expansion_questions": [
+        "What changes during the process?",
+        "What conditions matter?",
+        "What does the process lead to?"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:principle-rule-v2",
+      "node_kind": "principle",
+      "title": "Principle Node",
+      "summary": "For laws, rules, mechanisms, and stable explanatory principles.",
+      "sections": [
+        {
+          "id": "statement",
+          "title": "核心表述",
+          "section_type": "definition",
+          "required": true,
+          "prompt": "State the principle or rule clearly."
+        },
+        {
+          "id": "meaning",
+          "title": "含义理解",
+          "section_type": "essence",
+          "required": true,
+          "prompt": "Explain what the principle means."
+        },
+        {
+          "id": "applications",
+          "title": "应用场景",
+          "section_type": "application",
+          "required": false,
+          "prompt": "List typical contexts where the principle is applied."
+        },
+        {
+          "id": "limits",
+          "title": "适用边界",
+          "section_type": "assessment",
+          "required": false,
+          "prompt": "State known limits, assumptions, or conditions."
+        }
+      ],
+      "recommended_edge_types": [
+        "explains",
+        "applies_to",
+        "depends_on",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "What does the principle claim?",
+        "What does it explain?",
+        "Under what conditions is it used?"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:method-procedure-v2",
+      "node_kind": "method",
+      "title": "Method Node",
+      "summary": "For reusable methods, procedures, and problem-solving approaches.",
+      "sections": [
+        {
+          "id": "goal",
+          "title": "目标",
+          "section_type": "definition",
+          "required": true,
+          "prompt": "State what this method is for."
+        },
+        {
+          "id": "conditions",
+          "title": "适用条件",
+          "section_type": "assessment",
+          "required": true,
+          "prompt": "Describe when the method should be used."
+        },
+        {
+          "id": "steps",
+          "title": "操作步骤",
+          "section_type": "procedure",
+          "required": true,
+          "prompt": "List the main steps of the method."
+        },
+        {
+          "id": "errors",
+          "title": "常见错误",
+          "section_type": "misconception",
+          "required": false,
+          "prompt": "List common mistakes or failure modes."
+        }
+      ],
+      "recommended_edge_types": [
+        "uses",
+        "measures",
+        "applies_to",
+        "depends_on",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "What is this method for?",
+        "When should it be used?",
+        "What are the critical steps?"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:skill-capability-v2",
+      "node_kind": "skill",
+      "title": "Skill Node",
+      "summary": "For trainable and assessable capabilities.",
+      "sections": [
+        {
+          "id": "skill-definition",
+          "title": "能力定义",
+          "section_type": "definition",
+          "required": true,
+          "prompt": "Define the skill in learner-facing terms."
+        },
+        {
+          "id": "indicators",
+          "title": "表现指标",
+          "section_type": "assessment",
+          "required": true,
+          "prompt": "Describe how the skill is demonstrated or assessed."
+        },
+        {
+          "id": "practice",
+          "title": "训练方式",
+          "section_type": "procedure",
+          "required": false,
+          "prompt": "Describe how the skill is practiced or strengthened."
+        }
+      ],
+      "recommended_edge_types": [
+        "applies_to",
+        "depends_on",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "What does successful performance look like?",
+        "How is the skill trained?",
+        "What knowledge supports the skill?"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:representation-form-v2",
+      "node_kind": "representation",
+      "title": "Representation Node",
+      "summary": "For symbols, formulas, equations, diagrams, and other formal representations.",
+      "sections": [
+        {
+          "id": "representation-meaning",
+          "title": "表示含义",
+          "section_type": "definition",
+          "required": true,
+          "prompt": "Explain what this representation stands for."
+        },
+        {
+          "id": "reading-rules",
+          "title": "读写规则",
+          "section_type": "procedure",
+          "required": true,
+          "prompt": "Describe how the representation is read, written, or interpreted."
+        },
+        {
+          "id": "connections",
+          "title": "关联对象",
+          "section_type": "comparison",
+          "required": false,
+          "prompt": "Describe what entities, concepts, or processes it represents."
+        }
+      ],
+      "recommended_edge_types": [
+        "represented_by",
+        "symbolizes",
+        "explains",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "What does this representation denote?",
+        "How should it be read or written?",
+        "What knowledge objects does it connect to?"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:activity-task-v2",
+      "node_kind": "activity",
+      "title": "Activity Node",
+      "summary": "For experiments, investigations, and reusable learning or inquiry activities.",
+      "sections": [
+        {
+          "id": "activity-goal",
+          "title": "活动目标",
+          "section_type": "definition",
+          "required": true,
+          "prompt": "State the purpose of the activity."
+        },
+        {
+          "id": "setup",
+          "title": "材料与条件",
+          "section_type": "structure",
+          "required": false,
+          "prompt": "Describe the materials, tools, or setup."
+        },
+        {
+          "id": "procedure",
+          "title": "实施过程",
+          "section_type": "procedure",
+          "required": true,
+          "prompt": "List the main steps of the activity."
+        },
+        {
+          "id": "observations",
+          "title": "关键观察",
+          "section_type": "evidence",
+          "required": false,
+          "prompt": "List the key observations, outputs, or conclusions."
+        }
+      ],
+      "recommended_edge_types": [
+        "uses",
+        "measures",
+        "produces",
+        "consumes",
+        "explains",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "What is the activity trying to show or achieve?",
+        "What are the main steps?",
+        "What evidence or observations matter?"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:event-history-v2",
+      "node_kind": "event",
+      "title": "Event Node",
+      "summary": "For historical or real-world events.",
+      "sections": [
+        {
+          "id": "event-definition",
+          "title": "事件定义",
+          "section_type": "definition",
+          "required": true,
+          "prompt": "Define what the event is."
+        },
+        {
+          "id": "background",
+          "title": "背景",
+          "section_type": "background",
+          "required": false,
+          "prompt": "Describe the event background."
+        },
+        {
+          "id": "key-factors",
+          "title": "关键因素",
+          "section_type": "key_points",
+          "required": false,
+          "prompt": "List the major causes, factors, or participants."
+        },
+        {
+          "id": "impact",
+          "title": "影响",
+          "section_type": "application",
+          "required": false,
+          "prompt": "Describe the major consequences or significance."
+        }
+      ],
+      "recommended_edge_types": [
+        "causes",
+        "affects",
+        "part_of",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "What happened?",
+        "Why did it happen?",
+        "What changed because of it?"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "pattern:issue-topic-v2",
+      "node_kind": "issue",
+      "title": "Issue Node",
+      "summary": "For persistent, discussable issues and public-interest topics.",
+      "sections": [
+        {
+          "id": "issue-definition",
+          "title": "核心定义",
+          "section_type": "definition",
+          "required": true,
+          "prompt": "Define the issue clearly."
+        },
+        {
+          "id": "factors",
+          "title": "关键因素",
+          "section_type": "key_points",
+          "required": true,
+          "prompt": "List the main causes, drivers, or dimensions."
+        },
+        {
+          "id": "impacts",
+          "title": "影响",
+          "section_type": "application",
+          "required": false,
+          "prompt": "Describe the main consequences or significance."
+        },
+        {
+          "id": "responses",
+          "title": "应对思路",
+          "section_type": "reflection",
+          "required": false,
+          "prompt": "List possible responses, viewpoints, or mitigation paths."
+        }
+      ],
+      "recommended_edge_types": [
+        "causes",
+        "affects",
+        "depends_on",
+        "related_to"
+      ],
+      "expansion_questions": [
+        "What makes this an issue?",
+        "What factors drive it?",
+        "What responses or viewpoints matter?"
+      ],
+      "properties": {}
+    }
+  ]
+}

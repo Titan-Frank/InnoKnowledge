@@ -1,0 +1,36 @@
+{
+  "id": "node-card:process__water-cycle",
+  "node_id": "process:water-cycle",
+  "pattern_ref": "pattern:process-flow-v2",
+  "sections": [
+    {
+      "id": "process-description",
+      "title": "过程描述",
+      "section_type": "definition",
+      "content": "水循环是水在自然界中的循环运动过程。水在太阳辐射和地球引力作用下，通过蒸发、水汽输送、降水和径流等环节，以气体、液体、固体的形式在陆地、海洋以及大气间不断循环。"
+    },
+    {
+      "id": "inputs-outputs",
+      "title": "输入与输出",
+      "section_type": "structure",
+      "content": "输入：液态水（海洋、湖泊、河流）、固态水（冰川）、地下水。输出：水蒸气、降水、径流。水在循环过程中形态不断变化，但总量保持相对稳定。"
+    },
+    {
+      "id": "conditions",
+      "title": "条件与影响因素",
+      "section_type": "key_points",
+      "content": "驱动因素：太阳辐射提供能量，地球引力引导水流。关键环节：蒸发（水从液态变为气态）、水汽输送（大气运动）、降水（水汽凝结降落）、径流（地表水和地下水流动）。影响因素：温度、风速、地形、植被覆盖。"
+    },
+    {
+      "id": "phenomena",
+      "title": "典型现象",
+      "section_type": "example",
+      "content": "日常现象：雨水降落、河水流动、云的形成、冰雪融化。宏观现象：海洋与大气间的水分交换、水资源的自然更新、洪涝和干旱的形成。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-1-2:water-cycle"
+  ],
+  "created_at": "2026-03-25T22:00:00+08:00",
+  "updated_at": "2026-03-25T22:00:00+08:00"
+}

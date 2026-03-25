@@ -1,0 +1,45 @@
+{
+  "id": "node-card:representation__formula__chemical-formula",
+  "node_id": "representation/formula:chemical-formula",
+  "title": "化学式",
+  "pattern_refs": ["pattern:representation-form-v2"],
+  "summary": "化学式是用元素符号和数字的组合来表示物质组成的式子，是化学语言中表达物质组成的重要方式。",
+  "sections": [
+    {
+      "id": "representation-meaning",
+      "title": "表示含义",
+      "section_type": "definition",
+      "content": [
+        "化学式是用元素符号和数字的组合来表示物质组成的式子。",
+        "例如，氧气可以用O₂表示，水可以用H₂O表示，二氧化碳可以用CO₂表示。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:chemical-formula-definition"]
+    },
+    {
+      "id": "reading-rules",
+      "title": "读写规则",
+      "section_type": "procedure",
+      "content": [
+        "化学式由元素符号和数字组成。",
+        "元素符号表示物质中所含的元素种类，数字表示各元素的原子个数。",
+        "根据化学式可以判断物质由哪些元素组成。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:chemical-formula-definition"]
+    },
+    {
+      "id": "connections",
+      "title": "关联对象",
+      "section_type": "comparison",
+      "content": [
+        "化学式表示物质组成，与元素符号和化学方程式相关。",
+        "常见化学式：O₂（氧气）、H₂O（水）、CO₂（二氧化碳）、NaCl（氯化钠）、C₆H₈O₇（柠檬酸）、NaHCO₃（碳酸氢钠）等。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:chemical-formula-definition"],
+      "related_node_refs": ["representation/symbol:element-symbol", "representation/equation:chemical-equation", "entity/substance:oxygen", "entity/substance:water", "entity/substance:carbon-dioxide"]
+    }
+  ],
+  "profile_refs": ["profile:representation-chemical-formula-junior-chem"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

@@ -1,0 +1,49 @@
+{
+  "node_id": "experiment:prepare-co2",
+  "title": "实验室制取二氧化碳",
+  "pattern_refs": ["pattern:experiment-procedure"],
+  "summary": "用石灰石（或大理石）与稀盐酸反应制取二氧化碳。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "实验目的",
+      "content": [
+        "学习实验室制取二氧化碳的方法",
+        "掌握气体制取的基本操作"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson2-1-3-core"]
+    },
+    {
+      "id": "principle",
+      "title": "实验原理",
+      "content": [
+        "石灰石（或大理石）与稀盐酸反应产生二氧化碳"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson2-1-3-core"]
+    },
+    {
+      "id": "materials",
+      "title": "试剂与仪器",
+      "content": [
+        "试剂：石灰石（或大理石）、稀盐酸",
+        "仪器：锥形瓶、长颈漏斗、集气瓶、导管"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson2-1-3-core"]
+    },
+    {
+      "id": "procedure",
+      "title": "基本步骤",
+      "content": [
+        "组装仪器，检查气密性",
+        "加入石灰石",
+        "通过长颈漏斗加入稀盐酸",
+        "收集气体",
+        "验满"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson2-1-3-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson2-1-3-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson2-1-3-1"],
+  "properties": {}
+}

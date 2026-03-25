@@ -1,0 +1,40 @@
+{
+  "node_id": "concept:iron-rusting",
+  "title": "铁生锈",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "铁生锈是铁与空气中的氧气、水等物质作用，转化为铁的化合物的过程。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "铁生锈的过程，实际上是铁与空气中的氧气、水等物质作用，发生一系列复杂的化学反应，转化为铁的化合物的过程。",
+        "铁锈的主要成分是氧化铁。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-3:02"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "铁生锈是一种缓慢的氧化反应。",
+        "铁生锈需要氧气和水同时存在。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-3:02"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "铁生锈需要氧气和水共同作用。",
+        "铁锈是红褐色的固体。",
+        "防止铁生锈需要将铁与氧气和水隔绝。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-3:02"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-3:02"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

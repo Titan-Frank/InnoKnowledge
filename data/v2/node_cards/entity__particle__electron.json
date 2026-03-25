@@ -1,0 +1,17 @@
+{
+  "id": "node-card:entity__particle__electron",
+  "node_id": "entity/particle:electron",
+  "title": "电子",
+  "node_kind": "entity",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "电子是构成原子的微粒，在原子核外高速运动，带一个单位负电荷，质量很小。"
+    }
+  ],
+  "source_refs": [],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

@@ -1,0 +1,36 @@
+{
+  "id": "node-card:concept__dissolved-oxygen",
+  "node_id": "concept:dissolved-oxygen",
+  "pattern_ref": "pattern:concept-core-v2",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "溶解氧是指溶解于水中的氧气质量，通常用mg/L表示。它是衡量水质的重要指标之一，也是水体净化的标志。"
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": "溶解氧反映了水体中氧气的含量，直接关系到水生生物的生存和水体的自净能力。溶解氧含量高说明水质好，水生生物能够正常呼吸，微生物能够有效分解有机物。"
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": "1. 溶解氧是水生生物呼吸所必需；2. 溶解氧是衡量水质的重要指标；3. 溶解氧是水体净化的标志；4. 溶解氧含量受温度、气压、水中生物活动影响。"
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": "清洁河流中溶解氧含量较高，鱼类能够正常生存。污染严重的水体溶解氧含量低，水生生物可能因缺氧而死亡。水中生物依靠溶解在水中的氧气呼吸。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-1-2:dissolved-oxygen"
+  ],
+  "created_at": "2026-03-25T22:00:00+08:00",
+  "updated_at": "2026-03-25T22:00:00+08:00"
+}

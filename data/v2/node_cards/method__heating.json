@@ -1,0 +1,17 @@
+{
+  "id": "node-card:method__heating",
+  "node_id": "method:heating",
+  "title": "加热操作",
+  "node_kind": "method",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": "加热操作是化学实验的基本操作之一，包括使用酒精灯给试管、烧杯等仪器加热的方法和注意事项。"
+    }
+  ],
+  "source_refs": [],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

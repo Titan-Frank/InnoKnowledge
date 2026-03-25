@@ -1,0 +1,39 @@
+{
+  "node_id": "concept:solvent",
+  "title": "溶剂",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "能溶解其他物质的物质，水是最常用的溶剂。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "能溶解其他物质的物质叫做溶剂。",
+        "水是最常用的溶剂。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-1-core"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "溶剂是溶液的重要组成部分。",
+        "水能溶解多种物质，是最重要的溶剂。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-1-core"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "溶剂能溶解其他物质",
+        "水是最常用的溶剂",
+        "溶剂与溶质组成溶液"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-1-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson3-1-1-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson3-1-1-2"],
+  "properties": {}
+}

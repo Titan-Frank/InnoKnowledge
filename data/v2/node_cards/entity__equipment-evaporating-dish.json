@@ -1,0 +1,57 @@
+{
+  "id": "node-card:entity-equipment-evaporating-dish",
+  "node_id": "entity/equipment:evaporating-dish",
+  "title": "蒸发皿",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "蒸发皿是用于蒸发液体的仪器，一般为陶瓷材质，可直接用酒精灯加热，加热时需用玻璃棒不断搅拌以防液体飞溅。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "蒸发皿是一种用于蒸发液体的仪器。",
+        "一般为陶瓷材质，可直接用酒精灯加热。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:evaporation"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "材质：陶瓷（常用）",
+        "特点：可直接加热、耐高温",
+        "用途：蒸发液体、浓缩溶液"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:evaporation"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "蒸发液体以获得固体物质",
+        "浓缩溶液"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:evaporation"]
+    },
+    {
+      "id": "tests",
+      "title": "使用注意事项",
+      "section_type": "procedure",
+      "content": [
+        "加热时需用玻璃棒不断搅拌，防止液体飞溅",
+        "当出现较多固体时应停止加热，利用余热蒸干",
+        "受热后的蒸发皿需冷却后再移动，防止烫伤",
+        "热的蒸发皿不能放在实验桌上，应放在陶土网上冷却"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:evaporation"]
+    }
+  ],
+  "profile_refs": ["profile:entity-equipment-evaporating-dish-junior-chem"],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:evaporation"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T12:00:00+08:00"
+}

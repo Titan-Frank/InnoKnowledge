@@ -1,0 +1,19 @@
+{
+  "id": "node-card:concept__solution",
+  "node_id": "concept:solution",
+  "title": "溶液",
+  "node_kind": "concept",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "溶液是由溶质和溶剂组成的均一、稳定的混合物，具有均一性和稳定性两个基本特征。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade9-all-in-one:lesson:1-1-1:solution-definition"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

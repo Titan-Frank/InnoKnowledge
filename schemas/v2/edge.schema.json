@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Canonical Knowledge Edge V2",
+  "description": "Typed relation between canonical nodes in the unified knowledge map.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "edge_type",
+    "from",
+    "to",
+    "confidence",
+    "directionality",
+    "properties",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^edge:[a-z0-9:-]+$"
+    },
+    "edge_type": {
+      "type": "string",
+      "enum": [
+        "is_a",
+        "instance_of",
+        "part_of",
+        "contains",
+        "prerequisite_for",
+        "depends_on",
+        "extends",
+        "explains",
+        "causes",
+        "affects",
+        "has_property",
+        "uses",
+        "measures",
+        "produces",
+        "consumes",
+        "applies_to",
+        "represented_by",
+        "symbolizes",
+        "analogous_to",
+        "same_as",
+        "related_to"
+      ]
+    },
+    "from": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$"
+    },
+    "to": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$"
+    },
+    "directionality": {
+      "type": "string",
+      "enum": [
+        "directed",
+        "undirected"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "framework_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^framework:[a-z0-9:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "profile_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^profile:[a-z0-9:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^evidence:[a-z0-9:-]+$"
+      },
+      "uniqueItems": true
+    },
+    "properties": {
+      "type": "object"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "candidate",
+        "active",
+        "deprecated"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

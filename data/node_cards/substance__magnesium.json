@@ -1,0 +1,37 @@
+{
+  "node_id": "substance:magnesium",
+  "title": "镁",
+  "pattern_refs": ["pattern:substance-profile"],
+  "summary": "一种银白色金属，在空气中燃烧发出耀眼白光，生成白色粉末。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "content": [
+        "镁是一种银白色金属，符号为 Mg。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"]
+    },
+    {
+      "id": "properties",
+      "title": "主要性质",
+      "content": [
+        "银白色金属",
+        "在空气中燃烧发出耀眼白光",
+        "可燃性"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"]
+    },
+    {
+      "id": "preparation",
+      "title": "制取与获得",
+      "content": [
+        "镁燃烧生成氧化镁（白色粉末）"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-1-1-chemical-change"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-1-1-magnesium"],
+  "properties": {}
+}

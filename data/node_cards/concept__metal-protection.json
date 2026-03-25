@@ -1,0 +1,40 @@
+{
+  "node_id": "concept:metal-protection",
+  "title": "金属防锈",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "金属防锈是通过隔绝氧气和水来防止金属腐蚀的方法。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "防止金属腐蚀需要将金属与导致腐蚀的物质隔绝。",
+        "金属防锈是保护金属资源的重要措施。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-3:02"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "金属防锈的原理是破坏腐蚀的条件。",
+        "防锈方法多种多样，需根据实际情况选择。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-3:02"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "防锈的原理是将铁跟氧气和水隔绝。",
+        "常见的防锈方法包括：涂油、涂漆、镀金属等。",
+        "保持金属干燥也是防止生锈的简单方法。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-3:02"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-1-3:02"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

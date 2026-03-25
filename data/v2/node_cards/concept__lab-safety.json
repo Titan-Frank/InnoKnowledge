@@ -1,0 +1,19 @@
+{
+  "id": "node-card:concept__lab-safety",
+  "node_id": "concept:lab-safety",
+  "title": "实验室安全",
+  "node_kind": "concept",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": "实验室安全是指在化学实验室中遵守安全规则、识别安全设备和安全标志，以保证实验顺利进行和人员安全的一系列规范和措施。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:1-2-1:lab-safety"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

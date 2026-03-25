@@ -1,0 +1,33 @@
+{
+  "node_id": "method:inquiry-process",
+  "title": "科学探究过程",
+  "pattern_refs": ["pattern:method-playbook"],
+  "summary": "包括提出问题、形成假设、设计实验、获取证据、分析解释、形成结论等要素。",
+  "sections": [
+    {
+      "id": "purpose",
+      "title": "用途",
+      "content": [
+        "指导科学探究活动",
+        "培养科学思维能力"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-2-core"]
+    },
+    {
+      "id": "steps",
+      "title": "操作要点",
+      "content": [
+        "提出问题：明确探究目标",
+        "形成假设：基于已有知识提出假设",
+        "设计实验：制定实验方案",
+        "获取证据：进行实验，收集数据",
+        "分析解释：处理数据，得出结论",
+        "形成结论：总结探究结果"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-2-core"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson1-2-2-core"],
+  "mention_refs": ["mention:chem-grade8-all-in-one:lesson1-2-2-1"],
+  "properties": {}
+}

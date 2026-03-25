@@ -1,0 +1,40 @@
+{
+  "node_id": "concept:alloy",
+  "title": "合金",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "合金是由一种金属与其他金属或非金属熔合而成的具有金属特性的物质。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "合金是指由一种金属与其他金属或非金属熔合而成的具有金属特性的物质。",
+        "常见的合金有钢、黄铜、青铜等。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-3:01"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "合金保持了金属的基本特性。",
+        "合金的性能通常优于纯金属。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-3:01"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "合金具有金属光泽、延展性、导电性和导热性。",
+        "合金的性能可以通过调整成分来改善。",
+        "合金在生产和生活中应用广泛。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-3:01"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-3:01"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

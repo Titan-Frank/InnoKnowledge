@@ -1,0 +1,42 @@
+{
+  "id": "node-card:entity__particle__ion",
+  "node_id": "entity/particle:ion",
+  "pattern_ref": "pattern:entity-profile-v2",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "离子是带电的原子或原子团，是构成物质的一种微观粒子。当原子失去电子时，带正电荷，形成正离子（阳离子）；当原子得到电子时，带负电荷，形成负离子（阴离子）。带电的原子团也是离子，通常称为根，如碳酸根、氢氧根、铵根等。",
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-1:ion-formation"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": "离子带电荷，电荷数等于原子得失电子的数目。离子的电子层结构与原子的稳定结构相同。正离子的电子数小于质子数，负离子的电子数大于质子数。",
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-1:ion-formation", "evidence:chem-grade8-all-in-one:lesson:3-2-1:stable-structure"]
+    },
+    {
+      "id": "formation",
+      "title": "形成过程",
+      "section_type": "process",
+      "content": "原子趋向于达到稳定结构。在化学反应中，锂、钠等原子容易失去最外层电子形成正离子，而氟、氯等原子容易得到电子形成负离子。例如，钠原子失去1个电子形成钠离子(Na+)，氯原子得到1个电子形成氯离子(Cl-)。",
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-1:ion-formation", "evidence:chem-grade8-all-in-one:lesson:3-2-1:stable-structure"]
+    },
+    {
+      "id": "examples",
+      "title": "常见例子",
+      "section_type": "example",
+      "content": "正离子：钠离子(Na+)、镁离子(Mg2+)、铝离子(Al3+)、铵根(NH4+)等。负离子：氯离子(Cl-)、氧离子(O2-)、氢氧根(OH-)、碳酸根(CO3^2-)、硫酸根(SO4^2-)、硝酸根(NO3-)等。",
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-2-1:ion-formation"]
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-2-1:ion-formation",
+    "evidence:chem-grade8-all-in-one:lesson:3-2-1:stable-structure"
+  ],
+  "status": "active",
+  "created_at": "2026-03-25T16:00:00+08:00",
+  "updated_at": "2026-03-25T16:00:00+08:00"
+}

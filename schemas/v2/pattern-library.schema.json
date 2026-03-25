@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Knowledge Pattern Library V2",
+  "description": "Pattern library for expanding canonical nodes into node cards in the v2 model.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "library_id",
+    "title",
+    "summary",
+    "generated_at",
+    "patterns"
+  ],
+  "properties": {
+    "library_id": {
+      "type": "string",
+      "pattern": "^pattern-library:[a-z0-9:-]+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "patterns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "node_kind",
+          "title",
+          "summary",
+          "sections",
+          "recommended_edge_types",
+          "expansion_questions",
+          "properties"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^pattern:[a-z0-9:-]+$"
+          },
+          "node_kind": {
+            "type": "string",
+            "enum": [
+              "entity",
+              "concept",
+              "process",
+              "principle",
+              "method",
+              "skill",
+              "representation",
+              "activity",
+              "event",
+              "issue"
+            ]
+          },
+          "node_subkind": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sections": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "title",
+                "section_type",
+                "required",
+                "prompt"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9-]+$"
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "section_type": {
+                  "type": "string",
+                  "enum": [
+                    "definition",
+                    "essence",
+                    "key_points",
+                    "structure",
+                    "procedure",
+                    "application",
+                    "misconception",
+                    "example",
+                    "assessment",
+                    "extension",
+                    "evidence",
+                    "background",
+                    "comparison",
+                    "reflection",
+                    "other"
+                  ]
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "prompt": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "guidance": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          },
+          "recommended_edge_types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "is_a",
+                "instance_of",
+                "part_of",
+                "contains",
+                "prerequisite_for",
+                "depends_on",
+                "extends",
+                "explains",
+                "causes",
+                "affects",
+                "has_property",
+                "uses",
+                "measures",
+                "produces",
+                "consumes",
+                "applies_to",
+                "represented_by",
+                "symbolizes",
+                "analogous_to",
+                "same_as",
+                "related_to"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "expansion_questions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "properties": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

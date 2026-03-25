@@ -1,0 +1,37 @@
+{
+  "id": "node-card:entity-substance-c60",
+  "node_id": "entity/substance:c60",
+  "pattern_ref": "pattern:entity-profile-v2",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": "C60是由60个碳原子构成的分子，分子结构酷似足球，被称为足球烯，是20世纪80年代科学家发现的一类新的碳单质。1996年，诺贝尔化学奖授予三位发现C60的化学家。"
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": "• 分子组成：由60个碳原子构成\n• 分子结构：酷似足球的球形结构\n• 分子式：C60\n• 别称：足球烯、巴克球\n• 组成元素：碳（C）\n• 结构特点：碳原子呈封闭笼状结构"
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": "• 生物学领域的应用\n• 环境领域的应用\n• 材料科学领域的应用\n• 能源领域的应用\n• 作为新型材料的基础"
+    },
+    {
+      "id": "discovery",
+      "title": "发现历程",
+      "section_type": "background",
+      "content": "C60于20世纪80年代被科学家发现，是一类新发现的碳单质。其独特结构决定了它具有一些特殊的性质。1996年，诺贝尔化学奖授予三位发现C60的化学家。我国科学家也对C60的合成、结构及应用等进行了积极探索。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-2-3:c60-discovery",
+    "evidence:chem-grade8-all-in-one:lesson:3-2-3:allotrope-concept"
+  ],
+  "created_at": "2026-03-25T18:00:00+08:00",
+  "updated_at": "2026-03-25T18:00:00+08:00"
+}

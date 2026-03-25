@@ -1,0 +1,19 @@
+{
+  "id": "node-card:method__reagent-handling",
+  "node_id": "method:reagent-handling",
+  "title": "试剂取用",
+  "node_kind": "method",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": "试剂取用是化学实验的基本操作，包括固体试剂和液体试剂的取用方法，要求规范操作以保证实验准确和安全。"
+    }
+  ],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:1-2-1:lab-equipment"
+  ],
+  "created_at": "2026-03-25T00:00:00+08:00",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

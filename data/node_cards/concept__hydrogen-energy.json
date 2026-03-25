@@ -1,0 +1,40 @@
+{
+  "node_id": "concept:hydrogen-energy",
+  "title": "氢能源",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "氢能源是一种清洁、高效的新能源，燃烧产物是水，无污染。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "氢能源是以氢气为载体的能源。",
+        "氢气燃烧产物是水，是一种清洁能源。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-1:02"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "氢能源属于可再生能源。",
+        "氢气燃烧释放大量热能。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-1:02"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "氢气燃烧产物是水，不产生污染物。",
+        "氢能源热值高。",
+        "氢能源的开发和利用是新能源研究的重点方向。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-1:02"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-2-2-1:02"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

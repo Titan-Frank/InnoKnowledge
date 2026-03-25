@@ -1,0 +1,40 @@
+{
+  "node_id": "concept:neutralization-reaction",
+  "title": "中和反应",
+  "pattern_refs": ["pattern:concept-core"],
+  "summary": "中和反应是酸与碱作用生成盐和水的反应，属于复分解反应。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "content": [
+        "酸与碱作用生成盐和水的反应叫做中和反应。",
+        "中和反应属于复分解反应。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-3:02"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "content": [
+        "中和反应是酸和碱之间的反应。",
+        "中和反应过程中放出热量。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-3:02"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "content": [
+        "中和反应的产物是盐和水。",
+        "中和反应是放热反应。",
+        "中和反应在生活和生产中有广泛应用。"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-3:02"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:lesson-1-2-3:02"],
+  "properties": {},
+  "updated_at": "2026-03-24T00:00:00+08:00",
+  "status": "draft"
+}

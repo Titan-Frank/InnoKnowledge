@@ -1,0 +1,46 @@
+{
+  "id": "node-card:entity__substance__carbon",
+  "node_id": "entity/substance:carbon",
+  "title": "碳",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "碳是一种非金属元素，元素符号为C，碳元素的单质有石墨、金刚石等，是组成有机物的重要元素。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "碳是一种非金属元素，元素符号为C。",
+        "碳元素的单质有石墨、金刚石等。",
+        "碳是组成有机物的重要元素。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:element-composition", "evidence:chem-grade8-all-in-one:lesson:1-1-2:element-symbol-definition"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "原子序数为6。",
+        "元素符号为C。",
+        "碳的单质有金刚石、石墨等同素异形体。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:element-symbol-definition"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "石墨由碳元素组成，可用作润滑剂、电极材料等。",
+        "金刚石由碳元素组成，是自然界中最硬的物质。",
+        "碳是组成有机物的重要元素，是生命体的重要组成元素。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:element-composition"]
+    }
+  ],
+  "profile_refs": [],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}

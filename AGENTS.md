@@ -1,102 +1,125 @@
-# Knowledge Extraction Project
+# Knowledge Map Extraction Project
 
-This project turns textbook content into a stable, evidence-backed knowledge representation that can later be imported into a graph database.
+This project turns textbook content into a stable, evidence-backed, cross-disciplinary knowledge map that can later be imported into a graph database or ontology system.
 
 ## Goal
 
 - Keep the main backbone as canonical knowledge points and relations.
-- Use the curriculum framework as a reference scaffold, not a rigid source of truth.
-- Use textbook chapters only as provenance anchors, not as the primary knowledge tree.
-- Keep every canonical node and edge traceable to textbook evidence.
+- Treat the knowledge map as global-first, not textbook-first.
+- Use curriculum framework files as reference scaffolds, not rigid ontologies.
+- Use textbook structure only as provenance anchors, not as the primary knowledge tree.
+- Keep every node, edge, profile, and node card traceable to evidence.
+- Separate:
+  - knowledge backbone
+  - curriculum profile
+  - node card
+  - provenance
 
 ## Required Workflow
 
 1. Create or refresh `data/outlines/<book-id>.outline.json`.
-2. Read `data/frameworks/junior-chemistry-framework.json` and `data/patterns/junior-chemistry-patterns.json` before creating new canonical nodes.
+2. Read the relevant framework and pattern files before creating new canonical nodes.
 3. Use the backbone flow to extract one lesson or one tightly scoped page range at a time.
-4. Reuse or extend canonical knowledge in `data/graph/knowledge.nodes.jsonl` and `data/graph/knowledge.edges.jsonl`.
-5. Record book-local provenance in `data/graph/<book-id>.mentions.jsonl` and `data/graph/<book-id>.evidence.jsonl`.
-6. Expand node cards only after the backbone node is stable enough to deserve detailed explanation.
-7. Run a read-only QA pass before trusting the result.
+4. Reuse or extend canonical knowledge in the V2 graph files under `data/v2/`.
+5. Record curriculum-stage projections in `data/v2/profiles/knowledge.profiles.jsonl`.
+6. Record book-local provenance in `data/v2/graph/<book-id>.mentions.jsonl` and `data/v2/graph/<book-id>.evidence.jsonl`.
+7. Expand node cards only after the backbone node is stable enough to deserve detailed explanation.
+8. Run a read-only QA pass before trusting the result.
 
 Do not skip the outline stage for a new textbook unless the user explicitly asks for ad hoc extraction.
 
 ## Output Contract
 
 - Outline: `data/outlines/<book-id>.outline.json`
-- Framework: `data/frameworks/junior-chemistry-framework.json`
-- Pattern library: `data/patterns/junior-chemistry-patterns.json`
-- Canonical nodes: `data/graph/knowledge.nodes.jsonl`
-- Canonical edges: `data/graph/knowledge.edges.jsonl`
-- Mentions: `data/graph/<book-id>.mentions.jsonl`
-- Evidence: `data/graph/<book-id>.evidence.jsonl`
-- Node cards: `data/node_cards/<safe-node-id>.json`
-  - Use `safe-node-id = node_id` with every `:` replaced by `__`
+- Framework: `data/frameworks/*.json`
+- Pattern library: `data/patterns/unified-knowledge-patterns.v2.json`
+- Canonical nodes: `data/v2/graph/knowledge.nodes.jsonl`
+- Canonical edges: `data/v2/graph/knowledge.edges.jsonl`
+- Curriculum profiles: `data/v2/profiles/knowledge.profiles.jsonl`
+- Mentions: `data/v2/graph/<book-id>.mentions.jsonl`
+- Evidence: `data/v2/graph/<book-id>.evidence.jsonl`
+- Node cards: `data/v2/node_cards/<safe-node-id>.json`
+  - Use `safe-node-id = node_id` with every `:` replaced by `__` and every `/` replaced by `__`
+
+The legacy files under `data/graph/` and `data/node_cards/` are compatibility outputs. New extraction work should default to the V2 paths above unless the user explicitly asks for legacy output.
 
 Read these schema files before writing output:
 
 - `schemas/framework.schema.json`
-- `schemas/pattern-library.schema.json`
 - `schemas/outline.schema.json`
-- `schemas/node.schema.json`
-- `schemas/edge.schema.json`
-- `schemas/mention.schema.json`
-- `schemas/evidence.schema.json`
-- `schemas/node-card.schema.json`
+- `schemas/v2/node.schema.json`
+- `schemas/v2/edge.schema.json`
+- `schemas/v2/curriculum-profile.schema.json`
+- `schemas/v2/mention.schema.json`
+- `schemas/v2/evidence.schema.json`
+- `schemas/v2/node-card.schema.json`
+- `schemas/v2/pattern-library.schema.json`
 
 ## Evidence Rules
 
 - Every mention must reference at least one evidence record.
-- Evidence must include the source PDF path, page range, and outline anchor.
-- Canonical nodes and edges must be supportable through mentions and evidence, even if the evidence is not embedded directly on the canonical record.
-- Prefer exact textbook wording for `name`.
-- Put alternate wording, symbols, formulas, and short aliases in `aliases`.
+- Evidence must include source identity, anchor, locator, and extraction method.
+- Canonical nodes, edges, and profiles must be supportable through mentions and evidence, even if the evidence is not embedded directly on the canonical record.
+- Prefer exact textbook wording for local evidence excerpts.
 - If a relation is inferred rather than explicit, keep it conservative and lower confidence.
 
-## Knowledge Backbone Rules
+## Knowledge Map Rules
 
-- The primary tree is concept-centric, not chapter-centric.
-- Prefer canonical IDs such as `concept:air-composition` or `substance:oxygen`.
-- Link nodes and edges to curriculum framework items with `framework_refs` when it helps normalization.
-- Use the pattern library as expansion guidance for what a mature node card should contain.
-- Do not force every extracted node to map to the curriculum framework if the textbook contains a useful but more local concept.
-- Keep textbook outline anchors in mentions and evidence, not as the main parent-child structure for canonical knowledge nodes.
+- The primary tree is knowledge-centric, not chapter-centric.
+- A canonical node should remain stable across textbooks, subjects, and grade bands whenever identity is clear.
+- Use `node_kind` as the primary ontology axis.
+- Use `learning_modes` as a secondary instructional axis.
+- Use curriculum profiles to express subject-, stage-, and grade-specific expectations.
+- Keep textbook outline anchors in mentions and evidence, not as the main parent-child structure for canonical nodes.
 - Keep the canonical graph sparse. If a detail is explanatory rather than structural, prefer putting it into a node card section instead of promoting it into a new backbone node.
+
+## Curriculum Profile Rules
+
+- A curriculum profile is a projection of one canonical node into one subject/stage/grade context.
+- Put `subject`, `school_stage`, `grade_band`, `curriculum_role`, and `mastery_level` in the profile, not in the canonical node.
+- Use `framework_refs` primarily on profiles; duplicate them on nodes only when they improve discoverability.
+- A canonical node may have multiple profiles.
 
 ## Node Card Rules
 
 - One node card maps to exactly one canonical node.
 - A node card expands a node with structured sections, not free-form essay text.
 - Every node card must cite evidence via `source_refs`.
-- Use the pattern library to decide which sections are required for each node type.
+- Use the pattern library to decide which sections are required for each node kind.
 - If evidence is weak or incomplete, omit the section or state the gap conservatively in the section content.
 
 ## ID Rules
 
-- Use lowercase ASCII IDs with `:` or `-`.
+- Use lowercase ASCII IDs with `:`, `/`, and `-` only.
 - Recommended prefixes:
+  - `entity/`
   - `concept:`
-  - `substance:`
-  - `experiment:`
+  - `process:`
+  - `principle:`
   - `method:`
   - `skill:`
-  - `symbol:`
-  - `question:`
+  - `representation/`
+  - `activity/`
+  - `event:`
+  - `issue:`
+  - `profile:`
+  - `node-card:`
   - `framework:`
   - `pattern:`
   - `struct:`
   - `mention:`
   - `evidence:`
   - `edge:`
-- Keep IDs stable across reruns for the same textbook whenever possible.
+- Keep IDs stable across reruns for the same knowledge object whenever possible.
+- Legacy-style IDs such as `substance:oxygen` are allowed during migration, but new work should prefer `node_kind`-aware IDs such as `entity/substance:oxygen`.
 
 ## Extraction Boundaries
 
 - Work on one textbook at a time.
 - Work on one lesson or one short page range at a time.
 - Prefer merging into the shared canonical knowledge files when the identity is clear.
-- If identity across books is unclear, keep the new node separate and flag it for normalization instead of forcing a merge.
-- Do not invent latent knowledge that is not grounded in the textbook text, tables, diagrams, or captions.
+- If identity across books, stages, or subjects is unclear, keep the new node separate and flag it for normalization instead of forcing a merge.
+- Do not invent latent knowledge that is not grounded in the source text, tables, diagrams, captions, or clearly local curriculum statements.
 
 ## Preferred Tools
 
@@ -104,14 +127,15 @@ Read these schema files before writing output:
 - Prefer `pdftotext -layout` for fast text extraction.
 - Use the outline extraction script for TOC parsing before attempting manual JSON writing.
 - Use the curriculum framework file as a soft anchor when naming or grouping canonical nodes.
-- Use the pattern library to keep node cards consistent across node types.
+- Use the pattern library to keep node cards consistent across node kinds.
 
 ## Review Checklist
 
 - Schema-valid fields only.
 - No canonical edge whose endpoints are missing.
+- No curriculum profile whose node is missing.
 - No mention without evidence.
-- No evidence without an outline anchor.
-- No duplicated canonical nodes that differ only by whitespace, punctuation, or obvious aliases.
-- No relation promoted to the canonical graph unless the book-local evidence clearly supports it.
+- No evidence without an anchor.
+- No duplicated canonical nodes that differ only by whitespace, punctuation, aliases, or legacy-vs-v2 naming.
+- No relation promoted to the canonical graph unless the source evidence clearly supports it.
 - If a node card exists, its sections should match at least one referenced pattern and every section should be supportable by the card's evidence.

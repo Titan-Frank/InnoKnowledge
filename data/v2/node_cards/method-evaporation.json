@@ -1,0 +1,58 @@
+{
+  "id": "node-card:method-evaporation",
+  "node_id": "method:evaporation",
+  "title": "蒸发操作",
+  "pattern_refs": ["pattern:method-procedure-v2"],
+  "summary": "蒸发是通过加热使液体汽化逸出从而得到固体物质的实验方法，常用蒸发皿和酒精灯进行，加热时需用玻璃棒不断搅拌。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": [
+        "蒸发是一种通过加热使液体汽化逸出，从而得到固体物质的实验方法。",
+        "常用于从溶液中获取溶质固体。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:evaporation"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "section_type": "assessment",
+      "content": [
+        "适用于从溶液中获取固体溶质",
+        "常用于粗盐提纯等实验"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:evaporation"]
+    },
+    {
+      "id": "steps",
+      "title": "操作步骤",
+      "section_type": "procedure",
+      "content": [
+        "1. 将滤液倒入蒸发皿中",
+        "2. 用酒精灯加热蒸发皿，同时用玻璃棒不断搅拌",
+        "3. 当出现较多固体时停止加热，利用蒸发皿的余热将液体蒸干",
+        "4. 冷却后将固体转移到指定容器中"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:evaporation"]
+    },
+    {
+      "id": "errors",
+      "title": "注意事项",
+      "section_type": "key_points",
+      "content": [
+        "加热时必须用玻璃棒不断搅拌，防止液体因局部过热而飞溅",
+        "当出现较多固体时就应停止加热，利用余热蒸干",
+        "受热后的蒸发皿需冷却后再移动，防止烫伤",
+        "热的蒸发皿不能放在实验桌上，应放在陶土网上冷却"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:evaporation"]
+    }
+  ],
+  "profile_refs": ["profile:method-evaporation-junior-chem"],
+  "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-2-1:evaporation"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T12:00:00+08:00"
+}

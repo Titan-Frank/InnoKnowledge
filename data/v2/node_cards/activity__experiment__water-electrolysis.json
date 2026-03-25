@@ -1,0 +1,93 @@
+{
+  "id": "node-card:activity__experiment__water-electrolysis",
+  "node_id": "activity/experiment:water-electrolysis",
+  "title": "电解水实验",
+  "pattern_refs": ["pattern:activity-task-v2"],
+  "summary": "电解水实验是通过直流电将水分解为氢气和氧气的实验，证明水是由氢元素和氧元素组成的。负极产生氢气，正极产生氧气，两者体积比约为2:1。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "实验目的",
+      "section_type": "definition",
+      "content": [
+        "通过电解水实验探究水的组成",
+        "证明水是由氢元素和氧元素组成的",
+        "学习通过实验验证物质组成的方法"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-3:water-composition"]
+    },
+    {
+      "id": "setup",
+      "title": "实验装置与材料",
+      "section_type": "structure",
+      "content": [
+        "电解器（或水电解器）",
+        "直流电源",
+        "水（可加入少量硫酸或氢氧化钠增强导电性）",
+        "燃着的木条（用于检验气体）"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-3:electrolysis-experiment"]
+    },
+    {
+      "id": "procedure",
+      "title": "实验步骤",
+      "section_type": "procedure",
+      "content": [
+        "在电解器中装满水，两端分别连接直流电源的正、负极",
+        "接通直流电源，观察两个电极附近出现的现象",
+        "切断电源，记录两支玻璃管中气体的体积",
+        "用燃着的木条分别在两支玻璃管尖嘴口检验产生的气体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-3:electrolysis-experiment"]
+    },
+    {
+      "id": "observations",
+      "title": "实验现象与结论",
+      "section_type": "evidence",
+      "content": [
+        "电极上有气泡产生，玻璃管中的水减少",
+        "负极产生的气体体积约为正极的2倍",
+        "负极气体：不助燃，本身能燃烧，产生淡蓝色火焰，是氢气",
+        "正极气体：能使燃着的木条燃烧更旺，是氧气",
+        "结论：在直流电作用下，水发生分解生成氢气和氧气"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-3:electrolysis-experiment"]
+    },
+    {
+      "id": "micro-explanation",
+      "title": "微观解释",
+      "section_type": "essence",
+      "content": [
+        "水分子分解为氢原子和氧原子",
+        "每两个氢原子结合成一个氢分子",
+        "每两个氧原子结合成一个氧分子",
+        "氢分子与氧分子的体积比2:1反映水分子的组成"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-3:water-molecule-structure"]
+    },
+    {
+      "id": "reaction-type",
+      "title": "反应类型",
+      "section_type": "classification",
+      "content": [
+        "电解水属于分解反应",
+        "一种物质（水）生成两种物质（氢气、氧气）",
+        "反应表达式：水 --通电--> 氢气 + 氧气"
+      ],
+      "related_node_refs": ["concept:decomposition-reaction"],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:3-1-3:decomposition-reaction"]
+    }
+  ],
+  "framework_refs": ["framework:cn-chem-junior:expectation:c29bbdda4a", "framework:cn-chem-junior:expectation:c638790706"],
+  "profile_refs": ["profile:activity-experiment-water-electrolysis-junior-chem"],
+  "source_refs": [
+    "evidence:chem-grade8-all-in-one:lesson:3-1-3:electrolysis-experiment",
+    "evidence:chem-grade8-all-in-one:lesson:3-1-3:water-composition",
+    "evidence:chem-grade8-all-in-one:lesson:3-1-3:water-molecule-structure"
+  ],
+  "properties": {
+    "student_required_experiment": true
+  },
+  "status": "reviewed",
+  "updated_at": "2026-03-25T23:00:00+08:00"
+}

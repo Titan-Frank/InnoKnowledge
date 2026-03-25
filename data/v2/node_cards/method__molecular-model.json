@@ -1,0 +1,44 @@
+{
+  "id": "node-card:method__molecular-model",
+  "node_id": "method:molecular-model",
+  "title": "分子模型",
+  "pattern_refs": ["pattern:method-procedure-v2"],
+  "summary": "分子模型是化学研究的重要工具，用于表示分子结构和原子排列方式，是联系宏观与微观的桥梁。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": [
+        "模型是化学研究的一种重要工具，可以帮助我们认识和理解一些不能直接观察到的或复杂的事物。",
+        "物质结构的微观模型是联系宏观与微观的桥梁。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:molecular-model"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "section_type": "assessment",
+      "content": [
+        "当需要从微观角度认识和理解物质结构时使用。",
+        "用于表达交流微观粒子的结构和排列方式。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:molecular-model"]
+    },
+    {
+      "id": "steps",
+      "title": "操作步骤",
+      "section_type": "procedure",
+      "content": [
+        "模型可以是实物搭建或电脑创作的立体形态。",
+        "模型也可以是绘制在纸面上的平面形态。",
+        "借助物质的微观模型，可以研究物质的结构，解释或预测物质具有的性质，描绘物质在化学反应过程中的变化。"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:lesson:1-1-2:molecular-model"]
+    }
+  ],
+  "profile_refs": ["profile:method-molecular-model-junior-chem"],
+  "properties": {},
+  "status": "reviewed",
+  "updated_at": "2026-03-25T00:00:00+08:00"
+}
