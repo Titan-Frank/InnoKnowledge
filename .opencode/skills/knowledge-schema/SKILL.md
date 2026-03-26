@@ -1,11 +1,11 @@
 ---
 name: knowledge-schema
-description: Applies the project's V2 canonical node, edge, curriculum profile, mention, evidence, and node-card schema for unified knowledge map extraction. Use when creating or normalizing graph artifacts under `data/v2/`, defining IDs, choosing relation types, or checking whether extraction outputs match the project's schema.
+description: Applies the project's V2 canonical node, edge, curriculum profile, mention, evidence, and node-card schema for unified knowledge map extraction. Use when creating or normalizing graph artifacts under `data/v2/` or an explicitly requested versioned root such as `data/v3/`, defining IDs, choosing relation types, or checking whether extraction outputs match the project's schema.
 ---
 
 # Knowledge Schema
 
-Use this skill as the schema authority for every extraction task. Prefer the V2 schema in `schemas/v2/` unless the user explicitly asks for legacy compatibility output.
+Use this skill as the schema authority for every extraction task. Prefer the V2 schema in `schemas/v2/` unless the user explicitly asks for legacy compatibility output. If the user explicitly asks for a versioned root such as `data/v3/`, keep the same schema and layout there.
 
 ## Workflow
 
@@ -28,8 +28,10 @@ Use this skill as the schema authority for every extraction task. Prefer the V2 
 - Use `learning_modes` as an instructional tag, not as the primary ontology type.
 - Use `node_kind` and optional `node_subkind` as the primary ontology axis.
 - Use `node_layer` to distinguish `backbone` nodes from `support` nodes.
+- Use `edge_layer` and `backbone_expand` to distinguish default trunk relations from support-expansion relations.
 - Prefer `backbone` for stable, cross-stage knowledge anchors.
 - Prefer `support` for reusable but auxiliary methods, activities, representations, equipment, or issue nodes.
+- Keep `card_layer` aligned with the referenced node's `node_layer`.
 - Use `framework_refs` primarily on curriculum profiles; keep them on canonical nodes only when they help normalization or discovery.
 - Use `properties` for extensible details instead of creating ad hoc top-level keys.
 

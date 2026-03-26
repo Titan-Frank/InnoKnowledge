@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-substance-sodium-chloride",
   "node_id": "entity/substance:sodium-chloride",
+  "card_layer": "backbone",
   "title": "氯化钠",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "氯化钠是一种白色固体，是食盐的主要成分，易溶于水，是人体必需的物质，在实验室中常用于配制溶液和粗盐提纯实验。",

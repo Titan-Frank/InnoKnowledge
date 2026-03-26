@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__iron-oxide",
   "node_id": "entity/substance:iron-oxide",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:entity-profile-v2",
   "title": "四氧化三铁",
   "sections": [

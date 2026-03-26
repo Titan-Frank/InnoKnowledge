@@ -44,6 +44,24 @@
         }
       ]
     },
+    "v3": {
+      "label": "V3 Regenerated",
+      "description": "重新生成的干净版本，按需写入 data/v3/",
+      "nodes_path": "../data/v3/graph/knowledge.nodes.jsonl",
+      "edges_path": "../data/v3/graph/knowledge.edges.jsonl",
+      "profiles_path": "../data/v3/profiles/knowledge.profiles.jsonl",
+      "framework_path": "../data/frameworks/junior-chemistry-framework.json",
+      "patterns_path": "../data/patterns/unified-knowledge-patterns.v2.json",
+      "node_cards_dir": "../data/v3/node_cards",
+      "books": [
+        {
+          "book_id": "chem-grade8-all-in-one",
+          "outline_path": "../data/outlines/chem-grade8-all-in-one.outline.json",
+          "mentions_path": "../data/v3/graph/chem-grade8-all-in-one.mentions.jsonl",
+          "evidence_path": "../data/v3/graph/chem-grade8-all-in-one.evidence.jsonl"
+        }
+      ]
+    },
     "vx": {
       "label": "VX Custom",
       "description": "自定义实验版本，可按需指向 data/vx/",

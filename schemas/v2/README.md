@@ -6,8 +6,9 @@
 
 - 让 `canonical node` 保持学科中立与跨学段稳定
 - 给 `canonical node` 增加 `node_layer`，显式区分主干与支撑
+- 给 `canonical edge` 增加 `edge_layer` 与 `backbone_expand`，显式区分主干关系与主干展开关系
 - 把学科/年级/掌握要求下沉到 `curriculum profile`
-- 把详细展开下沉到 `node card`
+- 把详细展开下沉到 `node card`，并用 `card_layer` 对齐主干/支撑层
 - 把出处和教材锚点保留在 `mention` / `evidence`
 
 ## 文件说明
@@ -15,11 +16,11 @@
 - `node.schema.json`
   V2 主干节点 schema，核心字段是 `node_kind`、`node_layer`、`learning_modes`、`bridge_tags`
 - `edge.schema.json`
-  V2 主干关系 schema，扩展了分类、依赖、因果、表征等关系类型
+  V2 主干关系 schema，核心字段是 `edge_type`、`edge_layer`、`backbone_expand`
 - `curriculum-profile.schema.json`
   新增，表示同一 canonical node 在不同学科/学段中的画像
 - `node-card.schema.json`
-  V2 节点卡 schema，支持按 section type 展开
+  V2 节点卡 schema，支持按 section type 展开，并用 `card_layer` 标记主干卡/支撑卡
 - `mention.schema.json`
   V2 提及记录 schema，从“教材 mention”推广到“来源 mention”
 - `evidence.schema.json`

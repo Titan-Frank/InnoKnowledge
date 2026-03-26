@@ -1,6 +1,7 @@
 {
   "id": "node-card:method__molecular-model",
   "node_id": "method:molecular-model",
+  "card_layer": "support",
   "title": "分子模型",
   "pattern_refs": ["pattern:method-procedure-v2"],
   "summary": "分子模型是化学研究的重要工具，用于表示分子结构和原子排列方式，是联系宏观与微观的桥梁。",

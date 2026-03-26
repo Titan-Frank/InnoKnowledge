@@ -1,6 +1,7 @@
 {
   "id": "node-card:principle__mass-conservation",
   "node_id": "principle:mass-conservation",
+  "card_layer": "backbone",
   "title": "质量守恒定律",
   "node_kind": "principle",
   "sections": [

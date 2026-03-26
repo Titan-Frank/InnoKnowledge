@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__iron",
   "node_id": "entity/substance:iron",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:entity-profile-v2",
   "title": "铁",
   "sections": [

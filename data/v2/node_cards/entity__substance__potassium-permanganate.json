@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-substance-potassium-permanganate",
   "node_id": "entity/substance:potassium-permanganate",
+  "card_layer": "backbone",
   "title": "高锰酸钾",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "高锰酸钾是一种暗紫色固体，加热时可分解生成锰酸钾、二氧化锰和氧气，是实验室制取氧气的常用原料之一。化学式为KMnO4。",

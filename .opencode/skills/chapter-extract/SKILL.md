@@ -26,11 +26,13 @@ Use this skill on one lesson at a time. Keep extraction narrow and evidence-firs
 - Update `data/v2/graph/knowledge.nodes.jsonl` and `data/v2/graph/knowledge.edges.jsonl` only when canonical additions are justified.
 - Update `data/v2/profiles/knowledge.profiles.jsonl` when the lesson provides a stable subject/stage projection for a canonical node.
 - Write provenance to `data/v2/graph/<book-id>.mentions.jsonl` and `data/v2/graph/<book-id>.evidence.jsonl`.
+- If the user explicitly requests a versioned root such as `data/v3/`, write the same file layout there instead of `data/v2/`.
 - Keep one JSON object per line.
 - If a concept only appears in an activity, keep the activity evidence.
 - If an edge is only weakly implied, omit it or lower confidence.
 - Prefer V2 `node_kind`-aware ids such as `entity/substance:oxygen` or `activity/experiment:oxygen-content-determination`.
 - Every canonical node must set `node_layer` to `backbone` or `support`.
+- Every canonical edge must set `edge_layer`, and use `backbone_expand = true` only when the edge should open a support node from a backbone node.
 - Default to `support` for reusable but auxiliary methods, activities, representations, equipment, or issue nodes unless the user explicitly wants them in the visible backbone.
 - Write legacy `data/graph/` outputs only if the user explicitly asks for compatibility output.
 

@@ -1,6 +1,7 @@
 {
   "id": "node-card:issue__greenhouse-effect",
   "node_id": "issue:greenhouse-effect",
+  "card_layer": "support",
   "pattern_ref": "pattern:issue-topic-v2",
   "title": "温室效应",
   "sections": [

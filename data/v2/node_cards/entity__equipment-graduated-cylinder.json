@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-equipment-graduated-cylinder",
   "node_id": "entity/equipment:graduated-cylinder",
+  "card_layer": "support",
   "title": "量筒",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "量筒是实验室用于量取一定体积液体的量器，有不同规格，读数时视线应与凹液面最低处保持水平。",

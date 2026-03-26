@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__magnesium-oxide",
   "node_id": "entity/substance:magnesium-oxide",
+  "card_layer": "backbone",
   "title": "氧化镁",
   "node_kind": "entity",
   "sections": [

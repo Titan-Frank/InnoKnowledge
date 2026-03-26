@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__simple-substance",
   "node_id": "concept:simple-substance",
+  "card_layer": "backbone",
   "title": "单质",
   "pattern_refs": ["pattern:concept-core-v2"],
   "summary": "单质是由同种元素组成的纯净物，是纯净物的一个重要类别。单质的组成元素只有一种，与化合物相对。",

@@ -1,6 +1,7 @@
 {
   "id": "node-card:issue__air-quality",
   "node_id": "issue:air-quality",
+  "card_layer": "support",
   "title": "空气质量",
   "node_kind": "issue",
   "sections": [

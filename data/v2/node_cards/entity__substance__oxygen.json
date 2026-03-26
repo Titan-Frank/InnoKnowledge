@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__oxygen",
   "node_id": "entity/substance:oxygen",
+  "card_layer": "backbone",
   "title": "氧气",
   "node_kind": "entity",
   "sections": [

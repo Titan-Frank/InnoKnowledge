@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__magnesium",
   "node_id": "entity/substance:magnesium",
+  "card_layer": "backbone",
   "title": "镁",
   "node_kind": "entity",
   "sections": [

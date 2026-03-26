@@ -1,6 +1,7 @@
 {
   "id": "node-card:representation__equation__chemical-equation",
   "node_id": "representation/equation:chemical-equation",
+  "card_layer": "support",
   "title": "化学方程式",
   "pattern_refs": ["pattern:representation-form-v2"],
   "summary": "化学方程式是用化学式来表示化学反应的式子，具有简洁、科学、国际通用的特点，是化学语言中表达化学反应的重要方式。",

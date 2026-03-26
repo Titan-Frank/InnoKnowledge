@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__chemistry",
   "node_id": "concept:chemistry",
+  "card_layer": "backbone",
   "title": "化学",
   "node_kind": "concept",
   "sections": [

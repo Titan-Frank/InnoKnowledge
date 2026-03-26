@@ -12,6 +12,7 @@ Use node cards to expand one canonical node into a readable, evidence-backed exp
 ## Writing Rules
 
 - Expand one canonical node at a time.
+- Set `card_layer` to match the referenced canonical node's `node_layer`.
 - Read the matching pattern or patterns first.
 - Use section titles and section ids that match the pattern library.
 - Prefer short bullet-like statements inside `content` arrays instead of long prose paragraphs.

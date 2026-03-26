@@ -1,6 +1,7 @@
 {
   "id": "node-card:principle__energy-accompanies-change",
   "node_id": "principle:energy-accompanies-change",
+  "card_layer": "backbone",
   "title": "化学变化伴随能量变化",
   "node_kind": "principle",
   "sections": [

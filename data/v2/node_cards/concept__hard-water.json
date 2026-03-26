@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__hard-water",
   "node_id": "concept:hard-water",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:concept-core-v2",
   "sections": [
     {

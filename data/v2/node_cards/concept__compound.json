@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__compound",
   "node_id": "concept:compound",
+  "card_layer": "backbone",
   "title": "化合物",
   "pattern_refs": ["pattern:concept-core-v2"],
   "summary": "化合物是由两种或两种以上元素组成的纯净物，是纯净物的一个重要类别。化合物的组成元素固定，具有确定的化学式。",

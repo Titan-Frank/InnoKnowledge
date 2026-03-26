@@ -1,6 +1,7 @@
 {
   "id": "node-card:activity-experiment-co2-lab-preparation",
   "node_id": "activity/experiment:co2-lab-preparation",
+  "card_layer": "support",
   "title": "实验室制取二氧化碳实验",
   "pattern_refs": ["pattern:activity-task-v2"],
   "summary": "实验室制取二氧化碳是初中化学必做实验之一，采用石灰石或大理石与稀盐酸反应，通过向上排空气法收集二氧化碳气体。该实验体现了实验室制取气体的一般思路与方法。",

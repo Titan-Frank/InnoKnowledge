@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-substance-manganese-dioxide",
   "node_id": "entity/substance:manganese-dioxide",
+  "card_layer": "backbone",
   "title": "二氧化锰",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "二氧化锰是一种黑色粉末状固体，化学式为MnO2，常用作氯酸钾分解和过氧化氢分解制取氧气的催化剂，在反应前后质量和化学性质不变。",

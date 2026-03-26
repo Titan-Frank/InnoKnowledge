@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__water",
   "node_id": "entity/substance:water",
+  "card_layer": "backbone",
   "title": "水",
   "node_kind": "entity",
   "sections": [

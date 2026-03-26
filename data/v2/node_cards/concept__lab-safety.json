@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__lab-safety",
   "node_id": "concept:lab-safety",
+  "card_layer": "backbone",
   "title": "实验室安全",
   "node_kind": "concept",
   "sections": [

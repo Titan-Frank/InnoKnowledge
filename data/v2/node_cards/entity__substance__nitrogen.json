@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__nitrogen",
   "node_id": "entity/substance:nitrogen",
+  "card_layer": "backbone",
   "title": "氮气",
   "node_kind": "entity",
   "sections": [

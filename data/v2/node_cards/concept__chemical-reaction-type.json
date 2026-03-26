@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__chemical-reaction-type",
   "node_id": "concept:chemical-reaction-type",
+  "card_layer": "backbone",
   "title": "化学反应类型",
   "node_kind": "concept",
   "sections": [

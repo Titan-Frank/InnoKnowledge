@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__particle__electron",
   "node_id": "entity/particle:electron",
+  "card_layer": "backbone",
   "title": "电子",
   "node_kind": "entity",
   "sections": [

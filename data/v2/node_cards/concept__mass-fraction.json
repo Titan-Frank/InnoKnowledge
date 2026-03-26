@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__mass-fraction",
   "node_id": "concept:mass-fraction",
+  "card_layer": "backbone",
   "title": "溶质质量分数",
   "node_kind": "concept",
   "sections": [

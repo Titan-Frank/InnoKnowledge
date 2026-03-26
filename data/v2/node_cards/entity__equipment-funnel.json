@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-equipment-funnel",
   "node_id": "entity/equipment:funnel",
+  "card_layer": "support",
   "title": "漏斗",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "漏斗是用于分离固体和液体的仪器，主要用于过滤操作，使用时滤纸应紧贴漏斗内壁，漏斗颈末端应紧靠承接容器内壁。",

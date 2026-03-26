@@ -1,6 +1,7 @@
 {
   "id": "node-card:activity__experiment__oxygen-content-measurement",
   "node_id": "activity/experiment:oxygen-content-measurement",
+  "card_layer": "support",
   "title": "测定空气中氧气含量的实验",
   "node_kind": "activity",
   "sections": [

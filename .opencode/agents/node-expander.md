@@ -21,6 +21,7 @@ Execution rules:
 - Reuse the card if it already exists and refine it instead of rewriting from scratch.
 - Use evidence-backed section content only.
 - Prefer compact, clear section content arrays over long prose.
+- Keep `card_layer` aligned with the referenced canonical node's `node_layer`.
 - Keep the card aligned with the canonical node id and referenced pattern ids.
 
 Write target:
@@ -30,3 +31,5 @@ Write target:
 Where:
 
 - `safe-node-id = node_id.replace(":", "__").replace("/", "__")`
+
+If the user explicitly requests a versioned output root such as `data/v3/`, write the card to the matching `node_cards/` directory there.

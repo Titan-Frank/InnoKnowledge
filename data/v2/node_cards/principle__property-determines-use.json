@@ -1,6 +1,7 @@
 {
   "id": "node-card:principle__property-determines-use",
   "node_id": "principle:property-determines-use",
+  "card_layer": "backbone",
   "title": "物质性质决定用途",
   "node_kind": "principle",
   "sections": [

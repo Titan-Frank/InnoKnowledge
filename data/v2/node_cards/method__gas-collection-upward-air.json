@@ -1,6 +1,7 @@
 {
   "id": "node-card:method-gas-collection-upward-air",
   "node_id": "method:gas-collection-upward-air",
+  "card_layer": "support",
   "title": "向上排空气法",
   "pattern_refs": ["pattern:method-procedure-v2"],
   "summary": "向上排空气法是收集密度比空气大的气体的方法，适用于不与空气反应且密度明显大于空气的气体，如二氧化碳、氧气等。",

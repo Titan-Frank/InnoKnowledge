@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__chemical-language",
   "node_id": "concept:chemical-language",
+  "card_layer": "backbone",
   "title": "化学语言",
   "pattern_refs": ["pattern:concept-core-v2"],
   "summary": "化学语言是化学家创造的一套能够表达物质组成、结构和变化的符号体系，具有简明直观和国际通用的特点。",

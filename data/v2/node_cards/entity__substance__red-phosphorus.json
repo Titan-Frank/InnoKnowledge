@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__red-phosphorus",
   "node_id": "entity/substance:red-phosphorus",
+  "card_layer": "backbone",
   "title": "红磷",
   "node_kind": "entity",
   "sections": [

@@ -1,6 +1,7 @@
 {
   "id": "node-card:method-filtration",
   "node_id": "method:filtration",
+  "card_layer": "support",
   "title": "过滤操作",
   "pattern_refs": ["pattern:method-procedure-v2"],
   "summary": "过滤是分离固体和液体的常用方法，通过滤纸将不溶性固体与液体分离，需遵循一贴二低三靠的操作规范。",

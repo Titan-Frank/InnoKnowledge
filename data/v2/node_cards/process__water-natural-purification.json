@@ -1,6 +1,7 @@
 {
   "id": "node-card:process__water-natural-purification",
   "node_id": "process:water-natural-purification",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:process-flow-v2",
   "sections": [
     {

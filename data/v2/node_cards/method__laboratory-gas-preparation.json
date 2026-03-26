@@ -1,6 +1,7 @@
 {
   "id": "node-card:method-laboratory-gas-preparation",
   "node_id": "method:laboratory-gas-preparation",
+  "card_layer": "support",
   "title": "实验室制取气体的一般思路与方法",
   "pattern_refs": ["pattern:method-procedure-v2"],
   "summary": "实验室制取气体的一般思路包括三个关键步骤：确定反应原理、选择发生装置、选择收集装置。这一方法具有普遍适用性，可用于制取各种气体。",

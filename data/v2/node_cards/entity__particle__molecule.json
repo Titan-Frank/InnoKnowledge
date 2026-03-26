@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__particle__molecule",
   "node_id": "entity/particle:molecule",
+  "card_layer": "backbone",
   "title": "分子",
   "node_kind": "entity",
   "sections": [

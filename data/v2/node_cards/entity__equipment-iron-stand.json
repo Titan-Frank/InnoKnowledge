@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-equipment-iron-stand",
   "node_id": "entity/equipment:iron-stand",
+  "card_layer": "support",
   "title": "铁架台",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "铁架台是用于固定和支撑实验仪器的装置，配铁夹可用于固定试管、烧瓶等仪器，配铁圈可放置漏斗、蒸发皿、烧杯等仪器。",

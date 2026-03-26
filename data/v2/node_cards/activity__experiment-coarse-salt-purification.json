@@ -1,6 +1,7 @@
 {
   "id": "node-card:activity-experiment-coarse-salt-purification",
   "node_id": "activity/experiment:coarse-salt-purification",
+  "card_layer": "support",
   "title": "粗盐提纯实验",
   "pattern_refs": ["pattern:activity-task-v2"],
   "summary": "粗盐提纯实验是通过溶解、过滤、蒸发三个主要步骤去除粗盐中难溶性杂质的实验，用于学习基本的化学实验操作技能。",

@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-substance-diamond",
   "node_id": "entity/substance:diamond",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:entity-profile-v2",
   "sections": [
     {

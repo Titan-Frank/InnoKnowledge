@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__sulfuric-acid",
   "node_id": "entity/substance:sulfuric-acid",
+  "card_layer": "backbone",
   "title": "硫酸",
   "node_kind": "entity",
   "sections": [

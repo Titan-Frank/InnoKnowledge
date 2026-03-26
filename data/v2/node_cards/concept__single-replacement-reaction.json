@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept-single-replacement-reaction",
   "node_id": "concept:single-replacement-reaction",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:concept-core-v2",
   "sections": [
     {

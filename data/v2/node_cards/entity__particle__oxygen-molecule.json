@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-particle-oxygen-molecule",
   "node_id": "entity/particle:oxygen-molecule",
+  "card_layer": "backbone",
   "title": "氧分子",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "氧分子是构成氧气的微观粒子，由两个氧原子构成，化学式为O2，是双原子分子。大量氧分子聚集形成氧气。",

@@ -1,6 +1,7 @@
 {
   "id": "node-card:activity__experiment__matter-change",
   "node_id": "activity/experiment:matter-change",
+  "card_layer": "support",
   "title": "物质的变化实验",
   "node_kind": "activity",
   "sections": [

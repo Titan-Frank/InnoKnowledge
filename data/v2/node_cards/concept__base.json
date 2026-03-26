@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__base",
   "node_id": "concept:base",
+  "card_layer": "backbone",
   "title": "碱",
   "node_kind": "concept",
   "sections": [

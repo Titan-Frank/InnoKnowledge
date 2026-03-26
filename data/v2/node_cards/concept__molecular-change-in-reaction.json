@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept-molecular-change-in-reaction",
   "node_id": "concept:molecular-change-in-reaction",
+  "card_layer": "backbone",
   "title": "化学变化中分子与原子的变化",
   "pattern_refs": ["pattern:concept-core-v2"],
   "summary": "在化学变化中，反应物的分子可分成原子，而原子又会重新组合成新的分子，这是化学变化的微观本质。原子是化学变化中的最小粒子。",

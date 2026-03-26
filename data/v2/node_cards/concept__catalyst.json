@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept-catalyst",
   "node_id": "concept:catalyst",
+  "card_layer": "backbone",
   "title": "催化剂",
   "pattern_refs": ["pattern:concept-core-v2"],
   "summary": "催化剂是一种能够改变化学反应速率，但在反应前后本身的质量和化学性质都不发生变化的物质。催化剂在化学实验和工业生产中有广泛应用，如二氧化锰催化过氧化氢分解制取氧气。",

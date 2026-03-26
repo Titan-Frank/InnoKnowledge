@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__particle__proton",
   "node_id": "entity/particle:proton",
+  "card_layer": "backbone",
   "title": "质子",
   "node_kind": "entity",
   "sections": [

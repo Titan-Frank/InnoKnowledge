@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__phosphorus-pentoxide",
   "node_id": "entity/substance:phosphorus-pentoxide",
+  "card_layer": "backbone",
   "title": "五氧化二磷",
   "node_kind": "entity",
   "sections": [

@@ -1,6 +1,7 @@
 {
   "id": "node-card:representation__symbol__element-symbol",
   "node_id": "representation/symbol:element-symbol",
+  "card_layer": "support",
   "title": "元素符号",
   "pattern_refs": ["pattern:representation-form-v2"],
   "summary": "元素符号是用元素拉丁文名称的首字母来表示元素的符号，是化学语言的基本组成部分，具有国际通用性。",

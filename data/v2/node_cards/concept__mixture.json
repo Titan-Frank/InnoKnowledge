@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__mixture",
   "node_id": "concept:mixture",
+  "card_layer": "backbone",
   "title": "混合物",
   "node_kind": "concept",
   "sections": [

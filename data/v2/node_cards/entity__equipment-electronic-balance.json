@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-equipment-electronic-balance",
   "node_id": "entity/equipment:electronic-balance",
+  "card_layer": "support",
   "title": "电子天平",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "电子天平是用于称量固体质量的精密仪器，初中化学实验常用分度值为0.1g的电子天平，称量时需在秤盘上放置称量纸。",

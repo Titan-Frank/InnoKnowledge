@@ -32,12 +32,15 @@
 
 - Never break the provenance chain from canonical targets to mentions and evidence.
 - When canonical ids change, update every affected profile, mention, and node card.
+- Keep `card_layer` aligned with the surviving canonical node's `node_layer`.
 
 ## Edge Policy
 
 - Deduplicate exact matches on `from`, `to`, and `edge_type`.
 - Preserve the highest confidence only when the relation is otherwise identical.
 - Do not collapse semantically different edge types even if endpoints are the same.
+- Preserve `edge_layer` and `backbone_expand` when endpoints stay semantically aligned.
+- If a normalized merge changes a node from backbone-connected to support-connected, recompute `edge_layer` and `backbone_expand` conservatively instead of carrying an obviously stale value.
 
 ## Safety Policy
 

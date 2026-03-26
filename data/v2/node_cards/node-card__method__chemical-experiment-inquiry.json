@@ -1,6 +1,7 @@
 {
   "id": "node-card:method:chemical-experiment-inquiry",
   "node_id": "method:chemical-experiment-inquiry",
+  "card_layer": "support",
   "pattern_id": "pattern:method-procedure-v2",
   "title": "化学实验探究",
   "sections": [

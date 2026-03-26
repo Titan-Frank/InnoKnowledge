@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__oxygen-cycle",
   "node_id": "concept:oxygen-cycle",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:concept-core-v2",
   "title": "氧循环",
   "sections": [

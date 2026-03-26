@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__element",
   "node_id": "concept:element",
+  "card_layer": "backbone",
   "title": "元素",
   "pattern_refs": ["pattern:concept-core-v2"],
   "summary": "元素是组成物质的基本成分，世间万物都是由化学元素组成的。同种元素具有相同的质子数（即核电荷数）。",

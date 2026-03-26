@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__solution",
   "node_id": "concept:solution",
+  "card_layer": "backbone",
   "title": "溶液",
   "node_kind": "concept",
   "sections": [

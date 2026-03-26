@@ -1,6 +1,7 @@
 {
   "id": "node-card:method__heating",
   "node_id": "method:heating",
+  "card_layer": "support",
   "title": "加热操作",
   "node_kind": "method",
   "sections": [

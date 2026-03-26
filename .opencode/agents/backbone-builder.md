@@ -25,6 +25,7 @@ Execution rules:
 - Create mentions last.
 - Put only stable, reusable knowledge into the backbone graph.
 - Every canonical node must set `node_layer`; use `backbone` for main-trunk anchors and `support` for auxiliary canonical nodes.
+- Every canonical edge must set `edge_layer`; use `backbone_expand = true` only for backbone-to-support expansion edges.
 - Leave detailed explanation for `@node-expander`.
 
 Write targets:
@@ -34,3 +35,5 @@ Write targets:
 - `data/v2/profiles/knowledge.profiles.jsonl`
 - `data/v2/graph/<book-id>.mentions.jsonl`
 - `data/v2/graph/<book-id>.evidence.jsonl`
+
+If the user explicitly requests a versioned output root such as `data/v3/`, mirror the same layout there instead of writing to `data/v2/`.

@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__sodium-hydroxide",
   "node_id": "entity/substance:sodium-hydroxide",
+  "card_layer": "backbone",
   "title": "氢氧化钠",
   "node_kind": "entity",
   "sections": [

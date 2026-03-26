@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__dissolved-oxygen",
   "node_id": "concept:dissolved-oxygen",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:concept-core-v2",
   "sections": [
     {

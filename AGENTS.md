@@ -43,6 +43,8 @@ Do not skip the outline stage for a new textbook unless the user explicitly asks
 
 The legacy files under `data/graph/` and `data/node_cards/` are compatibility outputs. New extraction work should default to the V2 paths above unless the user explicitly asks for legacy output.
 
+If the user explicitly asks for a parallel regenerated version such as `data/v3/` or another versioned root under `data/`, reuse the same internal layout and schema contract there. Unless such a versioned root is explicitly requested, keep `data/v2/` as the default output target.
+
 Read these schema files before writing output:
 
 - `schemas/framework.schema.json`
@@ -69,6 +71,7 @@ Read these schema files before writing output:
 - A canonical node should remain stable across textbooks, subjects, and grade bands whenever identity is clear.
 - Use `node_kind` as the primary ontology axis.
 - Every canonical node must also declare `node_layer` as either `backbone` or `support`.
+- Every canonical edge must also declare `edge_layer` and `backbone_expand`.
 - Use `learning_modes` as a secondary instructional axis.
 - Use curriculum profiles to express subject-, stage-, and grade-specific expectations.
 - Keep textbook outline anchors in mentions and evidence, not as the main parent-child structure for canonical nodes.
@@ -81,6 +84,14 @@ Read these schema files before writing output:
 - A support node may still be canonical and reusable across books, but it should not dominate the main backbone view.
 - When a node could reasonably live in either layer, prefer `support` unless it is clearly a cross-stage, cross-book knowledge anchor.
 
+## Edge Layer Rules
+
+- Use `edge_layer = backbone` for canonical relations that belong in the default main-trunk view.
+- Use `edge_layer = support` for relations that mainly serve expanded explanation around backbone nodes.
+- Use `backbone_expand = true` only when the edge should be used to expand a support node from a selected backbone node.
+- In normal extraction, `backbone_expand = true` should usually mean one endpoint is `backbone` and the other is `support`.
+- Keep `backbone_expand = false` for backbone-to-backbone relations and support-to-support relations unless the user explicitly wants a different interaction model.
+
 ## Curriculum Profile Rules
 
 - A curriculum profile is a projection of one canonical node into one subject/stage/grade context.
@@ -91,6 +102,7 @@ Read these schema files before writing output:
 ## Node Card Rules
 
 - One node card maps to exactly one canonical node.
+- Every node card must declare `card_layer`, and it should normally match the referenced canonical node's `node_layer`.
 - A node card expands a node with structured sections, not free-form essay text.
 - Every node card must cite evidence via `source_refs`.
 - Use the pattern library to decide which sections are required for each node kind.
@@ -141,10 +153,11 @@ Read these schema files before writing output:
 
 - Schema-valid fields only.
 - Every canonical node has a valid `node_layer`.
+- Every canonical edge has valid `edge_layer` and `backbone_expand`.
 - No canonical edge whose endpoints are missing.
 - No curriculum profile whose node is missing.
 - No mention without evidence.
 - No evidence without an anchor.
 - No duplicated canonical nodes that differ only by whitespace, punctuation, aliases, or legacy-vs-v2 naming.
 - No relation promoted to the canonical graph unless the source evidence clearly supports it.
-- If a node card exists, its sections should match at least one referenced pattern and every section should be supportable by the card's evidence.
+- If a node card exists, it should have a valid `card_layer`, its sections should match at least one referenced pattern, and every section should be supportable by the card's evidence.

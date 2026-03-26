@@ -1,6 +1,7 @@
 {
   "id": "node-card:issue__water-shortage",
   "node_id": "issue:water-shortage",
+  "card_layer": "support",
   "pattern_ref": "pattern:issue-topic-v2",
   "sections": [
     {

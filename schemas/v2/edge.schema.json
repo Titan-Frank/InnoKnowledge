@@ -7,6 +7,8 @@
   "required": [
     "id",
     "edge_type",
+    "edge_layer",
+    "backbone_expand",
     "from",
     "to",
     "confidence",
@@ -44,6 +46,16 @@
         "same_as",
         "related_to"
       ]
+    },
+    "edge_layer": {
+      "type": "string",
+      "enum": [
+        "backbone",
+        "support"
+      ]
+    },
+    "backbone_expand": {
+      "type": "boolean"
     },
     "from": {
       "type": "string",

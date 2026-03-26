@@ -1,6 +1,7 @@
 {
   "id": "node-card:activity-experiment-water-calcium-oxide-reaction",
   "node_id": "activity/experiment:water-calcium-oxide-reaction",
+  "card_layer": "support",
   "title": "水与氧化钙反应实验",
   "pattern_refs": ["pattern:activity-task-v2"],
   "summary": "通过将水滴入氧化钙中观察反应现象，验证水与氧化钙发生剧烈反应放出大量热并生成氢氧化钙的实验。",

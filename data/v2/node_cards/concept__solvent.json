@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__solvent",
   "node_id": "concept:solvent",
+  "card_layer": "backbone",
   "title": "溶剂",
   "node_kind": "concept",
   "sections": [

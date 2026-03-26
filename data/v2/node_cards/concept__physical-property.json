@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__physical-property",
   "node_id": "concept:physical-property",
+  "card_layer": "backbone",
   "title": "物理性质",
   "node_kind": "concept",
   "sections": [

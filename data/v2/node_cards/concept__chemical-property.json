@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__chemical-property",
   "node_id": "concept:chemical-property",
+  "card_layer": "backbone",
   "title": "化学性质",
   "node_kind": "concept",
   "sections": [

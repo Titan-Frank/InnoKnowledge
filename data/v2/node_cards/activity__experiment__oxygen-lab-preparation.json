@@ -1,6 +1,7 @@
 {
   "id": "node-card:activity-experiment-oxygen-lab-preparation",
   "node_id": "activity/experiment:oxygen-lab-preparation",
+  "card_layer": "support",
   "title": "实验室制取氧气实验",
   "pattern_refs": ["pattern:activity-task-v2"],
   "summary": "实验室制取氧气是初中化学必做实验之一，主要包括加热高锰酸钾分解法、过氧化氢分解法和加热氯酸钾分解法三种方法。通过该实验学习气体制取的基本操作技能和实验思路。",

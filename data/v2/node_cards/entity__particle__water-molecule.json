@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-particle-water-molecule",
   "node_id": "entity/particle:water-molecule",
+  "card_layer": "backbone",
   "title": "水分子",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "水分子是构成水的微观粒子，每个水分子由两个氢原子和一个氧原子构成，化学式为H2O。大量水分子聚集形成水。",

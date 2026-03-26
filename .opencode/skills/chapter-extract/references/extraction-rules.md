@@ -101,6 +101,16 @@ Use `node_subkind` when a narrower label helps:
 - Use `prerequisite_for` and `depends_on` sparingly and only when learning or semantic dependence is clear.
 - Prefer `related_to` over inventing a new relation type.
 
+## Edge Layer Selection
+
+- Use `edge_layer = backbone` when the relation should remain visible in the default main-trunk view.
+- Use `edge_layer = support` when the relation mainly exists to attach experiments, methods, representations, equipment, or contextual issues around a backbone node.
+- Use `backbone_expand = true` only when the relation should serve as a default expansion handle from a backbone node to a support node.
+- Typical default:
+  - backbone -> backbone: `edge_layer = backbone`, `backbone_expand = false`
+  - backbone <-> support: `edge_layer = support`, `backbone_expand = true`
+  - support <-> support: `edge_layer = support`, `backbone_expand = false`
+
 ## Mention Selection
 
 - Create a mention for every canonical node, edge, or profile that is substantively supported in the current lesson.

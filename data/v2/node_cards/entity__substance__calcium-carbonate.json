@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-substance-calcium-carbonate",
   "node_id": "entity/substance:calcium-carbonate",
+  "card_layer": "backbone",
   "title": "碳酸钙",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "碳酸钙是一种白色固体，化学式为CaCO3，是石灰石和大理石的主要成分。碳酸钙与稀盐酸反应可制取二氧化碳，是实验室制取二氧化碳的常用原料。",

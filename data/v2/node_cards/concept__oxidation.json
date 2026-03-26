@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__oxidation",
   "node_id": "concept:oxidation",
+  "card_layer": "backbone",
   "title": "氧化性",
   "node_kind": "concept",
   "sections": [

@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__physical-change",
   "node_id": "concept:physical-change",
+  "card_layer": "backbone",
   "title": "物理变化",
   "node_kind": "concept",
   "sections": [

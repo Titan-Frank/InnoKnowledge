@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__oxide",
   "node_id": "concept:oxide",
+  "card_layer": "backbone",
   "title": "氧化物",
   "pattern_refs": ["pattern:concept-core-v2"],
   "summary": "氧化物是仅由两种元素组成且其中一种是氧元素的化合物，是化合物的一个重要子类。",

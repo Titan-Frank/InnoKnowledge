@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__carbon",
   "node_id": "entity/substance:carbon",
+  "card_layer": "backbone",
   "title": "碳",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "碳是一种非金属元素，元素符号为C，碳元素的单质有石墨、金刚石等，是组成有机物的重要元素。",

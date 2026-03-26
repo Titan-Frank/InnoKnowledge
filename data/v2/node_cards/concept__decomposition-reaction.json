@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__decomposition-reaction",
   "node_id": "concept:decomposition-reaction",
+  "card_layer": "backbone",
   "title": "分解反应",
   "node_kind": "concept",
   "sections": [

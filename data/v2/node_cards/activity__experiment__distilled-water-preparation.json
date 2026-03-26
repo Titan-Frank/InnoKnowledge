@@ -1,6 +1,7 @@
 {
   "id": "node-card:activity__experiment__distilled-water-preparation",
   "node_id": "activity/experiment:distilled-water-preparation",
+  "card_layer": "support",
   "pattern_ref": "pattern:activity-task-v2",
   "sections": [
     {

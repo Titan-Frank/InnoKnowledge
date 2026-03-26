@@ -1,6 +1,7 @@
 {
   "id": "node-card:representation__formula__chemical-formula",
   "node_id": "representation/formula:chemical-formula",
+  "card_layer": "support",
   "title": "化学式",
   "pattern_refs": ["pattern:representation-form-v2"],
   "summary": "化学式是用元素符号和数字的组合来表示物质组成的式子，是化学语言中表达物质组成的重要方式。",

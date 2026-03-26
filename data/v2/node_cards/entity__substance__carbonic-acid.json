@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__carbonic-acid",
   "node_id": "entity/substance:carbonic-acid",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:entity-profile-v2",
   "title": "碳酸",
   "sections": [

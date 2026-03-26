@@ -76,6 +76,11 @@ const NODE_LAYER_LABELS = {
   support: "支撑",
 };
 
+const EDGE_LAYER_LABELS = {
+  backbone: "主干关系",
+  support: "支撑关系",
+};
+
 const LAYER_MODE_OPTIONS = [
   {
     id: "backbone-expand",
@@ -89,7 +94,7 @@ const LAYER_MODE_OPTIONS = [
   },
 ];
 
-const MANIFEST_PATH = "../data/viewer/index.json";
+const MANIFEST_PATH = "../data/viewer/index.json?v=2";
 const SOURCE_QUERY_KEY = "source";
 const DEFAULT_SOURCE_KEY = "v1";
 const DEFAULT_BOOK_INDEX = [];
@@ -482,12 +487,10 @@ function prepareGraphData({ nodes, edges, profiles, framework, patterns, books, 
 
   const graphEdges = edges
     .map((edge) => {
-      const source = nodeById.get(edge.from);
-      const target = nodeById.get(edge.to);
-      if (!source || !target) {
+      const graphEdge = normalizeEdge(edge, nodeById);
+      if (!graphEdge) {
         return null;
       }
-      const graphEdge = { ...edge, source, target };
       edgeById.set(edge.id, graphEdge);
       return graphEdge;
     })
@@ -543,6 +546,10 @@ function getMasteryLevelLabel(level) {
 
 function getNodeLayerLabel(layer) {
   return NODE_LAYER_LABELS[layer] || humanizeKey(layer);
+}
+
+function getEdgeLayerLabel(layer) {
+  return EDGE_LAYER_LABELS[layer] || humanizeKey(layer);
 }
 
 function resolveNodeLayer(node) {
@@ -622,6 +629,56 @@ function normalizeNode(node, profilesForNode) {
   return {
     ...normalizedNode,
     node_layer: resolveNodeLayer(normalizedNode),
+  };
+}
+
+function resolveEdgeLayer(edge, sourceNode, targetNode) {
+  const explicitLayer =
+    edge.edge_layer ||
+    edge.layer ||
+    edge.properties?.edge_layer ||
+    edge.properties?.layer ||
+    null;
+
+  if (explicitLayer === "backbone" || explicitLayer === "support") {
+    return explicitLayer;
+  }
+
+  if (isBackboneNode(sourceNode) && isBackboneNode(targetNode)) {
+    return "backbone";
+  }
+
+  return "support";
+}
+
+function resolveBackboneExpand(edge, sourceNode, targetNode) {
+  if (typeof edge.backbone_expand === "boolean") {
+    return edge.backbone_expand;
+  }
+
+  if (typeof edge.properties?.backbone_expand === "boolean") {
+    return edge.properties.backbone_expand;
+  }
+
+  return (
+    (isBackboneNode(sourceNode) && isSupportNode(targetNode)) ||
+    (isSupportNode(sourceNode) && isBackboneNode(targetNode))
+  );
+}
+
+function normalizeEdge(edge, nodeById) {
+  const source = nodeById.get(edge.from);
+  const target = nodeById.get(edge.to);
+  if (!source || !target) {
+    return null;
+  }
+
+  return {
+    ...edge,
+    source,
+    target,
+    edge_layer: resolveEdgeLayer(edge, source, target),
+    backbone_expand: resolveBackboneExpand(edge, source, target),
   };
 }
 
@@ -966,6 +1023,9 @@ function getExpandedSupportNodeIds() {
 
   const expandedIds = new Set();
   state.data.edges.forEach((edge) => {
+    if (!edge.backbone_expand) {
+      return;
+    }
     if (edge.from === state.expandedBackboneNodeId) {
       const node = state.data.nodeById.get(edge.to);
       if (isSupportNode(node)) {
@@ -1003,6 +1063,7 @@ function getBackboneNeighbors(nodeId) {
   }
 
   return getNeighborEntries(node)
+    .filter((entry) => entry.edge.backbone_expand)
     .map((entry) => entry.otherNode)
     .filter((otherNode) => isBackboneNode(otherNode));
 }
@@ -1206,7 +1267,7 @@ function draw() {
 function drawEdges(edges) {
   edges.forEach((edge) => {
     const selected = state.selectedNodeId && (edge.from === state.selectedNodeId || edge.to === state.selectedNodeId);
-    const supportEdge = isSupportNode(edge.source) || isSupportNode(edge.target);
+    const supportEdge = edge.edge_layer === "support";
     ctx.beginPath();
     ctx.setLineDash(supportEdge ? [5, 5] : []);
     ctx.moveTo(edge.source.x, edge.source.y);
@@ -1620,8 +1681,9 @@ function renderSupportNodes(node) {
   const neighborEntries = getNeighborEntries(node).sort((a, b) =>
     a.otherNode.name.localeCompare(b.otherNode.name, "zh-CN"),
   );
-  const supportEntries = neighborEntries.filter((entry) => isSupportNode(entry.otherNode));
-  const backboneEntries = neighborEntries.filter((entry) => isBackboneNode(entry.otherNode));
+  const expansionEntries = neighborEntries.filter((entry) => entry.edge.backbone_expand);
+  const supportEntries = expansionEntries.filter((entry) => isSupportNode(entry.otherNode));
+  const backboneEntries = expansionEntries.filter((entry) => isBackboneNode(entry.otherNode));
 
   if (isBackboneNode(node)) {
     els.detailSupportNote.textContent = supportEntries.length
@@ -1642,7 +1704,7 @@ function renderSupportNodes(node) {
         ({ edge, otherNode }) => `
           <button class="support-item" data-node-id="${otherNode.id}">
             <strong>${escapeHtml(otherNode.name)}</strong>
-            <span>${escapeHtml(getTypeLabel(otherNode.node_type))} · ${escapeHtml(edge.edge_type)}</span>
+            <span>${escapeHtml(getTypeLabel(otherNode.node_type))} · ${escapeHtml(edge.edge_type)} · 主干展开</span>
           </button>
         `,
       )
@@ -1666,7 +1728,7 @@ function renderSupportNodes(node) {
         ({ edge, otherNode }) => `
           <button class="support-item support-item-backbone" data-node-id="${otherNode.id}">
             <strong>${escapeHtml(otherNode.name)}</strong>
-            <span>${escapeHtml(getNodeLayerLabel(otherNode.node_layer))} · ${escapeHtml(edge.edge_type)}</span>
+            <span>${escapeHtml(getNodeLayerLabel(otherNode.node_layer))} · ${escapeHtml(edge.edge_type)} · 主干展开</span>
           </button>
         `,
       )
@@ -1698,6 +1760,18 @@ function normalizeCardContent(content) {
   return [String(content)];
 }
 
+function normalizeNodeCard(card, node) {
+  return {
+    ...card,
+    card_layer:
+      card.card_layer ||
+      card.layer ||
+      card.properties?.card_layer ||
+      node?.node_layer ||
+      "support",
+  };
+}
+
 async function renderNodeCard(node, requestId) {
   const patternHints = getPatternHints(node);
 
@@ -1708,17 +1782,19 @@ async function renderNodeCard(node, requestId) {
     </div>
   `;
 
-  const card = await loadNodeCard(node.id);
+  const rawCard = await loadNodeCard(node.id);
   if (requestId !== state.detailRequestId || state.selectedNodeId !== node.id) {
     return;
   }
 
+  const card = rawCard ? normalizeNodeCard(rawCard, node) : null;
+
   if (!card) {
-    renderMissingNodeCard(patternHints);
+    renderMissingNodeCard(patternHints, node);
     return;
   }
 
-  els.cardStatus.textContent = card.status || "draft";
+  els.cardStatus.textContent = `${card.status || "draft"} · ${getNodeLayerLabel(card.card_layer)}卡`;
   const sectionsHtml = (card.sections || [])
     .map(
       (section) => `
@@ -1744,19 +1820,20 @@ async function renderNodeCard(node, requestId) {
   const patternChips = (card.pattern_refs || [])
     .map((ref) => `<span class="micro-chip">${ref}</span>`)
     .join("");
+  const layerChip = `<span class="micro-chip">${escapeHtml(getNodeLayerLabel(card.card_layer))}卡</span>`;
 
   els.detailCard.innerHTML = `
     <div class="card-section">
       <h4>概要</h4>
       <p>${escapeHtml(card.summary || "暂无概要。")}</p>
-      <div class="micro-list">${patternChips}</div>
+      <div class="micro-list">${layerChip}${patternChips}</div>
     </div>
     ${sectionsHtml}
   `;
 }
 
-function renderMissingNodeCard(patternHints) {
-  els.cardStatus.textContent = "尚未生成";
+function renderMissingNodeCard(patternHints, node) {
+  els.cardStatus.textContent = `尚未生成 · ${getNodeLayerLabel(node.node_layer)}卡`;
   els.detailCard.innerHTML = `
     <div class="empty-state">
       <p>当前还没有这个节点的 node card，可以用 <code>@node-expander</code> 为它生成详细说明。</p>
@@ -1802,7 +1879,7 @@ function renderRelations(node) {
       return `
         <button class="relation-item" data-node-id="${otherId}">
           <h4>${edge.edge_type} · ${otherNode?.name || otherId}</h4>
-          <p>${escapeHtml(getNodeLayerLabel(otherNode?.node_layer || "other"))} · ${escapeHtml(getTypeLabel(otherNode?.node_type || "other"))} · ${escapeHtml(edge.properties?.relation || "无附加说明")}</p>
+          <p>${escapeHtml(edge.backbone_expand ? "主干展开" : getEdgeLayerLabel(edge.edge_layer || "support"))} · ${escapeHtml(getNodeLayerLabel(otherNode?.node_layer || "other"))} · ${escapeHtml(getTypeLabel(otherNode?.node_type || "other"))} · ${escapeHtml(edge.properties?.relation || edge.properties?.relation_note || "无附加说明")}</p>
         </button>
       `;
     })

@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__rare-gases",
   "node_id": "entity/substance:rare-gases",
+  "card_layer": "backbone",
   "title": "稀有气体",
   "node_kind": "entity",
   "sections": [

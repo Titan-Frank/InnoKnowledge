@@ -1,6 +1,7 @@
 {
   "id": "node-card:representation__table__periodic-table",
   "node_id": "representation/table:periodic-table",
+  "card_layer": "support",
   "title": "元素周期表",
   "pattern_refs": ["pattern:representation-form-v2"],
   "summary": "元素周期表是按原子序数递增顺序排列元素的表格，由门捷列夫于1869年首次编制，是化学研究的重要工具。",

@@ -1,6 +1,7 @@
 {
   "id": "node-card:method:experiment-report",
   "node_id": "method:experiment-report",
+  "card_layer": "support",
   "pattern_id": "pattern:method-procedure-v2",
   "title": "实验报告",
   "sections": [

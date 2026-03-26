@@ -131,6 +131,24 @@ Do not write these fields into the canonical node unless needed temporarily for 
 
 Canonical edges are knowledge-to-knowledge relations. Lesson-level provenance belongs in mentions.
 
+## Edge Layer
+
+- `edge_layer = backbone`: the edge belongs in the default backbone view and usually connects two backbone nodes
+- `edge_layer = support`: the edge mainly belongs to support expansion and usually involves at least one support node
+- `backbone_expand = true`: selecting the backbone endpoint should expand the support endpoint in the viewer
+- `backbone_expand = false`: the edge should not be used as a default support-expansion trigger
+
+Typical defaults:
+
+- usually `edge_layer = backbone`, `backbone_expand = false`:
+  - backbone-to-backbone structural relations
+  - stable prerequisite, explanation, or classification relations inside the main trunk
+- usually `edge_layer = support`, `backbone_expand = true`:
+  - backbone-to-support relations used to open experiments, methods, representations, or issue contexts around a backbone node
+- usually `edge_layer = support`, `backbone_expand = false`:
+  - support-to-support operational relations
+  - support relations that should remain local detail rather than default expansion handles
+
 ## Mention Records
 
 Mentions bridge local source anchors to graph objects.
@@ -171,6 +189,7 @@ Use the pattern library in `data/patterns/unified-knowledge-patterns.v2.json`.
 Node cards are structured explanation artifacts for one canonical node.
 
 - one card maps to one canonical node
+- `card_layer` should normally match the canonical node's `node_layer`
 - cards are pattern-guided
 - cards expand detail without inflating the backbone graph
 - cards should cite evidence through `source_refs`

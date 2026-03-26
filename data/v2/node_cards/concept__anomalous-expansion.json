@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept-anomalous-expansion",
   "node_id": "concept:anomalous-expansion",
+  "card_layer": "backbone",
   "title": "水的反常膨胀",
   "pattern_refs": ["pattern:concept-core-v2"],
   "summary": "水的反常膨胀是指水在0~4℃时随温度升高体积减小，在4℃时密度最大（1 g/cm³）的特性，这使得冰的密度比水小，冰能浮在水面上。",

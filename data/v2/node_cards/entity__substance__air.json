@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__air",
   "node_id": "entity/substance:air",
+  "card_layer": "backbone",
   "title": "空气",
   "node_kind": "entity",
   "sections": [

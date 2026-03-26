@@ -1,6 +1,7 @@
 {
   "id": "node-card:method__reagent-handling",
   "node_id": "method:reagent-handling",
+  "card_layer": "support",
   "title": "试剂取用",
   "node_kind": "method",
   "sections": [

@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-equipment-dropper",
   "node_id": "entity/equipment:dropper",
+  "card_layer": "support",
   "title": "胶头滴管",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "胶头滴管是用于吸取和滴加少量液体的仪器，使用时应竖直悬于容器上方，不可伸入容器内或触碰器壁。",

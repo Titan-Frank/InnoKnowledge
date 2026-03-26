@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-equipment-glass-rod",
   "node_id": "entity/equipment:glass-rod",
+  "card_layer": "support",
   "title": "玻璃棒",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "玻璃棒是用于搅拌、引流和转移液体的玻璃制实验仪器，在溶解、过滤、蒸发等操作中起重要作用。",

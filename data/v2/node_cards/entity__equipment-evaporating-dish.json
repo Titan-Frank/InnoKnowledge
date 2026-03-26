@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-equipment-evaporating-dish",
   "node_id": "entity/equipment:evaporating-dish",
+  "card_layer": "support",
   "title": "蒸发皿",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "蒸发皿是用于蒸发液体的仪器，一般为陶瓷材质，可直接用酒精灯加热，加热时需用玻璃棒不断搅拌以防液体飞溅。",

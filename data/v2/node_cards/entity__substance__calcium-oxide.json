@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-substance-calcium-oxide",
   "node_id": "entity/substance:calcium-oxide",
+  "card_layer": "backbone",
   "title": "氧化钙",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "氧化钙是一种白色固体，俗称生石灰，与水剧烈反应生成氢氧化钙并放出大量热，具有强腐蚀性。",

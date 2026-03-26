@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__hydrogen",
   "node_id": "entity/substance:hydrogen",
+  "card_layer": "backbone",
   "title": "氢气",
   "node_kind": "entity",
   "sections": [

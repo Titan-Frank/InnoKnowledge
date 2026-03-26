@@ -22,3 +22,4 @@ Constraints:
 - Stop and report blockers when page ranges, schema expectations, or evidence are unclear.
 - Do not overwrite unrelated outputs.
 - Prefer V2 outputs under `data/v2/` unless the user explicitly requests legacy compatibility output.
+- If the user explicitly requests a regenerated version root such as `data/v3/`, keep the same layout and write there consistently across the pipeline.

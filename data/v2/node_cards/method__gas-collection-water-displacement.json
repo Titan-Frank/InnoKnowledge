@@ -1,6 +1,7 @@
 {
   "id": "node-card:method-gas-collection-water-displacement",
   "node_id": "method:gas-collection-water-displacement",
+  "card_layer": "support",
   "title": "排水法",
   "pattern_refs": ["pattern:method-procedure-v2"],
   "summary": "排水法是收集难溶或微溶于水且不与水发生化学反应的气体的方法。收集的气体纯度高但含有一定量水分。适用于氧气、氢气等气体的收集。",

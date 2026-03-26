@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__equipment__beaker",
   "node_id": "entity/equipment:beaker",
+  "card_layer": "support",
   "title": "烧杯",
   "node_kind": "entity",
   "sections": [

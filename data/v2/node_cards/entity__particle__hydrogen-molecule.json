@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-particle-hydrogen-molecule",
   "node_id": "entity/particle:hydrogen-molecule",
+  "card_layer": "backbone",
   "title": "氢分子",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "氢分子是构成氢气的微观粒子，由两个氢原子构成，化学式为H2，是双原子分子。大量氢分子聚集形成氢气。",

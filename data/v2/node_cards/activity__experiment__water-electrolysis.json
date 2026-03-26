@@ -1,6 +1,7 @@
 {
   "id": "node-card:activity__experiment__water-electrolysis",
   "node_id": "activity/experiment:water-electrolysis",
+  "card_layer": "support",
   "title": "电解水实验",
   "pattern_refs": ["pattern:activity-task-v2"],
   "summary": "电解水实验是通过直流电将水分解为氢气和氧气的实验，证明水是由氢元素和氧元素组成的。负极产生氢气，正极产生氧气，两者体积比约为2:1。",

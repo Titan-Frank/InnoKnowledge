@@ -1,6 +1,7 @@
 {
   "id": "node-card:method-evaporation",
   "node_id": "method:evaporation",
+  "card_layer": "support",
   "title": "蒸发操作",
   "pattern_refs": ["pattern:method-procedure-v2"],
   "summary": "蒸发是通过加热使液体汽化逸出从而得到固体物质的实验方法，常用蒸发皿和酒精灯进行，加热时需用玻璃棒不断搅拌。",

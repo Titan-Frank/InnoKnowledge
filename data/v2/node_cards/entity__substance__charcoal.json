@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__charcoal",
   "node_id": "entity/substance:charcoal",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:entity-profile-v2",
   "title": "木炭",
   "sections": [

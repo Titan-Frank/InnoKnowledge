@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__solute",
   "node_id": "concept:solute",
+  "card_layer": "backbone",
   "title": "溶质",
   "node_kind": "concept",
   "sections": [

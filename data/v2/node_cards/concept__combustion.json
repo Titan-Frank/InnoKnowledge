@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__combustion",
   "node_id": "concept:combustion",
+  "card_layer": "backbone",
   "title": "燃烧",
   "node_kind": "concept",
   "sections": [

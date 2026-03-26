@@ -1,6 +1,7 @@
 {
   "id": "node-card:method-industrial-oxygen-preparation",
   "node_id": "method:industrial-oxygen-preparation",
+  "card_layer": "support",
   "title": "工业制氧气",
   "pattern_refs": ["pattern:method-procedure-v2"],
   "summary": "工业制氧气采用分离液态空气的方法，在低温和高压条件下，利用液态空气中氮气沸点较低先汽化的原理，分离出液态氧。这是工业上大规模制取氧气的主要方法。",

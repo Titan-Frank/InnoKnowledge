@@ -1,6 +1,7 @@
 {
   "id": "node-card:activity__experiment__candle-combustion",
   "node_id": "activity/experiment:candle-combustion",
+  "card_layer": "support",
   "pattern_id": "pattern:activity-task-v2",
   "title": "蜡烛燃烧及其产物的探究实验",
   "sections": [

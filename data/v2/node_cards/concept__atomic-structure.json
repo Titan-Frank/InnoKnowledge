@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__atomic-structure",
   "node_id": "concept:atomic-structure",
+  "card_layer": "backbone",
   "title": "原子结构",
   "node_kind": "concept",
   "sections": [

@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__carbon-dioxide",
   "node_id": "entity/substance:carbon-dioxide",
+  "card_layer": "backbone",
   "title": "二氧化碳",
   "node_kind": "entity",
   "sections": [

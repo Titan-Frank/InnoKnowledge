@@ -1,6 +1,7 @@
 {
   "id": "node-card:method__sedimentation",
   "node_id": "method:sedimentation",
+  "card_layer": "support",
   "pattern_ref": "pattern:method-procedure-v2",
   "sections": [
     {

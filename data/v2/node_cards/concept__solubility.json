@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__solubility",
   "node_id": "concept:solubility",
+  "card_layer": "backbone",
   "title": "溶解度",
   "node_kind": "concept",
   "sections": [

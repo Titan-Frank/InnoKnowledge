@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__electron-shell",
   "node_id": "concept:electron-shell",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:concept-core-v2",
   "sections": [
     {

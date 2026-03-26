@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept-states-of-matter",
   "node_id": "concept:states-of-matter",
+  "card_layer": "backbone",
   "title": "物质的三态",
   "pattern_refs": ["pattern:concept-core-v2"],
   "summary": "物质通常有三种存在状态：固态、液态和气态。物质的三态变化是由于温度变化导致分子能量、运动速率和分子间间隔发生改变的结果，是物理变化。",

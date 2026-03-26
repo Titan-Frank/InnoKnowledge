@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__carbon-cycle",
   "node_id": "concept:carbon-cycle",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:concept-core-v2",
   "title": "碳循环",
   "sections": [

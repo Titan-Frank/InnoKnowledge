@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept:hypothesis",
   "node_id": "concept:hypothesis",
+  "card_layer": "backbone",
   "pattern_id": "pattern:concept-core-v2",
   "title": "假设",
   "sections": [

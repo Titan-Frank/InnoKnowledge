@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__particle__atom",
   "node_id": "entity/particle:atom",
+  "card_layer": "backbone",
   "title": "原子",
   "node_kind": "entity",
   "sections": [

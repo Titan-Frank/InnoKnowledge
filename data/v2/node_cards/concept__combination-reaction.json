@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__combination-reaction",
   "node_id": "concept:combination-reaction",
+  "card_layer": "backbone",
   "title": "化合反应",
   "node_kind": "concept",
   "sections": [

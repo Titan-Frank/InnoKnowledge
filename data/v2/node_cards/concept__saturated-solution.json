@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__saturated-solution",
   "node_id": "concept:saturated-solution",
+  "card_layer": "backbone",
   "title": "饱和溶液",
   "node_kind": "concept",
   "sections": [

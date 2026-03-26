@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__relative-molecular-mass",
   "node_id": "concept:relative-molecular-mass",
+  "card_layer": "backbone",
   "pattern_ref": "pattern:concept-core-v2",
   "sections": [
     {

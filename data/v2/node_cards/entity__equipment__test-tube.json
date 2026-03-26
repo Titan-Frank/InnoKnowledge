@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__equipment__test-tube",
   "node_id": "entity/equipment:test-tube",
+  "card_layer": "support",
   "title": "试管",
   "node_kind": "entity",
   "sections": [

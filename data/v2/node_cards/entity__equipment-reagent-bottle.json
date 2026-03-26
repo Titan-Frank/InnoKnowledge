@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity-equipment-reagent-bottle",
   "node_id": "entity/equipment:reagent-bottle",
+  "card_layer": "support",
   "title": "试剂瓶",
   "pattern_refs": ["pattern:entity-profile-v2"],
   "summary": "试剂瓶是用于存放化学试剂的容器，固体试剂存放于广口瓶中，液体试剂存放于细口瓶中，临时使用少量液体试剂常用滴瓶存放。",

@@ -130,9 +130,11 @@ opencode run --agent build "@kg-pipeline 处理 chem-grade8-all-in-one，先根�
 - canonical nodes：[data/v2/graph/knowledge.nodes.jsonl](/Users/titan-frank/Documents/hsd/research/Knowledge/data/v2/graph/knowledge.nodes.jsonl)
   其中每个节点现在都包含 `node_kind + node_subkind + node_layer`
 - canonical edges：[data/v2/graph/knowledge.edges.jsonl](/Users/titan-frank/Documents/hsd/research/Knowledge/data/v2/graph/knowledge.edges.jsonl)
+  其中每条边现在都包含 `edge_layer + backbone_expand`
 - curriculum profiles：[data/v2/profiles/knowledge.profiles.jsonl](/Users/titan-frank/Documents/hsd/research/Knowledge/data/v2/profiles/knowledge.profiles.jsonl)
 - mentions：[data/v2/graph/](/Users/titan-frank/Documents/hsd/research/Knowledge/data/v2/graph)
 - node cards：[data/v2/node_cards/](/Users/titan-frank/Documents/hsd/research/Knowledge/data/v2/node_cards)
+  其中每张卡现在都包含 `card_layer`
 
 命名规则：
 
@@ -146,6 +148,7 @@ opencode run --agent build "@kg-pipeline 处理 chem-grade8-all-in-one，先根�
 
 - `v1`：legacy `data/graph/` + `data/node_cards/`
 - `v2`：`data/v2/graph/` + `data/v2/profiles/` + `data/v2/node_cards/`
+- `v3`：`data/v3/graph/` + `data/v3/profiles/` + `data/v3/node_cards/`
 - `vx`：自定义实验版本
 
 也就是说：
@@ -153,6 +156,14 @@ opencode run --agent build "@kg-pipeline 处理 chem-grade8-all-in-one，先根�
 - 新抽取流程默认写 `data/v2/`
 - viewer 可以直接切到 `v2` 看结果
 - `v2` 节点里的 `node_layer` 会驱动“主干 / 支撑”分层展示
+- `v2` 边里的 `edge_layer + backbone_expand` 会驱动“选中主干后展开哪些支撑节点”
+- `v2` 节点卡里的 `card_layer` 会标明这张卡属于主干卡还是支撑展开卡
+
+如果你准备“重生成一个新版本”，现在也可以显式使用 `data/v3/`：
+
+- `data/v3/` 复用与 `data/v2/` 相同的 schema 和目录结构
+- 更适合做一次新的干净版本，而不是在旧 `v2` 上继续叠修补
+- viewer 已支持直接切到 `v3`
 
 ## 常用辅助命令
 

@@ -1,6 +1,7 @@
 {
   "id": "node-card:representation__diagram__atomic-structure",
   "node_id": "representation/diagram:atomic-structure",
+  "card_layer": "support",
   "pattern_ref": "pattern:representation-form-v2",
   "sections": [
     {

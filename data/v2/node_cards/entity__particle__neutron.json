@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__particle__neutron",
   "node_id": "entity/particle:neutron",
+  "card_layer": "backbone",
   "title": "中子",
   "node_kind": "entity",
   "sections": [

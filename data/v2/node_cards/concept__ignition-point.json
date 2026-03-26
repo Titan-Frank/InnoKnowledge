@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__ignition-point",
   "node_id": "concept:ignition-point",
+  "card_layer": "backbone",
   "title": "着火点",
   "node_kind": "concept",
   "sections": [

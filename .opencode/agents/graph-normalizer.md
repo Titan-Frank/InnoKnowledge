@@ -17,6 +17,7 @@ Rules:
 - Preserve all provenance references.
 - Prefer alias merging over semantic guessing.
 - Preserve `node_layer` and keep uncertain cases conservative.
+- Preserve `edge_layer`, `backbone_expand`, and card-vs-node layer alignment.
 - Keep output schema-valid.
 
 Write targets:
@@ -26,3 +27,5 @@ Write targets:
 - `data/v2/profiles/knowledge.profiles.jsonl`
 - `data/v2/graph/<book-id>.mentions.jsonl` when target ids change
 - `data/v2/node_cards/<safe-node-id>.json` when canonical node ids change
+
+If the user explicitly requests a versioned output root such as `data/v3/`, apply the same write pattern there.

@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__substance__hydrochloric-acid",
   "node_id": "entity/substance:hydrochloric-acid",
+  "card_layer": "backbone",
   "title": "盐酸",
   "node_kind": "entity",
   "sections": [

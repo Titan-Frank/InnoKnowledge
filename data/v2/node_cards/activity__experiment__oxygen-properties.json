@@ -1,6 +1,7 @@
 {
   "id": "node-card:activity__experiment__oxygen-properties",
   "node_id": "activity/experiment:oxygen-properties",
+  "card_layer": "support",
   "pattern_ref": "pattern:activity-task-v2",
   "title": "氧气性质实验",
   "sections": [

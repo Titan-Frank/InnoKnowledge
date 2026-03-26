@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__chemical-change",
   "node_id": "concept:chemical-change",
+  "card_layer": "backbone",
   "title": "化学变化",
   "node_kind": "concept",
   "sections": [

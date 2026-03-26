@@ -1,6 +1,7 @@
 {
   "id": "node-card:entity__equipment__alcohol-lamp",
   "node_id": "entity/equipment:alcohol-lamp",
+  "card_layer": "support",
   "title": "酒精灯",
   "node_kind": "entity",
   "sections": [

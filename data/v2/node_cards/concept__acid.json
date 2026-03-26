@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__acid",
   "node_id": "concept:acid",
+  "card_layer": "backbone",
   "title": "酸",
   "node_kind": "concept",
   "sections": [

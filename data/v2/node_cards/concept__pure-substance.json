@@ -1,6 +1,7 @@
 {
   "id": "node-card:concept__pure-substance",
   "node_id": "concept:pure-substance",
+  "card_layer": "backbone",
   "title": "纯净物",
   "node_kind": "concept",
   "sections": [
