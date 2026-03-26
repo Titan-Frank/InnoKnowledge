@@ -30,6 +30,8 @@ Use this skill on one lesson at a time. Keep extraction narrow and evidence-firs
 - If a concept only appears in an activity, keep the activity evidence.
 - If an edge is only weakly implied, omit it or lower confidence.
 - Prefer V2 `node_kind`-aware ids such as `entity/substance:oxygen` or `activity/experiment:oxygen-content-determination`.
+- Every canonical node must set `node_layer` to `backbone` or `support`.
+- Default to `support` for reusable but auxiliary methods, activities, representations, equipment, or issue nodes unless the user explicitly wants them in the visible backbone.
 - Write legacy `data/graph/` outputs only if the user explicitly asks for compatibility output.
 
 ## References

@@ -5,6 +5,7 @@
 ## 设计目标
 
 - 让 `canonical node` 保持学科中立与跨学段稳定
+- 给 `canonical node` 增加 `node_layer`，显式区分主干与支撑
 - 把学科/年级/掌握要求下沉到 `curriculum profile`
 - 把详细展开下沉到 `node card`
 - 把出处和教材锚点保留在 `mention` / `evidence`
@@ -12,7 +13,7 @@
 ## 文件说明
 
 - `node.schema.json`
-  V2 主干节点 schema，核心字段是 `node_kind`、`learning_modes`、`bridge_tags`
+  V2 主干节点 schema，核心字段是 `node_kind`、`node_layer`、`learning_modes`、`bridge_tags`
 - `edge.schema.json`
   V2 主干关系 schema，扩展了分类、依赖、因果、表征等关系类型
 - `curriculum-profile.schema.json`

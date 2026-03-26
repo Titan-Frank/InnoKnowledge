@@ -19,6 +19,29 @@ Canonical nodes represent stable knowledge objects that should remain reusable a
 - `event`: a historical or real-world event
 - `issue`: a discussable issue or problem space
 
+### `node_layer`
+
+- `backbone`: the node belongs to the main knowledge trunk and should remain visible in a default backbone view
+- `support`: the node is canonical and reusable, but mainly supports explanation, procedure, representation, equipment, experiment, or contextual expansion around backbone nodes
+
+Use `node_layer` to separate the main knowledge network from auxiliary canonical nodes without losing provenance or graph connectivity.
+
+Typical defaults:
+
+- usually `backbone`:
+  - `concept`
+  - `principle`
+  - `process`
+  - stable `entity` nodes such as substances or essential microscopic entities
+- usually `support`:
+  - `method`
+  - `activity`
+  - `representation`
+  - equipment-like `entity` nodes
+  - `issue`
+
+If a node is globally reusable but should not dominate the main map, keep it canonical and mark it `support`.
+
 ### `learning_modes`
 
 Use one or more:

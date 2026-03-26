@@ -28,6 +28,7 @@ Use this skill after extraction and before graph import. Normalize the canonical
 - Keep formulas and alternate wording in `aliases`.
 - Preserve profiles, mentions, node cards, and evidence when canonical ids change.
 - Preserve `same_as` edges only if they are still useful for audit; otherwise fold them into aliases.
+- Preserve `node_layer` during normalization and do not silently upgrade `support` nodes into `backbone`.
 - Do not merge across `node_kind` or `node_subkind` unless there is an explicit user request.
 - Do not merge curriculum profiles across different subject / school_stage / grade_band contexts.
 - **Hierarchical and dependency edges (`is_a`, `instance_of`, `contains`, `part_of`, `prerequisite_for`, `depends_on`, `extends`) must NOT form cycles.**

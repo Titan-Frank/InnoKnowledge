@@ -68,10 +68,18 @@ Read these schema files before writing output:
 - The primary tree is knowledge-centric, not chapter-centric.
 - A canonical node should remain stable across textbooks, subjects, and grade bands whenever identity is clear.
 - Use `node_kind` as the primary ontology axis.
+- Every canonical node must also declare `node_layer` as either `backbone` or `support`.
 - Use `learning_modes` as a secondary instructional axis.
 - Use curriculum profiles to express subject-, stage-, and grade-specific expectations.
 - Keep textbook outline anchors in mentions and evidence, not as the main parent-child structure for canonical nodes.
 - Keep the canonical graph sparse. If a detail is explanatory rather than structural, prefer putting it into a node card section instead of promoting it into a new backbone node.
+
+## Node Layer Rules
+
+- Use `node_layer = backbone` for core knowledge anchors that define the main map, such as stable concepts, principles, processes, and key entities.
+- Use `node_layer = support` for auxiliary canonical nodes that mainly serve explanation, procedure, representation, equipment, experiments, or contextual issue expansion around backbone nodes.
+- A support node may still be canonical and reusable across books, but it should not dominate the main backbone view.
+- When a node could reasonably live in either layer, prefer `support` unless it is clearly a cross-stage, cross-book knowledge anchor.
 
 ## Curriculum Profile Rules
 
@@ -132,6 +140,7 @@ Read these schema files before writing output:
 ## Review Checklist
 
 - Schema-valid fields only.
+- Every canonical node has a valid `node_layer`.
 - No canonical edge whose endpoints are missing.
 - No curriculum profile whose node is missing.
 - No mention without evidence.

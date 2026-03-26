@@ -71,6 +71,24 @@ const MASTERY_LEVEL_LABELS = {
   create: "创造",
 };
 
+const NODE_LAYER_LABELS = {
+  backbone: "主干",
+  support: "支撑",
+};
+
+const LAYER_MODE_OPTIONS = [
+  {
+    id: "backbone-expand",
+    label: "主干展开",
+    description: "默认只显示主干，选中主干节点时展开它的支撑节点。",
+  },
+  {
+    id: "all",
+    label: "全部节点",
+    description: "同时显示主干和支撑节点。",
+  },
+];
+
 const MANIFEST_PATH = "../data/viewer/index.json";
 const SOURCE_QUERY_KEY = "source";
 const DEFAULT_SOURCE_KEY = "v1";
@@ -91,6 +109,8 @@ const state = {
   selectedBook: "all",
   selectedTypes: new Set(),
   focusConnected: false,
+  layerMode: "backbone-expand",
+  expandedBackboneNodeId: null,
   showLabels: true,
   transform: { x: 0, y: 0, scale: 1 },
   dragNodeId: null,
@@ -110,6 +130,10 @@ const els = {
   sourceSelect: document.getElementById("source-select"),
   sourceNote: document.getElementById("source-note"),
   sourceHint: document.getElementById("source-hint"),
+  layerMode: document.getElementById("layer-mode"),
+  layerNote: document.getElementById("layer-note"),
+  layerHint: document.getElementById("layer-hint"),
+  collapseSupport: document.getElementById("collapse-support"),
   searchInput: document.getElementById("search-input"),
   searchResults: document.getElementById("search-results"),
   searchCount: document.getElementById("search-count"),
@@ -128,6 +152,8 @@ const els = {
   detailProfiles: document.getElementById("detail-profiles"),
   detailAliases: document.getElementById("detail-aliases"),
   detailProperties: document.getElementById("detail-properties"),
+  detailSupport: document.getElementById("detail-support"),
+  detailSupportNote: document.getElementById("detail-support-note"),
   detailCard: document.getElementById("detail-card"),
   cardStatus: document.getElementById("card-status"),
   detailRelations: document.getElementById("detail-relations"),
@@ -277,6 +303,7 @@ async function switchSource(sourceKey) {
   state.cardCache = new Map();
   state.selectedNodeId = null;
   state.hoverNodeId = null;
+  state.expandedBackboneNodeId = null;
   renderSourceControl();
 
   let data;
@@ -441,7 +468,9 @@ function prepareGraphData({ nodes, edges, profiles, framework, patterns, books, 
       vy: 0,
       fx: null,
       fy: null,
-      radius: 12 + Math.min(12, degreeById.get(node.id) || 0),
+      radius:
+        (12 + Math.min(12, degreeById.get(node.id) || 0)) *
+        (normalizedNode.node_layer === "support" ? 0.84 : 1),
       color: getTypeColor(normalizedNode.node_type),
       degree: degreeById.get(node.id) || 0,
       mentions: mentionsByTarget.get(normalizedNode.id) || [],
@@ -512,6 +541,43 @@ function getMasteryLevelLabel(level) {
   return MASTERY_LEVEL_LABELS[level] || humanizeKey(level);
 }
 
+function getNodeLayerLabel(layer) {
+  return NODE_LAYER_LABELS[layer] || humanizeKey(layer);
+}
+
+function resolveNodeLayer(node) {
+  const explicitLayer =
+    node.node_layer ||
+    node.layer ||
+    node.properties?.node_layer ||
+    node.properties?.layer ||
+    (node.properties?.backbone === true ? "backbone" : null) ||
+    (node.properties?.support === true ? "support" : null);
+
+  if (explicitLayer === "backbone" || explicitLayer === "support") {
+    return explicitLayer;
+  }
+
+  if (
+    node.node_kind === "concept" ||
+    node.node_kind === "principle" ||
+    node.node_kind === "process" ||
+    (node.node_kind === "entity" && (node.node_subkind === "substance" || node.node_subkind === "particle"))
+  ) {
+    return "backbone";
+  }
+
+  return "support";
+}
+
+function isBackboneNode(node) {
+  return node?.node_layer === "backbone";
+}
+
+function isSupportNode(node) {
+  return node?.node_layer === "support";
+}
+
 function deriveLegacyNodeKind(type) {
   const kindMap = {
     substance: "entity",
@@ -540,8 +606,7 @@ function deriveDisplayType(node) {
 function normalizeNode(node, profilesForNode) {
   const profileFrameworkRefs = profilesForNode.flatMap((profile) => profile.framework_refs || []);
   const frameworkRefs = [...new Set([...(node.framework_refs || []), ...profileFrameworkRefs])];
-
-  return {
+  const normalizedNode = {
     ...node,
     id: node.id,
     name: node.name || node.canonical_name || node.title || node.id,
@@ -552,6 +617,11 @@ function normalizeNode(node, profilesForNode) {
     aliases: Array.isArray(node.aliases) ? node.aliases : [],
     framework_refs: frameworkRefs,
     properties: node.properties || {},
+  };
+
+  return {
+    ...normalizedNode,
+    node_layer: resolveNodeLayer(normalizedNode),
   };
 }
 
@@ -624,6 +694,22 @@ function bindEvents() {
   els.sourceSelect.addEventListener("change", (event) => {
     switchSource(event.target.value);
   });
+  els.collapseSupport.addEventListener("click", () => {
+    const expandedRootId = state.expandedBackboneNodeId;
+    state.expandedBackboneNodeId = null;
+    if (state.selectedNodeId) {
+      const selectedNode = state.data?.nodeById.get(state.selectedNodeId);
+      if (isSupportNode(selectedNode)) {
+        state.selectedNodeId = expandedRootId || null;
+      }
+    }
+    syncSelectionWithVisibility();
+    renderControls();
+    renderStats();
+    renderSearchResults();
+    renderDetail();
+    draw();
+  });
   els.searchInput.addEventListener("input", (event) => {
     state.searchTerm = event.target.value.trim().toLowerCase();
     renderSearchResults();
@@ -682,6 +768,7 @@ function resizeCanvas() {
 
 function renderControls() {
   renderSourceControl();
+  renderLayerModeControl();
   renderTypeFilter();
   renderBookFilter();
   renderLegend();
@@ -717,6 +804,46 @@ function renderSourceControl() {
     info.push(`警告：${warnings[0]}`);
   }
   els.sourceHint.textContent = info.join(" | ");
+}
+
+function renderLayerModeControl() {
+  els.layerMode.innerHTML = "";
+  LAYER_MODE_OPTIONS.forEach((option) => {
+    const button = document.createElement("button");
+    button.className = `segment ${state.layerMode === option.id ? "active" : ""}`;
+    button.textContent = option.label;
+    button.addEventListener("click", () => {
+      state.layerMode = option.id;
+      if (option.id === "all") {
+        state.expandedBackboneNodeId = null;
+      } else {
+        state.expandedBackboneNodeId = resolveExpandedBackboneNodeId(state.selectedNodeId);
+      }
+      syncSelectionWithVisibility();
+      renderControls();
+      renderStats();
+      renderSearchResults();
+      renderDetail();
+      draw();
+    });
+    els.layerMode.appendChild(button);
+  });
+
+  const expandedNode =
+    state.expandedBackboneNodeId && state.data?.nodeById.get(state.expandedBackboneNodeId);
+  els.layerNote.textContent =
+    state.layerMode === "all" ? "全部可见" : expandedNode ? `已展开 ${expandedNode.name}` : "主干优先";
+
+  const activeMode = LAYER_MODE_OPTIONS.find((option) => option.id === state.layerMode);
+  const hints = [activeMode?.description];
+  if (state.layerMode === "backbone-expand") {
+    hints.push(expandedNode ? `当前展开主干: ${expandedNode.name}` : "点一个主干节点，就会把它的一跳支撑节点展开出来。");
+  }
+  els.layerHint.textContent = hints.filter(Boolean).join(" | ");
+  els.collapseSupport.classList.toggle(
+    "hidden",
+    !(state.layerMode === "backbone-expand" && expandedNode),
+  );
 }
 
 function renderTypeFilter() {
@@ -780,18 +907,18 @@ function renderLegend() {
 }
 
 function renderStats() {
-  const visibleNodeIds = new Set(getVisibleNodes().map((node) => node.id));
+  const visibleNodes = getVisibleNodes();
+  const visibleNodeIds = new Set(visibleNodes.map((node) => node.id));
   const visibleEdgeCount = state.data.edges.filter(
     (edge) => visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to),
   ).length;
+  const visibleBackboneCount = visibleNodes.filter((node) => isBackboneNode(node)).length;
+  const visibleSupportCount = visibleNodes.filter((node) => isSupportNode(node)).length;
   const stats = [
     ["节点数", visibleNodeIds.size],
+    ["主干", visibleBackboneCount],
+    ["支撑", visibleSupportCount],
     ["关系数", visibleEdgeCount],
-    ["课标领域", state.data.frameworkDomains.size],
-    [
-      "来源课本",
-      state.selectedBook === "all" ? state.data.booksById.size : 1,
-    ],
   ];
   els.statsGrid.innerHTML = "";
   stats.forEach(([label, value]) => {
@@ -825,20 +952,92 @@ function renderSearchResults() {
     item.className = `result-item ${state.selectedNodeId === node.id ? "active" : ""}`;
     item.innerHTML = `
       <strong>${node.name}</strong>
-      <span>${getTypeLabel(node.node_type)} · ${node.id}</span>
+      <span>${getNodeLayerLabel(node.node_layer)} · ${getTypeLabel(node.node_type)} · ${node.id}</span>
     `;
     item.addEventListener("click", () => selectNode(node.id, true));
     els.searchResults.appendChild(item);
   });
 }
 
-function getVisibleNodes() {
-  let nodes = state.data.nodes.filter((node) => state.selectedTypes.has(node.node_type));
+function getExpandedSupportNodeIds() {
+  if (state.layerMode !== "backbone-expand" || !state.expandedBackboneNodeId) {
+    return new Set();
+  }
+
+  const expandedIds = new Set();
+  state.data.edges.forEach((edge) => {
+    if (edge.from === state.expandedBackboneNodeId) {
+      const node = state.data.nodeById.get(edge.to);
+      if (isSupportNode(node)) {
+        expandedIds.add(node.id);
+      }
+    }
+    if (edge.to === state.expandedBackboneNodeId) {
+      const node = state.data.nodeById.get(edge.from);
+      if (isSupportNode(node)) {
+        expandedIds.add(node.id);
+      }
+    }
+  });
+  return expandedIds;
+}
+
+function getNeighborEntries(node) {
+  return state.data.edges
+    .filter((edge) => edge.from === node.id || edge.to === node.id)
+    .map((edge) => {
+      const otherId = edge.from === node.id ? edge.to : edge.from;
+      const otherNode = state.data.nodeById.get(otherId);
+      return {
+        edge,
+        otherNode,
+      };
+    })
+    .filter((entry) => entry.otherNode);
+}
+
+function getBackboneNeighbors(nodeId) {
+  const node = state.data?.nodeById.get(nodeId);
+  if (!node) {
+    return [];
+  }
+
+  return getNeighborEntries(node)
+    .map((entry) => entry.otherNode)
+    .filter((otherNode) => isBackboneNode(otherNode));
+}
+
+function nodePassesBaseFilters(node) {
+  if (!node || !state.selectedTypes.has(node.node_type)) {
+    return false;
+  }
 
   if (state.selectedBook !== "all") {
-    nodes = nodes.filter((node) =>
-      node.mentions.some((mention) => mention.book_id === state.selectedBook),
-    );
+    return node.mentions.some((mention) => mention.book_id === state.selectedBook);
+  }
+
+  return true;
+}
+
+function getVisibleNodes() {
+  let nodes = state.data.nodes.filter((node) => nodePassesBaseFilters(node));
+
+  if (state.layerMode === "backbone-expand") {
+    const expandedRootNode =
+      state.expandedBackboneNodeId && state.data.nodeById.get(state.expandedBackboneNodeId);
+    const expandedSupportIds =
+      expandedRootNode && nodePassesBaseFilters(expandedRootNode)
+        ? getExpandedSupportNodeIds()
+        : new Set();
+    nodes = nodes.filter((node) => {
+      if (isBackboneNode(node)) {
+        return true;
+      }
+      if (expandedSupportIds.has(node.id)) {
+        return true;
+      }
+      return node.id === state.selectedNodeId;
+    });
   }
 
   if (state.focusConnected && state.selectedNodeId) {
@@ -864,6 +1063,12 @@ function getVisibleEdges(visibleNodeIds) {
 }
 
 function syncSelectionWithVisibility() {
+  const expandedRoot =
+    state.expandedBackboneNodeId && state.data?.nodeById.get(state.expandedBackboneNodeId);
+  if (expandedRoot && !nodePassesBaseFilters(expandedRoot)) {
+    state.expandedBackboneNodeId = null;
+  }
+
   const visibleNodeIds = new Set(getVisibleNodes().map((node) => node.id));
   if (state.selectedNodeId && !visibleNodeIds.has(state.selectedNodeId)) {
     state.selectedNodeId = null;
@@ -1001,12 +1206,21 @@ function draw() {
 function drawEdges(edges) {
   edges.forEach((edge) => {
     const selected = state.selectedNodeId && (edge.from === state.selectedNodeId || edge.to === state.selectedNodeId);
+    const supportEdge = isSupportNode(edge.source) || isSupportNode(edge.target);
     ctx.beginPath();
+    ctx.setLineDash(supportEdge ? [5, 5] : []);
     ctx.moveTo(edge.source.x, edge.source.y);
     ctx.lineTo(edge.target.x, edge.target.y);
-    ctx.strokeStyle = selected ? "rgba(158, 79, 43, 0.55)" : "rgba(82, 62, 45, 0.16)";
-    ctx.lineWidth = selected ? 2.2 : 1.05;
+    ctx.strokeStyle = selected
+      ? supportEdge
+        ? "rgba(158, 79, 43, 0.42)"
+        : "rgba(158, 79, 43, 0.58)"
+      : supportEdge
+        ? "rgba(82, 62, 45, 0.11)"
+        : "rgba(82, 62, 45, 0.18)";
+    ctx.lineWidth = selected ? 2.2 : supportEdge ? 0.95 : 1.15;
     ctx.stroke();
+    ctx.setLineDash([]);
   });
 }
 
@@ -1022,16 +1236,22 @@ function drawNodes(nodes) {
         .includes(state.searchTerm);
 
     const radius = node.radius * (selected ? 1.25 : hovered ? 1.12 : 1);
+    const supportNode = isSupportNode(node);
     ctx.beginPath();
     ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = node.color;
+    ctx.fillStyle = supportNode ? `${node.color}CC` : node.color;
     ctx.fill();
     ctx.lineWidth = selected ? 4 : hovered || searchMatched ? 3 : 1.6;
-    ctx.strokeStyle = selected
-      ? "rgba(250, 247, 241, 0.95)"
-      : hovered || searchMatched
-        ? "rgba(255, 245, 235, 0.85)"
-        : "rgba(255, 248, 239, 0.48)";
+    ctx.strokeStyle =
+      selected
+        ? supportNode
+          ? "rgba(255, 243, 229, 0.85)"
+          : "rgba(250, 247, 241, 0.95)"
+        : hovered || searchMatched
+          ? "rgba(255, 245, 235, 0.85)"
+          : supportNode
+            ? "rgba(255, 248, 239, 0.34)"
+            : "rgba(255, 248, 239, 0.48)";
     ctx.stroke();
 
     if (!state.showLabels && !selected && !hovered) {
@@ -1151,11 +1371,39 @@ function onWheel(event) {
   draw();
 }
 
+function resolveExpandedBackboneNodeId(nodeId) {
+  if (state.layerMode !== "backbone-expand" || !nodeId) {
+    return null;
+  }
+
+  const node = state.data?.nodeById.get(nodeId);
+  if (!node) {
+    return null;
+  }
+
+  if (isBackboneNode(node)) {
+    return node.id;
+  }
+
+  if (isSupportNode(node) && state.expandedBackboneNodeId) {
+    const currentRoot = state.data.nodeById.get(state.expandedBackboneNodeId);
+    if (currentRoot) {
+      const relatedBackboneIds = new Set(getBackboneNeighbors(node.id).map((item) => item.id));
+      if (relatedBackboneIds.has(currentRoot.id)) {
+        return currentRoot.id;
+      }
+    }
+  }
+
+  return getBackboneNeighbors(node.id)[0]?.id || state.expandedBackboneNodeId || null;
+}
+
 function selectNode(nodeId, recenter = false) {
   state.selectedNodeId = nodeId;
-  if (state.focusConnected) {
-    renderStats();
-  }
+  state.expandedBackboneNodeId = resolveExpandedBackboneNodeId(nodeId);
+  syncSelectionWithVisibility();
+  renderLayerModeControl();
+  renderStats();
   renderSearchResults();
   renderDetail();
   if (recenter) {
@@ -1194,6 +1442,7 @@ async function renderDetail() {
   renderProfiles(node);
   renderAliases(node);
   renderProperties(node.properties || {});
+  renderSupportNodes(node);
   renderRelations(node);
   renderMentions(node);
   renderEvidence(node);
@@ -1203,6 +1452,7 @@ async function renderDetail() {
 function renderBadges(node) {
   els.detailBadges.innerHTML = "";
   const badges = [
+    getNodeLayerLabel(node.node_layer),
     node.id,
     `${node.degree} 条关联`,
     ...(node.profiles || []).slice(0, 2).map((profile) => `${profile.subject} ${profile.grade_band}`),
@@ -1366,6 +1616,68 @@ function renderProperties(properties) {
   });
 }
 
+function renderSupportNodes(node) {
+  const neighborEntries = getNeighborEntries(node).sort((a, b) =>
+    a.otherNode.name.localeCompare(b.otherNode.name, "zh-CN"),
+  );
+  const supportEntries = neighborEntries.filter((entry) => isSupportNode(entry.otherNode));
+  const backboneEntries = neighborEntries.filter((entry) => isBackboneNode(entry.otherNode));
+
+  if (isBackboneNode(node)) {
+    els.detailSupportNote.textContent = supportEntries.length
+      ? `${supportEntries.length} 个一跳支撑节点`
+      : "当前没有一跳支撑节点";
+
+    if (supportEntries.length === 0) {
+      els.detailSupport.innerHTML = `
+        <div class="empty-state">
+          <p>这个主干节点目前还没有拆出支撑节点，后续可以继续补方法、实验、表征等支撑层。</p>
+        </div>
+      `;
+      return;
+    }
+
+    els.detailSupport.innerHTML = supportEntries
+      .map(
+        ({ edge, otherNode }) => `
+          <button class="support-item" data-node-id="${otherNode.id}">
+            <strong>${escapeHtml(otherNode.name)}</strong>
+            <span>${escapeHtml(getTypeLabel(otherNode.node_type))} · ${escapeHtml(edge.edge_type)}</span>
+          </button>
+        `,
+      )
+      .join("");
+  } else {
+    els.detailSupportNote.textContent = backboneEntries.length
+      ? `${backboneEntries.length} 个所属主干`
+      : "当前是支撑节点";
+
+    if (backboneEntries.length === 0) {
+      els.detailSupport.innerHTML = `
+        <div class="empty-state">
+          <p>这个支撑节点暂时还没有挂接到明确的主干节点。</p>
+        </div>
+      `;
+      return;
+    }
+
+    els.detailSupport.innerHTML = backboneEntries
+      .map(
+        ({ edge, otherNode }) => `
+          <button class="support-item support-item-backbone" data-node-id="${otherNode.id}">
+            <strong>${escapeHtml(otherNode.name)}</strong>
+            <span>${escapeHtml(getNodeLayerLabel(otherNode.node_layer))} · ${escapeHtml(edge.edge_type)}</span>
+          </button>
+        `,
+      )
+      .join("");
+  }
+
+  els.detailSupport.querySelectorAll("[data-node-id]").forEach((button) => {
+    button.addEventListener("click", () => selectNode(button.dataset.nodeId, true));
+  });
+}
+
 function normalizeCardContent(content) {
   if (Array.isArray(content)) {
     return content.map((item) => String(item));
@@ -1490,7 +1802,7 @@ function renderRelations(node) {
       return `
         <button class="relation-item" data-node-id="${otherId}">
           <h4>${edge.edge_type} · ${otherNode?.name || otherId}</h4>
-          <p>${escapeHtml(edge.properties?.relation || "无附加说明")}</p>
+          <p>${escapeHtml(getNodeLayerLabel(otherNode?.node_layer || "other"))} · ${escapeHtml(getTypeLabel(otherNode?.node_type || "other"))} · ${escapeHtml(edge.properties?.relation || "无附加说明")}</p>
         </button>
       `;
     })

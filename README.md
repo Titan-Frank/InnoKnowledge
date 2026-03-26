@@ -128,6 +128,7 @@ opencode run --agent build "@kg-pipeline 处理 chem-grade8-all-in-one，先根�
 
 - outline：[data/outlines/](/Users/titan-frank/Documents/hsd/research/Knowledge/data/outlines)
 - canonical nodes：[data/v2/graph/knowledge.nodes.jsonl](/Users/titan-frank/Documents/hsd/research/Knowledge/data/v2/graph/knowledge.nodes.jsonl)
+  其中每个节点现在都包含 `node_kind + node_subkind + node_layer`
 - canonical edges：[data/v2/graph/knowledge.edges.jsonl](/Users/titan-frank/Documents/hsd/research/Knowledge/data/v2/graph/knowledge.edges.jsonl)
 - curriculum profiles：[data/v2/profiles/knowledge.profiles.jsonl](/Users/titan-frank/Documents/hsd/research/Knowledge/data/v2/profiles/knowledge.profiles.jsonl)
 - mentions：[data/v2/graph/](/Users/titan-frank/Documents/hsd/research/Knowledge/data/v2/graph)
@@ -141,17 +142,17 @@ opencode run --agent build "@kg-pipeline 处理 chem-grade8-all-in-one，先根�
 
 ## 当前 viewer 的关系
 
-当前前端查看器仍然主要读取 legacy 路径：
+当前前端查看器已经支持切换数据源：
 
-- `viewer/app.js` 现在默认读 `data/graph/knowledge.nodes.jsonl`
-- 也默认读 `data/graph/knowledge.edges.jsonl`
-- 节点卡默认读 `data/node_cards/*.json`
+- `v1`：legacy `data/graph/` + `data/node_cards/`
+- `v2`：`data/v2/graph/` + `data/v2/profiles/` + `data/v2/node_cards/`
+- `vx`：自定义实验版本
 
-所以：
+也就是说：
 
 - 新抽取流程默认写 `data/v2/`
-- 旧 viewer 还没有完全切到 `data/v2/`
-- 如果你要“看见新抽出的 V2 数据”，需要单独做 viewer 迁移或导出一份 legacy 兼容数据
+- viewer 可以直接切到 `v2` 看结果
+- `v2` 节点里的 `node_layer` 会驱动“主干 / 支撑”分层展示
 
 ## 常用辅助命令
 

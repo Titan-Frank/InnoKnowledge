@@ -245,7 +245,9 @@ select:focus {
 .chip,
 .toolbar-button,
 .ghost-button,
-.result-item {
+.result-item,
+.support-item,
+.relation-item {
   cursor: pointer;
 }
 
@@ -253,7 +255,9 @@ select:focus {
 .chip:hover,
 .toolbar-button:hover,
 .ghost-button:hover,
-.result-item:hover {
+.result-item:hover,
+.support-item:hover,
+.relation-item:hover {
   transform: translateY(-1px);
 }
 
@@ -281,12 +285,14 @@ select:focus {
 .mention-list,
 .evidence-list,
 .profile-list,
-.axis-list {
+.axis-list,
+.support-list {
   display: grid;
   gap: 10px;
 }
 
 .result-item,
+.support-item,
 .relation-item,
 .mention-item,
 .evidence-item,
@@ -302,12 +308,14 @@ select:focus {
   padding: 12px 13px;
 }
 
-.result-item strong {
+.result-item strong,
+.support-item strong {
   display: block;
   margin-bottom: 4px;
 }
 
 .result-item span,
+.support-item span,
 .relation-item p,
 .mention-item p,
 .evidence-item p,
@@ -320,6 +328,15 @@ select:focus {
 .result-item.active {
   border-color: rgba(158, 79, 43, 0.38);
   box-shadow: inset 0 0 0 1px rgba(158, 79, 43, 0.12);
+}
+
+.support-item {
+  padding: 12px 13px;
+  text-align: left;
+}
+
+.support-item-backbone {
+  background: rgba(250, 242, 231, 0.92);
 }
 
 .graph-stage {

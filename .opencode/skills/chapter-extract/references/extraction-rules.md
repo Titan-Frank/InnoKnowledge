@@ -63,6 +63,24 @@ Use `node_subkind` when a narrower label helps:
 - `activity/experiment`
 - `representation/symbol`
 
+## Node Layer Selection
+
+- Use `node_layer = backbone` when the node is a stable, cross-lesson knowledge anchor that should appear in the main knowledge trunk.
+- Use `node_layer = support` when the node is mainly there to explain, operate on, evidence, represent, or contextualize a backbone node.
+- Typical `backbone` nodes:
+  - core concepts
+  - principles
+  - processes
+  - key substances or other stable entities
+  - essential microscopic entities when they are themselves learning anchors
+- Typical `support` nodes:
+  - experiments
+  - reusable methods
+  - equipment
+  - formulas, equations, diagrams, and other representations
+  - issue or application contexts
+- If the node is reusable but would clutter the main trunk when shown by default, keep it canonical but mark it as `support`.
+
 ## Canonicalization
 
 - Prefer reusing existing canonical nodes in `data/v2/graph/knowledge.nodes.jsonl`.

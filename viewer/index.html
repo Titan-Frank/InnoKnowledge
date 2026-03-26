@@ -63,6 +63,16 @@
 
           <section class="panel-section">
             <div class="section-head">
+              <h2>层级视图</h2>
+              <span class="section-note" id="layer-note">主干优先</span>
+            </div>
+            <div class="segmented" id="layer-mode"></div>
+            <p class="source-hint" id="layer-hint"></p>
+            <button id="collapse-support" class="ghost-button hidden">收起当前支撑展开</button>
+          </section>
+
+          <section class="panel-section">
+            <div class="section-head">
               <h2>节点类型</h2>
               <button id="reset-types" class="ghost-button">重置</button>
             </div>
@@ -136,6 +146,14 @@
             <div class="detail-block">
               <h3>结构属性</h3>
               <div class="property-tree" id="detail-properties"></div>
+            </div>
+
+            <div class="detail-block">
+              <div class="section-head">
+                <h3>支撑节点</h3>
+                <span class="section-note" id="detail-support-note"></span>
+              </div>
+              <div class="support-list" id="detail-support"></div>
             </div>
 
             <div class="detail-block">

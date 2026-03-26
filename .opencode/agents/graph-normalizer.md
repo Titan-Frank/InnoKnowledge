@@ -16,6 +16,7 @@ Rules:
 - Normalize the canonical graph first, then curriculum profiles, and preserve book-local mentions.
 - Preserve all provenance references.
 - Prefer alias merging over semantic guessing.
+- Preserve `node_layer` and keep uncertain cases conservative.
 - Keep output schema-valid.
 
 Write targets:

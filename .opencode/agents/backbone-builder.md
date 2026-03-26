@@ -24,6 +24,7 @@ Execution rules:
 - Reuse or create curriculum profiles fourth.
 - Create mentions last.
 - Put only stable, reusable knowledge into the backbone graph.
+- Every canonical node must set `node_layer`; use `backbone` for main-trunk anchors and `support` for auxiliary canonical nodes.
 - Leave detailed explanation for `@node-expander`.
 
 Write targets:

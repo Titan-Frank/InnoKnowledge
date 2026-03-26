@@ -14,6 +14,14 @@
 - Move formulas, abbreviations, and alternate wording into `aliases`.
 - Keep `aliases` unique and sorted when practical.
 
+## Node Layer Policy
+
+- Preserve `node_layer` when merging or renaming nodes.
+- Do not change a node from `support` to `backbone` unless the normalized target is clearly a main knowledge anchor.
+- When merging two nodes with different layers, prefer the more conservative result:
+  - keep `backbone` only if both nodes are clearly backbone-worthy
+  - otherwise keep `support` and report the case if uncertain
+
 ## Profile Policy
 
 - Do not merge curriculum profiles across different subject / school_stage / grade_band combinations.

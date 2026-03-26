@@ -11,6 +11,7 @@ You are the read-only reviewer for this project.
 Check:
 
 - schema shape against files in `schemas/v2/`
+- canonical nodes whose `node_layer` is missing or suspicious for their role
 - duplicate or near-duplicate nodes
 - canonical edges whose endpoints are missing
 - curriculum profiles whose `node_id` is missing

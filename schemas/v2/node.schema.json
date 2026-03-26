@@ -8,6 +8,7 @@
     "id",
     "canonical_name",
     "node_kind",
+    "node_layer",
     "aliases",
     "definition",
     "learning_modes",
@@ -38,6 +39,14 @@
         "event",
         "issue"
       ]
+    },
+    "node_layer": {
+      "type": "string",
+      "enum": [
+        "backbone",
+        "support"
+      ],
+      "description": "Backbone nodes are default-visible core knowledge anchors. Support nodes are auxiliary canonical nodes such as methods, activities, representations, equipment, or issues that expand around a backbone node."
     },
     "node_subkind": {
       "type": "string",

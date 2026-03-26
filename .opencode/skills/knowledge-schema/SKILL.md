@@ -27,6 +27,9 @@ Use this skill as the schema authority for every extraction task. Prefer the V2 
 - Keep Chinese display names in `canonical_name` when the source language is Chinese.
 - Use `learning_modes` as an instructional tag, not as the primary ontology type.
 - Use `node_kind` and optional `node_subkind` as the primary ontology axis.
+- Use `node_layer` to distinguish `backbone` nodes from `support` nodes.
+- Prefer `backbone` for stable, cross-stage knowledge anchors.
+- Prefer `support` for reusable but auxiliary methods, activities, representations, equipment, or issue nodes.
 - Use `framework_refs` primarily on curriculum profiles; keep them on canonical nodes only when they help normalization or discovery.
 - Use `properties` for extensible details instead of creating ad hoc top-level keys.
 
