@@ -1,0 +1,33 @@
+{
+  "id": "node-card:concept__soft-water",
+  "node_id": "concept:soft-water",
+  "card_layer": "support",
+  "title": "软水",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "不含或含较少可溶性含钙元素或镁元素的物质的水。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "不含或含较少可溶性含钙元素或镁元素的物质的水，称为软水"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-1-2:hard-water"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "软水是经过软化处理的水",
+        "软水更适合生活和生产使用"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-1-2:hard-water"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:3-1-2:hard-water"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

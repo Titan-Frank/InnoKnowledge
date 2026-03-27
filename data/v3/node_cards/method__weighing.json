@@ -1,0 +1,52 @@
+{
+  "id": "node-card:method__weighing",
+  "node_id": "method/weighing",
+  "card_layer": "support",
+  "title": "称量方法",
+  "pattern_refs": ["pattern:method-procedure-v2"],
+  "summary": "使用电子天平称量固体试剂质量的方法，固体不能直接放在秤盘上，需放置称量纸或放在烧杯内称量。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": [
+        "准确称量固体试剂的质量"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:weighing"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "section_type": "assessment",
+      "content": [
+        "称量一般固体试剂",
+        "称量腐蚀性、潮湿或易潮解的固体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:weighing"]
+    },
+    {
+      "id": "steps",
+      "title": "操作步骤",
+      "section_type": "procedure",
+      "content": [
+        "一般固体：在秤盘上放置称量纸，然后称量固体",
+        "腐蚀性或易潮解固体：放在干燥、洁净的烧杯或表面皿内称量"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:weighing"]
+    },
+    {
+      "id": "errors",
+      "title": "常见错误",
+      "section_type": "misconception",
+      "content": [
+        "将固体试剂直接放在电子天平的秤盘上，会污染试剂、腐蚀秤盘"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:weighing"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:weighing"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "node-card:concept__oxidation-reaction",
+  "node_id": "concept:oxidation-reaction",
+  "card_layer": "backbone",
+  "title": "氧化反应",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "物质与氧气发生的化学反应，是自然界中普遍存在的反应类型。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "物质与氧气发生的化学反应叫做氧化反应",
+        "氧化反应在自然界中普遍存在"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxidation-reaction"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "氧化反应是一类重要的化学反应类型",
+        "燃烧是剧烈的氧化反应"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxidation-reaction"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": [
+        "碳在氧气中燃烧生成二氧化碳",
+        "铁在氧气中燃烧生成四氧化三铁"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxidation-reaction"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxidation-reaction"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

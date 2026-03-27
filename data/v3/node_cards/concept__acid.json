@@ -1,0 +1,44 @@
+{
+  "id": "node-card:concept__acid",
+  "node_id": "concept:acid",
+  "card_layer": "backbone",
+  "title": "酸",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "电离时生成的阳离子全部是氢离子的化合物。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "电离时生成的阳离子全部是氢离子的化合物叫做酸"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "酸是两类重要的化合物之一",
+        "酸具有相似的化学性质"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "酸能与指示剂作用显示不同颜色",
+        "酸能与多种活泼金属反应生成盐和氢气",
+        "酸能与某些金属氧化物反应生成盐和水"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-2:acid-properties"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base", "evidence:chem-grade9-all-in-one:1-2-2:acid-properties"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

@@ -1,0 +1,42 @@
+{
+  "id": "node-card:entity__substance__red-phosphorus",
+  "node_id": "entity/substance:red-phosphorus",
+  "card_layer": "support",
+  "title": "红磷",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "暗红色粉末状固体，能在空气中燃烧生成五氧化二磷，常用于测定空气中氧气含量的实验。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "红磷是暗红色粉末状固体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:red-phosphorus-experiment"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "暗红色粉末状固体",
+        "能在空气中燃烧生成五氧化二磷"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:red-phosphorus-experiment"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "常用于测定空气中氧气含量的实验"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:red-phosphorus-experiment"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:red-phosphorus-experiment"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

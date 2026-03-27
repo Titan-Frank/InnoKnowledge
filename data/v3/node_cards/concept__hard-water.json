@@ -1,0 +1,33 @@
+{
+  "id": "node-card:concept__hard-water",
+  "node_id": "concept:hard-water",
+  "card_layer": "support",
+  "title": "硬水",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "溶有较多可溶性含钙元素或镁元素的物质的水，使用时需要软化处理。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "溶有较多可溶性含钙元素或镁元素的物质的水，称为硬水"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-1-2:hard-water"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "使用硬水会给生活和生产带来许多麻烦",
+        "生活、生产中需要对硬水进行软化处理"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-1-2:hard-water"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:3-1-2:hard-water"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

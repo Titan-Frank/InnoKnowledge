@@ -1,0 +1,44 @@
+{
+  "id": "node-card:entity__substance__air",
+  "node_id": "entity/substance:air",
+  "card_layer": "backbone",
+  "title": "空气",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "弥漫于地球周围的混合气体，是地球上一切生命赖以生存的重要物质。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "空气是弥漫于地球周围的混合气体",
+        "是地球上一切生命赖以生存的重要物质"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:air-composition"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "按体积计算，空气中大约含有氮气78%、氧气21%、其他物质1%",
+        "其他物质包括：稀有气体0.94%、二氧化碳0.03%、其他气体和杂质0.03%"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:air-composition"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "是生物呼吸必需的物质来源",
+        "空气中的氧气支持燃烧"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:air-composition"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:air-composition"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

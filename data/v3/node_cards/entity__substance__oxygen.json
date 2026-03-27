@@ -1,0 +1,54 @@
+{
+  "id": "node-card:entity__substance__oxygen",
+  "node_id": "entity/substance:oxygen",
+  "card_layer": "backbone",
+  "title": "氧气",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "由氧元素组成的单质，是生物呼吸必需的气体，能支持燃烧。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "氧气是由氧元素组成的单质",
+        "化学式为O2"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxygen-properties"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "通常状况下是无色、无气味的气体",
+        "密度为1.429g/L（0℃与101kPa下），略大于空气的密度",
+        "不易溶于水，1L水中大约能溶解30mL氧气"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxygen-properties"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "是生物呼吸必需的气体",
+        "能支持燃烧，物质在空气中燃烧实际上是与其中的氧气发生反应"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxygen-properties"]
+    },
+    {
+      "id": "tests",
+      "title": "检验与区分",
+      "section_type": "procedure",
+      "content": [
+        "氧气具有助燃性，能使带火星的木条复燃"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxygen-properties"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxygen-properties"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

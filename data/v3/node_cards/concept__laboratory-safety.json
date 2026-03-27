@@ -1,0 +1,44 @@
+{
+  "id": "node-card:concept__laboratory-safety",
+  "node_id": "concept:laboratory-safety",
+  "card_layer": "support",
+  "title": "实验室安全",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "在化学实验室中进行实验时需要遵守的安全规则和注意事项。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "实验室安全包括安全规则、安全设备和安全标志"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:laboratory-safety"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "实验室安全是确保安全有效完成化学实验的基础",
+        "需要识别安全设备和安全标志"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:laboratory-safety"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "实验室会制定安全规则",
+        "配置安全设备",
+        "在存在不同安全风险的地方放置相应的安全警示或提示标志"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:laboratory-safety"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:laboratory-safety"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

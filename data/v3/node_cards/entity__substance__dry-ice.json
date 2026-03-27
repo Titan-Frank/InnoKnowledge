@@ -1,0 +1,46 @@
+{
+  "id": "node-card:entity__substance__dry-ice",
+  "node_id": "entity/substance:dry-ice",
+  "card_layer": "support",
+  "title": "干冰",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "固态二氧化碳，外形与冰相似，在常压下温度高于-78.5℃时升华，升华时吸收大量热。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "干冰是固态二氧化碳",
+        "外形与冰相似"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:dry-ice"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "在常压下，当温度高于—78.5℃时会升华",
+        "直接变成气态二氧化碳",
+        "升华能够吸收大量的热，降温快而且不会出现任何的残留物"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:dry-ice"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "用于人工降雨",
+        "用于食品保鲜",
+        "用于舞台烟雾效果"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:dry-ice"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:dry-ice"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

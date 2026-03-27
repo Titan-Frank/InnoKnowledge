@@ -1,0 +1,43 @@
+{
+  "id": "node-card:entity__substance__iron",
+  "node_id": "entity/substance:iron",
+  "card_layer": "backbone",
+  "title": "铁",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "金属元素组成的一种单质，银白色有光泽，能在氧气中燃烧生成四氧化三铁。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "铁是由铁元素组成的单质",
+        "化学式为Fe"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxidation-reaction"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "银白色有光泽的金属",
+        "能在氧气中燃烧生成四氧化三铁"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxidation-reaction"]
+    },
+    {
+      "id": "tests",
+      "title": "检验与区分",
+      "section_type": "procedure",
+      "content": [
+        "铁在氧气中燃烧生成黑色固体四氧化三铁（Fe3O4）"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxidation-reaction"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxidation-reaction"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

@@ -1,0 +1,52 @@
+{
+  "id": "node-card:method__glass-cleaning",
+  "node_id": "method/glass-cleaning",
+  "card_layer": "support",
+  "title": "玻璃仪器洗涤方法",
+  "pattern_refs": ["pattern:method-procedure-v2"],
+  "summary": "清洗玻璃仪器的方法，洗净的标准是清洁透明，器壁附着的水既不成为水珠，也不成股流下。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": [
+        "清洗干净玻璃仪器以备下次再用"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:glass-cleaning"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "section_type": "assessment",
+      "content": [
+        "清洗烧杯、量筒、漏斗、玻璃棒等仪器"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:glass-cleaning"]
+    },
+    {
+      "id": "steps",
+      "title": "操作步骤",
+      "section_type": "procedure",
+      "content": [
+        "将试管内残留物倒入指定容器",
+        "注入少量水振荡，倒去水",
+        "重复数次直至洗净"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:glass-cleaning"]
+    },
+    {
+      "id": "errors",
+      "title": "常见错误",
+      "section_type": "misconception",
+      "content": [
+        "洗净的标准是清洁透明，器壁附着的水既不成为水珠，也不成股流下"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:glass-cleaning"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:glass-cleaning"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

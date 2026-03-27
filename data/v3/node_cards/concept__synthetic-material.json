@@ -1,0 +1,33 @@
+{
+  "id": "node-card:concept__synthetic-material",
+  "node_id": "concept:synthetic-material",
+  "card_layer": "support",
+  "title": "合成材料",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "由人工合成的材料，包括塑料、合成纤维和合成橡胶。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "合成材料是由人工合成的材料"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:2-2-3:materials"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "材料分为金属材料、无机非金属材料、合成材料和复合材料",
+        "合成材料包括塑料、合成纤维和合成橡胶"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:2-2-3:materials"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:2-2-3:materials"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

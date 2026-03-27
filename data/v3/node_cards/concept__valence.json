@@ -1,0 +1,33 @@
+{
+  "id": "node-card:concept__valence",
+  "node_id": "concept:valence",
+  "card_layer": "support",
+  "title": "化合价",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "一种元素一定数目的原子与其他元素一定数目的原子化合的性质。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "一种元素一定数目的原子与其他元素一定数目的原子化合的性质，叫做这种元素的化合价"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-2-2:valence"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "元素之间相互化合时，其原子个数比有确定的数值",
+        "化合价是书写化学式的依据"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-2-2:valence"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:3-2-2:valence"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

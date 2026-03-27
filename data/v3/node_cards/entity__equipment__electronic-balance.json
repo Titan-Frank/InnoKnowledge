@@ -1,0 +1,52 @@
+{
+  "id": "node-card:entity__equipment__electronic-balance",
+  "node_id": "entity/equipment:electronic-balance",
+  "card_layer": "support",
+  "title": "电子天平",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "用于称量固体质量的仪器，初中化学实验常用分度值为0.1g的电子天平。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "电子天平是用于称量固体质量的仪器"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:weighing"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "初中化学实验常用分度值为0.1g的电子天平"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:weighing"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "用于称量固体的质量"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:weighing"]
+    },
+    {
+      "id": "tests",
+      "title": "检验与区分",
+      "section_type": "procedure",
+      "content": [
+        "称量固体时需在秤盘上放置称量纸",
+        "不可以将固体试剂直接放在电子天平的秤盘上",
+        "具有腐蚀性、潮湿或易潮解的固体应放在干燥、洁净的烧杯或表面皿内称量"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:weighing"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:weighing"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

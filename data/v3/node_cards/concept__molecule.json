@@ -1,0 +1,44 @@
+{
+  "id": "node-card:concept__molecule",
+  "node_id": "concept:molecule",
+  "card_layer": "backbone",
+  "title": "分子",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "构成物质的极其微小的微观粒子之一，是保持物质化学性质的最小粒子。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "分子是构成物质的极其微小的微观粒子之一"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:microscopic-particles", "evidence:chem-grade8-all-in-one:3-1-1:molecule-properties"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "分子是保持物质化学性质的最小粒子",
+        "水是由大量水分子聚集而成的"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-1-1:molecule-properties"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "分子的质量和体积都很小",
+        "分子之间有间隔",
+        "分子总在不停地运动"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-1-1:molecule-properties"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:microscopic-particles", "evidence:chem-grade8-all-in-one:3-1-1:molecule-properties"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

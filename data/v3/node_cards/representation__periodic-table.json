@@ -1,0 +1,43 @@
+{
+  "id": "node-card:representation__periodic-table",
+  "node_id": "representation:periodic-table",
+  "card_layer": "support",
+  "title": "元素周期表",
+  "pattern_refs": ["pattern:representation-form-v2"],
+  "summary": "按照原子序数递增的顺序排列元素的表格，横行叫做周期，纵行叫做族。",
+  "sections": [
+    {
+      "id": "representation-meaning",
+      "title": "表示含义",
+      "section_type": "definition",
+      "content": [
+        "元素周期表是按照原子序数递增的顺序排列元素的表格"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-2-2:element-periodic-table"]
+    },
+    {
+      "id": "reading-rules",
+      "title": "读写规则",
+      "section_type": "procedure",
+      "content": [
+        "每一个横行叫做一个周期",
+        "每一个纵行叫做一个族"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-2-2:element-periodic-table"]
+    },
+    {
+      "id": "connections",
+      "title": "关联对象",
+      "section_type": "comparison",
+      "content": [
+        "元素周期表表示所有已知元素",
+        "是学习和研究化学的重要工具"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-2-2:element-periodic-table"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:3-2-2:element-periodic-table"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

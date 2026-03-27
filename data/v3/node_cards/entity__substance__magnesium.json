@@ -1,0 +1,53 @@
+{
+  "id": "node-card:entity__substance__magnesium",
+  "node_id": "entity/substance:magnesium",
+  "card_layer": "backbone",
+  "title": "镁",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "一种金属元素，银白色，能在空气中燃烧产生明亮的白光，生成白色粉末。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "镁是一种金属元素，符号为Mg",
+        "银白色金属"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:magnesium-burning"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "银白色有光泽",
+        "可燃性：能在空气中燃烧",
+        "燃烧产生明亮的白光"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:magnesium-burning"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "镁燃烧产生明亮的白光，因此被用于制作照明弹"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:property-determines-use"]
+    },
+    {
+      "id": "tests",
+      "title": "检验与区分",
+      "section_type": "procedure",
+      "content": [
+        "燃烧后生成白色粉末（氧化镁），这是镁的特征反应现象"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:magnesium-burning"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:magnesium-burning", "evidence:chem-grade8-all-in-one:1-1-1:property-determines-use"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

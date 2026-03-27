@@ -1,0 +1,46 @@
+{
+  "id": "node-card:activity__experiment__water-boiling",
+  "node_id": "activity/experiment:water-boiling",
+  "card_layer": "support",
+  "title": "水沸腾实验",
+  "pattern_refs": ["pattern:activity-task-v2"],
+  "summary": "将盛有水的试管加热至沸腾，用玻璃片收集水蒸气并观察冷凝现象的实验，用于学习物理变化的概念。",
+  "sections": [
+    {
+      "id": "activity-goal",
+      "title": "活动目标",
+      "section_type": "definition",
+      "content": [
+        "观察水沸腾和冷凝的现象",
+        "学习物理变化的概念"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:water-boiling"]
+    },
+    {
+      "id": "procedure",
+      "title": "实施过程",
+      "section_type": "procedure",
+      "content": [
+        "将盛有水的试管加热至沸腾",
+        "用玻璃片收集水蒸气",
+        "观察冷凝现象"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:water-boiling"]
+    },
+    {
+      "id": "observations",
+      "title": "关键观察",
+      "section_type": "evidence",
+      "content": [
+        "液态的水经沸腾变为水蒸气",
+        "水蒸气在玻璃片上冷凝又变回液态的水",
+        "水沸腾是物理变化，没有新物质生成"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:water-boiling"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:water-boiling"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

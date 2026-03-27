@@ -1,0 +1,55 @@
+{
+  "id": "node-card:method__liquid-measuring",
+  "node_id": "method/liquid-measuring",
+  "card_layer": "support",
+  "title": "量取液体方法",
+  "pattern_refs": ["pattern:method-procedure-v2"],
+  "summary": "使用量筒量取一定体积液体的方法，读取刻度时视线与量筒内凹液面最低处保持水平。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": [
+        "准确量取一定体积的液体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:liquid-measuring"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "section_type": "assessment",
+      "content": [
+        "量取常温液体",
+        "选择合适规格的量筒"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:liquid-measuring"]
+    },
+    {
+      "id": "steps",
+      "title": "操作步骤",
+      "section_type": "procedure",
+      "content": [
+        "选择合适规格的量筒",
+        "量筒应该放平",
+        "读取刻度时，视线与量筒内凹液面最低处保持水平"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:liquid-measuring"]
+    },
+    {
+      "id": "errors",
+      "title": "常见错误",
+      "section_type": "misconception",
+      "content": [
+        "量筒受热，会损坏量筒",
+        "用量筒量取热的液体",
+        "在量筒内进行化学反应"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:liquid-measuring"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:liquid-measuring"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

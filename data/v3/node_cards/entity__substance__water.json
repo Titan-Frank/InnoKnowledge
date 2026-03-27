@@ -1,0 +1,57 @@
+{
+  "id": "node-card:entity__substance__water",
+  "node_id": "entity/substance:water",
+  "card_layer": "backbone",
+  "title": "水",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "由氢元素和氧元素组成的化合物，常温下为无色无味的液体，是生命活动必需的物质。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "水是由氢元素和氧元素组成的化合物",
+        "化学式为H2O",
+        "常温下为无色无味的液体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:water-boiling", "evidence:chem-grade8-all-in-one:3-1-3:water-electrolysis"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "无色无气味",
+        "水具有反常膨胀的特性：在0～4℃时随温度升高体积减小，在4℃时密度最大",
+        "水的比热容较大",
+        "水有极强的溶解其他物质的能力，是一种优良的溶剂"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-1-1:water-properties"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "水是生命活动必需的物质",
+        "水是优良的溶剂，能溶解多种物质"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-1-1:water-properties"]
+    },
+    {
+      "id": "tests",
+      "title": "检验与区分",
+      "section_type": "procedure",
+      "content": [
+        "电解水：负极产生氢气，正极产生氧气，体积比约为2:1",
+        "冰密度比水小，浮在水面上"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-1-3:water-electrolysis", "evidence:chem-grade8-all-in-one:3-1-1:water-properties"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:3-1-1:water-properties", "evidence:chem-grade8-all-in-one:3-1-3:water-electrolysis"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

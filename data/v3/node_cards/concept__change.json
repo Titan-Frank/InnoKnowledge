@@ -1,0 +1,44 @@
+{
+  "id": "node-card:concept__change",
+  "node_id": "concept:change",
+  "card_layer": "backbone",
+  "title": "变化",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "物质发生改变的过程，是化学研究的核心对象之一，分为物理变化和化学变化两大类。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "变化是物质发生改变的过程",
+        "变化是化学研究的核心对象之一"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:physical-change", "evidence:chem-grade8-all-in-one:1-1-1:chemical-change"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "物质变化分为物理变化和化学变化两大类",
+        "区分物理变化和化学变化的关键是是否有新物质生成"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:physical-change", "evidence:chem-grade8-all-in-one:1-1-1:chemical-change"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "物理变化：物质发生形态或形状变化但不生成新物质",
+        "化学变化：生成与原来不同的物质的变化"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:physical-change", "evidence:chem-grade8-all-in-one:1-1-1:chemical-change"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:physical-change", "evidence:chem-grade8-all-in-one:1-1-1:chemical-change"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

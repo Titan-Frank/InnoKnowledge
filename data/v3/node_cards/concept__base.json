@@ -1,0 +1,44 @@
+{
+  "id": "node-card:concept__base",
+  "node_id": "concept:base",
+  "card_layer": "backbone",
+  "title": "碱",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "电离时生成的阴离子全部是氢氧根离子的化合物。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "电离时生成的阴离子全部是氢氧根离子的化合物叫做碱"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "碱是两类重要的化合物之一",
+        "碱具有相似的化学性质"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "碱能与指示剂作用显示不同颜色",
+        "碱能与某些非金属氧化物反应生成盐和水",
+        "碱能与酸反应生成盐和水（中和反应）"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-2:base-properties"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base", "evidence:chem-grade9-all-in-one:1-2-2:base-properties"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

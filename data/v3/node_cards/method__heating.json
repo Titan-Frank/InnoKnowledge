@@ -1,0 +1,54 @@
+{
+  "id": "node-card:method__heating",
+  "node_id": "method/heating",
+  "card_layer": "support",
+  "title": "加热方法",
+  "pattern_refs": ["pattern:method-procedure-v2"],
+  "summary": "使用酒精灯等加热器对物质进行加热的方法，酒精灯加热应使用外焰，加热前应擦干受热仪器外壁。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": [
+        "安全、正确地对物质进行加热"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:alcohol-lamp"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "section_type": "assessment",
+      "content": [
+        "使用酒精灯加热",
+        "加热前擦干受热仪器外壁"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:alcohol-lamp"]
+    },
+    {
+      "id": "steps",
+      "title": "操作步骤",
+      "section_type": "procedure",
+      "content": [
+        "用电子点火枪或火柴点燃酒精灯",
+        "加热时使用酒精灯外焰，温度最高",
+        "熄灭酒精灯用灯帽直接盖灭"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:alcohol-lamp"]
+    },
+    {
+      "id": "errors",
+      "title": "常见错误",
+      "section_type": "misconception",
+      "content": [
+        "使用内焰或焰心加热，温度不够高",
+        "用嘴吹灭酒精灯，可能引起火灾"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:alcohol-lamp"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:alcohol-lamp"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

@@ -1,0 +1,61 @@
+{
+  "id": "node-card:concept__chemical-property",
+  "node_id": "concept:chemical-property",
+  "card_layer": "backbone",
+  "title": "化学性质",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "物质在发生化学变化时表现出来的性质，如可燃性、酸碱性等。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "物质在发生化学变化时表现出来的性质叫做化学性质"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:chemical-property"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "化学性质是物质通过化学反应表现出来的特性",
+        "化学性质决定了物质能否发生某种化学反应"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:chemical-property"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "常见的化学性质包括：可燃性、酸碱性、氧化性、还原性等"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:chemical-property"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": [
+        "可燃性：镁能在空气中燃烧",
+        "酸碱性：维生素C泡腾片在水中能释放出气体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:chemical-property"]
+    },
+    {
+      "id": "misconceptions",
+      "title": "易混辨析",
+      "section_type": "misconception",
+      "content": [
+        "化学性质与物理性质的区别：化学性质需要在化学变化中表现，物理性质不需要"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:chemical-property", "evidence:chem-grade8-all-in-one:1-1-1:physical-property"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:chemical-property"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

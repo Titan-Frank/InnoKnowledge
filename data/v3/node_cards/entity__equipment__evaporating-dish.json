@@ -1,0 +1,51 @@
+{
+  "id": "node-card:entity__equipment__evaporating-dish",
+  "node_id": "entity/equipment:evaporating-dish",
+  "card_layer": "support",
+  "title": "蒸发皿",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "用于蒸发操作的陶瓷材质仪器，可以直接使用酒精灯加热。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "蒸发皿是用于蒸发操作的仪器"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:evaporation"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "陶瓷材质",
+        "可以直接使用酒精灯对其加热"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:evaporation"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "用于蒸发操作，从溶液中得到固体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:evaporation"]
+    },
+    {
+      "id": "tests",
+      "title": "检验与区分",
+      "section_type": "procedure",
+      "content": [
+        "受热后的蒸发皿冷却后再移动，以防烫伤"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:evaporation"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:evaporation"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

@@ -1,0 +1,54 @@
+{
+  "id": "node-card:activity__experiment__air-oxygen-measurement",
+  "node_id": "activity/experiment:air-oxygen-measurement",
+  "card_layer": "support",
+  "title": "测定空气中氧气含量实验",
+  "pattern_refs": ["pattern:activity-task-v2"],
+  "summary": "利用红磷燃烧消耗氧气，通过测量进入瓶中水的体积来测定空气中氧气含量的实验。",
+  "sections": [
+    {
+      "id": "activity-goal",
+      "title": "活动目标",
+      "section_type": "definition",
+      "content": [
+        "测定空气中氧气的含量"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:red-phosphorus-experiment"]
+    },
+    {
+      "id": "setup",
+      "title": "材料与条件",
+      "section_type": "structure",
+      "content": [
+        "红磷、集气瓶、量筒、水"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:red-phosphorus-experiment"]
+    },
+    {
+      "id": "procedure",
+      "title": "实施过程",
+      "section_type": "procedure",
+      "content": [
+        "在集气瓶中放入红磷",
+        "点燃红磷，红磷燃烧消耗氧气",
+        "测量进入瓶中水的体积"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:red-phosphorus-experiment"]
+    },
+    {
+      "id": "observations",
+      "title": "关键观察",
+      "section_type": "evidence",
+      "content": [
+        "红磷燃烧消耗了集气瓶内空气中的氧气",
+        "集气瓶内的压强减小，量筒中的水被倒吸入集气瓶",
+        "进入瓶中水的体积约占空气体积的1/5"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:red-phosphorus-experiment"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:red-phosphorus-experiment"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

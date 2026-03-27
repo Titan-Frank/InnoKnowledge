@@ -1,0 +1,43 @@
+{
+  "id": "node-card:entity__substance__manganese-dioxide",
+  "node_id": "entity/substance:manganese-dioxide",
+  "card_layer": "support",
+  "title": "二氧化锰",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "黑色粉末状固体，常用作过氧化氢分解制取氧气的催化剂。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "二氧化锰是黑色粉末状固体",
+        "化学式为MnO2"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:catalyst"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "黑色粉末状固体",
+        "是过氧化氢分解制取氧气的催化剂"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:catalyst"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "常用作过氧化氢分解制取氧气的催化剂"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:catalyst"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:catalyst"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

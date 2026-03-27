@@ -1,0 +1,44 @@
+{
+  "id": "node-card:entity__substance__hydrogen-peroxide",
+  "node_id": "entity/substance:hydrogen-peroxide",
+  "card_layer": "support",
+  "title": "过氧化氢",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "无色液体，其水溶液俗称双氧水，在二氧化锰催化下可分解产生氧气和水。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "过氧化氢是无色液体",
+        "化学式为H2O2",
+        "其水溶液俗称双氧水"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:oxygen-preparation"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "无色液体",
+        "在二氧化锰催化下可分解产生氧气和水"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:oxygen-preparation"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "实验室制取氧气的原料"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:oxygen-preparation"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:oxygen-preparation"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

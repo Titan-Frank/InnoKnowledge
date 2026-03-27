@@ -1,0 +1,34 @@
+{
+  "id": "node-card:entity__substance__c60",
+  "node_id": "entity/substance:c60",
+  "card_layer": "support",
+  "title": "C60",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "由碳元素组成的单质，碳原子排列成球形分子结构，具有超导性、磁性等特殊性质。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "C60是由碳元素组成的单质",
+        "又称富勒烯"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-2-3:carbon-allotropes"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "碳原子排列成球形分子结构",
+        "具有超导性、磁性等特殊性质"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-2-3:carbon-allotropes"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:3-2-3:carbon-allotropes"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

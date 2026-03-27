@@ -1,0 +1,43 @@
+{
+  "id": "node-card:concept__scientific-inquiry",
+  "node_id": "concept:scientific-inquiry",
+  "card_layer": "backbone",
+  "title": "科学探究",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "收集证据和作出解释，进行发现、创造与应用的科学实践活动，是获取科学知识的重要途径。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "科学探究是收集证据和作出解释，进行发现、创造与应用的科学实践活动",
+        "是获取科学知识、理解科学本质、认识客观世界的重要途径"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:scientific-inquiry"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "化学实验探究要从问题开始，问题是科学发现的源泉",
+        "问题可以来自生活中的困惑或感兴趣的事物，也可以是学习中的难题"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:scientific-inquiry"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "化学实验探究一般经历：提出问题、形成假设、设计实验方案、实施实验获取证据、分析解释数据、形成结论及建构模型、反思评价及表达交流"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:inquiry-process"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:scientific-inquiry", "evidence:chem-grade8-all-in-one:1-2-2:inquiry-process"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

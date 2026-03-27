@@ -1,0 +1,32 @@
+{
+  "id": "node-card:method__gas-collection",
+  "node_id": "method/gas-collection",
+  "card_layer": "support",
+  "title": "气体收集方法",
+  "pattern_refs": ["pattern:method-procedure-v2"],
+  "summary": "收集气体的实验方法，常用干燥容器罩在火焰上方收集燃烧产物气体。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": [
+        "收集气体用于检验或分析"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:candle-burning"]
+    },
+    {
+      "id": "steps",
+      "title": "操作步骤",
+      "section_type": "procedure",
+      "content": [
+        "用干燥容器罩在火焰上方收集燃烧产物气体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:candle-burning"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:candle-burning"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

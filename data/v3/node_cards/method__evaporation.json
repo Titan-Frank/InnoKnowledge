@@ -1,0 +1,44 @@
+{
+  "id": "node-card:method__evaporation",
+  "node_id": "method/evaporation",
+  "card_layer": "support",
+  "title": "蒸发方法",
+  "pattern_refs": ["pattern:method-procedure-v2"],
+  "summary": "通过加热蒸去液体得到固体的方法，使用蒸发皿加热，需用玻璃棒不断搅拌防止液体飞溅。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": [
+        "通过蒸发溶剂得到固体物质"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:evaporation"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "section_type": "assessment",
+      "content": [
+        "从溶液中提取溶质"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:evaporation"]
+    },
+    {
+      "id": "steps",
+      "title": "操作步骤",
+      "section_type": "procedure",
+      "content": [
+        "将蒸发皿放在铁架台的铁圈上",
+        "用酒精灯直接加热",
+        "用玻璃棒不断搅拌，防止液体飞溅",
+        "受热后的蒸发皿冷却后再移动"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:evaporation"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:evaporation"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

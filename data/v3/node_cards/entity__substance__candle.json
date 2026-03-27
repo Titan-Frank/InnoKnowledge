@@ -1,0 +1,33 @@
+{
+  "id": "node-card:entity__substance__candle",
+  "node_id": "entity/substance:candle",
+  "card_layer": "support",
+  "title": "蜡烛",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "由石蜡制成的可燃固体，燃烧时生成水蒸气和二氧化碳。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "蜡烛是由石蜡制成的可燃固体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:candle-burning"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "可燃固体",
+        "燃烧时生成水蒸气和二氧化碳"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:candle-burning"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:candle-burning"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

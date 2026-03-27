@@ -1,0 +1,35 @@
+{
+  "id": "node-card:method__water-purification",
+  "node_id": "method:water-purification",
+  "card_layer": "support",
+  "title": "水净化方法",
+  "pattern_refs": ["pattern:method-procedure-v2"],
+  "summary": "净化水的常用方法，包括吸附、沉降、过滤、蒸馏等。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": [
+        "去除水中的杂质，得到净化水"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-1-2:water-purification"]
+    },
+    {
+      "id": "steps",
+      "title": "操作步骤",
+      "section_type": "procedure",
+      "content": [
+        "吸附：用明矾等净水剂处理微小的悬浮物",
+        "沉降：使杂质沉降下来",
+        "过滤：去除难溶性杂质",
+        "蒸馏：得到纯净的水"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:3-1-2:water-purification"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:3-1-2:water-purification"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

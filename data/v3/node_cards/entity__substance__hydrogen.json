@@ -1,0 +1,44 @@
+{
+  "id": "node-card:entity__substance__hydrogen",
+  "node_id": "entity/substance:hydrogen",
+  "card_layer": "backbone",
+  "title": "氢气",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "由氢元素组成的单质，燃烧放出大量热，生成物只有水，可作为无污染燃料。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "氢气是由氢元素组成的单质",
+        "化学式为H2"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:property-determines-use"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "可燃性：与氧气燃烧放出大量的热",
+        "燃烧产物只有水"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:property-determines-use"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "氢气可作为理想的无污染燃料",
+        "燃烧产物只有水，不产生污染物"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:property-determines-use"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:property-determines-use"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

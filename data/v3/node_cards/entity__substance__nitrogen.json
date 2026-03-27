@@ -1,0 +1,44 @@
+{
+  "id": "node-card:entity__substance__nitrogen",
+  "node_id": "entity/substance:nitrogen",
+  "card_layer": "backbone",
+  "title": "氮气",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "空气中含量最高的气体，无色无气味，难溶于水，化学性质不活泼，常用作保护气。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "氮气是空气中含量最高的气体",
+        "化学式为N2"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:nitrogen"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "通常状况下是无色、无气味的气体",
+        "难溶于水",
+        "化学性质不活泼，在低温或常温下难与其他物质发生反应"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:nitrogen"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "常用作保护气，如充入食品袋、灯泡中用以隔绝氧气"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:nitrogen"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:nitrogen"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

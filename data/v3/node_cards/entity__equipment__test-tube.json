@@ -1,0 +1,42 @@
+{
+  "id": "node-card:entity__equipment__test-tube",
+  "node_id": "entity/equipment:test-tube",
+  "card_layer": "support",
+  "title": "试管",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "实验室常用的玻璃仪器，用于少量试剂的反应容器，可直接加热。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "试管是实验室常用的玻璃仪器"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:solid-taking"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "玻璃材质",
+        "可直接加热"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:solid-taking"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "用于少量试剂的反应容器"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:solid-taking"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:solid-taking"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

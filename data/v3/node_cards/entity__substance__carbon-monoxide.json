@@ -1,0 +1,34 @@
+{
+  "id": "node-card:entity__substance__carbon-monoxide",
+  "node_id": "entity/substance:carbon-monoxide",
+  "card_layer": "backbone",
+  "title": "一氧化碳",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "由碳元素和氧元素组成的化合物，是一种有毒气体。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "一氧化碳是由碳元素和氧元素组成的化合物",
+        "化学式为CO"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-2:element-composition"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "有毒气体",
+        "能与血红蛋白结合，导致人体缺氧"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-2:element-composition"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-1-2:element-composition"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

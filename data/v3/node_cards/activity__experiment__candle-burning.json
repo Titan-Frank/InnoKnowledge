@@ -1,0 +1,44 @@
+{
+  "id": "node-card:activity__experiment__candle-burning",
+  "node_id": "activity/experiment:candle-burning",
+  "card_layer": "support",
+  "title": "蜡烛燃烧实验",
+  "pattern_refs": ["pattern:activity-task-v2"],
+  "summary": "探究蜡烛燃烧及其产物的实验，通过收集火焰上方气体并检验，得出蜡烛燃烧生成水蒸气和二氧化碳的结论。",
+  "sections": [
+    {
+      "id": "activity-goal",
+      "title": "活动目标",
+      "section_type": "definition",
+      "content": [
+        "探究蜡烛燃烧的产物",
+        "学习科学探究的方法"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:candle-burning"]
+    },
+    {
+      "id": "procedure",
+      "title": "实施过程",
+      "section_type": "procedure",
+      "content": [
+        "收集火焰上方的气体",
+        "检验气体成分"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:candle-burning"]
+    },
+    {
+      "id": "observations",
+      "title": "关键观察",
+      "section_type": "evidence",
+      "content": [
+        "蜡烛燃烧生成水蒸气",
+        "蜡烛燃烧生成使澄清石灰水变浑浊的气体（二氧化碳）"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:candle-burning"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-2:candle-burning"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

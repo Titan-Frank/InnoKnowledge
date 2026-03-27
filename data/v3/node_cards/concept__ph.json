@@ -1,0 +1,35 @@
+{
+  "id": "node-card:concept__ph",
+  "node_id": "concept:ph",
+  "card_layer": "support",
+  "title": "pH",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "表示溶液酸碱性强弱程度的数值，范围通常在0～14之间。pH<7显酸性，pH=7显中性，pH>7显碱性。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "pH表示溶液酸碱性强弱程度，即溶液的酸碱度",
+        "pH的范围通常在0～14之间"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:ph"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "pH<7的溶液显酸性",
+        "pH=7的溶液显中性",
+        "pH>7的溶液显碱性"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:ph"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:ph"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

@@ -1,0 +1,35 @@
+{
+  "id": "node-card:concept__solution",
+  "node_id": "concept:solution",
+  "card_layer": "backbone",
+  "title": "溶液",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "由一种或几种物质分散在另一种物质里，形成的均匀、稳定的分散体系，由溶质和溶剂组成。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "由一种或几种物质分散在另一种物质里，形成的均匀、稳定的分散体系，称为溶液",
+        "溶液由溶质和溶剂组成"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-1-1:solution"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "均匀、稳定是所有溶液的共同特征",
+        "溶剂能溶解其他物质形成溶液而保持本身为连续状态",
+        "溶质是被溶解的物质"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-1-1:solution"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:1-1-1:solution"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

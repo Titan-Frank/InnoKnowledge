@@ -1,0 +1,34 @@
+{
+  "id": "node-card:concept__combustion-supporting",
+  "node_id": "concept:combustion-supporting",
+  "card_layer": "support",
+  "title": "助燃性",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "物质支持燃烧的性质，如氧气具有助燃性。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "助燃性是物质支持燃烧的性质",
+        "氧气具有助燃性"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxygen-properties"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "物质在空气中燃烧，实际上是与其中的氧气发生反应",
+        "氧气是燃烧的必要条件之一"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxygen-properties"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxygen-properties"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

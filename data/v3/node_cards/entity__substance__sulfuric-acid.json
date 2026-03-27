@@ -1,0 +1,43 @@
+{
+  "id": "node-card:entity__substance__sulfuric-acid",
+  "node_id": "entity/substance:sulfuric-acid",
+  "card_layer": "support",
+  "title": "硫酸",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "一种常见的酸，无色油状液体，有腐蚀性，是重要的化工原料。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "硫酸是一种常见的酸",
+        "化学式为H2SO4"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "无色油状液体",
+        "有腐蚀性"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "是重要的化工原料"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

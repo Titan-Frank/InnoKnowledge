@@ -1,0 +1,42 @@
+{
+  "id": "node-card:concept__combustion",
+  "node_id": "concept:combustion",
+  "card_layer": "backbone",
+  "title": "燃烧",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "可燃物与氧气发生的一种发光、放热的剧烈的氧化反应。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "燃烧是可燃物与氧气发生的一种发光、放热的剧烈的氧化反应"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:2-1-1:combustion"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "燃烧需要三个条件：可燃物、氧气（助燃物）、温度达到着火点"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:2-1-1:combustion"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "燃烧是剧烈的氧化反应",
+        "燃烧三个条件缺一不可"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:2-1-1:combustion"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:2-1-1:combustion"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

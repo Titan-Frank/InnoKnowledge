@@ -1,0 +1,45 @@
+{
+  "id": "node-card:entity__substance__sodium-chloride",
+  "node_id": "entity/substance:sodium-chloride",
+  "card_layer": "backbone",
+  "title": "氯化钠",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "由钠元素和氯元素组成的化合物，是日常生活中常用的调味品，也是重要的化工原料。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "氯化钠是由钠元素和氯元素组成的化合物",
+        "化学式为NaCl",
+        "俗称食盐"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:solid-taking"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "白色固体",
+        "易溶于水"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "日常生活中常用的调味品",
+        "重要的化工原料"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:evaporation"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:evaporation"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

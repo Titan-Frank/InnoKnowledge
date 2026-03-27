@@ -1,0 +1,44 @@
+{
+  "id": "node-card:concept__matter",
+  "node_id": "concept:matter",
+  "card_layer": "backbone",
+  "title": "物质",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "构成宇宙万物的实体，是化学研究的对象，由化学元素组成。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "物质是构成宇宙万物的实体",
+        "物质是化学研究的对象"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:element"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "世间万物都是由化学元素组成的",
+        "物质结构的差异体现在微观粒子的种类、数目及排列方式的不同"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:element", "evidence:chem-grade8-all-in-one:1-1-1:microscopic-particles"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "少数物质仅由一种元素组成，大部分物质由两种或更多种元素组成",
+        "物质由分子、原子等微观粒子构成"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-2:element-composition", "evidence:chem-grade8-all-in-one:1-1-1:microscopic-particles"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:element"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

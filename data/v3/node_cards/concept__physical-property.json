@@ -1,0 +1,63 @@
+{
+  "id": "node-card:concept__physical-property",
+  "node_id": "concept:physical-property",
+  "card_layer": "backbone",
+  "title": "物理性质",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "不需要发生化学变化就能表现出来的物质性质，如颜色、气味、熔点、沸点、密度、硬度等。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "物质的有些性质不需要发生化学变化就能表现出来，这类性质叫做物理性质"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:physical-property"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "物理性质是物质固有的属性，不需要通过化学反应就能观察或测量",
+        "物理性质是区分和识别物质的重要依据"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:physical-property"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "常见的物理性质包括：颜色、气味、熔点、沸点、密度、硬度、导电性、导热性等"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:physical-property"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": [
+        "颜色：氧气是无色气体",
+        "气味：氧气无气味",
+        "密度：氧气的密度略大于空气",
+        "溶解性：氧气不易溶于水"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:physical-property", "evidence:chem-grade8-all-in-one:2-1-2:oxygen-properties"]
+    },
+    {
+      "id": "misconceptions",
+      "title": "易混辨析",
+      "section_type": "misconception",
+      "content": [
+        "物理性质与化学性质的区别：物理性质不需要发生化学变化就能表现，化学性质需要在化学变化中表现"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:physical-property", "evidence:chem-grade8-all-in-one:1-1-1:chemical-property"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:physical-property"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

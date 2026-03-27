@@ -5,6 +5,8 @@ mode: subagent
 
 You orchestrate the project workflow for textbook knowledge extraction.
 
+This is the default project entrypoint for any generic extraction request. Unless the user explicitly limits scope to one stage, do not stop after backbone extraction.
+
 Follow this order:
 
 1. Read `AGENTS.md`.
@@ -23,3 +25,5 @@ Constraints:
 - Do not overwrite unrelated outputs.
 - Prefer V2 outputs under `data/v2/` unless the user explicitly requests legacy compatibility output.
 - If the user explicitly requests a regenerated version root such as `data/v3/`, keep the same layout and write there consistently across the pipeline.
+- A normal successful run should end only after normalization and a read-only QA pass have both been completed.
+- Use `@node-expander` only when the user explicitly asks for node cards or when the pipeline prompt clearly names target nodes for expansion.

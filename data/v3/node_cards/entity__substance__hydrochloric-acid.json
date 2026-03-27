@@ -1,0 +1,43 @@
+{
+  "id": "node-card:entity__substance__hydrochloric-acid",
+  "node_id": "entity/substance:hydrochloric-acid",
+  "card_layer": "support",
+  "title": "盐酸",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "氯化氢的水溶液，无色液体，有刺激性气味，与碳酸钙反应可制取二氧化碳，是一种常见的酸。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "盐酸是氯化氢的水溶液",
+        "化学式为HCl"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:co2-preparation"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "无色液体，有刺激性气味",
+        "是一种常见的酸"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:co2-preparation"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "与碳酸钙反应可制取二氧化碳"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:co2-preparation"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:co2-preparation"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

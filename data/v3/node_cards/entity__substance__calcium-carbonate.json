@@ -1,0 +1,43 @@
+{
+  "id": "node-card:entity__substance__calcium-carbonate",
+  "node_id": "entity/substance:calcium-carbonate",
+  "card_layer": "backbone",
+  "title": "碳酸钙",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "白色固体，是石灰石和大理石的主要成分，与稀盐酸反应可制取二氧化碳。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "碳酸钙是石灰石和大理石的主要成分",
+        "化学式为CaCO3"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:co2-preparation"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "白色固体",
+        "能与稀盐酸反应生成氯化钙、水和二氧化碳"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:co2-preparation"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "实验室常用石灰石或大理石与稀盐酸反应制取二氧化碳"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:co2-preparation"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-3:co2-preparation"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

@@ -1,0 +1,45 @@
+{
+  "id": "node-card:entity__substance__sodium-hydroxide",
+  "node_id": "entity/substance:sodium-hydroxide",
+  "card_layer": "support",
+  "title": "氢氧化钠",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "一种常见的碱，白色固体，易溶于水，有腐蚀性，是重要的化工原料。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "氢氧化钠是一种常见的碱",
+        "化学式为NaOH",
+        "俗称烧碱"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "白色固体",
+        "易溶于水",
+        "有腐蚀性"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "是重要的化工原料"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

@@ -1,0 +1,67 @@
+{
+  "id": "node-card:concept__chemical-change",
+  "node_id": "concept:chemical-change",
+  "card_layer": "backbone",
+  "title": "化学变化",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "生成与原来不同的物质的变化，也称为化学反应，是化学研究的核心内容。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "生成与原来不同的物质的变化叫做化学变化，也称为化学反应",
+        "化学反应前的原物质叫反应物",
+        "化学反应后产生的新物质叫生成物或产物"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:chemical-change"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "化学变化的本质是有新物质生成",
+        "利用化学反应可以实现物质的转化",
+        "化学变化不但生成新物质，还会伴随着能量的变化"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:chemical-change", "evidence:chem-grade8-all-in-one:1-1-1:energy-change"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "判断化学变化的关键：有新物质生成",
+        "化学变化通常伴随发光、放热、产生气体、生成沉淀、颜色变化等现象",
+        "这些现象可以帮助判断有无发生化学变化，但不能作为唯一依据"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:chemical-change-phenomena"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": [
+        "镁带燃烧：银白色镁带燃烧生成白色粉末（氧化镁），产生明亮的白光",
+        "蜡烛燃烧：蜡烛燃烧生成水蒸气和二氧化碳"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:magnesium-burning", "evidence:chem-grade8-all-in-one:1-2-2:candle-burning"]
+    },
+    {
+      "id": "misconceptions",
+      "title": "易混辨析",
+      "section_type": "misconception",
+      "content": [
+        "化学变化与物理变化的本质区别：是否有新物质生成",
+        "发光、放热等现象不是判断化学变化的唯一标准，需要综合判断"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:chemical-change-phenomena"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:chemical-change", "evidence:chem-grade8-all-in-one:1-1-1:chemical-change-phenomena"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "node-card:entity__substance__iron-oxide",
+  "node_id": "entity/substance:iron-oxide",
+  "card_layer": "support",
+  "title": "四氧化三铁",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "黑色固体，是铁在氧气中燃烧的产物。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "四氧化三铁是黑色固体",
+        "化学式为Fe3O4"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxidation-reaction"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "黑色固体",
+        "是铁在氧气中燃烧的产物"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxidation-reaction"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-2:oxidation-reaction"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

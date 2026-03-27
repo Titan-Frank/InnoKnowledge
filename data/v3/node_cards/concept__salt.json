@@ -1,0 +1,33 @@
+{
+  "id": "node-card:concept__salt",
+  "node_id": "concept:salt",
+  "card_layer": "backbone",
+  "title": "盐",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "由金属离子（或铵根离子）和酸根离子构成的化合物。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "由金属离子（或铵根离子）和酸根离子构成的化合物叫做盐"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": [
+        "氯化钠（NaCl）是一种常见的盐",
+        "碳酸钙（CaCO3）是石灰石的主要成分"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:1-2-1:acid-base"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

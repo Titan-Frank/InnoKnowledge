@@ -1,0 +1,45 @@
+{
+  "id": "node-card:concept__filtration",
+  "node_id": "concept:filtration",
+  "card_layer": "backbone",
+  "title": "过滤",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "分离固体和液体的常用方法，利用滤纸将难溶性杂质与液体分离。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "过滤是分离固体和液体的常用方法",
+        "利用滤纸将难溶性杂质与液体分离"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "过滤是物质分离的基本方法之一",
+        "过滤适用于分离难溶性固体和液体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "滤纸要紧贴漏斗内壁",
+        "漏斗颈末端紧靠烧杯内壁",
+        "玻璃棒轻靠在三层滤纸一侧引流"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

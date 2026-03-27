@@ -28,6 +28,17 @@ This project turns textbook content into a stable, evidence-backed, cross-discip
 
 Do not skip the outline stage for a new textbook unless the user explicitly asks for ad hoc extraction.
 
+## Default Entry Rule
+
+- If the user asks generically to "extract", "generate", "build", or "refresh" a knowledge map without explicitly limiting the stage, treat that as an end-to-end pipeline request.
+- The default project entry for such requests is `@kg-pipeline`, not `@backbone-builder`.
+- A generic extraction request should normally cover:
+  - outline refresh if needed
+  - backbone extraction
+  - graph normalization
+  - read-only QA
+- Use `@backbone-builder`, `@graph-normalizer`, or `@node-expander` directly only when the user explicitly asks for a single stage or when a prior pipeline run is being resumed from a specific stage.
+
 ## Output Contract
 
 - Outline: `data/outlines/<book-id>.outline.json`

@@ -1,0 +1,53 @@
+{
+  "id": "node-card:method__solid-taking",
+  "node_id": "method/solid-taking",
+  "card_layer": "support",
+  "title": "固体试剂取用方法",
+  "pattern_refs": ["pattern:method-procedure-v2"],
+  "summary": "取用固体试剂的操作方法，包括块状固体用镊子夹取沿试管壁滑落、粉末状固体用约匙或纸槽取用。",
+  "sections": [
+    {
+      "id": "goal",
+      "title": "目标",
+      "section_type": "definition",
+      "content": [
+        "安全、正确地取用固体试剂"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:solid-taking"]
+    },
+    {
+      "id": "conditions",
+      "title": "适用条件",
+      "section_type": "assessment",
+      "content": [
+        "取用块状固体试剂",
+        "取用粉末状固体试剂"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:solid-taking"]
+    },
+    {
+      "id": "steps",
+      "title": "操作步骤",
+      "section_type": "procedure",
+      "content": [
+        "块状固体：用镊子夹取，沿试管壁慢慢滑落至试管底部",
+        "粉末状固体：用约匙取少量，伸入平放的试管中，慢慢竖起试管",
+        "也可用纸槽：将纸槽送入试管底部，慢慢竖起试管"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:solid-taking"]
+    },
+    {
+      "id": "errors",
+      "title": "常见错误",
+      "section_type": "misconception",
+      "content": [
+        "块状固体直接投入试管，可能击破管底"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:solid-taking"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:solid-taking"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

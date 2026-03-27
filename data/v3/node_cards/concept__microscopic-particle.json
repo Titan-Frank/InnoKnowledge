@@ -1,0 +1,44 @@
+{
+  "id": "node-card:concept__microscopic-particle",
+  "node_id": "concept:microscopic-particle",
+  "card_layer": "backbone",
+  "title": "微观粒子",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "构成物质的极其微小的粒子，如分子、原子等。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "微观粒子是构成物质的极其微小的粒子",
+        "如分子、原子等"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:microscopic-particles"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "物质结构的差异体现在微观粒子的种类、数目及排列方式的不同",
+        "这些不同导致了物质性质的差异"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:microscopic-particles"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "常见的微观粒子包括分子、原子、离子等",
+        "微观粒子是联系宏观物质与微观结构的桥梁"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:microscopic-particles"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:microscopic-particles"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

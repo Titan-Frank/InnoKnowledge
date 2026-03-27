@@ -1,0 +1,41 @@
+{
+  "id": "node-card:concept__metal-corrosion",
+  "node_id": "concept:metal-corrosion",
+  "card_layer": "support",
+  "title": "金属腐蚀",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "金属与周围环境中的物质发生化学反应而损耗的过程。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "金属腐蚀是指金属与周围环境中的物质发生化学反应而损耗的过程"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:2-1-3:metal-corrosion"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "金属腐蚀是一种氧化反应"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:2-1-3:metal-corrosion"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "防止金属腐蚀的方法包括：涂防锈漆、电镀、制成合金等"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:2-1-3:metal-corrosion"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:2-1-3:metal-corrosion"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

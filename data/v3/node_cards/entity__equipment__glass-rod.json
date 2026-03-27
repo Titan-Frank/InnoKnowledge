@@ -1,0 +1,42 @@
+{
+  "id": "node-card:entity__equipment__glass-rod",
+  "node_id": "entity/equipment:glass-rod",
+  "card_layer": "support",
+  "title": "玻璃棒",
+  "pattern_refs": ["pattern:entity-profile-v2"],
+  "summary": "用于搅拌、引流等操作的玻璃仪器，在过滤时用于引流，蒸发时用于搅拌。",
+  "sections": [
+    {
+      "id": "identity",
+      "title": "基本身份",
+      "section_type": "definition",
+      "content": [
+        "玻璃棒是用于搅拌、引流等操作的玻璃仪器"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration"]
+    },
+    {
+      "id": "properties",
+      "title": "关键属性",
+      "section_type": "structure",
+      "content": [
+        "玻璃材质"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration"]
+    },
+    {
+      "id": "functions",
+      "title": "功能与用途",
+      "section_type": "application",
+      "content": [
+        "在过滤时用于引流",
+        "在蒸发时用于搅拌，防止液体飞溅"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration", "evidence:chem-grade8-all-in-one:1-2-1:evaporation"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration", "evidence:chem-grade8-all-in-one:1-2-1:evaporation"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

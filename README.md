@@ -38,6 +38,12 @@
 
 也就是说，现在不是“手工按 schema 硬写 JSON”，而是应该通过 OpenCode 的 agent/skill 流水线来驱动抽取。
 
+而且现在建议把这件事理解成：
+
+- 你只要说“抽取 / 生成 / 刷新知识体系”，默认就应该走 `@kg-pipeline`
+- 不应该默认停在 `@backbone-builder`
+- 只有你明确说“只抽主干”或“只做归一化 / 只做 QA”时，才单独调用单阶段 agent
+
 ## 关键文件
 
 - 项目规则：[AGENTS.md](/Users/titan-frank/Documents/hsd/research/Knowledge/AGENTS.md)
@@ -86,7 +92,15 @@ opencode
 
 ### 2. 非交互式运行
 
-最稳妥的方式仍然是用外层执行 agent `build`，然后在 prompt 里调用项目 subagent：
+最稳妥的方式仍然是用外层执行 agent `build`，然后在 prompt 里调用项目 subagent。
+
+如果你只是想“让它抽一遍”，默认请直接用 `@kg-pipeline`，不要只叫 `@backbone-builder`：
+
+```bash
+opencode run --agent build "@kg-pipeline 处理 chem-grade8-all-in-one 的 struct:chem-grade8-all-in-one:lesson:2-1-1，默认写入 data/v2，从抽取到归一化再到 QA 全部完成"
+```
+
+只有在你明确要拆阶段时，才分别调用：
 
 ```bash
 opencode run --agent build "@outline-reader 为 chem-grade8-all-in-one 刷新教材目录骨架，PDF 在 references/books/chem-grade8-all-in-one.pdf"

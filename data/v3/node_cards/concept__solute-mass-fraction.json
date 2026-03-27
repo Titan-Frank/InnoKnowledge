@@ -1,0 +1,33 @@
+{
+  "id": "node-card:concept__solute-mass-fraction",
+  "node_id": "concept:solute-mass-fraction",
+  "card_layer": "support",
+  "title": "溶质质量分数",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "溶质质量与溶液质量之比，常用百分数表示。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "溶质质量分数是溶质质量与溶液质量之比",
+        "常用百分数表示"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-1-3:mass-fraction"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "溶质质量分数 = 溶质质量 / 溶液质量 × 100%"
+      ],
+      "source_refs": ["evidence:chem-grade9-all-in-one:1-1-3:mass-fraction"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade9-all-in-one:1-1-3:mass-fraction"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

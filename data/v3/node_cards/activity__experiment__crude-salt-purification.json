@@ -1,0 +1,55 @@
+{
+  "id": "node-card:activity__experiment__crude-salt-purification",
+  "node_id": "activity/experiment:crude-salt-purification",
+  "card_layer": "support",
+  "title": "粗盐提纯实验",
+  "pattern_refs": ["pattern:activity-task-v2"],
+  "summary": "通过溶解、过滤、蒸发等步骤去除粗盐中难溶性杂质，得到精盐的实验。",
+  "sections": [
+    {
+      "id": "activity-goal",
+      "title": "活动目标",
+      "section_type": "definition",
+      "content": [
+        "学习粗盐提纯的方法",
+        "掌握溶解、过滤、蒸发等基本操作"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration", "evidence:chem-grade8-all-in-one:1-2-1:evaporation"]
+    },
+    {
+      "id": "setup",
+      "title": "材料与条件",
+      "section_type": "structure",
+      "content": [
+        "粗盐、水",
+        "烧杯、玻璃棒、漏斗、滤纸、蒸发皿、酒精灯"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration"]
+    },
+    {
+      "id": "procedure",
+      "title": "实施过程",
+      "section_type": "procedure",
+      "content": [
+        "溶解：将粗盐溶于水中",
+        "过滤：去除难溶性杂质",
+        "蒸发：得到精盐固体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration", "evidence:chem-grade8-all-in-one:1-2-1:evaporation"]
+    },
+    {
+      "id": "observations",
+      "title": "关键观察",
+      "section_type": "evidence",
+      "content": [
+        "过滤后得到澄清滤液",
+        "蒸发后得到白色精盐固体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:evaporation"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-2-1:filtration", "evidence:chem-grade8-all-in-one:1-2-1:evaporation"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

@@ -1,0 +1,42 @@
+{
+  "id": "node-card:concept__pure-substance",
+  "node_id": "concept:pure-substance",
+  "card_layer": "backbone",
+  "title": "纯净物",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "只由一种物质组成的物质，具有固定的组成和性质。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "只由一种物质组成的物质叫做纯净物"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:air-composition"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "纯净物具有固定的组成和性质",
+        "纯净物可以用一个化学式表示"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:air-composition"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": [
+        "空气中的氮气、氧气、二氧化碳都只由一种物质组成，它们本身都是纯净物"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:air-composition"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:2-1-1:air-composition"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}

@@ -1,0 +1,54 @@
+{
+  "id": "node-card:concept__element",
+  "node_id": "concept:element",
+  "card_layer": "backbone",
+  "title": "元素",
+  "pattern_refs": ["pattern:concept-core-v2"],
+  "summary": "组成物质的基本成分，世间万物都是由化学元素组成的。",
+  "sections": [
+    {
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": [
+        "元素是组成物质的基本成分",
+        "世间万物都是由化学元素组成的"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:element"]
+    },
+    {
+      "id": "essence",
+      "title": "本质理解",
+      "section_type": "essence",
+      "content": [
+        "元素是具有相同核电荷数的一类原子的总称",
+        "元素描述的是物质的组成，是从宏观角度认识物质"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:element"]
+    },
+    {
+      "id": "key-points",
+      "title": "核心要点",
+      "section_type": "key_points",
+      "content": [
+        "少数物质仅由一种元素组成，如氧气由氧元素组成",
+        "大部分物质由两种或更多种元素组成，如水由氢元素和氧元素组成"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-2:element-composition"]
+    },
+    {
+      "id": "examples",
+      "title": "典型例子",
+      "section_type": "example",
+      "content": [
+        "氧气、二氧化碳、水、糖分都含有氧元素",
+        "石墨由碳元素组成，是碳的一种同素异形体"
+      ],
+      "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:element", "evidence:chem-grade8-all-in-one:1-1-2:element-composition"]
+    }
+  ],
+  "source_refs": ["evidence:chem-grade8-all-in-one:1-1-1:element", "evidence:chem-grade8-all-in-one:1-1-2:element-composition"],
+  "properties": {},
+  "status": "active",
+  "updated_at": "2026-03-26T10:00:00+08:00"
+}
