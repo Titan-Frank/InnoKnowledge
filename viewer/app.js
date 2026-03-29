@@ -94,7 +94,17 @@ const LAYER_MODE_OPTIONS = [
   },
 ];
 
-const MANIFEST_PATH = "../data/viewer/index.json?v=2";
+const MANIFEST_PATH = "../data/viewer/index.json?v=3";
+const DATA_ROOT_PATH = "../data/";
+const RESERVED_DATA_DIRS = new Set([
+  "frameworks",
+  "graph",
+  "node_cards",
+  "outlines",
+  "patterns",
+  "viewer",
+]);
+const VERSION_DIR_PATTERN = /^v[a-z0-9-]*$/i;
 const SOURCE_QUERY_KEY = "source";
 const DEFAULT_SOURCE_KEY = "v1";
 const DEFAULT_BOOK_INDEX = [];
@@ -181,7 +191,8 @@ boot().catch((error) => {
 
 async function boot() {
   state.manifest = (await fetchOptionalJson(MANIFEST_PATH)) || {};
-  state.sourceConfigs = resolveSourceConfigs(state.manifest);
+  const discoveredSources = await discoverSourceConfigs();
+  state.sourceConfigs = resolveSourceConfigs(state.manifest, discoveredSources);
   state.selectedSourceKey = resolveInitialSourceKey(state.manifest, state.sourceConfigs);
   bindEvents();
   renderSourceControl();
@@ -189,20 +200,39 @@ async function boot() {
   startSimulation();
 }
 
-function resolveSourceConfigs(manifest) {
+function resolveSourceConfigs(manifest, discoveredSources = []) {
   const configs = new Map();
+  const discoveredByKey = new Map(discoveredSources.map((config) => [config.key, config]));
   const rawSources = manifest?.sources;
+
+  discoveredSources.forEach((config) => {
+    configs.set(config.key, normalizeSourceConfig(config.key, config, manifest));
+  });
 
   if (Array.isArray(rawSources)) {
     rawSources.forEach((config) => {
       const key = config?.key || config?.id;
       if (key) {
-        configs.set(key, normalizeSourceConfig(key, config, manifest));
+        configs.set(
+          key,
+          normalizeSourceConfig(
+            key,
+            { ...(discoveredByKey.get(key) || {}), ...(config || {}) },
+            manifest,
+          ),
+        );
       }
     });
   } else if (rawSources && typeof rawSources === "object") {
     Object.entries(rawSources).forEach(([key, config]) => {
-      configs.set(key, normalizeSourceConfig(key, config || {}, manifest));
+      configs.set(
+        key,
+        normalizeSourceConfig(
+          key,
+          { ...(discoveredByKey.get(key) || {}), ...(config || {}) },
+          manifest,
+        ),
+      );
     });
   }
 
@@ -210,17 +240,25 @@ function resolveSourceConfigs(manifest) {
     configs.set(DEFAULT_SOURCE_KEY, normalizeSourceConfig(DEFAULT_SOURCE_KEY, {}, manifest));
   }
 
-  return configs;
+  if (!configs.has(DEFAULT_SOURCE_KEY)) {
+    configs.set(DEFAULT_SOURCE_KEY, normalizeSourceConfig(DEFAULT_SOURCE_KEY, {}, manifest));
+  }
+
+  return new Map(
+    Array.from(configs.entries()).sort(([leftKey], [rightKey]) =>
+      compareSourceKeys(leftKey, rightKey),
+    ),
+  );
 }
 
 function normalizeSourceConfig(key, config, manifest) {
   const defaults = getDefaultSourceDefinition(key);
-  const seedBooks =
-    config?.books?.length
-      ? config.books
-      : manifest?.books?.length
-        ? manifest.books
-        : DEFAULT_BOOK_INDEX;
+  const seedBooks = mergeBookSeeds(
+    config?.books,
+    config?.discoveredBooks,
+    manifest?.books,
+    DEFAULT_BOOK_INDEX,
+  );
 
   return {
     key,
@@ -233,6 +271,7 @@ function normalizeSourceConfig(key, config, manifest) {
     patternsPath: config.patterns_path || config.patternsPath || defaults.patternsPath,
     nodeCardsDir: config.node_cards_dir || config.nodeCardsDir || defaults.nodeCardsDir,
     books: resolveBookIndex(seedBooks, key),
+    autoDiscovered: Boolean(config.autoDiscovered),
   };
 }
 
@@ -265,7 +304,7 @@ function getDefaultSourceDefinition(key) {
 
   return {
     label: key.toUpperCase(),
-    description: "读取自定义实验版本输出",
+    description: `读取 data/${key}/ 下的版本输出`,
     nodesPath: `../data/${key}/graph/knowledge.nodes.jsonl`,
     edgesPath: `../data/${key}/graph/knowledge.edges.jsonl`,
     profilesPath: `../data/${key}/profiles/knowledge.profiles.jsonl`,
@@ -273,6 +312,114 @@ function getDefaultSourceDefinition(key) {
     patternsPath: "../data/patterns/unified-knowledge-patterns.v2.json",
     nodeCardsDir: `../data/${key}/node_cards`,
   };
+}
+
+async function discoverSourceConfigs() {
+  const versionKeys = await discoverVersionKeys();
+  const discovered = await Promise.all(
+    versionKeys.map(async (key) => ({
+      key,
+      autoDiscovered: true,
+      discoveredBooks: await discoverBooksForSource(key),
+    })),
+  );
+
+  return discovered;
+}
+
+async function discoverVersionKeys() {
+  const entries = await fetchDirectoryEntries(DATA_ROOT_PATH);
+  const candidateKeys = entries
+    .filter((entry) => entry.isDirectory)
+    .map((entry) => entry.name)
+    .filter(
+      (name) => VERSION_DIR_PATTERN.test(name) && !RESERVED_DATA_DIRS.has(name),
+    );
+
+  const checks = await Promise.all(
+    candidateKeys.map(async (key) => {
+      const [hasNodes, hasEdges] = await Promise.all([
+        fetchExists(`../data/${key}/graph/knowledge.nodes.jsonl`),
+        fetchExists(`../data/${key}/graph/knowledge.edges.jsonl`),
+      ]);
+      return hasNodes && hasEdges ? key : null;
+    }),
+  );
+
+  return checks.filter(Boolean).sort(compareSourceKeys);
+}
+
+async function discoverBooksForSource(sourceKey) {
+  const graphDir =
+    sourceKey === "v1" ? "../data/graph/" : `../data/${sourceKey}/graph/`;
+  const entries = await fetchDirectoryEntries(graphDir);
+  const bookIds = new Set();
+
+  entries
+    .filter((entry) => !entry.isDirectory)
+    .forEach((entry) => {
+      const match = entry.name.match(/^(.*)\.(mentions|evidence)\.jsonl$/);
+      if (!match || match[1] === "knowledge") {
+        return;
+      }
+      bookIds.add(match[1]);
+    });
+
+  return Array.from(bookIds)
+    .sort((left, right) => left.localeCompare(right, "zh-CN"))
+    .map((bookId) => ({ book_id: bookId }));
+}
+
+function mergeBookSeeds(...groups) {
+  const merged = new Map();
+
+  groups.forEach((group) => {
+    if (!Array.isArray(group)) {
+      return;
+    }
+
+    group.forEach((book) => {
+      const bookId = book?.book_id || book?.bookId;
+      if (!bookId) {
+        return;
+      }
+      merged.set(bookId, { ...(merged.get(bookId) || {}), ...book });
+    });
+  });
+
+  return Array.from(merged.values());
+}
+
+function compareSourceKeys(leftKey, rightKey) {
+  const leftRank = getSourceSortRank(leftKey);
+  const rightRank = getSourceSortRank(rightKey);
+
+  if (leftRank !== rightRank) {
+    return leftRank - rightRank;
+  }
+
+  const leftVersion = getNumericVersion(leftKey);
+  const rightVersion = getNumericVersion(rightKey);
+  if (leftVersion != null && rightVersion != null && leftVersion !== rightVersion) {
+    return leftVersion - rightVersion;
+  }
+
+  return leftKey.localeCompare(rightKey, "en", { numeric: true, sensitivity: "base" });
+}
+
+function getSourceSortRank(key) {
+  if (key === "v1") {
+    return 0;
+  }
+  if (/^v\d+$/i.test(key)) {
+    return 1;
+  }
+  return 2;
+}
+
+function getNumericVersion(key) {
+  const match = key.match(/^v(\d+)$/i);
+  return match ? Number(match[1]) : null;
 }
 
 function resolveInitialSourceKey(manifest, sourceConfigs) {
@@ -853,6 +1000,9 @@ function renderSourceControl() {
   const info = [];
   if (source.description) {
     info.push(source.description);
+  }
+  if (source.autoDiscovered) {
+    info.push("自动发现");
   }
   if (source.profilesPath) {
     info.push("含 profiles");
@@ -2062,6 +2212,86 @@ async function fetchOptionalJsonl(path) {
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => JSON.parse(line));
+}
+
+async function fetchDirectoryEntries(path) {
+  try {
+    const response = await fetch(path);
+    if (!response.ok) {
+      return [];
+    }
+
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("html") && !contentType.includes("text")) {
+      return [];
+    }
+
+    const html = await response.text();
+    return parseDirectoryEntries(path, html);
+  } catch (error) {
+    return [];
+  }
+}
+
+function parseDirectoryEntries(path, html) {
+  const baseUrl = new URL(path, window.location.href);
+  const basePath = baseUrl.pathname.endsWith("/") ? baseUrl.pathname : `${baseUrl.pathname}/`;
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const entries = new Map();
+
+  doc.querySelectorAll("a[href]").forEach((anchor) => {
+    const href = anchor.getAttribute("href");
+    if (!href) {
+      return;
+    }
+
+    let resolvedUrl;
+    try {
+      resolvedUrl = new URL(href, baseUrl);
+    } catch (error) {
+      return;
+    }
+
+    if (resolvedUrl.origin !== baseUrl.origin || !resolvedUrl.pathname.startsWith(basePath)) {
+      return;
+    }
+
+    const relativePath = resolvedUrl.pathname.slice(basePath.length);
+    const segments = relativePath.split("/").filter(Boolean);
+    if (segments.length !== 1) {
+      return;
+    }
+
+    const name = decodeURIComponent(segments[0]);
+    if (!name || name === "." || name === "..") {
+      return;
+    }
+
+    entries.set(name, {
+      name,
+      isDirectory: relativePath.endsWith("/") || anchor.textContent.trim().endsWith("/"),
+    });
+  });
+
+  return Array.from(entries.values());
+}
+
+async function fetchExists(path) {
+  try {
+    let response = await fetch(path, { method: "HEAD" });
+    if (response.ok) {
+      return true;
+    }
+
+    if (response.status === 405) {
+      response = await fetch(path);
+      return response.ok;
+    }
+
+    return false;
+  } catch (error) {
+    return false;
+  }
 }
 
 function renderValue(value) {
