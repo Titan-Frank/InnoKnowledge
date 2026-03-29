@@ -44,6 +44,13 @@
 - 不应该默认停在 `@backbone-builder`
 - 只有你明确说“只抽主干”或“只做归一化 / 只做 QA”时，才单独调用单阶段 agent
 
+如果你说的是“抽取整本书”，现在默认理解应该是：
+
+- 先读 outline，形成 plan
+- 再按 lesson / 章节锚点分批抽取
+- 用多 agent 编排这些小批次
+- 不把整本书正文一次性塞进一个上下文里抽
+
 ## 关键文件
 
 - 项目规则：[AGENTS.md](/Users/titan-frank/Documents/hsd/research/Knowledge/AGENTS.md)
@@ -65,6 +72,14 @@
 6. 只给真正稳定、重要的节点生成 node card
 
 不要一开始就整本书全量抽图谱，也不要先按章节树做知识树。教材章节现在只作为 provenance anchor，不再作为主知识结构。
+
+如果你的目标真的是整本书，那么正确做法也不是“一次性整本书抽取”，而是：
+
+1. 先生成或刷新整本书 outline
+2. 按 outline 把全书拆成 lesson / 章节批次
+3. 让 `@kg-pipeline` 按 plan 分批跑
+4. 每个批次结束后做归一化和 QA
+5. 最后再做一次全书范围的 QA 汇总
 
 ## 推荐命令
 
@@ -98,6 +113,12 @@ opencode
 
 ```bash
 opencode run --agent build "@kg-pipeline 处理 chem-grade8-all-in-one 的 struct:chem-grade8-all-in-one:lesson:2-1-1，默认写入 data/v2，从抽取到归一化再到 QA 全部完成"
+```
+
+如果你说的是整本书，请直接把“按 plan 分批、多 agent 编排”写进 prompt：
+
+```bash
+opencode run --agent build "@kg-pipeline 处理 chem-grade8-all-in-one 全书，先刷新 outline，再按 lesson 锚点制定计划，按批次分阶段抽取，使用多 agent 编排，每批完成后做归一化与 QA，明确写入 data/v3"
 ```
 
 只有在你明确要拆阶段时，才分别调用：
@@ -232,6 +253,7 @@ opencode run --attach http://127.0.0.1:4096 --agent build "@kg-pipeline 处理 c
 - 新流程默认是 V2 抽取，不会主动覆盖 `data/graph/` 和 `data/node_cards/`。
 - 如果你确实还要兼容旧 viewer，需要明确告诉 agent 输出 legacy 兼容文件。
 - 最推荐的工作粒度仍然是“一课一抽”，不要整本书一次性抽。
+- 如果你要求“整本书抽取”，推荐明确写上“按 outline 做计划、按 lesson 分批、多 agent 编排、每批带 normalize + QA”，这样最稳。
 
 ## 参考
 

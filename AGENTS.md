@@ -39,6 +39,19 @@ Do not skip the outline stage for a new textbook unless the user explicitly asks
   - read-only QA
 - Use `@backbone-builder`, `@graph-normalizer`, or `@node-expander` directly only when the user explicitly asks for a single stage or when a prior pipeline run is being resumed from a specific stage.
 
+## Whole-Book Rule
+
+- If the user asks to process a whole textbook, do not treat the whole book as one extraction context.
+- For whole-book work, first read or refresh the outline, then make a plan from outline anchors.
+- Split execution into lesson-sized or tightly scoped chapter-sized batches.
+- Prefer lesson-level batches whenever the outline is detailed enough.
+- Use multi-agent orchestration for whole-book work:
+  - one orchestrator agent keeps the book-level plan
+  - worker agents process separate lessons or small batches
+  - normalization and QA should run after each batch or after a small group of batches, not only at the very end
+- Never ask a single extraction agent to ingest the full textbook body in one prompt unless the user explicitly asks for an ad hoc whole-book pass.
+- When reporting progress for whole-book work, report by completed outline anchors or lesson batches.
+
 ## Output Contract
 
 - Outline: `data/outlines/<book-id>.outline.json`
@@ -148,6 +161,7 @@ Read these schema files before writing output:
 
 - Work on one textbook at a time.
 - Work on one lesson or one short page range at a time.
+- If the user requests a whole textbook, convert it into a planned sequence of lesson-level or small-batch extraction tasks.
 - Prefer merging into the shared canonical knowledge files when the identity is clear.
 - If identity across books, stages, or subjects is unclear, keep the new node separate and flag it for normalization instead of forcing a merge.
 - Do not invent latent knowledge that is not grounded in the source text, tables, diagrams, captions, or clearly local curriculum statements.
