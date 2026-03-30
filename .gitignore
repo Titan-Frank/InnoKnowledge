@@ -6,3 +6,4 @@ lesson1_*.txt
 .opencode/node_modules/
 .opencode/package.json
 .opencode/bun.lock
+data
