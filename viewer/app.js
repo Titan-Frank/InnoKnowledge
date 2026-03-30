@@ -104,7 +104,7 @@ const RESERVED_DATA_DIRS = new Set([
   "patterns",
   "viewer",
 ]);
-const VERSION_DIR_PATTERN = /^v[a-z0-9-]*$/i;
+const VERSION_DIR_PATTERN = /^v[a-z0-9]+(?:[.-][a-z0-9]+)*$/i;
 const SOURCE_QUERY_KEY = "source";
 const DEFAULT_SOURCE_KEY = "v1";
 const DEFAULT_BOOK_INDEX = [];
