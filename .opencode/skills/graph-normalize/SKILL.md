@@ -27,11 +27,14 @@ Use this skill after extraction and before graph import. Normalize the canonical
 - Prefer one canonical Chinese name per concept node.
 - Keep formulas and alternate wording in `aliases`.
 - Preserve profiles, mentions, node cards, and evidence when canonical ids change.
+- Preserve previously extracted stage coverage. Never delete junior-secondary records while normalizing senior-secondary records, or vice versa.
+- Do not delete existing curriculum profiles merely because the current batch or framework does not mention them.
 - Preserve `same_as` edges only if they are still useful for audit; otherwise fold them into aliases.
 - Preserve `node_layer` during normalization and do not silently upgrade `support` nodes into `backbone`.
 - Preserve `edge_layer` and `backbone_expand` during normalization unless the relation's semantic role clearly changes.
 - Do not merge across `node_kind` or `node_subkind` unless there is an explicit user request.
 - Do not merge curriculum profiles across different subject / school_stage / grade_band contexts.
+- Only remove an existing node, edge, profile, mention, evidence record, or node card with explicit user approval, except for exact duplicate records that preserve the same information.
 - **Hierarchical and dependency edges (`is_a`, `instance_of`, `contains`, `part_of`, `prerequisite_for`, `depends_on`, `extends`) must NOT form cycles.**
 - Cycles in association edges (`related_to`, `explains`, `uses`) are acceptable.
 - Legacy `data/graph/` compatibility files should remain untouched unless the user explicitly asks for a legacy normalization pass.

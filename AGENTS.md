@@ -20,9 +20,9 @@ This project turns textbook content into a stable, evidence-backed, cross-discip
 1. Create or refresh `data/outlines/<book-id>.outline.json`.
 2. Read the relevant framework and pattern files before creating new canonical nodes.
 3. Use the backbone flow to extract one lesson or one tightly scoped page range at a time.
-4. Reuse or extend canonical knowledge in the V2 graph files under `data/v2/`.
-5. Record curriculum-stage projections in `data/v2/profiles/knowledge.profiles.jsonl`.
-6. Record book-local provenance in `data/v2/graph/<book-id>.mentions.jsonl` and `data/v2/graph/<book-id>.evidence.jsonl`.
+4. Reuse or extend canonical knowledge in the current versioned graph files under the active output root, such as `data/v4/`.
+5. Record curriculum-stage projections in `<output-root>/profiles/knowledge.profiles.jsonl`.
+6. Record book-local provenance in `<output-root>/graph/<book-id>.mentions.jsonl` and `<output-root>/graph/<book-id>.evidence.jsonl`.
 7. Expand node cards only after the backbone node is stable enough to deserve detailed explanation.
 8. Run a read-only QA pass before trusting the result.
 
@@ -54,20 +54,23 @@ Do not skip the outline stage for a new textbook unless the user explicitly asks
 
 ## Output Contract
 
+- Active output root: `data/<version>/`
+  - Examples: `data/v2/`, `data/v3/`, `data/v4/`, `data/v4.1/`, `data/vx/`
+  - The version folder is the run target for this extraction pass, not a permanent requirement to use `data/v2/`
 - Outline: `data/outlines/<book-id>.outline.json`
 - Framework: `data/frameworks/*.json`
 - Pattern library: `data/patterns/unified-knowledge-patterns.v2.json`
-- Canonical nodes: `data/v2/graph/knowledge.nodes.jsonl`
-- Canonical edges: `data/v2/graph/knowledge.edges.jsonl`
-- Curriculum profiles: `data/v2/profiles/knowledge.profiles.jsonl`
-- Mentions: `data/v2/graph/<book-id>.mentions.jsonl`
-- Evidence: `data/v2/graph/<book-id>.evidence.jsonl`
-- Node cards: `data/v2/node_cards/<safe-node-id>.json`
+- Canonical nodes: `<output-root>/graph/knowledge.nodes.jsonl`
+- Canonical edges: `<output-root>/graph/knowledge.edges.jsonl`
+- Curriculum profiles: `<output-root>/profiles/knowledge.profiles.jsonl`
+- Mentions: `<output-root>/graph/<book-id>.mentions.jsonl`
+- Evidence: `<output-root>/graph/<book-id>.evidence.jsonl`
+- Node cards: `<output-root>/node_cards/<safe-node-id>.json`
   - Use `safe-node-id = node_id` with every `:` replaced by `__` and every `/` replaced by `__`
 
-The legacy files under `data/graph/` and `data/node_cards/` are compatibility outputs. New extraction work should default to the V2 paths above unless the user explicitly asks for legacy output.
+The legacy files under `data/graph/` and `data/node_cards/` are compatibility outputs. New extraction work should default to the active versioned output root above unless the user explicitly asks for legacy output.
 
-If the user explicitly asks for a parallel regenerated version such as `data/v3/` or another versioned root under `data/`, reuse the same internal layout and schema contract there. Unless such a versioned root is explicitly requested, keep `data/v2/` as the default output target.
+If the user explicitly asks for a specific versioned root such as `data/v3/` or `data/v4/`, use that root. If the run already has an agreed version root, continue writing there. Do not assume `data/v2/` is the default main output; here `v2`, `v3`, `v4`, and similar names refer to run/version directories under `data/`.
 
 Read these schema files before writing output:
 
@@ -122,6 +125,18 @@ Read these schema files before writing output:
 - Put `subject`, `school_stage`, `grade_band`, `curriculum_role`, and `mastery_level` in the profile, not in the canonical node.
 - Use `framework_refs` primarily on profiles; duplicate them on nodes only when they improve discoverability.
 - A canonical node may have multiple profiles.
+- When a canonical node is taught in a new subject, school stage, or grade band, append a new profile instead of overwriting an existing one.
+- Do not merge or replace profiles across different `subject` / `school_stage` / `grade_band` contexts.
+- If the context is the same, update conservatively by merging objectives and references; do not delete prior supported content without explicit user approval.
+
+## Preservation Rules
+
+- Extraction and normalization are append-first and non-destructive by default.
+- When adding new senior-secondary knowledge, never delete or replace existing junior-secondary nodes, profiles, mentions, evidence, or node cards just because the current source focuses on a different stage.
+- Absence from the current lesson, textbook, or framework is not evidence that an existing canonical record should be deleted.
+- Preserve cross-stage accumulation: the same canonical node may remain linked to multiple stages, grades, textbooks, and curriculum profiles at the same time.
+- Deletion of an existing canonical node, canonical edge, curriculum profile, mention, evidence record, or node card requires explicit user instruction.
+- If a rerun would shrink coverage, stop and report the conflict instead of writing a destructive update.
 
 ## Node Card Rules
 

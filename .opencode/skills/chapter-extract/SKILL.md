@@ -25,6 +25,8 @@ Use this skill on one lesson at a time. Keep extraction narrow and evidence-firs
 - Work on one lesson or one short page range only.
 - Update `data/v2/graph/knowledge.nodes.jsonl` and `data/v2/graph/knowledge.edges.jsonl` only when canonical additions are justified.
 - Update `data/v2/profiles/knowledge.profiles.jsonl` when the lesson provides a stable subject/stage projection for a canonical node.
+- Append new stage-specific curriculum profiles instead of overwriting profiles from other stages.
+- Never delete existing junior-secondary records while extracting senior-secondary material, or vice versa.
 - Write provenance to `data/v2/graph/<book-id>.mentions.jsonl` and `data/v2/graph/<book-id>.evidence.jsonl`.
 - If the user explicitly requests a versioned root such as `data/v3/`, write the same file layout there instead of `data/v2/`.
 - Keep one JSON object per line.
@@ -35,6 +37,7 @@ Use this skill on one lesson at a time. Keep extraction narrow and evidence-firs
 - Every canonical edge must set `edge_layer`, and use `backbone_expand = true` only when the edge should open a support node from a backbone node.
 - Default to `support` for reusable but auxiliary methods, activities, representations, equipment, or issue nodes unless the user explicitly wants them in the visible backbone.
 - Write legacy `data/graph/` outputs only if the user explicitly asks for compatibility output.
+- Treat pre-existing canonical graph files as cumulative project memory. Do not remove existing nodes, edges, profiles, mentions, or evidence unless the user explicitly requests deletion.
 
 ## References
 

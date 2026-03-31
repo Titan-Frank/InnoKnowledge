@@ -91,6 +91,13 @@ Use them for:
 
 Do not write these fields into the canonical node unless needed temporarily for migration compatibility.
 
+Preservation policy:
+
+- One canonical node may have multiple curriculum profiles across subjects, school stages, and grade bands.
+- When new senior-secondary or other stage coverage is added, append a new profile for that context instead of overwriting earlier junior-secondary coverage.
+- Only merge profiles when they describe the same `subject` + `school_stage` + `grade_band` context.
+- The fact that a current source does not mention an older stage is not evidence for deleting that older stage profile.
+
 ## Edge Types
 
 ### Classification / structure

@@ -22,6 +22,9 @@ Use this skill as the schema authority for every extraction task. Prefer the V2 
 - Canonical knowledge records are global-first, not book-first.
 - Provenance belongs in mentions and evidence.
 - Subject and grade expectations belong in curriculum profiles.
+- Curriculum profiles are append-first: if a canonical node appears in a new subject, school stage, or grade band, add a new profile instead of overwriting an existing one.
+- Never delete or replace an existing profile from another stage just because the current extraction batch is focused on a different stage.
+- If the same `subject` / `school_stage` / `grade_band` profile already exists, merge objectives and references conservatively instead of dropping prior supported content.
 - Detailed explanation belongs in node cards, not in the backbone graph.
 - Prefer fewer, cleaner relation types over many nearly identical ones.
 - Keep Chinese display names in `canonical_name` when the source language is Chinese.
@@ -34,6 +37,7 @@ Use this skill as the schema authority for every extraction task. Prefer the V2 
 - Keep `card_layer` aligned with the referenced node's `node_layer`.
 - Use `framework_refs` primarily on curriculum profiles; keep them on canonical nodes only when they help normalization or discovery.
 - Use `properties` for extensible details instead of creating ad hoc top-level keys.
+- Treat existing canonical nodes, edges, profiles, mentions, evidence, and node cards as persistent records. Do not delete them unless the user explicitly requests a destructive cleanup.
 
 ## Cycle Prevention
 

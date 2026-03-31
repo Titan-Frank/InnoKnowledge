@@ -1,4 +1,4 @@
 interface:
   display_name: "Knowledge Schema"
   short_description: "Apply the project knowledge graph schema"
-  default_prompt: "Normalize extracted textbook knowledge into the project schema."
+  default_prompt: "Normalize extracted textbook knowledge into the project schema while preserving existing cross-stage records and appending new curriculum profiles instead of deleting older ones."

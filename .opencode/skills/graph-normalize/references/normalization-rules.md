@@ -27,6 +27,9 @@
 - Do not merge curriculum profiles across different subject / school_stage / grade_band combinations.
 - If two profiles point to the same canonical node and the same stage context, merge objectives and references conservatively.
 - Preserve all `framework_refs`, `textbook_refs`, and `source_refs`.
+- Preserve older stage coverage when newer stage coverage is added. Junior-secondary and senior-secondary profiles for the same canonical node should coexist.
+- Do not treat missing coverage in the current batch as a reason to delete an existing profile.
+- Do not delete a profile unless it is an exact duplicate or the user explicitly requests removal.
 
 ## Evidence Policy
 

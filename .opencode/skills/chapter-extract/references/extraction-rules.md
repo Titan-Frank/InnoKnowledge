@@ -85,6 +85,8 @@ Use `node_subkind` when a narrower label helps:
 
 - Prefer reusing existing canonical nodes in `data/v2/graph/knowledge.nodes.jsonl`.
 - Create or refine curriculum profiles in `data/v2/profiles/knowledge.profiles.jsonl`.
+- If the same canonical node is learned in a new stage or grade, add another curriculum profile for that context instead of replacing the old one.
+- Do not delete prior stage coverage during a new extraction pass. Existing junior-secondary and senior-secondary profiles may coexist on the same canonical node.
 - Use `framework_refs` primarily on profiles.
 - Do not create lesson nodes in the canonical graph.
 - Record lesson-level appearance through mentions, not through chapter-parent edges.
