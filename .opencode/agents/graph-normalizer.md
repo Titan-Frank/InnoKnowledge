@@ -17,17 +17,14 @@ Execution:
 3. Treat the active SQLite dataset as the source of truth before resolving relation proposals.
 4. Deduplicate nodes and exact duplicate edges conservatively.
 5. Merge aliases and same-context profiles without collapsing cross-stage coverage.
-6. Finalize the batch runtime flow with `scripts/finalize_batch_runtime.py` so proposal storage, promotion, snapshot export, and SQLite QA happen as part of normalization.
+6. Finalize the batch runtime flow with `scripts/finalize_batch_runtime.py` so proposal storage, promotion, and SQLite QA happen as part of normalization. Export a snapshot only when explicitly requested.
 7. Resolve relation proposals only after checking current-scope evidence and conflicts.
 8. Propagate canonical id changes to dependent artifacts.
 
 Write targets:
 
-- `<output-root>/graph/knowledge.nodes.jsonl`
-- `<output-root>/graph/knowledge.edges.jsonl`
-- `<output-root>/profiles/knowledge.profiles.jsonl`
-- `<output-root>/graph/<book-id>.mentions.jsonl` when target ids change
-- `<output-root>/node_cards/<safe-node-id>.json` when canonical node ids change
+- SQLite canonical tables for nodes, edges, profiles, mentions, and node cards
+- Optional exported snapshot files under `<output-root>/...` when the caller explicitly requests `scripts/export_snapshot.py`
 
 Handoff:
 

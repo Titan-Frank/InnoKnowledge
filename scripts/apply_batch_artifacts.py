@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply lesson-batch extraction artifacts into SQLite, then export a fresh snapshot."""
+"""Apply lesson-batch extraction artifacts into SQLite."""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ STATUS_RANK = {"draft": 0, "candidate": 1, "ready": 2, "active": 3}
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Apply batch extraction artifacts into SQLite and export a fresh snapshot."
+        description="Apply batch extraction artifacts into SQLite."
     )
     parser.add_argument("--root", required=True, help="Versioned output root, for example data/v5")
     parser.add_argument("--book-id", required=True)
@@ -55,7 +55,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Prefer runtime JSONL files over SQLite batch_runtime_records when both exist.",
     )
-    parser.add_argument("--skip-export-snapshot", action="store_true")
+    parser.add_argument(
+        "--export-snapshot",
+        action="store_true",
+        help="Export snapshot files into <root> after applying SQLite updates.",
+    )
     return parser.parse_args()
 
 
@@ -946,7 +950,7 @@ def main() -> int:
         stats.update(upsert_mentions(connection, dataset_id, mentions))
         stats.update(upsert_node_cards(connection, dataset_id, node_cards))
 
-    if not args.skip_export_snapshot:
+    if args.export_snapshot:
         export_stats = export_dataset(connection, dataset_id, root)
         for key, value in export_stats.items():
             stats[f"snapshot_{key}"] = value

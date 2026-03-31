@@ -40,4 +40,4 @@ Constraints:
 - Keep each worker on one textbook and usually one lesson at a time.
 - Treat “whole book” as many small scopes, not one giant extraction context.
 - Stop and report blockers when output-root resolution, evidence, coverage, or strict QA is unclear or failing.
-- For retrieval-first runs, do not treat SQLite as optional. Use it as the serving and primary write layer, and export snapshots after batch finalize.
+- For retrieval-first runs, do not treat SQLite as optional. Use it as the serving and primary write layer, and export snapshots only on explicit request.

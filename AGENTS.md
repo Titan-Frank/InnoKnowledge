@@ -40,9 +40,9 @@ This project turns textbook content into a stable, evidence-backed, cross-discip
 3. Use the backbone flow to extract one lesson or one tightly scoped page range at a time.
 4. Extract batch-local evidence before deciding canonical node reuse or relation creation.
 5. Retrieve a small candidate set of canonical nodes before deciding whether to reuse nodes, create nodes, or propose relations.
-6. Persist batch runtime artifacts under `<output-root>/runs/runtime/<book-id>/` so later pipeline stages can replay retrieval and relation decisions.
+6. Persist batch runtime artifacts in SQLite staging so later pipeline stages can replay retrieval and relation decisions without depending on intermediate files.
 7. Treat SQLite as the primary writable store for canonical nodes, edges, profiles, mentions, evidence, and runtime review state.
-8. Export the current SQLite dataset into `<output-root>/` snapshot files for viewer, Git review, and publishing.
+8. Export the current SQLite dataset into `<output-root>/` snapshot files only when viewer, Git review, or publishing explicitly needs a materialized snapshot.
 9. Expand node cards only after the backbone node is stable enough to deserve detailed explanation.
 10. Run a read-only QA pass before trusting the result.
 
@@ -69,7 +69,7 @@ Do not skip the outline stage for a new textbook unless the user explicitly asks
 - Finalize each batch's SQLite runtime flow with `scripts/finalize_batch_runtime.py`, which should:
   - store lesson-local relation proposals
   - promote only evidence-backed and conflict-free relations
-  - export the current dataset snapshot back into `<output-root>/`
+  - export the current dataset snapshot back into `<output-root>/` only when an explicit snapshot export is requested
   - run `scripts/sqlite_import_qa.py`
 - Run strict machine QA with `scripts/strict_qa.py` after each batch group and for the final roll-up.
 - If strict QA fails, stop the pipeline, record the batch as blocked, and report the issues before doing more extraction.
@@ -132,10 +132,10 @@ Do not skip the outline stage for a new textbook unless the user explicitly asks
 ## SQLite Runtime Workflow
 
 - Treat SQLite as the primary serving and write layer for retrieval, extraction updates, proposal review, and batch-local promotion checks.
-- Treat `<output-root>` JSON/JSONL files as exported snapshots for viewer, Git review, and release packaging.
+- Treat `<output-root>` JSON/JSONL files as optional exported snapshots for viewer, Git review, and release packaging.
 - If a snapshot is exported from SQLite, the database is authoritative and the snapshot should be treated as derived output.
-- Default batch extraction should write runtime artifacts into SQLite staging first, not into runtime JSONL files only.
-- Default runtime artifact paths:
+- Default batch extraction should write runtime artifacts into SQLite staging first, not into runtime JSONL files.
+- Runtime JSONL export paths, when a debug or replay dump is explicitly requested:
   - retrieval queries: `<output-root>/runs/runtime/<book-id>/<batch-anchor>.queries.jsonl`
   - relation proposals: `<output-root>/runs/runtime/<book-id>/<batch-anchor>.relation-proposals.jsonl`
   - batch nodes: `<output-root>/runs/runtime/<book-id>/<batch-anchor>.nodes.jsonl`
@@ -153,6 +153,10 @@ Do not skip the outline stage for a new textbook unless the user explicitly asks
 - Runtime rows in SQLite should be preserved across repeated output-root syncs for the same dataset whenever they still reference valid nodes and evidence.
 
 ## Output Contract
+
+- SQLite is the authoritative normal-form store during pipeline execution.
+- `<output-root>` remains the run root for manifests, QA reports, and optional snapshot export.
+- The file paths below describe the snapshot export contract when `scripts/export_snapshot.py` is run.
 
 - Active output root: `data/<version>/`
   - Examples: `data/v2/`, `data/v3/`, `data/v4/`, `data/v4.1/`, `data/vx/`

@@ -26,10 +26,9 @@ Use this skill for one lesson or one tightly scoped page range at a time. `AGENT
 ## Output Rules
 
 - Work on one lesson or one short page range only.
-- Use SQLite as the primary write target and treat `<output-root>/...` as the exported snapshot shape, not the live source of truth.
+- Use SQLite as the primary write target and treat `<output-root>/...` as an optional exported snapshot shape, not the live source of truth.
 - Update canonical nodes and edges only when the lesson provides evidence-backed canonical additions.
-- Append curriculum projections to `<output-root>/profiles/knowledge.profiles.jsonl`.
-- Write provenance to `<output-root>/graph/<book-id>.mentions.jsonl` and `<output-root>/graph/<book-id>.evidence.jsonl`.
+- Append curriculum projections and provenance into SQLite first.
 - Keep SQLite `batch_runtime_records` as the default replay source for one batch.
 - Export runtime JSONL files only when debugging, sharing, or replaying a batch outside SQLite is useful.
 - Keep one JSON object per line.

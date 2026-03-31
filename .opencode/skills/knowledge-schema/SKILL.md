@@ -34,6 +34,7 @@ Use this skill as the schema authority for every extraction or normalization tas
 - Keep `card_layer` aligned with the referenced node's `node_layer`.
 - Use `framework_refs` primarily on curriculum profiles; keep them on canonical nodes only when they help normalization or discovery.
 - Use `properties` for extensible details instead of creating ad hoc top-level keys.
+- Keep `properties` sparse and structured; move explanatory detail into node cards.
 
 ## Cycle Prevention
 

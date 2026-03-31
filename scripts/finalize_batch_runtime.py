@@ -4,17 +4,14 @@
 from __future__ import annotations
 
 import argparse
-import json
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 from knowledge_store_common import (
     DEFAULT_DB_PATH,
     connect_db,
     ensure_sqlite_schema,
-    load_batch_runtime_records,
     require_dataset_row,
     resolve_dataset_id,
     resolve_outline_anchor,
@@ -28,7 +25,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Sync output root, store relation proposals, promote edges, and run SQLite QA."
+        description="Finalize relation proposals, promotion, and SQLite QA for one batch."
     )
     parser.add_argument("--root", required=True, help="Versioned output root, for example data/v5")
     parser.add_argument("--book-id", required=True)
@@ -40,9 +37,9 @@ def parse_args() -> argparse.Namespace:
         help="Optional explicit relation proposal JSONL path. Defaults to runs/runtime artifact path.",
     )
     parser.add_argument(
-        "--skip-sync",
+        "--sync-from-snapshot",
         action="store_true",
-        help="Skip syncing the output root into SQLite before storing/promoting proposals.",
+        help="Sync the output-root snapshot into SQLite before storing/promoting proposals.",
     )
     parser.add_argument(
         "--skip-promote",
@@ -55,9 +52,9 @@ def parse_args() -> argparse.Namespace:
         help="Skip sqlite_import_qa after finishing the batch runtime flow.",
     )
     parser.add_argument(
-        "--skip-export-snapshot",
+        "--export-snapshot",
         action="store_true",
-        help="Skip exporting the SQLite dataset back into the output-root snapshot.",
+        help="Export the SQLite dataset back into the output-root snapshot.",
     )
     parser.add_argument(
         "--include-candidate",
@@ -92,101 +89,98 @@ def main() -> int:
 
     common = [sys.executable]
     dataset_args: list[str] = ["--dataset-id", dataset_id]
-    temp_proposal_path: Path | None = None
-    if not proposal_path.exists():
-        runtime_proposals = load_batch_runtime_records(
-            connection,
-            dataset_id,
-            args.book_id,
-            resolved_batch_anchor,
-            "relation_proposal",
+
+    if args.sync_from_snapshot:
+        run_step(
+            common
+            + [
+                str(REPO_ROOT / "scripts" / "sync_output_root_to_sqlite.py"),
+                str(root),
+                "--db",
+                args.db,
+                "--replace",
+                "--activate",
+                "--preserve-runtime",
+                *dataset_args,
+            ]
         )
-        if runtime_proposals:
-            handle = tempfile.NamedTemporaryFile(
-                prefix="relation-proposals-",
-                suffix=".jsonl",
-                delete=False,
-                mode="w",
-                encoding="utf-8",
-            )
-            with handle:
-                for record in runtime_proposals:
-                    handle.write(json.dumps(record, ensure_ascii=False) + "\n")
-            temp_proposal_path = Path(handle.name)
-            proposal_path = temp_proposal_path
 
-    try:
-        if not args.skip_sync:
-            run_step(
-                common
-                + [
-                    str(REPO_ROOT / "scripts" / "sync_output_root_to_sqlite.py"),
-                    str(root),
-                    "--db",
-                    args.db,
-                    "--replace",
-                    "--activate",
-                    "--preserve-runtime",
-                    *dataset_args,
-                ]
-            )
-
-        if proposal_path.exists():
-            run_step(
-                common
-                + [
-                    str(REPO_ROOT / "scripts" / "store_relation_proposals.py"),
-                    "--db",
-                    args.db,
-                    "--input",
-                    str(proposal_path),
-                    "--replace",
-                    *dataset_args,
-                ]
-            )
-
-            if not args.skip_promote:
-                promote_args = common + [
-                    str(REPO_ROOT / "scripts" / "promote_relation_proposals.py"),
-                    "--db",
-                    args.db,
-                    "--batch-anchor",
-                    resolved_batch_anchor,
-                    *dataset_args,
-                ]
-                if args.include_candidate:
-                    promote_args.append("--include-candidate")
-                run_step(promote_args)
+    if proposal_path.exists():
+        run_step(
+            common
+            + [
+                str(REPO_ROOT / "scripts" / "store_relation_proposals.py"),
+                "--db",
+                args.db,
+                "--input",
+                str(proposal_path),
+                "--replace",
+                *dataset_args,
+            ]
+        )
+    else:
+        runtime_cmd = common + [
+            str(REPO_ROOT / "scripts" / "store_relation_proposals.py"),
+            "--db",
+            args.db,
+            "--runtime-book-id",
+            args.book_id,
+            "--runtime-batch-anchor",
+            resolved_batch_anchor,
+            "--replace",
+            *dataset_args,
+        ]
+        runtime_result = subprocess.run(runtime_cmd, capture_output=True, text=True)
+        if runtime_result.returncode == 0:
+            if runtime_result.stdout:
+                print(runtime_result.stdout, end="")
+        elif "No relation_proposal runtime records found" in (
+            (runtime_result.stderr or "") + (runtime_result.stdout or "")
+        ):
+            print(f"No relation proposals staged for batch: {resolved_batch_anchor}")
         else:
-            print(f"No relation proposal file found for batch: {proposal_path}")
-
-        if not args.skip_export_snapshot:
-            run_step(
-                common
-                + [
-                    str(REPO_ROOT / "scripts" / "export_snapshot.py"),
-                    str(root),
-                    "--db",
-                    args.db,
-                    *dataset_args,
-                ]
+            raise subprocess.CalledProcessError(
+                runtime_result.returncode,
+                runtime_cmd,
+                output=runtime_result.stdout,
+                stderr=runtime_result.stderr,
             )
 
-        if not args.skip_sqlite_qa:
-            run_step(
-                common
-                + [
-                    str(REPO_ROOT / "scripts" / "sqlite_import_qa.py"),
-                    "--db",
-                    args.db,
-                    "--output-root",
-                    str(root),
-                    *dataset_args,
-                ]
-            )
-    finally:
-        if temp_proposal_path is not None and temp_proposal_path.exists():
-            temp_proposal_path.unlink()
+    if not args.skip_promote:
+        promote_args = common + [
+            str(REPO_ROOT / "scripts" / "promote_relation_proposals.py"),
+            "--db",
+            args.db,
+            "--batch-anchor",
+            resolved_batch_anchor,
+            *dataset_args,
+        ]
+        if args.include_candidate:
+            promote_args.append("--include-candidate")
+        run_step(promote_args)
+
+    if args.export_snapshot:
+        run_step(
+            common
+            + [
+                str(REPO_ROOT / "scripts" / "export_snapshot.py"),
+                str(root),
+                "--db",
+                args.db,
+                *dataset_args,
+            ]
+        )
+
+    if not args.skip_sqlite_qa:
+        sqlite_qa_cmd = common + [
+            str(REPO_ROOT / "scripts" / "sqlite_import_qa.py"),
+            "--db",
+            args.db,
+            *dataset_args,
+        ]
+        if args.export_snapshot:
+            sqlite_qa_cmd.extend(["--output-root", str(root)])
+        run_step(sqlite_qa_cmd)
 
     return 0
 

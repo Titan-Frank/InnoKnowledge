@@ -15,6 +15,7 @@ from knowledge_store_common import (
     dump_json_text,
     ensure_sqlite_schema,
     fetch_existing_edges,
+    load_batch_runtime_records,
     make_proposal_id,
     make_review_id,
     require_dataset_row,
@@ -32,10 +33,15 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Store relation proposals with conservative conflict detection."
     )
-    parser.add_argument("--input", required=True, help="JSONL file containing relation proposals.")
+    parser.add_argument("--input", help="JSONL file containing relation proposals.")
     parser.add_argument("--db", default=str(DEFAULT_DB_PATH))
     parser.add_argument("--dataset-id")
     parser.add_argument("--output-root")
+    parser.add_argument("--runtime-book-id", help="Load proposals from SQLite batch runtime for this book.")
+    parser.add_argument(
+        "--runtime-batch-anchor",
+        help="Batch anchor used with --runtime-book-id when loading proposals from SQLite runtime staging.",
+    )
     parser.add_argument("--default-status", default="candidate", choices=sorted(VALID_PROPOSAL_STATUSES))
     parser.add_argument(
         "--replace",
@@ -54,6 +60,28 @@ def load_records(path: Path) -> list[dict[str, Any]]:
         records.append(json.loads(line))
     if not records:
         raise SystemExit(f"No JSONL records found in {path}")
+    return records
+
+
+def load_runtime_records(
+    connection,
+    dataset_id: str,
+    book_id: str,
+    batch_anchor: str,
+) -> list[dict[str, Any]]:
+    resolved_batch_anchor = resolve_outline_anchor(book_id, batch_anchor, strict=False)
+    records = load_batch_runtime_records(
+        connection,
+        dataset_id,
+        book_id,
+        resolved_batch_anchor,
+        "relation_proposal",
+    )
+    if not records:
+        raise SystemExit(
+            "No relation_proposal runtime records found for "
+            f"book '{book_id}' batch '{resolved_batch_anchor}'."
+        )
     return records
 
 
@@ -275,11 +303,24 @@ def store_proposal(connection, dataset_id: str, proposal: dict[str, Any], replac
 
 def main() -> int:
     args = parse_args()
-    records = load_records(Path(args.input).expanduser().resolve())
+    if bool(args.input) == bool(args.runtime_book_id):
+        raise SystemExit("Provide exactly one of --input or --runtime-book-id.")
+    if args.runtime_book_id and not args.runtime_batch_anchor:
+        raise SystemExit("--runtime-book-id requires --runtime-batch-anchor.")
+
     connection = connect_db(args.db)
     ensure_sqlite_schema(connection)
     dataset_id = resolve_dataset_id(connection, args.dataset_id, args.output_root)
     require_dataset_row(connection, dataset_id)
+    if args.input:
+        records = load_records(Path(args.input).expanduser().resolve())
+    else:
+        records = load_runtime_records(
+            connection,
+            dataset_id,
+            args.runtime_book_id,
+            args.runtime_batch_anchor,
+        )
 
     normalized = [normalize_record(record, args.default_status) for record in records]
     require_references(connection, dataset_id, normalized)

@@ -23,15 +23,12 @@ Execution:
 8. Persist batch query payload for audit/replay, and use `scripts/retrieve_candidates.py` to write retrieval candidates into SQLite before making reuse decisions.
 9. Keep relation extraction lesson-scoped and retrieval-first.
 10. If a relation is weak or conflicts with an existing canonical edge, keep it out of direct canonical writes and leave it in SQLite staging or the batch relation-proposals artifact for later runtime review.
-11. After writing the staged batch payload, call `scripts/apply_batch_artifacts.py` so SQLite canonical tables and the exported snapshot both reflect the batch before coverage checks.
+11. After writing the staged batch payload, call `scripts/apply_batch_artifacts.py` so SQLite canonical tables reflect the batch before coverage checks.
 
 Write targets:
 
-- `<output-root>/graph/knowledge.nodes.jsonl`
-- `<output-root>/graph/knowledge.edges.jsonl`
-- `<output-root>/profiles/knowledge.profiles.jsonl`
-- `<output-root>/graph/<book-id>.mentions.jsonl`
-- `<output-root>/graph/<book-id>.evidence.jsonl`
+- SQLite canonical tables for nodes, edges, profiles, mentions, and evidence
+- Optional exported snapshot files under `<output-root>/...` only when the caller explicitly requests `scripts/export_snapshot.py`
 
 Handoff:
 

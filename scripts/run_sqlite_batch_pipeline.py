@@ -28,11 +28,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fail-on-warning", action="store_true")
     parser.add_argument("--skip-apply", action="store_true")
     parser.add_argument("--skip-coverage", action="store_true")
-    parser.add_argument("--skip-finalize-sync", action="store_true")
+    parser.add_argument(
+        "--sync-from-snapshot",
+        action="store_true",
+        help="Refresh SQLite from an exported snapshot before finalize.",
+    )
     parser.add_argument("--skip-promote", action="store_true")
     parser.add_argument("--include-candidate", action="store_true")
     parser.add_argument("--skip-sqlite-qa", action="store_true")
     parser.add_argument("--skip-strict-qa", action="store_true")
+    parser.add_argument(
+        "--export-snapshot",
+        action="store_true",
+        help="Export a JSON/JSONL snapshot at the end of finalize.",
+    )
     return parser.parse_args()
 
 
@@ -110,6 +119,9 @@ def main() -> int:
                     args.book_id,
                     "--anchors",
                     batch_anchor,
+                    "--db",
+                    args.db,
+                    *dataset_args,
                     *(["--require-node-cards"] if args.require_node_cards else []),
                     *(["--fail-on-warning"] if args.fail_on_warning else []),
                 ]
@@ -131,14 +143,16 @@ def main() -> int:
             args.db,
             *dataset_args,
         ]
-        if args.skip_finalize_sync:
-            finalize_cmd.append("--skip-sync")
+        if args.sync_from_snapshot:
+            finalize_cmd.append("--sync-from-snapshot")
         if args.skip_promote:
             finalize_cmd.append("--skip-promote")
         if args.include_candidate:
             finalize_cmd.append("--include-candidate")
         if args.skip_sqlite_qa:
             finalize_cmd.append("--skip-sqlite-qa")
+        if args.export_snapshot:
+            finalize_cmd.append("--export-snapshot")
         run_step(finalize_cmd)
         mark_manifest(manifest_path, "normalize", "completed", batch_anchor)
 
@@ -151,6 +165,9 @@ def main() -> int:
                 str(root),
                 "--book-id",
                 args.book_id,
+                "--db",
+                args.db,
+                *dataset_args,
                 *(["--fail-on-warning"] if args.fail_on_warning else []),
             ]
             run_step(strict_qa_cmd)

@@ -115,7 +115,7 @@ python3 scripts/promote_relation_proposals.py \
 # 统一做 SQLite QA
 python3 scripts/sqlite_import_qa.py \
   --db storage/knowledge.sqlite \
-  --output-root data/v3
+  --dataset-id v3
 ```
 
 如果由 `@kg-pipeline` 驱动，推荐把这两步当成默认入口：
@@ -126,7 +126,7 @@ python3 scripts/sync_output_root_to_sqlite.py data/v5 \
   --db storage/knowledge.sqlite \
   --replace --activate --preserve-runtime
 
-# 每批 backbone 写完后，统一完成 proposal -> promote -> snapshot export -> SQLite QA
+# 每批 backbone 写完后，统一完成 proposal -> promote -> SQLite QA
 python3 scripts/finalize_batch_runtime.py \
   --root data/v5 \
   --book-id <book-id> \
@@ -134,7 +134,7 @@ python3 scripts/finalize_batch_runtime.py \
   --db storage/knowledge.sqlite
 ```
 
-如果当前 batch 的中间产物是刚抽出来的，推荐先直接写入 SQLite staging，而不是依赖 runtime JSONL 作为唯一中间层：
+如果当前 batch 的中间产物是刚抽出来的，推荐先直接写入 SQLite staging，而不是依赖 runtime JSONL 作为唯一中间层。`store_batch_runtime.py` 现在支持直接传 JSON 数组：
 
 ```bash
 python3 scripts/store_batch_runtime.py \
@@ -142,12 +142,10 @@ python3 scripts/store_batch_runtime.py \
   --book-id <book-id> \
   --batch-anchor <anchor-id> \
   --db storage/knowledge.sqlite \
-  --queries-file /tmp/<anchor-id>.queries.jsonl \
-  --nodes-file /tmp/<anchor-id>.nodes.jsonl \
-  --profiles-file /tmp/<anchor-id>.profiles.jsonl \
-  --evidence-file /tmp/<anchor-id>.evidence.jsonl \
-  --mentions-file /tmp/<anchor-id>.mentions.jsonl \
-  --relation-proposals-file /tmp/<anchor-id>.relation-proposals.jsonl
+  --queries-json '[{"query_text":"氧气"}]' \
+  --nodes-json '[{"id":"entity/substance:oxygen","canonical_name":"氧气","node_kind":"entity","node_layer":"backbone","definition":"一种常见气体","aliases":[],"learning_modes":[],"bridge_tags":[],"framework_refs":[],"profile_refs":[],"same_as_refs":[],"properties":{},"status":"active"}]' \
+  --evidence-json '[{"id":"evidence:demo","source_type":"textbook","source_id":"<book-id>","anchor_ref":"<anchor-id>","excerpt":"氧气支持燃烧。","locator":"p.12","extraction_method":"manual","normalized_claims":[],"properties":{}}]' \
+  --mentions-json '[{"id":"mention:demo","source_type":"textbook","source_id":"<book-id>","anchor_ref":"<anchor-id>","target_type":"node","target_id":"entity/substance:oxygen","role":"teaches","source_refs":["evidence:demo"],"confidence":0.9,"properties":{}}]'
 ```
 
 然后再应用和 finalize：
@@ -176,7 +174,7 @@ python3 scripts/run_sqlite_batch_pipeline.py \
   --db storage/knowledge.sqlite
 ```
 
-`<anchor-id>` 推荐使用 outline 里的 canonical id，例如 `struct:chem-grade8-all-in-one:lesson:1-1-1`。批处理脚本也兼容常见简写如 `lesson-1-1-1`，但入库后的 `anchor_ref`、`batch_anchor` 和导出的 snapshot 会统一归一化成 canonical outline id。
+`<anchor-id>` 推荐使用 outline 里的 canonical id，例如 `struct:chem-grade8-all-in-one:lesson:1-1-1`。批处理脚本也兼容常见简写如 `lesson-1-1-1`，但入库后的 `anchor_ref`、`batch_anchor` 和按需导出的 snapshot 会统一归一化成 canonical outline id。
 
 如果只想把 viewer 所需 snapshot 从数据库重新导出：
 
@@ -184,6 +182,17 @@ python3 scripts/run_sqlite_batch_pipeline.py \
 python3 scripts/export_snapshot.py data/v5 \
   --db storage/knowledge.sqlite \
   --dataset-id v5
+```
+
+如果想在 finalize 或整条 batch pipeline 结束时顺手导出 snapshot，可以显式加上：
+
+```bash
+python3 scripts/finalize_batch_runtime.py \
+  --root data/v5 \
+  --book-id <book-id> \
+  --batch-anchor <anchor-id> \
+  --db storage/knowledge.sqlite \
+  --export-snapshot
 ```
 
 如果一个 batch 的抽取结果已经先写到了 runtime 工件目录，可以直接应用到 SQLite：
@@ -196,7 +205,7 @@ python3 scripts/apply_batch_artifacts.py \
   --db storage/knowledge.sqlite
 ```
 
-`apply_batch_artifacts.py` 现在默认优先读取 SQLite `batch_runtime_records` 里的 batch 数据；如果 SQLite staging 里没有这批记录，才会回退去读下面这些 runtime 文件：
+`apply_batch_artifacts.py` 现在默认优先读取 SQLite `batch_runtime_records` 里的 batch 数据；只有在 SQLite staging 里没有这批记录、并且你明确准备了 debug/replay 工件时，才会回退去读下面这些 runtime 文件：
 
 - `data/v5/runs/runtime/<book-id>/<anchor-id>.nodes.jsonl`
 - `data/v5/runs/runtime/<book-id>/<anchor-id>.profiles.jsonl`

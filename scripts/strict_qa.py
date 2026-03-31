@@ -16,6 +16,22 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
+from export_snapshot import (
+    export_edges,
+    export_evidence,
+    export_mentions,
+    export_node_cards,
+    export_nodes,
+    export_profiles,
+)
+from knowledge_store_common import (
+    DEFAULT_DB_PATH,
+    connect_db,
+    ensure_sqlite_schema,
+    require_dataset_row,
+    resolve_dataset_id,
+)
+
 
 HIERARCHICAL_EDGE_TYPES = {
     "is_a",
@@ -47,16 +63,6 @@ def now_iso() -> str:
 def load_json(path: Path):
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
-
-
-def load_jsonl(path: Path) -> list[dict]:
-    records: list[dict] = []
-    with path.open("r", encoding="utf-8") as handle:
-        for line in handle:
-            line = line.strip()
-            if line:
-                records.append(json.loads(line))
-    return records
 
 
 def write_json(path: Path, payload: dict) -> None:
@@ -124,10 +130,6 @@ def normalize_name(value: str) -> str:
     return normalized
 
 
-def safe_node_id(node_id: str) -> str:
-    return node_id.replace(":", "__").replace("/", "__")
-
-
 def detect_cycles(edges: list[dict]) -> list[tuple[str, list[str]]]:
     results: list[tuple[str, list[str]]] = []
     for edge_type in HIERARCHICAL_EDGE_TYPES:
@@ -182,6 +184,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", required=True, help="Versioned output root, e.g. data/v4")
     parser.add_argument("--book-id", required=True)
+    parser.add_argument("--db", default=str(DEFAULT_DB_PATH))
+    parser.add_argument("--dataset-id")
     parser.add_argument(
         "--outline",
         help="Outline path. Defaults to data/outlines/<book-id>.outline.json",
@@ -197,6 +201,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     root = Path(args.root)
+    connection = connect_db(args.db)
+    ensure_sqlite_schema(connection)
+    dataset_id = resolve_dataset_id(connection, args.dataset_id, root)
+    require_dataset_row(connection, dataset_id)
     outline_path = Path(args.outline or f"data/outlines/{args.book_id}.outline.json")
     report_path = Path(args.report or root / "qa" / f"{args.book_id}.strict-qa.json")
     issues: list[dict] = []
@@ -234,39 +242,31 @@ def main() -> int:
         "mentions": root / "graph" / f"{args.book_id}.mentions.jsonl",
         "evidence": root / "graph" / f"{args.book_id}.evidence.jsonl",
     }
-
-    loaded: dict[str, list[dict]] = {}
-    for label, path in required_paths.items():
-        if not path.exists():
-            add_issue(
-                issues,
-                "error",
-                "missing_file",
-                f"Required file not found: {path}",
-                str(path),
-            )
-            loaded[label] = []
-        else:
-            loaded[label] = load_jsonl(path)
-
-    graph_dir = root / "graph"
-    all_evidence_ids: set[str] = set()
-    all_mention_ids: set[str] = set()
-    if graph_dir.exists():
-        for path in sorted(graph_dir.glob("*.evidence.jsonl")):
-            for record in load_jsonl(path):
-                record_id = record.get("id")
-                if record_id:
-                    all_evidence_ids.add(record_id)
-        for path in sorted(graph_dir.glob("*.mentions.jsonl")):
-            for record in load_jsonl(path):
-                record_id = record.get("id")
-                if record_id:
-                    all_mention_ids.add(record_id)
+    loaded: dict[str, list[dict]] = {
+        "nodes": export_nodes(connection, dataset_id),
+        "edges": export_edges(connection, dataset_id),
+        "profiles": export_profiles(connection, dataset_id),
+        "mentions": [
+            record
+            for record in export_mentions(connection, dataset_id)
+            if record.get("source_type") == "textbook" and record.get("source_id") == args.book_id
+        ],
+        "evidence": [
+            record
+            for record in export_evidence(connection, dataset_id)
+            if record.get("source_type") == "textbook" and record.get("source_id") == args.book_id
+        ],
+    }
+    all_evidence_ids = {
+        record["id"] for record in export_evidence(connection, dataset_id) if record.get("id")
+    }
+    all_mention_ids = {
+        record["id"] for record in export_mentions(connection, dataset_id) if record.get("id")
+    }
 
     node_cards_dir = root / "node_cards"
-    card_files = sorted(node_cards_dir.glob("*.json")) if node_cards_dir.exists() else []
-    cards = [load_json(path) for path in card_files]
+    cards = export_node_cards(connection, dataset_id)
+    card_store_label = f"{node_cards_dir} (sqlite)"
 
     validate_records(
         schema_validators["node"],
@@ -303,7 +303,7 @@ def main() -> int:
         "id",
         issues,
     )
-    validate_records(schema_validators["card"], cards, str(node_cards_dir), "node_id", issues)
+    validate_records(schema_validators["card"], cards, card_store_label, "node_id", issues)
 
     check_duplicate_ids(loaded["nodes"], "id", str(required_paths["nodes"]), issues)
     check_duplicate_ids(loaded["edges"], "id", str(required_paths["edges"]), issues)
@@ -316,8 +316,14 @@ def main() -> int:
     profile_ids = {record["id"] for record in loaded["profiles"] if record.get("id")}
     evidence_ids = {record["id"] for record in loaded["evidence"] if record.get("id")}
     card_ids = {record["id"] for record in cards if record.get("id")}
+    card_ids.update(record["node_id"] for record in cards if record.get("node_id"))
     mention_ids = {record["id"] for record in loaded["mentions"] if record.get("id")}
     node_by_id = {record["id"]: record for record in loaded["nodes"] if record.get("id")}
+    support_node_ids = {
+        record["id"]
+        for record in loaded["nodes"]
+        if record.get("id") and record.get("node_layer") == "support"
+    }
 
     if not all_evidence_ids:
         all_evidence_ids = set(evidence_ids)
@@ -425,6 +431,46 @@ def main() -> int:
             "error",
             "hierarchy_cycle",
             f"Detected {edge_type} cycle: {' -> '.join(cycle)}",
+            str(required_paths["edges"]),
+        )
+
+    support_nodes_with_expand = set()
+    support_nodes_with_backbone_neighbor = set()
+    for record in loaded["edges"]:
+        from_node = node_by_id.get(record.get("from"))
+        to_node = node_by_id.get(record.get("to"))
+        if not from_node or not to_node:
+            continue
+        node_layers = {from_node.get("node_layer"), to_node.get("node_layer")}
+        if node_layers == {"backbone", "support"}:
+            if from_node.get("node_layer") == "support":
+                support_nodes_with_backbone_neighbor.add(from_node["id"])
+                if record.get("backbone_expand"):
+                    support_nodes_with_expand.add(from_node["id"])
+            if to_node.get("node_layer") == "support":
+                support_nodes_with_backbone_neighbor.add(to_node["id"])
+                if record.get("backbone_expand"):
+                    support_nodes_with_expand.add(to_node["id"])
+
+    dangling_support_expand = sorted(
+        support_nodes_with_backbone_neighbor - support_nodes_with_expand
+    )
+    for node_id in dangling_support_expand:
+        add_issue(
+            issues,
+            "warning",
+            "support_node_missing_backbone_expand",
+            "Support node has a backbone neighbor but no connecting edge is marked backbone_expand.",
+            str(required_paths["edges"]),
+            record_id=node_id,
+        )
+
+    if support_node_ids and not support_nodes_with_expand:
+        add_issue(
+            issues,
+            "warning",
+            "no_support_expansion_edges",
+            "Support nodes exist in the graph, but no edge is marked backbone_expand.",
             str(required_paths["edges"]),
         )
 
@@ -541,26 +587,17 @@ def main() -> int:
             )
 
     cards_by_node: dict[str, list[dict]] = defaultdict(list)
-    for path, card in zip(card_files, cards):
+    for card in cards:
         node_id = card.get("node_id")
         if node_id:
             cards_by_node[node_id].append(card)
-        if node_id and path.stem != safe_node_id(node_id):
-            add_issue(
-                issues,
-                "warning",
-                "card_filename_mismatch",
-                f"Node card file name '{path.stem}' does not match safe node id '{safe_node_id(node_id)}'.",
-                str(path),
-                record_id=node_id,
-            )
         if node_id not in node_ids:
             add_issue(
                 issues,
                 "error",
                 "missing_card_node",
                 f"Node card references missing node '{node_id}'.",
-                str(path),
+                card_store_label,
                 record_id=node_id,
             )
             continue
@@ -570,7 +607,7 @@ def main() -> int:
                 "error",
                 "card_layer_mismatch",
                 "Node card layer does not match the canonical node layer.",
-                str(path),
+                card_store_label,
                 record_id=node_id,
             )
         for source_ref in card.get("source_refs", []):
@@ -580,7 +617,7 @@ def main() -> int:
                     "error",
                     "missing_card_evidence",
                     f"Node card references missing evidence '{source_ref}'.",
-                    str(path),
+                    card_store_label,
                     record_id=node_id,
                 )
         for mention_ref in card.get("mention_refs", []):
@@ -590,7 +627,7 @@ def main() -> int:
                     "warning",
                     "missing_card_mention",
                     f"Node card references missing mention '{mention_ref}'.",
-                    str(path),
+                    card_store_label,
                     record_id=node_id,
                 )
         for profile_ref in card.get("profile_refs", []):
@@ -600,7 +637,7 @@ def main() -> int:
                     "warning",
                     "missing_card_profile",
                     f"Node card references missing profile '{profile_ref}'.",
-                    str(path),
+                    card_store_label,
                     record_id=node_id,
                 )
         for section in card.get("sections", []):
@@ -611,7 +648,7 @@ def main() -> int:
                         "error",
                         "missing_section_evidence",
                         f"Section references missing evidence '{source_ref}'.",
-                        str(path),
+                        card_store_label,
                         record_id=node_id,
                     )
             for related_node_ref in section.get("related_node_refs", []):
@@ -621,7 +658,7 @@ def main() -> int:
                         "warning",
                         "missing_related_node",
                         f"Section references missing related node '{related_node_ref}'.",
-                        str(path),
+                        card_store_label,
                         record_id=node_id,
                     )
 
@@ -641,6 +678,7 @@ def main() -> int:
     report = {
         "generated_at": now_iso(),
         "book_id": args.book_id,
+        "dataset_id": dataset_id,
         "output_root": str(root),
         "outline_path": str(outline_path),
         "counts": {

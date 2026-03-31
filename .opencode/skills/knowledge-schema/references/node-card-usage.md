@@ -45,6 +45,39 @@ Example:
 - progression hints
 - evidence-backed explanations
 
+## What Should Stay In `properties` Instead
+
+Keep content in canonical node `properties` when it is:
+
+- short
+- structured
+- stable across lessons
+- understandable without a paragraph of explanation
+
+Typical `properties` content:
+
+- appearance / color / odor / state / solubility
+- instrument type
+- short experiment method labels
+- compact ordered step labels
+- issue category
+- notation family
+
+Few-shot reminders:
+
+- `entity/substance:oxygen`
+  - `properties`: `color`, `odor`, `state`
+  - card: combustion support explanation, identification method, examples
+- `entity/equipment:funnel`
+  - `properties`: `instrument_type`
+  - card: usage context, setup cautions
+- `activity/experiment:salt-purification`
+  - `properties`: short `steps`
+  - card: why the steps matter, what to observe, common mistakes
+- `concept:chemical-change`
+  - usually no meaningful `properties`
+  - card: comparison, examples, misconceptions
+
 ## What Does Not Belong In A Card
 
 - unsupported claims from outside the source corpus
@@ -52,3 +85,4 @@ Example:
 - duplicate copies of the lesson text
 - relationship clutter that should stay in the backbone graph
 - subject or grade metadata that should live in curriculum profiles
+- tiny field-value facts that already fit cleanly in canonical node `properties`

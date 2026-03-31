@@ -36,6 +36,30 @@ Keep these out of the backbone by default:
 
 These belong in node cards later.
 
+### G2.5: `properties` Vs Node Card
+
+Use canonical node `properties` only for compact structured facts.
+
+Put information into `properties` when it is:
+
+1. short enough to read as a field-value pair
+2. stable for the canonical node
+3. likely to help quick scanning, filtering, or future retrieval
+4. not dependent on long explanation
+
+Put information into node cards when it is:
+
+1. explanatory
+2. example-driven
+3. cautionary
+4. comparative
+5. procedural with important context
+
+Default extraction rule:
+
+- if unsure, leave `properties` sparse and defer the detail to a node card
+- do not invent filler properties just to avoid an empty section in the viewer
+
 ### G3: Evidence / Example
 
 Keep these in provenance only:
@@ -63,6 +87,63 @@ Use `node_subkind` when a narrower label helps:
 - `activity/experiment`
 - `representation/symbol`
 
+## Properties Selection
+
+Good `properties` candidates:
+
+- `entity/substance`
+  - `appearance`
+  - `color`
+  - `odor`
+  - `state`
+  - `solubility`
+- equipment-like `entity`
+  - `instrument_type`
+- `activity/experiment`
+  - `method`
+  - short `steps`
+  - short `materials`
+- `issue`
+  - `issue_type`
+  - `application_domain`
+- `representation`
+  - `notation_type`
+
+Avoid putting these in `properties`:
+
+- textbook sentences copied verbatim
+- long lists of examples
+- definitions that belong in `definition`
+- grade/stage expectations that belong in profiles
+- relation facts that belong in edges
+- long explanation or reasoning that belongs in node cards
+
+Few-shot examples:
+
+1. `entity/substance:nitrogen`
+   - good `properties`
+     - `{"color":"无色","odor":"无气味","solubility":"难溶于水"}`
+   - not `properties`
+     - "氮气为什么能作保护气" -> node card
+
+2. `entity/equipment:funnel`
+   - good `properties`
+     - `{"instrument_type":"玻璃仪器"}`
+   - not `properties`
+     - "过滤时如何配合玻璃棒使用" -> node card
+
+3. `activity/experiment:salt-purification`
+   - good `properties`
+     - `{"steps":["溶解","过滤","蒸发"]}`
+   - not `properties`
+     - "为什么先过滤再蒸发" -> node card
+
+4. `concept:chemical-change`
+   - good `properties`
+     - usually none
+   - not `properties`
+     - "与物理变化的区别、例子、易错点" -> node card
+
 ## Node Layer Selection
 
 - Use `node_layer = backbone` when the node is a stable, cross-lesson knowledge anchor that should appear in the main knowledge trunk.
@@ -83,8 +164,8 @@ Use `node_subkind` when a narrower label helps:
 
 ## Canonicalization
 
-- Prefer reusing existing canonical nodes in `<output-root>/graph/knowledge.nodes.jsonl`.
-- Create or refine curriculum profiles in `<output-root>/profiles/knowledge.profiles.jsonl`.
+- Prefer reusing existing canonical nodes from the active SQLite dataset.
+- Create or refine curriculum profiles in the active SQLite dataset.
 - If the same canonical node is learned in a new stage or grade, add another curriculum profile for that context instead of replacing the old one.
 - Do not delete prior stage coverage during a new extraction pass. Existing junior-secondary and senior-secondary profiles may coexist on the same canonical node.
 - Use `framework_refs` primarily on profiles.
@@ -92,7 +173,7 @@ Use `node_subkind` when a narrower label helps:
 - Record lesson-level appearance through mentions, not through chapter-parent edges.
 - Record only backbone-worthy concepts and relations here. Detailed explanation should be deferred to node cards.
 - Before deciding reuse or relation creation, retrieve a small candidate node set using exact names, aliases, normalized terms, and filtered search.
-- Persist the batch retrieval inputs to `<output-root>/runs/runtime/<book-id>/<batch-anchor>.queries.jsonl` and use that artifact when calling `scripts/retrieve_candidates.py`.
+- Persist the batch retrieval inputs in SQLite runtime staging, and export `<output-root>/runs/runtime/<book-id>/<batch-anchor>.queries.jsonl` only when a debug or replay dump is explicitly needed.
 - Do not ask the extractor to reason over the whole canonical graph at once.
 
 ## Relation Selection
@@ -108,7 +189,7 @@ Use `node_subkind` when a narrower label helps:
 - Extract relations in two steps:
   - first as lesson-local proposals
   - then as small-scope normalized canonical edges
-- Persist lesson-local relation proposals to `<output-root>/runs/runtime/<book-id>/<batch-anchor>.relation-proposals.jsonl` so normalization can replay them through SQLite runtime checks.
+- Persist lesson-local relation proposals in SQLite runtime staging, and export `<output-root>/runs/runtime/<book-id>/<batch-anchor>.relation-proposals.jsonl` only when a debug or replay dump is explicitly needed.
 - Only promote a proposal into a canonical edge when:
   - both endpoints are justified in the current constrained candidate context
   - the relation has explicit evidence support

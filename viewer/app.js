@@ -519,6 +519,7 @@ async function switchSource(sourceKey) {
 
 async function loadProjectData(source) {
   const payload = await fetchJson(source.bundlePath);
+  const books = normalizeApiBookBundles(payload.books || []);
   const mergedSource = {
     ...source,
     ...(payload.source || {}),
@@ -534,11 +535,36 @@ async function loadProjectData(source) {
     framework: payload.framework || EMPTY_FRAMEWORK,
     patterns: payload.patterns || EMPTY_PATTERNS,
     profiles: payload.profiles || [],
-    books: payload.books || [],
+    books,
     manifest: state.manifest,
     source: mergedSource,
     loadWarnings: payload.loadWarnings || [],
   };
+}
+
+function normalizeApiBookBundles(books) {
+  return (books || [])
+    .map((book) => {
+      const bookId = book.bookId || book.book_id || book.source_id;
+      if (!bookId) {
+        return null;
+      }
+      const normalizedEvidence = (book.evidence || []).map((item) =>
+        normalizeEvidence(item, bookId),
+      );
+      const evidenceById = new Map(normalizedEvidence.map((item) => [item.id, item]));
+      const normalizedMentions = (book.mentions || []).map((item) =>
+        normalizeMention(item, bookId, evidenceById),
+      );
+      return {
+        ...book,
+        bookId,
+        outline: book.outline || null,
+        evidence: normalizedEvidence,
+        mentions: normalizedMentions,
+      };
+    })
+    .filter(Boolean);
 }
 
 function resolveBookIndex(books, sourceKey) {
@@ -1889,6 +1915,8 @@ function renderSupportNodes(node) {
   const neighborEntries = getNeighborEntries(node).sort((a, b) =>
     a.otherNode.name.localeCompare(b.otherNode.name, "zh-CN"),
   );
+  const supportNeighbors = neighborEntries.filter((entry) => isSupportNode(entry.otherNode));
+  const backboneNeighbors = neighborEntries.filter((entry) => isBackboneNode(entry.otherNode));
   const expansionEntries = neighborEntries.filter((entry) => entry.edge.backbone_expand);
   const supportEntries = expansionEntries.filter((entry) => isSupportNode(entry.otherNode));
   const backboneEntries = expansionEntries.filter((entry) => isBackboneNode(entry.otherNode));
@@ -1899,9 +1927,13 @@ function renderSupportNodes(node) {
       : "当前没有一跳支撑节点";
 
     if (supportEntries.length === 0) {
+      const fallbackNote =
+        supportNeighbors.length > 0
+          ? "当前图里已经有支撑层邻居，但它们的边还没有标成 backbone_expand，所以暂时不能作为主干展开显示。"
+          : "这个主干节点目前还没有拆出支撑节点，后续可以继续补方法、实验、表征等支撑层。";
       els.detailSupport.innerHTML = `
         <div class="empty-state">
-          <p>这个主干节点目前还没有拆出支撑节点，后续可以继续补方法、实验、表征等支撑层。</p>
+          <p>${fallbackNote}</p>
         </div>
       `;
       return;
@@ -1923,9 +1955,13 @@ function renderSupportNodes(node) {
       : "当前是支撑节点";
 
     if (backboneEntries.length === 0) {
+      const fallbackNote =
+        backboneNeighbors.length > 0
+          ? "当前图里已经有相邻主干节点，但连接边还没有标成 backbone_expand，所以这里暂时看不到所属主干。"
+          : "这个支撑节点暂时还没有挂接到明确的主干节点。";
       els.detailSupport.innerHTML = `
         <div class="empty-state">
-          <p>这个支撑节点暂时还没有挂接到明确的主干节点。</p>
+          <p>${fallbackNote}</p>
         </div>
       `;
       return;

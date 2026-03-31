@@ -177,6 +177,42 @@ def export_edges_json(connection, dataset_id: str, output_root: str, edge_ids: l
     )
 
 
+def load_node_layers(connection, dataset_id: str) -> dict[str, str | None]:
+    rows = connection.execute(
+        "SELECT id, node_layer FROM nodes WHERE dataset_id = ?",
+        (dataset_id,),
+    ).fetchall()
+    return {row["id"]: row["node_layer"] for row in rows}
+
+
+def infer_edge_presentation(
+    properties: dict,
+    from_layer: str | None,
+    to_layer: str | None,
+) -> tuple[str, int]:
+    explicit_edge_layer = properties.get("edge_layer")
+    explicit_backbone_expand = properties.get("backbone_expand")
+
+    if explicit_edge_layer in {"backbone", "support"}:
+        edge_layer = explicit_edge_layer
+    else:
+        node_layers = {from_layer, to_layer}
+        if node_layers == {"backbone"}:
+            edge_layer = "backbone"
+        elif "support" in node_layers:
+            edge_layer = "support"
+        else:
+            edge_layer = "backbone"
+
+    if isinstance(explicit_backbone_expand, bool):
+        backbone_expand = int(explicit_backbone_expand)
+    else:
+        node_layers = {from_layer, to_layer}
+        backbone_expand = int(node_layers == {"backbone", "support"})
+
+    return edge_layer, backbone_expand
+
+
 def main() -> int:
     args = parse_args()
     connection = connect_db(args.db)
@@ -186,6 +222,7 @@ def main() -> int:
 
     proposals = select_proposals(connection, dataset_id, args)
     existing_edges = fetch_existing_edges(connection, dataset_id)
+    node_layers = load_node_layers(connection, dataset_id)
     results: list[dict[str, str]] = []
     promoted_edge_ids: list[str] = []
 
@@ -277,8 +314,11 @@ def main() -> int:
             edge_id = properties.get("edge_id") or make_edge_id(
                 proposal["from_node_id"], proposal["edge_type"], proposal["to_node_id"]
             )
-            edge_layer = properties.get("edge_layer", "backbone")
-            backbone_expand = int(bool(properties.get("backbone_expand", False)))
+            edge_layer, backbone_expand = infer_edge_presentation(
+                properties,
+                node_layers.get(proposal["from_node_id"]),
+                node_layers.get(proposal["to_node_id"]),
+            )
             directionality = properties.get("directionality", "directed")
             framework_refs = properties.get("framework_refs", [])
             profile_refs = properties.get("profile_refs", [])
