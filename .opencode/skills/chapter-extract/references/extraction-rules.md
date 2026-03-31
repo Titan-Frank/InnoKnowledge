@@ -83,14 +83,17 @@ Use `node_subkind` when a narrower label helps:
 
 ## Canonicalization
 
-- Prefer reusing existing canonical nodes in `data/v2/graph/knowledge.nodes.jsonl`.
-- Create or refine curriculum profiles in `data/v2/profiles/knowledge.profiles.jsonl`.
+- Prefer reusing existing canonical nodes in `<output-root>/graph/knowledge.nodes.jsonl`.
+- Create or refine curriculum profiles in `<output-root>/profiles/knowledge.profiles.jsonl`.
 - If the same canonical node is learned in a new stage or grade, add another curriculum profile for that context instead of replacing the old one.
 - Do not delete prior stage coverage during a new extraction pass. Existing junior-secondary and senior-secondary profiles may coexist on the same canonical node.
 - Use `framework_refs` primarily on profiles.
 - Do not create lesson nodes in the canonical graph.
 - Record lesson-level appearance through mentions, not through chapter-parent edges.
 - Record only backbone-worthy concepts and relations here. Detailed explanation should be deferred to node cards.
+- Before deciding reuse or relation creation, retrieve a small candidate node set using exact names, aliases, normalized terms, and filtered search.
+- Persist the batch retrieval inputs to `<output-root>/runs/runtime/<book-id>/<batch-anchor>.queries.jsonl` and use that artifact when calling `scripts/retrieve_candidates.py`.
+- Do not ask the extractor to reason over the whole canonical graph at once.
 
 ## Relation Selection
 
@@ -102,6 +105,16 @@ Use `node_subkind` when a narrower label helps:
 - Use `produces` and `consumes` only when the source clearly indicates a process relation.
 - Use `prerequisite_for` and `depends_on` sparingly and only when learning or semantic dependence is clear.
 - Prefer `related_to` over inventing a new relation type.
+- Extract relations in two steps:
+  - first as lesson-local proposals
+  - then as small-scope normalized canonical edges
+- Persist lesson-local relation proposals to `<output-root>/runs/runtime/<book-id>/<batch-anchor>.relation-proposals.jsonl` so normalization can replay them through SQLite runtime checks.
+- Only promote a proposal into a canonical edge when:
+  - both endpoints are justified in the current constrained candidate context
+  - the relation has explicit evidence support
+  - the relation does not conflict with an existing canonical edge without review
+- If a relation conflicts with an existing canonical edge, do not overwrite the older edge automatically.
+- If evidence is weak or absent, keep the relation out of the canonical graph.
 
 ## Edge Layer Selection
 

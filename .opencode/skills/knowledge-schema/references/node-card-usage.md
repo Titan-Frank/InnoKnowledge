@@ -24,7 +24,7 @@ Use node cards to expand one canonical node into a readable, evidence-backed exp
 
 Write cards to:
 
-- `data/v2/node_cards/<safe-node-id>.json`
+- `<output-root>/node_cards/<safe-node-id>.json`
 
 Where:
 
@@ -32,7 +32,7 @@ Where:
 
 Example:
 
-- `entity/substance:oxygen` -> `data/v2/node_cards/entity__substance__oxygen.json`
+- `entity/substance:oxygen` -> `<output-root>/node_cards/entity__substance__oxygen.json`
 
 ## What Belongs In A Card
 

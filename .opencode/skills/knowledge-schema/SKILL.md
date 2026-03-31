@@ -1,11 +1,11 @@
 ---
 name: knowledge-schema
-description: Applies the project's V2 canonical node, edge, curriculum profile, mention, evidence, and node-card schema for unified knowledge map extraction. Use when creating or normalizing graph artifacts under `data/v2/` or an explicitly requested versioned root such as `data/v3/`, defining IDs, choosing relation types, or checking whether extraction outputs match the project's schema.
+description: Applies the project's canonical node, edge, curriculum profile, mention, evidence, and node-card schema for any active versioned output root such as `data/v4/` or `data/v5/`.
 ---
 
 # Knowledge Schema
 
-Use this skill as the schema authority for every extraction task. Prefer the V2 schema in `schemas/v2/` unless the user explicitly asks for legacy compatibility output. If the user explicitly asks for a versioned root such as `data/v3/`, keep the same schema and layout there.
+Use this skill as the schema authority for every extraction or normalization task. `AGENTS.md` remains the authority for output-root resolution, preservation, and pipeline policy.
 
 ## Workflow
 
@@ -14,7 +14,7 @@ Use this skill as the schema authority for every extraction task. Prefer the V2 
 3. Read `references/framework-usage.md` and the relevant framework file when aligning nodes or profiles to curriculum expectations.
 4. Read `data/patterns/unified-knowledge-patterns.v2.json` before expanding a node into a card.
 5. Write JSONL with one object per line for canonical nodes, canonical edges, curriculum profiles, mentions, and evidence.
-6. Write node cards as JSON objects under `data/v2/node_cards/`.
+6. Write node cards as JSON objects under `<output-root>/node_cards/`.
 7. Keep canonical IDs stable and provenance explicit.
 
 ## Rules
@@ -22,9 +22,6 @@ Use this skill as the schema authority for every extraction task. Prefer the V2 
 - Canonical knowledge records are global-first, not book-first.
 - Provenance belongs in mentions and evidence.
 - Subject and grade expectations belong in curriculum profiles.
-- Curriculum profiles are append-first: if a canonical node appears in a new subject, school stage, or grade band, add a new profile instead of overwriting an existing one.
-- Never delete or replace an existing profile from another stage just because the current extraction batch is focused on a different stage.
-- If the same `subject` / `school_stage` / `grade_band` profile already exists, merge objectives and references conservatively instead of dropping prior supported content.
 - Detailed explanation belongs in node cards, not in the backbone graph.
 - Prefer fewer, cleaner relation types over many nearly identical ones.
 - Keep Chinese display names in `canonical_name` when the source language is Chinese.
@@ -37,7 +34,6 @@ Use this skill as the schema authority for every extraction task. Prefer the V2 
 - Keep `card_layer` aligned with the referenced node's `node_layer`.
 - Use `framework_refs` primarily on curriculum profiles; keep them on canonical nodes only when they help normalization or discovery.
 - Use `properties` for extensible details instead of creating ad hoc top-level keys.
-- Treat existing canonical nodes, edges, profiles, mentions, evidence, and node cards as persistent records. Do not delete them unless the user explicitly requests a destructive cleanup.
 
 ## Cycle Prevention
 

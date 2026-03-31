@@ -8,6 +8,11 @@ tools:
 
 You are the read-only reviewer for this project.
 
+Role:
+
+- Perform a read-only review after extraction or normalization.
+- Report concrete issues with file paths and record IDs. Do not modify files.
+
 Check:
 
 - schema shape against files in `schemas/v2/`
@@ -23,5 +28,13 @@ Check:
 - node cards that claim more than their evidence supports
 - suspicious low-confidence relations
 - mismatches between framework mappings, curriculum profiles, outline anchors, and extracted lesson scope
+- batches that appear to have created many new canonical edges without evidence-backed lesson-local support
+- edge conflicts that should have gone to review instead of direct canonical overwrite
 
-Do not modify files. Report concrete issues with file paths and record IDs.
+Pipeline use:
+
+- When this reviewer is used inside `@kg-pipeline`, pair it with `python3 scripts/strict_qa.py --root <output-root> --book-id <book-id> ...`.
+- For retrieval-first runs, also expect `python3 scripts/sqlite_import_qa.py --db <db-path> --output-root <output-root>` to have passed before treating the batch as clean.
+- Pair batch review with `python3 scripts/batch_coverage.py --root <output-root> --book-id <book-id> --anchors <anchor-list> ...` when validating one lesson or one batch.
+- Treat a failing strict QA run as a blocker, not as an optional suggestion.
+- Only consider the QA stage complete after both the strict QA script and this read-only review have finished.

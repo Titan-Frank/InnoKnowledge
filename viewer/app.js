@@ -857,6 +857,24 @@ function normalizeMention(item, fallbackBookId, evidenceById) {
   };
 }
 
+function getVisibleMentions(node) {
+  return (node.mentions || [])
+    .filter((mention) => state.selectedBook === "all" || mention.book_id === state.selectedBook)
+    .sort((a, b) => (a.properties?.page || 0) - (b.properties?.page || 0));
+}
+
+function getVisibleEvidence(node) {
+  const mentions = getVisibleMentions(node);
+  const evidenceIds = [...new Set(mentions.flatMap((mention) => mention.source_refs || []))];
+  return evidenceIds
+    .map((id) => state.data.evidenceById.get(id))
+    .filter(Boolean)
+    .sort(
+      (a, b) =>
+        (a.page_start ?? Number.MAX_SAFE_INTEGER) - (b.page_start ?? Number.MAX_SAFE_INTEGER),
+    );
+}
+
 function getPatternKeys(pattern) {
   const keys = new Set();
   if (pattern.node_type) {
@@ -1662,10 +1680,15 @@ async function renderDetail() {
 
 function renderBadges(node) {
   els.detailBadges.innerHTML = "";
+  const visibleMentions = getVisibleMentions(node);
+  const visibleEvidence = getVisibleEvidence(node);
+  const sourceScopeLabel = state.selectedBook === "all" ? "当前来源" : "当前教材";
   const badges = [
     getNodeLayerLabel(node.node_layer),
     node.id,
     `${node.degree} 条关联`,
+    `${sourceScopeLabel} ${visibleMentions.length} 条出现`,
+    `${sourceScopeLabel} ${visibleEvidence.length} 条证据`,
     ...(node.profiles || []).slice(0, 2).map((profile) => `${profile.subject} ${profile.grade_band}`),
     ...(node.framework_refs || []).slice(0, 2).map((ref) => {
       const topic = state.data.frameworkTopics.get(ref);
@@ -1987,6 +2010,7 @@ function renderMissingNodeCard(patternHints, node) {
   els.detailCard.innerHTML = `
     <div class="empty-state">
       <p>当前还没有这个节点的 node card，可以用 <code>@node-expander</code> 为它生成详细说明。</p>
+      <p>如果这是当前批次里的主干节点，建议在 QA 通过后把它纳入批量扩卡目标。</p>
     </div>
     ${patternHints
       .map((pattern) => {
@@ -2041,13 +2065,15 @@ function renderRelations(node) {
 }
 
 function renderMentions(node) {
-  const mentions = (node.mentions || [])
-    .filter((mention) => state.selectedBook === "all" || mention.book_id === state.selectedBook)
-    .sort((a, b) => (a.properties?.page || 0) - (b.properties?.page || 0));
+  const mentions = getVisibleMentions(node);
 
   if (mentions.length === 0) {
+    const scopeLabel = state.selectedBook === "all" ? "当前来源范围" : "当前教材";
     els.detailMentions.innerHTML = `
-      <div class="empty-state"><p>当前来源范围下没有这个节点的教材出现记录。</p></div>
+      <div class="empty-state">
+        <p>${scopeLabel}下没有这个节点的教材出现记录。</p>
+        <p>这通常表示该版本输出里还没有为这个节点写入对应的 mention。</p>
+      </div>
     `;
     return;
   }
@@ -2080,21 +2106,14 @@ function renderMentions(node) {
 }
 
 function renderEvidence(node) {
-  const mentions = (node.mentions || []).filter(
-    (mention) => state.selectedBook === "all" || mention.book_id === state.selectedBook,
-  );
-  const evidenceIds = [...new Set(mentions.flatMap((mention) => mention.source_refs || []))];
-  const evidence = evidenceIds
-    .map((id) => state.data.evidenceById.get(id))
-    .filter(Boolean)
-    .sort(
-      (a, b) =>
-        (a.page_start ?? Number.MAX_SAFE_INTEGER) - (b.page_start ?? Number.MAX_SAFE_INTEGER),
-    );
+  const evidence = getVisibleEvidence(node);
 
   if (evidence.length === 0) {
     els.detailEvidence.innerHTML = `
-      <div class="empty-state"><p>当前没有关联证据。</p></div>
+      <div class="empty-state">
+        <p>当前没有关联证据。</p>
+        <p>这通常表示 mention 的 <code>source_refs</code> 还没有连到有效 evidence。</p>
+      </div>
     `;
     return;
   }

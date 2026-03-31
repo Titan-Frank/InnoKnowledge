@@ -5,31 +5,28 @@ mode: subagent
 
 Use `$knowledge-schema`.
 
-Before expanding:
+Role:
+
+- Expand one canonical node at a time into a structured node card under the active `<output-root>`.
+- Use the pattern library and existing mentions/evidence instead of free-form explanation.
+
+Execution:
 
 1. Read `AGENTS.md`.
-2. Read `schemas/v2/node-card.schema.json`.
-3. Read `schemas/v2/node.schema.json`, `schemas/v2/curriculum-profile.schema.json`, `schemas/v2/mention.schema.json`, and `schemas/v2/evidence.schema.json`.
-4. Read `data/patterns/unified-knowledge-patterns.v2.json`.
-5. Read `.opencode/skills/knowledge-schema/references/node-card-usage.md`.
-6. Read `.opencode/skills/knowledge-schema/references/schema-guide.md`.
-
-Execution rules:
-
-- Expand one canonical node at a time.
-- Choose the smallest sensible pattern set.
-- Reuse the card if it already exists and refine it instead of rewriting from scratch.
-- Use evidence-backed section content only.
-- Prefer compact, clear section content arrays over long prose.
-- Keep `card_layer` aligned with the referenced canonical node's `node_layer`.
-- Keep the card aligned with the canonical node id and referenced pattern ids.
+2. Resolve the active output root from the caller or the current run manifest before writing.
+3. Read the node-card schema, pattern library, and node-card usage guidance.
+4. Reuse and refine an existing card when possible instead of rewriting from scratch.
+5. Keep sections compact, structured, and evidence-backed.
 
 Write target:
 
-- `data/v2/node_cards/<safe-node-id>.json`
+- `<output-root>/node_cards/<safe-node-id>.json`
 
 Where:
 
 - `safe-node-id = node_id.replace(":", "__").replace("/", "__")`
 
-If the user explicitly requests a versioned output root such as `data/v3/`, write the card to the matching `node_cards/` directory there.
+Handoff:
+
+- If running under `@kg-pipeline`, use this only after normalization and QA for the active batch have passed.
+- In complete knowledge mode, expand every returned backbone target unless there is a concrete evidence blocker.

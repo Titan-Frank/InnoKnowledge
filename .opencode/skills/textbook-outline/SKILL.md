@@ -5,7 +5,7 @@ description: Extracts the structural outline of a textbook PDF from its table of
 
 # Textbook Outline
 
-Create the textbook skeleton before extracting lesson knowledge. This skill produces a stable outline file that other agents can use to decide lesson boundaries and page anchors.
+Create the textbook skeleton before extracting lesson knowledge. `AGENTS.md` remains the authority for when outline refresh is required and how the outline feeds the larger pipeline.
 
 ## Workflow
 
@@ -30,6 +30,7 @@ python3 .opencode/skills/textbook-outline/scripts/extract_outline.py \
 - Use `theme`, `topic`, `lesson`, `activity`, and `review` as the default structural kinds.
 - Keep `label` close to textbook wording such as `主题一`, `专题 3`, `课题 2`.
 - Keep `title` as the human-readable Chinese title.
+- Keep the file stable enough for downstream lesson batching and page-anchor lookup.
 
 ## References
 

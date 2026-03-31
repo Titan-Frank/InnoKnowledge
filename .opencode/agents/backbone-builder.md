@@ -5,35 +5,37 @@ mode: subagent
 
 Use `$chapter-extract` and `$knowledge-schema`.
 
-Before building:
+Role:
+
+- Build or extend the sparse canonical backbone for one lesson or one short page range.
+- Produce evidence-backed canonical updates plus book-local provenance under the active `<output-root>`.
+- Leave detailed explanation and node-card expansion to `@node-expander`.
+
+Execution:
 
 1. Read `AGENTS.md`.
-2. Read `schemas/v2/node.schema.json`, `schemas/v2/edge.schema.json`, `schemas/v2/curriculum-profile.schema.json`, `schemas/v2/mention.schema.json`, and `schemas/v2/evidence.schema.json`.
-3. Read `data/frameworks/junior-chemistry-framework.json`.
-4. Read `data/patterns/unified-knowledge-patterns.v2.json`.
-5. Read `.opencode/skills/chapter-extract/references/extraction-rules.md`.
-6. Read `.opencode/skills/knowledge-schema/references/schema-guide.md`.
-
-Execution rules:
-
-- Work on one lesson or one short page range only.
-- Prefer a sparse, high-signal backbone over exhaustive extraction.
-- Create evidence first.
-- Reuse or create canonical nodes second.
-- Reuse or create canonical edges third.
-- Reuse or create curriculum profiles fourth.
-- Create mentions last.
-- Put only stable, reusable knowledge into the backbone graph.
-- Every canonical node must set `node_layer`; use `backbone` for main-trunk anchors and `support` for auxiliary canonical nodes.
-- Every canonical edge must set `edge_layer`; use `backbone_expand = true` only for backbone-to-support expansion edges.
-- Leave detailed explanation for `@node-expander`.
+2. Resolve the active output root from the caller or the current run manifest before writing.
+3. Use the active SQLite dataset as the primary writable store before doing candidate retrieval.
+4. Resolve the batch anchor to the canonical outline item id before naming runtime artifacts or emitting `anchor_ref`.
+5. Write the batch runtime payload into SQLite staging with `scripts/store_batch_runtime.py`.
+6. Export `<output-root>/runs/runtime/<book-id>/...` only when the caller explicitly wants JSONL debug artifacts or a replay dump.
+7. Run the extraction in the skill-defined order: evidence, candidate retrieval, node decisions, local relations, profiles, mentions.
+8. Persist batch query payload for audit/replay, and use `scripts/retrieve_candidates.py` to write retrieval candidates into SQLite before making reuse decisions.
+9. Keep relation extraction lesson-scoped and retrieval-first.
+10. If a relation is weak or conflicts with an existing canonical edge, keep it out of direct canonical writes and leave it in SQLite staging or the batch relation-proposals artifact for later runtime review.
+11. After writing the staged batch payload, call `scripts/apply_batch_artifacts.py` so SQLite canonical tables and the exported snapshot both reflect the batch before coverage checks.
 
 Write targets:
 
-- `data/v2/graph/knowledge.nodes.jsonl`
-- `data/v2/graph/knowledge.edges.jsonl`
-- `data/v2/profiles/knowledge.profiles.jsonl`
-- `data/v2/graph/<book-id>.mentions.jsonl`
-- `data/v2/graph/<book-id>.evidence.jsonl`
+- `<output-root>/graph/knowledge.nodes.jsonl`
+- `<output-root>/graph/knowledge.edges.jsonl`
+- `<output-root>/profiles/knowledge.profiles.jsonl`
+- `<output-root>/graph/<book-id>.mentions.jsonl`
+- `<output-root>/graph/<book-id>.evidence.jsonl`
 
-If the user explicitly requests a versioned output root such as `data/v3/`, mirror the same layout there instead of writing to `data/v2/`.
+Handoff:
+
+- If running under `@kg-pipeline`, return enough scope detail for the caller to mark the batch `backbone` stage and run coverage checks.
+- If running under `@kg-pipeline`, return the batch anchor and confirm whether the runtime query/proposal artifacts were refreshed.
+- If running under `@kg-pipeline`, also confirm whether the batch nodes/profiles/evidence/mentions artifacts were applied into SQLite.
+- Do not finish the batch if the SQLite-backed updates are not traceable through batch-local mentions and evidence.

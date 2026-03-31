@@ -1,45 +1,44 @@
 ---
 name: chapter-extract
-description: Extracts concepts, substances, experiments, methods, symbols, and evidence-backed relations from one textbook lesson or a small page range. Use when turning a lesson into canonical knowledge updates plus book-local mentions and evidence after the textbook outline already exists.
+description: Extracts one lesson or a small page range into evidence-backed canonical updates, curriculum profiles, mentions, and evidence under the active output root after the outline already exists.
 ---
 
 # Chapter Extract
 
-Use this skill on one lesson at a time. Keep extraction narrow and evidence-first so the graph stays reviewable.
+Use this skill for one lesson or one tightly scoped page range at a time. `AGENTS.md` remains the authority for pipeline order, preservation rules, output-root resolution, and evidence requirements.
 
 ## Workflow
 
 1. Read `AGENTS.md`.
 2. Read `schemas/v2/node.schema.json`, `schemas/v2/edge.schema.json`, `schemas/v2/curriculum-profile.schema.json`, `schemas/v2/mention.schema.json`, and `schemas/v2/evidence.schema.json`.
 3. Read `../knowledge-schema/references/schema-guide.md`, `../knowledge-schema/references/framework-usage.md`, and `references/extraction-rules.md`.
-4. Find the lesson page range from `data/outlines/<book-id>.outline.json`.
-5. Extract lesson text with `pdftotext -layout`.
-6. Create evidence records first.
-7. Reuse or create canonical nodes second.
-8. Reuse or create canonical edges third.
-9. Reuse or create curriculum profiles fourth.
-10. Create book-local mentions last.
+4. Locate the lesson scope from `data/outlines/<book-id>.outline.json`.
+5. Extract source text with `pdftotext -layout`.
+6. Work in this order:
+   - create batch-local evidence
+   - prepare batch-local query / node / profile / evidence / mention / proposal payloads
+   - retrieve a constrained candidate node set with `scripts/retrieve_candidates.py`
+   - decide node reuse or creation
+   - persist the batch runtime payload with `scripts/store_batch_runtime.py`
+   - export `<output-root>/runs/runtime/<book-id>/<batch-anchor>.*.jsonl` only when the caller wants debug files
+   - apply the batch artifacts into SQLite with `scripts/apply_batch_artifacts.py`
 
 ## Output Rules
 
 - Work on one lesson or one short page range only.
-- Update `data/v2/graph/knowledge.nodes.jsonl` and `data/v2/graph/knowledge.edges.jsonl` only when canonical additions are justified.
-- Update `data/v2/profiles/knowledge.profiles.jsonl` when the lesson provides a stable subject/stage projection for a canonical node.
-- Append new stage-specific curriculum profiles instead of overwriting profiles from other stages.
-- Never delete existing junior-secondary records while extracting senior-secondary material, or vice versa.
-- Write provenance to `data/v2/graph/<book-id>.mentions.jsonl` and `data/v2/graph/<book-id>.evidence.jsonl`.
-- If the user explicitly requests a versioned root such as `data/v3/`, write the same file layout there instead of `data/v2/`.
+- Use SQLite as the primary write target and treat `<output-root>/...` as the exported snapshot shape, not the live source of truth.
+- Update canonical nodes and edges only when the lesson provides evidence-backed canonical additions.
+- Append curriculum projections to `<output-root>/profiles/knowledge.profiles.jsonl`.
+- Write provenance to `<output-root>/graph/<book-id>.mentions.jsonl` and `<output-root>/graph/<book-id>.evidence.jsonl`.
+- Keep SQLite `batch_runtime_records` as the default replay source for one batch.
+- Export runtime JSONL files only when debugging, sharing, or replaying a batch outside SQLite is useful.
 - Keep one JSON object per line.
-- If a concept only appears in an activity, keep the activity evidence.
-- If an edge is only weakly implied, omit it or lower confidence.
-- Prefer V2 `node_kind`-aware ids such as `entity/substance:oxygen` or `activity/experiment:oxygen-content-determination`.
-- Every canonical node must set `node_layer` to `backbone` or `support`.
-- Every canonical edge must set `edge_layer`, and use `backbone_expand = true` only when the edge should open a support node from a backbone node.
-- Default to `support` for reusable but auxiliary methods, activities, representations, equipment, or issue nodes unless the user explicitly wants them in the visible backbone.
-- Write legacy `data/graph/` outputs only if the user explicitly asks for compatibility output.
-- Treat pre-existing canonical graph files as cumulative project memory. Do not remove existing nodes, edges, profiles, mentions, or evidence unless the user explicitly requests deletion.
+- Keep the extraction evidence-first and candidate-retrieval-first.
+- If a concept appears only inside an activity or experiment, preserve that activity evidence instead of inventing a stronger claim.
+- If a relation is weak, inferred, or conflicting, keep it out of canonical edges and leave it for review.
 
 ## References
 
 - `references/extraction-rules.md`
+- `../../../references/retrieval-first-extraction-architecture.md`
 - `../knowledge-schema/references/schema-guide.md`
