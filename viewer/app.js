@@ -94,19 +94,10 @@ const LAYER_MODE_OPTIONS = [
   },
 ];
 
-const MANIFEST_PATH = "../data/viewer/index.json?v=3";
-const DATA_ROOT_PATH = "../data/";
-const RESERVED_DATA_DIRS = new Set([
-  "frameworks",
-  "graph",
-  "node_cards",
-  "outlines",
-  "patterns",
-  "viewer",
-]);
-const VERSION_DIR_PATTERN = /^v[a-z0-9]+(?:[.-][a-z0-9]+)*$/i;
+const API_BASE = "/api";
+const META_PATH = `${API_BASE}/meta`;
 const SOURCE_QUERY_KEY = "source";
-const DEFAULT_SOURCE_KEY = "v1";
+const DEFAULT_SOURCE_KEY = "default";
 const DEFAULT_BOOK_INDEX = [];
 const EMPTY_FRAMEWORK = { domains: [] };
 const EMPTY_PATTERNS = { patterns: [] };
@@ -185,19 +176,53 @@ boot().catch((error) => {
     <p class="eyebrow">Load Error</p>
     <h2>数据加载失败</h2>
     <p>${detail}</p>
-    <p>请确认你是通过本地 HTTP 服务打开本页面，并检查 graph/framework/patterns 文件是否存在。</p>
+    <p>请确认本地 SQLite API 服务已经启动，并检查数据库里是否已有可用 dataset。</p>
   `;
 });
 
 async function boot() {
-  state.manifest = (await fetchOptionalJson(MANIFEST_PATH)) || {};
-  const discoveredSources = await discoverSourceConfigs();
-  state.sourceConfigs = resolveSourceConfigs(state.manifest, discoveredSources);
-  state.selectedSourceKey = resolveInitialSourceKey(state.manifest, state.sourceConfigs);
+  const meta = await fetchJson(META_PATH);
+  state.manifest = meta?.manifest || {};
+  state.sourceConfigs = resolveApiSourceConfigs(meta);
+  state.selectedSourceKey = resolveInitialSourceKey(
+    { default_source: meta?.active_source || meta?.default_source },
+    state.sourceConfigs,
+  );
   bindEvents();
   renderSourceControl();
   await switchSource(state.selectedSourceKey);
   startSimulation();
+}
+
+function resolveApiSourceConfigs(meta) {
+  const configs = new Map();
+  const sources = Array.isArray(meta?.sources) ? meta.sources : [];
+  sources.forEach((source) => {
+    const key = source?.key;
+    if (!key) {
+      return;
+    }
+    configs.set(key, {
+      key,
+      label: source.label || key.toUpperCase(),
+      description: source.description || "",
+      books: mergeBookSeeds(source.books, DEFAULT_BOOK_INDEX),
+      hasProfiles: Boolean(source.has_profiles ?? source.hasProfiles),
+      autoDiscovered: false,
+      bundlePath: `${API_BASE}/source/${encodeURIComponent(key)}/bundle`,
+      nodeCardPath: `${API_BASE}/source/${encodeURIComponent(key)}/node-card`,
+    });
+  });
+
+  if (configs.size === 0) {
+    throw new Error("SQLite API 没有返回任何可用数据集。");
+  }
+
+  return new Map(
+    Array.from(configs.entries()).sort(([leftKey], [rightKey]) =>
+      compareSourceKeys(leftKey, rightKey),
+    ),
+  );
 }
 
 function resolveSourceConfigs(manifest, discoveredSources = []) {
@@ -493,17 +518,27 @@ async function switchSource(sourceKey) {
 }
 
 async function loadProjectData(source) {
-  const warnings = [];
-  const [nodes, edges, framework, patterns, profiles] = await Promise.all([
-    fetchResourceJsonl(source.nodesPath, [], warnings, "节点文件"),
-    fetchResourceJsonl(source.edgesPath, [], warnings, "关系文件"),
-    fetchResourceJson(source.frameworkPath, EMPTY_FRAMEWORK, warnings, "课标文件"),
-    fetchResourceJson(source.patternsPath, EMPTY_PATTERNS, warnings, "模式库文件"),
-    fetchResourceJsonl(source.profilesPath, [], warnings, "画像文件"),
-  ]);
-  const books = await loadBookBundles(source.books, warnings);
-
-  return { nodes, edges, framework, patterns, profiles, books, manifest: state.manifest, source, loadWarnings: warnings };
+  const payload = await fetchJson(source.bundlePath);
+  const mergedSource = {
+    ...source,
+    ...(payload.source || {}),
+    hasProfiles: Boolean(
+      payload?.source?.hasProfiles ??
+        payload?.source?.has_profiles ??
+        source.hasProfiles,
+    ),
+  };
+  return {
+    nodes: payload.nodes || [],
+    edges: payload.edges || [],
+    framework: payload.framework || EMPTY_FRAMEWORK,
+    patterns: payload.patterns || EMPTY_PATTERNS,
+    profiles: payload.profiles || [],
+    books: payload.books || [],
+    manifest: state.manifest,
+    source: mergedSource,
+    loadWarnings: payload.loadWarnings || [],
+  };
 }
 
 function resolveBookIndex(books, sourceKey) {
@@ -1022,7 +1057,7 @@ function renderSourceControl() {
   if (source.autoDiscovered) {
     info.push("自动发现");
   }
-  if (source.profilesPath) {
+  if (source.hasProfiles) {
     info.push("含 profiles");
   }
   if (warnings.length > 0) {
@@ -2143,9 +2178,10 @@ async function loadNodeCard(nodeId) {
   if (state.cardCache.has(nodeId)) {
     return state.cardCache.get(nodeId);
   }
-  const safeId = nodeId.replaceAll(":", "__").replaceAll("/", "__");
-  const baseDir = state.data?.source?.nodeCardsDir || "../data/node_cards";
-  const card = await fetchOptionalJson(`${baseDir}/${safeId}.json`);
+  const basePath =
+    state.data?.source?.nodeCardPath ||
+    `${API_BASE}/source/${encodeURIComponent(state.selectedSourceKey || "")}/node-card`;
+  const card = await fetchOptionalJson(`${basePath}/${encodeURIComponent(nodeId)}`);
   state.cardCache.set(nodeId, card);
   return card;
 }

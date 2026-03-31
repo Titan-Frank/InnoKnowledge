@@ -7,14 +7,10 @@
 ### 启动 Viewer
 
 ```bash
-open viewer/index.html
-```
-
-或启动本地服务器：
-
-```bash
-python -m http.server 8080 -d .
-# 访问 http://localhost:8080/viewer/
+python3 scripts/viewer_sqlite_api.py \
+  --db storage/knowledge.sqlite \
+  --port 8765
+# 访问 http://127.0.0.1:8765/viewer/
 ```
 
 ### 抽取知识图谱
