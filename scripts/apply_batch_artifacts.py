@@ -16,6 +16,7 @@ from knowledge_store_common import (
     connect_db,
     dump_json_text,
     ensure_sqlite_schema,
+    normalize_learning_modes,
     iter_node_terms,
     load_batch_runtime_records,
     load_jsonl,
@@ -23,12 +24,6 @@ from knowledge_store_common import (
     require_dataset_row,
     resolve_dataset_id,
     resolve_outline_anchor,
-    resolve_runtime_artifact_path,
-    runtime_evidence_path,
-    runtime_mentions_path,
-    runtime_node_cards_path,
-    runtime_nodes_path,
-    runtime_profiles_path,
     version_key_from_output_root,
 )
 
@@ -50,11 +45,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mentions-file")
     parser.add_argument("--evidence-file")
     parser.add_argument("--node-cards-file")
-    parser.add_argument(
-        "--prefer-file-runtime",
-        action="store_true",
-        help="Prefer runtime JSONL files over SQLite batch_runtime_records when both exist.",
-    )
     parser.add_argument(
         "--export-snapshot",
         action="store_true",
@@ -131,29 +121,14 @@ def load_records(path: Path | None) -> list[dict[str, Any]]:
 def load_runtime_records(
     connection,
     dataset_id: str,
-    root: Path,
     book_id: str,
     batch_anchor: str,
     record_type: str,
     explicit_path: Path | None,
-    default_builder,
-    *,
-    prefer_file_runtime: bool,
 ) -> list[dict[str, Any]]:
     if explicit_path is not None:
         return load_records(explicit_path)
-
-    runtime_path = resolve_runtime_artifact_path(root, book_id, batch_anchor, default_builder)
-    if prefer_file_runtime:
-        file_records = load_records(runtime_path)
-        if file_records:
-            return file_records
-        return load_batch_runtime_records(connection, dataset_id, book_id, batch_anchor, record_type)
-
-    sqlite_records = load_batch_runtime_records(connection, dataset_id, book_id, batch_anchor, record_type)
-    if sqlite_records:
-        return sqlite_records
-    return load_records(runtime_path)
+    return load_batch_runtime_records(connection, dataset_id, book_id, batch_anchor, record_type)
 
 
 def canonicalize_source_anchor(
@@ -230,7 +205,11 @@ def upsert_nodes(connection, dataset_id: str, records: list[dict[str, Any]]) -> 
                 "node_subkind": record.get("node_subkind"),
                 "definition": record["definition"],
                 "aliases": stable_unique(incoming_aliases),
-                "learning_modes": list(record.get("learning_modes", [])),
+                "learning_modes": normalize_learning_modes(
+                    record.get("learning_modes"),
+                    record.get("node_kind"),
+                    record.get("node_layer"),
+                ),
                 "bridge_tags": list(record.get("bridge_tags", [])),
                 "framework_refs": list(record.get("framework_refs", [])),
                 "profile_refs": list(record.get("profile_refs", [])),
@@ -260,9 +239,13 @@ def upsert_nodes(connection, dataset_id: str, records: list[dict[str, Any]]) -> 
                 "node_subkind": choose_scalar(existing["node_subkind"], record.get("node_subkind")),
                 "definition": choose_scalar(existing["definition"], record.get("definition")),
                 "aliases": merged_aliases,
-                "learning_modes": merge_lists(
-                    json.loads(existing["learning_modes_json"] or "[]"),
-                    list(record.get("learning_modes", [])),
+                "learning_modes": normalize_learning_modes(
+                    merge_lists(
+                        json.loads(existing["learning_modes_json"] or "[]"),
+                        list(record.get("learning_modes", [])),
+                    ),
+                    choose_scalar(existing["node_kind"], record.get("node_kind")),
+                    choose_scalar(existing["node_layer"], record.get("node_layer")),
                 ),
                 "bridge_tags": merge_lists(
                     json.loads(existing["bridge_tags_json"] or "[]"),
@@ -888,57 +871,42 @@ def main() -> int:
     nodes = load_runtime_records(
         connection,
         dataset_id,
-        root,
         args.book_id,
         resolved_batch_anchor,
         "node",
         Path(args.nodes_file).expanduser().resolve() if args.nodes_file else None,
-        runtime_nodes_path,
-        prefer_file_runtime=args.prefer_file_runtime,
     )
     profiles = load_runtime_records(
         connection,
         dataset_id,
-        root,
         args.book_id,
         resolved_batch_anchor,
         "profile",
         Path(args.profiles_file).expanduser().resolve() if args.profiles_file else None,
-        runtime_profiles_path,
-        prefer_file_runtime=args.prefer_file_runtime,
     )
     mentions = load_runtime_records(
         connection,
         dataset_id,
-        root,
         args.book_id,
         resolved_batch_anchor,
         "mention",
         Path(args.mentions_file).expanduser().resolve() if args.mentions_file else None,
-        runtime_mentions_path,
-        prefer_file_runtime=args.prefer_file_runtime,
     )
     evidence = load_runtime_records(
         connection,
         dataset_id,
-        root,
         args.book_id,
         resolved_batch_anchor,
         "evidence",
         Path(args.evidence_file).expanduser().resolve() if args.evidence_file else None,
-        runtime_evidence_path,
-        prefer_file_runtime=args.prefer_file_runtime,
     )
     node_cards = load_runtime_records(
         connection,
         dataset_id,
-        root,
         args.book_id,
         resolved_batch_anchor,
         "node_card",
         Path(args.node_cards_file).expanduser().resolve() if args.node_cards_file else None,
-        runtime_node_cards_path,
-        prefer_file_runtime=args.prefer_file_runtime,
     )
 
     with connection:

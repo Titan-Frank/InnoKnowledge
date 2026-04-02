@@ -1,6 +1,6 @@
 ---
 name: textbook-outline
-description: Extracts the structural outline of a textbook PDF from its table of contents and anchors each item to a start page. Use when creating or refreshing `data/outlines/BOOK_ID.outline.json`, inspecting textbook hierarchy, or preparing lesson/page ranges before chapter-level knowledge extraction.
+description: Extracts the structural outline of an OCR-completed textbook source into anchored outline JSON. Use when creating or refreshing `data/outlines/BOOK_ID.outline.json`, inspecting textbook hierarchy, or preparing lesson/page ranges before chapter-level knowledge extraction.
 ---
 
 # Textbook Outline
@@ -10,18 +10,16 @@ Create the textbook skeleton before extracting lesson knowledge. `AGENTS.md` rem
 ## Workflow
 
 1. Read `AGENTS.md` and `schemas/outline.schema.json`.
-2. Inspect the table of contents with `pdftotext -layout` if needed.
-3. Prefer the bundled extraction script:
+2. If the source textbook is OCR-completed markdown, inspect markdown headings and explicit page markers first.
+3. Prefer markdown-first outline building:
 
 ```bash
-python3 .opencode/skills/textbook-outline/scripts/extract_outline.py \
-  --pdf "<path-to-book.pdf>" \
-  --book-id "<book-id>" \
-  --out "data/outlines/<book-id>.outline.json"
+rg -n "^(#{1,6})\\s+|^第[一二三四五六七八九十0-9]+[章单元课节专题主题]|^\\[?Page[[:space:]]+[0-9]+\\]?|^<!--\\s*page:" "<path-to-book.md>"
 ```
 
-4. Validate hierarchy and page numbers against the source pages.
-5. If a line is not parsed automatically, patch the resulting JSON conservatively and preserve the original `raw_line`.
+4. Build `data/outlines/<book-id>.outline.json` conservatively from the markdown hierarchy.
+5. Validate hierarchy and page anchors against the source markdown.
+6. If a line is not parsed automatically, patch the resulting JSON conservatively and preserve the original `raw_line`.
 
 ## Output Rules
 
@@ -31,8 +29,10 @@ python3 .opencode/skills/textbook-outline/scripts/extract_outline.py \
 - Keep `label` close to textbook wording such as `主题一`, `专题 3`, `课题 2`.
 - Keep `title` as the human-readable Chinese title.
 - Keep the file stable enough for downstream lesson batching and page-anchor lookup.
+- If working from OCR markdown, set `source_path` to the markdown source path.
+- If markdown contains explicit page markers, derive `page_start` from the nearest reliable marker.
+- If markdown lacks reliable page anchors, stop and report the blocker instead of fabricating page numbers.
 
 ## References
 
 - Read `references/output-contract.md` for the field-level contract.
-- Use the script in `scripts/extract_outline.py` instead of rewriting the parser from scratch.

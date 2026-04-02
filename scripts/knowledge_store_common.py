@@ -35,6 +35,29 @@ HIERARCHICAL_EDGE_TYPES = {
     "depends_on",
     "extends",
 }
+VALID_EDGE_TYPES = {
+    "is_a",
+    "instance_of",
+    "part_of",
+    "contains",
+    "prerequisite_for",
+    "depends_on",
+    "extends",
+    "explains",
+    "causes",
+    "affects",
+    "has_property",
+    "uses",
+    "measures",
+    "produces",
+    "consumes",
+    "applies_to",
+    "represented_by",
+    "symbolizes",
+    "analogous_to",
+    "same_as",
+    "related_to",
+}
 ANCHOR_ID_PATTERN = re.compile(r"^struct:(?P<book_id>[^:]+):(?P<kind>[^:]+):(?P<local>.+)$")
 
 
@@ -87,6 +110,42 @@ def utc_now() -> str:
 
 def normalize_term(value: str) -> str:
     return re.sub(r"\s+", " ", value.strip().lower())
+
+
+def infer_learning_modes(node_kind: str | None, node_layer: str | None = None) -> list[str]:
+    if node_kind in {"activity", "method", "skill"}:
+        return ["procedural"]
+    if node_kind == "representation":
+        return ["conceptual"]
+    if node_kind == "issue":
+        return ["conceptual"]
+    if node_kind == "entity":
+        return ["conceptual"] if node_layer == "backbone" else ["factual"]
+    return ["conceptual"]
+
+
+def normalize_learning_modes(
+    learning_modes: Iterable[str] | None,
+    node_kind: str | None,
+    node_layer: str | None = None,
+) -> list[str]:
+    cleaned = unique_stable(
+        mode
+        for mode in (learning_modes or [])
+        if mode in {"factual", "conceptual", "procedural", "metacognitive"}
+    )
+    if cleaned:
+        return cleaned
+    return infer_learning_modes(node_kind, node_layer)
+
+
+def require_valid_edge_type(edge_type: str) -> str:
+    if edge_type not in VALID_EDGE_TYPES:
+        allowed = ", ".join(sorted(VALID_EDGE_TYPES))
+        raise SystemExit(
+            f"Invalid edge_type '{edge_type}'. Use a schema-valid relation type only: {allowed}"
+        )
+    return edge_type
 
 
 def make_stable_suffix(*parts: str, length: int = 16) -> str:

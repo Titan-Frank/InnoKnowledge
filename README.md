@@ -1,8 +1,100 @@
 # Knowledge Map Extraction Project
 
-教材知识图谱构建工具。从教材 PDF 中抽取结构化的知识主干网络、课程画像、节点卡和证据链。
+教材知识图谱构建工具。当前默认从 OCR 完成的教材 markdown 中抽取结构化的知识主干、课程画像、证据链和节点卡。
 
-## 快速开始
+## 推荐入口
+
+最推荐的入口是 `@kg-pipeline`。
+
+```bash
+# 单课
+opencode run --agent build "@kg-pipeline 处理 <book-id> 的 <lesson-anchor>，输出到 data/v5"
+
+# 整本书
+opencode run --agent build "@kg-pipeline 处理 <book-id> 全书，按 lesson 分批抽取，输出到 data/v5"
+
+# 完整知识模式
+opencode run --agent build "@kg-pipeline 以完整知识模式处理 <book-id> 全书，按 lesson 分批抽取，输出到 data/v5"
+```
+
+如果要顺序跑多本教材，建议直接按 markdown 书稿逐本调用 `@kg-pipeline`。
+
+## 核心原则
+
+- SQLite 是执行期主写层。
+- `data/<version>/` 是按需导出的 snapshot。
+- 默认按 lesson 或小批次处理，不做整书大上下文抽取。
+- 关系抽取是 retrieval-first，不是 whole-graph free-form generation。
+- 默认候选召回使用 LightRAG-inspired `hybrid` 检索；必要时再切到 `local` 或 `mix`。
+- GraphRAG / LightRAG 风格的 local subgraph 和 group roll-up 只做辅助分析，不直接当 canonical evidence。
+
+## 最短上手流程
+
+### 1. 抽取 outline
+
+直接让 `@outline-reader` 读取 markdown 的标题层级和页码标记来生成 outline。
+
+常见做法是先人工抽查 markdown 里的结构信号：
+
+```bash
+rg -n "^(#{1,6})\\s+|^第[一二三四五六七八九十0-9]+[章单元课节专题主题]|^\\[?Page[[:space:]]+[0-9]+\\]?|^<!--\\s*page:" "/absolute/path/to/book.md"
+```
+
+然后让 `@outline-reader` 生成 `data/outlines/<book-id>.outline.json`。
+
+### 2. 初始化 manifest
+
+```bash
+python3 scripts/pipeline_manifest.py init \
+  --root data/v5 \
+  --book-id <book-id>
+```
+
+### 3. 如有需要，从 snapshot 恢复 SQLite
+
+只有在已有 `data/<version>/` snapshot、但 SQLite 需要重建时才需要这步：
+
+```bash
+python3 scripts/sync_output_root_to_sqlite.py data/v5 \
+  --db storage/knowledge.sqlite \
+  --replace --activate --preserve-runtime
+```
+
+### 4. 跑 pipeline
+
+推荐直接用 `@kg-pipeline`。如果你要人工盯单课，可以直接跑正式 batch closeout：
+
+```bash
+python3 scripts/run_sqlite_batch_pipeline.py \
+  --root data/v5 \
+  --book-id <book-id> \
+  --batch-anchor <lesson-anchor> \
+  --db storage/knowledge.sqlite
+```
+
+这个脚本现在默认会顺序做：
+
+- `apply_batch_artifacts.py`
+- `batch_coverage.py`
+- `local_subgraph.py`
+- `finalize_batch_runtime.py`
+- `strict_qa.py`
+- `batch_group_rollup.py`
+
+其中：
+
+- `local_subgraph.py` 没有 seeds 时会输出 skipped 报告，不会单独导致 batch 失败
+- `batch_group_rollup.py` 会在有 lesson window 时自动生成
+
+### 5. 完成后做最终检查
+
+```bash
+python3 scripts/pipeline_manifest.py check \
+  --manifest data/v5/runs/<book-id>.pipeline.json \
+  --require-final-qa
+```
+
+## 常用手工命令
 
 ### 启动 Viewer
 
@@ -10,173 +102,65 @@
 python3 scripts/viewer_sqlite_api.py \
   --db storage/knowledge.sqlite \
   --port 8765
-# 访问 http://127.0.0.1:8765/viewer/
 ```
 
-### 抽取知识图谱
+访问 [http://127.0.0.1:8765/viewer/](http://127.0.0.1:8765/viewer/)
 
-```bash
-# 单课抽取
-opencode run --agent build "@kg-pipeline 处理 <book-id> 的 <lesson-anchor>"
-
-# 整本书（按 lesson 分批）
-opencode run --agent build "@kg-pipeline 处理 <book-id> 全书，按 lesson 分批抽取"
-
-# 完整知识模式（自动把当前 batch 的主干节点纳入节点卡扩展）
-opencode run --agent build "@kg-pipeline 以完整知识模式处理 <book-id> 的 <lesson-anchor>"
-```
-
-严格模式下，`@kg-pipeline` 应先确定 `data/<version>/` 输出根，再初始化运行清单并在每批后执行严格 QA。
-当前推荐架构是：SQLite 作为主写数据库，`data/<version>/` 作为从 SQLite 导出的 snapshot，供 viewer / Git / 发布使用。
-
-## 核心概念
-
-| 概念 | 说明 |
-|------|------|
-| 主干节点 | 稳定的核心知识锚点（概念、原理、物质） |
-| 支撑节点 | 辅助节点（实验、方法、仪器） |
-| 课程画像 | 节点在特定学段/学科中的投影 |
-| 节点卡 | 单个节点的详细说明文档 |
-| 证据链 | 每个节点的教材来源追溯 |
-
-## Agent 流水线
-
-| Agent | 用途 |
-|-------|------|
-| `@outline-reader` | 提取教材目录 |
-| `@backbone-builder` | 抽取知识主干 |
-| `@graph-normalizer` | 归一化、去重 |
-| `@qa-reviewer` | 只读质量检查 |
-| `@node-expander` | 扩展节点卡 |
-| `@kg-pipeline` | 完整流水线 |
-
-## 输出结构
-
-```
-data/
-├── outlines/           # 教材目录
-├── frameworks/         # 课程框架
-├── patterns/           # 模式库
-└── v4/                 # 示例输出根（实际使用 data/<version>/）
-    ├── graph/          # 节点、边、mentions、evidence
-    ├── profiles/       # 课程画像
-    ├── node_cards/     # 节点卡
-    ├── qa/             # 严格 QA 报告
-    └── runs/           # pipeline manifest
-```
-
-## 工作流程
-
-1. 准备教材 PDF，分配 `book-id`
-2. 抽取目录骨架 → `data/outlines/<book-id>.outline.json`
-3. 按 lesson 抽取证据和局部节点，直接写入 SQLite
-4. 先检索候选节点，再做局部关系判断
-5. 对局部关系做小范围归一化和跨课链接
-6. 从 SQLite 导出 `data/<version>/` snapshot
-7. QA 检查
-8. 为重要节点生成节点卡
-
-## 关系抽取架构
-
-- 不做整库大上下文关系抽取
-- 先检索 top-k 候选节点，再判断复用 / 新建 / 建边
-- 先抽本课局部关系，再做小范围归一化
-- 所有 canonical edge 都必须有明确 evidence anchor
-- 新边如果和旧边冲突，先进入 review，不直接覆盖
-
-**建议粒度**：一次处理一课或一小段页码，避免整本书一次性抽取。
-
-SQLite 运行时链路可以按下面的顺序验证：
-
-```bash
-# 老库先升级 runtime schema，补 relation_proposal evidence_links 能力
-python3 scripts/upgrade_sqlite_runtime_schema.py --db storage/knowledge.sqlite --apply
-
-# 召回候选节点
-python3 scripts/retrieve_candidates.py 氧气 \
-  --db storage/knowledge.sqlite \
-  --dataset-id v3 \
-  --batch-anchor lesson-2-1-2 \
-  --write --replace
-
-# 写入关系提案
-python3 scripts/store_relation_proposals.py \
-  --db storage/knowledge.sqlite \
-  --dataset-id v3 \
-  --input /tmp/relation-proposals.jsonl \
-  --replace
-
-# 提升无冲突且证据充分的提案
-python3 scripts/promote_relation_proposals.py \
-  --db storage/knowledge.sqlite \
-  --dataset-id v3 \
-  --batch-anchor lesson-2-1-2
-
-# 统一做 SQLite QA
-python3 scripts/sqlite_import_qa.py \
-  --db storage/knowledge.sqlite \
-  --dataset-id v3
-```
-
-如果由 `@kg-pipeline` 驱动，推荐把这两步当成默认入口：
-
-```bash
-# 只有在从旧 snapshot 恢复数据库时，才需要这步 bootstrap
-python3 scripts/sync_output_root_to_sqlite.py data/v5 \
-  --db storage/knowledge.sqlite \
-  --replace --activate --preserve-runtime
-
-# 每批 backbone 写完后，统一完成 proposal -> promote -> SQLite QA
-python3 scripts/finalize_batch_runtime.py \
-  --root data/v5 \
-  --book-id <book-id> \
-  --batch-anchor <anchor-id> \
-  --db storage/knowledge.sqlite
-```
-
-如果当前 batch 的中间产物是刚抽出来的，推荐先直接写入 SQLite staging，而不是依赖 runtime JSONL 作为唯一中间层。`store_batch_runtime.py` 现在支持直接传 JSON 数组：
-
-```bash
-python3 scripts/store_batch_runtime.py \
-  --root data/v5 \
-  --book-id <book-id> \
-  --batch-anchor <anchor-id> \
-  --db storage/knowledge.sqlite \
-  --queries-json '[{"query_text":"氧气"}]' \
-  --nodes-json '[{"id":"entity/substance:oxygen","canonical_name":"氧气","node_kind":"entity","node_layer":"backbone","definition":"一种常见气体","aliases":[],"learning_modes":[],"bridge_tags":[],"framework_refs":[],"profile_refs":[],"same_as_refs":[],"properties":{},"status":"active"}]' \
-  --evidence-json '[{"id":"evidence:demo","source_type":"textbook","source_id":"<book-id>","anchor_ref":"<anchor-id>","excerpt":"氧气支持燃烧。","locator":"p.12","extraction_method":"manual","normalized_claims":[],"properties":{}}]' \
-  --mentions-json '[{"id":"mention:demo","source_type":"textbook","source_id":"<book-id>","anchor_ref":"<anchor-id>","target_type":"node","target_id":"entity/substance:oxygen","role":"teaches","source_refs":["evidence:demo"],"confidence":0.9,"properties":{}}]'
-```
-
-然后再应用和 finalize：
-
-```bash
-python3 scripts/apply_batch_artifacts.py \
-  --root data/v5 \
-  --book-id <book-id> \
-  --batch-anchor <anchor-id> \
-  --db storage/knowledge.sqlite
-
-python3 scripts/finalize_batch_runtime.py \
-  --root data/v5 \
-  --book-id <book-id> \
-  --batch-anchor <anchor-id> \
-  --db storage/knowledge.sqlite
-```
-
-如果一个 batch 的 runtime 工件已经准备好，也可以直接用单命令把整条 SQLite 流程走完：
+### 调整 batch pipeline 的 GraphRAG 辅助步骤
 
 ```bash
 python3 scripts/run_sqlite_batch_pipeline.py \
   --root data/v5 \
   --book-id <book-id> \
-  --batch-anchor <anchor-id> \
-  --db storage/knowledge.sqlite
+  --batch-anchor <lesson-anchor> \
+  --db storage/knowledge.sqlite \
+  --local-subgraph-hops 2 \
+  --batch-group-size 4
 ```
 
-`<anchor-id>` 推荐使用 outline 里的 canonical id，例如 `struct:chem-grade8-all-in-one:lesson:1-1-1`。批处理脚本也兼容常见简写如 `lesson-1-1-1`，但入库后的 `anchor_ref`、`batch_anchor` 和按需导出的 snapshot 会统一归一化成 canonical outline id。
+常用参数：
 
-如果只想把 viewer 所需 snapshot 从数据库重新导出：
+- `--skip-local-subgraph`
+- `--local-subgraph-hops 1|2`
+- `--local-subgraph-max-neighbors <n>`
+- `--local-subgraph-top-k <n>`
+- `--local-subgraph-node-id <node-id>`
+- `--batch-group-anchors <anchor1,anchor2,...>`
+- `--batch-group-size <n>`
+- `--skip-batch-group-rollup`
+
+### LightRAG 风格候选检索
+
+`scripts/retrieve_candidates.py` 现在支持多模式候选召回：
+
+- `local`: 只看 canonical name / alias / FTS，最保守
+- `global`: 从 lexical seed 出发扩一层关系邻域
+- `hybrid`: `local + global`，默认模式
+- `mix`: `hybrid + profile/evidence` 文本支持
+
+例子：
+
+```bash
+python3 scripts/retrieve_candidates.py 化学平衡 \
+  --db storage/knowledge.sqlite \
+  --dataset-id v4 \
+  --mode hybrid \
+  --limit 8
+
+python3 scripts/retrieve_candidates.py 温度 \
+  --db storage/knowledge.sqlite \
+  --dataset-id v4 \
+  --mode mix \
+  --limit 8
+```
+
+工作口径：
+
+- 默认先用 `hybrid`，让明确词面命中和局部图邻域一起参与候选排序
+- 当 lesson 里的术语比较松散、词面召回不足时，再用 `mix`
+- 不管哪种模式，候选都只是缩小判断范围，不直接当 evidence
+
+### 导出 snapshot
 
 ```bash
 python3 scripts/export_snapshot.py data/v5 \
@@ -184,92 +168,80 @@ python3 scripts/export_snapshot.py data/v5 \
   --dataset-id v5
 ```
 
-如果想在 finalize 或整条 batch pipeline 结束时顺手导出 snapshot，可以显式加上：
+### 完整知识模式下补节点卡
 
 ```bash
-python3 scripts/finalize_batch_runtime.py \
-  --root data/v5 \
-  --book-id <book-id> \
-  --batch-anchor <anchor-id> \
-  --db storage/knowledge.sqlite \
-  --export-snapshot
-```
-
-如果一个 batch 的抽取结果已经先写到了 runtime 工件目录，可以直接应用到 SQLite：
-
-```bash
-python3 scripts/apply_batch_artifacts.py \
-  --root data/v5 \
-  --book-id <book-id> \
-  --batch-anchor <anchor-id> \
-  --db storage/knowledge.sqlite
-```
-
-`apply_batch_artifacts.py` 现在默认优先读取 SQLite `batch_runtime_records` 里的 batch 数据；只有在 SQLite staging 里没有这批记录、并且你明确准备了 debug/replay 工件时，才会回退去读下面这些 runtime 文件：
-
-- `data/v5/runs/runtime/<book-id>/<anchor-id>.nodes.jsonl`
-- `data/v5/runs/runtime/<book-id>/<anchor-id>.profiles.jsonl`
-- `data/v5/runs/runtime/<book-id>/<anchor-id>.evidence.jsonl`
-- `data/v5/runs/runtime/<book-id>/<anchor-id>.mentions.jsonl`
-- `data/v5/runs/runtime/<book-id>/<anchor-id>.node-cards.jsonl`
-- `data/v5/runs/runtime/<book-id>/<anchor-id>.queries.jsonl`
-- `data/v5/runs/runtime/<book-id>/<anchor-id>.relation-proposals.jsonl`
-
-如果需要把 SQLite staging 里的某个 batch 重新导出成 JSONL 调试文件，可以用：
-
-```bash
-python3 scripts/export_batch_runtime.py \
-  --root data/v5 \
-  --book-id <book-id> \
-  --batch-anchor <anchor-id> \
-  --db storage/knowledge.sqlite
-```
-
-## 严格模式
-
-建议在 `@kg-pipeline` 中把下面两步作为默认动作：
-
-```bash
-# 初始化运行清单
-python3 scripts/pipeline_manifest.py init \
-  --root data/v4 \
-  --book-id <book-id>
-
-# 每批后执行严格 QA
-python3 scripts/strict_qa.py \
-  --root data/v4 \
-  --book-id <book-id>
-```
-
-```bash
-# 检查当前 batch 的 mention/evidence 覆盖
-python3 scripts/batch_coverage.py \
-  --root data/v4 \
-  --book-id <book-id> \
-  --anchors <anchor-id>
-
-# 列出当前 batch 缺失节点卡的主干节点
 python3 scripts/node_card_targets.py \
-  --root data/v4 \
+  --root data/v5 \
   --book-id <book-id> \
-  --anchors <anchor-id> \
+  --anchors <lesson-anchor> \
+  --db storage/knowledge.sqlite \
   --missing-only
 ```
 
-严格模式的完成条件：
+然后用 `@node-expander` 处理这些目标，再复跑：
 
-1. 每个 batch 的 `backbone -> normalize -> qa` 均已完成。
-2. 最终 QA 已完成。
-3. `python3 scripts/pipeline_manifest.py check --manifest data/<version>/runs/<book-id>.pipeline.json --require-final-qa` 通过。
+```bash
+python3 scripts/batch_coverage.py \
+  --root data/v5 \
+  --book-id <book-id> \
+  --anchors <lesson-anchor> \
+  --db storage/knowledge.sqlite \
+  --require-node-cards
+```
 
-如果用户要求“完整知识”，还要额外满足：
+## 输出位置
 
-1. 当前 batch 的 backbone 节点 mention/evidence 覆盖已通过 `batch_coverage.py`。
-2. 当前 batch 缺失的 backbone node card 已通过 `node_card_targets.py` 找出并补齐。
+执行期主数据在 SQLite。
 
-## 关键文件
+导出后的 snapshot 结构：
 
-- [AGENTS.md](AGENTS.md) - 项目规则
-- [schemas/v2/](schemas/v2/) - Schema 定义
-- [.opencode/agents/](.opencode/agents/) - Agent 定义
-- [.opencode/skills/](.opencode/skills/) - Skill 定义
+```text
+data/<version>/
+├── graph/
+│   ├── knowledge.nodes.jsonl
+│   ├── knowledge.edges.jsonl
+│   ├── <book-id>.mentions.jsonl
+│   └── <book-id>.evidence.jsonl
+├── profiles/
+│   └── knowledge.profiles.jsonl
+├── node_cards/
+├── qa/
+└── runs/
+    └── <book-id>.pipeline.json
+```
+
+另外还有：
+
+- `data/outlines/<book-id>.outline.json`
+- `storage/knowledge.sqlite`
+
+## 项目角色
+
+- `@outline-reader`: 提取教材目录
+- `@backbone-builder`: 抽取 batch-local backbone 和 runtime artifacts
+- `@graph-normalizer`: 做小范围归一化和保守提升
+- `@qa-reviewer`: 做只读 QA 复核
+- `@node-expander`: 扩展节点卡
+- `@kg-pipeline`: 负责编排完整流程
+
+## 低层脚本怎么理解
+
+平时优先用两层入口：
+
+- 编排入口：`@kg-pipeline`
+- 单批正式入口：`scripts/run_sqlite_batch_pipeline.py`
+
+这些低层脚本一般只在调试、恢复、或局部重跑时直接使用：
+
+- `scripts/store_batch_runtime.py`
+- `scripts/apply_batch_artifacts.py`
+- `scripts/finalize_batch_runtime.py`
+- `scripts/retrieve_candidates.py`（默认 `--mode hybrid`）
+- `scripts/local_subgraph.py`
+- `scripts/batch_group_rollup.py`
+- `scripts/strict_qa.py`
+
+## 更多规则
+
+更严格的执行约束、preservation policy、output contract 和 schema 约束见 [AGENTS.md](AGENTS.md)。

@@ -33,8 +33,7 @@ Check:
 
 Pipeline use:
 
-- When this reviewer is used inside `@kg-pipeline`, pair it with `python3 scripts/strict_qa.py --root <output-root> --book-id <book-id> --db <db-path> ...`.
-- For retrieval-first runs, also expect `python3 scripts/sqlite_import_qa.py --db <db-path> --dataset-id <dataset-id>` to have passed before treating the batch as clean.
-- Pair batch review with `python3 scripts/batch_coverage.py --root <output-root> --book-id <book-id> --anchors <anchor-list> --db <db-path> ...` when validating one lesson or one batch.
+- In `@kg-pipeline`, treat this as the read-only follow-up to scripted QA, especially `strict_qa.py` and batch coverage checks.
+- For retrieval-first runs, expect SQLite QA to have passed before treating a batch as clean.
 - Treat a failing strict QA run as a blocker, not as an optional suggestion.
-- Only consider the QA stage complete after both the strict QA script and this read-only review have finished.
+- Only consider QA complete after both scripted QA and this read-only review have finished.

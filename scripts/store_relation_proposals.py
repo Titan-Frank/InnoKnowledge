@@ -18,6 +18,7 @@ from knowledge_store_common import (
     load_batch_runtime_records,
     make_proposal_id,
     make_review_id,
+    require_valid_edge_type,
     require_dataset_row,
     resolve_outline_anchor,
     resolve_dataset_id,
@@ -126,7 +127,7 @@ def normalize_record(record: dict[str, Any], default_status: str) -> dict[str, A
     anchor_ref = resolve_outline_anchor(source_id, record["anchor_ref"], strict=False)
     from_node_id = record["from_node_id"]
     to_node_id = record["to_node_id"]
-    edge_type = record["edge_type"]
+    edge_type = require_valid_edge_type(record["edge_type"])
     confidence = float(record.get("confidence", 0.0))
     evidence_refs = list(record.get("evidence_refs", record.get("source_refs", [])))
     status = record.get("status", default_status)

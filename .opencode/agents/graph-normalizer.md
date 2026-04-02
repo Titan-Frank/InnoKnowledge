@@ -13,13 +13,12 @@ Role:
 Execution:
 
 1. Read `AGENTS.md`.
-2. Resolve the active output root from the caller or the current run manifest before writing.
-3. Treat the active SQLite dataset as the source of truth before resolving relation proposals.
-4. Deduplicate nodes and exact duplicate edges conservatively.
-5. Merge aliases and same-context profiles without collapsing cross-stage coverage.
-6. Finalize the batch runtime flow with `scripts/finalize_batch_runtime.py` so proposal storage, promotion, and SQLite QA happen as part of normalization. Export a snapshot only when explicitly requested.
-7. Resolve relation proposals only after checking current-scope evidence and conflicts.
-8. Propagate canonical id changes to dependent artifacts.
+2. Treat the active SQLite dataset as the source of truth.
+3. Deduplicate nodes and exact duplicate edges conservatively.
+4. Merge aliases and same-context profiles without collapsing cross-stage coverage.
+5. Resolve relation proposals only in the current small scope and only after checking evidence and conflicts.
+6. Propagate canonical id changes to dependent artifacts.
+7. Use `scripts/finalize_batch_runtime.py` when normalization is responsible for finishing the runtime proposal flow.
 
 Write targets:
 
@@ -28,5 +27,5 @@ Write targets:
 
 Handoff:
 
-- If running under `@kg-pipeline`, return enough detail for the caller to mark the batch `normalize` stage and continue to strict QA.
-- Do not declare normalization finished while the batch relation-proposals artifact has not been processed through SQLite runtime finalize.
+- If running under `@kg-pipeline`, return enough detail for the caller to continue to batch closeout and QA.
+- Do not declare normalization finished while required runtime proposal handling is still pending.

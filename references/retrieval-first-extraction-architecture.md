@@ -47,6 +47,13 @@
 
 在决定“复用旧节点 / 新建节点 / 建边”前，先为当前 lesson 中的每个候选概念检索 top-k 节点候选。
 
+推荐检索模式：
+
+- `local`: exact / alias / prefix / FTS，适合最保守的 replay / debug
+- `global`: 从 local seed 扩一层关系邻域，补足 relation context
+- `hybrid`: 默认模式，融合 local + global
+- `mix`: 在 `hybrid` 基础上，再让 profile / evidence 文本命中参与排序
+
 候选召回应优先使用：
 
 1. `id`
@@ -56,7 +63,7 @@
 5. `subject`
 6. `school_stage`
 7. `grade_band`
-8. FTS / embedding（作为补充，不作为唯一依据）
+8. FTS / profile / evidence text（作为补充，不作为唯一依据）
 
 ### Step 4: Candidate Filtering
 
@@ -182,8 +189,9 @@ review queue 至少应记录：
 
 1. exact name / alias match
 2. normalized term match
-3. filtered full-text search
-4. filtered embedding search
+3. filtered graph-neighborhood expansion
+4. filtered full-text search over node/profile/evidence text
+5. filtered embedding search
 
 embedding 是补充手段，不替代：
 

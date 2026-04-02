@@ -7,3 +7,4 @@ lesson1_*.txt
 .opencode/package.json
 .opencode/bun.lock
 data
+ocr

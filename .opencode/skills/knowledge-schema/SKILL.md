@@ -26,9 +26,11 @@ Use this skill as the schema authority for every extraction or normalization tas
 - Prefer fewer, cleaner relation types over many nearly identical ones.
 - Keep Chinese display names in `canonical_name` when the source language is Chinese.
 - Use `learning_modes` as an instructional tag, not as the primary ontology type.
+- `learning_modes` is required and must never be an empty array.
 - Use `node_kind` and optional `node_subkind` as the primary ontology axis.
 - Use `node_layer` to distinguish `backbone` nodes from `support` nodes.
 - Use `edge_layer` and `backbone_expand` to distinguish default trunk relations from support-expansion relations.
+- Edge and proposal `edge_type` values must stay inside the schema enum; prefer the nearest valid type instead of inventing a synonym.
 - Prefer `backbone` for stable, cross-stage knowledge anchors.
 - Prefer `support` for reusable but auxiliary methods, activities, representations, equipment, or issue nodes.
 - Keep `card_layer` aligned with the referenced node's `node_layer`.
@@ -38,24 +40,9 @@ Use this skill as the schema authority for every extraction or normalization tas
 
 ## Cycle Prevention
 
-**CRITICAL**: Hierarchical and dependency edge types must NOT form cycles.
+Hierarchical and dependency edge types must NOT form cycles. See `../graph-normalize/references/normalization-rules.md` for the complete list of edge types and cycle prevention rules.
 
-| Edge Type | Cycle Allowed | Reason |
-|-----------|---------------|--------|
-| `is_a` | ❌ NO | Type hierarchy |
-| `instance_of` | ❌ NO | Membership hierarchy |
-| `contains` | ❌ NO | Containment hierarchy |
-| `part_of` | ❌ NO | Membership hierarchy |
-| `prerequisite_for` | ❌ NO | Dependency chain |
-| `depends_on` | ❌ NO | Dependency chain |
-| `extends` | ❌ NO | Extension hierarchy |
-| `related_to` | ✅ YES | Association is allowed to be cyclic |
-| `explains` | ✅ YES | Mutual explanation can be valid |
-| `uses` | ✅ YES | Operational association can be cyclic |
-| `analogous_to` | ✅ YES | Analogy is naturally symmetric |
-| `same_as` | ✅ YES | Equivalence is symmetric |
-
-Before adding any hierarchical or dependency edge, verify it does not create a cycle.
+Before adding any hierarchical or dependency edge (`is_a`, `instance_of`, `contains`, `part_of`, `prerequisite_for`, `depends_on`, `extends`), verify it does not create a cycle.
 
 ## References
 

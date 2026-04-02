@@ -17,6 +17,7 @@ from knowledge_store_common import (
     collect_source_artifacts,
     dataset_id_from_output_root,
     dump_json_text,
+    normalize_learning_modes,
     iter_evidence_links,
     iter_node_terms,
     iter_profile_textbook_links,
@@ -321,7 +322,13 @@ def import_snapshot(connection: sqlite3.Connection, dataset_id: str, snapshot: A
                 node.get("node_subkind"),
                 node["definition"],
                 dump_json_text(node.get("aliases", [])),
-                dump_json_text(node.get("learning_modes", [])),
+                dump_json_text(
+                    normalize_learning_modes(
+                        node.get("learning_modes"),
+                        node.get("node_kind"),
+                        node.get("node_layer"),
+                    )
+                ),
                 dump_json_text(node.get("bridge_tags", [])),
                 dump_json_text(node.get("framework_refs", [])),
                 dump_json_text(node.get("profile_refs", [])),

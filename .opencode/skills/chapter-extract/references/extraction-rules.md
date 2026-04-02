@@ -5,9 +5,33 @@
 - Extract one lesson, one activity block, or one short page range at a time.
 - Avoid whole-book extraction in a single pass.
 - Treat textbook structure as provenance, not as the canonical knowledge tree.
+- Prefer GraphRAG-style micro-chunk extraction within the lesson rather than reasoning over the whole lesson body at once.
+
+## Outline Kind Selection
+
+Not all outline items should become canonical nodes. Follow these rules:
+
+| Outline Kind | Extract? | Notes |
+|--------------|----------|-------|
+| `lesson` | ✅ Yes | Core content, always extract |
+| `activity` | ✅ Yes | Experiments and activities, extract as `activity/experiment` nodes |
+| `topic` | ✅ Yes | Standalone topics like introduction/preface |
+| `theme` | ❌ No | Chapter/unit titles, only serve as parent containers for lessons |
+| `review` | ❌ No | Chapter review sections, do not create nodes or profiles |
+
+- `theme` and `review` items exist only as provenance anchors in the outline.
+- Do not create canonical nodes, profiles, mentions, or node cards for `theme` or `review` items.
+- Skip `theme` and `review` batches during backbone extraction.
 
 ## Evidence First
 
+- Split the current lesson into small evidence-bearing units before canonical decisions.
+- Good units:
+  - definition paragraph
+  - example paragraph
+  - experiment step block
+  - figure caption
+  - table-local row group
 - Create evidence records before nodes and edges.
 - Keep `excerpt` concise and local to the claim.
 - Use captions and tables only when they add information not already present in the body text.
@@ -172,12 +196,36 @@ Few-shot examples:
 - Do not create lesson nodes in the canonical graph.
 - Record lesson-level appearance through mentions, not through chapter-parent edges.
 - Record only backbone-worthy concepts and relations here. Detailed explanation should be deferred to node cards.
-- Before deciding reuse or relation creation, retrieve a small candidate node set using exact names, aliases, normalized terms, and filtered search.
-- Persist the batch retrieval inputs in SQLite runtime staging, and export `<output-root>/runs/runtime/<book-id>/<batch-anchor>.queries.jsonl` only when a debug or replay dump is explicitly needed.
+- Before deciding reuse or relation creation, retrieve a small seed candidate node set using exact names, aliases, normalized terms, and filtered search.
+- After seed retrieval, inspect only a narrow local subgraph around the most relevant candidates conceptually. Do not widen to the whole book or whole graph.
+- Persist the batch retrieval inputs in SQLite runtime staging.
 - Do not ask the extractor to reason over the whole canonical graph at once.
 
 ## Relation Selection
 
+- Use only schema-valid edge types:
+  - `is_a`
+  - `instance_of`
+  - `part_of`
+  - `contains`
+  - `prerequisite_for`
+  - `depends_on`
+  - `extends`
+  - `explains`
+  - `causes`
+  - `affects`
+  - `has_property`
+  - `uses`
+  - `measures`
+  - `produces`
+  - `consumes`
+  - `applies_to`
+  - `represented_by`
+  - `symbolizes`
+  - `analogous_to`
+  - `same_as`
+  - `related_to`
+- Do not invent near-synonyms such as `relates_to`, `represents`, `contrasts_with`, or `improves`.
 - Use `contains` and `part_of` only for stable structural relations.
 - Use `is_a` for clear type membership.
 - Use `has_property` when a property is stable and reusable.
@@ -189,7 +237,8 @@ Few-shot examples:
 - Extract relations in two steps:
   - first as lesson-local proposals
   - then as small-scope normalized canonical edges
-- Persist lesson-local relation proposals in SQLite runtime staging, and export `<output-root>/runs/runtime/<book-id>/<batch-anchor>.relation-proposals.jsonl` only when a debug or replay dump is explicitly needed.
+- Keep the batch-local provisional graph denser than the canonical graph when needed for review. Temporary support nodes and unresolved alternatives may exist locally as long as they remain evidence-backed.
+- Persist lesson-local relation proposals in SQLite runtime staging.
 - Only promote a proposal into a canonical edge when:
   - both endpoints are justified in the current constrained candidate context
   - the relation has explicit evidence support
@@ -209,13 +258,39 @@ Few-shot examples:
 
 ## Mention Selection
 
+- **Every canonical node must have at least one mention pointing to a textbook location.**
+- A node without a mention means it has no provenance in the source material and should not exist in the canonical graph.
 - Create a mention for every canonical node, edge, or profile that is substantively supported in the current lesson.
 - Use the mention `role` to preserve how the lesson treats the target, such as `introduces`, `defines`, `focuses_on`, `demonstrates`, or `reviews`.
+- When adding nodes manually (e.g., during normalization or edge supplementation), always:
+  1. Verify the node exists in the source textbook
+  2. Create the corresponding evidence and mention records
+  3. Link the mention to the appropriate anchor (lesson or activity)
+- Do not create nodes that do not appear in any textbook or curriculum source.
+
+## Required Minimal Fields
+
+- Every canonical node must include at least one `learning_modes` value.
+- Prefer these defaults when the source does not make the mode explicit:
+  - `concept`, `principle`, `process`, backbone `entity`, `representation` -> `conceptual`
+  - support `entity` -> `factual`
+  - `method`, `skill`, `activity` -> `procedural`
+  - `issue` -> `conceptual`
 
 ## Expansion Boundary
 
 - Do not write node cards during backbone extraction unless the user explicitly asks for it.
 - Keep the backbone sparse enough that a human can review it quickly.
+
+## Small-Group Roll-Up
+
+- After a small group of lessons, prepare a short thematic roll-up for normalization or QA.
+- This roll-up may summarize:
+  - recurring concepts
+  - duplicate naming drift
+  - likely missing cross-lesson links
+  - unstable terminology
+- Do not write the roll-up back as canonical nodes or canonical edges by default.
 
 ## Naming
 

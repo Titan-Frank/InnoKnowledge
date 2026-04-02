@@ -15,10 +15,11 @@ Use this skill after extraction and before graph import. `AGENTS.md` remains the
 4. Work under the active `<output-root>`.
 5. Deduplicate nodes and exact duplicate edges conservatively.
 6. Merge aliases, framework refs, and same-context curriculum profiles.
-7. Run `scripts/finalize_batch_runtime.py` for the active batch so relation proposals are stored, promoted conservatively, and exported back into the output root.
+7. Use `scripts/batch_group_rollup.py` when a small adjacent lesson window needs thematic review context.
 8. Resolve relation proposals only in the current small scope and only when evidence still supports them.
-9. Detect cycles in hierarchical and dependency edges.
-10. When canonical ids change, propagate updates to profiles, mentions, and node cards.
+9. Use `scripts/finalize_batch_runtime.py` when normalization is responsible for finishing the runtime proposal flow.
+10. Detect cycles in hierarchical and dependency edges.
+11. When canonical ids change, propagate updates to profiles, mentions, and node cards.
 
 ## Rules
 
@@ -29,6 +30,7 @@ Use this skill after extraction and before graph import. `AGENTS.md` remains the
 - Preserve `same_as` edges only if they are still useful for audit; otherwise fold them into aliases.
 - Do not merge across `node_kind` or `node_subkind` unless there is explicit evidence or explicit user approval.
 - Do not auto-accept a conflicting new relation just because it is newer. Prefer review over overwrite.
+- Treat GraphRAG-style thematic summaries as reviewer aids only. They may guide deduplication attention, but they are not direct evidence.
 - Hierarchical and dependency edges (`is_a`, `instance_of`, `contains`, `part_of`, `prerequisite_for`, `depends_on`, `extends`) must not form cycles.
 - Cycles in association edges (`related_to`, `explains`, `uses`) are acceptable.
 

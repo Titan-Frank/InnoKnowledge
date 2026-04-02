@@ -53,6 +53,15 @@ Use one or more:
 
 These are instructional descriptors, not ontology classes.
 
+This field is required and must contain at least one value.
+
+Practical defaults:
+
+- `concept`, `principle`, `process`, backbone `entity`, `representation` -> `conceptual`
+- support `entity` -> `factual`
+- `method`, `skill`, `activity` -> `procedural`
+- `issue` -> `conceptual`
+
 ### `properties`
 
 Use `properties` for compact, stable, structured facts that can be expressed as key-value data without losing meaning.
@@ -185,6 +194,8 @@ Preservation policy:
 
 Canonical edges are knowledge-to-knowledge relations. Lesson-level provenance belongs in mentions.
 
+Use only these schema-valid edge types. Do not invent near-synonyms such as `relates_to`, `represents`, `contrasts_with`, or `improves`.
+
 ## Edge Layer
 
 - `edge_layer = backbone`: the edge belongs in the default backbone view and usually connects two backbone nodes
@@ -224,7 +235,7 @@ Evidence records capture source-local support.
 - `anchor_ref`: the local source anchor
 - `excerpt`: a short, local supporting passage
 - `locator`: page, figure, table, section, or other locator string
-- `extraction_method`: manual, pdftotext, ocr, speech_to_text, mixed
+- `extraction_method`: manual, ocr, speech_to_text, mixed
 
 Keep evidence local and specific. One evidence record should support one localized claim or a tightly related cluster of claims.
 

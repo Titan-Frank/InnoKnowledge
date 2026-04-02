@@ -14,16 +14,23 @@ Role:
 Execution:
 
 1. Read `AGENTS.md`.
-2. Resolve the active output root from the caller or the current run manifest before writing.
-3. Use the active SQLite dataset as the primary writable store before doing candidate retrieval.
-4. Resolve the batch anchor to the canonical outline item id before naming runtime artifacts or emitting `anchor_ref`.
-5. Write the batch runtime payload into SQLite staging with `scripts/store_batch_runtime.py`.
-6. Export `<output-root>/runs/runtime/<book-id>/...` only when the caller explicitly wants JSONL debug artifacts or a replay dump.
-7. Run the extraction in the skill-defined order: evidence, candidate retrieval, node decisions, local relations, profiles, mentions.
-8. Persist batch query payload for audit/replay, and use `scripts/retrieve_candidates.py` to write retrieval candidates into SQLite before making reuse decisions.
-9. Keep relation extraction lesson-scoped and retrieval-first.
-10. If a relation is weak or conflicts with an existing canonical edge, keep it out of direct canonical writes and leave it in SQLite staging or the batch relation-proposals artifact for later runtime review.
-11. After writing the staged batch payload, call `scripts/apply_batch_artifacts.py` so SQLite canonical tables reflect the batch before coverage checks.
+2. Resolve the output root and canonical batch anchor.
+3. If the textbook source is already OCR-completed markdown, use the markdown lesson content as the default working source.
+4. Use SQLite as the primary writable store.
+5. Follow the chapter-extract skill order:
+   - micro-chunk evidence
+   - local claim grouping
+   - LightRAG-inspired seed retrieval, preferring `scripts/retrieve_candidates.py --mode hybrid`
+   - narrow local subgraph reasoning when needed
+   - node, profile, mention, evidence, and proposal payloads
+6. Persist the batch runtime payload with `scripts/store_batch_runtime.py`.
+7. Apply staged artifacts with `scripts/apply_batch_artifacts.py`.
+8. Leave weak or conflicting relations in runtime review flow instead of writing them directly as canonical edges.
+
+Retrieval notes:
+
+- Default to `--mode hybrid` so lexical node reuse and relation-neighborhood support are fused before reuse decisions.
+- Use `--mode mix` only when lesson terminology is sparse and profile/evidence text is needed as secondary recall.
 
 Write targets:
 
@@ -32,7 +39,5 @@ Write targets:
 
 Handoff:
 
-- If running under `@kg-pipeline`, return enough scope detail for the caller to mark the batch `backbone` stage and run coverage checks.
-- If running under `@kg-pipeline`, return the batch anchor and confirm whether the runtime query/proposal artifacts were refreshed.
-- If running under `@kg-pipeline`, also confirm whether the batch nodes/profiles/evidence/mentions artifacts were applied into SQLite.
+- If running under `@kg-pipeline`, return the canonical batch anchor and whether runtime artifacts were written and applied.
 - Do not finish the batch if the SQLite-backed updates are not traceable through batch-local mentions and evidence.

@@ -15,8 +15,6 @@ from knowledge_store_common import (
     require_dataset_row,
     resolve_dataset_id,
     resolve_outline_anchor,
-    resolve_runtime_artifact_path,
-    runtime_relation_proposals_path,
 )
 
 
@@ -34,7 +32,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dataset-id")
     parser.add_argument(
         "--proposal-file",
-        help="Optional explicit relation proposal JSONL path. Defaults to runs/runtime artifact path.",
+        help="Optional explicit relation proposal JSONL path.",
     )
     parser.add_argument(
         "--sync-from-snapshot",
@@ -76,16 +74,7 @@ def main() -> int:
     ensure_sqlite_schema(connection)
     dataset_id = resolve_dataset_id(connection, args.dataset_id, root)
     require_dataset_row(connection, dataset_id)
-    proposal_path = (
-        Path(args.proposal_file).expanduser().resolve()
-        if args.proposal_file
-        else resolve_runtime_artifact_path(
-            root,
-            args.book_id,
-            args.batch_anchor,
-            runtime_relation_proposals_path,
-        )
-    )
+    proposal_path = Path(args.proposal_file).expanduser().resolve() if args.proposal_file else None
 
     common = [sys.executable]
     dataset_args: list[str] = ["--dataset-id", dataset_id]
@@ -105,7 +94,7 @@ def main() -> int:
             ]
         )
 
-    if proposal_path.exists():
+    if proposal_path is not None and proposal_path.exists():
         run_step(
             common
             + [
@@ -118,7 +107,7 @@ def main() -> int:
                 *dataset_args,
             ]
         )
-    else:
+    elif proposal_path is None:
         runtime_cmd = common + [
             str(REPO_ROOT / "scripts" / "store_relation_proposals.py"),
             "--db",
@@ -127,6 +116,8 @@ def main() -> int:
             args.book_id,
             "--runtime-batch-anchor",
             resolved_batch_anchor,
+            "--default-status",
+            "accepted",
             "--replace",
             *dataset_args,
         ]
@@ -145,6 +136,8 @@ def main() -> int:
                 output=runtime_result.stdout,
                 stderr=runtime_result.stderr,
             )
+    else:
+        raise SystemExit(f"Proposal file not found: {proposal_path}")
 
     if not args.skip_promote:
         promote_args = common + [
