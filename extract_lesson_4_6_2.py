@@ -158,6 +158,38 @@ def main():
 
     new_backbone_nodes = []
 
+    # Check if concept:chemical-reaction exists, create if not
+    cursor.execute(
+        "SELECT 1 FROM nodes WHERE dataset_id = ? AND id = ?",
+        (DATASET_ID, "concept:chemical-reaction"),
+    )
+    if not cursor.fetchone():
+        cursor.execute(
+            """INSERT OR REPLACE INTO nodes 
+               (dataset_id, id, canonical_name, node_kind, node_layer, node_subkind, 
+                definition, aliases_json, learning_modes_json, bridge_tags_json, 
+                framework_refs_json, card_ref, status, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                DATASET_ID,
+                "concept:chemical-reaction",
+                "化学反应",
+                "concept",
+                "backbone",
+                None,
+                "有新物质生成的变化过程，是化学研究的核心对象。",
+                json.dumps(["化学变化"], ensure_ascii=False),
+                json.dumps(["conceptual"], ensure_ascii=False),
+                json.dumps(["chemical-reaction", "transformation"], ensure_ascii=False),
+                json.dumps(["framework:chem-grade8:topic:4-6"], ensure_ascii=False),
+                None,
+                "active",
+                now,
+                now,
+            ),
+        )
+        print("✓ Created concept:chemical-reaction (parent node)")
+
     # Node 1: 置换反应 (NEW)
     node_displacement = {
         "id": "concept:chemical-reaction:displacement",
@@ -322,7 +354,6 @@ def main():
             "grade_band": "grade_8",
             "curriculum_role": "introduced",
             "mastery_level": "understand",
-            "learning_modes": ["conceptual"],
             "objectives": [
                 "理解置换反应的定义和特征",
                 "能够识别和书写置换反应的化学方程式",
@@ -331,7 +362,6 @@ def main():
             "framework_refs": ["framework:chem-grade8:topic:4-6"],
             "textbook_refs": [BATCH_ANCHOR],
             "status": "active",
-            "created_at": now,
             "updated_at": now,
         },
         {
@@ -342,7 +372,6 @@ def main():
             "grade_band": "grade_8",
             "curriculum_role": "introduced",
             "mastery_level": "understand",
-            "learning_modes": ["conceptual"],
             "objectives": [
                 "理解复分解反应的定义和特征",
                 "能够识别复分解反应",
@@ -351,7 +380,6 @@ def main():
             "framework_refs": ["framework:chem-grade8:topic:4-6"],
             "textbook_refs": [BATCH_ANCHOR],
             "status": "active",
-            "created_at": now,
             "updated_at": now,
         },
         {
@@ -362,7 +390,6 @@ def main():
             "grade_band": "grade_8",
             "curriculum_role": "focuses_on",
             "mastery_level": "apply",
-            "learning_modes": ["procedural"],
             "objectives": [
                 "掌握书写化学方程式的三步骤",
                 "能够正确配平化学方程式",
@@ -371,7 +398,6 @@ def main():
             "framework_refs": ["framework:chem-grade8:topic:4-6"],
             "textbook_refs": [BATCH_ANCHOR],
             "status": "active",
-            "created_at": now,
             "updated_at": now,
         },
         {
@@ -382,7 +408,6 @@ def main():
             "grade_band": "grade_8",
             "curriculum_role": "focuses_on",
             "mastery_level": "understand",
-            "learning_modes": ["conceptual"],
             "objectives": [
                 "理解化学方程式的质的意义",
                 "理解化学方程式的量的意义",
@@ -391,7 +416,6 @@ def main():
             "framework_refs": ["framework:chem-grade8:topic:4-6"],
             "textbook_refs": [BATCH_ANCHOR],
             "status": "active",
-            "created_at": now,
             "updated_at": now,
         },
         {
@@ -402,12 +426,10 @@ def main():
             "grade_band": "grade_8",
             "curriculum_role": "introduced",
             "mastery_level": "recall",
-            "learning_modes": ["conceptual"],
             "objectives": ["了解氧化反应的概念", "能够识别简单的氧化反应"],
             "framework_refs": ["framework:chem-grade8:topic:4-6"],
             "textbook_refs": [BATCH_ANCHOR],
             "status": "active",
-            "created_at": now,
             "updated_at": now,
         },
         {
@@ -418,23 +440,24 @@ def main():
             "grade_band": "grade_8",
             "curriculum_role": "introduced",
             "mastery_level": "recall",
-            "learning_modes": ["conceptual"],
             "objectives": ["了解还原反应的概念", "能够识别简单的还原反应"],
             "framework_refs": ["framework:chem-grade8:topic:4-6"],
             "textbook_refs": [BATCH_ANCHOR],
             "status": "active",
-            "created_at": now,
             "updated_at": now,
         },
     ]
 
     for profile in profiles:
+        context_key = (
+            f"{profile['subject']}:{profile['school_stage']}:{profile['grade_band']}"
+        )
         cursor.execute(
             """INSERT OR REPLACE INTO profiles 
-               (dataset_id, id, node_id, subject, school_stage, grade_band, 
-                curriculum_role, mastery_level, learning_modes_json, objectives_json,
-                framework_refs_json, textbook_refs_json, status, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               (dataset_id, id, node_id, subject, school_stage, grade_band, context_key,
+                curriculum_role, mastery_level, learning_objectives_json,
+                framework_refs_json, textbook_refs_json, status, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 DATASET_ID,
                 profile["id"],
@@ -442,14 +465,13 @@ def main():
                 profile["subject"],
                 profile["school_stage"],
                 profile["grade_band"],
+                context_key,
                 profile["curriculum_role"],
                 profile["mastery_level"],
-                json.dumps(profile["learning_modes"], ensure_ascii=False),
                 json.dumps(profile["objectives"], ensure_ascii=False),
                 json.dumps(profile["framework_refs"], ensure_ascii=False),
                 json.dumps(profile["textbook_refs"], ensure_ascii=False),
                 profile["status"],
-                profile["created_at"],
                 profile["updated_at"],
             ),
         )
@@ -473,7 +495,6 @@ def main():
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p160-displacement-reaction"], ensure_ascii=False
             ),
-            "created_at": now,
         },
         # 复分解反应
         {
@@ -488,7 +509,6 @@ def main():
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p160-double-replacement"], ensure_ascii=False
             ),
-            "created_at": now,
         },
         # 化学方程式的书写
         {
@@ -503,7 +523,6 @@ def main():
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p158-equation-writing"], ensure_ascii=False
             ),
-            "created_at": now,
         },
         # 化学方程式的意义
         {
@@ -518,7 +537,6 @@ def main():
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p159-equation-info"], ensure_ascii=False
             ),
-            "created_at": now,
         },
         # 氧化反应
         {
@@ -533,7 +551,6 @@ def main():
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p160-oxidation-reduction"], ensure_ascii=False
             ),
-            "created_at": now,
         },
         # 还原反应
         {
@@ -548,7 +565,6 @@ def main():
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p160-oxidation-reduction"], ensure_ascii=False
             ),
-            "created_at": now,
         },
     ]
 
@@ -556,8 +572,8 @@ def main():
         cursor.execute(
             """INSERT OR REPLACE INTO mentions 
                (dataset_id, id, target_type, target_id, anchor_ref, source_type,
-                source_id, role, confidence, source_refs_json, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                source_id, role, confidence, source_refs_json)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 DATASET_ID,
                 mention["id"],
@@ -569,7 +585,6 @@ def main():
                 mention["role"],
                 mention["confidence"],
                 mention["source_refs_json"],
-                mention["created_at"],
             ),
         )
     print(f"✓ Created {len(mentions)} mentions")
@@ -582,99 +597,113 @@ def main():
         # 置换反应 is_a 化学反应 basic type
         {
             "id": "edge:chemical-reaction--contains--displacement",
-            "source": "concept:chemical-reaction",
-            "target": "concept:chemical-reaction:displacement",
-            "relation": "contains",
+            "from_id": "concept:chemical-reaction",
+            "to_id": "concept:chemical-reaction:displacement",
+            "edge_type": "contains",
             "edge_layer": "backbone",
             "backbone_expand": True,
+            "directionality": "directed",
+            "confidence": 0.95,
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p160-displacement-reaction"], ensure_ascii=False
             ),
-            "dataset_id": DATASET_ID,
+            "status": "active",
             "created_at": now,
         },
         # 复分解反应 is_a 化学反应 basic type
         {
             "id": "edge:chemical-reaction--contains--double-displacement",
-            "source": "concept:chemical-reaction",
-            "target": "concept:chemical-reaction:double-displacement",
-            "relation": "contains",
+            "from_id": "concept:chemical-reaction",
+            "to_id": "concept:chemical-reaction:double-displacement",
+            "edge_type": "contains",
             "edge_layer": "backbone",
             "backbone_expand": True,
+            "directionality": "directed",
+            "confidence": 0.95,
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p160-double-replacement"], ensure_ascii=False
             ),
-            "dataset_id": DATASET_ID,
+            "status": "active",
             "created_at": now,
         },
         # 氧化反应 is_a 反应类型
         {
             "id": "edge:reaction-classification--contains--oxidation",
-            "source": "concept:chemical-reaction",
-            "target": "concept:chemical-reaction:oxidation",
-            "relation": "contains",
+            "from_id": "concept:chemical-reaction",
+            "to_id": "concept:chemical-reaction:oxidation",
+            "edge_type": "contains",
             "edge_layer": "backbone",
             "backbone_expand": False,
+            "directionality": "directed",
+            "confidence": 0.9,
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p160-oxidation-reduction"], ensure_ascii=False
             ),
-            "dataset_id": DATASET_ID,
+            "status": "active",
             "created_at": now,
         },
         # 还原反应 is_a 反应类型
         {
             "id": "edge:reaction-classification--contains--reduction",
-            "source": "concept:chemical-reaction",
-            "target": "concept:chemical-reaction:reduction",
-            "relation": "contains",
+            "from_id": "concept:chemical-reaction",
+            "to_id": "concept:chemical-reaction:reduction",
+            "edge_type": "contains",
             "edge_layer": "backbone",
             "backbone_expand": False,
+            "directionality": "directed",
+            "confidence": 0.9,
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p160-oxidation-reduction"], ensure_ascii=False
             ),
-            "dataset_id": DATASET_ID,
+            "status": "active",
             "created_at": now,
         },
         # 化学方程式的书写 uses 化学方程式
         {
             "id": "edge:equation-writing--uses--chemical-equation",
-            "source": "skill:equation-writing",
-            "target": "representation:chemical-equation",
-            "relation": "uses",
+            "from_id": "skill:equation-writing",
+            "to_id": "representation:chemical-equation",
+            "edge_type": "uses",
             "edge_layer": "backbone",
             "backbone_expand": True,
+            "directionality": "directed",
+            "confidence": 0.9,
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p158-equation-writing"], ensure_ascii=False
             ),
-            "dataset_id": DATASET_ID,
+            "status": "active",
             "created_at": now,
         },
         # 化学方程式的意义 explains 化学方程式
         {
             "id": "edge:equation-meaning--explains--chemical-equation",
-            "source": "concept:chemical-equation:meaning",
-            "target": "representation:chemical-equation",
-            "relation": "explains",
+            "from_id": "concept:chemical-equation:meaning",
+            "to_id": "representation:chemical-equation",
+            "edge_type": "explains",
             "edge_layer": "backbone",
             "backbone_expand": True,
+            "directionality": "directed",
+            "confidence": 0.9,
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p159-equation-info"], ensure_ascii=False
             ),
-            "dataset_id": DATASET_ID,
+            "status": "active",
             "created_at": now,
         },
         # 置换反应和氧化还原的关系
         {
             "id": "edge:displacement--related_to--oxidation",
-            "source": "concept:chemical-reaction:displacement",
-            "target": "concept:chemical-reaction:oxidation",
-            "relation": "related_to",
+            "from_id": "concept:chemical-reaction:displacement",
+            "to_id": "concept:chemical-reaction:oxidation",
+            "edge_type": "related_to",
             "edge_layer": "backbone",
             "backbone_expand": False,
+            "directionality": "bidirectional",
+            "confidence": 0.85,
             "source_refs_json": json.dumps(
                 ["evidence:chem:4-6-2:p160-oxidation-reduction"], ensure_ascii=False
             ),
-            "dataset_id": DATASET_ID,
+            "status": "active",
             "created_at": now,
         },
     ]
@@ -682,18 +711,21 @@ def main():
     for edge in edges:
         cursor.execute(
             """INSERT OR REPLACE INTO edges 
-               (dataset_id, id, source, target, relation, edge_layer, backbone_expand,
-                source_refs_json, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               (dataset_id, id, from_id, to_id, edge_type, edge_layer, backbone_expand,
+                directionality, confidence, source_refs_json, status, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
-                edge["dataset_id"],
+                DATASET_ID,
                 edge["id"],
-                edge["source"],
-                edge["target"],
-                edge["relation"],
+                edge["from_id"],
+                edge["to_id"],
+                edge["edge_type"],
                 edge["edge_layer"],
-                edge["backbone_expand"],
+                1 if edge["backbone_expand"] else 0,
+                edge["directionality"],
+                edge["confidence"],
                 edge["source_refs_json"],
+                edge["status"],
                 edge["created_at"],
             ),
         )
@@ -705,8 +737,8 @@ def main():
 
     node_cards = [
         {
-            "id": "node-card:concept:chemical-reaction:displacement",
             "node_id": "concept:chemical-reaction:displacement",
+            "id": "node-card:concept:chemical-reaction:displacement",
             "card_layer": "backbone",
             "title": "置换反应",
             "summary": "置换反应是一种基本的化学反应类型，指一种单质与一种化合物反应，生成另一种单质和另一种化合物。例如氧化铜与木炭在高温下反应生成铜和二氧化碳。置换反应通常涉及元素化合价的变化，与氧化还原反应密切相关。",
@@ -750,12 +782,11 @@ def main():
                 ensure_ascii=False,
             ),
             "status": "active",
-            "created_at": now,
             "updated_at": now,
         },
         {
-            "id": "node-card:concept:chemical-reaction:double-displacement",
             "node_id": "concept:chemical-reaction:double-displacement",
+            "id": "node-card:concept:chemical-reaction:double-displacement",
             "card_layer": "backbone",
             "title": "复分解反应",
             "summary": "复分解反应是两种化合物相互交换成分生成另外两种化合物的化学反应。这类反应是离子反应的重要类型，在酸碱盐的反应中普遍存在。复分解反应的特征是各元素的化合价在反应前后不发生变化。",
@@ -795,12 +826,11 @@ def main():
                 ensure_ascii=False,
             ),
             "status": "active",
-            "created_at": now,
             "updated_at": now,
         },
         {
-            "id": "node-card:skill:equation-writing",
             "node_id": "skill:equation-writing",
+            "id": "node-card:skill:equation-writing",
             "card_layer": "backbone",
             "title": "化学方程式的书写",
             "summary": "书写化学方程式是化学学习的基本技能，遵循'写、配、标'三步骤。首先需要根据反应事实写出反应物和生成物的化学式，然后通过配平使两边原子种类和数目相等，最后标注反应条件和生成物状态。化学方程式是化学语言的核心，能够准确表达化学反应的质和量两方面信息。",
@@ -846,12 +876,11 @@ def main():
                 ensure_ascii=False,
             ),
             "status": "active",
-            "created_at": now,
             "updated_at": now,
         },
         {
-            "id": "node-card:concept:chemical-equation:meaning",
             "node_id": "concept:chemical-equation:meaning",
+            "id": "node-card:concept:chemical-equation:meaning",
             "card_layer": "backbone",
             "title": "化学方程式的意义",
             "summary": "化学方程式蕴含丰富的化学信息，从质和量两方面反映化学反应。质的方面包括反应物、生成物和反应条件；量的方面包括微观粒子数目比和质量关系。通过化学方程式可以进行反应物用量或产物产量的计算，实现物质之间的定量转化。",
@@ -891,12 +920,11 @@ def main():
                 ensure_ascii=False,
             ),
             "status": "active",
-            "created_at": now,
             "updated_at": now,
         },
         {
-            "id": "node-card:concept:chemical-reaction:oxidation",
             "node_id": "concept:chemical-reaction:oxidation",
+            "id": "node-card:concept:chemical-reaction:oxidation",
             "card_layer": "backbone",
             "title": "氧化反应",
             "summary": "氧化反应是物质与氧结合或失去电子的化学反应。从初中化学角度，主要指物质得到氧的反应，如氢气与氧化铜反应生成水时，氢气得到氧形成水。氧化反应与还原反应总是同时发生，构成氧化还原反应。",
@@ -936,12 +964,11 @@ def main():
                 ensure_ascii=False,
             ),
             "status": "active",
-            "created_at": now,
             "updated_at": now,
         },
         {
-            "id": "node-card:concept:chemical-reaction:reduction",
             "node_id": "concept:chemical-reaction:reduction",
+            "id": "node-card:concept:chemical-reaction:reduction",
             "card_layer": "backbone",
             "title": "还原反应",
             "summary": "还原反应是含氧化合物失去氧或得到电子的化学反应。从微观角度看，是元素化合价降低的过程。在氢气还原氧化铜的反应中，氧化铜失去氧变成单质铜，这就是典型的还原反应。还原反应与氧化反应相伴发生。",
@@ -981,7 +1008,6 @@ def main():
                 ensure_ascii=False,
             ),
             "status": "active",
-            "created_at": now,
             "updated_at": now,
         },
     ]
@@ -989,19 +1015,18 @@ def main():
     for card in node_cards:
         cursor.execute(
             """INSERT OR REPLACE INTO node_cards 
-               (dataset_id, id, node_id, card_layer, title, summary, sections_json, 
-                status, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               (dataset_id, node_id, id, card_layer, title, summary, sections_json, 
+                status, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 DATASET_ID,
-                card["id"],
                 card["node_id"],
+                card["id"],
                 card["card_layer"],
                 card["title"],
                 card["summary"],
                 card["sections_json"],
                 card["status"],
-                card["created_at"],
                 card["updated_at"],
             ),
         )
