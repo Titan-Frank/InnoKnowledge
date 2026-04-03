@@ -15,25 +15,82 @@ Role:
 
 Check:
 
-- schema shape against files in `schemas/v2/`
-- canonical nodes whose `node_layer` is missing or suspicious for their role
-- canonical edges whose `edge_layer` / `backbone_expand` are missing or suspicious for their endpoints
-- duplicate or near-duplicate nodes
-- canonical edges whose endpoints are missing
-- curriculum profiles whose `node_id` is missing
-- mentions without evidence
-- evidence without outline anchors
-- node cards whose `card_layer` does not match the referenced canonical node layer
-- node cards whose section ids do not align with their pattern refs
-- node cards that claim more than their evidence supports
-- suspicious low-confidence relations
-- mismatches between framework mappings, curriculum profiles, outline anchors, and extracted lesson scope
-- batches that appear to have created many new canonical edges without evidence-backed lesson-local support
-- edge conflicts that should have gone to review instead of direct canonical overwrite
+**Follow the Review Checklist in `AGENTS.md`:**
+
+1. **Schema Validation**
+   - All records schema-valid against `schemas/v2/`
+
+2. **Five-Category Completeness (CRITICAL)** ⭐
+   For every backbone node, verify ALL FIVE exist:
+   - [ ] Canonical Node (base record)
+   - [ ] Curriculum Profile (subject, grade, objectives)
+   - [ ] Evidence (textbook excerpt with location)
+   - [ ] Mention (link node to lesson)
+   - [ ] Node Card (summary + required sections)
+   
+   Missing any category = BLOCKER
+
+3. **Node Card Quality**
+   - Has non-empty summary (100-200 words)
+   - Has all required sections: definition, essence, key_points, example, application, misconception
+   - Each section has source_refs to evidence
+   - Uses evidence from current lesson (fresh context)
+
+4. **Data Integrity**
+   - No duplicate nodes (check whitespace/punctuation/aliases)
+   - canonical edges have valid endpoints
+   - mentions link to existing evidence
+   - No orphaned records
+
+5. **Edge Quality**
+   - Valid edge_type from allowed enum
+   - Valid edge_layer / backbone_expand
+   - Evidence-backed (not inferred)
 
 Pipeline use:
 
-- In `@kg-pipeline`, treat this as the read-only follow-up to scripted QA, especially `strict_qa.py` and batch coverage checks.
-- For retrieval-first runs, expect SQLite QA to have passed before treating a batch as clean.
-- Treat a failing strict QA run as a blocker, not as an optional suggestion.
-- Only consider QA complete after both scripted QA and this read-only review have finished.
+**When to call this Checklist:**
+
+1. **After every lesson** (`@lesson-extractor` Step 5)
+   - Before marking lesson complete
+   - Must pass all completeness checks
+   - BLOCKER if any category missing
+
+2. **After `@kg-pipeline` batch** (Phase 3/4)
+   - Read-only review after scripted QA
+   - Use as second opinion on data quality
+   - Reference specific checklist items in reports
+
+3. **Before finalizing dataset** (Phase 5)
+   - Full-book completeness verification
+   - Cross-batch consistency check
+   - Final sign-off
+
+**Who calls:**
+- `@lesson-extractor` delegates to `@qa-reviewer` after closeout
+- `@kg-pipeline` can delegate for batch-level review
+- Manual review before major releases
+
+**Blocking rule:**
+- Treat a failing strict QA run as a blocker
+- Treat missing "Five-Category Completeness" as a blocker
+- Only consider QA complete after both scripted QA and this review have passed
+
+## Code Management
+
+When generating or executing code:
+
+1. **Temporary Code**: Do NOT save
+   - One-off scripts for debugging
+   - Quick prototypes
+   - Throwaway verification scripts
+
+2. **Reusable Code**: Save to project
+   - Utility scripts that solve common problems
+   - Reusable functions/modules
+   - Scripts in `scripts/` directory
+
+3. **Specified Code Errors**: Fix as needed
+   - If documented commands/scripts have errors, fix them based on actual context
+   - Update documentation if the fix is permanent
+   - Report significant discrepancies to user

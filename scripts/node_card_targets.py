@@ -9,7 +9,7 @@ import argparse
 import json
 from pathlib import Path
 
-from export_snapshot import export_mentions, export_node_cards, export_nodes
+from knowledge_store_common import load_mentions, load_node_cards_cards, load_nodes
 from knowledge_store_common import (
     DEFAULT_DB_PATH,
     connect_db,
@@ -45,14 +45,14 @@ def main() -> int:
     require_dataset_row(connection, dataset_id)
     anchor_set = set(resolve_outline_anchors(args.book_id, split_csv(args.anchors), strict=True))
 
-    nodes = export_nodes(connection, dataset_id)
+    nodes = load_nodes(connection, dataset_id)
     mentions = [
         record
-        for record in export_mentions(connection, dataset_id)
+        for record in load_mentions(connection, dataset_id)
         if record.get("source_type") == "textbook" and record.get("source_id") == args.book_id
     ]
     node_by_id = {record["id"]: record for record in nodes if record.get("id")}
-    node_card_ids = {record["node_id"] for record in export_node_cards(connection, dataset_id)}
+    node_card_ids = {record["node_id"] for record in load_node_cards_cards(connection, dataset_id)}
 
     target_node_ids = sorted(
         {

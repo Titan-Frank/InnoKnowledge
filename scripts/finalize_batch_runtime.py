@@ -35,7 +35,6 @@ def parse_args() -> argparse.Namespace:
         help="Optional explicit relation proposal JSONL path.",
     )
     parser.add_argument(
-        "--sync-from-snapshot",
         action="store_true",
         help="Sync the output-root snapshot into SQLite before storing/promoting proposals.",
     )
@@ -79,7 +78,6 @@ def main() -> int:
     common = [sys.executable]
     dataset_args: list[str] = ["--dataset-id", dataset_id]
 
-    if args.sync_from_snapshot:
         run_step(
             common
             + [
@@ -152,11 +150,11 @@ def main() -> int:
             promote_args.append("--include-candidate")
         run_step(promote_args)
 
-    if args.export_snapshot:
+    if args.export_snapshot:  # Optional: export snapshot for backup/external systems
         run_step(
             common
             + [
-                str(REPO_ROOT / "scripts" / "export_snapshot.py"),
+                str(REPO_ROOT / "scripts" / "knowledge_store_common.py"),
                 str(root),
                 "--db",
                 args.db,
@@ -171,7 +169,7 @@ def main() -> int:
             args.db,
             *dataset_args,
         ]
-        if args.export_snapshot:
+        if args.export_snapshot:  # Optional: export snapshot for backup/external systems
             sqlite_qa_cmd.extend(["--output-root", str(root)])
         run_step(sqlite_qa_cmd)
 

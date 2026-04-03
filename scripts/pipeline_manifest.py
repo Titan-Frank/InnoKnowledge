@@ -89,26 +89,29 @@ def compute_batch_status(batch: dict) -> str:
 
 
 def compute_run_status(manifest: dict) -> str:
-    run_stage_statuses = [manifest["run_stages"][stage]["status"] for stage in RUN_STAGE_NAMES]
+    run_stage_statuses = [
+        manifest["run_stages"][stage]["status"] for stage in RUN_STAGE_NAMES
+    ]
     batch_statuses = [batch["status"] for batch in manifest["batches"]]
     if any(status in {"blocked", "missing"} for status in run_stage_statuses):
         return "blocked"
     if any(status == "blocked" for status in batch_statuses):
         return "blocked"
-    if (
-        all(manifest["run_stages"][stage]["status"] == "completed" for stage in RUN_STAGE_NAMES)
-        and all(status == "completed" for status in batch_statuses)
-    ):
+    if all(
+        manifest["run_stages"][stage]["status"] == "completed"
+        for stage in RUN_STAGE_NAMES
+    ) and all(status == "completed" for status in batch_statuses):
         return "completed"
-    if any(status in {"completed", "in_progress"} for status in run_stage_statuses) or any(
-        status in {"completed", "in_progress"} for status in batch_statuses
-    ):
+    if any(
+        status in {"completed", "in_progress"} for status in run_stage_statuses
+    ) or any(status in {"completed", "in_progress"} for status in batch_statuses):
         return "in_progress"
     return "initialized"
 
 
 def find_batches(outline: dict, anchors: list[str], kinds: list[str]) -> list[dict]:
-    items = outline["items"]
+    # Support both 'structure' (current) and 'items' (legacy) field names
+    items = outline.get("structure", outline.get("items", []))
     if anchors:
         by_id = {item["id"]: item for item in items}
         missing = [anchor for anchor in anchors if anchor not in by_id]
@@ -151,12 +154,17 @@ def validate_manifest(manifest: dict) -> list[str]:
                     f"Batch '{anchor_id}' stage '{stage}' has invalid status '{status}'."
                 )
 
-        if stages.get("normalize") == "completed" and stages.get("backbone") != "completed":
+        if (
+            stages.get("normalize") == "completed"
+            and stages.get("backbone") != "completed"
+        ):
             errors.append(
                 f"Batch '{anchor_id}' completed normalize before backbone was completed."
             )
         if stages.get("qa") == "completed" and stages.get("normalize") != "completed":
-            errors.append(f"Batch '{anchor_id}' completed QA before normalize was completed.")
+            errors.append(
+                f"Batch '{anchor_id}' completed QA before normalize was completed."
+            )
         if stages.get("node_expand") == "completed" and stages.get("qa") != "completed":
             errors.append(
                 f"Batch '{anchor_id}' completed node_expand before QA was completed."
@@ -175,7 +183,9 @@ def save_manifest(path: Path, manifest: dict) -> None:
 
 def cmd_init(args: argparse.Namespace) -> int:
     root = Path(args.root)
-    manifest_path = Path(args.manifest) if args.manifest else manifest_path_for(root, args.book_id)
+    manifest_path = (
+        Path(args.manifest) if args.manifest else manifest_path_for(root, args.book_id)
+    )
     if manifest_path.exists() and not args.force:
         print(f"Manifest already exists: {manifest_path}", file=sys.stderr)
         print("Use --force to overwrite it.", file=sys.stderr)
@@ -243,9 +253,14 @@ def cmd_mark(args: argparse.Namespace) -> int:
             targets = updated_manifest["batches"]
         else:
             if not anchors:
-                print("Batch stage updates require --anchors or --all-batches.", file=sys.stderr)
+                print(
+                    "Batch stage updates require --anchors or --all-batches.",
+                    file=sys.stderr,
+                )
                 return 1
-            by_anchor = {batch["anchor_id"]: batch for batch in updated_manifest["batches"]}
+            by_anchor = {
+                batch["anchor_id"]: batch for batch in updated_manifest["batches"]
+            }
             missing = [anchor for anchor in anchors if anchor not in by_anchor]
             if missing:
                 print(
@@ -260,7 +275,12 @@ def cmd_mark(args: argparse.Namespace) -> int:
             batch["updated_at"] = now_iso()
             if args.note:
                 batch["notes"].append(
-                    {"at": now_iso(), "stage": stage, "status": status, "note": args.note}
+                    {
+                        "at": now_iso(),
+                        "stage": stage,
+                        "status": status,
+                        "note": args.note,
+                    }
                 )
     else:
         print(f"Unknown stage '{args.stage}'.", file=sys.stderr)
@@ -296,7 +316,10 @@ def cmd_check(args: argparse.Namespace) -> int:
             if status != "completed":
                 errors.append(f"Batch '{anchor_id}' stage '{stage}' is '{status}'.")
 
-    if args.require_final_qa and manifest["run_stages"]["final_qa"]["status"] != "completed":
+    if (
+        args.require_final_qa
+        and manifest["run_stages"]["final_qa"]["status"] != "completed"
+    ):
         errors.append(
             "Run stage 'final_qa' is "
             f"'{manifest['run_stages']['final_qa']['status']}', expected 'completed'."
@@ -336,10 +359,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    init_parser = subparsers.add_parser("init", help="Create a new strict pipeline manifest.")
-    init_parser.add_argument("--root", required=True, help="Versioned output root, e.g. data/v4")
+    init_parser = subparsers.add_parser(
+        "init", help="Create a new strict pipeline manifest."
+    )
+    init_parser.add_argument(
+        "--root", required=True, help="Versioned output root, e.g. data/v4"
+    )
     init_parser.add_argument("--book-id", required=True)
-    init_parser.add_argument("--outline", help="Outline path. Defaults to data/outlines/<book-id>.outline.json")
+    init_parser.add_argument(
+        "--outline",
+        help="Outline path. Defaults to data/outlines/<book-id>.outline.json",
+    )
     init_parser.add_argument("--manifest", help="Explicit manifest path.")
     init_parser.add_argument(
         "--anchors",
@@ -363,7 +393,9 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.add_argument("--force", action="store_true")
     init_parser.set_defaults(func=cmd_init)
 
-    mark_parser = subparsers.add_parser("mark", help="Update stage status in a manifest.")
+    mark_parser = subparsers.add_parser(
+        "mark", help="Update stage status in a manifest."
+    )
     mark_parser.add_argument("--manifest", required=True)
     mark_parser.add_argument("--stage", required=True)
     mark_parser.add_argument("--status", required=True)
@@ -372,7 +404,9 @@ def build_parser() -> argparse.ArgumentParser:
     mark_parser.add_argument("--note")
     mark_parser.set_defaults(func=cmd_mark)
 
-    check_parser = subparsers.add_parser("check", help="Verify all required stages are complete.")
+    check_parser = subparsers.add_parser(
+        "check", help="Verify all required stages are complete."
+    )
     check_parser.add_argument("--manifest", required=True)
     check_parser.add_argument("--require-final-qa", action="store_true")
     check_parser.set_defaults(func=cmd_check)

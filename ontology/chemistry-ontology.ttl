@@ -1,0 +1,370 @@
+# 高中化学知识本体 (Turtle格式)
+# Chemistry Knowledge Ontology for High School
+
+@prefix : <http://example.org/chemistry-ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<http://example.org/chemistry-ontology>
+    rdf:type owl:Ontology ;
+    rdfs:label "高中化学知识本体"@zh, "High School Chemistry Ontology"@en ;
+    owl:versionInfo "1.0" ;
+    rdfs:comment "基于《化学反应原理》(选择性必修1)构建的知识本体"@zh .
+
+#################################################################
+# 基础实体类 (Base Classes)
+#################################################################
+
+:KnowledgeNode rdf:type owl:Class ;
+    rdfs:label "知识节点"@zh, "Knowledge Node"@en ;
+    rdfs:comment "知识图谱中的基础概念单元"@zh .
+
+:Concept rdf:type owl:Class ;
+    rdfs:subClassOf :KnowledgeNode ;
+    rdfs:label "概念"@zh, "Concept"@en ;
+    rdfs:comment "抽象的科学概念，如能量、熵、化学平衡"@zh .
+
+:Entity rdf:type owl:Class ;
+    rdfs:subClassOf :KnowledgeNode ;
+    rdfs:label "实体"@zh, "Entity"@en ;
+    rdfs:comment "具体存在的物质、仪器或对象"@zh .
+
+:Process rdf:type owl:Class ;
+    rdfs:subClassOf :KnowledgeNode ;
+    rdfs:label "过程"@zh, "Process"@en ;
+    rdfs:comment "化学过程或反应"@zh .
+
+:Principle rdf:type owl:Class ;
+    rdfs:subClassOf :KnowledgeNode ;
+    rdfs:label "原理"@zh, "Principle"@en ;
+    rdfs:comment "科学定律或原理"@zh .
+
+:Method rdf:type owl:Class ;
+    rdfs:subClassOf :KnowledgeNode ;
+    rdfs:label "方法"@zh, "Method"@en ;
+    rdfs:comment "操作方法或计算方法"@zh .
+
+:Activity rdf:type owl:Class ;
+    rdfs:subClassOf :KnowledgeNode ;
+    rdfs:label "活动"@zh, "Activity"@en ;
+    rdfs:comment "实验或学习活动"@zh .
+
+#################################################################
+# 化学领域特定子类
+#################################################################
+
+:ThermodynamicConcept rdf:type owl:Class ;
+    rdfs:subClassOf :Concept ;
+    rdfs:label "热力学概念"@zh, "Thermodynamic Concept"@en ;
+    rdfs:comment "与热力学相关的概念，如焓、熵、吉布斯自由能"@zh .
+
+:ChemicalEquilibrium rdf:type owl:Class ;
+    rdfs:subClassOf :Concept ;
+    rdfs:label "化学平衡概念"@zh, "Chemical Equilibrium Concept"@en ;
+    rdfs:comment "化学平衡相关概念"@zh .
+
+:ElectrochemicalConcept rdf:type owl:Class ;
+    rdfs:subClassOf :Concept ;
+    rdfs:label "电化学概念"@zh, "Electrochemical Concept"@en ;
+    rdfs:comment "电化学相关概念"@zh .
+
+:ChemicalSubstance rdf:type owl:Class ;
+    rdfs:subClassOf :Entity ;
+    rdfs:label "化学物质"@zh, "Chemical Substance"@en .
+
+:LaboratoryEquipment rdf:type owl:Class ;
+    rdfs:subClassOf :Entity ;
+    rdfs:label "实验仪器"@zh, "Laboratory Equipment"@en .
+
+:ChemicalReaction rdf:type owl:Class ;
+    rdfs:subClassOf :Process ;
+    rdfs:label "化学反应"@zh, "Chemical Reaction"@en .
+
+:PhysicalProcess rdf:type owl:Class ;
+    rdfs:subClassOf :Process ;
+    rdfs:label "物理过程"@zh, "Physical Process"@en .
+
+:ThermodynamicLaw rdf:type owl:Class ;
+    rdfs:subClassOf :Principle ;
+    rdfs:label "热力学定律"@zh, "Thermodynamic Law"@en .
+
+:ChemicalLaw rdf:type owl:Class ;
+    rdfs:subClassOf :Principle ;
+    rdfs:label "化学定律"@zh, "Chemical Law"@en .
+
+:ExperimentalMethod rdf:type owl:Class ;
+    rdfs:subClassOf :Method ;
+    rdfs:label "实验方法"@zh, "Experimental Method"@en .
+
+:CalculationMethod rdf:type owl:Class ;
+    rdfs:subClassOf :Method ;
+    rdfs:label "计算方法"@zh, "Calculation Method"@en .
+
+:LaboratoryExperiment rdf:type owl:Class ;
+    rdfs:subClassOf :Activity ;
+    rdfs:label "实验室实验"@zh, "Laboratory Experiment"@en .
+
+:Demonstration rdf:type owl:Class ;
+    rdfs:subClassOf :Activity ;
+    rdfs:label "演示实验"@zh, "Demonstration"@en .
+
+#################################################################
+# 对象属性 (Object Properties - 关系)
+#################################################################
+
+:causes rdf:type owl:ObjectProperty ;
+    rdfs:domain :Process ;
+    rdfs:range :Concept ;
+    rdfs:label "引起"@zh, "causes"@en ;
+    rdfs:comment "过程A引起概念B的变化"@zh ;
+    owl:propertyChainAxiom (:affects :causes) .
+
+:affects rdf:type owl:ObjectProperty ;
+    rdfs:domain :Concept ;
+    rdfs:range :Concept ;
+    rdfs:label "影响"@zh, "affects"@en ;
+    rdfs:comment "概念A影响概念B"@zh .
+
+:explains rdf:type owl:ObjectProperty ;
+    rdfs:domain :Principle ;
+    rdfs:range :Concept ;
+    rdfs:label "解释"@zh, "explains"@en ;
+    rdfs:comment "原理解释现象"@zh .
+
+:hasProperty rdf:type owl:ObjectProperty ;
+    rdfs:domain :Entity ;
+    rdfs:range :Concept ;
+    rdfs:label "具有属性"@zh, "has property"@en .
+
+:isPartOf rdf:type owl:ObjectProperty ;
+    rdfs:domain :KnowledgeNode ;
+    rdfs:range :KnowledgeNode ;
+    rdfs:label "是...的组成部分"@zh, "is part of"@en ;
+    owl:TransitiveProperty .
+
+:uses rdf:type owl:ObjectProperty ;
+    rdfs:domain :Activity ;
+    rdfs:range :Entity ;
+    rdfs:label "使用"@zh, "uses"@en ;
+    rdfs:comment "活动使用仪器或材料"@zh .
+
+:applies rdf:type owl:ObjectProperty ;
+    rdfs:domain :Principle ;
+    rdfs:range :Process ;
+    rdfs:label "应用于"@zh, "applies to"@en .
+
+:measures rdf:type owl:ObjectProperty ;
+    rdfs:domain :Method ;
+    rdfs:range :Concept ;
+    rdfs:label "测量"@zh, "measures"@en .
+
+:prerequisiteFor rdf:type owl:ObjectProperty ;
+    rdfs:domain :Concept ;
+    rdfs:range :Concept ;
+    rdfs:label "是...的先决条件"@zh, "prerequisite for"@en ;
+    owl:TransitiveProperty .
+
+#################################################################
+# 数据属性 (Data Properties)
+#################################################################
+
+:hasFormula rdf:type owl:DatatypeProperty ;
+    rdfs:domain :ChemicalSubstance ;
+    rdfs:range xsd:string ;
+    rdfs:label "化学式"@zh, "chemical formula"@en .
+
+:hasValue rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Concept ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "数值"@zh, "value"@en .
+
+:hasUnit rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Concept ;
+    rdfs:range xsd:string ;
+    rdfs:label "单位"@zh, "unit"@en .
+
+:difficultyLevel rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Concept ;
+    rdfs:range xsd:string ;
+    rdfs:label "难度等级"@zh, "difficulty level"@en .
+
+#################################################################
+# 具体实例 (Instances)
+#################################################################
+
+# 第1章: 化学反应的热效应
+:Enthalpy rdf:type :ThermodynamicConcept ;
+    rdfs:label "焓"@zh, "Enthalpy"@en ;
+    :hasSymbol "H" ;
+    :hasDefinition "热力学系统的状态函数，表示系统的热含量"@zh .
+
+:EnthalpyChange rdf:type :ThermodynamicConcept ;
+    rdfs:label "焓变"@zh, "Enthalpy Change"@en ;
+    :hasSymbol "ΔH" ;
+    :hasUnit "kJ/mol" ;
+    :causes :ReactionHeat .
+
+:ReactionHeat rdf:type :ThermodynamicConcept ;
+    rdfs:label "反应热"@zh, "Reaction Heat"@en ;
+    skos:broader :EnthalpyChange ;
+    rdfs:comment "化学反应中吸收或放出的热量"@zh .
+
+:ExothermicReaction rdf:type :ChemicalReaction ;
+    rdfs:label "放热反应"@zh, "Exothermic Reaction"@en ;
+    :hasProperty :NegativeEnthalpyChange .
+
+:EndothermicReaction rdf:type :ChemicalReaction ;
+    rdfs:label "吸热反应"@zh, "Endothermic Reaction"@en ;
+    :hasProperty :PositiveEnthalpyChange .
+
+:HessLaw rdf:type :ThermodynamicLaw ;
+    rdfs:label "盖斯定律"@zh, "Hess's Law"@en ;
+    :applies :EnthalpyCalculation ;
+    rdfs:comment "化学反应的焓变只与始态和终态有关，与反应途径无关"@zh .
+
+:Calorimeter rdf:type :LaboratoryEquipment ;
+    rdfs:label "热量计"@zh, "Calorimeter"@en ;
+    :measures :ReactionHeat .
+
+# 第2章: 化学反应的方向、限度和速率
+:ChemicalEquilibrium rdf:type :ChemicalEquilibrium ;
+    rdfs:label "化学平衡"@zh, "Chemical Equilibrium"@en ;
+    rdfs:comment "在一定条件下，正逆反应速率相等，各物质浓度保持不变的状态"@zh .
+
+:EquilibriumConstant rdf:type :ChemicalEquilibrium ;
+    rdfs:label "化学平衡常数"@zh, "Equilibrium Constant"@en ;
+    :hasSymbol "K" ;
+    :measures :ChemicalEquilibrium .
+
+:LeChateliersPrinciple rdf:type :ChemicalLaw ;
+    rdfs:label "勒夏特列原理"@zh, "Le Chatelier's Principle"@en ;
+    :explains :ChemicalEquilibriumShift ;
+    rdfs:comment "如果改变影响平衡的一个条件，平衡将向着减弱这种改变的方向移动"@zh .
+
+:GibbsFreeEnergy rdf:type :ThermodynamicConcept ;
+    rdfs:label "吉布斯自由能"@zh, "Gibbs Free Energy"@en ;
+    :hasSymbol "G" ;
+    :hasUnit "kJ/mol" ;
+    :determines :SpontaneousReaction .
+
+:SpontaneousReaction rdf:type :ChemicalReaction ;
+    rdfs:label "自发反应"@zh, "Spontaneous Reaction"@en ;
+    rdfs:comment "在给定条件下能自动进行的反应"@zh .
+
+:ReactionRate rdf:type :Concept ;
+    rdfs:label "反应速率"@zh, "Reaction Rate"@en ;
+    :affectedBy :Temperature, :Concentration, :Catalyst .
+
+:Catalyst rdf:type :Concept ;
+    rdfs:label "催化剂"@zh, "Catalyst"@en ;
+    :affects :ReactionRate .
+
+# 第3章: 水溶液中的离子反应与平衡
+:WaterDissociation rdf:type :ChemicalEquilibrium ;
+    rdfs:label "水的电离"@zh, "Water Dissociation"@en ;
+    rdfs:comment "水分子电离产生H+和OH-的动态平衡"@zh .
+
+:IonProductOfWater rdf:type :Concept ;
+    rdfs:label "水的离子积"@zh, "Ion Product of Water"@en ;
+    :hasSymbol "Kw" ;
+    :hasValue 1.0E-14 .
+
+:pH rdf:type :Concept ;
+    rdfs:label "pH值"@zh, "pH"@en ;
+    :measures :Acidity ;
+    :hasFormula "-log[H+]" .
+
+:WeakElectrolyte rdf:type :ChemicalSubstance ;
+    rdfs:label "弱电解质"@zh, "Weak Electrolyte"@en ;
+    :hasProperty :PartialDissociation .
+
+# 第4章: 氧化还原反应和电化学
+:RedoxReaction rdf:type :ChemicalReaction ;
+    rdfs:label "氧化还原反应"@zh, "Redox Reaction"@en ;
+    rdfs:comment "有电子转移的化学反应"@zh ;
+    :involves :ElectronTransfer .
+
+:ElectronTransfer rdf:type :PhysicalProcess ;
+    rdfs:label "电子转移"@zh, "Electron Transfer"@en .
+
+:GalvanicCell rdf:type :LaboratoryEquipment ;
+    rdfs:label "原电池"@zh, "Galvanic Cell"@en ;
+    :converts :ChemicalEnergy ;
+    :produces :ElectricalEnergy .
+
+:ElectrolyticCell rdf:type :LaboratoryEquipment ;
+    rdfs:label "电解池"@zh, "Electrolytic Cell"@en ;
+    :converts :ElectricalEnergy ;
+    :produces :ChemicalEnergy ;
+    :inverseOf :GalvanicCell .
+
+:ElectrochemicalCorrosion rdf:type :Process ;
+    rdfs:label "电化学腐蚀"@zh, "Electrochemical Corrosion"@en ;
+    :isa :RedoxReaction ;
+    :occursIn :Metals .
+
+#################################################################
+# SKOS 词汇表 (概念之间的关系)
+#################################################################
+
+:ThermodynamicSystem skos:narrower :ThermodynamicConcept .
+:InternalEnergy skos:narrower :ThermodynamicConcept .
+:Enthalpy skos:narrower :ThermodynamicConcept .
+:Entropy skos:narrower :ThermodynamicConcept .
+:GibbsFreeEnergy skos:narrower :ThermodynamicConcept .
+
+:ChemicalEquilibrium skos:narrower :Concept .
+:EquilibriumConstant skos:narrower :ChemicalEquilibrium .
+:ReactionQuotient skos:narrower :ChemicalEquilibrium .
+
+:RedoxReaction skos:narrower :ChemicalReaction .
+:GalvanicCell skos:narrower :ElectrochemicalConcept .
+:ElectrolyticCell skos:narrower :ElectrochemicalConcept .
+:ElectrochemicalCorrosion skos:narrower :ElectrochemicalConcept .
+
+#################################################################
+# 推理规则 (SWRL Rules)
+#################################################################
+
+# 示例规则: 如果物质有溶解性，那么它可以是沉淀或溶液
+# 注意: 需要 SWRL 支持
+
+# 等价类定义
+:BackboneConcept rdf:type owl:Class ;
+    owl:equivalentClass [
+        rdf:type owl:Restriction ;
+        owl:onProperty :hasProperty ;
+        owl:someValuesFrom :CoreKnowledge
+    ] ;
+    rdfs:label "主干概念"@zh .
+
+# 互斥类
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :ExothermicReaction :EndothermicReaction )
+] .
+
+# 属性限制
+[ rdf:type owl:Restriction ;
+  owl:onProperty :causes ;
+  owl:allValuesFrom :ThermodynamicConcept ;
+  rdfs:subClassOf :ChemicalReaction
+] .
+
+# 定义类: 强电解质 = 电解质 AND 完全电离
+:StrongElectrolyte rdf:type owl:Class ;
+    owl:equivalentClass [
+        rdf:type owl:Class ;
+        owl:intersectionOf (
+            :Electrolyte
+            [
+                rdf:type owl:Restriction ;
+                owl:onProperty :hasProperty ;
+                owl:hasValue :CompleteDissociation
+            ]
+        )
+    ] ;
+    rdfs:label "强电解质"@zh .

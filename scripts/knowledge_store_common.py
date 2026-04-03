@@ -58,46 +58,14 @@ VALID_EDGE_TYPES = {
     "same_as",
     "related_to",
 }
-ANCHOR_ID_PATTERN = re.compile(r"^struct:(?P<book_id>[^:]+):(?P<kind>[^:]+):(?P<local>.+)$")
-
-
-@dataclass(frozen=True)
-class SnapshotPaths:
-    output_root: Path
-    graph_dir: Path
-    nodes_path: Path
-    edges_path: Path
-    profiles_path: Path | None
-    node_cards_dir: Path | None
-    mention_paths: tuple[Path, ...]
-    evidence_paths: tuple[Path, ...]
-    node_card_paths: tuple[Path, ...]
-
-
-@dataclass(frozen=True)
-class SnapshotData:
-    paths: SnapshotPaths
-    nodes: list[dict[str, Any]]
-    edges: list[dict[str, Any]]
-    profiles: list[dict[str, Any]]
-    mentions: list[dict[str, Any]]
-    evidence: list[dict[str, Any]]
-    node_cards: list[dict[str, Any]]
+ANCHOR_ID_PATTERN = re.compile(
+    r"^struct:(?P<book_id>[^:]+):(?P<kind>[^:]+):(?P<local>.+)$"
+)
 
 
 def load_json(path: Path) -> Any:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
-
-
-def load_jsonl(path: Path) -> list[dict[str, Any]]:
-    records: list[dict[str, Any]] = []
-    with path.open("r", encoding="utf-8") as handle:
-        for line in handle:
-            line = line.strip()
-            if line:
-                records.append(json.loads(line))
-    return records
 
 
 def dump_json_text(value: Any) -> str:
@@ -112,7 +80,9 @@ def normalize_term(value: str) -> str:
     return re.sub(r"\s+", " ", value.strip().lower())
 
 
-def infer_learning_modes(node_kind: str | None, node_layer: str | None = None) -> list[str]:
+def infer_learning_modes(
+    node_kind: str | None, node_layer: str | None = None
+) -> list[str]:
     if node_kind in {"activity", "method", "skill"}:
         return ["procedural"]
     if node_kind == "representation":
@@ -167,7 +137,13 @@ def make_proposal_id(
     to_node_id: str,
 ) -> str:
     suffix = make_stable_suffix(
-        batch_anchor, source_id, anchor_ref, from_node_id, edge_type, to_node_id, length=12
+        batch_anchor,
+        source_id,
+        anchor_ref,
+        from_node_id,
+        edge_type,
+        to_node_id,
+        length=12,
     )
     return f"proposal:{suffix}"
 
@@ -220,7 +196,11 @@ def load_outline_items(book_id: str) -> list[dict[str, Any]]:
     if not outline_path.exists():
         return []
     outline = load_json(outline_path)
-    items = outline.get("items", []) if isinstance(outline, dict) else []
+    if isinstance(outline, dict):
+        # Support both 'structure' (current) and 'items' (legacy) field names
+        items = outline.get("structure", outline.get("items", []))
+    else:
+        items = []
     return list(iter_outline_items(items))
 
 
@@ -239,7 +219,9 @@ def resolve_outline_anchor(book_id: str, anchor: str, *, strict: bool = False) -
     items = load_outline_items(book_id)
     if not items:
         if strict:
-            raise SystemExit(f"Outline not found for book '{book_id}': {outline_path_for_book(book_id)}")
+            raise SystemExit(
+                f"Outline not found for book '{book_id}': {outline_path_for_book(book_id)}"
+            )
         return anchor
 
     by_id = {item["id"]: item for item in items if item.get("id")}
@@ -270,7 +252,9 @@ def resolve_outline_anchor(book_id: str, anchor: str, *, strict: bool = False) -
 def resolve_outline_anchors(
     book_id: str, anchors: Iterable[str], *, strict: bool = False
 ) -> list[str]:
-    return [resolve_outline_anchor(book_id, anchor, strict=strict) for anchor in anchors]
+    return [
+        resolve_outline_anchor(book_id, anchor, strict=strict) for anchor in anchors
+    ]
 
 
 def equivalent_anchor_tokens(book_id: str, anchor: str) -> list[str]:
@@ -289,8 +273,13 @@ def runtime_batch_dir(output_root: Path | str, book_id: str) -> Path:
     return root / "runs" / "runtime" / safe_path_token(book_id)
 
 
-def runtime_queries_path(output_root: Path | str, book_id: str, batch_anchor: str) -> Path:
-    return runtime_batch_dir(output_root, book_id) / f"{safe_path_token(batch_anchor)}.queries.jsonl"
+def runtime_queries_path(
+    output_root: Path | str, book_id: str, batch_anchor: str
+) -> Path:
+    return (
+        runtime_batch_dir(output_root, book_id)
+        / f"{safe_path_token(batch_anchor)}.queries.jsonl"
+    )
 
 
 def runtime_relation_proposals_path(
@@ -301,24 +290,49 @@ def runtime_relation_proposals_path(
     )
 
 
-def runtime_nodes_path(output_root: Path | str, book_id: str, batch_anchor: str) -> Path:
-    return runtime_batch_dir(output_root, book_id) / f"{safe_path_token(batch_anchor)}.nodes.jsonl"
+def runtime_nodes_path(
+    output_root: Path | str, book_id: str, batch_anchor: str
+) -> Path:
+    return (
+        runtime_batch_dir(output_root, book_id)
+        / f"{safe_path_token(batch_anchor)}.nodes.jsonl"
+    )
 
 
-def runtime_profiles_path(output_root: Path | str, book_id: str, batch_anchor: str) -> Path:
-    return runtime_batch_dir(output_root, book_id) / f"{safe_path_token(batch_anchor)}.profiles.jsonl"
+def runtime_profiles_path(
+    output_root: Path | str, book_id: str, batch_anchor: str
+) -> Path:
+    return (
+        runtime_batch_dir(output_root, book_id)
+        / f"{safe_path_token(batch_anchor)}.profiles.jsonl"
+    )
 
 
-def runtime_mentions_path(output_root: Path | str, book_id: str, batch_anchor: str) -> Path:
-    return runtime_batch_dir(output_root, book_id) / f"{safe_path_token(batch_anchor)}.mentions.jsonl"
+def runtime_mentions_path(
+    output_root: Path | str, book_id: str, batch_anchor: str
+) -> Path:
+    return (
+        runtime_batch_dir(output_root, book_id)
+        / f"{safe_path_token(batch_anchor)}.mentions.jsonl"
+    )
 
 
-def runtime_evidence_path(output_root: Path | str, book_id: str, batch_anchor: str) -> Path:
-    return runtime_batch_dir(output_root, book_id) / f"{safe_path_token(batch_anchor)}.evidence.jsonl"
+def runtime_evidence_path(
+    output_root: Path | str, book_id: str, batch_anchor: str
+) -> Path:
+    return (
+        runtime_batch_dir(output_root, book_id)
+        / f"{safe_path_token(batch_anchor)}.evidence.jsonl"
+    )
 
 
-def runtime_node_cards_path(output_root: Path | str, book_id: str, batch_anchor: str) -> Path:
-    return runtime_batch_dir(output_root, book_id) / f"{safe_path_token(batch_anchor)}.node-cards.jsonl"
+def runtime_node_cards_path(
+    output_root: Path | str, book_id: str, batch_anchor: str
+) -> Path:
+    return (
+        runtime_batch_dir(output_root, book_id)
+        / f"{safe_path_token(batch_anchor)}.node-cards.jsonl"
+    )
 
 
 def resolve_runtime_artifact_path(
@@ -328,7 +342,8 @@ def resolve_runtime_artifact_path(
     builder,
 ) -> Path:
     candidates = [
-        builder(output_root, book_id, token) for token in equivalent_anchor_tokens(book_id, batch_anchor)
+        builder(output_root, book_id, token)
+        for token in equivalent_anchor_tokens(book_id, batch_anchor)
     ]
     for path in candidates:
         if path.exists():
@@ -495,7 +510,9 @@ def resolve_dataset_id(
         "SELECT dataset_id FROM datasets WHERE is_active = 1 LIMIT 1"
     ).fetchone()
     if row is None:
-        raise SystemExit("No dataset id provided and no active dataset found in SQLite.")
+        raise SystemExit(
+            "No dataset id provided and no active dataset found in SQLite."
+        )
     return row["dataset_id"]
 
 
@@ -509,7 +526,9 @@ def require_dataset_row(connection: sqlite3.Connection, dataset_id: str) -> sqli
     return row
 
 
-def fetch_existing_edges(connection: sqlite3.Connection, dataset_id: str) -> list[sqlite3.Row]:
+def fetch_existing_edges(
+    connection: sqlite3.Connection, dataset_id: str
+) -> list[sqlite3.Row]:
     return connection.execute(
         """
         SELECT id, edge_type, from_id, to_id, directionality, confidence, status
@@ -529,14 +548,26 @@ def detect_edge_conflict(
     edge_type = proposal["edge_type"]
 
     for edge in existing_edges:
-        if edge["from_id"] == from_id and edge["to_id"] == to_id and edge["edge_type"] == edge_type:
+        if (
+            edge["from_id"] == from_id
+            and edge["to_id"] == to_id
+            and edge["edge_type"] == edge_type
+        ):
             return "duplicate_existing_edge", edge["id"]
 
-        if edge["from_id"] == from_id and edge["to_id"] == to_id and edge["edge_type"] != edge_type:
+        if (
+            edge["from_id"] == from_id
+            and edge["to_id"] == to_id
+            and edge["edge_type"] != edge_type
+        ):
             return "same_endpoints_different_edge_type", edge["id"]
 
         if edge_type in HIERARCHICAL_EDGE_TYPES:
-            if edge["edge_type"] == edge_type and edge["from_id"] == to_id and edge["to_id"] == from_id:
+            if (
+                edge["edge_type"] == edge_type
+                and edge["from_id"] == to_id
+                and edge["to_id"] == from_id
+            ):
                 return "reverse_hierarchical_conflict", edge["id"]
 
     return None, None
@@ -575,29 +606,6 @@ def build_snapshot_paths(output_root: Path | str) -> SnapshotPaths:
         mention_paths=mention_paths,
         evidence_paths=evidence_paths,
         node_card_paths=card_paths,
-    )
-
-
-def load_snapshot(output_root: Path | str) -> SnapshotData:
-    paths = build_snapshot_paths(output_root)
-    profiles = load_jsonl(paths.profiles_path) if paths.profiles_path else []
-    mentions: list[dict[str, Any]] = []
-    evidence: list[dict[str, Any]] = []
-    for path in paths.mention_paths:
-        mentions.extend(load_jsonl(path))
-    for path in paths.evidence_paths:
-        evidence.extend(load_jsonl(path))
-
-    node_cards = [load_json(path) for path in paths.node_card_paths]
-
-    return SnapshotData(
-        paths=paths,
-        nodes=load_jsonl(paths.nodes_path),
-        edges=load_jsonl(paths.edges_path),
-        profiles=profiles,
-        mentions=mentions,
-        evidence=evidence,
-        node_cards=node_cards,
     )
 
 
@@ -650,7 +658,9 @@ def iter_evidence_links(
 
         for section in card.get("sections", []):
             section_owner = f"{owner_id}#{section['id']}"
-            for ordinal, evidence_id in enumerate(section.get("source_refs", []), start=1):
+            for ordinal, evidence_id in enumerate(
+                section.get("source_refs", []), start=1
+            ):
                 yield "card_section", section_owner, evidence_id, ordinal
 
 
@@ -664,7 +674,9 @@ def collect_source_artifacts(snapshot: SnapshotData) -> list[dict[str, Any]]:
             {
                 "source_id": record["source_id"],
                 "source_type": record["source_type"],
-                "book_id": record["source_id"] if record["source_type"] == "textbook" else None,
+                "book_id": record["source_id"]
+                if record["source_type"] == "textbook"
+                else None,
                 "title": None,
                 "file_path": None,
                 "outline_path": None,
@@ -681,4 +693,305 @@ def collect_source_artifacts(snapshot: SnapshotData) -> list[dict[str, Any]]:
         if outline_path.exists():
             artifact["outline_path"] = str(outline_path)
 
-    return sorted(artifacts.values(), key=lambda item: (item["source_type"], item["source_id"]))
+    return sorted(
+        artifacts.values(), key=lambda item: (item["source_type"], item["source_id"])
+    )
+
+
+# ============================================================================
+# SQLite Data Access Functions
+# ============================================================================
+
+
+def load_nodes(
+    connection: sqlite3.Connection,
+    dataset_id: str,
+    output_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """Load nodes from SQLite, optionally export to JSONL.
+
+    Args:
+        connection: SQLite database connection
+        dataset_id: Dataset ID to load
+        output_path: Optional path to export JSONL (for backup/external systems)
+
+    Returns:
+        List of node dictionaries with parsed JSON fields
+    """
+    rows = connection.execute(
+        """
+        SELECT * FROM nodes
+        WHERE dataset_id = ?
+        ORDER BY id
+        """,
+        (dataset_id,),
+    ).fetchall()
+
+    nodes = []
+    for row in rows:
+        node = dict(row)
+        # Parse JSON fields
+        for key in ["aliases", "learning_modes", "bridge_tags", "framework_refs"]:
+            if f"{key}_json" in node:
+                node[key] = json.loads(node[f"{key}_json"])
+                del node[f"{key}_json"]
+        nodes.append(node)
+
+    if output_path:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as f:
+            for node in nodes:
+                f.write(json.dumps(node, ensure_ascii=False) + "\n")
+
+    return nodes
+
+
+def load_edges(
+    connection: sqlite3.Connection,
+    dataset_id: str,
+    output_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """Load edges from SQLite, optionally export to JSONL."""
+    rows = connection.execute(
+        """
+        SELECT * FROM edges
+        WHERE dataset_id = ?
+        ORDER BY id
+        """,
+        (dataset_id,),
+    ).fetchall()
+
+    edges = []
+    for row in rows:
+        edge = dict(row)
+        # Parse JSON fields
+        for key in ["source_refs"]:
+            if f"{key}_json" in edge:
+                edge[key] = json.loads(edge[f"{key}_json"])
+                del edge[f"{key}_json"]
+        edges.append(edge)
+
+    if output_path:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as f:
+            for edge in edges:
+                f.write(json.dumps(edge, ensure_ascii=False) + "\n")
+
+    return edges
+
+
+def load_profiles(
+    connection: sqlite3.Connection,
+    dataset_id: str,
+    output_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """Load curriculum profiles from SQLite, optionally export to JSONL."""
+    rows = connection.execute(
+        """
+        SELECT * FROM profiles
+        WHERE dataset_id = ?
+        ORDER BY id
+        """,
+        (dataset_id,),
+    ).fetchall()
+
+    profiles = []
+    for row in rows:
+        profile = dict(row)
+        # Parse JSON fields
+        for key in ["learning_objectives", "framework_refs", "textbook_refs"]:
+            if f"{key}_json" in profile:
+                profile[key] = json.loads(profile[f"{key}_json"])
+                del profile[f"{key}_json"]
+        profiles.append(profile)
+
+    if output_path:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as f:
+            for profile in profiles:
+                f.write(json.dumps(profile, ensure_ascii=False) + "\n")
+
+    return profiles
+
+
+def load_mentions(
+    connection: sqlite3.Connection,
+    dataset_id: str,
+    book_id: str | None = None,
+    output_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """Load mentions from SQLite, optionally export to JSONL."""
+    sql = """
+        SELECT * FROM mentions
+        WHERE dataset_id = ?
+    """
+    params = [dataset_id]
+
+    if book_id:
+        sql += " AND source_id = ?"
+        params.append(book_id)
+
+    sql += " ORDER BY id"
+
+    rows = connection.execute(sql, params).fetchall()
+
+    mentions = []
+    for row in rows:
+        mention = dict(row)
+        # Parse JSON fields
+        for key in ["source_refs"]:
+            if f"{key}_json" in mention:
+                mention[key] = json.loads(mention[f"{key}_json"])
+                del mention[f"{key}_json"]
+        mentions.append(mention)
+
+    if output_path:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as f:
+            for mention in mentions:
+                f.write(json.dumps(mention, ensure_ascii=False) + "\n")
+
+    return mentions
+
+
+def load_evidence(
+    connection: sqlite3.Connection,
+    dataset_id: str,
+    book_id: str | None = None,
+    output_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """Load evidence from SQLite, optionally export to JSONL."""
+    sql = """
+        SELECT * FROM evidence
+        WHERE dataset_id = ?
+    """
+    params = [dataset_id]
+
+    if book_id:
+        sql += " AND source_id = ?"
+        params.append(book_id)
+
+    sql += " ORDER BY id"
+
+    rows = connection.execute(sql, params).fetchall()
+
+    evidence_list = []
+    for row in rows:
+        evidence = dict(row)
+        # Parse JSON fields
+        for key in ["properties"]:
+            if f"{key}_json" in evidence:
+                evidence[key] = json.loads(evidence[f"{key}_json"])
+                del evidence[f"{key}_json"]
+        evidence_list.append(evidence)
+
+    if output_path:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as f:
+            for evidence in evidence_list:
+                f.write(json.dumps(evidence, ensure_ascii=False) + "\n")
+
+    return evidence_list
+
+
+def load_node_cards(
+    connection: sqlite3.Connection,
+    dataset_id: str,
+    output_dir: Path | None = None,
+) -> list[dict[str, Any]]:
+    """Load node cards from SQLite, optionally export to individual JSON files."""
+    rows = connection.execute(
+        """
+        SELECT * FROM node_cards
+        WHERE dataset_id = ?
+        ORDER BY node_id
+        """,
+        (dataset_id,),
+    ).fetchall()
+
+    cards = []
+    for row in rows:
+        card = dict(row)
+        # Parse JSON fields
+        for key in ["sections", "mention_refs", "source_refs", "properties"]:
+            if f"{key}_json" in card:
+                card[key] = json.loads(card[f"{key}_json"])
+                del card[f"{key}_json"]
+        cards.append(card)
+
+    if output_dir:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        for card in cards:
+            # Create safe filename from node_id
+            safe_id = card["node_id"].replace(":", "__").replace("/", "__")
+            card_path = output_dir / f"{safe_id}.json"
+            with open(card_path, "w", encoding="utf-8") as f:
+                json.dump(card, f, ensure_ascii=False, indent=2)
+
+    return cards
+
+
+def export_full_snapshot(
+    connection: sqlite3.Connection,
+    dataset_id: str,
+    output_root: Path,
+    book_id: str | None = None,
+) -> dict[str, int]:
+    """Export complete snapshot to output_root (for backup/external systems).
+
+    Creates:
+    - output_root/graph/knowledge.nodes.jsonl
+    - output_root/graph/knowledge.edges.jsonl
+    - output_root/profiles/knowledge.profiles.jsonl
+    - output_root/graph/{book_id}.mentions.jsonl
+    - output_root/graph/{book_id}.evidence.jsonl
+    - output_root/node_cards/*.json
+
+    Returns count of each artifact type.
+    """
+    output_root.mkdir(parents=True, exist_ok=True)
+
+    counts = {}
+
+    # Export graph
+    graph_dir = output_root / "graph"
+    graph_dir.mkdir(exist_ok=True)
+
+    counts["nodes"] = len(
+        load_nodes(connection, dataset_id, graph_dir / "knowledge.nodes.jsonl")
+    )
+    counts["edges"] = len(
+        load_edges(connection, dataset_id, graph_dir / "knowledge.edges.jsonl")
+    )
+
+    # Export profiles
+    profiles_dir = output_root / "profiles"
+    profiles_dir.mkdir(exist_ok=True)
+    counts["profiles"] = len(
+        load_profiles(connection, dataset_id, profiles_dir / "knowledge.profiles.jsonl")
+    )
+
+    # Export mentions and evidence
+    counts["mentions"] = len(
+        load_mentions(
+            connection,
+            dataset_id,
+            book_id,
+            graph_dir / f"{book_id or 'knowledge'}.mentions.jsonl",
+        )
+    )
+    counts["evidence"] = len(
+        load_evidence(
+            connection,
+            dataset_id,
+            book_id,
+            graph_dir / f"{book_id or 'knowledge'}.evidence.jsonl",
+        )
+    )
+
+    # Export node cards
+    counts["node_cards"] = len(
+        load_node_cards(connection, dataset_id, output_root / "node_cards")
+    )
+
+    return counts

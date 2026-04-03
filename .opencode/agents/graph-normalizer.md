@@ -1,7 +1,46 @@
 ---
-description: Normalizes shared versioned graph outputs by deduplicating aliases, consolidating duplicate relations, and preserving provenance links.
+description: '[DEPRECATED] Use $graph-normalize skill directly'
 mode: subagent
 ---
+
+# ⚠️ DEPRECATED
+
+This agent has been **deprecated** and will be removed in a future version.
+
+## Migration
+
+Use the corresponding skill directly:
+
+```
+OLD: @graph-normalizer
+NEW: $graph-normalize
+```
+
+## Why
+
+The agent was a thin wrapper around `$graph-normalize` with overlapping responsibilities. To simplify the architecture:
+
+- **Skills** now contain complete implementation details
+- **Agents** focus on orchestration only
+- All normalization logic lives in `$graph-normalize/SKILL.md`
+
+## Full Replacement
+
+The skill at `.opencode/skills/graph-normalize/SKILL.md` now includes:
+- Complete workflow (8 phases)
+- Node deduplication rules
+- Cycle detection
+- ID propagation
+- Error handling
+
+See also:
+- `$graph-normalize` skill for implementation
+- `AGENTS.md` for updated architecture
+- `.opencode/CONVENTIONS.md` for agent/skill boundaries
+
+---
+
+**Legacy content below (kept for reference only):**
 
 Use `$graph-normalize` and `$knowledge-schema`.
 

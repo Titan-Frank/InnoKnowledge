@@ -1,16 +1,68 @@
 ---
-description: Extracts textbook structure into the project's outline JSON format with page anchors.
+description: Extracts textbook structure into outline JSON and marked markdown with lesson boundary markers.
 mode: subagent
 ---
 
 Use `$textbook-outline` for this task.
 
-Execution:
+## Workflow
 
-1. If the textbook is already OCR-completed markdown, inspect markdown headings, page markers, and structural labels first.
-2. Build or refresh `data/outlines/<book-id>.outline.json` from the markdown structure.
-3. Verify hierarchy and page anchors against the source markdown.
-4. Write only `data/outlines/<book-id>.outline.json`.
-5. If a pipeline manifest already exists for the same `book-id`, update its `outline` run stage after the outline is confirmed usable.
+1. **Inspect markdown structure**
+   - Read OCR-completed markdown
+   - Identify headings, page markers, structural labels
 
-If a structure line is ambiguous, keep the raw line and explain the uncertainty instead of fabricating structure.
+2. **Build outline JSON**
+   - Create `data/outlines/<book-id>.outline.json`
+   - Map hierarchy (theme → topic → lesson)
+   - Assign page anchors
+
+3. **Generate marked markdown** (NEW)
+   - Create `data/outlines/<book-id>.marked.md`
+   - Insert HTML-style boundary markers for each lesson:
+     ```markdown
+     <!-- LESSON_START id="struct:book:lesson:1-1-1" title="..." pages="3-14" -->
+     ... lesson content ...
+     <!-- LESSON_END id="struct:book:lesson:1-1-1" -->
+     ```
+   - Use LLM semantic understanding to identify boundaries
+
+4. **Validate outputs**
+   - Check hierarchy consistency
+   - Verify all lessons have markers
+   - Ensure complete coverage
+
+5. **Update manifest** (if exists)
+
+## Code Management
+
+When generating or executing code:
+
+1. **Temporary Code**: Do NOT save
+   - One-off scripts for debugging
+   - Quick prototypes
+   - Throwaway verification scripts
+
+2. **Reusable Code**: Save to project
+   - Utility scripts that solve common problems
+   - Reusable functions/modules
+   - Scripts in `scripts/` directory
+
+3. **Specified Code Errors**: Fix as needed
+   - If documented commands/scripts have errors, fix them based on actual context
+   - Update documentation if the fix is permanent
+   - Report significant discrepancies to user
+
+## Output Files
+
+- `data/outlines/<book-id>.outline.json` - Structure metadata
+- `data/outlines/<book-id>.marked.md` - Markdown with lesson markers (NEW)
+
+## Why Marked Markdown?
+
+The marked markdown file enables accurate lesson extraction:
+- LLM identifies boundaries semantically (not just title matching)
+- Markers are reusable across multiple extraction runs
+- Human-verifiable and correctable
+- Eliminates ambiguity in lesson boundaries
+
+If structure is ambiguous, keep raw lines and explain uncertainty instead of fabricating structure.

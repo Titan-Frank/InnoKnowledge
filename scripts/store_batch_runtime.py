@@ -13,7 +13,6 @@ from knowledge_store_common import (
     DEFAULT_DB_PATH,
     connect_db,
     ensure_sqlite_schema,
-    load_jsonl,
     resolve_dataset_id,
     resolve_outline_anchor,
     require_dataset_row,
@@ -96,7 +95,7 @@ def load_records(file_arg: str | None, json_arg: str | None, label: str) -> list
     if file_arg and json_arg:
         raise SystemExit(f"Provide only one of --{label}-file or --{label}-json.")
     if file_arg:
-        return load_jsonl(Path(file_arg).expanduser().resolve())
+        raise NotImplementedError("JSONL loading is deprecated. Use SQLite-first workflow.")
     if json_arg:
         payload = json.loads(json_arg)
         if not isinstance(payload, list):

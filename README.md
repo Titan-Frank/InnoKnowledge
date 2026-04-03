@@ -1,247 +1,265 @@
 # Knowledge Map Extraction Project
 
-教材知识图谱构建工具。当前默认从 OCR 完成的教材 markdown 中抽取结构化的知识主干、课程画像、证据链和节点卡。
+从教材内容构建结构化的、证据支撑的、跨学科的知识图谱。
 
-## 推荐入口
+## 快速开始
 
-最推荐的入口是 `@kg-pipeline`。
+### 启动 opencode
 
 ```bash
-# 单课
-opencode run --agent build "@kg-pipeline 处理 <book-id> 的 <lesson-anchor>，输出到 data/v5"
+# 方式 1: 交互式 TUI (推荐)
+opencode
 
-# 整本书
-opencode run --agent build "@kg-pipeline 处理 <book-id> 全书，按 lesson 分批抽取，输出到 data/v5"
+# 方式 2: 直接运行命令
+opencode run "处理化学八年级全书的第一个课时"
 
-# 完整知识模式
-opencode run --agent build "@kg-pipeline 以完整知识模式处理 <book-id> 全书，按 lesson 分批抽取，输出到 data/v5"
+# 方式 3: 指定 agent
+opencode run --agent kg-pipeline "处理 chem-grade8 全书"
 ```
 
-如果要顺序跑多本教材，建议直接按 markdown 书稿逐本调用 `@kg-pipeline`。
+### 处理教材
+
+```bash
+# 处理单个课时
+opencode run --agent kg-pipeline "处理 chem-grade8 的 struct:chem-grade8:lesson:1-1-1"
+
+# 处理整本书（按课时顺序自动处理）
+opencode run --agent kg-pipeline "处理 chem-grade8 全书"
+
+# 交互式指定参数
+opencode
+# 然后输入: "@kg-pipeline 处理 chem-grade8 全书"
+```
+
+## 架构
+
+项目采用 **Manager-Worker 模式**：
+
+```
+@kg-pipeline (Manager - 纯调度，无业务逻辑)
+│
+├── @outline-reader (如需生成目录)
+│
+└── FOR each lesson (顺序处理):
+    └── @lesson-processor (Worker - 完整业务逻辑)
+        ├── $chapter-extract (提取节点/关系)
+        ├── @node-expander × N (并行生成节点卡片)
+        ├── $graph-normalize (去重/归一化)
+        ├── closeout scripts (写入 SQLite)
+        └── @qa-reviewer (质量检查)
+```
+
+**职责分离**：
+- **Manager** (@kg-pipeline): 决定 "做什么"
+- **Worker** (@lesson-processor): 知道 "怎么做"
 
 ## 核心原则
 
-- SQLite 是执行期主写层。
-- `data/<version>/` 是按需导出的 snapshot。
-- 默认按 lesson 或小批次处理，不做整书大上下文抽取。
-- 关系抽取是 retrieval-first，不是 whole-graph free-form generation。
-- 默认候选召回使用 LightRAG-inspired `hybrid` 检索；必要时再切到 `local` 或 `mix`。
-- GraphRAG / LightRAG 风格的 local subgraph 和 group roll-up 只做辅助分析，不直接当 canonical evidence。
+1. **全局优先** - 知识图谱服务于跨学科知识，不是单一教材
+2. **证据支撑** - 每个节点和关系必须有教材出处
+3. **检索优先** - 先检索候选再推理，避免全图操作
+4. **SQLite 优先** - SQLite 是主存储，JSON/JSONL 是导出产物
+5. **课时隔离** - 每个课时在独立 Task 中处理，避免上下文爆炸
 
-## 最短上手流程
+## 数据存储
 
-### 1. 抽取 outline
+### 主存储 (SQLite)
 
-直接让 `@outline-reader` 读取 markdown 的标题层级和页码标记来生成 outline。
-
-常见做法是先人工抽查 markdown 里的结构信号：
-
-```bash
-rg -n "^(#{1,6})\\s+|^第[一二三四五六七八九十0-9]+[章单元课节专题主题]|^\\[?Page[[:space:]]+[0-9]+\\]?|^<!--\\s*page:" "/absolute/path/to/book.md"
+```
+storage/knowledge.sqlite
+├── nodes              # 知识节点
+├── edges              # 关系
+├── profiles           # 课程画像
+├── mentions           # 教材引用
+├── evidence           # 原文证据
+└── node_cards         # 节点详情卡片
 ```
 
-然后让 `@outline-reader` 生成 `data/outlines/<book-id>.outline.json`。
+### 辅助文件
 
-### 2. 初始化 manifest
+```
+data/
+├── outlines/          # 教材目录结构
+│   └── {book-id}.outline.json
+├── frameworks/        # 课程框架
+└── patterns/          # 模式库
 
-```bash
-python3 scripts/pipeline_manifest.py init \
-  --root data/v5 \
-  --book-id <book-id>
+runs/                  # 运行记录
+└── {book-id}.pipeline.json
 ```
 
-### 3. 如有需要，从 snapshot 恢复 SQLite
+## 常用操作
 
-只有在已有 `data/<version>/` snapshot、但 SQLite 需要重建时才需要这步：
+### 查看数据
 
 ```bash
-python3 scripts/sync_output_root_to_sqlite.py data/v5 \
+# 启动查看器
+python scripts/viewer_sqlite_api.py --port 8765
+
+# 访问
+open http://127.0.0.1:8765/viewer/
+```
+
+### 导出快照
+
+```bash
+# 从 SQLite 导出 JSONL（供外部系统使用）
+python scripts/export_snapshot.py data/v4 \
   --db storage/knowledge.sqlite \
-  --replace --activate --preserve-runtime
+  --dataset-id v4
 ```
 
-### 4. 跑 pipeline
-
-推荐直接用 `@kg-pipeline`。如果你要人工盯单课，可以直接跑正式 batch closeout：
+### 检查数据一致性
 
 ```bash
-python3 scripts/run_sqlite_batch_pipeline.py \
-  --root data/v5 \
-  --book-id <book-id> \
-  --batch-anchor <lesson-anchor> \
-  --db storage/knowledge.sqlite
+python check_data_consistency.py
 ```
 
-这个脚本现在默认会顺序做：
+## 工作流程
 
-- `apply_batch_artifacts.py`
-- `batch_coverage.py`
-- `local_subgraph.py`
-- `finalize_batch_runtime.py`
-- `strict_qa.py`
-- `batch_group_rollup.py`
+### 1. 准备教材
 
-其中：
+确保教材已完成 OCR 并转为 Markdown：
 
-- `local_subgraph.py` 没有 seeds 时会输出 skipped 报告，不会单独导致 batch 失败
-- `batch_group_rollup.py` 会在有 lesson window 时自动生成
+```
+data/sources/{book-id}.md
+```
 
-### 5. 完成后做最终检查
+### 2. 生成目录（首次）
 
 ```bash
-python3 scripts/pipeline_manifest.py check \
-  --manifest data/v5/runs/<book-id>.pipeline.json \
-  --require-final-qa
+opencode run --agent outline-reader "为 data/sources/chem-grade8.md 生成目录"
 ```
 
-## 常用手工命令
+输出: `data/outlines/chem-grade8.outline.json`
 
-### 启动 Viewer
+### 3. 处理教材
 
 ```bash
-python3 scripts/viewer_sqlite_api.py \
-  --db storage/knowledge.sqlite \
-  --port 8765
+opencode run --agent kg-pipeline "处理 chem-grade8 全书"
 ```
 
-访问 [http://127.0.0.1:8765/viewer/](http://127.0.0.1:8765/viewer/)
+Manager 会：
+1. 加载目录
+2. 为每个课时启动 @lesson-processor
+3. 监控进度
+4. 报告结果
 
-### 调整 batch pipeline 的 GraphRAG 辅助步骤
+### 4. 查看结果
 
 ```bash
-python3 scripts/run_sqlite_batch_pipeline.py \
-  --root data/v5 \
-  --book-id <book-id> \
-  --batch-anchor <lesson-anchor> \
-  --db storage/knowledge.sqlite \
-  --local-subgraph-hops 2 \
-  --batch-group-size 4
+# 启动查看器
+python scripts/viewer_sqlite_api.py
+
+# 或检查 SQLite
+sqlite3 storage/knowledge.sqlite "SELECT COUNT(*) FROM nodes;"
 ```
 
-常用参数：
+## 项目结构
 
-- `--skip-local-subgraph`
-- `--local-subgraph-hops 1|2`
-- `--local-subgraph-max-neighbors <n>`
-- `--local-subgraph-top-k <n>`
-- `--local-subgraph-node-id <node-id>`
-- `--batch-group-anchors <anchor1,anchor2,...>`
-- `--batch-group-size <n>`
-- `--skip-batch-group-rollup`
+```
+.
+├── .opencode/
+│   ├── agents/           # Agent 定义
+│   │   ├── kg-pipeline.md         (Manager)
+│   │   ├── lesson-processor.md    (Worker)
+│   │   ├── outline-reader.md
+│   │   ├── node-expander.md
+│   │   └── qa-reviewer.md
+│   └── skills/           # Skill 实现
+│       ├── chapter-extract/       (提取)
+│       ├── graph-normalize/       (归一化)
+│       ├── knowledge-schema/      (Schema)
+│       └── textbook-outline/      (目录生成)
+│
+├── scripts/              # 辅助脚本
+│   ├── viewer_sqlite_api.py       (查看器)
+│   ├── export_snapshot.py         (导出)
+│   └── ...
+│
+├── storage/              # 主存储
+│   └── knowledge.sqlite
+│
+├── data/                 # 数据文件
+│   ├── outlines/
+│   ├── frameworks/
+│   └── patterns/
+│
+├── schemas/              # JSON Schema 定义
+│   └── v2/
+│
+├── AGENTS.md             # 详细架构和规则
+├── GLOSSARY.md           # 术语表
+└── README.md             # 本文件
+```
 
-### LightRAG 风格候选检索
+## 文档导航
 
-`scripts/retrieve_candidates.py` 现在支持多模式候选召回：
+**快速开始**:
+- [QUICKSTART.md](QUICKSTART.md) - 5 分钟快速上手
+- [DOCS_INDEX.md](DOCS_INDEX.md) - 完整文档索引
 
-- `local`: 只看 canonical name / alias / FTS，最保守
-- `global`: 从 lexical seed 出发扩一层关系邻域
-- `hybrid`: `local + global`，默认模式
-- `mix`: `hybrid + profile/evidence` 文本支持
+**核心文档**:
+- [AGENTS.md](AGENTS.md) - 完整架构、约束和检查清单
+- [GLOSSARY.md](GLOSSARY.md) - 术语定义
+- [PIPELINE_SAFETY.md](PIPELINE_SAFETY.md) - 安全操作指南
 
-例子：
+**开发文档**:
+- [CHANGELOG.md](CHANGELOG.md) - 变更日志
+- [schemas/v2/README.md](schemas/v2/README.md) - Schema 说明
+
+## 故障排查
+
+### SQLite 锁定
 
 ```bash
-python3 scripts/retrieve_candidates.py 化学平衡 \
-  --db storage/knowledge.sqlite \
-  --dataset-id v4 \
-  --mode hybrid \
-  --limit 8
+# 检查是否有进程占用
+lsof storage/knowledge.sqlite
 
-python3 scripts/retrieve_candidates.py 温度 \
-  --db storage/knowledge.sqlite \
-  --dataset-id v4 \
-  --mode mix \
-  --limit 8
+# 备份并重建
+cp storage/knowledge.sqlite storage/knowledge.backup.sqlite
 ```
 
-工作口径：
+### 课时处理失败
 
-- 默认先用 `hybrid`，让明确词面命中和局部图邻域一起参与候选排序
-- 当 lesson 里的术语比较松散、词面召回不足时，再用 `mix`
-- 不管哪种模式，候选都只是缩小判断范围，不直接当 evidence
+Manager 会自动停止并报告问题。查看：
 
-### 导出 snapshot
-
-```bash
-python3 scripts/export_snapshot.py data/v5 \
-  --db storage/knowledge.sqlite \
-  --dataset-id v5
+```
+runs/{book-id}.pipeline.json
 ```
 
-### 完整知识模式下补节点卡
+中的 `status` 和 `issues` 字段。
 
-```bash
-python3 scripts/node_card_targets.py \
-  --root data/v5 \
-  --book-id <book-id> \
-  --anchors <lesson-anchor> \
-  --db storage/knowledge.sqlite \
-  --missing-only
-```
+### 上下文溢出
 
-然后用 `@node-expander` 处理这些目标，再复跑：
+确保使用 Task-per-lesson 模式（默认）。不要在一个会话中处理多个课时。
 
-```bash
-python3 scripts/batch_coverage.py \
-  --root data/v5 \
-  --book-id <book-id> \
-  --anchors <lesson-anchor> \
-  --db storage/knowledge.sqlite \
-  --require-node-cards
-```
+## 开发
 
-## 输出位置
+### 添加新的 Agent
 
-执行期主数据在 SQLite。
+1. 创建 `.opencode/agents/{agent-name}.md`
+2. 添加 YAML frontmatter:
+   ```yaml
+   ---
+   description: Agent description
+   mode: subagent
+   ---
+   ```
+3. 实现逻辑
 
-导出后的 snapshot 结构：
+### 添加新的 Skill
 
-```text
-data/<version>/
-├── graph/
-│   ├── knowledge.nodes.jsonl
-│   ├── knowledge.edges.jsonl
-│   ├── <book-id>.mentions.jsonl
-│   └── <book-id>.evidence.jsonl
-├── profiles/
-│   └── knowledge.profiles.jsonl
-├── node_cards/
-├── qa/
-└── runs/
-    └── <book-id>.pipeline.json
-```
+1. 创建 `.opencode/skills/{skill-name}/SKILL.md`
+2. 添加 YAML frontmatter:
+   ```yaml
+   ---
+   name: skill-name
+   description: Skill description
+   ---
+   ```
+3. 实现完整工作流程
 
-另外还有：
+## 许可
 
-- `data/outlines/<book-id>.outline.json`
-- `storage/knowledge.sqlite`
-
-## 项目角色
-
-- `@outline-reader`: 提取教材目录
-- `@backbone-builder`: 抽取 batch-local backbone 和 runtime artifacts
-- `@graph-normalizer`: 做小范围归一化和保守提升
-- `@qa-reviewer`: 做只读 QA 复核
-- `@node-expander`: 扩展节点卡
-- `@kg-pipeline`: 负责编排完整流程
-
-## 低层脚本怎么理解
-
-平时优先用两层入口：
-
-- 编排入口：`@kg-pipeline`
-- 单批正式入口：`scripts/run_sqlite_batch_pipeline.py`
-
-这些低层脚本一般只在调试、恢复、或局部重跑时直接使用：
-
-- `scripts/store_batch_runtime.py`
-- `scripts/apply_batch_artifacts.py`
-- `scripts/finalize_batch_runtime.py`
-- `scripts/retrieve_candidates.py`（默认 `--mode hybrid`）
-- `scripts/local_subgraph.py`
-- `scripts/batch_group_rollup.py`
-- `scripts/strict_qa.py`
-
-## 更多规则
-
-更严格的执行约束、preservation policy、output contract 和 schema 约束见 [AGENTS.md](AGENTS.md)。
+[根据项目实际情况填写]

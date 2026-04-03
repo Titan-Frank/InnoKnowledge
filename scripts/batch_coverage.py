@@ -10,7 +10,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from export_snapshot import export_evidence, export_mentions, export_node_cards, export_nodes
+from knowledge_store_common import load_evidence, load_mentions, load_node_cards_cards, load_nodes
 from knowledge_store_common import (
     DEFAULT_DB_PATH,
     connect_db,
@@ -66,18 +66,18 @@ def main() -> int:
         args.report or root / "qa" / f"{args.book_id}.{anchor_stem}.batch-coverage.json"
     )
 
-    nodes = export_nodes(connection, dataset_id)
+    nodes = load_nodes(connection, dataset_id)
     mentions = [
         record
-        for record in export_mentions(connection, dataset_id)
+        for record in load_mentions(connection, dataset_id)
         if record.get("source_type") == "textbook" and record.get("source_id") == args.book_id
     ]
     evidence = [
         record
-        for record in export_evidence(connection, dataset_id)
+        for record in load_evidence(connection, dataset_id)
         if record.get("source_type") == "textbook" and record.get("source_id") == args.book_id
     ]
-    node_card_ids = {record["node_id"] for record in export_node_cards(connection, dataset_id)}
+    node_card_ids = {record["node_id"] for record in load_node_cards_cards(connection, dataset_id)}
     node_by_id = {record["id"]: record for record in nodes if record.get("id")}
     evidence_by_id = {record["id"]: record for record in evidence if record.get("id")}
 

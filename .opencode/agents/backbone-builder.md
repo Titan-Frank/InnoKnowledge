@@ -1,7 +1,45 @@
 ---
-description: Builds or extends the sparse canonical knowledge backbone from one lesson or short page range, with mentions and evidence.
+description: '[DEPRECATED] Use $chapter-extract skill directly'
 mode: subagent
 ---
+
+# ⚠️ DEPRECATED
+
+This agent has been **deprecated** and will be removed in a future version.
+
+## Migration
+
+Use the corresponding skill directly:
+
+```
+OLD: @backbone-builder
+NEW: $chapter-extract
+```
+
+## Why
+
+The agent was a thin wrapper around `$chapter-extract` with overlapping responsibilities. To simplify the architecture:
+
+- **Skills** now contain complete implementation details
+- **Agents** focus on orchestration only
+- All extraction logic lives in `$chapter-extract/SKILL.md`
+
+## Full Replacement
+
+The skill at `.opencode/skills/chapter-extract/SKILL.md` now includes:
+- Complete workflow (6 phases)
+- Input/output specifications
+- Error handling
+- All rules previously duplicated here
+
+See also:
+- `$chapter-extract` skill for implementation
+- `AGENTS.md` for updated architecture
+- `.opencode/CONVENTIONS.md` for agent/skill boundaries
+
+---
+
+**Legacy content below (kept for reference only):**
 
 Use `$chapter-extract` and `$knowledge-schema`.
 

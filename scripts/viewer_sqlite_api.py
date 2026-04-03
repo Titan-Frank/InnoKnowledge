@@ -11,12 +11,12 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
-from export_snapshot import (
-    export_edges,
-    export_evidence,
-    export_mentions,
-    export_nodes,
-    export_profiles,
+from knowledge_store_common import (
+    load_edges,
+    load_evidence,
+    load_mentions,
+    load_nodes,
+    load_profiles,
     load_json_array,
     load_json_object,
 )
@@ -117,8 +117,8 @@ def build_sources_payload(connection) -> dict:
 
 
 def build_books_payload(connection, dataset_id: str) -> list[dict]:
-    mentions = [item for item in export_mentions(connection, dataset_id) if item["source_type"] == "textbook"]
-    evidence = [item for item in export_evidence(connection, dataset_id) if item["source_type"] == "textbook"]
+    mentions = [item for item in load_mentions(connection, dataset_id) if item["source_type"] == "textbook"]
+    evidence = [item for item in load_evidence(connection, dataset_id) if item["source_type"] == "textbook"]
     mentions_by_book: dict[str, list[dict]] = {}
     evidence_by_book: dict[str, list[dict]] = {}
 
@@ -164,9 +164,9 @@ def build_bundle_payload(connection, dataset_id: str) -> dict:
             "rootPath": dataset_row["root_path"],
             "nodeCardPath": f"/api/source/{dataset_row['dataset_id']}/node-card",
         },
-        "nodes": export_nodes(connection, dataset_row["dataset_id"]),
-        "edges": export_edges(connection, dataset_row["dataset_id"]),
-        "profiles": export_profiles(connection, dataset_row["dataset_id"]),
+        "nodes": load_nodes(connection, dataset_row["dataset_id"]),
+        "edges": load_edges(connection, dataset_row["dataset_id"]),
+        "profiles": load_profiles(connection, dataset_row["dataset_id"]),
         "framework": framework,
         "patterns": patterns,
         "books": build_books_payload(connection, dataset_row["dataset_id"]),

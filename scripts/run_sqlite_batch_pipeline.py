@@ -18,9 +18,13 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Apply batch artifacts, run coverage, finalize runtime, and run strict QA."
     )
-    parser.add_argument("--root", required=True, help="Versioned output root, for example data/v5")
+    parser.add_argument(
+        "--root", required=True, help="Versioned output root, for example data/v5"
+    )
     parser.add_argument("--book-id", required=True)
-    parser.add_argument("--batch-anchor", required=True, help="Outline anchor id for the batch")
+    parser.add_argument(
+        "--batch-anchor", required=True, help="Outline anchor id for the batch"
+    )
     parser.add_argument("--db", default=str(REPO_ROOT / "storage" / "knowledge.sqlite"))
     parser.add_argument("--dataset-id")
     parser.add_argument("--manifest")
@@ -29,7 +33,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-apply", action="store_true")
     parser.add_argument("--skip-coverage", action="store_true")
     parser.add_argument(
-        "--sync-from-snapshot",
+        "--refresh-from-snapshot",
         action="store_true",
         help="Refresh SQLite from an exported snapshot before finalize.",
     )
@@ -133,7 +137,9 @@ def resolve_batch_group_anchors(
 ) -> list[str]:
     explicit = split_csv(explicit_anchors)
     if explicit:
-        return [resolve_outline_anchor(book_id, anchor, strict=True) for anchor in explicit]
+        return [
+            resolve_outline_anchor(book_id, anchor, strict=True) for anchor in explicit
+        ]
 
     if window_size < 2:
         return []
@@ -206,7 +212,9 @@ def run_batch_group_rollup(
         print("Batch group roll-up skipped: no eligible anchor window was resolved.")
         return
     if not parsed_args.batch_group_anchors and len(anchors) < 2:
-        print("Batch group roll-up skipped: fewer than two anchors are available in the current window.")
+        print(
+            "Batch group roll-up skipped: fewer than two anchors are available in the current window."
+        )
         return
 
     run_step(
@@ -267,7 +275,9 @@ def main() -> int:
     if not manifest_path.exists():
         manifest_path = None
 
-    dataset_args: list[str] = ["--dataset-id", args.dataset_id] if args.dataset_id else []
+    dataset_args: list[str] = (
+        ["--dataset-id", args.dataset_id] if args.dataset_id else []
+    )
 
     try:
         if not args.skip_apply:
@@ -324,15 +334,15 @@ def main() -> int:
             args.db,
             *dataset_args,
         ]
-        if args.sync_from_snapshot:
-            finalize_cmd.append("--sync-from-snapshot")
         if args.skip_promote:
             finalize_cmd.append("--skip-promote")
         if args.include_candidate:
             finalize_cmd.append("--include-candidate")
         if args.skip_sqlite_qa:
             finalize_cmd.append("--skip-sqlite-qa")
-        if args.export_snapshot:
+        if (
+            args.export_snapshot
+        ):  # Optional: export snapshot for backup/external systems
             finalize_cmd.append("--export-snapshot")
         run_step(finalize_cmd)
         mark_manifest(manifest_path, "normalize", "completed", batch_anchor)

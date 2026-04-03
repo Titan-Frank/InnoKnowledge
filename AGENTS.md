@@ -1,150 +1,160 @@
 # Knowledge Map Extraction Project
 
-This project turns textbook content into a stable, evidence-backed, cross-disciplinary knowledge map that can later be imported into a graph database or ontology system.
+Turn textbook content into a stable, evidence-backed, cross-disciplinary knowledge map.
 
-## Goal
+## Quick Links
 
-- Keep the main backbone as canonical knowledge points and relations.
-- Treat the graph as global-first, not textbook-first.
-- Use framework files as soft scaffolds, not rigid ontologies.
-- Use textbook structure as provenance anchors, not as the primary knowledge tree.
-- Keep nodes, edges, profiles, node cards, mentions, and evidence traceable.
+| Document | Purpose |
+|----------|---------|
+| [GLOSSARY.md](./GLOSSARY.md) | Standardized terminology |
+| [CONVENTIONS.md](./CONVENTIONS.md) | Coding and documentation standards |
+| [STYLE_GUIDE.md](./STYLE_GUIDE.md) | Writing style guidelines |
+| [schemas/v2/](../schemas/v2/) | JSON schemas for all artifacts |
 
-## Instruction Ownership
+## Core Principles
 
-- `AGENTS.md` is the project-wide source of truth for workflow order, preservation policy, and output contracts.
-- `.opencode/agents/*.md` should stay orchestration-focused.
-- `.opencode/skills/*/SKILL.md` should stay capability-focused.
-- If instructions overlap, resolve them in this order:
-  - user request
-  - `AGENTS.md`
-  - agent file
-  - skill file
+1. **Global-first, not textbook-first** - The graph serves cross-disciplinary knowledge, not one book
+2. **Backbone + Support layers** - Separate core concepts from auxiliary content
+3. **Evidence-backed** - Every node and edge must have textbook provenance
+4. **Retrieval-first extraction** - Retrieve candidates before reasoning; never operate on full graph
+5. **SQLite-first** - SQLite is the primary write layer; JSON is derived export
+6. **Non-destructive** - Append rather than replace; explicit deletion requires user approval
+
+## Architecture (Manager-Worker Pattern)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 1: Manager (Pure Orchestrator - NO business logic)    │
+│  ─────────────────────────────────                         │
+│  @kg-pipeline       - Plan, Spawn, Monitor, Decide         │
+│                      (Only tracks state, no extraction)     │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 2: Workflow Agents (Complete Business Logic)          │
+│  ─────────────────────────────────                         │
+│  @outline-reader    - Extract structure (standalone)       │
+│  @lesson-processor  - Complete lesson workflow:            │
+│                       ├─ $chapter-extract (skill)          │
+│                       ├─ @node-expander (parallel Tasks)   │
+│                       ├─ $graph-normalize (skill)          │
+│                       ├─ run_sqlite_batch_pipeline.py      │
+│                       └─ @qa-reviewer                      │
+│  @qa-reviewer       - Quality validation (read-only)       │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 3: Skills (Implementation Logic)                      │
+│  ─────────────────────────────────                         │
+│  $textbook-outline  - Structure extraction                 │
+│  $chapter-extract   - Lesson-level extraction              │
+│  $graph-normalize   - Deduplication                        │
+│  $knowledge-schema  - Schema enforcement                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Key Design**:
+- **Manager (@kg-pipeline)**: Only spawns Tasks and monitors results. No extraction logic.
+- **Workflow Agent (@lesson-processor)**: Encapsulates complete lesson processing. All business logic lives here.
+- **Clear Separation**: Manager decides "what", Workflow Agent knows "how".
 
 ## Default Entry
 
-- Generic requests to extract, build, refresh, or generate a knowledge map should use `@kg-pipeline`.
-- Use `@backbone-builder`, `@graph-normalizer`, or `@node-expander` directly only when the user explicitly asks for one stage or a run is being resumed from that stage.
-- For per-batch closeout, prefer `scripts/run_sqlite_batch_pipeline.py` instead of manually chaining apply, coverage, finalize, and QA steps.
-- Treat OCR-completed textbook markdown as the default and only working source.
+Use `@kg-pipeline` for:
+- Generic extraction requests
+- "Extract this book/lesson"
+- "Build knowledge map"
 
-## Core Workflow
+Use specialized Agents/Skills directly only when explicitly requested or resuming a specific stage.
 
-1. Create or refresh `data/outlines/<book-id>.outline.json`.
-2. Resolve the active output root.
-3. Initialize or refresh `<output-root>/runs/<book-id>.pipeline.json`.
-4. Ensure the active SQLite dataset is available before retrieval-first batch work.
-5. Extract one lesson or one tightly scoped page range at a time.
-6. Work retrieval-first:
-   - split the lesson into small evidence-bearing units
-   - build batch-local evidence and a provisional local graph in SQLite staging
-   - retrieve a small seed candidate set, preferring LightRAG-inspired `hybrid` mode by default
-   - use `mix` mode when lexical seed hits are sparse and profile/evidence text should act as secondary support
-   - reason in a narrow local subgraph before deciding node reuse, node creation, or relation proposals
-7. Write runtime artifacts into SQLite staging with `scripts/store_batch_runtime.py`.
-8. Close the batch with `scripts/run_sqlite_batch_pipeline.py`.
-9. Expand node cards only after the backbone is stable enough.
-10. Trust a batch only after read-only QA passes.
+## Workflow Overview (Serial Lesson-by-Lesson with Immediate Expansion)
 
-## Whole-Book Rule
+```
+outline ──→ [extract + expand] ──→ normalize ──→ qa
+```
 
-- Never process a whole textbook as one extraction context unless the user explicitly asks for an ad hoc whole-book pass.
-- For whole-book work:
-  - refresh or read the outline first
-  - split into lesson-sized or tightly scoped chapter-sized batches
-  - prefer lesson-level batches
-  - run normalization and QA after each batch or after a small adjacent batch group
-  - report progress by completed lesson anchors
+**⚠️ Serial Execution Required**: Lessons must be processed sequentially to avoid duplicate nodes and inconsistent relations across shared concepts.
 
-## Complete Knowledge Mode
+**⚠️ Task-Per-Lesson (CRITICAL)**: Each lesson MUST be processed in a separate, isolated Task:
+  - Manager (@kg-pipeline) spawns ONE Task per lesson using `task()` tool
+  - Each Task has fresh LLM context (no accumulation)
+  - Task completes and returns → Manager spawns next Task
+  - **NEVER** process multiple lessons in one continuous context
+  - **NEVER** let a subagent continue to next lesson autonomously
 
-- If the user asks for complete knowledge, complete explanations, or direct node-card generation, treat the run as complete knowledge mode.
-- In complete knowledge mode:
-  - do not stop at the sparse backbone
-  - after normalization and QA, collect targets with `scripts/node_card_targets.py`
-  - expand returned nodes with `@node-expander`
-  - rerun `scripts/batch_coverage.py --require-node-cards`
+**Why isolated Tasks matter**:
+  - Prevents context explosion (LLM context stays manageable)
+  - Ensures each lesson sees latest SQLite state
+  - Enables correct retrieval-based deduplication
+  - Isolates failures to single lesson
 
-## Strict Execution Rules
-
-- Resolve the active output root before writing graph artifacts.
-- Resolve the output root in this order:
-  - a user-explicit root such as `data/v4/`
-  - an existing run manifest for the same `book-id`
-  - a single existing version root that already contains the same book's mentions or evidence
-- If multiple candidate version roots exist for the same `book-id`, stop and ask instead of guessing.
-- Before retrieval-first work, ensure the active SQLite dataset exists.
-- Use heading structure, explicit page markers, and local section anchors from markdown as the source-side structure for outline and lesson extraction.
-- If resuming from an exported snapshot or bootstrapping from existing files, use:
-  - `scripts/sync_output_root_to_sqlite.py --replace --activate --preserve-runtime`
-- For each batch, manifest order is always:
-  - `backbone`
-  - `normalize`
-  - `qa`
-- Do not mark a later stage complete while an earlier required stage is still pending.
-- `scripts/run_sqlite_batch_pipeline.py` is the standard batch closer and should automatically:
-  - run `scripts/apply_batch_artifacts.py`
-  - run `scripts/batch_coverage.py`
-  - attempt `scripts/local_subgraph.py` after coverage
-  - run `scripts/finalize_batch_runtime.py`
-  - run `scripts/strict_qa.py`
-  - generate `scripts/batch_group_rollup.py` when a lesson window is available or explicitly requested
-- Missing retrieval seeds must not fail the whole batch closeout by themselves. `local_subgraph.py` may emit a skipped report instead.
-- After each batch backbone pass, treat missing batch-local mentions or broken mention-to-evidence links as blockers.
-- If strict QA fails, stop the pipeline, record the batch as blocked, and report the issues before continuing.
-
-## Retrieval-First Rules
-
-- Do not perform relation extraction against the whole canonical graph context.
-- Retrieve a small candidate set first, then reason inside a narrowed local subgraph.
-- Prefer `scripts/retrieve_candidates.py --mode hybrid` for default batch work.
-- Use `--mode local` for the most conservative replay/debug runs and `--mode mix` when local lexical recall is too weak.
-- Apply hard filters before relation judgment:
-  - `node_kind`
-  - `subject`
-  - `school_stage`
-  - `grade_band`
-- Extract relations in two steps:
-  - local lesson relation proposals
-  - small-scope normalization and cross-lesson linking
-- Do not promote a canonical edge unless the current source provides explicit evidence.
-- If a relation is weak, inferred, or conflicting, keep it out of canonical edges and leave it for review.
-- Prefer slow, conservative edge promotion over aggressive graph growth.
-
-## SQLite-First Rules
-
-- SQLite is the primary serving and write layer during pipeline execution.
-- `<output-root>` JSON/JSONL files are derived snapshot exports for viewer, Git review, and publishing.
-- Default batch extraction should write runtime artifacts into SQLite staging first, not into runtime JSONL files.
-- The canonical `batch-anchor` is the outline item id, for example `struct:chem-grade8-all-in-one:lesson:1-1-1`.
-- Helper scripts may accept shorthand such as `lesson-1-1-1`, but SQLite rows and exported snapshots should normalize back to canonical outline ids.
-- Use `scripts/export_batch_runtime.py` only for explicit debug export.
-- `scripts/apply_batch_artifacts.py` should read SQLite `batch_runtime_records` by default. Runtime files should be used only through explicit file arguments.
-
-## Provenance and Preservation
-
-- Every canonical node must have at least one mention pointing to a textbook location.
-- Every mention must reference at least one evidence record.
-- Evidence must include source identity, anchor, locator, and extraction method.
-- No canonical edge should be added without an evidence-backed anchor path from the current source scope.
-- Extraction and normalization are append-first and non-destructive by default.
-- Absence from the current lesson or textbook is not evidence that an existing canonical record should be deleted.
-- Deleting canonical nodes, edges, profiles, mentions, evidence, or node cards requires explicit user instruction.
-- If a rerun would shrink supported coverage, stop and report the conflict instead of writing a destructive update.
+1. **Outline** (`@outline-reader` + `$textbook-outline`): Create `data/outlines/{book-id}.outline.json`
+2. **Lesson Processing** (`@lesson-processor`):
+   - **Extract** (`extract_lesson_sqlite.py`):
+     - Process **one lesson at a time** in outline order
+     - **Direct INSERT** into SQLite tables (nodes, edges, profiles, mentions, evidence)
+     - No JSONL intermediate files
+   - **Expand** (`expand_node_sqlite.py`):
+     - For **each new backbone node**: spawn **independent Task** → direct INSERT into `node_cards`
+     - Each expansion runs in **fresh isolated context** (max stability)
+     - Multiple nodes can expand **concurrently** within the same lesson
+   - **Normalize** (`normalize_sqlite.py`): Deduplicate, merge aliases, normalize node cards **after each lesson**
+   - **QA** (`strict_qa_sqlite.py`): Read-only review including node card completeness **after each lesson**
 
 ## Output Contract
 
-- Active output root: `data/<version>/`
-- Outline: `data/outlines/<book-id>.outline.json`
-- Run manifest: `<output-root>/runs/<book-id>.pipeline.json`
-- Canonical nodes: `<output-root>/graph/knowledge.nodes.jsonl`
-- Canonical edges: `<output-root>/graph/knowledge.edges.jsonl`
-- Curriculum profiles: `<output-root>/profiles/knowledge.profiles.jsonl`
-- Mentions: `<output-root>/graph/<book-id>.mentions.jsonl`
-- Evidence: `<output-root>/graph/<book-id>.evidence.jsonl`
-- Node cards: `<output-root>/node_cards/<safe-node-id>.json`
+Active storage: `storage/knowledge.sqlite`
 
-Legacy files under `data/graph/` and `data/node_cards/` are compatibility outputs. New work should use the active versioned output root unless the user explicitly asks for legacy output.
+| Artifact | SQLite Table | Notes |
+|----------|--------------|-------|
+| Outline | `data/outlines/{book-id}.outline.json` | JSON (source of truth for structure) |
+| Run manifest | `{root}/runs/{book-id}.pipeline.json` | JSON (tracking only) |
+| Canonical nodes | `nodes` | SQLite PRIMARY storage |
+| Canonical edges | `edges` | SQLite PRIMARY storage |
+| Curriculum profiles | `profiles` | SQLite PRIMARY storage |
+| Mentions | `mentions` | SQLite PRIMARY storage |
+| Evidence | `evidence` | SQLite PRIMARY storage |
+| Node cards | `node_cards` | SQLite PRIMARY storage |
+
+**JSONL/JSON files are DERIVED EXPORTS only.** Do not treat them as primary storage. Use `scripts/export_snapshot.py` to generate them from SQLite when needed for external consumers (Viewer API, etc.).
+
+### Deprecated Components (moved to `/deprecated/`)
+
+| Component | Reason | Replacement |
+|-----------|--------|-------------|
+| `scripts/apply_batch_artifacts.py` | JSON→SQLite conversion no longer needed | `extract_lesson_sqlite.py` (direct INSERT) |
+| `scripts/import_to_sqlite.py` | JSON→SQLite conversion no longer needed | Direct writes from extraction scripts |
+| `data/{version}/graph/*.jsonl` | No longer generated as intermediate | Export from SQLite if needed |
+| `data/{version}/node_cards/*.json` | No longer generated as intermediate | SQLite `node_cards` table |
+
+## Critical Constraints
+
+### Whole-Book Rule
+Never process a whole textbook as one extraction context unless explicitly requested.
+
+For whole-book work: **process lessons sequentially**, one at a time. Each lesson must complete normalize, closeout, and QA before moving to the next.
+
+**No parallel execution** for lessons with potentially overlapping concepts (which is typical for textbook chapters). Serial execution ensures:
+- No duplicate canonical nodes
+- Consistent edge endpoints
+- Proper retrieval-based deduplication
+
+### Stage Dependencies
+Manifest order is always: `backbone` → `normalize` → `qa`
+
+Each lesson must complete all stages:
+1. `backbone` - Nodes created with immediate node card generation
+2. `normalize` - Deduplication and card normalization
+3. `qa` - Schema validation including node card completeness
+
+Do not mark a later stage complete while an earlier required stage is pending.
+
+### Blocker Policy
+If strict QA fails, **halt** the pipeline, record the batch as blocked, report issues before continuing.
+
+Missing batch-local mentions or broken mention-to-evidence links are blockers.
+
+### Preservation
+- Append-first, non-destructive by default
+- Absence from current lesson is not evidence for deletion
+- Explicit user instruction required for deletion
+- If rerun would shrink coverage, stop and report conflict
 
 ## Required Schemas
 
@@ -160,25 +170,204 @@ Read these before writing output:
 - `schemas/v2/node-card.schema.json`
 - `schemas/v2/pattern-library.schema.json`
 
-## Detailed References
-
-Use the skill references for artifact-specific detail:
-
-- `.opencode/skills/knowledge-schema/references/schema-guide.md`
-- `.opencode/skills/chapter-extract/references/extraction-rules.md`
-- `.opencode/skills/graph-normalize/references/normalization-rules.md`
-- `.opencode/skills/knowledge-schema/references/node-card-usage.md`
-- `.opencode/skills/knowledge-schema/references/framework-usage.md`
-
 ## Review Checklist
 
-- Schema-valid fields only.
-- Every canonical node has at least one mention with evidence.
-- Every canonical node has a valid `node_layer`.
-- Every canonical edge has valid `edge_layer` and `backbone_expand`.
-- No canonical edge whose endpoints are missing.
-- No curriculum profile whose node is missing.
-- No mention without evidence.
-- No evidence without an anchor.
-- No duplicate canonical nodes that differ only by whitespace, punctuation, aliases, or legacy-vs-v2 naming.
-- No relation promoted to the canonical graph unless the source evidence clearly supports it.
+### Task-Per-Lesson Execution (CRITICAL)
+- [ ] Each lesson processed in separate, isolated Task
+- [ ] Main agent spawns Task for lesson N, waits for completion
+- [ ] Main agent then spawns Task for lesson N+1
+- [ ] No subagent continues to next lesson autonomously
+- [ ] Manifest shows sequential lesson completion (not batch)
+- [ ] Each Task returns before next Task spawns
+
+### Schema Validation
+- [ ] Schema-valid fields only
+- [ ] All required fields present in every record type
+
+### Canonical Nodes
+- [ ] Every node has valid `node_kind` and `node_layer`
+- [ ] Every backbone node has `card_ref` pointing to node card
+- [ ] Every backbone node has at least one `bridge_tags`
+- [ ] Every backbone node has at least one `learning_modes`
+- [ ] **`entity/substance` nodes SHOULD have meaningful `properties`** (color, state, odor, etc.)
+  - If empty, check `notes` field for explanation
+- [ ] **`activity/experiment` nodes SHOULD have `properties`** with method/steps/materials
+  - If empty, check `notes` field for explanation
+- [ ] **`entity/equipment` nodes SHOULD have `properties`** with instrument_type
+  - If empty, check `notes` field for explanation
+- [ ] No duplicate nodes differing only by whitespace/punctuation/aliases
+
+### Support Nodes (RECOMMENDED)
+- [ ] **Lessons with experiments/activities SHOULD have support nodes**
+  - `activity/experiment` for experiments
+  - `method` for procedures
+  - `entity/equipment` for instruments
+  - `representation` for formulas/diagrams
+- [ ] **If no support nodes, check lesson content type**:
+  - Concept/theory lessons may not have experiments
+  - Review/introductory lessons may not have new methods
+- [ ] Support nodes have `node_layer="support"` (not backbone)
+
+### Curriculum Profiles (课程画像)
+- [ ] **Every backbone node has a corresponding profile**
+- [ ] Profile contains required: subject, school_stage, grade_band
+- [ ] Profile has valid curriculum_role and mastery_level
+- [ ] Profile has at least one `learning_objectives`
+- [ ] Profile links to current lesson via `textbook_refs`
+
+### Evidence (出处)
+- [ ] **Every mention has at least one evidence record**
+- [ ] No evidence without anchor_ref
+- [ ] Evidence excerpt is non-empty and from actual textbook text
+- [ ] Evidence has valid locator (page number and location)
+- [ ] Evidence modality specified (text/image/table/equation)
+
+### Mentions (提及)
+- [ ] **Every backbone node has at least one mention**
+- [ ] Mention has valid target_type="node" and target_id
+- [ ] Mention has valid role (introduces/defines/focuses_on/demonstrates/etc.)
+- [ ] Mention confidence is set (0.0-1.0)
+
+### Node Cards (详细节点卡片)
+- [ ] **Every backbone node has a node card** (generated during extraction)
+- [ ] **Node card has non-empty summary** (100-200 words)
+- [ ] **Node card has all required sections** per pattern-library template:
+  - definition (定义) - from textbook evidence
+  - essence (核心本质) - distilled understanding
+  - key_points (关键要点) - 3-5 bullet points
+  - example (示例) - from current lesson
+  - application (应用) - practical scenarios
+  - misconception (常见误解) - if applicable
+- [ ] Each section has source_refs linking to evidence
+- [ ] Node card sections use evidence from current lesson (fresh context)
+- [ ] No node card references missing or non-existent evidence
+- [ ] Node card has card_layer="backbone"
+
+### Edges (关系)
+- [ ] Every edge has valid `edge_type` from allowed enum
+- [ ] Every edge has valid `edge_layer` and `backbone_expand`
+- [ ] Every edge has source_refs linking to evidence
+- [ ] No edge with missing endpoints (from/to must exist in graph)
+- [ ] No relation promoted without explicit evidence
+- [ ] **No cycles in hierarchical edges** (is_a, part_of, prerequisite_for, etc.)
+- [ ] **No excessive isolated nodes** (nodes with no edges)
+- [ ] **No duplicate edges** (same from/to/type)
+
+### Graph Connectivity
+- [ ] **Hierarchical edges are acyclic**:
+  - `is_a`, `instance_of`, `contains`, `part_of` - NO cycles
+  - `prerequisite_for`, `depends_on`, `extends` - NO cycles
+- [ ] **Association edges may cycle**:
+  - `related_to`, `explains`, `uses`, `produces` - cycles OK
+- [ ] **Isolated nodes reviewed**:
+  - Check if isolation is intentional
+  - Add edges or document reason in notes
+- [ ] **Graph is reasonably connected**:
+  - No excessive disconnected components
+  - Most nodes should have at least one edge
+
+### Completeness Blockers
+If any of the following are missing, extraction is INCOMPLETE:
+- [ ] Missing canonical node for extracted concept
+- [ ] Missing curriculum profile for backbone node
+- [ ] Missing evidence for textbook excerpt
+- [ ] Missing mention linking node to lesson
+- [ ] Missing node card for backbone node
+- [ ] Missing required sections in node card
+
+### Quality Warnings (NOT blockers)
+The following indicate quality issues but do NOT block extraction:
+- [ ] **Missing properties for substance/experiment/equipment nodes** (check `notes` for reason)
+- [ ] **Missing support nodes in lesson** (check lesson content type)
+- [ ] **Support nodes marked as backbone instead of support layer**
+- [ ] **Isolated nodes found** (nodes with no edges - review if intentional)
+- [ ] **Duplicate edges detected** (same from/to/type combination)
+
+## Graph Integrity Checks
+
+After extraction, run graph integrity checks:
+
+```bash
+# Basic QA validation
+python scripts/strict_qa_sqlite.py --dataset-id v4
+
+# Detailed graph integrity check (cycles, isolated nodes, connectivity)
+python scripts/check_graph_integrity.py --dataset-id v4
+
+# If cycles found in hierarchical edges
+python scripts/check_graph_integrity.py --dataset-id v4 --fail-on-cycles
+```
+
+### Cycle Detection
+
+Hierarchical edges MUST NOT form cycles:
+- `is_a` - Type hierarchy cannot loop
+- `part_of` - Part-whole hierarchy cannot loop
+- `prerequisite_for` - Dependency chains must be acyclic
+
+Association edges MAY form cycles:
+- `related_to`, `explains`, `uses`, `produces` - cycles are acceptable
+
+### Isolated Node Detection
+
+Isolated nodes (nodes with NO edges) should be reviewed:
+- Check if node should have relations
+- Add appropriate edges based on evidence
+- If intentionally isolated, document reason in `notes` field
+
+## Instruction Ownership
+
+Resolution order (highest priority first):
+1. User request
+2. **AGENTS.md** (this file)
+3. Agent file
+4. Skill file
+5. Reference file
+
+See [CONVENTIONS.md](./CONVENTIONS.md) for documentation standards.
+
+## ⚠️ Critical: Deprecated Scripts
+
+### DO NOT USE
+
+The following scripts have been **deprecated** and moved to `/deprecated/`:
+
+| Script | Status | Reason |
+|--------|--------|--------|
+| `extract_chemistry_complete.py` | ❌ REMOVED | Directly writes JSONL, bypasses SQLite |
+| `extract_chemistry_v4.py` | ❌ REMOVED | Directly writes JSONL, bypasses SQLite |
+
+### Why They Were Deprecated
+
+These scripts violated the **SQLite-first principle**:
+- They wrote directly to `data/v4/graph/*.jsonl` files
+- They never updated `storage/knowledge.sqlite`
+- This caused **data inconsistency**: SQLite had 85 nodes while JSONL had 145
+- The Viewer API (which reads SQLite) could not see the new data
+
+### Correct Alternatives
+
+**For extraction:**
+- Use `$chapter-extract` skill (writes to SQLite)
+- Use `scripts/run_single_lesson.py` (orchestrates correct workflow)
+- **Process lessons sequentially**, not in parallel
+
+**For viewing data:**
+- Use `scripts/viewer_sqlite_api.py` (serves from SQLite)
+- Never read JSONL directly for canonical data
+
+### Data Validation
+
+Always verify data consistency after extraction:
+
+```bash
+# Check SQLite vs JSONL consistency
+python check_data_consistency.py
+
+# If inconsistent, re-import (JSONL → SQLite)
+python scripts/import_to_sqlite.py data/v4 \
+    --db storage/knowledge.sqlite \
+    --activate --replace
+```
+
+See [PIPELINE_SAFETY.md](./PIPELINE_SAFETY.md) for detailed safety guidelines.
