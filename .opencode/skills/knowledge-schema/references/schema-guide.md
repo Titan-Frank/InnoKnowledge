@@ -53,6 +53,62 @@ Use one or more:
 
 These are instructional descriptors, not ontology classes.
 
+This field is required and must contain at least one value.
+
+Practical defaults:
+
+- `concept`, `principle`, `process`, backbone `entity`, `representation` -> `conceptual`
+- support `entity` -> `factual`
+- `method`, `skill`, `activity` -> `procedural`
+- `issue` -> `conceptual`
+
+### `properties`
+
+Use `properties` for compact, stable, structured facts that can be expressed as key-value data without losing meaning.
+
+Good fits for `properties`:
+
+- short attribute-value pairs
+- small controlled lists
+- compact structured values that are likely to be reused in filtering or display
+- stable descriptors that do not depend on long explanation
+
+Typical examples:
+
+- substance appearance, color, odor, solubility, state
+- equipment type or instrument category
+- experiment method, materials, or short step labels
+- representation notation family
+- issue category or application type
+
+Avoid using `properties` for:
+
+- long explanatory paragraphs
+- examples and non-examples
+- procedural detail with important caveats
+- misconception handling
+- evidence discussion
+- curriculum expectations
+- anything that needs sentence-level context to be understood safely
+
+Rule of thumb:
+
+- if the content still makes sense as a short field-value pair, prefer `properties`
+- if the content needs bullets, narrative, comparison, caution, or interpretation, prefer a node card section
+
+Examples:
+
+- good `properties`
+  - `{"color":"无色","odor":"无气味"}`
+  - `{"instrument_type":"玻璃仪器"}`
+  - `{"method":"红磷燃烧法"}`
+  - `{"steps":["溶解","过滤","蒸发"]}`
+- better in node card, not `properties`
+  - why a method works
+  - how to distinguish related concepts
+  - common errors in an experiment
+  - textbook examples with interpretation
+
 ### `bridge_tags`
 
 Use bridge tags to mark concepts that can connect across disciplines:
@@ -138,6 +194,8 @@ Preservation policy:
 
 Canonical edges are knowledge-to-knowledge relations. Lesson-level provenance belongs in mentions.
 
+Use only these schema-valid edge types. Do not invent near-synonyms such as `relates_to`, `represents`, `contrasts_with`, or `improves`.
+
 ## Edge Layer
 
 - `edge_layer = backbone`: the edge belongs in the default backbone view and usually connects two backbone nodes
@@ -177,7 +235,7 @@ Evidence records capture source-local support.
 - `anchor_ref`: the local source anchor
 - `excerpt`: a short, local supporting passage
 - `locator`: page, figure, table, section, or other locator string
-- `extraction_method`: manual, pdftotext, ocr, speech_to_text, mixed
+- `extraction_method`: manual, ocr, speech_to_text, mixed
 
 Keep evidence local and specific. One evidence record should support one localized claim or a tightly related cluster of claims.
 
@@ -201,6 +259,65 @@ Node cards are structured explanation artifacts for one canonical node.
 - cards expand detail without inflating the backbone graph
 - cards should cite evidence through `source_refs`
 - cards may link to curriculum profiles through `profile_refs`
+
+### Properties Vs Node Cards
+
+Use this split consistently:
+
+- `properties`
+  - stable
+  - compact
+  - structured
+  - reusable for filtering or quick scanning
+- `node card`
+  - explanatory
+  - comparative
+  - cautionary
+  - example-rich
+  - sectioned by pattern
+
+Few-shot examples:
+
+1. `entity/substance:oxygen`
+   - put in `properties`
+     - `{"color":"无色","odor":"无味","state":"气体"}`
+   - put in node card
+     - supporting combustion explanation
+     - common laboratory identification method and caveats
+     - textbook experiment interpretation
+
+2. `entity/equipment:funnel`
+   - put in `properties`
+     - `{"instrument_type":"玻璃仪器"}`
+   - put in node card
+     - when to use it in filtration
+     - common setup mistakes
+     - relation to filter paper and receiving vessel
+
+3. `activity/experiment:salt-purification`
+   - put in `properties`
+     - `{"steps":["溶解","过滤","蒸发"]}`
+   - put in node card
+     - why this order matters
+     - observation points
+     - safety cautions
+     - error-prone steps
+
+4. `concept:chemical-change`
+   - usually keep `properties` empty unless the source gives a small, stable taxonomy field
+   - put in node card
+     - definition expansion
+     - comparison with physical change
+     - positive and negative examples
+     - common confusion points
+
+5. `representation/formula:chemical-equation`
+   - put in `properties`
+     - `{"notation_type":"symbolic-representation"}`
+   - put in node card
+     - how to read it
+     - balance interpretation
+     - relation to reactant and product
 
 ## ID Guidance
 

@@ -5,9 +5,33 @@
 - Extract one lesson, one activity block, or one short page range at a time.
 - Avoid whole-book extraction in a single pass.
 - Treat textbook structure as provenance, not as the canonical knowledge tree.
+- Prefer GraphRAG-style micro-chunk extraction within the lesson rather than reasoning over the whole lesson body at once.
+
+## Outline Kind Selection
+
+Not all outline items should become canonical nodes. Follow these rules:
+
+| Outline Kind | Extract? | Notes |
+|--------------|----------|-------|
+| `lesson` | ✅ Yes | Core content, always extract |
+| `activity` | ✅ Yes | Experiments and activities, extract as `activity/experiment` nodes |
+| `topic` | ✅ Yes | Standalone topics like introduction/preface |
+| `theme` | ❌ No | Chapter/unit titles, only serve as parent containers for lessons |
+| `review` | ❌ No | Chapter review sections, do not create nodes or profiles |
+
+- `theme` and `review` items exist only as provenance anchors in the outline.
+- Do not create canonical nodes, profiles, mentions, or node cards for `theme` or `review` items.
+- Skip `theme` and `review` batches during backbone extraction.
 
 ## Evidence First
 
+- Split the current lesson into small evidence-bearing units before canonical decisions.
+- Good units:
+  - definition paragraph
+  - example paragraph
+  - experiment step block
+  - figure caption
+  - table-local row group
 - Create evidence records before nodes and edges.
 - Keep `excerpt` concise and local to the claim.
 - Use captions and tables only when they add information not already present in the body text.
@@ -36,6 +60,30 @@ Keep these out of the backbone by default:
 
 These belong in node cards later.
 
+### G2.5: `properties` Vs Node Card
+
+Use canonical node `properties` only for compact structured facts.
+
+Put information into `properties` when it is:
+
+1. short enough to read as a field-value pair
+2. stable for the canonical node
+3. likely to help quick scanning, filtering, or future retrieval
+4. not dependent on long explanation
+
+Put information into node cards when it is:
+
+1. explanatory
+2. example-driven
+3. cautionary
+4. comparative
+5. procedural with important context
+
+Default extraction rule:
+
+- if unsure, leave `properties` sparse and defer the detail to a node card
+- do not invent filler properties just to avoid an empty section in the viewer
+
 ### G3: Evidence / Example
 
 Keep these in provenance only:
@@ -63,6 +111,63 @@ Use `node_subkind` when a narrower label helps:
 - `activity/experiment`
 - `representation/symbol`
 
+## Properties Selection
+
+Good `properties` candidates:
+
+- `entity/substance`
+  - `appearance`
+  - `color`
+  - `odor`
+  - `state`
+  - `solubility`
+- equipment-like `entity`
+  - `instrument_type`
+- `activity/experiment`
+  - `method`
+  - short `steps`
+  - short `materials`
+- `issue`
+  - `issue_type`
+  - `application_domain`
+- `representation`
+  - `notation_type`
+
+Avoid putting these in `properties`:
+
+- textbook sentences copied verbatim
+- long lists of examples
+- definitions that belong in `definition`
+- grade/stage expectations that belong in profiles
+- relation facts that belong in edges
+- long explanation or reasoning that belongs in node cards
+
+Few-shot examples:
+
+1. `entity/substance:nitrogen`
+   - good `properties`
+     - `{"color":"无色","odor":"无气味","solubility":"难溶于水"}`
+   - not `properties`
+     - "氮气为什么能作保护气" -> node card
+
+2. `entity/equipment:funnel`
+   - good `properties`
+     - `{"instrument_type":"玻璃仪器"}`
+   - not `properties`
+     - "过滤时如何配合玻璃棒使用" -> node card
+
+3. `activity/experiment:salt-purification`
+   - good `properties`
+     - `{"steps":["溶解","过滤","蒸发"]}`
+   - not `properties`
+     - "为什么先过滤再蒸发" -> node card
+
+4. `concept:chemical-change`
+   - good `properties`
+     - usually none
+   - not `properties`
+     - "与物理变化的区别、例子、易错点" -> node card
+
 ## Node Layer Selection
 
 - Use `node_layer = backbone` when the node is a stable, cross-lesson knowledge anchor that should appear in the main knowledge trunk.
@@ -83,17 +188,44 @@ Use `node_subkind` when a narrower label helps:
 
 ## Canonicalization
 
-- Prefer reusing existing canonical nodes in `data/v2/graph/knowledge.nodes.jsonl`.
-- Create or refine curriculum profiles in `data/v2/profiles/knowledge.profiles.jsonl`.
+- Prefer reusing existing canonical nodes from the active SQLite dataset.
+- Create or refine curriculum profiles in the active SQLite dataset.
 - If the same canonical node is learned in a new stage or grade, add another curriculum profile for that context instead of replacing the old one.
 - Do not delete prior stage coverage during a new extraction pass. Existing junior-secondary and senior-secondary profiles may coexist on the same canonical node.
 - Use `framework_refs` primarily on profiles.
 - Do not create lesson nodes in the canonical graph.
 - Record lesson-level appearance through mentions, not through chapter-parent edges.
 - Record only backbone-worthy concepts and relations here. Detailed explanation should be deferred to node cards.
+- Before deciding reuse or relation creation, retrieve a small seed candidate node set using exact names, aliases, normalized terms, and filtered search.
+- After seed retrieval, inspect only a narrow local subgraph around the most relevant candidates conceptually. Do not widen to the whole book or whole graph.
+- Persist the batch retrieval inputs in SQLite runtime staging.
+- Do not ask the extractor to reason over the whole canonical graph at once.
 
 ## Relation Selection
 
+- Use only schema-valid edge types:
+  - `is_a`
+  - `instance_of`
+  - `part_of`
+  - `contains`
+  - `prerequisite_for`
+  - `depends_on`
+  - `extends`
+  - `explains`
+  - `causes`
+  - `affects`
+  - `has_property`
+  - `uses`
+  - `measures`
+  - `produces`
+  - `consumes`
+  - `applies_to`
+  - `represented_by`
+  - `symbolizes`
+  - `analogous_to`
+  - `same_as`
+  - `related_to`
+- Do not invent near-synonyms such as `relates_to`, `represents`, `contrasts_with`, or `improves`.
 - Use `contains` and `part_of` only for stable structural relations.
 - Use `is_a` for clear type membership.
 - Use `has_property` when a property is stable and reusable.
@@ -102,6 +234,17 @@ Use `node_subkind` when a narrower label helps:
 - Use `produces` and `consumes` only when the source clearly indicates a process relation.
 - Use `prerequisite_for` and `depends_on` sparingly and only when learning or semantic dependence is clear.
 - Prefer `related_to` over inventing a new relation type.
+- Extract relations in two steps:
+  - first as lesson-local proposals
+  - then as small-scope normalized canonical edges
+- Keep the batch-local provisional graph denser than the canonical graph when needed for review. Temporary support nodes and unresolved alternatives may exist locally as long as they remain evidence-backed.
+- Persist lesson-local relation proposals in SQLite runtime staging.
+- Only promote a proposal into a canonical edge when:
+  - both endpoints are justified in the current constrained candidate context
+  - the relation has explicit evidence support
+  - the relation does not conflict with an existing canonical edge without review
+- If a relation conflicts with an existing canonical edge, do not overwrite the older edge automatically.
+- If evidence is weak or absent, keep the relation out of the canonical graph.
 
 ## Edge Layer Selection
 
@@ -115,13 +258,39 @@ Use `node_subkind` when a narrower label helps:
 
 ## Mention Selection
 
+- **Every canonical node must have at least one mention pointing to a textbook location.**
+- A node without a mention means it has no provenance in the source material and should not exist in the canonical graph.
 - Create a mention for every canonical node, edge, or profile that is substantively supported in the current lesson.
 - Use the mention `role` to preserve how the lesson treats the target, such as `introduces`, `defines`, `focuses_on`, `demonstrates`, or `reviews`.
+- When adding nodes manually (e.g., during normalization or edge supplementation), always:
+  1. Verify the node exists in the source textbook
+  2. Create the corresponding evidence and mention records
+  3. Link the mention to the appropriate anchor (lesson or activity)
+- Do not create nodes that do not appear in any textbook or curriculum source.
+
+## Required Minimal Fields
+
+- Every canonical node must include at least one `learning_modes` value.
+- Prefer these defaults when the source does not make the mode explicit:
+  - `concept`, `principle`, `process`, backbone `entity`, `representation` -> `conceptual`
+  - support `entity` -> `factual`
+  - `method`, `skill`, `activity` -> `procedural`
+  - `issue` -> `conceptual`
 
 ## Expansion Boundary
 
 - Do not write node cards during backbone extraction unless the user explicitly asks for it.
 - Keep the backbone sparse enough that a human can review it quickly.
+
+## Small-Group Roll-Up
+
+- After a small group of lessons, prepare a short thematic roll-up for normalization or QA.
+- This roll-up may summarize:
+  - recurring concepts
+  - duplicate naming drift
+  - likely missing cross-lesson links
+  - unstable terminology
+- Do not write the roll-up back as canonical nodes or canonical edges by default.
 
 ## Naming
 

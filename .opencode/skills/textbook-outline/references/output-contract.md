@@ -38,7 +38,7 @@ Use this reference when writing `data/outlines/<book-id>.outline.json`.
 
 ## Quality Rules
 
-- Preserve the original TOC line in `raw_line`.
-- Keep `page_start` as the textbook page number shown in the TOC.
-- If TOC nesting is ambiguous, favor the nearest preceding higher-level heading.
+- Preserve the original structure line in `raw_line`.
+- Keep `page_start` as the textbook page number recovered from a reliable markdown page marker.
+- If heading nesting is ambiguous, favor the nearest preceding higher-level heading.
 - Do not fabricate missing page numbers.

@@ -1,0 +1,356 @@
+{
+  "book_id": "chem-grade8-all-in-one",
+  "output_root": "data/v4",
+  "status": "in_progress",
+  "run_stages": {
+    "outline": {
+      "status": "completed",
+      "updated_at": "2025-04-02T00:00:00Z"
+    },
+    "framework": {
+      "status": "not_requested",
+      "updated_at": "2025-04-02T00:00:00Z"
+    },
+    "pattern": {
+      "status": "not_requested",
+      "updated_at": "2025-04-02T00:00:00Z"
+    },
+    "final_qa": {
+      "status": "pending",
+      "updated_at": "2025-04-02T00:00:00Z"
+    }
+  },
+  "batches": [
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:1-1-1",
+      "kind": "lesson",
+      "label": "课题1",
+      "title": "开启化学之门",
+      "page_start": 3,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T19:42:56.211992"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:1-1-2",
+      "kind": "lesson",
+      "label": "课题2",
+      "title": "通用的化学语言",
+      "page_start": 14,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:42.811422+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:activity:1-1-1",
+      "kind": "activity",
+      "label": "跨学科实践活动",
+      "title": "生活垃圾的分类与回收利用",
+      "page_start": 20,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:28:21.278062+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:1-2-1",
+      "kind": "lesson",
+      "label": "课题1",
+      "title": "走进化学实验室",
+      "page_start": 27,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:42.819767+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:1-2-2",
+      "kind": "lesson",
+      "label": "课题2",
+      "title": "学习开展化学实验探究",
+      "page_start": 41,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:42.878503+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:activity:1-2-1",
+      "kind": "activity",
+      "label": "跨学科实践活动",
+      "title": "微型空气质量\"检测站\"的组装与使用",
+      "page_start": 48,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:28:21.278062+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:2-1-1",
+      "kind": "lesson",
+      "label": "课题1",
+      "title": "空气的成分",
+      "page_start": 57,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:42.882631+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:2-1-2",
+      "kind": "lesson",
+      "label": "课题2",
+      "title": "氧气和二氧化碳的性质",
+      "page_start": 63,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:42.932751+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:2-1-3",
+      "kind": "lesson",
+      "label": "课题3",
+      "title": "氧气和二氧化碳的制备",
+      "page_start": 73,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:28:21.278062+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:activity:2-1-1",
+      "kind": "activity",
+      "label": "跨学科实践活动",
+      "title": "基于特定需求设计和制作简易供氧器",
+      "page_start": 81,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:28:21.278062+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:3-1-1",
+      "kind": "lesson",
+      "label": "课题1",
+      "title": "水的性质",
+      "page_start": 89,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:42.937422+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:3-1-2",
+      "kind": "lesson",
+      "label": "课题2",
+      "title": "水的自然循环与人工净化",
+      "page_start": 95,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:42.940534+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:3-1-3",
+      "kind": "lesson",
+      "label": "课题3",
+      "title": "水的组成",
+      "page_start": 103,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:42.944443+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:activity:3-1-1",
+      "kind": "activity",
+      "label": "跨学科实践活动",
+      "title": "水质检测及自制净水器",
+      "page_start": 108,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:42.948389+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:3-2-1",
+      "kind": "lesson",
+      "label": "课题1",
+      "title": "构成物质的微观粒子",
+      "page_start": 115,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:42.980194+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:3-2-2",
+      "kind": "lesson",
+      "label": "课题2",
+      "title": "组成物质的元素",
+      "page_start": 123,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:28:21.278062+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:3-2-3",
+      "kind": "lesson",
+      "label": "课题3",
+      "title": "结构多样的碳单质",
+      "page_start": 133,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:43.000893+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:activity:3-2-1",
+      "kind": "activity",
+      "label": "跨学科实践活动",
+      "title": "制作模型并展示科学家探索物质组成与结构的历程",
+      "page_start": 142,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:25:20.074500+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:4-1-1",
+      "kind": "lesson",
+      "label": "课题1",
+      "title": "化学反应中各物质间的定量关系",
+      "page_start": 151,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:43.004441+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:lesson:4-1-2",
+      "kind": "lesson",
+      "label": "课题2",
+      "title": "化学反应的表示及基本类型",
+      "page_start": 157,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:27:43.009261+00:00"
+    },
+    {
+      "anchor_id": "struct:chem-grade8-all-in-one:activity:4-1-1",
+      "kind": "activity",
+      "label": "跨学科实践活动",
+      "title": "基于碳中和理念设计低碳行动方案",
+      "page_start": 165,
+      "status": "completed",
+      "stages": {
+        "backbone": "completed",
+        "normalize": "completed",
+        "qa": "completed",
+        "node_expand": "not_requested"
+      },
+      "notes": [],
+      "updated_at": "2026-04-02T11:25:20.083913+00:00"
+    }
+  ]
+}

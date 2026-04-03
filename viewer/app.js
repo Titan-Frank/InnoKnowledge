@@ -94,19 +94,10 @@ const LAYER_MODE_OPTIONS = [
   },
 ];
 
-const MANIFEST_PATH = "../data/viewer/index.json?v=3";
-const DATA_ROOT_PATH = "../data/";
-const RESERVED_DATA_DIRS = new Set([
-  "frameworks",
-  "graph",
-  "node_cards",
-  "outlines",
-  "patterns",
-  "viewer",
-]);
-const VERSION_DIR_PATTERN = /^v[a-z0-9]+(?:[.-][a-z0-9]+)*$/i;
+const API_BASE = "/api";
+const META_PATH = `${API_BASE}/meta`;
 const SOURCE_QUERY_KEY = "source";
-const DEFAULT_SOURCE_KEY = "v1";
+const DEFAULT_SOURCE_KEY = "default";
 const DEFAULT_BOOK_INDEX = [];
 const EMPTY_FRAMEWORK = { domains: [] };
 const EMPTY_PATTERNS = { patterns: [] };
@@ -185,19 +176,53 @@ boot().catch((error) => {
     <p class="eyebrow">Load Error</p>
     <h2>数据加载失败</h2>
     <p>${detail}</p>
-    <p>请确认你是通过本地 HTTP 服务打开本页面，并检查 graph/framework/patterns 文件是否存在。</p>
+    <p>请确认本地 SQLite API 服务已经启动，并检查数据库里是否已有可用 dataset。</p>
   `;
 });
 
 async function boot() {
-  state.manifest = (await fetchOptionalJson(MANIFEST_PATH)) || {};
-  const discoveredSources = await discoverSourceConfigs();
-  state.sourceConfigs = resolveSourceConfigs(state.manifest, discoveredSources);
-  state.selectedSourceKey = resolveInitialSourceKey(state.manifest, state.sourceConfigs);
+  const meta = await fetchJson(META_PATH);
+  state.manifest = meta?.manifest || {};
+  state.sourceConfigs = resolveApiSourceConfigs(meta);
+  state.selectedSourceKey = resolveInitialSourceKey(
+    { default_source: meta?.active_source || meta?.default_source },
+    state.sourceConfigs,
+  );
   bindEvents();
   renderSourceControl();
   await switchSource(state.selectedSourceKey);
   startSimulation();
+}
+
+function resolveApiSourceConfigs(meta) {
+  const configs = new Map();
+  const sources = Array.isArray(meta?.sources) ? meta.sources : [];
+  sources.forEach((source) => {
+    const key = source?.key;
+    if (!key) {
+      return;
+    }
+    configs.set(key, {
+      key,
+      label: source.label || key.toUpperCase(),
+      description: source.description || "",
+      books: mergeBookSeeds(source.books, DEFAULT_BOOK_INDEX),
+      hasProfiles: Boolean(source.has_profiles ?? source.hasProfiles),
+      autoDiscovered: false,
+      bundlePath: `${API_BASE}/source/${encodeURIComponent(key)}/bundle`,
+      nodeCardPath: `${API_BASE}/source/${encodeURIComponent(key)}/node-card`,
+    });
+  });
+
+  if (configs.size === 0) {
+    throw new Error("SQLite API 没有返回任何可用数据集。");
+  }
+
+  return new Map(
+    Array.from(configs.entries()).sort(([leftKey], [rightKey]) =>
+      compareSourceKeys(leftKey, rightKey),
+    ),
+  );
 }
 
 function resolveSourceConfigs(manifest, discoveredSources = []) {
@@ -493,17 +518,53 @@ async function switchSource(sourceKey) {
 }
 
 async function loadProjectData(source) {
-  const warnings = [];
-  const [nodes, edges, framework, patterns, profiles] = await Promise.all([
-    fetchResourceJsonl(source.nodesPath, [], warnings, "节点文件"),
-    fetchResourceJsonl(source.edgesPath, [], warnings, "关系文件"),
-    fetchResourceJson(source.frameworkPath, EMPTY_FRAMEWORK, warnings, "课标文件"),
-    fetchResourceJson(source.patternsPath, EMPTY_PATTERNS, warnings, "模式库文件"),
-    fetchResourceJsonl(source.profilesPath, [], warnings, "画像文件"),
-  ]);
-  const books = await loadBookBundles(source.books, warnings);
+  const payload = await fetchJson(source.bundlePath);
+  const books = normalizeApiBookBundles(payload.books || []);
+  const mergedSource = {
+    ...source,
+    ...(payload.source || {}),
+    hasProfiles: Boolean(
+      payload?.source?.hasProfiles ??
+        payload?.source?.has_profiles ??
+        source.hasProfiles,
+    ),
+  };
+  return {
+    nodes: payload.nodes || [],
+    edges: payload.edges || [],
+    framework: payload.framework || EMPTY_FRAMEWORK,
+    patterns: payload.patterns || EMPTY_PATTERNS,
+    profiles: payload.profiles || [],
+    books,
+    manifest: state.manifest,
+    source: mergedSource,
+    loadWarnings: payload.loadWarnings || [],
+  };
+}
 
-  return { nodes, edges, framework, patterns, profiles, books, manifest: state.manifest, source, loadWarnings: warnings };
+function normalizeApiBookBundles(books) {
+  return (books || [])
+    .map((book) => {
+      const bookId = book.bookId || book.book_id || book.source_id;
+      if (!bookId) {
+        return null;
+      }
+      const normalizedEvidence = (book.evidence || []).map((item) =>
+        normalizeEvidence(item, bookId),
+      );
+      const evidenceById = new Map(normalizedEvidence.map((item) => [item.id, item]));
+      const normalizedMentions = (book.mentions || []).map((item) =>
+        normalizeMention(item, bookId, evidenceById),
+      );
+      return {
+        ...book,
+        bookId,
+        outline: book.outline || null,
+        evidence: normalizedEvidence,
+        mentions: normalizedMentions,
+      };
+    })
+    .filter(Boolean);
 }
 
 function resolveBookIndex(books, sourceKey) {
@@ -857,6 +918,24 @@ function normalizeMention(item, fallbackBookId, evidenceById) {
   };
 }
 
+function getVisibleMentions(node) {
+  return (node.mentions || [])
+    .filter((mention) => state.selectedBook === "all" || mention.book_id === state.selectedBook)
+    .sort((a, b) => (a.properties?.page || 0) - (b.properties?.page || 0));
+}
+
+function getVisibleEvidence(node) {
+  const mentions = getVisibleMentions(node);
+  const evidenceIds = [...new Set(mentions.flatMap((mention) => mention.source_refs || []))];
+  return evidenceIds
+    .map((id) => state.data.evidenceById.get(id))
+    .filter(Boolean)
+    .sort(
+      (a, b) =>
+        (a.page_start ?? Number.MAX_SAFE_INTEGER) - (b.page_start ?? Number.MAX_SAFE_INTEGER),
+    );
+}
+
 function getPatternKeys(pattern) {
   const keys = new Set();
   if (pattern.node_type) {
@@ -1004,7 +1083,7 @@ function renderSourceControl() {
   if (source.autoDiscovered) {
     info.push("自动发现");
   }
-  if (source.profilesPath) {
+  if (source.hasProfiles) {
     info.push("含 profiles");
   }
   if (warnings.length > 0) {
@@ -1662,10 +1741,15 @@ async function renderDetail() {
 
 function renderBadges(node) {
   els.detailBadges.innerHTML = "";
+  const visibleMentions = getVisibleMentions(node);
+  const visibleEvidence = getVisibleEvidence(node);
+  const sourceScopeLabel = state.selectedBook === "all" ? "当前来源" : "当前教材";
   const badges = [
     getNodeLayerLabel(node.node_layer),
     node.id,
     `${node.degree} 条关联`,
+    `${sourceScopeLabel} ${visibleMentions.length} 条出现`,
+    `${sourceScopeLabel} ${visibleEvidence.length} 条证据`,
     ...(node.profiles || []).slice(0, 2).map((profile) => `${profile.subject} ${profile.grade_band}`),
     ...(node.framework_refs || []).slice(0, 2).map((ref) => {
       const topic = state.data.frameworkTopics.get(ref);
@@ -1831,6 +1915,8 @@ function renderSupportNodes(node) {
   const neighborEntries = getNeighborEntries(node).sort((a, b) =>
     a.otherNode.name.localeCompare(b.otherNode.name, "zh-CN"),
   );
+  const supportNeighbors = neighborEntries.filter((entry) => isSupportNode(entry.otherNode));
+  const backboneNeighbors = neighborEntries.filter((entry) => isBackboneNode(entry.otherNode));
   const expansionEntries = neighborEntries.filter((entry) => entry.edge.backbone_expand);
   const supportEntries = expansionEntries.filter((entry) => isSupportNode(entry.otherNode));
   const backboneEntries = expansionEntries.filter((entry) => isBackboneNode(entry.otherNode));
@@ -1841,9 +1927,13 @@ function renderSupportNodes(node) {
       : "当前没有一跳支撑节点";
 
     if (supportEntries.length === 0) {
+      const fallbackNote =
+        supportNeighbors.length > 0
+          ? "当前图里已经有支撑层邻居，但它们的边还没有标成 backbone_expand，所以暂时不能作为主干展开显示。"
+          : "这个主干节点目前还没有拆出支撑节点，后续可以继续补方法、实验、表征等支撑层。";
       els.detailSupport.innerHTML = `
         <div class="empty-state">
-          <p>这个主干节点目前还没有拆出支撑节点，后续可以继续补方法、实验、表征等支撑层。</p>
+          <p>${fallbackNote}</p>
         </div>
       `;
       return;
@@ -1865,9 +1955,13 @@ function renderSupportNodes(node) {
       : "当前是支撑节点";
 
     if (backboneEntries.length === 0) {
+      const fallbackNote =
+        backboneNeighbors.length > 0
+          ? "当前图里已经有相邻主干节点，但连接边还没有标成 backbone_expand，所以这里暂时看不到所属主干。"
+          : "这个支撑节点暂时还没有挂接到明确的主干节点。";
       els.detailSupport.innerHTML = `
         <div class="empty-state">
-          <p>这个支撑节点暂时还没有挂接到明确的主干节点。</p>
+          <p>${fallbackNote}</p>
         </div>
       `;
       return;
@@ -1987,6 +2081,7 @@ function renderMissingNodeCard(patternHints, node) {
   els.detailCard.innerHTML = `
     <div class="empty-state">
       <p>当前还没有这个节点的 node card，可以用 <code>@node-expander</code> 为它生成详细说明。</p>
+      <p>如果这是当前批次里的主干节点，建议在 QA 通过后把它纳入批量扩卡目标。</p>
     </div>
     ${patternHints
       .map((pattern) => {
@@ -2041,13 +2136,15 @@ function renderRelations(node) {
 }
 
 function renderMentions(node) {
-  const mentions = (node.mentions || [])
-    .filter((mention) => state.selectedBook === "all" || mention.book_id === state.selectedBook)
-    .sort((a, b) => (a.properties?.page || 0) - (b.properties?.page || 0));
+  const mentions = getVisibleMentions(node);
 
   if (mentions.length === 0) {
+    const scopeLabel = state.selectedBook === "all" ? "当前来源范围" : "当前教材";
     els.detailMentions.innerHTML = `
-      <div class="empty-state"><p>当前来源范围下没有这个节点的教材出现记录。</p></div>
+      <div class="empty-state">
+        <p>${scopeLabel}下没有这个节点的教材出现记录。</p>
+        <p>这通常表示该版本输出里还没有为这个节点写入对应的 mention。</p>
+      </div>
     `;
     return;
   }
@@ -2080,21 +2177,14 @@ function renderMentions(node) {
 }
 
 function renderEvidence(node) {
-  const mentions = (node.mentions || []).filter(
-    (mention) => state.selectedBook === "all" || mention.book_id === state.selectedBook,
-  );
-  const evidenceIds = [...new Set(mentions.flatMap((mention) => mention.source_refs || []))];
-  const evidence = evidenceIds
-    .map((id) => state.data.evidenceById.get(id))
-    .filter(Boolean)
-    .sort(
-      (a, b) =>
-        (a.page_start ?? Number.MAX_SAFE_INTEGER) - (b.page_start ?? Number.MAX_SAFE_INTEGER),
-    );
+  const evidence = getVisibleEvidence(node);
 
   if (evidence.length === 0) {
     els.detailEvidence.innerHTML = `
-      <div class="empty-state"><p>当前没有关联证据。</p></div>
+      <div class="empty-state">
+        <p>当前没有关联证据。</p>
+        <p>这通常表示 mention 的 <code>source_refs</code> 还没有连到有效 evidence。</p>
+      </div>
     `;
     return;
   }
@@ -2124,9 +2214,10 @@ async function loadNodeCard(nodeId) {
   if (state.cardCache.has(nodeId)) {
     return state.cardCache.get(nodeId);
   }
-  const safeId = nodeId.replaceAll(":", "__").replaceAll("/", "__");
-  const baseDir = state.data?.source?.nodeCardsDir || "../data/node_cards";
-  const card = await fetchOptionalJson(`${baseDir}/${safeId}.json`);
+  const basePath =
+    state.data?.source?.nodeCardPath ||
+    `${API_BASE}/source/${encodeURIComponent(state.selectedSourceKey || "")}/node-card`;
+  const card = await fetchOptionalJson(`${basePath}/${encodeURIComponent(nodeId)}`);
   state.cardCache.set(nodeId, card);
   return card;
 }

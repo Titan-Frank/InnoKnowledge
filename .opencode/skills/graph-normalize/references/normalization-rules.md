@@ -44,6 +44,13 @@
 - Do not collapse semantically different edge types even if endpoints are the same.
 - Preserve `edge_layer` and `backbone_expand` when endpoints stay semantically aligned.
 - If a normalized merge changes a node from backbone-connected to support-connected, recompute `edge_layer` and `backbone_expand` conservatively instead of carrying an obviously stale value.
+- When a new relation proposal conflicts with an existing canonical edge, do not overwrite the old edge automatically.
+- Prefer one of:
+  - keep the old edge and leave the new relation in review
+  - keep both only if they are not actually semantically conflicting
+  - resolve by explicit review or user instruction
+- Treat candidate relation acceptance as a separate decision from duplicate-edge cleanup.
+- When SQLite runtime changes the canonical graph, export the current dataset snapshot back into `<output-root>/` in the same batch instead of leaving the published file layer stale.
 
 ## Safety Policy
 
