@@ -68,11 +68,11 @@ def check_consistency(db_path="storage/knowledge.sqlite", data_root="data/v4"):
         print("✅ 所有数据一致！")
         return 0
     else:
-        print("❌ 发现不一致！需要运行 import_to_sqlite.py 修复")
-        print(f"\n修复命令:")
-        print(
-            f"  python3 scripts/import_to_sqlite.py {data_root} --db {db_path} --activate --replace"
-        )
+        print("❌ 发现不一致！当前仓库不再支持 JSONL → SQLite 旧导入链。")
+        print("\n建议处理方式:")
+        print("  1. 以 SQLite 为准，先检查是否有脚本绕过 SQLite 直接写了导出文件。")
+        print("  2. 如果 SQLite 数据正确，删除旧导出并重新从 SQLite 导出快照。")
+        print("  3. 如果 SQLite 数据缺失，重新运行当前 SQLite-native lesson pipeline。")
         return 1
 
 

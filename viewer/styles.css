@@ -235,7 +235,8 @@ select:focus {
 
 .segment.active,
 .chip.active,
-.badge.active {
+.badge.active,
+.toolbar-button.active {
   background: linear-gradient(135deg, rgba(158, 79, 43, 0.95), rgba(98, 47, 25, 0.95));
   color: #fff9f1;
   border-color: rgba(98, 47, 25, 0.65);
@@ -259,6 +260,10 @@ select:focus {
 .support-item:hover,
 .relation-item:hover {
   transform: translateY(-1px);
+}
+
+.chip.empty {
+  opacity: 0.58;
 }
 
 .toggle {

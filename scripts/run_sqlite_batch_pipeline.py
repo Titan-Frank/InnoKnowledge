@@ -16,7 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Apply batch artifacts, run coverage, finalize runtime, and run strict QA."
+        description="Run the SQLite-native lesson closeout pipeline: coverage, normalize, and strict QA."
     )
     parser.add_argument(
         "--root", required=True, help="Versioned output root, for example data/v5"
@@ -30,16 +30,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest")
     parser.add_argument("--require-node-cards", action="store_true")
     parser.add_argument("--fail-on-warning", action="store_true")
-    parser.add_argument("--skip-apply", action="store_true")
     parser.add_argument("--skip-coverage", action="store_true")
     parser.add_argument(
-        "--refresh-from-snapshot",
+        "--skip-apply",
         action="store_true",
-        help="Refresh SQLite from an exported snapshot before finalize.",
+        help="Deprecated. The SQLite-native pipeline no longer has an apply stage.",
     )
-    parser.add_argument("--skip-promote", action="store_true")
-    parser.add_argument("--include-candidate", action="store_true")
-    parser.add_argument("--skip-sqlite-qa", action="store_true")
     parser.add_argument("--skip-strict-qa", action="store_true")
     parser.add_argument(
         "--skip-local-subgraph",
@@ -103,11 +99,6 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=15,
         help="Maximum number of items to keep per batch-group roll-up section.",
-    )
-    parser.add_argument(
-        "--export-snapshot",
-        action="store_true",
-        help="Export a JSON/JSONL snapshot at the end of finalize.",
     )
     return parser.parse_args()
 
@@ -280,23 +271,7 @@ def main() -> int:
     )
 
     try:
-        if not args.skip_apply:
-            mark_manifest(manifest_path, "backbone", "in_progress", batch_anchor)
-            run_step(
-                [
-                    sys.executable,
-                    str(REPO_ROOT / "scripts" / "apply_batch_artifacts.py"),
-                    "--root",
-                    str(root),
-                    "--book-id",
-                    args.book_id,
-                    "--batch-anchor",
-                    batch_anchor,
-                    "--db",
-                    args.db,
-                    *dataset_args,
-                ]
-            )
+        mark_manifest(manifest_path, "backbone", "in_progress", batch_anchor)
         if not args.skip_coverage:
             run_step(
                 [
@@ -317,8 +292,7 @@ def main() -> int:
             )
         if not args.skip_local_subgraph:
             run_local_subgraph(args, root, batch_anchor, dataset_args)
-        if not args.skip_apply:
-            mark_manifest(manifest_path, "backbone", "completed", batch_anchor)
+        mark_manifest(manifest_path, "backbone", "completed", batch_anchor)
 
         mark_manifest(manifest_path, "normalize", "in_progress", batch_anchor)
         finalize_cmd = [
@@ -334,16 +308,6 @@ def main() -> int:
             args.db,
             *dataset_args,
         ]
-        if args.skip_promote:
-            finalize_cmd.append("--skip-promote")
-        if args.include_candidate:
-            finalize_cmd.append("--include-candidate")
-        if args.skip_sqlite_qa:
-            finalize_cmd.append("--skip-sqlite-qa")
-        if (
-            args.export_snapshot
-        ):  # Optional: export snapshot for backup/external systems
-            finalize_cmd.append("--export-snapshot")
         run_step(finalize_cmd)
         mark_manifest(manifest_path, "normalize", "completed", batch_anchor)
 
@@ -351,14 +315,13 @@ def main() -> int:
         if not args.skip_strict_qa:
             strict_qa_cmd = [
                 sys.executable,
-                str(REPO_ROOT / "scripts" / "strict_qa.py"),
-                "--root",
-                str(root),
-                "--book-id",
-                args.book_id,
+                str(REPO_ROOT / "scripts" / "strict_qa_sqlite.py"),
+                "--dataset-id",
+                args.dataset_id or root.name,
                 "--db",
                 args.db,
-                *dataset_args,
+                "--scope",
+                batch_anchor,
                 *(["--fail-on-warning"] if args.fail_on_warning else []),
             ]
             run_step(strict_qa_cmd)

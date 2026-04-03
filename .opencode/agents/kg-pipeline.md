@@ -123,8 +123,15 @@ for i, lesson in enumerate(lessons):
 After all lessons complete:
 
 1. **Verify manifest completeness**
+   ```bash
+   python scripts/pipeline_manifest.py check \
+     --manifest runs/{book-id}.pipeline.json \
+     --verify-sqlite \
+     --fail-on-incomplete
+   ```
    - All lessons have `status: complete`
    - All stages marked: `outline` → `backbone` → `normalize` → `qa`
+   - **SQLite verification**: All manifest lessons have nodes/evidence in database
 
 2. **Optional: Final QA review**
    ```
@@ -143,6 +150,25 @@ After all lessons complete:
    
    Status: COMPLETE
    ```
+
+## Completeness Check
+
+The extraction completeness check verifies:
+
+**Manifest vs SQLite comparison:**
+- Every lesson in manifest has corresponding data in SQLite
+- Each lesson has minimum: 1 node, 1 profile, 1 evidence record
+- Detects missing lessons (manifest has, SQLite doesn't)
+- Detects extra lessons (SQLite has, manifest doesn't)
+
+**Implementation:**
+- Script: `scripts/check_extraction_completeness.py`
+- Integrated in: `pipeline_manifest.py check --verify-sqlite`
+
+**Failure modes:**
+- Missing lessons: extraction didn't run or failed silently
+- Partial lessons: extraction incomplete (missing nodes/evidence)
+- Book ID mismatch: manifest and SQLite use different book IDs
 
 ## Monitoring State
 
@@ -269,3 +295,5 @@ When generating or executing code:
 - `.opencode/agents/lesson-processor.md` - Business logic for single lesson
 - `.opencode/agents/outline-reader.md` - Outline creation
 - `.opencode/agents/qa-reviewer.md` - QA validation
+- `scripts/check_extraction_completeness.py` - Extraction completeness verification
+- `scripts/pipeline_manifest.py` - Manifest management and validation

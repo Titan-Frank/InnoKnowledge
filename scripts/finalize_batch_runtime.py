@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Finalize one batch's SQLite runtime flow for opencode-driven pipeline runs."""
+"""Finalize one lesson batch by running SQLite-native normalization."""
 
 from __future__ import annotations
 
@@ -23,40 +23,30 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Finalize relation proposals, promotion, and SQLite QA for one batch."
+        description="Finalize one batch by normalizing the SQLite knowledge store."
     )
-    parser.add_argument("--root", required=True, help="Versioned output root, for example data/v5")
+    parser.add_argument(
+        "--root", required=True, help="Versioned output root, for example data/v5"
+    )
     parser.add_argument("--book-id", required=True)
     parser.add_argument("--batch-anchor", required=True)
     parser.add_argument("--db", default=str(DEFAULT_DB_PATH))
     parser.add_argument("--dataset-id")
     parser.add_argument(
-        "--proposal-file",
-        help="Optional explicit relation proposal JSONL path.",
+        "--auto-merge",
+        action="store_true",
+        help="Allow normalize_sqlite.py to auto-merge high-confidence duplicate nodes.",
     )
     parser.add_argument(
-        action="store_true",
-        help="Sync the output-root snapshot into SQLite before storing/promoting proposals.",
+        "--similarity-threshold",
+        type=float,
+        default=0.85,
+        help="Similarity threshold passed through to normalize_sqlite.py.",
     )
     parser.add_argument(
-        "--skip-promote",
+        "--dry-run",
         action="store_true",
-        help="Skip promoting accepted proposals into canonical edges.",
-    )
-    parser.add_argument(
-        "--skip-sqlite-qa",
-        action="store_true",
-        help="Skip sqlite_import_qa after finishing the batch runtime flow.",
-    )
-    parser.add_argument(
-        "--export-snapshot",
-        action="store_true",
-        help="Export the SQLite dataset back into the output-root snapshot.",
-    )
-    parser.add_argument(
-        "--include-candidate",
-        action="store_true",
-        help="Allow promote_relation_proposals to also consider candidate proposals.",
+        help="Run normalization in dry-run mode without mutating SQLite.",
     )
     return parser.parse_args()
 
@@ -68,111 +58,33 @@ def run_step(args: list[str]) -> None:
 def main() -> int:
     args = parse_args()
     root = Path(args.root).expanduser().resolve()
-    resolved_batch_anchor = resolve_outline_anchor(args.book_id, args.batch_anchor, strict=False)
+    resolved_batch_anchor = resolve_outline_anchor(
+        args.book_id, args.batch_anchor, strict=False
+    )
     connection = connect_db(args.db)
     ensure_sqlite_schema(connection)
     dataset_id = resolve_dataset_id(connection, args.dataset_id, root)
     require_dataset_row(connection, dataset_id)
-    proposal_path = Path(args.proposal_file).expanduser().resolve() if args.proposal_file else None
 
-    common = [sys.executable]
-    dataset_args: list[str] = ["--dataset-id", dataset_id]
+    print(
+        f"Finalizing batch '{resolved_batch_anchor}' for dataset '{dataset_id}' via normalize_sqlite.py"
+    )
 
-        run_step(
-            common
-            + [
-                str(REPO_ROOT / "scripts" / "sync_output_root_to_sqlite.py"),
-                str(root),
-                "--db",
-                args.db,
-                "--replace",
-                "--activate",
-                "--preserve-runtime",
-                *dataset_args,
-            ]
-        )
-
-    if proposal_path is not None and proposal_path.exists():
-        run_step(
-            common
-            + [
-                str(REPO_ROOT / "scripts" / "store_relation_proposals.py"),
-                "--db",
-                args.db,
-                "--input",
-                str(proposal_path),
-                "--replace",
-                *dataset_args,
-            ]
-        )
-    elif proposal_path is None:
-        runtime_cmd = common + [
-            str(REPO_ROOT / "scripts" / "store_relation_proposals.py"),
-            "--db",
-            args.db,
-            "--runtime-book-id",
-            args.book_id,
-            "--runtime-batch-anchor",
-            resolved_batch_anchor,
-            "--default-status",
-            "accepted",
-            "--replace",
-            *dataset_args,
-        ]
-        runtime_result = subprocess.run(runtime_cmd, capture_output=True, text=True)
-        if runtime_result.returncode == 0:
-            if runtime_result.stdout:
-                print(runtime_result.stdout, end="")
-        elif "No relation_proposal runtime records found" in (
-            (runtime_result.stderr or "") + (runtime_result.stdout or "")
-        ):
-            print(f"No relation proposals staged for batch: {resolved_batch_anchor}")
-        else:
-            raise subprocess.CalledProcessError(
-                runtime_result.returncode,
-                runtime_cmd,
-                output=runtime_result.stdout,
-                stderr=runtime_result.stderr,
-            )
-    else:
-        raise SystemExit(f"Proposal file not found: {proposal_path}")
-
-    if not args.skip_promote:
-        promote_args = common + [
-            str(REPO_ROOT / "scripts" / "promote_relation_proposals.py"),
-            "--db",
-            args.db,
-            "--batch-anchor",
-            resolved_batch_anchor,
-            *dataset_args,
-        ]
-        if args.include_candidate:
-            promote_args.append("--include-candidate")
-        run_step(promote_args)
-
-    if args.export_snapshot:  # Optional: export snapshot for backup/external systems
-        run_step(
-            common
-            + [
-                str(REPO_ROOT / "scripts" / "knowledge_store_common.py"),
-                str(root),
-                "--db",
-                args.db,
-                *dataset_args,
-            ]
-        )
-
-    if not args.skip_sqlite_qa:
-        sqlite_qa_cmd = common + [
-            str(REPO_ROOT / "scripts" / "sqlite_import_qa.py"),
-            "--db",
-            args.db,
-            *dataset_args,
-        ]
-        if args.export_snapshot:  # Optional: export snapshot for backup/external systems
-            sqlite_qa_cmd.extend(["--output-root", str(root)])
-        run_step(sqlite_qa_cmd)
-
+    normalize_cmd = [
+        sys.executable,
+        str(REPO_ROOT / "scripts" / "normalize_sqlite.py"),
+        "--dataset-id",
+        dataset_id,
+        "--db",
+        args.db,
+        "--similarity-threshold",
+        str(args.similarity_threshold),
+    ]
+    if args.auto_merge:
+        normalize_cmd.append("--auto-merge")
+    if args.dry_run:
+        normalize_cmd.append("--dry-run")
+    run_step(normalize_cmd)
     return 0
 
 

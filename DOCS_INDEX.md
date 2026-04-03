@@ -54,7 +54,7 @@
 |------|------|
 | [.opencode/CONVENTIONS.md](.opencode/CONVENTIONS.md) | 编码和文档规范 |
 | [.opencode/STYLE_GUIDE.md](.opencode/STYLE_GUIDE.md) | 写作风格指南 |
-| [.opencode/REFACTOR_SUMMARY.md](.opencode/REFACTOR_SUMMARY.md) | 架构重构说明 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本变更记录 |
 
 ## 按使用场景查找
 
@@ -66,7 +66,7 @@
 ### 我想了解架构
 
 1. [AGENTS.md](AGENTS.md) - 核心架构
-2. [.opencode/REFACTOR_SUMMARY.md](.opencode/REFACTOR_SUMMARY.md) - 架构演进
+2. [CHANGELOG.md](CHANGELOG.md) - 架构演进历史
 
 ### 我想处理教材
 
@@ -106,7 +106,7 @@
 │   ├── skills/                  Skill 实现
 │   ├── CONVENTIONS.md           编码规范
 │   ├── STYLE_GUIDE.md           写作风格
-│   └── REFACTOR_SUMMARY.md      重构说明
+│   └── GLOSSARY.md              术语表
 │
 ├── schemas/v2/                  JSON Schema
 ├── scripts/                     辅助脚本

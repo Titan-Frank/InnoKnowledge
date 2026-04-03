@@ -9,7 +9,7 @@ Turn textbook content into a stable, evidence-backed, cross-disciplinary knowled
 | [GLOSSARY.md](./GLOSSARY.md) | Standardized terminology |
 | [CONVENTIONS.md](./CONVENTIONS.md) | Coding and documentation standards |
 | [STYLE_GUIDE.md](./STYLE_GUIDE.md) | Writing style guidelines |
-| [schemas/v2/](../schemas/v2/) | JSON schemas for all artifacts |
+| [schemas/v2/](./schemas/v2/) | JSON schemas for all artifacts |
 
 ## Core Principles
 
@@ -112,7 +112,7 @@ Active storage: `storage/knowledge.sqlite`
 | Evidence | `evidence` | SQLite PRIMARY storage |
 | Node cards | `node_cards` | SQLite PRIMARY storage |
 
-**JSONL/JSON files are DERIVED EXPORTS only.** Do not treat them as primary storage. Use `scripts/export_snapshot.py` to generate them from SQLite when needed for external consumers (Viewer API, etc.).
+**JSONL/JSON files are DERIVED EXPORTS only.** Do not treat them as primary storage. Generate them from SQLite only through the current SQLite-native export helpers when an external consumer needs them.
 
 ### Deprecated Components (moved to `/deprecated/`)
 
@@ -364,10 +364,8 @@ Always verify data consistency after extraction:
 # Check SQLite vs JSONL consistency
 python check_data_consistency.py
 
-# If inconsistent, re-import (JSONL → SQLite)
-python scripts/import_to_sqlite.py data/v4 \
-    --db storage/knowledge.sqlite \
-    --activate --replace
+# If inconsistent, stop and repair the active SQLite-native workflow.
+# Do not re-import JSONL back into SQLite.
 ```
 
 See [PIPELINE_SAFETY.md](./PIPELINE_SAFETY.md) for detailed safety guidelines.

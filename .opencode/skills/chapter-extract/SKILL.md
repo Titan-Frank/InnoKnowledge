@@ -312,8 +312,6 @@ python scripts/extract_lesson_sqlite.py \
 - ❌ `*.evidence.jsonl`
 - ❌ `node_cards/*.json`
 
-See `SKILL_SQLITE_NATIVE_V2.md` for complete SQLite-native workflow.
-
 ## Input Parameters
 
 | Parameter | Type | Required | Description |
