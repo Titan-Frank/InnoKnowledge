@@ -66,18 +66,18 @@ The skill will:
 - Count of nodes/edges/mentions/evidence created
 - Any warnings or issues
 
-### Step 2: Expand Nodes (CRITICAL - Use task() tool)
+### Step 2: Expand Nodes (CRITICAL - Use Agent() tool)
 
-**⚠️ For EACH new backbone node, you MUST spawn a separate Task using the `task()` tool.**
+**⚠️ For EACH new backbone node, you MUST spawn a separate Task using the `Agent()` tool.**
 
-**MANDATORY: Use the actual `task()` tool call, NOT pseudo-code:**
+**MANDATORY: Use the actual `Agent()` tool call, NOT pseudo-code:**
 
 ```python
 # After extraction returns new_backbone_nodes list
-# YOU MUST call task() tool for EACH node:
+# YOU MUST call Agent() tool for EACH node:
 
 for node_id in new_backbone_nodes:
-    task(
+    Agent(
         description=f"expand-node-{node_id}",
         prompt=f"""
         Expand node: {node_id}
@@ -99,7 +99,7 @@ for node_id in new_backbone_nodes:
 ```
 
 **Requirements:**
-- **MUST use `task()` tool** (the actual tool, not documentation)
+- **MUST use `Agent()` tool** (the actual tool, not documentation)
 - **MUST spawn ONE Task per backbone node**
 - **MUST wait for each Task to complete** before proceeding
 - **Multiple nodes can expand concurrently** (parallel Tasks)

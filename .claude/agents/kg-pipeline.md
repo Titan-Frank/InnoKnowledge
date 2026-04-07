@@ -88,7 +88,7 @@ for i, lesson in enumerate(lessons):
     log(f"Processing lesson {i+1}/{len(lessons)}: {lesson_title}")
     
     # Spawn isolated Task
-    result = task(
+    result = Agent(
         description=f"process-lesson-{lesson_anchor}",
         prompt=f"""
         Process this lesson: {lesson_title}
