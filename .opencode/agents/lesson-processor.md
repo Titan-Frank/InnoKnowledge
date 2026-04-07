@@ -135,7 +135,6 @@ python scripts/run_sqlite_batch_pipeline.py \
 ```
 
 This runs:
-- `apply_batch_artifacts.py` - Apply any pending artifacts
 - `batch_coverage.py` - Verify coverage
 - `finalize_batch_runtime.py` - Clean up runtime records
 - `strict_qa.py` - Schema validation

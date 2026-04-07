@@ -51,7 +51,7 @@ Pipeline use:
 
 **When to call this Checklist:**
 
-1. **After every lesson** (`@lesson-extractor` Step 5)
+1. **After every lesson** (`@lesson-processor` Step 5)
    - Before marking lesson complete
    - Must pass all completeness checks
    - BLOCKER if any category missing
@@ -67,7 +67,7 @@ Pipeline use:
    - Final sign-off
 
 **Who calls:**
-- `@lesson-extractor` delegates to `@qa-reviewer` after closeout
+- `@lesson-processor` delegates to `@qa-reviewer` after closeout
 - `@kg-pipeline` can delegate for batch-level review
 - Manual review before major releases
 

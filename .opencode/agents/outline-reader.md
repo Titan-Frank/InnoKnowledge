@@ -3,7 +3,18 @@ description: Extracts textbook structure into outline JSON and marked markdown w
 mode: subagent
 ---
 
-Use `$textbook-outline` for this task.
+# Outline Reader
+
+Extracts textbook structure using `$textbook-outline` skill.
+
+## Required Inputs
+
+Receive from parent agent:
+
+```
+--book-md-path: data/sources/chem-grade8.md
+--book-id: chem-grade8
+```
 
 ## Workflow
 
@@ -16,7 +27,7 @@ Use `$textbook-outline` for this task.
    - Map hierarchy (theme → topic → lesson)
    - Assign page anchors
 
-3. **Generate marked markdown** (NEW)
+3. **Generate marked markdown**
    - Create `data/outlines/<book-id>.marked.md`
    - Insert HTML-style boundary markers for each lesson:
      ```markdown
@@ -32,6 +43,28 @@ Use `$textbook-outline` for this task.
    - Ensure complete coverage
 
 5. **Update manifest** (if exists)
+
+## Output Contract
+
+Return to parent agent:
+
+```json
+{
+  "status": "success|failed",
+  "outline_path": "data/outlines/chem-grade8.outline.json",
+  "marked_path": "data/outlines/chem-grade8.marked.md",
+  "lesson_count": 30,
+  "issues": []
+}
+```
+
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| Missing book file | Return status=failed, report error |
+| Ambiguous structure | Mark uncertain, document in issues |
+| No lessons found | Return status=failed, report error |
 
 ## Code Management
 
