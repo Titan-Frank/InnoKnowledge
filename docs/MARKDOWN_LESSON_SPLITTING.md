@@ -175,7 +175,7 @@ def parse_lesson_by_toc(md_content, lesson_id, outline):
 增强 @outline-reader Agent：
 
 ```bash
-# 修改 .opencode/agents/outline-reader.md
+# 修改 .claude/agents/outline-reader.md
 # 添加课时边界标记功能
 ```
 

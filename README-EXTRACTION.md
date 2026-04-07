@@ -10,9 +10,9 @@
 
 ## ✅ 正确提取方式
 
-### 使用 $chapter-extract skill
+### 使用 /chapter-extract skill
 
-每个课题需要使用 `$chapter-extract` skill 单独提取。
+每个课题需要使用 `/chapter-extract` skill 单独提取。
 
 **参数说明：**
 - `batch-anchor`: 课题锚点ID，格式为 `struct:{book-id}:lesson:{x-y-z}`
@@ -40,7 +40,7 @@
 # 1. 生成课题清单（可选）
 python scripts/streaming_extraction.py --book chem-grade8-all-in-one
 
-# 2. 对每个课题使用 $chapter-extract skill 提取
+# 2. 对每个课题使用 /chapter-extract skill 提取
 # （通过 Task 工具调用）
 ```
 
@@ -50,7 +50,7 @@ python scripts/streaming_extraction.py --book chem-grade8-all-in-one
 task(
     description="提取课题内容",
     prompt="""
-使用 $chapter-extract skill 提取以下课题：
+使用 /chapter-extract skill 提取以下课题：
 
 - batch-anchor: struct:chem-grade8-all-in-one:lesson:1-1-1
 - book-md-path: /Users/titan-frank/Documents/hsd/research/Knowledge/ocr/八年级/初中（五•四学制）_化学_沪科技版_全一册_八年级/hybrid_auto/初中（五•四学制）_化学_沪科技版_全一册_八年级.md
@@ -60,7 +60,7 @@ task(
 完成后请验证数据是否写入所有相关表。
 """,
     subagent_type="general",
-    command="$chapter-extract"
+    command="/chapter-extract"
 )
 ```
 
@@ -111,7 +111,7 @@ python scripts/viewer_sqlite_api.py --db storage/knowledge.sqlite --port 8765
 2. **串行处理**: 同一本教材的课题建议串行处理，避免重复节点冲突
 3. **并行处理**: 不同教材可以并行处理（无冲突）
 4. **立即扩展**: 每个新backbone节点应立即使用 @node-expander 生成node_card
-5. **及时归一化**: 每完成一本教材应调用 `$graph-normalize` 进行去重
+5. **及时归一化**: 每完成一本教材应调用 `/graph-normalize` 进行去重
 
 ## ✅ 当前状态
 

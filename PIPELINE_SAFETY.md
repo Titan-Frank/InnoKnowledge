@@ -41,8 +41,8 @@ connection.commit()
 python scripts/run_single_lesson.py --book-id chem-highschool-selective-compulsory-1 --output-root data/v4
 
 # 2. 复制生成的 prompt，在新对话中执行:
-#    - $chapter-extract (写入 SQLite)
-#    - $graph-normalize
+#    - /chapter-extract (写入 SQLite)
+#    - /graph-normalize
 #    - scripts/run_sqlite_batch_pipeline.py (finalize)
 #    - @qa-reviewer
 
@@ -62,7 +62,7 @@ python scripts/parallel_batch_runner.py \
     --generate-tasks
 
 # 执行时确保每个 Task:
-# 1. 使用 $chapter-extract (写入 SQLite)
+# 1. 使用 /chapter-extract (写入 SQLite)
 # 2. 使用 run_sqlite_batch_pipeline.py closeout
 # 3. 不使用 extract_chemistry_*.py
 ```
@@ -138,7 +138,7 @@ python scripts/run_single_lesson.py ...
 
 ### 1. 让提取强制写入 SQLite
 
-在 `$chapter-extract` skill 配置中添加检查:
+在 `/chapter-extract` skill 配置中添加检查:
 ```python
 # 在 skill 执行前检查
 assert Path("storage/knowledge.sqlite").exists(), "SQLite not found!"

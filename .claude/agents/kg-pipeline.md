@@ -297,8 +297,8 @@ When generating or executing code:
 
 - `AGENTS.md` - Project architecture
 - `GLOSSARY.md` - Terminology
-- `.opencode/agents/lesson-processor.md` - Business logic for single lesson
-- `.opencode/agents/outline-reader.md` - Outline creation
-- `.opencode/agents/qa-reviewer.md` - QA validation
+- `.claude/agents/lesson-processor.md` - Business logic for single lesson
+- `.claude/agents/outline-reader.md` - Outline creation
+- `.claude/agents/qa-reviewer.md` - QA validation
 - `scripts/check_extraction_completeness.py` - Extraction completeness verification
 - `scripts/pipeline_manifest.py` - Manifest management and validation

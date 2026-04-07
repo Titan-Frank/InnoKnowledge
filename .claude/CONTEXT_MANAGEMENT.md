@@ -199,8 +199,8 @@ for i, batch in enumerate(batches):
     Steps:
     1. Read current SQLite state
     2. For each lesson in batch:
-       - $chapter-extract
-       - $graph-normalize (local only, no cross-batch dedup yet)
+       - /chapter-extract
+       - /graph-normalize (local only, no cross-batch dedup yet)
     3. Write to SQLite with batch isolation
     4. Return: nodes_created, edges_created, status
     """
@@ -216,7 +216,7 @@ results = await_all_tasks()
 
 # 4. 主对话：统一归一化和 QA
 # （这个阶段必须在单一对话完成，需要全局上下文）
-$graph-normalize --mode cross-batch
+/graph-normalize --mode cross-batch
 @qa-reviewer --full-book
 ```
 
@@ -342,7 +342,7 @@ python scripts/batch_processor.py --book-id X --action prompt
 ### 长期实现（1 周）
 
 实现方案 C 的并行处理：
-- 修改 `$chapter-extract` 支持批次级隔离
+- 修改 `/chapter-extract` 支持批次级隔离
 - 实现 Task 协调逻辑
 - 添加并发控制
 - 测试和优化

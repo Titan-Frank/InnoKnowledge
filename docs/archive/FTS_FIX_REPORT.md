@@ -107,7 +107,7 @@ mix 模式: hybrid + profile/evidence 文本
 ### 在提取流程中
 
 ```bash
-# $chapter-extract skill 推荐
+# /chapter-extract skill 推荐
 retrieve_candidates.py --mode hybrid
 
 # 何时使用 mix 模式
@@ -161,6 +161,6 @@ LIMIT 5;
 
 ## 参考
 
-- `.opencode/skills/chapter-extract/references/graphrag-inspired-workflow.md`
+- `.claude/skills/chapter-extract/references/graphrag-inspired-workflow.md`
 - `scripts/retrieve_candidates.py`
 - `scripts/local_subgraph.py`

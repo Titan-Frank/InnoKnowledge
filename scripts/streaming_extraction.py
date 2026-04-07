@@ -4,18 +4,18 @@
 
 ⚠️ 重要说明：
 - extract_lesson_sqlite.py 占位符脚本已被删除
-- 实际知识提取请使用 $chapter-extract skill
+- 实际知识提取请使用 /chapter-extract skill
 - 本脚本仅用于生成课题清单和调度计划
 
 使用方法：
 1. 运行本脚本生成课题清单
-2. 对每个课题使用 $chapter-extract skill 进行提取
+2. 对每个课题使用 /chapter-extract skill 进行提取
    参数：
    - batch-anchor: struct:{book-id}:lesson:{x-y-z}
    - book-md-path: 对应教材的 markdown 路径
    - dataset-id: v4
    - db: storage/knowledge.sqlite
-3. 提取完成后调用 $graph-normalize 进行归一化
+3. 提取完成后调用 /graph-normalize 进行归一化
 4. 使用 @qa-reviewer 进行质量验证
 """
 
@@ -104,9 +104,9 @@ def process_book(book_id, dry_run=True):
         print(f"       页码: {lesson['page_start']}")
 
         # 生成提取任务信息
-        # 注意：实际提取需要使用 $chapter-extract skill，而不是命令行脚本
+        # 注意：实际提取需要使用 /chapter-extract skill，而不是命令行脚本
         extract_task = {
-            "command": "$chapter-extract",
+            "command": "/chapter-extract",
             "book_md_path": str(Path(book_md_path).resolve()),
             "batch_anchor": lesson["anchor"],
             "dataset_id": "v4",
@@ -114,11 +114,11 @@ def process_book(book_id, dry_run=True):
         }
 
         print(f"       提取任务: {lesson['anchor']}")
-        print(f"       请使用: $chapter-extract skill")
+        print(f"       请使用: /chapter-extract skill")
 
         if not dry_run:
             print(
-                f"       ⚠️ 提示: 请使用 $chapter-extract skill 或启动 Task 调用 chapter-extract"
+                f"       ⚠️ 提示: 请使用 /chapter-extract skill 或启动 Task 调用 chapter-extract"
             )
             print(f"          anchor: {lesson['anchor']}")
             print(f"          book: {book_md_path}")

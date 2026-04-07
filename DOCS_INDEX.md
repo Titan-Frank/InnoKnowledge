@@ -19,20 +19,20 @@
 
 | Agent | 职责 | 文档 |
 |-------|------|------|
-| @kg-pipeline | Manager - 调度和监控 | [.opencode/agents/kg-pipeline.md](.opencode/agents/kg-pipeline.md) |
-| @lesson-processor | Worker - 单课时处理 | [.opencode/agents/lesson-processor.md](.opencode/agents/lesson-processor.md) |
-| @outline-reader | 教材目录生成 | [.opencode/agents/outline-reader.md](.opencode/agents/outline-reader.md) |
-| @node-expander | 节点卡片生成 | [.opencode/agents/node-expander.md](.opencode/agents/node-expander.md) |
-| @qa-reviewer | 质量检查 | [.opencode/agents/qa-reviewer.md](.opencode/agents/qa-reviewer.md) |
+| @kg-pipeline | Manager - 调度和监控 | [.claude/agents/kg-pipeline.md](.claude/agents/kg-pipeline.md) |
+| @lesson-processor | Worker - 单课时处理 | [.claude/agents/lesson-processor.md](.claude/agents/lesson-processor.md) |
+| @outline-reader | 教材目录生成 | [.claude/agents/outline-reader.md](.claude/agents/outline-reader.md) |
+| @node-expander | 节点卡片生成 | [.claude/agents/node-expander.md](.claude/agents/node-expander.md) |
+| @qa-reviewer | 质量检查 | [.claude/agents/qa-reviewer.md](.claude/agents/qa-reviewer.md) |
 
 ## Skill 文档
 
 | Skill | 功能 | 文档 |
 |-------|------|------|
-| $chapter-extract | 课时内容提取 | [.opencode/skills/chapter-extract/SKILL.md](.opencode/skills/chapter-extract/SKILL.md) |
-| $graph-normalize | 图归一化 | [.opencode/skills/graph-normalize/SKILL.md](.opencode/skills/graph-normalize/SKILL.md) |
-| $knowledge-schema | Schema 定义 | [.opencode/skills/knowledge-schema/SKILL.md](.opencode/skills/knowledge-schema/SKILL.md) |
-| $textbook-outline | 目录结构提取 | [.opencode/skills/textbook-outline/SKILL.md](.opencode/skills/textbook-outline/SKILL.md) |
+| /chapter-extract | 课时内容提取 | [.claude/skills/chapter-extract/SKILL.md](.claude/skills/chapter-extract/SKILL.md) |
+| /graph-normalize | 图归一化 | [.claude/skills/graph-normalize/SKILL.md](.claude/skills/graph-normalize/SKILL.md) |
+| /knowledge-schema | Schema 定义 | [.claude/skills/knowledge-schema/SKILL.md](.claude/skills/knowledge-schema/SKILL.md) |
+| /textbook-outline | 目录结构提取 | [.claude/skills/textbook-outline/SKILL.md](.claude/skills/textbook-outline/SKILL.md) |
 
 ## Schema 文档
 
@@ -52,8 +52,8 @@
 
 | 文档 | 用途 |
 |------|------|
-| [.opencode/CONVENTIONS.md](.opencode/CONVENTIONS.md) | 编码和文档规范 |
-| [.opencode/STYLE_GUIDE.md](.opencode/STYLE_GUIDE.md) | 写作风格指南 |
+| [.claude/CONVENTIONS.md](.claude/CONVENTIONS.md) | 编码和文档规范 |
+| [.claude/STYLE_GUIDE.md](.claude/STYLE_GUIDE.md) | 写作风格指南 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更记录 |
 
 ## 按使用场景查找
@@ -71,8 +71,8 @@
 ### 我想处理教材
 
 1. [QUICKSTART.md](QUICKSTART.md) - 基本操作
-2. [.opencode/agents/kg-pipeline.md](.opencode/agents/kg-pipeline.md) - Manager 行为
-3. [.opencode/agents/lesson-processor.md](.opencode/agents/lesson-processor.md) - Worker 行为
+2. [.claude/agents/kg-pipeline.md](.claude/agents/kg-pipeline.md) - Manager 行为
+3. [.claude/agents/lesson-processor.md](.claude/agents/lesson-processor.md) - Worker 行为
 
 ### 我想查看数据结构
 
@@ -81,7 +81,7 @@
 
 ### 我想开发新功能
 
-1. [.opencode/CONVENTIONS.md](.opencode/CONVENTIONS.md) - 规范
+1. [.claude/CONVENTIONS.md](.claude/CONVENTIONS.md) - 规范
 2. [AGENTS.md](AGENTS.md) - 约束规则
 3. 参考现有 Agent/Skill 实现
 
@@ -101,7 +101,7 @@
 ├── GLOSSARY.md                  术语表
 ├── PIPELINE_SAFETY.md           安全指南
 │
-├── .opencode/
+├── .claude/
 │   ├── agents/                  Agent 定义
 │   ├── skills/                  Skill 实现
 │   ├── CONVENTIONS.md           编码规范

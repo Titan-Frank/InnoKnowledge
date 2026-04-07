@@ -120,7 +120,7 @@ python scripts/export_to_rdf.py > data/v4/knowledge-graph.rdf
 
 ### 2.1 修改提取 Skill
 
-**文件**: `.opencode/skills/chapter-extract/SKILL.md`
+**文件**: `.claude/skills/chapter-extract/SKILL.md`
 
 在现有流程中添加本体标注步骤：
 

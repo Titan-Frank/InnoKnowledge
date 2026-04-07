@@ -42,9 +42,9 @@ opencode
 │
 └── FOR each lesson (顺序处理):
     └── @lesson-processor (Worker - 完整业务逻辑)
-        ├── $chapter-extract (提取节点/关系)
+        ├── /chapter-extract (提取节点/关系)
         ├── @node-expander × N (并行生成节点卡片)
-        ├── $graph-normalize (去重/归一化)
+        ├── /graph-normalize (去重/归一化)
         ├── closeout scripts (写入 SQLite)
         └── @qa-reviewer (质量检查)
 ```
@@ -159,7 +159,7 @@ sqlite3 storage/knowledge.sqlite "SELECT COUNT(*) FROM nodes;"
 
 ```
 .
-├── .opencode/
+├── .claude/
 │   ├── agents/           # Agent 定义
 │   │   ├── kg-pipeline.md         (Manager)
 │   │   ├── lesson-processor.md    (Worker)
@@ -238,19 +238,20 @@ runs/{book-id}.pipeline.json
 
 ### 添加新的 Agent
 
-1. 创建 `.opencode/agents/{agent-name}.md`
+1. 创建 `.claude/agents/{agent-name}.md`
 2. 添加 YAML frontmatter:
    ```yaml
    ---
+   name: agent-name
    description: Agent description
-   mode: subagent
+   tools: Read, Bash
    ---
    ```
 3. 实现逻辑
 
 ### 添加新的 Skill
 
-1. 创建 `.opencode/skills/{skill-name}/SKILL.md`
+1. 创建 `.claude/skills/{skill-name}/SKILL.md`
 2. 添加 YAML frontmatter:
    ```yaml
    ---

@@ -14,7 +14,7 @@ Knowledge Map Extraction project that transforms chemistry textbook content into
 提取 chem-grade8 的课题 1-1-1
 
 步骤：
-1. 读取 .opencode/skills/chapter-extract/SKILL.md 了解提取流程
+1. 读取 .claude/skills/chapter-extract/SKILL.md 了解提取流程
 2. 读取教材 data/sources/chem-grade8-all-in-one.md 中课题 1-1-1 的内容
 3. 提取节点、边、profiles、mentions、evidence
 4. 使用 scripts/insert_batch.py 写入 SQLite
@@ -27,7 +27,7 @@ Knowledge Map Extraction project that transforms chemistry textbook content into
 ```
 处理 chem-grade8 全书
 
-按照 .opencode/agents/kg-pipeline.md 的流程：
+按照 .claude/agents/kg-pipeline.md 的流程：
 1. 读取 data/outlines/chem-grade8-all-in-one.outline.json 获取课题列表
 2. 每个课题使用 Agent tool 启动独立 Task 处理
 3. 串行处理，等待每个 Task 完成后再启动下一个
@@ -89,9 +89,9 @@ python scripts/check_graph_integrity.py --dataset-id main
 │
 └── FOR each lesson (sequential, one Task per lesson):
     └── @lesson-processor (Worker - complete workflow)
-        ├── $chapter-extract (extract nodes/edges to SQLite)
+        ├── /chapter-extract (extract nodes/edges to SQLite)
         ├── @node-expander × N (parallel Tasks for node cards)
-        ├── $graph-normalize (deduplication, cycle detection)
+        ├── /graph-normalize (deduplication, cycle detection)
         ├── scripts/run_sqlite_batch_pipeline.py (finalize)
         └── @qa-reviewer (quality check)
 ```
@@ -134,7 +134,7 @@ runs/              # Pipeline execution tracking
 
 ### Always
 - Process lessons sequentially via @kg-pipeline
-- Write to SQLite via `$chapter-extract` skill or `scripts/extract_lesson_sqlite.py`
+- Write to SQLite via `/chapter-extract` skill or `scripts/extract_lesson_sqlite.py`
 - Verify data in SQLite (not JSONL) after operations
 
 ## Schema Reference
@@ -168,5 +168,5 @@ All schemas in `schemas/v2/`:
 - `PIPELINE_SAFETY.md` - Safety guidelines for data operations
 - `QUICKSTART.md` - 5-minute getting started guide
 - `schemas/v2/README.md` - Schema design rationale
-- `.opencode/GLOSSARY.md` - Terminology definitions
-- `.opencode/CONVENTIONS.md` - Coding and documentation standards
+- `.claude/GLOSSARY.md` - Terminology definitions
+- `.claude/CONVENTIONS.md` - Coding and documentation standards

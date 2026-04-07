@@ -125,8 +125,8 @@ A: 主存储在 `storage/knowledge.sqlite`。JSON/JSONL 文件是导出产物，
 opencode --help
 
 # 查看可用 agent
-ls .opencode/agents/
+ls .claude/agents/
 
 # 查看可用 skill
-ls .opencode/skills/
+ls .claude/skills/
 ```

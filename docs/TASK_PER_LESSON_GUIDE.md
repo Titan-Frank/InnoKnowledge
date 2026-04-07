@@ -171,7 +171,7 @@ for lesson in lessons:
     process_lesson(lesson)  # ❌ Same context
 ```
 
-### In $chapter-extract
+### In /chapter-extract
 
 ```
 ⚠️ CRITICAL: Single Lesson Scope Only

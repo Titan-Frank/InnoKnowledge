@@ -33,9 +33,9 @@ Turn textbook content into a stable, evidence-backed, cross-disciplinary knowled
 │  ─────────────────────────────────                         │
 │  @outline-reader    - Extract structure (standalone)       │
 │  @lesson-processor  - Complete lesson workflow:            │
-│                       ├─ $chapter-extract (skill)          │
+│                       ├─ /chapter-extract (skill)          │
 │                       ├─ @node-expander (parallel Tasks)   │
-│                       ├─ $graph-normalize (skill)          │
+│                       ├─ /graph-normalize (skill)          │
 │                       │   ├─ Node deduplication            │
 │                       │   ├─ Edge consolidation            │
 │                       │   ├─ Cycle detection               │
@@ -46,10 +46,10 @@ Turn textbook content into a stable, evidence-backed, cross-disciplinary knowled
 ├─────────────────────────────────────────────────────────────┤
 │  Layer 3: Skills (Implementation Logic)                      │
 │  ─────────────────────────────────                         │
-│  $textbook-outline  - Structure extraction                 │
-│  $chapter-extract   - Lesson-level extraction              │
-│  $graph-normalize   - Deduplication + structure repair     │
-│  $knowledge-schema  - Schema enforcement                   │
+│  /textbook-outline  - Structure extraction                 │
+│  /chapter-extract   - Lesson-level extraction              │
+│  /graph-normalize   - Deduplication + structure repair     │
+│  /knowledge-schema  - Schema enforcement                   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -88,7 +88,7 @@ outline ──→ [extract + expand] ──→ normalize ──→ qa
   - Enables correct retrieval-based deduplication
   - Isolates failures to single lesson
 
-1. **Outline** (`@outline-reader` + `$textbook-outline`): Create `data/outlines/{book-id}.outline.json`
+1. **Outline** (`@outline-reader` + `/textbook-outline`): Create `data/outlines/{book-id}.outline.json`
 2. **Lesson Processing** (`@lesson-processor`):
    - **Extract** (`extract_lesson_sqlite.py`):
      - Process **one lesson at a time** in outline order
@@ -354,7 +354,7 @@ These scripts violated the **SQLite-first principle**:
 ### Correct Alternatives
 
 **For extraction:**
-- Use `$chapter-extract` skill (writes to SQLite)
+- Use `/chapter-extract` skill (writes to SQLite)
 - Use `scripts/run_single_lesson.py` (orchestrates correct workflow)
 - **Process lessons sequentially**, not in parallel
 
