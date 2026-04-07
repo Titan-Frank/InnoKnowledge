@@ -15,7 +15,7 @@ Knowledge Map Extraction project that transforms chemistry textbook content into
 
 步骤：
 1. 读取 .claude/skills/chapter-extract/SKILL.md 了解提取流程
-2. 读取教材 data/sources/chem-grade8-all-in-one.md 中课题 1-1-1 的内容
+2. 读取教材 ocr/ 目录下对应教材的 markdown 文件中课题 1-1-1 的内容
 3. 提取节点、边、profiles、mentions、evidence
 4. 使用 scripts/insert_batch.py 写入 SQLite
 5. 为每个 backbone 节点生成 node_card

@@ -143,7 +143,7 @@ Create the textbook skeleton before extracting lesson knowledge. Parses markdown
 {
   "book_id": "chem-grade8-all-in-one",
   "title": "化学（八年级全一册）",
-  "source_path": "data/sources/chem-grade8.md",
+  "source_path": "ocr/chem-grade8.md",
   "structure": [
     {
       "id": "struct:chem-grade8:theme:1",

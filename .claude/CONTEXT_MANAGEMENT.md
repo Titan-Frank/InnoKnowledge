@@ -63,74 +63,31 @@ AI:  ✓ 读取已有状态（5 课已完成）
 
 ---
 
-## 方案 B：批处理器脚本（推荐）
+## 方案 B：使用 Agent 工具（推荐）
 
 ### 工作原理
 
-使用 `scripts/batch_processor.py` 自动管理批次和生成提示。
+直接使用 Claude Code 的 Agent 工具调用 @kg-pipeline，由它自动管理批次和进度。
 
 ### 使用方式
 
 ```bash
-# 第 1 步：生成第一个批次的提示
-python scripts/batch_processor.py \
-    --book-id chem-grade8 \
-    --output-root data/v5 \
-    --batch-size 5 \
-    --action prompt
+# 在 Claude Code 中直接输入：
+@kg-pipeline 处理 chem-grade8 全书
 
-# 输出：
-# @kg-pipeline Process next batch of lessons for chem-grade8
-# 
-# **Context:**
-# - Book: chem-grade8
-# - Progress: 0/30 lessons completed
-# - This session: Process 5 lessons
-#
-# **Lessons to process:**
-# - lesson-1-1-1: 课题 1 化学使世界...
-# - lesson-1-1-2: 课题 2 化学是一门...
-# ...
-
-# 第 2 步：复制提示给 AI 执行
-# [AI 执行完成]
-
-# 第 3 步：生成下一个批次的提示
-python scripts/batch_processor.py \
-    --book-id chem-grade8 \
-    --action prompt
-# [输出下一个 5 课的提示]
-
-# 重复直到状态显示完成...
+# 或限制范围：
+@kg-pipeline 处理 chem-grade8，课程 1-1-1 到 1-2-3
 ```
 
-### 脚本功能
-
-```python
-# batch_processor.py 核心功能
-
-class BatchProcessor:
-    def load_manifest() -> Dict:
-        """读取运行清单，获取已完成/待处理课程"""
-    
-    def get_next_batch(batch_size: int) -> List[Lesson]:
-        """确定下一批次课程"""
-    
-    def generate_session_prompt(batch: List[Lesson]) -> str:
-        """生成包含上下文的完整提示"""
-    
-    def update_manifest(batch: List[Lesson], stats: Dict):
-        """更新清单，标记完成"""
-
-# 状态持久化
-- SQLite: 知识图谱数据
-- JSON manifest: 进度追踪
-- 对话：仅处理当前批次，不累积历史
-```
+Agent 会自动：
+1. 读取 outline 获取课程列表
+2. 逐个启动 Task 处理每节课
+3. 更新 manifest 记录进度
+4. 返回处理结果
 
 ### 优点
 - 自动化批次管理
-- 状态完全持久化
+- 状态完全持久化到 SQLite
 - 可随时中断和恢复
 - 防止重复处理
 
@@ -139,6 +96,10 @@ class BatchProcessor:
 - 不能真正并行
 
 ---
+
+## 方案 C：利用 Task 工具并行处理（最优）
+
+### 工作原理
 
 ## 方案 C：利用 Task 工具并行处理（最优）
 
@@ -302,7 +263,7 @@ AI:  好的！开始并行处理。
 
 ### 中规模（30-100 课）
 **推荐方案 B**
-- 使用 `batch_processor.py`
+- 使用 `Agent 工具`
 - 每批 5-10 课，手动触发
 - 安全可控
 
@@ -322,11 +283,11 @@ AI:  好的！开始并行处理。
 
 ```bash
 # 第一次
-python scripts/batch_processor.py --book-id X --action prompt
+python scripts/Agent 工具 --book-id X --action prompt
 # [复制输出给 AI]
 
 # 第二次
-python scripts/batch_processor.py --book-id X --action prompt
+python scripts/Agent 工具 --book-id X --action prompt
 # [复制输出给 AI]
 
 # ...重复直到完成
@@ -334,7 +295,7 @@ python scripts/batch_processor.py --book-id X --action prompt
 
 ### 短期实现（1-2 天）
 
-完善 `batch_processor.py`：
+完善 `Agent 工具`：
 - 添加 `--auto` 模式，自动生成并执行提示
 - 添加进度条和报告
 - 添加错误恢复
@@ -377,7 +338,7 @@ python scripts/batch_processor.py --book-id X --action prompt
 
 我可以立即：
 1. 使用方案 B 帮你处理一本教材（手动分批）
-2. 完善 batch_processor.py 添加更多功能
+2. 完善 Agent 工具 添加更多功能
 3. 设计方案 C 的详细实现
 
 或者你有其他想法？

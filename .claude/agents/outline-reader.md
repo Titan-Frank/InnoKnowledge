@@ -15,7 +15,7 @@ Extracts textbook structure using `/textbook-outline` skill.
 Receive from parent agent:
 
 ```
---book-md-path: data/sources/chem-grade8.md
+--book-md-path: ocr/chem-grade8.md
 --book-id: chem-grade8
 ```
 

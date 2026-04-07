@@ -122,13 +122,13 @@ python check_data_consistency.py
 确保教材已完成 OCR 并转为 Markdown：
 
 ```
-data/sources/{book-id}.md
+ocr/{book-id}.md
 ```
 
 ### 2. 生成目录（首次）
 
 ```bash
-opencode run --agent outline-reader "为 data/sources/chem-grade8.md 生成目录"
+opencode run --agent outline-reader "为 ocr/chem-grade8.md 生成目录"
 ```
 
 输出: `data/outlines/chem-grade8.outline.json`

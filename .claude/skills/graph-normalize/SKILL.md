@@ -203,13 +203,6 @@ UPDATE mentions SET target_id = ? WHERE target_id = ?;
    - Mark proposals as resolved or queued
    - Clean up temporary records
 
-2. **Optional**: Export snapshot
-   ```bash
-   scripts/export_snapshot.py \
-     --output-root <root> \
-     --scope <batch>
-   ```
-
 ## Input Parameters
 
 | Parameter | Type | Required | Description |

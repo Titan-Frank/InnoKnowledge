@@ -39,7 +39,7 @@ Receive from parent agent:
 ```
 --lesson-anchor: struct:chem:lesson:1-1-1
 --output-root: data/main/
---book-md-path: data/sources/chem-grade8.md
+--book-md-path: ocr/chem-grade8.md
 ```
 
 ## Workflow (All Business Logic Here)

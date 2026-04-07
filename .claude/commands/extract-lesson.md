@@ -11,7 +11,7 @@ Process lesson `$ARGUMENTS[1]` from book `$ARGUMENTS[0]`.
 - Lesson anchor: `$1` (e.g., `1-1-1`)
 
 **Workflow:**
-1. Load lesson content from `data/sources/{book-id}-all-in-one.md`
+1. Load lesson content from `ocr/{book-id}-all-in-one.md`
 2. Load outline from `data/outlines/{book-id}.outline.json` to locate lesson
 3. Execute `/chapter-extract` skill for this lesson only
 4. Write results to SQLite via `scripts/insert_batch.py`
