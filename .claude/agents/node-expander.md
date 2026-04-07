@@ -1,6 +1,9 @@
 ---
-description: Expands one canonical node into a structured node card using the pattern library, mentions, and evidence.
-mode: subagent
+name: node-expander
+description: Expands one canonical node into a structured node card using the pattern library, mentions, and evidence. Use when generating node cards for backbone nodes.
+tools: Read, Bash, Write
+skills:
+  - knowledge-schema
 ---
 
 # Node Expander
@@ -17,7 +20,7 @@ Expand **one canonical node** at a time into a structured node card and write di
 
 ### Step 1: Pre-flight
 
-1. Load `$knowledge-schema` skill to understand schema requirements
+1. Load `/knowledge-schema` skill to understand schema requirements
 2. Read `AGENTS.md` for project principles
 3. Read schemas:
    - `schemas/v2/node-card.schema.json`

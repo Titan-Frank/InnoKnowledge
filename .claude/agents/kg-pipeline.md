@@ -1,6 +1,7 @@
 ---
-description: Orchestrates the textbook knowledge extraction pipeline by spawning and monitoring subagent tasks.
-mode: subagent
+name: kg-pipeline
+description: Orchestrates the textbook knowledge extraction pipeline by spawning and monitoring subagent tasks. Use when processing entire textbooks or multiple lessons.
+tools: Agent, Read, Bash
 ---
 
 # KG Pipeline Orchestrator
@@ -29,9 +30,9 @@ All business logic lives in subagents:
 └── FOR each lesson (sequential):
     │
     └── Task → @lesson-processor
-        ├── $chapter-extract
+        ├── /chapter-extract
         ├── Task(s) → @node-expander (parallel)
-        ├── $graph-normalize
+        ├── /graph-normalize
         │   ├── Node deduplication
         │   ├── Edge consolidation
         │   ├── Cycle detection

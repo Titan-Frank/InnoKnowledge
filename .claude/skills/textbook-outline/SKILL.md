@@ -1,6 +1,7 @@
 ---
 name: textbook-outline
-description: Extracts structural outline from OCR-completed textbook markdown.
+description: Extracts structural outline from OCR-completed textbook markdown. Use when processing a new textbook to generate its structural skeleton.
+user-invocable: true
 ---
 
 # Textbook Outline

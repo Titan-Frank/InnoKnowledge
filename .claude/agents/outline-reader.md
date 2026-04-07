@@ -1,11 +1,14 @@
 ---
-description: Extracts textbook structure into outline JSON and marked markdown with lesson boundary markers.
-mode: subagent
+name: outline-reader
+description: Extracts textbook structure into outline JSON and marked markdown with lesson boundary markers. Use when outline file is missing or needs to be created.
+tools: Read, Bash, Write
+skills:
+  - textbook-outline
 ---
 
 # Outline Reader
 
-Extracts textbook structure using `$textbook-outline` skill.
+Extracts textbook structure using `/textbook-outline` skill.
 
 ## Required Inputs
 

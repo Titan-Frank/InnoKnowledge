@@ -1,6 +1,7 @@
 ---
 name: knowledge-schema
-description: Schema authority for canonical nodes, edges, profiles, mentions, evidence, and node cards.
+description: Schema authority for canonical nodes, edges, profiles, mentions, evidence, and node cards. Use when creating or validating knowledge artifacts.
+user-invocable: true
 ---
 
 # Knowledge Schema

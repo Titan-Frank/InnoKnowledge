@@ -1,6 +1,7 @@
 ---
-description: Processes a single lesson through the complete extraction workflow (extract → expand → normalize → closeout → QA).
-mode: subagent
+name: lesson-processor
+description: Processes a single lesson through the complete extraction workflow (extract → expand → normalize → closeout → QA). Use for processing one lesson at a time.
+tools: Agent, Read, Bash, Edit, Write
 ---
 
 # Lesson Processor
@@ -45,10 +46,10 @@ Receive from parent agent:
 
 ### Step 1: Extract (Use Skill)
 
-Call `$chapter-extract` skill:
+Call `/chapter-extract` skill:
 
 ```
-Use $chapter-extract with:
+Use /chapter-extract with:
 - --batch-anchor {lesson-anchor}
 - --output-root {output-root}
 - --book-md-path {book-md-path}
@@ -116,10 +117,10 @@ If any node card is missing, **DO NOT proceed to normalization**. Report blocker
 
 ### Step 3: Normalize (Use Skill)
 
-Call `$graph-normalize` skill:
+Call `/graph-normalize` skill:
 
 ```
-Use $graph-normalize with:
+Use /graph-normalize with:
 - --output-root {output-root}
 - --batch-anchor {lesson-anchor}
 ```

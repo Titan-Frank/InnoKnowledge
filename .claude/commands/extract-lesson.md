@@ -1,19 +1,19 @@
 ---
+name: extract-lesson
 description: Extract knowledge from a single lesson
-agent: lesson-processor
-subtask: true
+argument-hint: <book-id> <lesson-anchor>
 ---
 
-Process lesson `$1` from book `$ARGUMENTS`.
+Process lesson `$ARGUMENTS[1]` from book `$ARGUMENTS[0]`.
 
 **Parameters:**
-- Book ID: First argument (e.g., `chem-grade8`)
-- Lesson anchor: Second argument (e.g., `1-1-1`)
+- Book ID: `$0` (e.g., `chem-grade8`)
+- Lesson anchor: `$1` (e.g., `1-1-1`)
 
 **Workflow:**
 1. Load lesson content from `data/sources/{book-id}-all-in-one.md`
 2. Load outline from `data/outlines/{book-id}.outline.json` to locate lesson
-3. Execute `$chapter-extract` skill for this lesson only
+3. Execute `/chapter-extract` skill for this lesson only
 4. Write results to SQLite via `scripts/insert_batch.py`
 5. Report counts and any issues
 

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Chapter Extract"
-  short_description: "Extract concepts and relations from a lesson"
-  default_prompt: "Extract evidence, retrieve constrained node candidates, and derive lesson-local relation proposals before promoting only evidence-backed, non-conflicting relations from one lesson of a textbook."

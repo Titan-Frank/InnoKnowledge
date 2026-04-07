@@ -1,6 +1,7 @@
 ---
 name: graph-normalize
-description: Deduplicates, canonicalizes, and cleans knowledge graph while preserving textbook provenance and schema validity.
+description: Deduplicates, canonicalizes, and cleans knowledge graph while preserving textbook provenance and schema validity. Use after extraction to normalize the knowledge graph.
+user-invocable: true
 ---
 
 # Graph Normalize

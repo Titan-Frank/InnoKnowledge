@@ -1,9 +1,7 @@
 ---
-description: Reviews outline and graph outputs for schema gaps, duplicate concepts, and missing evidence without editing files.
-mode: subagent
-tools:
-  write: false
-  edit: false
+name: qa-reviewer
+description: Reviews outline and graph outputs for schema gaps, duplicate concepts, and missing evidence without editing files. Use for quality assurance after extraction or normalization.
+tools: Read, Grep, Glob, Bash
 ---
 
 You are the read-only reviewer for this project.

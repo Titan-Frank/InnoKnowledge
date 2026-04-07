@@ -1,6 +1,7 @@
 ---
 name: chapter-extract
-description: Extracts one lesson or small page range into evidence-backed canonical updates, curriculum profiles, mentions, and evidence.
+description: Extracts one lesson or small page range into evidence-backed canonical updates, curriculum profiles, mentions, and evidence. Use when processing textbook content for knowledge extraction.
+user-invocable: true
 ---
 
 # Chapter Extract
