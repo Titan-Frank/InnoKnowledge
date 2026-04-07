@@ -1,0 +1,86 @@
+{
+  "timestamp": "2026-04-03T16:53:08.744458",
+  "mode": "actual",
+  "total_lessons": 15,
+  "completed": 15,
+  "failed": 0,
+  "results": {
+    "chem-grade8-all-in-one": [
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:1-1-1",
+        "title": "开启化学之门",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:1-1-2",
+        "title": "通用的化学语言",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:1-2-1",
+        "title": "走进化学实验室",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:1-2-2",
+        "title": "学习开展化学实验探究",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:2-1-1",
+        "title": "空气的成分",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:2-1-2",
+        "title": "氧气和二氧化碳的性质",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:2-1-3",
+        "title": "氧气和二氧化碳的制备",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:3-1-1",
+        "title": "水的性质",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:3-1-2",
+        "title": "水的自然循环与人工净化",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:3-1-3",
+        "title": "水的组成",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:3-2-1",
+        "title": "构成物质的微观粒子",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:3-2-2",
+        "title": "组成物质的元素",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:3-2-3",
+        "title": "结构多样的碳单质",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:4-1-1",
+        "title": "化学反应中各物质间的定量关系",
+        "status": "completed"
+      },
+      {
+        "anchor": "struct:chem-grade8-all-in-one:lesson:4-1-2",
+        "title": "化学反应的表示及基本类型",
+        "status": "completed"
+      }
+    ]
+  }
+}

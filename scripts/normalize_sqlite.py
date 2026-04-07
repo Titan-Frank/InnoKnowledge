@@ -633,11 +633,13 @@ class GraphNormalizer:
             (self.dataset_id,),
         ).fetchall():
             self.connection.execute(
-                "INSERT INTO node_search (dataset_id, id, searchable_content) VALUES (?, ?, ?)",
+                "INSERT INTO node_search (dataset_id, node_id, canonical_name, aliases, definition) VALUES (?, ?, ?, ?, ?)",
                 (
                     self.dataset_id,
                     row["id"],
-                    f"{row['canonical_name']}\n{row['definition']}",
+                    row["canonical_name"],
+                    "",  # aliases - empty for now
+                    row["definition"] or "",
                 ),
             )
         counts["nodes"] = self.connection.execute(
@@ -679,8 +681,8 @@ class GraphNormalizer:
             objectives = json.loads(row["learning_objectives_json"])
             searchable = "\n".join(objectives)
             self.connection.execute(
-                "INSERT INTO profile_search (dataset_id, id, searchable_content) VALUES (?, ?, ?)",
-                (self.dataset_id, row["id"], searchable),
+                "INSERT INTO profile_search (dataset_id, profile_id, learning_objectives, assessment_signals) VALUES (?, ?, ?, ?)",
+                (self.dataset_id, row["id"], searchable, ""),
             )
         counts["profiles"] = self.connection.execute(
             "SELECT COUNT(*) FROM profile_search WHERE dataset_id = ?",
@@ -695,8 +697,8 @@ class GraphNormalizer:
             "SELECT id, excerpt FROM evidence WHERE dataset_id = ?", (self.dataset_id,)
         ).fetchall():
             self.connection.execute(
-                "INSERT INTO evidence_search (dataset_id, id, searchable_content) VALUES (?, ?, ?)",
-                (self.dataset_id, row["id"], row["excerpt"]),
+                "INSERT INTO evidence_search (dataset_id, evidence_id, excerpt, locator, normalized_claims) VALUES (?, ?, ?, ?, ?)",
+                (self.dataset_id, row["id"], row["excerpt"], "", ""),
             )
         counts["evidence"] = self.connection.execute(
             "SELECT COUNT(*) FROM evidence_search WHERE dataset_id = ?",
@@ -717,7 +719,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--dataset-id",
-        required=True,
+        default="main",
         help="Dataset ID to normalize (e.g., v4)",
     )
     parser.add_argument(
@@ -749,7 +751,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--fail-on-excessive-isolation",
         action="store_true",
-        help="Fail if >10% of backbone nodes are isolated (indicates extraction issues)",
+        help="Fail if >10%% of backbone nodes are isolated (indicates extraction issues)",
     )
     return parser.parse_args()
 

@@ -336,7 +336,7 @@ scripts/validate.py \
 
 # Validate batch
 scripts/validate_batch.py \
-  --output-root data/v4/ \
+  --output-root data/main/ \
   --scope nodes
 ```
 

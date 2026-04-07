@@ -181,7 +181,7 @@ Track progress in manifest file:
 ```json
 {
   "book_id": "chem-grade8",
-  "output_root": "data/v4/",
+  "output_root": "data/main/",
   "started_at": "2026-04-02T10:00:00Z",
   "status": "in_progress",
   "lessons": [

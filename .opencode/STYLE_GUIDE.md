@@ -222,7 +222,7 @@ Details in [Extraction Rules](../references/extraction-rules.md).
 ✅ 好：
 ```bash
 scripts/retrieve_candidates.py \
-  --output-root data/v4/ \
+  --output-root data/main/ \
   --mode hybrid
 ```
 

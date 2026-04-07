@@ -114,7 +114,7 @@ scripts/example_script.py --help
 标准参数顺序：
 ```bash
 script.py \
-  --output-root data/v4/ \
+  --output-root data/main/ \
   --batch-anchor struct:book:lesson:1-1-1 \
   --other-params
 ```

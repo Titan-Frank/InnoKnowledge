@@ -37,7 +37,7 @@ Receive from parent agent:
 
 ```
 --lesson-anchor: struct:chem:lesson:1-1-1
---output-root: data/v4/
+--output-root: data/main/
 --book-md-path: data/sources/chem-grade8.md
 ```
 
@@ -54,7 +54,13 @@ Use $chapter-extract with:
 - --book-md-path {book-md-path}
 ```
 
-Expected output:
+The skill will:
+1. Extract knowledge from the lesson markdown
+2. Generate JSON data for nodes, edges, profiles, mentions, evidence
+3. Call `scripts/insert_batch.py` to write directly to SQLite
+4. Return list of new backbone node IDs
+
+**Expected output:**
 - List of new backbone node IDs
 - Count of nodes/edges/mentions/evidence created
 - Any warnings or issues
@@ -75,15 +81,16 @@ for node_id in new_backbone_nodes:
         prompt=f"""
         Expand node: {node_id}
         Context lesson: {lesson-anchor}
-        
+
         Generate complete node card with:
         - summary (100-200字)
         - sections: definition, essence, key_points, example, application, misconception
         - Use evidence from extraction
-        
-        Write to SQLite using:
-        python scripts/expand_node_sqlite.py --node-id {node_id} --dataset-id {dataset_id} ...
-        
+
+        Write to SQLite using insert_batch.py:
+        python scripts/insert_batch.py \\
+          --data '{{"node_cards": [{{"node_id": "{node_id}", "title": "...", "summary": "...", "sections": [...]}}]}}'
+
         Return: {{node_id, card_id, status}}
         """,
         subagent_type="node-expander"
@@ -163,6 +170,56 @@ Delegate to @qa-reviewer with:
 
 **If QA fails:** HALT, report blocker details
 
+### Step 6: Checkpoint Validation (MANDATORY)
+
+**Before returning success, verify ALL steps are complete:**
+
+```bash
+python scripts/lesson_checkpoint.py --lesson-anchor {lesson-anchor}
+```
+
+**Required checkpoints:**
+| Step | Description | Check |
+|------|-------------|-------|
+| nodes | Backbone nodes created | ✓ nodes table has nodes for this lesson |
+| profiles | Curriculum profiles created | ✓ profiles linked to lesson |
+| evidence | Evidence records created | ✓ evidence with this anchor_ref |
+| mentions | Mentions linking nodes | ✓ mentions with this anchor_ref |
+| node_cards | Node cards generated | ✓ all backbone nodes have cards |
+| edges | Edges connecting nodes | ✓ edges with source_refs to lesson |
+
+**Checkpoint results:**
+```
+Lesson: struct:chem:lesson:1-1-1
+==================================================
+  ✓ Backbone nodes created
+  ✓ Curriculum profiles created
+  ✓ Evidence records created
+  ✓ Mentions linking nodes to lesson
+  ✓ Node cards for backbone nodes
+  ✓ Edges connecting nodes
+
+✓ Lesson complete
+```
+
+**If checkpoint fails:**
+- Return status=blocked
+- Report which steps are missing in `issues` array
+- **DO NOT proceed to next lesson**
+- **DO NOT return status=success**
+
+**Example blocked output:**
+```json
+{
+  "lesson_id": "struct:chem:lesson:1-1-1",
+  "status": "blocked",
+  "checkpoint_failed": true,
+  "missing_steps": ["node_cards", "evidence"],
+  "issues": ["Checkpoint validation failed: missing node_cards, evidence"],
+  "counts": {...}
+}
+```
+
 ## Output Contract
 
 Return to parent agent:
@@ -196,6 +253,7 @@ Return to parent agent:
 | Normalization fails | Return status=failed, report error |
 | Closeout fails | Return status=failed, report script error |
 | QA fails | Return status=blocked, report checklist failures |
+| **Checkpoint fails** | Return status=blocked, report missing steps |
 
 ### Warning Scenarios (Log and Continue)
 

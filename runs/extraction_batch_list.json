@@ -1,0 +1,702 @@
+{
+  "total_batches": 87,
+  "books": 7,
+  "batches": [
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:1-1-1",
+      "lesson_title": "开启化学之门",
+      "lesson_label": "课题1",
+      "page_start": 3
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:1-1-2",
+      "lesson_title": "通用的化学语言",
+      "lesson_label": "课题2",
+      "page_start": 14
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:1-2-1",
+      "lesson_title": "走进化学实验室",
+      "lesson_label": "课题1",
+      "page_start": 27
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:1-2-2",
+      "lesson_title": "学习开展化学实验探究",
+      "lesson_label": "课题2",
+      "page_start": 41
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:2-1-1",
+      "lesson_title": "空气的成分",
+      "lesson_label": "课题1",
+      "page_start": 57
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:2-1-2",
+      "lesson_title": "氧气和二氧化碳的性质",
+      "lesson_label": "课题2",
+      "page_start": 63
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:2-1-3",
+      "lesson_title": "氧气和二氧化碳的制备",
+      "lesson_label": "课题3",
+      "page_start": 73
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:3-1-1",
+      "lesson_title": "水的性质",
+      "lesson_label": "课题1",
+      "page_start": 89
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:3-1-2",
+      "lesson_title": "水的自然循环与人工净化",
+      "lesson_label": "课题2",
+      "page_start": 95
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:3-1-3",
+      "lesson_title": "水的组成",
+      "lesson_label": "课题3",
+      "page_start": 103
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:3-2-1",
+      "lesson_title": "构成物质的微观粒子",
+      "lesson_label": "课题1",
+      "page_start": 115
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:3-2-2",
+      "lesson_title": "组成物质的元素",
+      "lesson_label": "课题2",
+      "page_start": 123
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:3-2-3",
+      "lesson_title": "结构多样的碳单质",
+      "lesson_label": "课题3",
+      "page_start": 133
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:4-1-1",
+      "lesson_title": "化学反应中各物质间的定量关系",
+      "lesson_label": "课题1",
+      "page_start": 151
+    },
+    {
+      "book_id": "chem-grade8-all-in-one",
+      "book_title": "八年级全一册",
+      "lesson_id": "struct:chem-grade8-all-in-one:lesson:4-1-2",
+      "lesson_title": "化学反应的表示及基本类型",
+      "lesson_label": "课题2",
+      "page_start": 157
+    },
+    {
+      "book_id": "chem-grade9-all-in-one",
+      "book_title": "九年级全一册",
+      "lesson_id": "struct:chem-grade9-all-in-one:lesson:5-7-1",
+      "lesson_title": "初探溶液",
+      "lesson_label": "课题1",
+      "page_start": 3
+    },
+    {
+      "book_id": "chem-grade9-all-in-one",
+      "book_title": "九年级全一册",
+      "lesson_id": "struct:chem-grade9-all-in-one:lesson:5-7-2",
+      "lesson_title": "探究物质的溶解性",
+      "lesson_label": "课题2",
+      "page_start": 10
+    },
+    {
+      "book_id": "chem-grade9-all-in-one",
+      "book_title": "九年级全一册",
+      "lesson_id": "struct:chem-grade9-all-in-one:lesson:5-7-3",
+      "lesson_title": "学会定量表示溶液的组成",
+      "lesson_label": "课题3",
+      "page_start": 20
+    },
+    {
+      "book_id": "chem-grade9-all-in-one",
+      "book_title": "九年级全一册",
+      "lesson_id": "struct:chem-grade9-all-in-one:lesson:5-8-1",
+      "lesson_title": "初识酸和碱",
+      "lesson_label": "课题1",
+      "page_start": 33
+    },
+    {
+      "book_id": "chem-grade9-all-in-one",
+      "book_title": "九年级全一册",
+      "lesson_id": "struct:chem-grade9-all-in-one:lesson:5-8-2",
+      "lesson_title": "认识酸、碱、盐的性质与应用",
+      "lesson_label": "课题2",
+      "page_start": 42
+    },
+    {
+      "book_id": "chem-grade9-all-in-one",
+      "book_title": "九年级全一册",
+      "lesson_id": "struct:chem-grade9-all-in-one:lesson:5-8-3",
+      "lesson_title": "调节土壤酸碱性与施用营养元素",
+      "lesson_label": "课题3",
+      "page_start": 55
+    },
+    {
+      "book_id": "chem-grade9-all-in-one",
+      "book_title": "九年级全一册",
+      "lesson_id": "struct:chem-grade9-all-in-one:lesson:6-9-1",
+      "lesson_title": "认识燃烧与燃料",
+      "lesson_label": "课题1",
+      "page_start": 75
+    },
+    {
+      "book_id": "chem-grade9-all-in-one",
+      "book_title": "九年级全一册",
+      "lesson_id": "struct:chem-grade9-all-in-one:lesson:6-9-2",
+      "lesson_title": "调控燃烧的方法",
+      "lesson_label": "课题2",
+      "page_start": 83
+    },
+    {
+      "book_id": "chem-grade9-all-in-one",
+      "book_title": "九年级全一册",
+      "lesson_id": "struct:chem-grade9-all-in-one:lesson:6-9-3",
+      "lesson_title": "防止金属腐蚀的措施",
+      "lesson_label": "课题3",
+      "page_start": 89
+    },
+    {
+      "book_id": "chem-grade9-all-in-one",
+      "book_title": "九年级全一册",
+      "lesson_id": "struct:chem-grade9-all-in-one:lesson:6-10-1",
+      "lesson_title": "化学引领新能源的开发",
+      "lesson_label": "课题1",
+      "page_start": 105
+    },
+    {
+      "book_id": "chem-grade9-all-in-one",
+      "book_title": "九年级全一册",
+      "lesson_id": "struct:chem-grade9-all-in-one:lesson:6-10-2",
+      "lesson_title": "健康生活离不开化学",
+      "lesson_label": "课题2",
+      "page_start": 112
+    },
+    {
+      "book_id": "chem-grade9-all-in-one",
+      "book_title": "九年级全一册",
+      "lesson_id": "struct:chem-grade9-all-in-one:lesson:6-10-3",
+      "lesson_title": "化学为人类提供丰富的材料",
+      "lesson_label": "课题3",
+      "page_start": 120
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:1-1",
+      "lesson_title": "物质的分类",
+      "lesson_label": "1.1",
+      "page_start": 7
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:1-2",
+      "lesson_title": "物质的量",
+      "lesson_label": "1.2",
+      "page_start": 15
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:1-3",
+      "lesson_title": "化学中常用的实验方法",
+      "lesson_label": "1.3",
+      "page_start": 22
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:2-1",
+      "lesson_title": "海水中的氯",
+      "lesson_label": "2.1",
+      "page_start": 43
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:2-2",
+      "lesson_title": "氧化还原反应和离子反应",
+      "lesson_label": "2.2",
+      "page_start": 53
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:2-3",
+      "lesson_title": "溴和碘的提取",
+      "lesson_label": "2.3",
+      "page_start": 63
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:3-1",
+      "lesson_title": "硫及其重要化合物",
+      "lesson_label": "3.1",
+      "page_start": 75
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:3-2",
+      "lesson_title": "氮及其重要化合物",
+      "lesson_label": "3.2",
+      "page_start": 84
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:3-3",
+      "lesson_title": "硫循环和氮循环",
+      "lesson_label": "3.3",
+      "page_start": 91
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:4-1",
+      "lesson_title": "元素周期表和元素周期律",
+      "lesson_label": "4.1",
+      "page_start": 107
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:4-2",
+      "lesson_title": "原子结构",
+      "lesson_label": "4.2",
+      "page_start": 119
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:4-3",
+      "lesson_title": "核外电子排布",
+      "lesson_label": "4.3",
+      "page_start": 127
+    },
+    {
+      "book_id": "chem-senior-required-1",
+      "book_title": "高中必修第一册",
+      "lesson_id": "struct:chem-senior-required-1:lesson:4-4",
+      "lesson_title": "化学键",
+      "lesson_label": "4.4",
+      "page_start": 133
+    },
+    {
+      "book_id": "chem-senior-required-2",
+      "book_title": "高中必修第二册",
+      "lesson_id": "struct:chem-senior-required-2:lesson:5-1",
+      "lesson_title": "金属的性质",
+      "lesson_label": "5.1",
+      "page_start": 3
+    },
+    {
+      "book_id": "chem-senior-required-2",
+      "book_title": "高中必修第二册",
+      "lesson_id": "struct:chem-senior-required-2:lesson:5-2",
+      "lesson_title": "重要的金属化合物",
+      "lesson_label": "5.2",
+      "page_start": 12
+    },
+    {
+      "book_id": "chem-senior-required-2",
+      "book_title": "高中必修第二册",
+      "lesson_id": "struct:chem-senior-required-2:lesson:5-3",
+      "lesson_title": "化学变化中的能量变化",
+      "lesson_label": "5.3",
+      "page_start": 24
+    },
+    {
+      "book_id": "chem-senior-required-2",
+      "book_title": "高中必修第二册",
+      "lesson_id": "struct:chem-senior-required-2:lesson:6-1",
+      "lesson_title": "化学反应速率",
+      "lesson_label": "6.1",
+      "page_start": 41
+    },
+    {
+      "book_id": "chem-senior-required-2",
+      "book_title": "高中必修第二册",
+      "lesson_id": "struct:chem-senior-required-2:lesson:6-2",
+      "lesson_title": "化学平衡",
+      "lesson_label": "6.2",
+      "page_start": 50
+    },
+    {
+      "book_id": "chem-senior-required-2",
+      "book_title": "高中必修第二册",
+      "lesson_id": "struct:chem-senior-required-2:lesson:6-3",
+      "lesson_title": "化工生产",
+      "lesson_label": "6.3",
+      "page_start": 56
+    },
+    {
+      "book_id": "chem-senior-required-2",
+      "book_title": "高中必修第二册",
+      "lesson_id": "struct:chem-senior-required-2:lesson:7-1",
+      "lesson_title": "饱和烃",
+      "lesson_label": "7.1",
+      "page_start": 71
+    },
+    {
+      "book_id": "chem-senior-required-2",
+      "book_title": "高中必修第二册",
+      "lesson_id": "struct:chem-senior-required-2:lesson:7-2",
+      "lesson_title": "不饱和烃",
+      "lesson_label": "7.2",
+      "page_start": 80
+    },
+    {
+      "book_id": "chem-senior-required-2",
+      "book_title": "高中必修第二册",
+      "lesson_id": "struct:chem-senior-required-2:lesson:7-3",
+      "lesson_title": "乙醇和乙酸",
+      "lesson_label": "7.3",
+      "page_start": 91
+    },
+    {
+      "book_id": "chem-senior-required-2",
+      "book_title": "高中必修第二册",
+      "lesson_id": "struct:chem-senior-required-2:lesson:7-4",
+      "lesson_title": "糖、油脂和蛋白质",
+      "lesson_label": "7.4",
+      "page_start": 98
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:1-1",
+      "lesson_title": "化学反应与能量变化",
+      "lesson_label": "1.1",
+      "page_start": 3
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:1-2",
+      "lesson_title": "反应热的测量和计算",
+      "lesson_label": "1.2",
+      "page_start": 10
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:1-3",
+      "lesson_title": "燃料的合理利用",
+      "lesson_label": "1.3",
+      "page_start": 17
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:2-1",
+      "lesson_title": "化学反应的方向",
+      "lesson_label": "2.1",
+      "page_start": 27
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:2-2",
+      "lesson_title": "化学反应的限度",
+      "lesson_label": "2.2",
+      "page_start": 32
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:2-3",
+      "lesson_title": "化学反应的速率",
+      "lesson_label": "2.3",
+      "page_start": 41
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:2-4",
+      "lesson_title": "工业合成氨",
+      "lesson_label": "2.4",
+      "page_start": 46
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:3-1",
+      "lesson_title": "水的电离和溶液的酸碱性",
+      "lesson_label": "3.1",
+      "page_start": 59
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:3-2",
+      "lesson_title": "弱电解质的电离平衡",
+      "lesson_label": "3.2",
+      "page_start": 64
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:3-3",
+      "lesson_title": "酸碱中和与盐类水解",
+      "lesson_label": "3.3",
+      "page_start": 68
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:3-4",
+      "lesson_title": "难溶电解质的沉淀溶解平衡",
+      "lesson_label": "3.4",
+      "page_start": 75
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:4-1",
+      "lesson_title": "氧化还原反应",
+      "lesson_label": "4.1",
+      "page_start": 85
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:4-2",
+      "lesson_title": "原电池和化学电源",
+      "lesson_label": "4.2",
+      "page_start": 89
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:4-3",
+      "lesson_title": "电解池",
+      "lesson_label": "4.3",
+      "page_start": 100
+    },
+    {
+      "book_id": "chem-senior-elective-1",
+      "book_title": "选择性必修1 化学反应原理",
+      "lesson_id": "struct:chem-senior-elective-1:lesson:4-4",
+      "lesson_title": "金属的电化学腐蚀与防护",
+      "lesson_label": "4.4",
+      "page_start": 108
+    },
+    {
+      "book_id": "chem-senior-elective-2",
+      "book_title": "选择性必修2 物质结构与性质",
+      "lesson_id": "struct:chem-senior-elective-2:lesson:1-1",
+      "lesson_title": "氢原子结构模型",
+      "lesson_label": "1.1",
+      "page_start": 109
+    },
+    {
+      "book_id": "chem-senior-elective-2",
+      "book_title": "选择性必修2 物质结构与性质",
+      "lesson_id": "struct:chem-senior-elective-2:lesson:1-2",
+      "lesson_title": "多电子原子核外电子的排布",
+      "lesson_label": "1.2",
+      "page_start": 334
+    },
+    {
+      "book_id": "chem-senior-elective-2",
+      "book_title": "选择性必修2 物质结构与性质",
+      "lesson_id": "struct:chem-senior-elective-2:lesson:1-3",
+      "lesson_title": "元素周期律",
+      "lesson_label": "1.3",
+      "page_start": 484
+    },
+    {
+      "book_id": "chem-senior-elective-2",
+      "book_title": "选择性必修2 物质结构与性质",
+      "lesson_id": "struct:chem-senior-elective-2:lesson:2-1",
+      "lesson_title": "共价分子的空间结构",
+      "lesson_label": "2.1",
+      "page_start": 758
+    },
+    {
+      "book_id": "chem-senior-elective-2",
+      "book_title": "选择性必修2 物质结构与性质",
+      "lesson_id": "struct:chem-senior-elective-2:lesson:2-2",
+      "lesson_title": "分子结构与物质的性质",
+      "lesson_label": "2.2",
+      "page_start": 1064
+    },
+    {
+      "book_id": "chem-senior-elective-2",
+      "book_title": "选择性必修2 物质结构与性质",
+      "lesson_id": "struct:chem-senior-elective-2:lesson:2-3",
+      "lesson_title": "配位化合物和超分子",
+      "lesson_label": "2.3",
+      "page_start": 1354
+    },
+    {
+      "book_id": "chem-senior-elective-2",
+      "book_title": "选择性必修2 物质结构与性质",
+      "lesson_id": "struct:chem-senior-elective-2:lesson:3-1",
+      "lesson_title": "金属晶体",
+      "lesson_label": "3.1",
+      "page_start": 1724
+    },
+    {
+      "book_id": "chem-senior-elective-2",
+      "book_title": "选择性必修2 物质结构与性质",
+      "lesson_id": "struct:chem-senior-elective-2:lesson:3-2",
+      "lesson_title": "离子晶体",
+      "lesson_label": "3.2",
+      "page_start": 1938
+    },
+    {
+      "book_id": "chem-senior-elective-2",
+      "book_title": "选择性必修2 物质结构与性质",
+      "lesson_id": "struct:chem-senior-elective-2:lesson:3-3",
+      "lesson_title": "共价晶体和分子晶体",
+      "lesson_label": "3.3",
+      "page_start": 2047
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:1-1",
+      "lesson_title": "有机化学的建立和发展",
+      "lesson_label": "1.1",
+      "page_start": 3
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:1-2",
+      "lesson_title": "有机化合物的结构",
+      "lesson_label": "1.2",
+      "page_start": 8
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:1-3",
+      "lesson_title": "有机化合物的命名",
+      "lesson_label": "1.3",
+      "page_start": 16
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:2-1",
+      "lesson_title": "脂肪烃",
+      "lesson_label": "2.1",
+      "page_start": 25
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:2-2",
+      "lesson_title": "芳香烃",
+      "lesson_label": "2.2",
+      "page_start": 31
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:2-3",
+      "lesson_title": "卤代烃",
+      "lesson_label": "2.3",
+      "page_start": 37
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:3-1",
+      "lesson_title": "醇和酚",
+      "lesson_label": "3.1",
+      "page_start": 47
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:3-2",
+      "lesson_title": "醛和酮",
+      "lesson_label": "3.2",
+      "page_start": 55
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:3-3",
+      "lesson_title": "羧酸及其衍生物",
+      "lesson_label": "3.3",
+      "page_start": 62
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:4-1",
+      "lesson_title": "生物大分子",
+      "lesson_label": "4.1",
+      "page_start": 75
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:4-2",
+      "lesson_title": "合成高分子",
+      "lesson_label": "4.2",
+      "page_start": 87
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:5-1",
+      "lesson_title": "有机合成初步",
+      "lesson_label": "5.1",
+      "page_start": 103
+    },
+    {
+      "book_id": "chem-senior-elective-3",
+      "book_title": "选择性必修3 有机化学基础",
+      "lesson_id": "struct:chem-senior-elective-3:lesson:5-2",
+      "lesson_title": "研究有机化合物的一般方法",
+      "lesson_label": "5.2",
+      "page_start": 111
+    }
+  ]
+}

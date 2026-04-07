@@ -293,14 +293,14 @@ After normalization, graph integrity is validated:
 
 ```bash
 # Basic QA validation (read-only verification)
-python scripts/strict_qa_sqlite.py --dataset-id v4
+python scripts/strict_qa_sqlite.py --dataset-id main
 
 # Detailed graph integrity check (cycles, isolated nodes, connectivity)
 # Run independently if needed for deeper analysis
-python scripts/check_graph_integrity.py --dataset-id v4
+python scripts/check_graph_integrity.py --dataset-id main
 
 # If cycles found in hierarchical edges (should not happen after normalization)
-python scripts/check_graph_integrity.py --dataset-id v4 --fail-on-cycles
+python scripts/check_graph_integrity.py --dataset-id main --fail-on-cycles
 ```
 
 ### Cycle Detection (Performed during normalization)
@@ -346,7 +346,7 @@ The following scripts have been **deprecated** and moved to `/deprecated/`:
 ### Why They Were Deprecated
 
 These scripts violated the **SQLite-first principle**:
-- They wrote directly to `data/v4/graph/*.jsonl` files
+- They wrote directly to `data/main/graph/*.jsonl` files
 - They never updated `storage/knowledge.sqlite`
 - This caused **data inconsistency**: SQLite had 85 nodes while JSONL had 145
 - The Viewer API (which reads SQLite) could not see the new data

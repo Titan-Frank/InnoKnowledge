@@ -289,28 +289,46 @@ The calling agent (`@lesson-processor`) is responsible for:
 
 ### Phase 5: Persist (SQLite-Native)
 
-Write directly to SQLite - **No JSONL intermediate files**:
+**DO NOT create individual extraction scripts.** Use the generic batch inserter.
 
-```bash
-# Extract directly to SQLite
-python scripts/extract_lesson_sqlite.py \
-  --batch-anchor <anchor> \
-  --book-md-path <book.md> \
-  --dataset-id <version> \
-  --db storage/knowledge.sqlite
-```
+1. **Build JSON data structure** with all artifacts:
+   ```json
+   {
+     "evidence": [...],
+     "nodes": [...],
+     "edges": [...],
+     "profiles": [...],
+     "mentions": [...],
+     "node_cards": []
+   }
+   ```
+
+2. **Insert using generic script:**
+   ```bash
+   python scripts/insert_batch.py --data '<json-string>'
+   ```
+
+   Or write to a temp file first:
+   ```bash
+   echo '<json-data>' > /tmp/batch_data.json
+   python scripts/insert_batch.py --input /tmp/batch_data.json
+   ```
+
+3. **Dry run to preview:**
+   ```bash
+   python scripts/insert_batch.py --input /tmp/batch_data.json --dry-run
+   ```
 
 **What this does:**
-1. Reads lesson scope from Markdown
-2. Direct INSERT into `nodes`, `edges`, `profiles`, `mentions`, `evidence` tables
-3. Returns list of new backbone node IDs to caller
+1. Accepts JSON data with nodes, edges, profiles, mentions, evidence, node_cards
+2. Inserts in correct dependency order (evidence first, then nodes, etc.)
+3. Handles JSON field serialization automatically
+4. Updates node.card_ref when node_cards are inserted
 
-**No JSONL files generated:**
-- ❌ `knowledge.nodes.jsonl`
-- ❌ `knowledge.edges.jsonl`
-- ❌ `*.mentions.jsonl`
-- ❌ `*.evidence.jsonl`
-- ❌ `node_cards/*.json`
+**No individual scripts needed:**
+- ❌ `extract_lesson_X_Y_Z.py` - Use `insert_batch.py` instead
+- ❌ `create_node_cards_X_Y_Z.py` - Use `insert_batch.py` instead
+- ❌ `expand_nodes_X_Y_Z.py` - Use `insert_batch.py` instead
 
 ## Input Parameters
 
@@ -319,7 +337,7 @@ python scripts/extract_lesson_sqlite.py \
 | `--batch-anchor` | String | Yes | Canonical outline ID (e.g., `struct:chem:lesson:1-1-1`) |
 | `--book-md-path` | Path | Yes | Path to OCR-completed markdown source |
 | `--db` | Path | No | SQLite database path (default: `storage/knowledge.sqlite`) |
-| `--dataset-id` | String | No | Dataset ID (default: inferred from output root or `v4`) |
+| `--dataset-id` | String | No | Dataset ID (default: inferred from output root or `main`) |
 | `--output-root` | Path | No | Used for dataset inference (SQLite is primary storage) |
 
 ## Output

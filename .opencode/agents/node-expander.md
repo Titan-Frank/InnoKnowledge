@@ -53,19 +53,23 @@ Create complete node card with ALL required sections using current lesson's evid
 
 ### Step 4: Write to SQLite
 
-Execute the expansion script:
+**Use the generic batch inserter:**
+
+```bash
+python scripts/insert_batch.py --data '{"node_cards": [<card-data>]}'
+```
+
+Or use `expand_node_sqlite.py` for single card:
 
 ```bash
 python scripts/expand_node_sqlite.py \
   --node-id <node-id> \
-  --dataset-id <dataset-id> \
   --title "<canonical-name>" \
   --summary "<100-200字摘要>" \
-  --sections '<json-array-of-sections>' \
-  --db storage/knowledge.sqlite
+  --sections '<json-array-of-sections>'
 ```
 
-This writes directly to the `node_cards` table in SQLite.
+Both write directly to the `node_cards` table in SQLite.
 
 **Required Output Structure**:
 

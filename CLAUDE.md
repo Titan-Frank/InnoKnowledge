@@ -4,21 +4,52 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Knowledge Map Extraction project that transforms chemistry textbook content into structured, evidence-backed knowledge graphs. Uses a Manager-Worker architecture orchestrated via the `opencode` CLI tool.
+Knowledge Map Extraction project that transforms chemistry textbook content into structured, evidence-backed knowledge graphs. Uses a Manager-Worker architecture.
 
-## Key Commands
+## Quick Start with Claude Code
 
-### Run Pipeline (Primary Interface)
+### Process a Single Lesson
+
+```
+提取 chem-grade8 的课题 1-1-1
+
+步骤：
+1. 读取 .opencode/skills/chapter-extract/SKILL.md 了解提取流程
+2. 读取教材 data/sources/chem-grade8-all-in-one.md 中课题 1-1-1 的内容
+3. 提取节点、边、profiles、mentions、evidence
+4. 使用 scripts/insert_batch.py 写入 SQLite
+5. 为每个 backbone 节点生成 node_card
+6. 运行 scripts/normalize_sqlite.py 归一化
+```
+
+### Process Entire Book
+
+```
+处理 chem-grade8 全书
+
+按照 .opencode/agents/kg-pipeline.md 的流程：
+1. 读取 data/outlines/chem-grade8-all-in-one.outline.json 获取课题列表
+2. 每个课题使用 Agent tool 启动独立 Task 处理
+3. 串行处理，等待每个 Task 完成后再启动下一个
+4. 所有课题完成后运行归一化
+```
+
+### Key Principles
+
+1. **One lesson per Task** - 每个课题在独立 Task 中处理，避免 context 爆炸
+2. **SQLite-first** - 所有数据写入 SQLite，JSONL 只是导出产物
+3. **Evidence-backed** - 每个节点/边必须有教材出处
+
+## Data Insertion
+
+使用通用脚本插入数据：
 
 ```bash
-# Interactive TUI (recommended)
-opencode
+# 插入节点、边、profiles 等
+python scripts/insert_batch.py --data '{"nodes": [...], "edges": [...], ...}'
 
-# Process entire book (lessons processed sequentially)
-opencode run --agent kg-pipeline "处理 chem-grade8 全书"
-
-# Process single lesson
-opencode run --agent kg-pipeline "处理 chem-grade8 的 struct:chem-grade8:lesson:1-1-1"
+# 或从文件读取
+python scripts/insert_batch.py --input /tmp/batch_data.json
 ```
 
 ### Data Viewing
@@ -37,16 +68,16 @@ sqlite3 storage/knowledge.sqlite "SELECT id, canonical_name FROM nodes ORDER BY 
 
 ```bash
 # Export from SQLite to JSONL (for external consumers)
-python scripts/export_snapshot.py data/v4 --db storage/knowledge.sqlite --dataset-id v4
+python scripts/export_snapshot.py data/main --db storage/knowledge.sqlite --dataset-id main
 
 # Check data consistency
 python check_data_consistency.py
 
 # QA validation
-python scripts/strict_qa_sqlite.py --dataset-id v4
+python scripts/strict_qa_sqlite.py --dataset-id main
 
 # Graph integrity check
-python scripts/check_graph_integrity.py --dataset-id v4
+python scripts/check_graph_integrity.py --dataset-id main
 ```
 
 ## Architecture
