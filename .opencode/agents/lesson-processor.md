@@ -117,10 +117,12 @@ Use $graph-normalize with:
 - --batch-anchor {lesson-anchor}
 ```
 
-This deduplicates:
-- Nodes (whitespace/punctuation/alias variants)
-- Edges (exact duplicates)
-- Propagates ID changes to dependent artifacts
+This performs:
+1. **Node deduplication** - Merge duplicates (whitespace/punctuation/alias variants)
+2. **Edge consolidation** - Remove duplicate edges, resolve conflicts
+3. **Cycle detection** - Detect cycles in hierarchical edges (is_a, part_of, etc.)
+4. **Isolated node resolution** - Find nodes with no edges, attempt to connect with evidence support
+5. **ID propagation** - Update all references after merges
 
 ### Step 4: Closeout (Run Scripts)
 

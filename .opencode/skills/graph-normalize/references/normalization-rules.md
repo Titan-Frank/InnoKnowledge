@@ -97,3 +97,63 @@ When a cycle is detected in hierarchical edges:
    - deleting the edge if incorrect
    - retyping the edge to a non-hierarchical type if the relation is valid but not hierarchical
    - keeping it only when the cycle is in an allowed edge family
+
+## Isolated Node Policy
+
+### Definition
+
+Isolated nodes are nodes with **no incoming or outgoing edges**.
+
+### Detection Priority
+
+1. **Backbone nodes** - MUST have edges unless intentionally isolated with documented reason
+2. **Support nodes** - MAY be isolated if serving as auxiliary reference
+
+### Resolution Workflow
+
+When an isolated node is detected:
+
+1. **Check node_kind context**:
+   - `concept/*` - Should connect to parent concepts or related topics
+   - `entity/*` - Should connect to usage context or containment
+   - `activity/*` - Should connect to equipment, substances, or methods
+   - `method/*` - Should connect to applications or extensions
+   - `representation/*` - Should connect to what it represents
+
+2. **Search for related nodes**:
+   - Query current batch for semantically related nodes
+   - Verify evidence support in textbook excerpts
+   - Prefer existing evidence over adding new edges
+
+3. **Add edges if evidence exists**:
+   - Use appropriate edge type based on relationship
+   - Prefer `related_to` for weak or uncertain relations
+   - Link `source_refs` to existing evidence
+
+4. **Document if intentionally isolated**:
+   - Add reason to `notes` field
+   - Examples: "Placeholder for future content", "Cross-reference entry", "Introductory concept awaiting connection"
+
+5. **Flag for review if uncertain**:
+   - Do NOT auto-add edges without evidence
+   - Create review task for human judgment
+
+### Acceptable Isolation Scenarios
+
+Isolation is ACCEPTABLE when:
+- Node is introduced in early lessons (connections appear later)
+- Node is a placeholder or reference entry
+- Support node serving as auxiliary information
+- Lesson context shows intentional standalone presentation
+
+Isolation is PROBLEMATIC when:
+- Backbone node in middle/later lessons
+- Node kind typically requires context (e.g., `activity/experiment` without equipment)
+- Multiple isolated nodes suggest systematic extraction gap
+
+### Excessive Isolation Threshold
+
+If **>10% of backbone nodes** are isolated after resolution attempts:
+- **HALT** the pipeline
+- Report systematic extraction gap
+- Review extraction quality before continuing

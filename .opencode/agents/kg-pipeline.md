@@ -32,6 +32,10 @@ All business logic lives in subagents:
         ├── $chapter-extract
         ├── Task(s) → @node-expander (parallel)
         ├── $graph-normalize
+        │   ├── Node deduplication
+        │   ├── Edge consolidation
+        │   ├── Cycle detection
+        │   └── Isolated node resolution
         ├── scripts (closeout)
         └── @qa-reviewer
         

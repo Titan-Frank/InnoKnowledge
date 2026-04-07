@@ -5,7 +5,7 @@ description: Deduplicates, canonicalizes, and cleans knowledge graph while prese
 
 # Graph Normalize
 
-Normalize canonical graph artifacts after extraction. This skill handles node deduplication, alias merging, cycle detection, and relation consolidation.
+Normalize canonical graph artifacts after extraction. This skill handles node deduplication, alias merging, cycle detection, isolated node resolution, and relation consolidation.
 
 ## Quick Start
 
@@ -101,7 +101,72 @@ Algorithm:
 **Acceptable cycles** (association edges):
 - `related_to`, `explains`, `uses`, `produces`
 
-### Phase 6: Alias and Profile Management
+### Phase 6: Isolated Node Detection & Resolution
+
+**Definition**: Isolated nodes have NO edges connecting them to the graph.
+
+**Detection algorithm**:
+```sql
+-- Find nodes with no incoming or outgoing edges
+SELECT node_id, canonical_name, node_kind, node_layer
+FROM nodes n
+WHERE NOT EXISTS (
+    SELECT 1 FROM edges e 
+    WHERE e.source = n.node_id OR e.target = n.node_id
+);
+```
+
+**Resolution workflow**:
+
+```
+For each isolated node:
+  ├─ Determine if isolation is intentional
+  │   ├─ Check node_kind (some types may be intentionally isolated)
+  │   ├─ Check node_layer (backbone nodes should rarely be isolated)
+  │   └─ Check lesson context (introductory concepts may be standalone)
+  │
+  ├─ If isolation is problematic:
+  │   ├─ Search for semantically related nodes in current batch
+  │   ├─ Verify relation has evidence support from textbook
+  │   ├─ If evidence exists:
+  │   │   └─ Add appropriate edge (prefer `related_to` for weak relations)
+  │   └─ If no evidence:
+  │       └─ Flag for human review, do NOT auto-add edge
+  │
+  └─ If isolation is intentional:
+      └─ Document reason in node.notes field
+```
+
+**Edge type selection for resolution**:
+
+| Node Kind | Preferred Edge Types | Notes |
+|-----------|---------------------|-------|
+| `concept/*` | `is_a`, `related_to` | Check for parent concepts first |
+| `entity/*` | `contains`, `related_to`, `uses` | Check for containment or usage |
+| `activity/*` | `uses`, `produces`, `measures` | Link to equipment or substances |
+| `method/*` | `applies`, `extends` | Link to parent methods |
+| `representation/*` | `represents`, `explains` | Link to what it represents |
+
+**Isolation acceptance criteria**:
+
+Isolation is ACCEPTABLE when:
+- Node is explicitly introduced in current lesson but not yet connected (early in book)
+- Node is a placeholder or cross-reference entry
+- Node has `node_layer=support` and serves as auxiliary reference
+- Lesson context shows intentional standalone presentation
+
+Isolation is PROBLEMATIC when:
+- Node has `node_layer=backbone` (core concepts should connect)
+- Node appears in middle/later lessons (should have established relations)
+- Node kind typically requires context (`activity/experiment` needs equipment, etc.)
+- Multiple isolated nodes suggest systematic extraction gap
+
+**Output**:
+- Updated edges table with new connections
+- Updated nodes.notes for intentionally isolated nodes
+- Report listing: resolved nodes, flagged nodes, intentional isolations
+
+### Phase 7: Alias and Profile Management
 
 **Alias policy**:
 - Prefer one canonical Chinese name per node
@@ -114,7 +179,7 @@ Algorithm:
 - Preserve all `framework_refs`, `textbook_refs`, `source_refs`
 - Junior-secondary and senior-secondary profiles coexist
 
-### Phase 7: ID Propagation
+### Phase 8: ID Propagation
 
 When canonical IDs change:
 
@@ -131,7 +196,7 @@ UPDATE edges SET target = ? WHERE target = ?;
 UPDATE mentions SET target_id = ? WHERE target_id = ?;
 ```
 
-### Phase 8: Finalize
+### Phase 9: Finalize
 
 1. Run `scripts/finalize_batch_runtime.py`
    - Mark proposals as resolved or queued
@@ -212,6 +277,13 @@ When generating or executing code:
 2. Review semantics
 3. Resolve by: delete, retype, or manual review
 
+### Isolated Node Resolution
+**Evidence-first**: Only add edges with textbook evidence support
+**Conservative connection**: Prefer `related_to` for uncertain relations
+**Backbone priority**: Backbone nodes must connect; support nodes may be isolated
+**Documentation**: Intentionally isolated nodes must have reason in `notes` field
+**Systematic gaps**: High isolated node rate indicates extraction issues, not normalization issues
+
 ## Error Handling
 
 ### Blocker Scenarios
@@ -222,6 +294,7 @@ When generating or executing code:
 | Conflicting canonical edges | Halt (or queue for review based on config) |
 | Missing target node for edge | Halt, report blocker |
 | ID propagation fails | Halt, rollback changes |
+| Excessive isolated backbone nodes (>10%) | Halt, report systematic extraction gap |
 
 ### Warning Scenarios
 
@@ -229,6 +302,8 @@ When generating or executing code:
 |----------|--------|
 | Near-duplicate detected but uncertain | Log, keep separate |
 | Profile merge conflict | Keep both, flag for review |
+| Isolated backbone node (single) | Auto-resolve if evidence exists, else flag |
+| Isolated support node | Document in notes, continue |
 
 ## References
 

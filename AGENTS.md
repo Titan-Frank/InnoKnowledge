@@ -36,6 +36,10 @@ Turn textbook content into a stable, evidence-backed, cross-disciplinary knowled
 │                       ├─ $chapter-extract (skill)          │
 │                       ├─ @node-expander (parallel Tasks)   │
 │                       ├─ $graph-normalize (skill)          │
+│                       │   ├─ Node deduplication            │
+│                       │   ├─ Edge consolidation            │
+│                       │   ├─ Cycle detection               │
+│                       │   └─ Isolated node resolution      │
 │                       ├─ run_sqlite_batch_pipeline.py      │
 │                       └─ @qa-reviewer                      │
 │  @qa-reviewer       - Quality validation (read-only)       │
@@ -44,7 +48,7 @@ Turn textbook content into a stable, evidence-backed, cross-disciplinary knowled
 │  ─────────────────────────────────                         │
 │  $textbook-outline  - Structure extraction                 │
 │  $chapter-extract   - Lesson-level extraction              │
-│  $graph-normalize   - Deduplication                        │
+│  $graph-normalize   - Deduplication + structure repair     │
 │  $knowledge-schema  - Schema enforcement                   │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -94,7 +98,7 @@ outline ──→ [extract + expand] ──→ normalize ──→ qa
      - For **each new backbone node**: spawn **independent Task** → direct INSERT into `node_cards`
      - Each expansion runs in **fresh isolated context** (max stability)
      - Multiple nodes can expand **concurrently** within the same lesson
-   - **Normalize** (`normalize_sqlite.py`): Deduplicate, merge aliases, normalize node cards **after each lesson**
+   - **Normalize** (`normalize_sqlite.py`): Deduplicate, merge aliases, detect cycles, resolve isolated nodes, normalize node cards **after each lesson**
    - **QA** (`strict_qa_sqlite.py`): Read-only review including node card completeness **after each lesson**
 
 ## Output Contract
@@ -140,7 +144,7 @@ Manifest order is always: `backbone` → `normalize` → `qa`
 
 Each lesson must complete all stages:
 1. `backbone` - Nodes created with immediate node card generation
-2. `normalize` - Deduplication and card normalization
+2. `normalize` - Deduplication, cycle detection, isolated node resolution, and card normalization
 3. `qa` - Schema validation including node card completeness
 
 Do not mark a later stage complete while an earlier required stage is pending.
@@ -253,15 +257,16 @@ Read these before writing output:
 - [ ] **No excessive isolated nodes** (nodes with no edges)
 - [ ] **No duplicate edges** (same from/to/type)
 
-### Graph Connectivity
+### Graph Connectivity (Normalized during normalization phase)
 - [ ] **Hierarchical edges are acyclic**:
   - `is_a`, `instance_of`, `contains`, `part_of` - NO cycles
   - `prerequisite_for`, `depends_on`, `extends` - NO cycles
 - [ ] **Association edges may cycle**:
   - `related_to`, `explains`, `uses`, `produces` - cycles OK
-- [ ] **Isolated nodes reviewed**:
-  - Check if isolation is intentional
-  - Add edges or document reason in notes
+- [ ] **Isolated nodes resolved**:
+  - Backbone nodes must have edges (resolved during normalization)
+  - Support nodes may be isolated with documented reason in `notes`
+  - Intentional isolation documented in `notes` field
 - [ ] **Graph is reasonably connected**:
   - No excessive disconnected components
   - Most nodes should have at least one edge
@@ -280,25 +285,25 @@ The following indicate quality issues but do NOT block extraction:
 - [ ] **Missing properties for substance/experiment/equipment nodes** (check `notes` for reason)
 - [ ] **Missing support nodes in lesson** (check lesson content type)
 - [ ] **Support nodes marked as backbone instead of support layer**
-- [ ] **Isolated nodes found** (nodes with no edges - review if intentional)
 - [ ] **Duplicate edges detected** (same from/to/type combination)
 
 ## Graph Integrity Checks
 
-After extraction, run graph integrity checks:
+After normalization, graph integrity is validated:
 
 ```bash
-# Basic QA validation
+# Basic QA validation (read-only verification)
 python scripts/strict_qa_sqlite.py --dataset-id v4
 
 # Detailed graph integrity check (cycles, isolated nodes, connectivity)
+# Run independently if needed for deeper analysis
 python scripts/check_graph_integrity.py --dataset-id v4
 
-# If cycles found in hierarchical edges
+# If cycles found in hierarchical edges (should not happen after normalization)
 python scripts/check_graph_integrity.py --dataset-id v4 --fail-on-cycles
 ```
 
-### Cycle Detection
+### Cycle Detection (Performed during normalization)
 
 Hierarchical edges MUST NOT form cycles:
 - `is_a` - Type hierarchy cannot loop
@@ -308,12 +313,13 @@ Hierarchical edges MUST NOT form cycles:
 Association edges MAY form cycles:
 - `related_to`, `explains`, `uses`, `produces` - cycles are acceptable
 
-### Isolated Node Detection
+### Isolated Node Detection (Performed during normalization)
 
-Isolated nodes (nodes with NO edges) should be reviewed:
-- Check if node should have relations
-- Add appropriate edges based on evidence
-- If intentionally isolated, document reason in `notes` field
+Isolated nodes (nodes with NO edges) are resolved during normalization:
+- Backbone nodes must have edges added (with evidence support)
+- Support nodes may remain isolated with documented reason
+- Intentional isolation is documented in `notes` field
+- Excessive isolated nodes (>10% of backbone) blocks pipeline
 
 ## Instruction Ownership
 
