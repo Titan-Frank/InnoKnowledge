@@ -1,6 +1,6 @@
 ---
 name: kg-pipeline
-description: Orchestrates the textbook knowledge extraction pipeline by spawning and monitoring subagent tasks. Use when processing entire textbooks or multiple lessons.
+description: Orchestrates the textbook knowledge extraction pipeline by spawning parallel lesson staging tasks and then running a canonical reducer pass.
 tools: Agent, Read, Bash
 ---
 
@@ -9,296 +9,126 @@ tools: Agent, Read, Bash
 **Pure orchestrator - NO business logic.**
 
 This agent only:
-1. **Plans** - Determine which lessons to process
-2. **Spawns** - Launch subagent Tasks
-3. **Monitors** - Check completion status
-4. **Decides** - Continue or halt based on results
+1. Plans which lessons to process
+2. Spawns isolated lesson Tasks
+3. Monitors staging completion
+4. Runs one reducer pass or halts on blockers
 
 All business logic lives in subagents:
-- `@outline-reader` - Outline creation
-- `@lesson-processor` - Lesson extraction workflow
-- `@qa-reviewer` - Final review (optional)
+- `@outline-reader`
+- `@lesson-processor`
+- `@kg-reducer`
+- `@qa-reviewer` (optional final review)
 
 ## Architecture
 
-```
-@kg-pipeline (orchestrator, NO business logic)
+```text
+@kg-pipeline
 │
-├── Task → @outline-reader (if needed)
-│   └── Returns: outline status
+├── Task → @outline-reader
 │
-└── FOR each lesson (sequential):
-    │
-    └── Task → @lesson-processor
-        ├── /chapter-extract
-        ├── Task(s) → @node-expander (parallel)
-        ├── /graph-normalize
-        │   ├── Node deduplication
-        │   ├── Edge consolidation
-        │   ├── Cycle detection
-        │   └── Isolated node resolution
-        ├── scripts (closeout)
-        └── @qa-reviewer
-        
-        Returns: {status, counts, issues}
+├── Task × N → @lesson-processor
+│   └── writes only lesson_runs + staging_*
+│
+└── Task → @kg-reducer
+    └── merge -> normalize -> qa -> integrity
 ```
 
-## Phase 1: Pre-flight Check
+## Phase 1: Pre-flight
 
-Before starting extraction:
+1. Read `AGENTS.md`
+2. Read `.claude/GLOSSARY.md`
+3. Resolve:
+   - `--output-root`
+   - `--book-md-path`
+   - SQLite path
+   - optional lesson scope
+4. Ensure `data/outlines/{book-id}.outline.json` exists
+5. If outline is missing, spawn `@outline-reader` and wait
+6. Load lesson anchors from the outline
 
-1. **Read configuration**
-   - Read `AGENTS.md` for project principles
-   - Read `GLOSSARY.md` for terminology
+## Phase 2: Spawn Lesson Staging Tasks
 
-2. **Resolve paths**
-   - User-specified `--output-root` or existing manifest
-   - Book markdown path `--book-md-path`
-   - SQLite database path (default: `storage/knowledge.sqlite`)
+**Critical rules**
+- One Task per lesson
+- Fresh context per lesson
+- Lesson Tasks may run concurrently
+- Lesson Tasks must NOT write canonical graph tables directly
+- Lesson Tasks must return `lesson_run_id`
 
-3. **Ensure outline exists**
-   ```
-   If outline missing:
-     Spawn Task → @outline-reader
-     Wait for completion
-   ```
+Example orchestration pattern:
 
-4. **Load lesson list**
-   ```bash
-   # Read outline to get lesson anchors
-   python -c "
-   import json
-   outline = json.load(open('data/outlines/{book-id}.outline.json'))
-   lessons = [item for item in outline['items'] if item['type'] == 'lesson']
-   print('\\n'.join([l['anchor'] for l in lessons]))
-   "
-   ```
-
-## Phase 2: Spawn Lesson Processors (Sequential)
-
-**⚠️ CRITICAL: One Task per lesson, wait for completion before next.**
-
-```
-lessons = load_lessons_from_outline()
-
-for i, lesson in enumerate(lessons):
-    lesson_anchor = lesson['anchor']
-    lesson_title = lesson['title']
-    
-    log(f"Processing lesson {i+1}/{len(lessons)}: {lesson_title}")
-    
-    # Spawn isolated Task
-    result = Agent(
-        description=f"process-lesson-{lesson_anchor}",
-        prompt=f"""
-        Process this lesson: {lesson_title}
-        Anchor: {lesson_anchor}
+```python
+for lesson in selected_lessons:
+    Agent(
+        description=f"stage-{lesson['id']}",
+        prompt=f'''
+        Process exactly one lesson.
+        Lesson anchor: {lesson["id"]}
+        Lesson title: {lesson["title"]}
         Output root: {output_root}
-        Book path: {book_md_path}
-        
-        Complete the full workflow for THIS lesson only.
-        Return status and counts.
-        
+        Book markdown path: {book_md_path}
+
+        Extract lesson-local artifacts only.
+        Persist them with scripts/store_lesson_staging.py.
+        Return status, lesson_run_id, counts, and issues.
         STOP after this lesson.
-        """,
+        ''',
         subagent_type="lesson-processor"
     )
-    
-    # Monitor result
-    if result['status'] == 'success':
-        log(f"✓ Lesson {i+1} complete: {result['counts']['nodes']} nodes")
-        update_manifest(lesson_anchor, result)
-        continue_next_lesson()
-    
-    elif result['status'] == 'failed':
-        log(f"✗ Lesson {i+1} failed: {result['issues']}")
-        halt_pipeline()
-        report_to_user(result['issues'])
-        break
-    
-    elif result['status'] == 'blocked':
-        log(f"⚠ Lesson {i+1} blocked: {result['issues']}")
-        halt_pipeline()
-        await_user_decision()
-        break
 ```
 
-## Phase 3: Final Verification
+Continue only when every selected lesson returns `status=success`.
 
-After all lessons complete:
+## Phase 3: Run Canonical Reducer
 
-1. **Verify manifest completeness**
-   ```bash
-   python scripts/pipeline_manifest.py check \
-     --manifest runs/{book-id}.pipeline.json \
-     --verify-sqlite \
-     --fail-on-incomplete
-   ```
-   - All lessons have `status: complete`
-   - All stages marked: `outline` → `backbone` → `normalize` → `qa`
-   - **SQLite verification**: All manifest lessons have nodes/evidence in database
+After all selected lessons are staged successfully, spawn `@kg-reducer`.
 
-2. **Optional: Final QA review**
-   ```
-   If user requested full review:
-     Spawn Task → @qa-reviewer
-     Scope: entire book
-   ```
+Pass:
+- `--output-root`
+- `--book-id`
+- staged `lesson_run_id` values
 
-3. **Report summary**
-   ```
-   Total lessons: 30
-   Total nodes: 145
-   Total node cards: 145
-   Total edges: 78
-   Total evidence: 520
-   
-   Status: COMPLETE
-   ```
+The reducer owns:
+- semantic alignment
+- raw→canonical mapping
+- canonical commit
+- normalize
+- strict QA
+- graph integrity checks
 
-## Completeness Check
+## Phase 4: Final Verification
 
-The extraction completeness check verifies:
+After reducer success:
 
-**Manifest vs SQLite comparison:**
-- Every lesson in manifest has corresponding data in SQLite
-- Each lesson has minimum: 1 node, 1 profile, 1 evidence record
-- Detects missing lessons (manifest has, SQLite doesn't)
-- Detects extra lessons (SQLite has, manifest doesn't)
+1. Confirm staged lesson runs exist in SQLite
+2. Optionally spawn `@qa-reviewer`
+3. Report summary counts and any warnings
 
-**Implementation:**
-- Script: `scripts/check_extraction_completeness.py`
-- Integrated in: `pipeline_manifest.py check --verify-sqlite`
+## Halt Conditions
 
-**Failure modes:**
-- Missing lessons: extraction didn't run or failed silently
-- Partial lessons: extraction incomplete (missing nodes/evidence)
-- Book ID mismatch: manifest and SQLite use different book IDs
+Halt immediately when:
+- any lesson Task returns `failed`
+- any lesson Task returns `blocked`
+- reducer returns `failed`
+- reducer returns `blocked`
+- SQLite is inaccessible
 
-## Monitoring State
+## Recovery
 
-Track progress in manifest file:
-
-```json
-{
-  "book_id": "chem-grade8",
-  "output_root": "data/main/",
-  "started_at": "2026-04-02T10:00:00Z",
-  "status": "in_progress",
-  "lessons": [
-    {
-      "anchor": "struct:chem:lesson:1-1-1",
-      "status": "complete",
-      "nodes": 5,
-      "completed_at": "2026-04-02T10:05:00Z"
-    },
-    {
-      "anchor": "struct:chem:lesson:1-1-2",
-      "status": "in_progress",
-      "started_at": "2026-04-02T10:05:00Z"
-    }
-  ],
-  "current_lesson": 2,
-  "total_lessons": 30
-}
-```
-
-## Decision Rules
-
-### Continue Conditions
-- Lesson Task returns `status: success`
-- No blockers reported
-- Manifest updated successfully
-
-### Halt Conditions
-- Lesson Task returns `status: failed`
-- Lesson Task returns `status: blocked`
-- SQLite inaccessible
-- User interrupts
-
-### Recovery Actions
-- **Failed lesson**: Report to user, await instruction
-- **Blocked lesson**: Report issue details, await user decision
-- **Interrupted**: Save state to manifest, can resume from last completed lesson
-
-## Input Parameters (from User)
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `--book-md-path` | Path | Yes | OCR-completed markdown source |
-| `--output-root` | Path | No | Versioned output directory (default: infer) |
-| `--scope` | String | No | Limit to specific lessons (e.g., `1-1-1` or `1-1-1,1-1-2`) |
-| `--resume` | Flag | No | Resume from last completed lesson in manifest |
+- Failed lesson: rerun that lesson only
+- Blocked lesson: report issues and stop
+- Reducer failure: keep staged rows for replay; do not discard them
 
 ## Output
 
-- **Manifest file**: `{output-root}/runs/{book-id}.pipeline.json`
-- **SQLite database**: `storage/knowledge.sqlite` (populated by subagents)
-- **Log messages**: Progress updates to user
-
-## Code Management
-
-When generating or executing code:
-
-1. **Temporary Code**: Do NOT save
-   - One-off scripts for debugging
-   - Quick prototypes
-   - Throwaway verification scripts
-
-2. **Reusable Code**: Save to project
-   - Utility scripts that solve common problems
-   - Reusable functions/modules
-   - Scripts in `scripts/` directory
-
-3. **Specified Code Errors**: Fix as needed
-   - If documented commands/scripts have errors, fix them based on actual context
-   - Update documentation if the fix is permanent
-   - Report significant discrepancies to user
+- `lesson_runs` + `staging_*` rows from lesson workers
+- canonical SQLite graph from reducer
+- optional review report
 
 ## Key Principles
 
-1. **No Business Logic**: Only spawn, monitor, decide
-2. **Sequential Lessons**: Never parallel lesson processing
-3. **Wait for Completion**: Each Task must return before next spawn
-4. **State in Manifest**: All progress tracked in JSON file
-5. **Fail Fast**: Halt on first failure/blocker
-
-## Constraints
-
-- **DO NOT implement extraction logic** (use @lesson-processor)
-- **DO NOT process multiple lessons in parallel**
-- **DO NOT skip lessons** (process in outline order)
-- **DO NOT modify SQLite directly** (subagents handle that)
-- **DO NOT accumulate context** (spawn fresh Tasks each time)
-
-## Error Handling
-
-| Error Type | Action |
-|------------|--------|
-| Outline missing | Spawn @outline-reader, wait |
-| SQLite inaccessible | Halt, report blocker |
-| Lesson Task fails | Halt, report to user |
-| Manifest write fails | Log warning, continue |
-
-## Handoff Protocol
-
-**Entry point**: User calls @kg-pipeline with book path
-
-**Spawns**:
-- @outline-reader (once, if needed)
-- @lesson-processor (once per lesson)
-
-**Returns to user**:
-- Progress updates during execution
-- Final summary on completion
-- Error report on failure
-
-## References
-
-- `AGENTS.md` - Project architecture
-- `GLOSSARY.md` - Terminology
-- `.claude/agents/lesson-processor.md` - Business logic for single lesson
-- `.claude/agents/outline-reader.md` - Outline creation
-- `.claude/agents/qa-reviewer.md` - QA validation
-- `scripts/check_extraction_completeness.py` - Extraction completeness verification
-- `scripts/pipeline_manifest.py` - Manifest management and validation
+1. No business logic in the orchestrator
+2. Parallelism is allowed only at lesson staging
+3. Canonical truth is decided by the reducer
+4. Preserve staged artifacts for replay and debugging

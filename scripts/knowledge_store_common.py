@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 import sqlite3
 from dataclasses import dataclass
@@ -79,6 +80,15 @@ def utc_now() -> str:
 
 def normalize_term(value: str) -> str:
     return re.sub(r"\s+", " ", value.strip().lower())
+
+
+def load_json_text(value: str | None, default: Any) -> Any:
+    if value is None or value == "":
+        return default
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        return default
 
 
 def infer_learning_modes(
@@ -159,6 +169,49 @@ def make_edge_id(from_node_id: str, edge_type: str, to_node_id: str) -> str:
     return f"edge:auto-{suffix}"
 
 
+def make_lesson_run_id(book_id: str, batch_anchor: str) -> str:
+    suffix = make_stable_suffix(book_id, batch_anchor, length=12)
+    return f"lesson-run:{suffix}"
+
+
+def make_merge_run_id(dataset_id: str, lesson_run_ids: Iterable[str]) -> str:
+    suffix = make_stable_suffix(dataset_id, *sorted(lesson_run_ids), length=12)
+    return f"merge:{suffix}"
+
+
+def make_canonical_node_id(
+    node_kind: str, canonical_name: str, node_subkind: str | None = None
+) -> str:
+    prefix = node_kind
+    if node_subkind:
+        prefix = f"{prefix}/{node_subkind}"
+    suffix = make_stable_suffix(prefix, normalize_term(canonical_name), length=12)
+    return f"{prefix}:auto-{suffix}"
+
+
+def make_profile_id(node_id: str, context_key: str) -> str:
+    suffix = make_stable_suffix(node_id, context_key, length=12)
+    return f"profile:auto-{suffix}"
+
+
+def make_evidence_id(
+    lesson_run_id: str, raw_evidence_id: str, anchor_ref: str, excerpt: str
+) -> str:
+    suffix = make_stable_suffix(
+        lesson_run_id, raw_evidence_id, anchor_ref, excerpt, length=12
+    )
+    return f"evidence:auto-{suffix}"
+
+
+def make_mention_id(
+    lesson_run_id: str, raw_mention_id: str, target_type: str, target_id: str
+) -> str:
+    suffix = make_stable_suffix(
+        lesson_run_id, raw_mention_id, target_type, target_id, length=12
+    )
+    return f"mention:auto-{suffix}"
+
+
 def safe_path_token(value: str) -> str:
     token = re.sub(r"[^a-zA-Z0-9._-]+", "__", value.strip())
     token = token.strip("._")
@@ -174,6 +227,103 @@ def unique_stable(values: Iterable[str]) -> list[str]:
         seen.add(value)
         result.append(value)
     return result
+
+
+def merge_unique_strings(*groups: Iterable[str] | None) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for group in groups:
+        for value in group or []:
+            if not isinstance(value, str):
+                continue
+            token = value.strip()
+            if not token or token in seen:
+                continue
+            seen.add(token)
+            result.append(token)
+    return result
+
+
+def merge_text_blocks(*values: str | None) -> str:
+    parts = merge_unique_strings(
+        [value.strip() for value in values if isinstance(value, str) and value.strip()]
+    )
+    if not parts:
+        return ""
+    return "\n\n".join(parts)
+
+
+def merge_json_objects(base: dict[str, Any], update: dict[str, Any]) -> dict[str, Any]:
+    merged = dict(base)
+    for key, value in update.items():
+        if key not in merged or merged[key] in (None, "", [], {}):
+            merged[key] = value
+            continue
+        current = merged[key]
+        if current == value:
+            continue
+        if isinstance(current, dict) and isinstance(value, dict):
+            merged[key] = merge_json_objects(current, value)
+            continue
+        if isinstance(current, list) and isinstance(value, list):
+            merged[key] = merge_unique_strings(current, value)
+            continue
+        if isinstance(current, str) and isinstance(value, str):
+            merged[key] = merge_text_blocks(current, value)
+            continue
+        merged[key] = current
+    return merged
+
+
+def cosine_similarity(left: Iterable[float], right: Iterable[float]) -> float:
+    left_values = [float(value) for value in left]
+    right_values = [float(value) for value in right]
+    if not left_values or len(left_values) != len(right_values):
+        return 0.0
+    numerator = sum(a * b for a, b in zip(left_values, right_values))
+    left_norm = math.sqrt(sum(a * a for a in left_values))
+    right_norm = math.sqrt(sum(b * b for b in right_values))
+    if left_norm == 0 or right_norm == 0:
+        return 0.0
+    return numerator / (left_norm * right_norm)
+
+
+def rebuild_node_terms(connection: sqlite3.Connection, dataset_id: str) -> int:
+    connection.execute("DELETE FROM node_terms WHERE dataset_id = ?", (dataset_id,))
+    rows = connection.execute(
+        """
+        SELECT id, canonical_name, aliases_json
+        FROM nodes
+        WHERE dataset_id = ? AND status != 'deprecated'
+        """,
+        (dataset_id,),
+    ).fetchall()
+    inserts: list[tuple[str, str, str, str, str]] = []
+    for row in rows:
+        node_id = row["id"]
+        canonical_name = row["canonical_name"] or ""
+        aliases = load_json_text(row["aliases_json"], [])
+        for term, term_type in [(canonical_name, "canonical"), *[(alias, "alias") for alias in aliases]]:
+            if not isinstance(term, str):
+                continue
+            normalized = normalize_term(term)
+            if not normalized:
+                continue
+            inserts.append((dataset_id, node_id, term, normalized, term_type))
+    if inserts:
+        connection.executemany(
+            """
+            INSERT OR REPLACE INTO node_terms (
+              dataset_id,
+              node_id,
+              term,
+              term_norm,
+              term_type
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            inserts,
+        )
+    return len(inserts)
 
 
 def outline_path_for_book(book_id: str) -> Path:

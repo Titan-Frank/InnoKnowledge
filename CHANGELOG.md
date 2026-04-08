@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - 2026-04-08
+
+#### Parallel Staging Pipeline
+- **`scripts/store_lesson_staging.py`** - Writes lesson-local extraction artifacts into explicit `staging_*` tables
+- **`scripts/merge_staged_lessons.py`** - Aligns staged lesson nodes into canonical nodes and remaps edges, mentions, evidence, profiles, and node cards
+- **`scripts/run_parallel_lesson_pipeline.py`** - Runs merge → normalize → QA for staged lesson batches
+- **`scripts/parallel_batch_runner.py`** - Generates parallel lesson extraction plans from textbook outlines
+
+#### SQLite Schema
+- Added `lesson_runs`, `staging_nodes`, `staging_edges`, `staging_profiles`, `staging_mentions`, `staging_evidence`, `staging_node_cards`
+- Added `merge_runs` and `canonical_node_map` for reducer bookkeeping and raw→canonical traceability
+
+### Changed - 2026-04-08
+
+#### Workflow Rewrite
+- Replaced direct lesson-to-canonical commit as the primary workflow with `parallel lesson staging -> global canonical merge -> normalize -> QA`
+- Updated `normalize_sqlite.py` to rebuild `node_terms` and populate alias text into `node_search`
+- Updated top-level docs to describe the new reducer-based architecture
+
 ### Added - 2026-04-02
 
 #### New Documentation

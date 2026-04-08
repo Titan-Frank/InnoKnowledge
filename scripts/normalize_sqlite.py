@@ -20,6 +20,7 @@ from knowledge_store_common import (
     connect_db,
     ensure_sqlite_schema,
     HIERARCHICAL_EDGE_TYPES,
+    rebuild_node_terms,
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -629,22 +630,24 @@ class GraphNormalizer:
             "DELETE FROM node_search WHERE dataset_id = ?", (self.dataset_id,)
         )
         for row in self.connection.execute(
-            "SELECT id, canonical_name, definition FROM nodes WHERE dataset_id = ? AND status != 'deprecated'",
+            "SELECT id, canonical_name, definition, aliases_json FROM nodes WHERE dataset_id = ? AND status != 'deprecated'",
             (self.dataset_id,),
         ).fetchall():
+            aliases = json.loads(row["aliases_json"] or "[]")
             self.connection.execute(
                 "INSERT INTO node_search (dataset_id, node_id, canonical_name, aliases, definition) VALUES (?, ?, ?, ?, ?)",
                 (
                     self.dataset_id,
                     row["id"],
                     row["canonical_name"],
-                    "",  # aliases - empty for now
+                    " ".join(alias for alias in aliases if isinstance(alias, str)),
                     row["definition"] or "",
                 ),
             )
         counts["nodes"] = self.connection.execute(
             "SELECT COUNT(*) FROM node_search WHERE dataset_id = ?", (self.dataset_id,)
         ).fetchone()[0]
+        counts["node_terms"] = rebuild_node_terms(self.connection, self.dataset_id)
 
         # Card search
         self.connection.execute(

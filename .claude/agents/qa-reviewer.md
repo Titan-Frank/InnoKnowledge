@@ -49,24 +49,18 @@ Pipeline use:
 
 **When to call this Checklist:**
 
-1. **After every lesson** (`@lesson-processor` Step 5)
-   - Before marking lesson complete
-   - Must pass all completeness checks
-   - BLOCKER if any category missing
-
-2. **After `@kg-pipeline` batch** (Phase 3/4)
-   - Read-only review after scripted QA
-   - Use as second opinion on data quality
+1. **After reducer closeout**
+   - Read-only review after scripted `merge -> normalize -> QA`
+   - Use as second opinion on canonical data quality
    - Reference specific checklist items in reports
 
-3. **Before finalizing dataset** (Phase 5)
+2. **Before finalizing dataset**
    - Full-book completeness verification
    - Cross-batch consistency check
    - Final sign-off
 
 **Who calls:**
-- `@lesson-processor` delegates to `@qa-reviewer` after closeout
-- `@kg-pipeline` can delegate for batch-level review
+- `@kg-reducer` or `@kg-pipeline` after reducer success
 - Manual review before major releases
 
 **Blocking rule:**

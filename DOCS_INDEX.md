@@ -21,6 +21,7 @@
 |-------|------|------|
 | @kg-pipeline | Manager - 调度和监控 | [.claude/agents/kg-pipeline.md](.claude/agents/kg-pipeline.md) |
 | @lesson-processor | Worker - 单课时处理 | [.claude/agents/lesson-processor.md](.claude/agents/lesson-processor.md) |
+| @kg-reducer | Reducer - staged lessons 合并与 QA | [.claude/agents/kg-reducer.md](.claude/agents/kg-reducer.md) |
 | @outline-reader | 教材目录生成 | [.claude/agents/outline-reader.md](.claude/agents/outline-reader.md) |
 | @node-expander | 节点卡片生成 | [.claude/agents/node-expander.md](.claude/agents/node-expander.md) |
 | @qa-reviewer | 质量检查 | [.claude/agents/qa-reviewer.md](.claude/agents/qa-reviewer.md) |
@@ -72,7 +73,8 @@
 
 1. [QUICKSTART.md](QUICKSTART.md) - 基本操作
 2. [.claude/agents/kg-pipeline.md](.claude/agents/kg-pipeline.md) - Manager 行为
-3. [.claude/agents/lesson-processor.md](.claude/agents/lesson-processor.md) - Worker 行为
+3. [.claude/agents/lesson-processor.md](.claude/agents/lesson-processor.md) - Lesson staging 行为
+4. [.claude/agents/kg-reducer.md](.claude/agents/kg-reducer.md) - Canonical reducer 行为
 
 ### 我想查看数据结构
 

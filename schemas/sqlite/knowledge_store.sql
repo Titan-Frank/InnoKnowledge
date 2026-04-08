@@ -322,6 +322,217 @@ CREATE TABLE IF NOT EXISTS batch_runtime_records (
 CREATE INDEX IF NOT EXISTS idx_batch_runtime_lookup
 ON batch_runtime_records(dataset_id, book_id, batch_anchor, record_type);
 
+CREATE TABLE IF NOT EXISTS lesson_runs (
+  dataset_id TEXT NOT NULL,
+  lesson_run_id TEXT NOT NULL,
+  book_id TEXT NOT NULL,
+  batch_anchor TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('staged', 'merging', 'merged', 'qa_passed', 'blocked')),
+  counts_json TEXT NOT NULL DEFAULT '{}',
+  properties_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, lesson_run_id),
+  FOREIGN KEY (dataset_id) REFERENCES datasets(dataset_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_lesson_runs_status
+ON lesson_runs(dataset_id, status, book_id);
+
+CREATE INDEX IF NOT EXISTS idx_lesson_runs_anchor
+ON lesson_runs(dataset_id, book_id, batch_anchor);
+
+CREATE TABLE IF NOT EXISTS staging_nodes (
+  dataset_id TEXT NOT NULL,
+  lesson_run_id TEXT NOT NULL,
+  raw_node_id TEXT NOT NULL,
+  book_id TEXT NOT NULL,
+  batch_anchor TEXT NOT NULL,
+  canonical_name TEXT NOT NULL,
+  node_kind TEXT NOT NULL,
+  node_layer TEXT NOT NULL,
+  node_subkind TEXT,
+  definition TEXT NOT NULL,
+  aliases_json TEXT NOT NULL DEFAULT '[]',
+  learning_modes_json TEXT NOT NULL DEFAULT '[]',
+  bridge_tags_json TEXT NOT NULL DEFAULT '[]',
+  framework_refs_json TEXT NOT NULL DEFAULT '[]',
+  profile_refs_json TEXT NOT NULL DEFAULT '[]',
+  same_as_refs_json TEXT NOT NULL DEFAULT '[]',
+  properties_json TEXT NOT NULL DEFAULT '{}',
+  semantic_key TEXT,
+  embedding_json TEXT NOT NULL DEFAULT '[]',
+  source_refs_json TEXT NOT NULL DEFAULT '[]',
+  status TEXT NOT NULL DEFAULT 'candidate',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  notes TEXT,
+  PRIMARY KEY (dataset_id, lesson_run_id, raw_node_id),
+  FOREIGN KEY (dataset_id, lesson_run_id) REFERENCES lesson_runs(dataset_id, lesson_run_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_staging_nodes_anchor
+ON staging_nodes(dataset_id, book_id, batch_anchor);
+
+CREATE INDEX IF NOT EXISTS idx_staging_nodes_semantic
+ON staging_nodes(dataset_id, node_kind, semantic_key);
+
+CREATE TABLE IF NOT EXISTS staging_edges (
+  dataset_id TEXT NOT NULL,
+  lesson_run_id TEXT NOT NULL,
+  raw_edge_id TEXT NOT NULL,
+  book_id TEXT NOT NULL,
+  batch_anchor TEXT NOT NULL,
+  edge_type TEXT NOT NULL,
+  edge_layer TEXT NOT NULL,
+  backbone_expand INTEGER NOT NULL DEFAULT 0 CHECK (backbone_expand IN (0, 1)),
+  from_raw_node_id TEXT NOT NULL,
+  to_raw_node_id TEXT NOT NULL,
+  directionality TEXT NOT NULL,
+  confidence REAL NOT NULL,
+  framework_refs_json TEXT NOT NULL DEFAULT '[]',
+  profile_refs_json TEXT NOT NULL DEFAULT '[]',
+  source_refs_json TEXT NOT NULL DEFAULT '[]',
+  properties_json TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'candidate',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, lesson_run_id, raw_edge_id),
+  FOREIGN KEY (dataset_id, lesson_run_id) REFERENCES lesson_runs(dataset_id, lesson_run_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_staging_edges_anchor
+ON staging_edges(dataset_id, book_id, batch_anchor, edge_type);
+
+CREATE TABLE IF NOT EXISTS staging_profiles (
+  dataset_id TEXT NOT NULL,
+  lesson_run_id TEXT NOT NULL,
+  raw_profile_id TEXT NOT NULL,
+  raw_node_id TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  school_stage TEXT NOT NULL,
+  grade_band TEXT NOT NULL,
+  context_key TEXT NOT NULL,
+  curriculum_role TEXT NOT NULL,
+  mastery_level TEXT NOT NULL,
+  framework_refs_json TEXT NOT NULL DEFAULT '[]',
+  textbook_refs_json TEXT NOT NULL DEFAULT '[]',
+  textbook_ids_json TEXT NOT NULL DEFAULT '[]',
+  learning_objectives_json TEXT NOT NULL DEFAULT '[]',
+  assessment_signals_json TEXT NOT NULL DEFAULT '[]',
+  source_refs_json TEXT NOT NULL DEFAULT '[]',
+  properties_json TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'candidate',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, lesson_run_id, raw_profile_id),
+  FOREIGN KEY (dataset_id, lesson_run_id) REFERENCES lesson_runs(dataset_id, lesson_run_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_staging_profiles_node
+ON staging_profiles(dataset_id, lesson_run_id, raw_node_id);
+
+CREATE TABLE IF NOT EXISTS staging_mentions (
+  dataset_id TEXT NOT NULL,
+  lesson_run_id TEXT NOT NULL,
+  raw_mention_id TEXT NOT NULL,
+  source_type TEXT NOT NULL,
+  source_id TEXT NOT NULL,
+  anchor_ref TEXT NOT NULL,
+  target_type TEXT NOT NULL,
+  target_raw_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  source_refs_json TEXT NOT NULL DEFAULT '[]',
+  confidence REAL NOT NULL,
+  properties_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, lesson_run_id, raw_mention_id),
+  FOREIGN KEY (dataset_id, lesson_run_id) REFERENCES lesson_runs(dataset_id, lesson_run_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_staging_mentions_anchor
+ON staging_mentions(dataset_id, source_id, anchor_ref);
+
+CREATE TABLE IF NOT EXISTS staging_evidence (
+  dataset_id TEXT NOT NULL,
+  lesson_run_id TEXT NOT NULL,
+  raw_evidence_id TEXT NOT NULL,
+  source_type TEXT NOT NULL,
+  source_id TEXT NOT NULL,
+  anchor_ref TEXT NOT NULL,
+  source_path TEXT,
+  page_start INTEGER,
+  page_end INTEGER,
+  excerpt TEXT NOT NULL,
+  locator TEXT NOT NULL,
+  modality TEXT,
+  extraction_method TEXT NOT NULL,
+  normalized_claims_json TEXT NOT NULL DEFAULT '[]',
+  properties_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, lesson_run_id, raw_evidence_id),
+  FOREIGN KEY (dataset_id, lesson_run_id) REFERENCES lesson_runs(dataset_id, lesson_run_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_staging_evidence_anchor
+ON staging_evidence(dataset_id, source_id, anchor_ref);
+
+CREATE TABLE IF NOT EXISTS staging_node_cards (
+  dataset_id TEXT NOT NULL,
+  lesson_run_id TEXT NOT NULL,
+  raw_card_id TEXT NOT NULL,
+  raw_node_id TEXT NOT NULL,
+  card_layer TEXT NOT NULL,
+  title TEXT NOT NULL,
+  summary TEXT NOT NULL,
+  pattern_refs_json TEXT NOT NULL DEFAULT '[]',
+  framework_refs_json TEXT NOT NULL DEFAULT '[]',
+  profile_refs_json TEXT NOT NULL DEFAULT '[]',
+  mention_refs_json TEXT NOT NULL DEFAULT '[]',
+  source_refs_json TEXT NOT NULL DEFAULT '[]',
+  sections_json TEXT NOT NULL,
+  properties_json TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'candidate',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, lesson_run_id, raw_card_id),
+  FOREIGN KEY (dataset_id, lesson_run_id) REFERENCES lesson_runs(dataset_id, lesson_run_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_staging_node_cards_node
+ON staging_node_cards(dataset_id, lesson_run_id, raw_node_id);
+
+CREATE TABLE IF NOT EXISTS merge_runs (
+  dataset_id TEXT NOT NULL,
+  merge_run_id TEXT NOT NULL,
+  selection_json TEXT NOT NULL DEFAULT '[]',
+  stats_json TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL CHECK (status IN ('in_progress', 'completed', 'blocked')),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, merge_run_id),
+  FOREIGN KEY (dataset_id) REFERENCES datasets(dataset_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS canonical_node_map (
+  dataset_id TEXT NOT NULL,
+  merge_run_id TEXT NOT NULL,
+  lesson_run_id TEXT NOT NULL,
+  raw_node_id TEXT NOT NULL,
+  canonical_node_id TEXT NOT NULL,
+  resolution TEXT NOT NULL CHECK (resolution IN ('matched', 'created', 'review')),
+  similarity REAL NOT NULL,
+  rationale_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, merge_run_id, lesson_run_id, raw_node_id),
+  FOREIGN KEY (dataset_id, merge_run_id) REFERENCES merge_runs(dataset_id, merge_run_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_canonical_node_map_lookup
+ON canonical_node_map(dataset_id, lesson_run_id, raw_node_id);
+
 CREATE TABLE IF NOT EXISTS relation_proposals (
   dataset_id TEXT NOT NULL,
   proposal_id TEXT NOT NULL,

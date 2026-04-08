@@ -38,7 +38,27 @@ python --version  # 需要 Python 3.8+
 
 ## 开始使用
 
-### 方式 1: 交互式（推荐新手）
+### 方式 1: 并行课时计划 + reducer
+
+```bash
+# 为整本书生成并行课时计划
+python scripts/parallel_batch_runner.py \
+  --book-id your-book-id \
+  --output-root data/main \
+  --parallel 4 \
+  --batch-size 4 \
+  --generate-tasks
+
+# 每个 lesson worker 抽取后写入 staging
+python scripts/store_lesson_staging.py --help
+
+# 合并 staged lessons，生成 canonical graph
+python scripts/run_parallel_lesson_pipeline.py \
+  --root data/main \
+  --book-id your-book-id
+```
+
+### 方式 2: 交互式（保留）
 
 ```bash
 # 启动 opencode TUI
@@ -48,7 +68,7 @@ opencode
 @kg-pipeline 处理 your-book-id 全书
 ```
 
-### 方式 2: 命令行
+### 方式 3: 命令行
 
 ```bash
 # 处理整本书
@@ -87,13 +107,15 @@ sqlite3 storage/knowledge.sqlite "SELECT id, canonical_name FROM nodes ORDER BY 
                         ↓
                   @lesson-processor (Worker)
                         ↓
-                  [提取 → 扩展 → 归一化 → QA]
+                  [提取 → store_lesson_staging.py]
                         ↓
-                  写入 SQLite
+                  staging_*
                         ↓
-                  返回结果给 Manager
+                  @kg-reducer
                         ↓
-                  继续下一个课时
+                  [merge → normalize → QA]
+                        ↓
+                  canonical SQLite graph
 ```
 
 ## 常见问题
@@ -112,7 +134,7 @@ A: 查看 `runs/{book-id}.pipeline.json` 文件，里面有每个课时的状态
 
 ### Q: 可以并行处理多个课时吗？
 
-A: 不可以。课时必须顺序处理，以避免重复节点和不一致的关系。
+A: 可以，但仅限并行写入 `lesson_runs` + `staging_*`。`nodes`、`edges` 等 canonical 表仍由 reducer 串行提交。
 
 ### Q: 数据存在哪里？
 

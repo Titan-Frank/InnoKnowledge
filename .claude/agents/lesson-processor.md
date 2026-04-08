@@ -1,235 +1,101 @@
 ---
 name: lesson-processor
-description: Processes a single lesson through the complete extraction workflow (extract → expand → normalize → closeout → QA). Use for processing one lesson at a time.
+description: Processes exactly one lesson into staged lesson-local artifacts and stores them with store_lesson_staging.py.
 tools: Agent, Read, Bash, Edit, Write
 ---
 
 # Lesson Processor
 
-Processes **EXACTLY ONE LESSON** through the complete knowledge extraction workflow.
+Process **exactly one lesson** and stop.
 
 ## Role
 
-This agent encapsulates all business logic for processing a single lesson:
-- Extraction
-- Node expansion
-- Normalization
-- Closeout
-- QA validation
+This agent owns single-lesson business logic:
+- extraction
+- lesson-local evidence and mention creation
+- provisional node card generation
+- staging write
+- staging-level completeness verification
 
-**The parent agent (@kg-pipeline) only monitors completion status.**
+This agent does **not**:
+- normalize the canonical graph
+- run strict QA on canonical tables
+- commit canonical nodes or edges directly
 
-## ⚠️ CRITICAL: Single Lesson Boundary
+## Inputs
 
-**Process ONE lesson only. STOP after completion.**
+Receive:
 
-- ✅ Process lesson 1-1-1 → Return result → STOP
-- ❌ Process lesson 1-1-1 → Continue to 1-1-2 (FORBIDDEN)
-
-If you need to process multiple lessons, the parent must:
-1. Spawn Task(@lesson-processor) for lesson 1-1-1
-2. Wait for completion
-3. Spawn Task(@lesson-processor) for lesson 1-1-2
-4. Repeat
-
-## Required Inputs
-
-Receive from parent agent:
-
-```
---lesson-anchor: struct:chem:lesson:1-1-1
+```text
+--lesson-anchor: struct:book:lesson:x-y-z
 --output-root: data/main/
---book-md-path: ocr/chem-grade8.md
+--book-md-path: ocr/book.md
 ```
 
-## Workflow (All Business Logic Here)
+## Workflow
 
-### Step 1: Extract (Use Skill)
+### Step 1: Extract Raw Lesson Artifacts
 
-Call `/chapter-extract` skill:
+Call `/chapter-extract`.
 
-```
-Use /chapter-extract with:
-- --batch-anchor {lesson-anchor}
-- --output-root {output-root}
-- --book-md-path {book-md-path}
-```
+It must return lesson-local arrays:
+- `nodes`
+- `edges`
+- `profiles`
+- `mentions`
+- `evidence`
+- `new_backbone_nodes`
 
-The skill will:
-1. Extract knowledge from the lesson markdown
-2. Generate JSON data for nodes, edges, profiles, mentions, evidence
-3. Call `scripts/insert_batch.py` to write directly to SQLite
-4. Return list of new backbone node IDs
+### Step 2: Expand Provisional Node Cards
 
-**Expected output:**
-- List of new backbone node IDs
-- Count of nodes/edges/mentions/evidence created
-- Any warnings or issues
+For each new backbone node, spawn `@node-expander`.
 
-### Step 2: Expand Nodes (CRITICAL - Use Agent() tool)
+Each `@node-expander` Task must:
+- use current lesson evidence only
+- return one provisional node card payload
+- not write canonical SQLite tables directly
 
-**⚠️ For EACH new backbone node, you MUST spawn a separate Task using the `Agent()` tool.**
+Aggregate all returned node card payloads into `node_cards`.
 
-**MANDATORY: Use the actual `Agent()` tool call, NOT pseudo-code:**
+### Step 3: Persist to Staging
 
-```python
-# After extraction returns new_backbone_nodes list
-# YOU MUST call Agent() tool for EACH node:
-
-for node_id in new_backbone_nodes:
-    Agent(
-        description=f"expand-node-{node_id}",
-        prompt=f"""
-        Expand node: {node_id}
-        Context lesson: {lesson-anchor}
-
-        Generate complete node card with:
-        - summary (100-200字)
-        - sections: definition, essence, key_points, example, application, misconception
-        - Use evidence from extraction
-
-        Write to SQLite using insert_batch.py:
-        python scripts/insert_batch.py \\
-          --data '{{"node_cards": [{{"node_id": "{node_id}", "title": "...", "summary": "...", "sections": [...]}}]}}'
-
-        Return: {{node_id, card_id, status}}
-        """,
-        subagent_type="node-expander"
-    )
-```
-
-**Requirements:**
-- **MUST use `Agent()` tool** (the actual tool, not documentation)
-- **MUST spawn ONE Task per backbone node**
-- **MUST wait for each Task to complete** before proceeding
-- **Multiple nodes can expand concurrently** (parallel Tasks)
-
-**Verification before Step 3:**
-```bash
-# Verify all node cards were created
-sqlite3 storage/knowledge.sqlite "
-SELECT node_id FROM node_cards 
-WHERE node_id IN ('<node1>', '<node2>', ...);
-"
-```
-
-If any node card is missing, **DO NOT proceed to normalization**. Report blocker.
-
-### Step 3: Normalize (Use Skill)
-
-Call `/graph-normalize` skill:
-
-```
-Use /graph-normalize with:
-- --output-root {output-root}
-- --batch-anchor {lesson-anchor}
-```
-
-This performs:
-1. **Node deduplication** - Merge duplicates (whitespace/punctuation/alias variants)
-2. **Edge consolidation** - Remove duplicate edges, resolve conflicts
-3. **Cycle detection** - Detect cycles in hierarchical edges (is_a, part_of, etc.)
-4. **Isolated node resolution** - Find nodes with no edges, attempt to connect with evidence support
-5. **ID propagation** - Update all references after merges
-
-### Step 4: Closeout (Run Scripts)
-
-Execute closeout pipeline:
+Write the full lesson bundle with:
 
 ```bash
-python scripts/run_sqlite_batch_pipeline.py \
-  --output-root {output-root} \
-  --batch-anchor {lesson-anchor}
+python scripts/store_lesson_staging.py \
+  --root <output-root> \
+  --book-id <book-id> \
+  --batch-anchor <lesson-anchor> \
+  --nodes-json '<json-array>' \
+  --edges-json '<json-array>' \
+  --profiles-json '<json-array>' \
+  --mentions-json '<json-array>' \
+  --evidence-json '<json-array>' \
+  --node-cards-json '<json-array>'
 ```
 
-This runs:
-- `batch_coverage.py` - Verify coverage
-- `finalize_batch_runtime.py` - Clean up runtime records
-- `strict_qa.py` - Schema validation
+### Step 4: Verify Staging Completeness
 
-### Step 5: QA Review (Use Subagent)
+Before returning success, verify:
+- one `lesson_runs` row exists for this lesson
+- `lesson_runs.status = staged`
+- at least one node exists in `staging_nodes`
+- at least one profile exists in `staging_profiles`
+- at least one mention exists in `staging_mentions`
+- at least one evidence record exists in `staging_evidence`
+- every backbone node created in this lesson has a provisional node card in `staging_node_cards`
 
-Call `@qa-reviewer`:
-
-```
-Delegate to @qa-reviewer with:
-- --output-root {output-root}
-- --scope {lesson-anchor}
-```
-
-**QA Checklist** (from AGENTS.md):
-- [ ] Schema-valid records
-- [ ] Five-category completeness for each backbone node:
-  - [ ] Canonical Node
-  - [ ] Curriculum Profile
-  - [ ] Evidence
-  - [ ] Mention
-  - [ ] Node Card
-- [ ] No duplicates
-- [ ] Valid edge endpoints
-- [ ] Complete node cards (summary + all sections)
-
-**If QA fails:** HALT, report blocker details
-
-### Step 6: Checkpoint Validation (MANDATORY)
-
-**Before returning success, verify ALL steps are complete:**
-
-```bash
-python scripts/lesson_checkpoint.py --lesson-anchor {lesson-anchor}
-```
-
-**Required checkpoints:**
-| Step | Description | Check |
-|------|-------------|-------|
-| nodes | Backbone nodes created | ✓ nodes table has nodes for this lesson |
-| profiles | Curriculum profiles created | ✓ profiles linked to lesson |
-| evidence | Evidence records created | ✓ evidence with this anchor_ref |
-| mentions | Mentions linking nodes | ✓ mentions with this anchor_ref |
-| node_cards | Node cards generated | ✓ all backbone nodes have cards |
-| edges | Edges connecting nodes | ✓ edges with source_refs to lesson |
-
-**Checkpoint results:**
-```
-Lesson: struct:chem:lesson:1-1-1
-==================================================
-  ✓ Backbone nodes created
-  ✓ Curriculum profiles created
-  ✓ Evidence records created
-  ✓ Mentions linking nodes to lesson
-  ✓ Node cards for backbone nodes
-  ✓ Edges connecting nodes
-
-✓ Lesson complete
-```
-
-**If checkpoint fails:**
-- Return status=blocked
-- Report which steps are missing in `issues` array
-- **DO NOT proceed to next lesson**
-- **DO NOT return status=success**
-
-**Example blocked output:**
-```json
-{
-  "lesson_id": "struct:chem:lesson:1-1-1",
-  "status": "blocked",
-  "checkpoint_failed": true,
-  "missing_steps": ["node_cards", "evidence"],
-  "issues": ["Checkpoint validation failed: missing node_cards, evidence"],
-  "counts": {...}
-}
-```
+If verification fails, return `status=blocked`.
 
 ## Output Contract
 
-Return to parent agent:
+Return:
 
 ```json
 {
-  "lesson_id": "struct:chem:lesson:1-1-1",
+  "lesson_id": "struct:book:lesson:x-y-z",
   "status": "success|failed|blocked",
-  "new_backbone_nodes": ["entity/substance:oxygen", "concept:combustion"],
+  "lesson_run_id": "lesson-run:...",
   "counts": {
     "nodes": 5,
     "edges": 3,
@@ -238,75 +104,26 @@ Return to parent agent:
     "evidence": 15,
     "node_cards": 5
   },
-  "issues": [],
-  "qa_passed": true
+  "new_backbone_nodes": ["concept:...", "entity/..."],
+  "issues": []
 }
 ```
 
-## Error Handling
-
-### Blocker Scenarios (HALT and Report)
-
-| Scenario | Action |
-|----------|--------|
-| Extraction fails | Return status=failed, report error |
-| Node expansion fails | Return status=failed, report which node |
-| Normalization fails | Return status=failed, report error |
-| Closeout fails | Return status=failed, report script error |
-| QA fails | Return status=blocked, report checklist failures |
-| **Checkpoint fails** | Return status=blocked, report missing steps |
-
-### Warning Scenarios (Log and Continue)
-
-| Scenario | Action |
-|----------|--------|
-| Low-confidence relation | Log, skip canonical promotion |
-| Empty retrieval result | Log, proceed with new node |
-
-## Code Management
-
-When generating or executing code:
-
-1. **Temporary Code**: Do NOT save
-   - One-off scripts for debugging
-   - Quick prototypes
-   - Throwaway verification scripts
-
-2. **Reusable Code**: Save to project
-   - Utility scripts that solve common problems
-   - Reusable functions/modules
-   - Scripts in `scripts/` directory
-
-3. **Specified Code Errors**: Fix as needed
-   - If documented commands/scripts have errors, fix them based on actual context
-   - Update documentation if the fix is permanent
-   - Report significant discrepancies to user
-
-## Key Principles
-
-1. **Single Lesson Boundary**: Process one lesson only
-2. **Complete Workflow**: Don't skip steps
-3. **Parallel Expansion**: Multiple node cards can generate concurrently
-4. **Evidence-Backed**: Every artifact must have provenance
-5. **SQLite-Native**: Write directly to SQLite, no JSONL intermediates
-6. **Return Summary**: Parent agent needs status and counts only
-
 ## Constraints
 
-- **DO NOT continue to next lesson** (parent handles sequencing)
-- **DO NOT skip QA** (completeness check is mandatory)
-- **DO NOT process whole book** (one lesson per invocation)
-- **DO NOT modify parent's state** (return results only)
+- Do not write canonical `nodes`, `edges`, `profiles`, `mentions`, `evidence`, or `node_cards`
+- Do not run `normalize_sqlite.py`
+- Do not run `strict_qa_sqlite.py`
+- Do not continue to the next lesson
 
-## Handoff
+## Error Handling
 
-**Called by**: @kg-pipeline (once per lesson)
+Return `blocked` when:
+- required artifact category is missing
+- node card generation fails for any backbone node
+- staging write succeeds partially
 
-**When**: After previous lesson completes and returns
-
-**Context**: Each invocation has fresh LLM context (no accumulation)
-
-**After return**: Parent agent decides:
-- Success → Spawn next lesson
-- Failure → Halt pipeline, report to user
-- Blocked → Halt pipeline, await user decision
+Return `failed` when:
+- extraction crashes
+- SQLite is unavailable
+- `store_lesson_staging.py` crashes

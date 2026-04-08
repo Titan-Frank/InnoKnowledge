@@ -20,7 +20,7 @@ Turn textbook content into a stable, evidence-backed, cross-disciplinary knowled
 5. **SQLite-first** - SQLite is the primary write layer; JSON is derived export
 6. **Non-destructive** - Append rather than replace; explicit deletion requires user approval
 
-## Architecture (Manager-Worker Pattern)
+## Architecture (Parallel Staging + Canonical Commit)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -32,16 +32,14 @@ Turn textbook content into a stable, evidence-backed, cross-disciplinary knowled
 │  Layer 2: Workflow Agents (Complete Business Logic)          │
 │  ─────────────────────────────────                         │
 │  @outline-reader    - Extract structure (standalone)       │
-│  @lesson-processor  - Complete lesson workflow:            │
+│  @lesson-processor  - Parallel lesson extractor:           │
 │                       ├─ /chapter-extract (skill)          │
-│                       ├─ @node-expander (parallel Tasks)   │
-│                       ├─ /graph-normalize (skill)          │
-│                       │   ├─ Node deduplication            │
-│                       │   ├─ Edge consolidation            │
-│                       │   ├─ Cycle detection               │
-│                       │   └─ Isolated node resolution      │
-│                       ├─ run_sqlite_batch_pipeline.py      │
-│                       └─ @qa-reviewer                      │
+│                       ├─ raw nodes / edges / evidence      │
+│                       └─ store_lesson_staging.py           │
+│  @kg-reducer        - Canonical merge worker:              │
+│                       ├─ merge_staged_lessons.py           │
+│                       ├─ normalize_sqlite.py               │
+│                       └─ strict_qa_sqlite.py               │
 │  @qa-reviewer       - Quality validation (read-only)       │
 ├─────────────────────────────────────────────────────────────┤
 │  Layer 3: Skills (Implementation Logic)                      │
@@ -55,8 +53,9 @@ Turn textbook content into a stable, evidence-backed, cross-disciplinary knowled
 
 **Key Design**:
 - **Manager (@kg-pipeline)**: Only spawns Tasks and monitors results. No extraction logic.
-- **Workflow Agent (@lesson-processor)**: Encapsulates complete lesson processing. All business logic lives here.
-- **Clear Separation**: Manager decides "what", Workflow Agent knows "how".
+- **Lesson worker (@lesson-processor)**: Extracts one lesson in isolated context and writes only to staging tables.
+- **Reducer (@kg-reducer)**: Owns canonical alignment, deduplication, graph commit, normalize, and QA.
+- **Clear Separation**: Parallel workers produce candidates; the reducer decides canonical truth.
 
 ## Default Entry
 
@@ -67,39 +66,39 @@ Use `@kg-pipeline` for:
 
 Use specialized Agents/Skills directly only when explicitly requested or resuming a specific stage.
 
-## Workflow Overview (Serial Lesson-by-Lesson with Immediate Expansion)
+## Workflow Overview (Parallel Lesson Staging with Serial Canonical Commit)
 
 ```
-outline ──→ [extract + expand] ──→ normalize ──→ qa
+outline ──→ parallel lesson extract ──→ staging_* ──→ global align/merge ──→ normalize ──→ qa
 ```
 
-**⚠️ Serial Execution Required**: Lessons must be processed sequentially to avoid duplicate nodes and inconsistent relations across shared concepts.
+**⚠️ Parallel lesson extraction is allowed** only if workers write to `lesson_runs` + `staging_*` tables and never mutate canonical tables directly.
 
-**⚠️ Task-Per-Lesson (CRITICAL)**: Each lesson MUST be processed in a separate, isolated Task:
-  - Manager (@kg-pipeline) spawns ONE Task per lesson using `task()` tool
-  - Each Task has fresh LLM context (no accumulation)
-  - Task completes and returns → Manager spawns next Task
-  - **NEVER** process multiple lessons in one continuous context
-  - **NEVER** let a subagent continue to next lesson autonomously
+**⚠️ Task-Per-Lesson remains critical**:
+  - Manager spawns independent lesson Tasks with fresh LLM context.
+  - Each Task extracts exactly one lesson and calls `store_lesson_staging.py`.
+  - Multiple lesson Tasks may run concurrently.
+  - No lesson worker may write `nodes`, `edges`, `profiles`, `mentions`, `evidence`, or `node_cards` directly.
 
-**Why isolated Tasks matter**:
-  - Prevents context explosion (LLM context stays manageable)
-  - Ensures each lesson sees latest SQLite state
-  - Enables correct retrieval-based deduplication
-  - Isolates failures to single lesson
+**Why this split matters**:
+  - Keeps LLM contexts isolated and parallelizable.
+  - Defers duplicate resolution to one canonical reducer pass.
+  - Preserves append-first SQLite semantics.
+  - Allows global semantic alignment across many lessons before commit.
 
 1. **Outline** (`@outline-reader` + `/textbook-outline`): Create `data/outlines/{book-id}.outline.json`
-2. **Lesson Processing** (`@lesson-processor`):
-   - **Extract** (`extract_lesson_sqlite.py`):
-     - Process **one lesson at a time** in outline order
-     - **Direct INSERT** into SQLite tables (nodes, edges, profiles, mentions, evidence)
-     - No JSONL intermediate files
-   - **Expand** (`expand_node_sqlite.py`):
-     - For **each new backbone node**: spawn **independent Task** → direct INSERT into `node_cards`
-     - Each expansion runs in **fresh isolated context** (max stability)
-     - Multiple nodes can expand **concurrently** within the same lesson
-   - **Normalize** (`normalize_sqlite.py`): Deduplicate, merge aliases, detect cycles, resolve isolated nodes, normalize node cards **after each lesson**
-   - **QA** (`strict_qa_sqlite.py`): Read-only review including node card completeness **after each lesson**
+2. **Parallel Lesson Staging** (`@lesson-processor`):
+   - Extract one lesson in isolated context.
+   - Produce raw nodes, edges, profiles, mentions, evidence, and provisional node cards.
+   - Store outputs via `scripts/store_lesson_staging.py`.
+3. **Canonical Merge** (`@kg-reducer`):
+   - Run `scripts/merge_staged_lessons.py`.
+   - Align nodes semantically using lexical normalization + semantic keys + embeddings.
+   - Remap edges, mentions, evidence, profiles, and node cards to canonical IDs.
+4. **Closeout**:
+   - Run `scripts/run_parallel_lesson_pipeline.py` or equivalent reducer sequence.
+   - `normalize_sqlite.py` repairs residual duplicates and graph structure.
+   - `strict_qa_sqlite.py` blocks on schema or provenance failures.
 
 ## Output Contract
 
@@ -115,6 +114,15 @@ Active storage: `storage/knowledge.sqlite`
 | Mentions | `mentions` | SQLite PRIMARY storage |
 | Evidence | `evidence` | SQLite PRIMARY storage |
 | Node cards | `node_cards` | SQLite PRIMARY storage |
+| Lesson runs | `lesson_runs` | Parallel extraction run registry |
+| Staged nodes | `staging_nodes` | Raw lesson-local node candidates |
+| Staged edges | `staging_edges` | Raw lesson-local edge candidates |
+| Staged profiles | `staging_profiles` | Raw lesson-local profile candidates |
+| Staged mentions | `staging_mentions` | Raw lesson-local mention candidates |
+| Staged evidence | `staging_evidence` | Raw lesson-local evidence candidates |
+| Staged cards | `staging_node_cards` | Provisional lesson-local node cards |
+| Merge runs | `merge_runs` | Canonical reducer run registry |
+| Canonical map | `canonical_node_map` | Raw node → canonical node mapping |
 
 **JSONL/JSON files are DERIVED EXPORTS only.** Do not treat them as primary storage. Generate them from SQLite only through the current SQLite-native export helpers when an external consumer needs them.
 
@@ -132,20 +140,20 @@ Active storage: `storage/knowledge.sqlite`
 ### Whole-Book Rule
 Never process a whole textbook as one extraction context unless explicitly requested.
 
-For whole-book work: **process lessons sequentially**, one at a time. Each lesson must complete normalize, closeout, and QA before moving to the next.
-
-**No parallel execution** for lessons with potentially overlapping concepts (which is typical for textbook chapters). Serial execution ensures:
-- No duplicate canonical nodes
-- Consistent edge endpoints
-- Proper retrieval-based deduplication
+For whole-book work:
+- Extract lessons in isolated Tasks.
+- Lessons may run **in parallel** during staging.
+- Canonical merge, normalize, and QA remain **serial reducer stages**.
+- Do not let multiple workers write canonical tables concurrently.
 
 ### Stage Dependencies
-Manifest order is always: `backbone` → `normalize` → `qa`
+Manifest order is now: `staging` → `merge` → `normalize` → `qa`
 
-Each lesson must complete all stages:
-1. `backbone` - Nodes created with immediate node card generation
-2. `normalize` - Deduplication, cycle detection, isolated node resolution, and card normalization
-3. `qa` - Schema validation including node card completeness
+Each selected lesson run must complete:
+1. `staging` - Raw artifacts inserted into `staging_*`
+2. `merge` - Canonical node alignment and graph commit
+3. `normalize` - Deduplication, cycle detection, isolated node resolution, and card normalization
+4. `qa` - Schema validation including node card completeness
 
 Do not mark a later stage complete while an earlier required stage is pending.
 
@@ -176,13 +184,13 @@ Read these before writing output:
 
 ## Review Checklist
 
-### Task-Per-Lesson Execution (CRITICAL)
-- [ ] Each lesson processed in separate, isolated Task
-- [ ] Main agent spawns Task for lesson N, waits for completion
-- [ ] Main agent then spawns Task for lesson N+1
-- [ ] No subagent continues to next lesson autonomously
-- [ ] Manifest shows sequential lesson completion (not batch)
-- [ ] Each Task returns before next Task spawns
+### Parallel Lesson Staging (CRITICAL)
+- [ ] Each lesson is processed in a separate, isolated Task
+- [ ] Every lesson worker writes only to `lesson_runs` + `staging_*`
+- [ ] No lesson worker writes canonical graph tables directly
+- [ ] Reducer merges staged lessons before normalize/QA
+- [ ] Canonical merge records raw→canonical mapping in `canonical_node_map`
+- [ ] Normalize and QA run after canonical merge, not before
 
 ### Schema Validation
 - [ ] Schema-valid fields only

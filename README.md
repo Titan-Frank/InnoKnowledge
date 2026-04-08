@@ -20,34 +20,49 @@ claude
 ### 处理教材
 
 ```bash
-# 处理整本书
-@kg-pipeline 处理 chem-grade8 全书
+# 生成并行课时计划
+python scripts/parallel_batch_runner.py \
+  --book-id chem-grade8-all-in-one \
+  --output-root data/main \
+  --parallel 4 \
+  --batch-size 4 \
+  --generate-tasks
 
-# 限制范围
-@kg-pipeline 处理 chem-grade8，课程 1-1-1 到 1-2-3
+# 课时 worker 完成抽取后，写入 staging
+python scripts/store_lesson_staging.py --help
+
+# 把 staged lessons 合并到 canonical graph，再做 normalize/QA
+python scripts/run_parallel_lesson_pipeline.py \
+  --root data/main \
+  --book-id chem-grade8-all-in-one
 ```
 
 ## 架构
 
-项目采用 **Manager-Worker 模式**：
+项目采用 **Parallel Staging + Canonical Commit**：
 
 ```
 @kg-pipeline (Manager - 纯调度，无业务逻辑)
 │
 ├── @outline-reader (如需生成目录)
 │
-└── FOR each lesson (顺序处理):
-    └── @lesson-processor (Worker - 完整业务逻辑)
-        ├── /chapter-extract (提取节点/关系)
-        ├── @node-expander × N (并行生成节点卡片)
-        ├── /graph-normalize (去重/归一化)
-        ├── closeout scripts (写入 SQLite)
-        └── @qa-reviewer (质量检查)
+├── FOR each lesson (可并行):
+│   └── @lesson-processor (Worker - 课时抽取)
+│       ├── /chapter-extract (提取节点/关系)
+│       ├── provisional node cards / evidence / mentions
+│       └── scripts/store_lesson_staging.py
+│
+└── @kg-reducer (Reducer - 串行 canonical commit)
+    ├── scripts/merge_staged_lessons.py
+    ├── scripts/normalize_sqlite.py
+    ├── scripts/strict_qa_sqlite.py
+    └── scripts/check_graph_integrity.py
 ```
 
 **职责分离**：
-- **Manager** (@kg-pipeline): 决定 "做什么"
-- **Worker** (@lesson-processor): 知道 "怎么做"
+- **Manager** (@kg-pipeline): 决定 “做什么”
+- **Lesson Worker** (@lesson-processor): 并行生成课时级候选
+- **Reducer** (@kg-reducer): 决定 canonical truth 并提交正式图
 
 ## 核心原则
 
@@ -56,6 +71,7 @@ claude
 3. **检索优先** - 先检索候选再推理，避免全图操作
 4. **SQLite 优先** - SQLite 是主存储，JSON/JSONL 是导出产物
 5. **课时隔离** - 每个课时在独立 Task 中处理，避免上下文爆炸
+6. **Staging First** - 并行 worker 只写 staging，不直接写 canonical graph
 
 ## 数据存储
 
@@ -63,12 +79,16 @@ claude
 
 ```
 storage/knowledge.sqlite
+├── lesson_runs         # 并行课时运行登记
+├── staging_*           # 原始课时候选层
 ├── nodes              # 知识节点
 ├── edges              # 关系
 ├── profiles           # 课程画像
 ├── mentions           # 教材引用
 ├── evidence           # 原文证据
-└── node_cards         # 节点详情卡片
+├── node_cards         # 节点详情卡片
+├── merge_runs         # reducer 运行记录
+└── canonical_node_map # 原始节点到 canonical 节点映射
 ```
 
 ### 辅助文件
@@ -93,6 +113,15 @@ ocr/                   # 教材 Markdown 文件
 ### 查看数据
 
 ```bash
+# 并行课时切分
+python scripts/parallel_batch_runner.py --help
+
+# 把一个 lesson 的抽取结果写入 staging
+python scripts/store_lesson_staging.py --help
+
+# 合并 staged lessons 并跑 normalize/QA
+python scripts/run_parallel_lesson_pipeline.py --help
+
 # 启动查看器
 python scripts/viewer_sqlite_api.py --port 8765
 
@@ -136,6 +165,10 @@ python scripts/check_graph_integrity.py --dataset-id main
 │   └── STYLE_GUIDE.md    # 写作风格
 │
 ├── scripts/              # 辅助脚本 (20+)
+│   ├── parallel_batch_runner.py
+│   ├── store_lesson_staging.py
+│   ├── merge_staged_lessons.py
+│   └── run_parallel_lesson_pipeline.py
 ├── storage/              # SQLite 数据库
 ├── data/                 # 数据文件
 ├── ocr/                  # 教材 Markdown
