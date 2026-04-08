@@ -3,9 +3,9 @@ __pycache__/
 tmp/
 lesson1_*.txt
 *.pdf
-.opencode/node_modules/
-.opencode/package.json
-.opencode/bun.lock
+.claude/node_modules/
+.claude/package.json
+.claude/bun.lock
 data/
 ocr/
 storage/

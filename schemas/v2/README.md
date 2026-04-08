@@ -1,6 +1,6 @@
 # Schema V2
 
-这套 `schemas/v2/` 用于支持“全学段、跨学科、统一知识地图”模型，不替换当前根目录下的旧版 schema，而是作为渐进迁移目标。
+当前使用的知识图谱 schema，支持"全学段、跨学科、统一知识地图"模型。
 
 ## 设计目标
 
@@ -14,33 +14,23 @@
 ## 文件说明
 
 - `node.schema.json`
-  V2 主干节点 schema，核心字段是 `node_kind`、`node_layer`、`learning_modes`、`bridge_tags`
+  V2 规范节点 schema，核心字段是 `node_kind`、`node_layer`、`learning_modes`、`bridge_tags`
 - `edge.schema.json`
-  V2 主干关系 schema，核心字段是 `edge_type`、`edge_layer`、`backbone_expand`
+  V2 规范关系 schema，核心字段是 `edge_type`、`edge_layer`、`backbone_expand`
 - `curriculum-profile.schema.json`
-  新增，表示同一 canonical node 在不同学科/学段中的画像
+  课程画像 schema，表示同一 canonical node 在不同学科/学段中的画像
 - `node-card.schema.json`
   V2 节点卡 schema，支持按 section type 展开，并用 `card_layer` 标记主干卡/支撑卡
 - `mention.schema.json`
-  V2 提及记录 schema，从“教材 mention”推广到“来源 mention”
+  V2 提及记录 schema，从"教材 mention"推广到"来源 mention"
 - `evidence.schema.json`
-  V2 证据 schema，从“教材页码片段”推广到通用证据记录
+  V2 证据 schema，从"教材页码片段"推广到通用证据记录
 - `pattern-library.schema.json`
   V2 模式库 schema，按 `node_kind` 驱动节点卡生成
 
-## 建议迁移顺序
+## 核心设计理念
 
-1. 先继续沿用旧版 `node` / `edge` 产出，保证当前流程不断。
-2. 新增 `curriculum profile` 作为中间层。
-3. 在 agent 输出中逐步把旧 `node_type` 迁移为 `node_kind + node_subkind`。
-4. 扩展 edge 类型，再把 node card 和 pattern library 切到 v2。
-
-## 与旧版最大的差异
-
-- 旧版更偏“教材知识抽取”
-- V2 更偏“统一知识地图本体”
-
-可以理解为：
-
-- 旧版先解决“能抽出来”
-- V2 再解决“能统一、能扩展、能跨学科生长”
+- **规范节点** - 学科中立，跨学段稳定
+- **分层设计** - 主干层（核心概念）+ 支撑层（辅助内容）
+- **证据支撑** - 所有节点和关系都有教材出处
+- **画像分离** - 学科/学段信息独立于知识本体

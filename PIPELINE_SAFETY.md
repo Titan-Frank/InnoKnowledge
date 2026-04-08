@@ -41,8 +41,8 @@ connection.commit()
 python scripts/run_single_lesson.py --book-id chem-highschool-selective-compulsory-1 --output-root data/v4
 
 # 2. 复制生成的 prompt，在新对话中执行:
-#    - $chapter-extract (写入 SQLite)
-#    - $graph-normalize
+#    - /chapter-extract (写入 SQLite)
+#    - /graph-normalize
 #    - scripts/run_sqlite_batch_pipeline.py (finalize)
 #    - @qa-reviewer
 
@@ -62,7 +62,7 @@ python scripts/parallel_batch_runner.py \
     --generate-tasks
 
 # 执行时确保每个 Task:
-# 1. 使用 $chapter-extract (写入 SQLite)
+# 1. 使用 /chapter-extract (写入 SQLite)
 # 2. 使用 run_sqlite_batch_pipeline.py closeout
 # 3. 不使用 extract_chemistry_*.py
 ```
@@ -110,14 +110,9 @@ cp -r data/v4 data/v4.backup.$(date +%Y%m%d_%H%M%S)
 # 2. 清理数据文件（去除重复、修复 schema）
 # 手动或使用脚本来修复
 
-# 3. 重新导入到 SQLite
-python3 scripts/import_to_sqlite.py \
-    data/v4 \
-    --db storage/knowledge.sqlite \
-    --dataset-id v4 \
-    --version-key v4 \
-    --activate \
-    --replace
+# 3. 停止使用旧导入链
+#    当前仓库不再支持 JSONL → SQLite 反向导入。
+#    应该以 SQLite 为准，删除旧导出，并在需要时从 SQLite 重新导出派生文件。
 
 # 4. 验证
 sqlite3 storage/knowledge.sqlite "SELECT COUNT(*) FROM nodes; SELECT COUNT(*) FROM edges;"
@@ -143,7 +138,7 @@ python scripts/run_single_lesson.py ...
 
 ### 1. 让提取强制写入 SQLite
 
-在 `$chapter-extract` skill 配置中添加检查:
+在 `/chapter-extract` skill 配置中添加检查:
 ```python
 # 在 skill 执行前检查
 assert Path("storage/knowledge.sqlite").exists(), "SQLite not found!"
@@ -159,7 +154,7 @@ assert count_after > count_before, "No data written to SQLite!"
 可以设置文件系统权限:
 ```bash
 chmod 444 data/v4/graph/*.jsonl  # 设为只读
-# 只有 export_snapshot.py 能写入（通过特殊权限或临时提升）
+# 只有受控的 SQLite 导出流程可以重建这些派生文件
 ```
 
 ## 📊 监控清单
@@ -195,4 +190,4 @@ chmod 444 data/v4/graph/*.jsonl  # 设为只读
 ---
 
 **记住：如果 SQLite 和 JSONL 不一致，信任 SQLite！**
-JSONL 只是导出，应该通过 `export_snapshot.py` 或 `import_to_sqlite.py` 来管理。
+JSONL 只是导出，不应再作为回写 SQLite 的输入链路。

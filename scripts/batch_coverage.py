@@ -10,7 +10,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from knowledge_store_common import load_evidence, load_mentions, load_node_cards_cards, load_nodes
+from knowledge_store_common import load_evidence, load_mentions, load_node_cards, load_nodes
 from knowledge_store_common import (
     DEFAULT_DB_PATH,
     connect_db,
@@ -77,7 +77,7 @@ def main() -> int:
         for record in load_evidence(connection, dataset_id)
         if record.get("source_type") == "textbook" and record.get("source_id") == args.book_id
     ]
-    node_card_ids = {record["node_id"] for record in load_node_cards_cards(connection, dataset_id)}
+    node_card_ids = {record["node_id"] for record in load_node_cards(connection, dataset_id)}
     node_by_id = {record["id"]: record for record in nodes if record.get("id")}
     evidence_by_id = {record["id"]: record for record in evidence if record.get("id")}
 

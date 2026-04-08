@@ -8,17 +8,18 @@ import json
 from collections import Counter
 from pathlib import Path
 
-from apply_batch_artifacts import canonicalize_source_anchor, ensure_dataset
 from knowledge_store_common import (
     DEFAULT_DB_PATH,
+    canonicalize_source_anchor,
     connect_db,
+    ensure_dataset,
     ensure_sqlite_schema,
+    normalize_textbook_source_id,
     resolve_dataset_id,
     resolve_outline_anchor,
     require_dataset_row,
     store_batch_runtime_records,
 )
-from store_relation_proposals import normalize_record as normalize_relation_proposal
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,8 +43,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--evidence-json")
     parser.add_argument("--node-cards-file")
     parser.add_argument("--node-cards-json")
-    parser.add_argument("--relation-proposals-file")
-    parser.add_argument("--relation-proposals-json")
     parser.add_argument(
         "--append",
         action="store_true",
@@ -61,35 +60,46 @@ def normalize_queries(records: list[dict], batch_anchor: str) -> list[dict]:
     return normalized
 
 
-def normalize_evidence(records: list[dict]) -> list[dict]:
+def normalize_evidence(records: list[dict], book_id: str, batch_anchor: str) -> list[dict]:
     normalized: list[dict] = []
     for record in records:
         payload = dict(record)
+        payload.setdefault("anchor_ref", batch_anchor)
+        payload["source_id"] = normalize_textbook_source_id(
+            payload.get("source_type"),
+            payload.get("source_id"),
+            payload.get("anchor_ref"),
+            expected_book_id=book_id,
+        )
         payload["anchor_ref"] = canonicalize_source_anchor(
             payload.get("source_type"),
             payload.get("source_id"),
             payload.get("anchor_ref"),
+            expected_book_id=book_id,
         )
         normalized.append(payload)
     return normalized
 
 
-def normalize_mentions(records: list[dict]) -> list[dict]:
+def normalize_mentions(records: list[dict], book_id: str, batch_anchor: str) -> list[dict]:
     normalized: list[dict] = []
     for record in records:
         payload = dict(record)
+        payload.setdefault("anchor_ref", batch_anchor)
+        payload["source_id"] = normalize_textbook_source_id(
+            payload.get("source_type"),
+            payload.get("source_id"),
+            payload.get("anchor_ref"),
+            expected_book_id=book_id,
+        )
         payload["anchor_ref"] = canonicalize_source_anchor(
             payload.get("source_type"),
             payload.get("source_id"),
             payload.get("anchor_ref"),
+            expected_book_id=book_id,
         )
         normalized.append(payload)
     return normalized
-
-
-def normalize_relation_proposals(records: list[dict]) -> list[dict]:
-    return [normalize_relation_proposal(record, "candidate") for record in records]
-
 
 def load_records(file_arg: str | None, json_arg: str | None, label: str) -> list[dict]:
     if file_arg and json_arg:
@@ -119,16 +129,21 @@ def main() -> int:
         ("query", "queries", args.queries_file, args.queries_json, lambda rows: normalize_queries(rows, batch_anchor)),
         ("node", "nodes", args.nodes_file, args.nodes_json, lambda rows: rows),
         ("profile", "profiles", args.profiles_file, args.profiles_json, lambda rows: rows),
-        ("mention", "mentions", args.mentions_file, args.mentions_json, normalize_mentions),
-        ("evidence", "evidence", args.evidence_file, args.evidence_json, normalize_evidence),
-        ("node_card", "node-cards", args.node_cards_file, args.node_cards_json, lambda rows: rows),
         (
-            "relation_proposal",
-            "relation-proposals",
-            args.relation_proposals_file,
-            args.relation_proposals_json,
-            normalize_relation_proposals,
+            "mention",
+            "mentions",
+            args.mentions_file,
+            args.mentions_json,
+            lambda rows: normalize_mentions(rows, args.book_id, batch_anchor),
         ),
+        (
+            "evidence",
+            "evidence",
+            args.evidence_file,
+            args.evidence_json,
+            lambda rows: normalize_evidence(rows, args.book_id, batch_anchor),
+        ),
+        ("node_card", "node-cards", args.node_cards_file, args.node_cards_json, lambda rows: rows),
     ]
 
     stats: Counter[str] = Counter()

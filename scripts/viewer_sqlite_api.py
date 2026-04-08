@@ -17,17 +17,26 @@ from knowledge_store_common import (
     load_mentions,
     load_nodes,
     load_profiles,
-    load_json_array,
-    load_json_object,
 )
-from knowledge_store_common import DEFAULT_DB_PATH, connect_db, ensure_sqlite_schema, load_json
+from knowledge_store_common import (
+    DEFAULT_DB_PATH,
+    connect_db,
+    ensure_sqlite_schema,
+    load_json,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_FRAMEWORK_PATH = REPO_ROOT / "data" / "frameworks" / "junior-chemistry-framework.json"
-DEFAULT_PATTERNS_PATH = REPO_ROOT / "data" / "patterns" / "unified-knowledge-patterns.v2.json"
+DEFAULT_FRAMEWORK_PATH = (
+    REPO_ROOT / "data" / "frameworks" / "junior-chemistry-framework.json"
+)
+DEFAULT_PATTERNS_PATH = (
+    REPO_ROOT / "data" / "patterns" / "unified-knowledge-patterns.v2.json"
+)
 SOURCE_PATH_RE = re.compile(r"^/api/source/(?P<key>[^/]+)/(?P<kind>bundle)$")
-NODE_CARD_PATH_RE = re.compile(r"^/api/source/(?P<key>[^/]+)/node-card/(?P<node_id>.+)$")
+NODE_CARD_PATH_RE = re.compile(
+    r"^/api/source/(?P<key>[^/]+)/node-card/(?P<node_id>.+)$"
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -117,8 +126,16 @@ def build_sources_payload(connection) -> dict:
 
 
 def build_books_payload(connection, dataset_id: str) -> list[dict]:
-    mentions = [item for item in load_mentions(connection, dataset_id) if item["source_type"] == "textbook"]
-    evidence = [item for item in load_evidence(connection, dataset_id) if item["source_type"] == "textbook"]
+    mentions = [
+        item
+        for item in load_mentions(connection, dataset_id)
+        if item["source_type"] == "textbook"
+    ]
+    evidence = [
+        item
+        for item in load_evidence(connection, dataset_id)
+        if item["source_type"] == "textbook"
+    ]
     mentions_by_book: dict[str, list[dict]] = {}
     evidence_by_book: dict[str, list[dict]] = {}
 
@@ -130,7 +147,9 @@ def build_books_payload(connection, dataset_id: str) -> list[dict]:
     book_ids = sorted(set(mentions_by_book) | set(evidence_by_book))
     books: list[dict] = []
     for book_id in book_ids:
-        outline = load_optional_json(REPO_ROOT / "data" / "outlines" / f"{book_id}.outline.json")
+        outline = load_optional_json(
+            REPO_ROOT / "data" / "outlines" / f"{book_id}.outline.json"
+        )
         books.append(
             {
                 "bookId": book_id,
@@ -191,13 +210,13 @@ def load_node_card(connection, dataset_id: str, node_id: str) -> dict | None:
         "card_layer": row["card_layer"],
         "title": row["title"],
         "summary": row["summary"],
-        "pattern_refs": load_json_array(row["pattern_refs_json"]),
-        "framework_refs": load_json_array(row["framework_refs_json"]),
-        "profile_refs": load_json_array(row["profile_refs_json"]),
-        "mention_refs": load_json_array(row["mention_refs_json"]),
-        "source_refs": load_json_array(row["source_refs_json"]),
-        "sections": load_json_array(row["sections_json"]),
-        "properties": load_json_object(row["properties_json"]),
+        "pattern_refs": json.loads(row["pattern_refs_json"] or "[]"),
+        "framework_refs": json.loads(row["framework_refs_json"] or "[]"),
+        "profile_refs": json.loads(row["profile_refs_json"] or "[]"),
+        "mention_refs": json.loads(row["mention_refs_json"] or "[]"),
+        "source_refs": json.loads(row["source_refs_json"] or "[]"),
+        "sections": json.loads(row["sections_json"] or "[]"),
+        "properties": json.loads(row["properties_json"] or "{}"),
         "status": row["status"],
     }
     if row["id"] is not None:
@@ -225,7 +244,9 @@ class ViewerApiHandler(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def end_headers(self) -> None:  # noqa: N802
-        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header(
+            "Cache-Control", "no-store, no-cache, must-revalidate, max-age=0"
+        )
         self.send_header("Pragma", "no-cache")
         self.send_header("Expires", "0")
         super().end_headers()
@@ -246,9 +267,14 @@ class ViewerApiHandler(SimpleHTTPRequestHandler):
                 key = unquote(source_match.group("key"))
                 dataset_row = resolve_dataset_row(connection, key)
                 if dataset_row is None:
-                    self.write_json({"error": f"Unknown source '{key}'"}, status=HTTPStatus.NOT_FOUND)
+                    self.write_json(
+                        {"error": f"Unknown source '{key}'"},
+                        status=HTTPStatus.NOT_FOUND,
+                    )
                     return
-                self.write_json(build_bundle_payload(connection, dataset_row["dataset_id"]))
+                self.write_json(
+                    build_bundle_payload(connection, dataset_row["dataset_id"])
+                )
                 return
 
             card_match = NODE_CARD_PATH_RE.match(path)
@@ -257,16 +283,24 @@ class ViewerApiHandler(SimpleHTTPRequestHandler):
                 node_id = unquote(card_match.group("node_id"))
                 dataset_row = resolve_dataset_row(connection, key)
                 if dataset_row is None:
-                    self.write_json({"error": f"Unknown source '{key}'"}, status=HTTPStatus.NOT_FOUND)
+                    self.write_json(
+                        {"error": f"Unknown source '{key}'"},
+                        status=HTTPStatus.NOT_FOUND,
+                    )
                     return
                 card = load_node_card(connection, dataset_row["dataset_id"], node_id)
                 if card is None:
-                    self.write_json({"error": f"Node card not found for '{node_id}'"}, status=HTTPStatus.NOT_FOUND)
+                    self.write_json(
+                        {"error": f"Node card not found for '{node_id}'"},
+                        status=HTTPStatus.NOT_FOUND,
+                    )
                     return
                 self.write_json(card)
                 return
 
-            self.write_json({"error": f"Unknown API path '{path}'"}, status=HTTPStatus.NOT_FOUND)
+            self.write_json(
+                {"error": f"Unknown API path '{path}'"}, status=HTTPStatus.NOT_FOUND
+            )
         finally:
             connection.close()
 

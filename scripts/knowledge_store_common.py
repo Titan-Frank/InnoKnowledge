@@ -61,6 +61,7 @@ VALID_EDGE_TYPES = {
 ANCHOR_ID_PATTERN = re.compile(
     r"^struct:(?P<book_id>[^:]+):(?P<kind>[^:]+):(?P<local>.+)$"
 )
+TEXTBOOK_SOURCE_PREFIX = "textbook:"
 
 
 def load_json(path: Path) -> Any:
@@ -255,6 +256,58 @@ def resolve_outline_anchors(
     return [
         resolve_outline_anchor(book_id, anchor, strict=strict) for anchor in anchors
     ]
+
+
+def book_id_from_anchor(anchor_ref: str | None) -> str | None:
+    if not anchor_ref:
+        return None
+    match = ANCHOR_ID_PATTERN.match(anchor_ref)
+    return match.group("book_id") if match else None
+
+
+def strip_textbook_source_prefix(source_id: str | None) -> str | None:
+    if not source_id:
+        return source_id
+    if source_id.startswith(TEXTBOOK_SOURCE_PREFIX):
+        return source_id[len(TEXTBOOK_SOURCE_PREFIX) :]
+    return source_id
+
+
+def normalize_textbook_source_id(
+    source_type: str | None,
+    source_id: str | None,
+    anchor_ref: str | None = None,
+    *,
+    expected_book_id: str | None = None,
+) -> str | None:
+    if source_type != "textbook":
+        return source_id
+    return (
+        expected_book_id
+        or book_id_from_anchor(anchor_ref)
+        or strip_textbook_source_prefix(source_id)
+        or source_id
+    )
+
+
+def canonicalize_source_anchor(
+    source_type: str | None,
+    source_id: str | None,
+    anchor_ref: str | None,
+    *,
+    expected_book_id: str | None = None,
+) -> str | None:
+    if not anchor_ref or source_type != "textbook":
+        return anchor_ref
+    normalized_source_id = normalize_textbook_source_id(
+        source_type,
+        source_id,
+        anchor_ref,
+        expected_book_id=expected_book_id,
+    )
+    if not normalized_source_id:
+        return anchor_ref
+    return resolve_outline_anchor(normalized_source_id, anchor_ref, strict=False)
 
 
 def equivalent_anchor_tokens(book_id: str, anchor: str) -> list[str]:
@@ -526,6 +579,35 @@ def require_dataset_row(connection: sqlite3.Connection, dataset_id: str) -> sqli
     return row
 
 
+def ensure_dataset(
+    connection: sqlite3.Connection, dataset_id: str, root: Path | str
+) -> None:
+    row = connection.execute(
+        "SELECT dataset_id FROM datasets WHERE dataset_id = ?",
+        (dataset_id,),
+    ).fetchone()
+    if row is not None:
+        return
+
+    now = utc_now()
+    root_path = str(Path(root).expanduser().resolve())
+    connection.execute(
+        """
+        INSERT INTO datasets (
+          dataset_id,
+          version_key,
+          root_path,
+          schema_version,
+          status,
+          is_active,
+          created_at,
+          notes
+        ) VALUES (?, ?, ?, 'v2', 'draft', 0, ?, ?)
+        """,
+        (dataset_id, version_key_from_output_root(root), root_path, now, None),
+    )
+
+
 def fetch_existing_edges(
     connection: sqlite3.Connection, dataset_id: str
 ) -> list[sqlite3.Row]:
@@ -764,6 +846,11 @@ def load_edges(
     edges = []
     for row in rows:
         edge = dict(row)
+        # Map database column names to API field names
+        if "from_id" in edge:
+            edge["from"] = edge["from_id"]
+        if "to_id" in edge:
+            edge["to"] = edge["to_id"]
         # Parse JSON fields
         for key in ["source_refs"]:
             if f"{key}_json" in edge:

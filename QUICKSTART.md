@@ -16,8 +16,14 @@ curl -fsSL https://opencode.ai/install.sh | bash
 确保你的教材已完成 OCR 并转为 Markdown 格式：
 
 ```bash
-# 示例：你的教材文件
-data/sources/your-book-id.md
+# 教材文件位于 ocr/ 目录
+ocr/
+├── 八年级/
+│   └── 初中（五•四学制）_化学_沪科技版_全一册_八年级/hybrid_auto/*.md
+├── 九年级/
+│   └── 初中（五•四学制）_化学_沪科技版_全一册_九年级/hybrid_auto/*.md
+└── 高中年级/
+    └── 高中_化学_沪科技版_*/hybrid_auto/*.md
 ```
 
 ### 2. 检查环境
@@ -125,8 +131,8 @@ A: 主存储在 `storage/knowledge.sqlite`。JSON/JSONL 文件是导出产物，
 opencode --help
 
 # 查看可用 agent
-ls .opencode/agents/
+ls .claude/agents/
 
 # 查看可用 skill
-ls .opencode/skills/
+ls .claude/skills/
 ```

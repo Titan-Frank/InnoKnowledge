@@ -125,6 +125,7 @@ const state = {
   raf: null,
   cardCache: new Map(),
   detailRequestId: 0,
+  visibleNodesCache: { key: null, nodes: [] },
 };
 
 const els = {
@@ -506,6 +507,7 @@ async function switchSource(sourceKey) {
 
   state.sourceLoading = false;
   state.data = prepareGraphData(data);
+  state.visibleNodesCache = { key: null, nodes: [] };
   state.selectedBook = "all";
   state.selectedTypes = new Set(state.data.availableTypes);
   initializeViewport();
@@ -688,7 +690,13 @@ function prepareGraphData({ nodes, edges, profiles, framework, patterns, books, 
       degree: degreeById.get(node.id) || 0,
       mentions: mentionsByTarget.get(normalizedNode.id) || [],
       profiles: profilesForNode,
+      mentionBookIds: new Set(),
+      scopeBookIds: new Set(),
     };
+    graphNode.mentionBookIds = new Set(
+      graphNode.mentions.map((mention) => mention.book_id).filter(Boolean),
+    );
+    graphNode.scopeBookIds = new Set(graphNode.mentionBookIds);
     availableTypes.add(graphNode.node_type);
     nodeById.set(graphNode.id, graphNode);
   });
@@ -703,6 +711,16 @@ function prepareGraphData({ nodes, edges, profiles, framework, patterns, books, 
       return graphEdge;
     })
     .filter(Boolean);
+
+  graphEdges.forEach((edge) => {
+    if (isBackboneNode(edge.source) && isSupportNode(edge.target)) {
+      edge.source.mentionBookIds.forEach((bookId) => edge.target.scopeBookIds.add(bookId));
+    }
+
+    if (isSupportNode(edge.source) && isBackboneNode(edge.target)) {
+      edge.target.mentionBookIds.forEach((bookId) => edge.source.scopeBookIds.add(bookId));
+    }
+  });
 
   return {
     nodes: Array.from(nodeById.values()),
@@ -806,15 +824,49 @@ function deriveDisplayType(node) {
   if (node.node_type) {
     return node.node_type;
   }
-  if (node.node_subkind === "substance") {
-    return "substance";
+
+  // Map specific subkinds to display types
+  const SUBKIND_TO_TYPE = {
+    substance: "substance",
+    experiment: "experiment",
+    symbol: "symbol",
+    formula: "symbol",
+    equation: "symbol",
+    model: "representation",
+    diagram: "representation",
+    table: "representation",
+    equipment: "entity",
+    apparatus: "entity",
+    molecule: "entity",
+    particle: "entity",
+    procedure: "method",
+  };
+
+  // Map node_kind to display type as fallback
+  const KIND_TO_TYPE = {
+    concept: "concept",
+    entity: "entity",
+    method: "method",
+    activity: "activity",
+    process: "process",
+    principle: "principle",
+    skill: "skill",
+    representation: "representation",
+    event: "event",
+    issue: "issue",
+  };
+
+  // Try subkind mapping first
+  if (node.node_subkind && SUBKIND_TO_TYPE[node.node_subkind]) {
+    return SUBKIND_TO_TYPE[node.node_subkind];
   }
-  if (node.node_subkind === "experiment") {
-    return "experiment";
+
+  // For unmapped subkinds, use node_kind
+  if (node.node_kind && KIND_TO_TYPE[node.node_kind]) {
+    return KIND_TO_TYPE[node.node_kind];
   }
-  if (node.node_subkind === "symbol") {
-    return "symbol";
-  }
+
+  // Fallback to raw subkind/kind or "other"
   return node.node_subkind || node.node_kind || "other";
 }
 
@@ -1004,6 +1056,7 @@ function bindEvents() {
   });
   els.toggleLabels.addEventListener("click", () => {
     state.showLabels = !state.showLabels;
+    renderToolbarActions();
     draw();
   });
   els.resetTypes.addEventListener("click", () => {
@@ -1055,6 +1108,14 @@ function renderControls() {
   renderTypeFilter();
   renderBookFilter();
   renderLegend();
+  renderToolbarActions();
+}
+
+function renderToolbarActions() {
+  els.toggleLabels.textContent = state.showLabels ? "隐藏名称" : "显示名称";
+  els.toggleLabels.classList.toggle("active", state.showLabels);
+  els.toggleLabels.setAttribute("aria-pressed", String(state.showLabels));
+  els.toggleLabels.title = state.showLabels ? "隐藏画布上的节点名称" : "显示画布上的节点名称";
 }
 
 function renderSourceControl() {
@@ -1134,12 +1195,19 @@ function renderLayerModeControl() {
 
 function renderTypeFilter() {
   els.typeFilter.innerHTML = "";
+  const scopedNodes = getVisibleNodes({ ignoreTypeFilter: true });
+  const countsByType = scopedNodes.reduce((counts, node) => {
+    counts.set(node.node_type, (counts.get(node.node_type) || 0) + 1);
+    return counts;
+  }, new Map());
+
   (state.data?.availableTypes || []).forEach((type) => {
     const label = getTypeLabel(type);
-    const count = state.data.nodes.filter((node) => node.node_type === type).length;
+    const count = countsByType.get(type) || 0;
     const button = document.createElement("button");
     button.className = `chip ${state.selectedTypes.has(type) ? "active" : ""}`;
     button.innerHTML = `${label} <span class="section-note">${count}</span>`;
+    button.classList.toggle("empty", count === 0);
     button.addEventListener("click", () => {
       if (state.selectedTypes.has(type)) {
         state.selectedTypes.delete(type);
@@ -1298,25 +1366,49 @@ function getBackboneNeighbors(nodeId) {
 }
 
 function nodePassesBaseFilters(node) {
-  if (!node || !state.selectedTypes.has(node.node_type)) {
+  return nodePassesBaseFiltersWithOptions(node);
+}
+
+function nodePassesBaseFiltersWithOptions(node, options = {}) {
+  const { ignoreTypeFilter = false } = options;
+
+  if (!node || (!ignoreTypeFilter && !state.selectedTypes.has(node.node_type))) {
     return false;
   }
 
   if (state.selectedBook !== "all") {
-    return node.mentions.some((mention) => mention.book_id === state.selectedBook);
+    return node.scopeBookIds?.has(state.selectedBook) || false;
   }
 
   return true;
 }
 
-function getVisibleNodes() {
-  let nodes = state.data.nodes.filter((node) => nodePassesBaseFilters(node));
+function getVisibleNodes(options = {}) {
+  const { ignoreTypeFilter = false } = options;
+  const cacheKey = [
+    state.data?.source?.key || "default",
+    ignoreTypeFilter ? "all-types" : Array.from(state.selectedTypes).sort().join(","),
+    state.selectedBook,
+    state.layerMode,
+    state.expandedBackboneNodeId || "",
+    state.focusConnected ? "focused" : "all",
+    state.selectedNodeId || "",
+  ].join("|");
+
+  if (state.visibleNodesCache.key === cacheKey) {
+    return state.visibleNodesCache.nodes;
+  }
+
+  let nodes = state.data.nodes.filter((node) =>
+    nodePassesBaseFiltersWithOptions(node, { ignoreTypeFilter }),
+  );
 
   if (state.layerMode === "backbone-expand") {
     const expandedRootNode =
       state.expandedBackboneNodeId && state.data.nodeById.get(state.expandedBackboneNodeId);
     const expandedSupportIds =
-      expandedRootNode && nodePassesBaseFilters(expandedRootNode)
+      expandedRootNode &&
+      nodePassesBaseFiltersWithOptions(expandedRootNode, { ignoreTypeFilter })
         ? getExpandedSupportNodeIds()
         : new Set();
     nodes = nodes.filter((node) => {
@@ -1343,6 +1435,7 @@ function getVisibleNodes() {
     nodes = nodes.filter((node) => connected.has(node.id));
   }
 
+  state.visibleNodesCache = { key: cacheKey, nodes };
   return nodes;
 }
 

@@ -169,6 +169,28 @@ ON mentions(dataset_id, target_type, target_id);
 CREATE INDEX IF NOT EXISTS idx_mentions_source_anchor
 ON mentions(dataset_id, source_id, anchor_ref);
 
+CREATE TRIGGER IF NOT EXISTS trg_mentions_textbook_source_insert
+BEFORE INSERT ON mentions
+FOR EACH ROW
+WHEN NEW.source_type = 'textbook'
+  AND NEW.anchor_ref LIKE 'struct:%'
+  AND instr(substr(NEW.anchor_ref, 8), ':') > 0
+  AND NEW.source_id != substr(NEW.anchor_ref, 8, instr(substr(NEW.anchor_ref, 8), ':') - 1)
+BEGIN
+  SELECT RAISE(ABORT, 'mentions.source_id must match textbook book_id from anchor_ref');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_mentions_textbook_source_update
+BEFORE UPDATE OF source_type, source_id, anchor_ref ON mentions
+FOR EACH ROW
+WHEN NEW.source_type = 'textbook'
+  AND NEW.anchor_ref LIKE 'struct:%'
+  AND instr(substr(NEW.anchor_ref, 8), ':') > 0
+  AND NEW.source_id != substr(NEW.anchor_ref, 8, instr(substr(NEW.anchor_ref, 8), ':') - 1)
+BEGIN
+  SELECT RAISE(ABORT, 'mentions.source_id must match textbook book_id from anchor_ref');
+END;
+
 CREATE TABLE IF NOT EXISTS evidence (
   dataset_id TEXT NOT NULL,
   id TEXT NOT NULL,
@@ -193,6 +215,28 @@ ON evidence(dataset_id, source_id, anchor_ref);
 
 CREATE INDEX IF NOT EXISTS idx_evidence_pages
 ON evidence(dataset_id, source_id, page_start, page_end);
+
+CREATE TRIGGER IF NOT EXISTS trg_evidence_textbook_source_insert
+BEFORE INSERT ON evidence
+FOR EACH ROW
+WHEN NEW.source_type = 'textbook'
+  AND NEW.anchor_ref LIKE 'struct:%'
+  AND instr(substr(NEW.anchor_ref, 8), ':') > 0
+  AND NEW.source_id != substr(NEW.anchor_ref, 8, instr(substr(NEW.anchor_ref, 8), ':') - 1)
+BEGIN
+  SELECT RAISE(ABORT, 'evidence.source_id must match textbook book_id from anchor_ref');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_evidence_textbook_source_update
+BEFORE UPDATE OF source_type, source_id, anchor_ref ON evidence
+FOR EACH ROW
+WHEN NEW.source_type = 'textbook'
+  AND NEW.anchor_ref LIKE 'struct:%'
+  AND instr(substr(NEW.anchor_ref, 8), ':') > 0
+  AND NEW.source_id != substr(NEW.anchor_ref, 8, instr(substr(NEW.anchor_ref, 8), ':') - 1)
+BEGIN
+  SELECT RAISE(ABORT, 'evidence.source_id must match textbook book_id from anchor_ref');
+END;
 
 CREATE TABLE IF NOT EXISTS evidence_links (
   dataset_id TEXT NOT NULL,

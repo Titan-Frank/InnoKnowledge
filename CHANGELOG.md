@@ -13,9 +13,9 @@ All notable changes to this project will be documented in this file.
 
 #### New Agent
 - **@lesson-processor** - Encapsulates complete lesson processing workflow
-  - Extraction (via $chapter-extract)
+  - Extraction (via /chapter-extract)
   - Node expansion (parallel tasks)
-  - Normalization (via $graph-normalize)
+  - Normalization (via /graph-normalize)
   - Closeout (scripts)
   - QA validation (via @qa-reviewer)
 
@@ -44,8 +44,8 @@ All notable changes to this project will be documented in this file.
 ### Deprecated
 
 #### Agents
-- **@backbone-builder** - Use `$chapter-extract` skill directly
-- **@graph-normalizer** - Use `$graph-normalize` skill directly
+- **@backbone-builder** - Use `/chapter-extract` skill directly
+- **@graph-normalizer** - Use `/graph-normalize` skill directly
 
 #### Scripts
 - `scripts/extract_chemistry_complete.py` - Bypassed SQLite, removed

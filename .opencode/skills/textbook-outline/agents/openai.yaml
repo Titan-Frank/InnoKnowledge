@@ -1,4 +1,0 @@
-interface:
-  display_name: "Textbook Outline"
-  short_description: "Extract textbook outline and page anchors"
-  default_prompt: "Extract textbook structure and page anchors from an OCR-completed textbook markdown file."

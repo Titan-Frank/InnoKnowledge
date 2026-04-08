@@ -30,6 +30,7 @@ from knowledge_store_common import (
     connect_db,
     ensure_sqlite_schema,
     VALID_EDGE_TYPES,
+    normalize_textbook_source_id,
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -215,10 +216,10 @@ class StrictQA:
             properties = (
                 json.loads(row["properties_json"]) if row["properties_json"] else {}
             )
-            notes = row.get("notes") or ""
+            notes = row["notes"] or ""
 
             # Entity/substance nodes SHOULD have meaningful properties
-            if row["node_kind"] == "entity" and row.get("node_subkind") == "substance":
+            if row["node_kind"] == "entity" and row["node_subkind"] == "substance":
                 if not properties or properties == {}:
                     # Check if notes explain why
                     if not notes or len(notes.strip()) < 10:
@@ -227,7 +228,7 @@ class StrictQA:
                             node_id,
                             "entity/substance node has empty properties and no explanation in notes",
                             {
-                                "node_subkind": row.get("node_subkind"),
+                                "node_subkind": row["node_subkind"],
                                 "suggestion": "Add properties or explain in notes why not available",
                             },
                         )
@@ -235,7 +236,7 @@ class StrictQA:
             # Activity/experiment nodes SHOULD have properties
             if (
                 row["node_kind"] == "activity"
-                and row.get("node_subkind") == "experiment"
+                and row["node_subkind"] == "experiment"
             ):
                 if not properties or properties == {}:
                     if not notes or len(notes.strip()) < 10:
@@ -244,13 +245,13 @@ class StrictQA:
                             node_id,
                             "activity/experiment node has empty properties and no explanation in notes",
                             {
-                                "node_subkind": row.get("node_subkind"),
+                                "node_subkind": row["node_subkind"],
                                 "suggestion": "Add method/steps/materials or explain in notes",
                             },
                         )
 
             # Entity/equipment nodes SHOULD have properties
-            if row["node_kind"] == "entity" and row.get("node_subkind") == "equipment":
+            if row["node_kind"] == "entity" and row["node_subkind"] == "equipment":
                 if not properties or properties == {}:
                     if not notes or len(notes.strip()) < 10:
                         self._add_warning(
@@ -258,7 +259,7 @@ class StrictQA:
                             node_id,
                             "entity/equipment node has empty properties and no explanation in notes",
                             {
-                                "node_subkind": row.get("node_subkind"),
+                                "node_subkind": row["node_subkind"],
                                 "suggestion": "Add instrument_type/usage or explain in notes",
                             },
                         )
@@ -266,25 +267,25 @@ class StrictQA:
             # Activity/experiment nodes MUST have properties
             if (
                 row["node_kind"] == "activity"
-                and row.get("node_subkind") == "experiment"
+                and row["node_subkind"] == "experiment"
             ):
                 if not properties or properties == {}:
                     self._add_error(
                         "node",
                         node_id,
                         "activity/experiment node has empty properties (MUST have method/steps/materials)",
-                        {"node_subkind": row.get("node_subkind")},
+                        {"node_subkind": row["node_subkind"]},
                     )
                     error_count += 1
 
             # Entity/equipment nodes MUST have properties
-            if row["node_kind"] == "entity" and row.get("node_subkind") == "equipment":
+            if row["node_kind"] == "entity" and row["node_subkind"] == "equipment":
                 if not properties or properties == {}:
                     self._add_error(
                         "node",
                         node_id,
                         "entity/equipment node has empty properties (MUST have instrument_type)",
-                        {"node_subkind": row.get("node_subkind")},
+                        {"node_subkind": row["node_subkind"]},
                     )
                     error_count += 1
 
@@ -400,6 +401,62 @@ class StrictQA:
                 )
 
         print(f"  ✓ Validated {len(rows)} profiles, found {error_count} errors")
+        return error_count
+
+    def validate_textbook_sources(self) -> int:
+        """Validate textbook source_ids align with canonical book_id from anchor_ref."""
+        print("\n[source] Validating textbook source consistency...")
+
+        params: tuple[str, ...] = (self.dataset_id,)
+        scoped_clause = ""
+        if self.scope:
+            scoped_clause = " AND anchor_ref = ?"
+            params = (self.dataset_id, self.scope)
+
+        mention_rows = self.connection.execute(
+            f"""
+            SELECT 'mention' AS record_type, id, source_type, source_id, anchor_ref
+            FROM mentions
+            WHERE dataset_id = ?
+              AND source_type = 'textbook'
+              {scoped_clause}
+            """,
+            params,
+        ).fetchall()
+        evidence_rows = self.connection.execute(
+            f"""
+            SELECT 'evidence' AS record_type, id, source_type, source_id, anchor_ref
+            FROM evidence
+            WHERE dataset_id = ?
+              AND source_type = 'textbook'
+              {scoped_clause}
+            """,
+            params,
+        ).fetchall()
+
+        rows = mention_rows + evidence_rows
+        error_count = 0
+
+        for row in rows:
+            expected_source_id = normalize_textbook_source_id(
+                row["source_type"],
+                row["source_id"],
+                row["anchor_ref"],
+            )
+            if expected_source_id and row["source_id"] != expected_source_id:
+                self._add_error(
+                    "source",
+                    f"{row['record_type']}:{row['id']}",
+                    "Textbook source_id does not match canonical book_id for anchor_ref",
+                    {
+                        "anchor_ref": row["anchor_ref"],
+                        "actual_source_id": row["source_id"],
+                        "expected_source_id": expected_source_id,
+                    },
+                )
+                error_count += 1
+
+        print(f"  ✓ Validated {len(rows)} textbook source records, found {error_count} errors")
         return error_count
 
     def validate_mentions(self) -> int:
@@ -902,6 +959,7 @@ class StrictQA:
         total_errors += self.validate_nodes()
         total_errors += self.validate_edges()
         total_errors += self.validate_profiles()
+        total_errors += self.validate_textbook_sources()
         total_errors += self.validate_mentions()
         total_errors += self.validate_evidence()
         total_errors += self.validate_node_cards()

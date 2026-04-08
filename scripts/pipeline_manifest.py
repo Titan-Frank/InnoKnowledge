@@ -147,11 +147,20 @@ def validate_manifest(manifest: dict) -> list[str]:
         seen_anchors.add(anchor_id)
 
         stages = batch.get("stages", {})
-        for stage in BATCH_STAGE_NAMES:
+        # Only validate required stages strictly; node_expand can be missing
+        for stage in REQUIRED_BATCH_STAGE_NAMES:
             status = stages.get(stage)
             if status not in VALID_STATUSES:
                 errors.append(
                     f"Batch '{anchor_id}' stage '{stage}' has invalid status '{status}'."
+                )
+
+        # node_expand is optional, only validate if present
+        if "node_expand" in stages:
+            status = stages.get("node_expand")
+            if status not in VALID_STATUSES:
+                errors.append(
+                    f"Batch '{anchor_id}' stage 'node_expand' has invalid status '{status}'."
                 )
 
         if (
@@ -304,10 +313,18 @@ def cmd_check(args: argparse.Namespace) -> int:
     manifest = load_json(manifest_path)
 
     errors = validate_manifest(manifest)
-    for stage in ("outline", "framework", "pattern"):
+    for stage in ("outline",):
         status = manifest["run_stages"][stage]["status"]
         if status != "completed":
             errors.append(f"Run stage '{stage}' is '{status}', expected 'completed'.")
+
+    # framework and pattern can be 'completed' or 'not_requested'
+    for stage in ("framework", "pattern"):
+        status = manifest["run_stages"][stage]["status"]
+        if status not in ("completed", "not_requested"):
+            errors.append(
+                f"Run stage '{stage}' is '{status}', expected 'completed' or 'not_requested'."
+            )
 
     for batch in manifest["batches"]:
         anchor_id = batch["anchor_id"]
@@ -333,6 +350,33 @@ def cmd_check(args: argparse.Namespace) -> int:
 
     print(f"Manifest check passed: {manifest_path}")
     print(f"Batches completed: {len(manifest['batches'])}/{len(manifest['batches'])}")
+
+    # Optional: verify SQLite extraction completeness
+    if args.verify_sqlite:
+        import subprocess
+
+        db_path = Path(args.db) if args.db else Path("storage/knowledge.sqlite")
+        dataset_id = args.dataset_id or manifest.get("book_id", "v4")
+
+        print(f"\nVerifying SQLite extraction completeness...")
+        print(f"Database: {db_path}")
+        print(f"Dataset ID: {dataset_id}")
+
+        cmd = [
+            sys.executable,
+            str(Path(__file__).parent / "check_extraction_completeness.py"),
+            "--manifest",
+            str(manifest_path),
+            "--db",
+            str(db_path),
+            "--dataset-id",
+            dataset_id,
+            *(["--fail-on-incomplete"] if args.fail_on_incomplete else []),
+        ]
+
+        result = subprocess.run(cmd, capture_output=False)
+        return result.returncode
+
     return 0
 
 
@@ -409,6 +453,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     check_parser.add_argument("--manifest", required=True)
     check_parser.add_argument("--require-final-qa", action="store_true")
+    check_parser.add_argument(
+        "--verify-sqlite",
+        action="store_true",
+        help="Verify SQLite has extracted data for all manifest lessons.",
+    )
+    check_parser.add_argument(
+        "--db",
+        help="Path to SQLite database (default: storage/knowledge.sqlite).",
+    )
+    check_parser.add_argument(
+        "--dataset-id",
+        help="Dataset ID to verify (default: manifest book_id).",
+    )
+    check_parser.add_argument(
+        "--fail-on-incomplete",
+        action="store_true",
+        help="Exit with error if any lessons are missing or incomplete in SQLite.",
+    )
     check_parser.set_defaults(func=cmd_check)
 
     status_parser = subparsers.add_parser("status", help="Show manifest status.")
