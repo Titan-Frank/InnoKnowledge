@@ -112,7 +112,6 @@ python scripts/export_snapshot.py data/v4 \
 ### 检查数据一致性
 
 ```bash
-python check_data_consistency.py
 ```
 
 ## 工作流程

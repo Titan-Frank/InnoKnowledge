@@ -71,7 +71,6 @@ sqlite3 storage/knowledge.sqlite "SELECT id, canonical_name FROM nodes ORDER BY 
 python scripts/export_snapshot.py data/main --db storage/knowledge.sqlite --dataset-id main
 
 # Check data consistency
-python check_data_consistency.py
 
 # QA validation
 python scripts/strict_qa_sqlite.py --dataset-id main

@@ -655,16 +655,23 @@ class GraphNormalizer:
             (self.dataset_id,),
         ).fetchall():
             sections = json.loads(row["sections_json"])
+            content_parts = []
+            for s in sections:
+                if isinstance(s, dict):
+                    content = s.get("content", "")
+                    if isinstance(content, list):
+                        content = "\n".join(str(item) for item in content)
+                    content_parts.append(content)
             searchable = "\n".join(
                 [
-                    row["title"],
-                    row["summary"],
-                    *[s.get("content", "") for s in sections if isinstance(s, dict)],
+                    row["title"] or "",
+                    row["summary"] or "",
+                    *content_parts,
                 ]
             )
             self.connection.execute(
-                "INSERT INTO card_search (dataset_id, id, searchable_content) VALUES (?, ?, ?)",
-                (self.dataset_id, row["node_id"], searchable),
+                "INSERT INTO card_search (dataset_id, node_id, title, summary, sections) VALUES (?, ?, ?, ?, ?)",
+                (self.dataset_id, row["node_id"], row["title"] or "", row["summary"] or "", "\n".join(content_parts)),
             )
         counts["cards"] = self.connection.execute(
             "SELECT COUNT(*) FROM card_search WHERE dataset_id = ?", (self.dataset_id,)

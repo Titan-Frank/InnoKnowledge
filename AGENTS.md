@@ -368,7 +368,6 @@ Always verify data consistency after extraction:
 
 ```bash
 # Check SQLite vs JSONL consistency
-python check_data_consistency.py
 
 # If inconsistent, stop and repair the active SQLite-native workflow.
 # Do not re-import JSONL back into SQLite.
