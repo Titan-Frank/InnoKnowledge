@@ -4,31 +4,27 @@
 
 ## 快速开始
 
-### 启动 opencode
+### 启动 Claude Code
 
 ```bash
-# 方式 1: 交互式 TUI (推荐)
-opencode
+# 方式 1: 交互式（推荐）
+claude
 
-# 方式 2: 直接运行命令
-opencode run "处理化学八年级全书的第一个课时"
+# 然后输入：
+@kg-pipeline 处理 chem-grade8 全书
 
-# 方式 3: 指定 agent
-opencode run --agent kg-pipeline "处理 chem-grade8 全书"
+# 方式 2: 处理单个课时
+/extract-lesson chem-grade8 1-1-1
 ```
 
 ### 处理教材
 
 ```bash
-# 处理单个课时
-opencode run --agent kg-pipeline "处理 chem-grade8 的 struct:chem-grade8:lesson:1-1-1"
+# 处理整本书
+@kg-pipeline 处理 chem-grade8 全书
 
-# 处理整本书（按课时顺序自动处理）
-opencode run --agent kg-pipeline "处理 chem-grade8 全书"
-
-# 交互式指定参数
-opencode
-# 然后输入: "@kg-pipeline 处理 chem-grade8 全书"
+# 限制范围
+@kg-pipeline 处理 chem-grade8，课程 1-1-1 到 1-2-3
 ```
 
 ## 架构
@@ -79,13 +75,17 @@ storage/knowledge.sqlite
 
 ```
 data/
-├── outlines/          # 教材目录结构
-│   └── {book-id}.outline.json
+├── outlines/          # 教材目录结构 (7个教材)
 ├── frameworks/        # 课程框架
 └── patterns/          # 模式库
 
-runs/                  # 运行记录
+runs/                  # Pipeline 进度
 └── {book-id}.pipeline.json
+
+ocr/                   # 教材 Markdown 文件
+├── 八年级/
+├── 九年级/
+└── 高中年级/
 ```
 
 ## 常用操作
@@ -98,60 +98,19 @@ python scripts/viewer_sqlite_api.py --port 8765
 
 # 访问
 open http://127.0.0.1:8765/viewer/
-```
 
-### 导出快照
-
-```bash
-# 从 SQLite 导出 JSONL（供外部系统使用）
-python scripts/export_snapshot.py data/v4 \
-  --db storage/knowledge.sqlite \
-  --dataset-id v4
-```
-
-### 检查数据一致性
-
-```bash
-```
-
-## 工作流程
-
-### 1. 准备教材
-
-确保教材已完成 OCR 并转为 Markdown：
-
-```
-ocr/{book-id}.md
-```
-
-### 2. 生成目录（首次）
-
-```bash
-opencode run --agent outline-reader "为 ocr/chem-grade8.md 生成目录"
-```
-
-输出: `data/outlines/chem-grade8.outline.json`
-
-### 3. 处理教材
-
-```bash
-opencode run --agent kg-pipeline "处理 chem-grade8 全书"
-```
-
-Manager 会：
-1. 加载目录
-2. 为每个课时启动 @lesson-processor
-3. 监控进度
-4. 报告结果
-
-### 4. 查看结果
-
-```bash
-# 启动查看器
-python scripts/viewer_sqlite_api.py
-
-# 或检查 SQLite
+# 直接查询 SQLite
 sqlite3 storage/knowledge.sqlite "SELECT COUNT(*) FROM nodes;"
+```
+
+### 验证数据
+
+```bash
+# QA 验证
+python scripts/strict_qa_sqlite.py --dataset-id main
+
+# 图完整性检查
+python scripts/check_graph_integrity.py --dataset-id main
 ```
 
 ## 项目结构
@@ -159,37 +118,34 @@ sqlite3 storage/knowledge.sqlite "SELECT COUNT(*) FROM nodes;"
 ```
 .
 ├── .claude/
-│   ├── agents/           # Agent 定义
+│   ├── agents/           # Agent 定义 (5个)
 │   │   ├── kg-pipeline.md         (Manager)
 │   │   ├── lesson-processor.md    (Worker)
 │   │   ├── outline-reader.md
 │   │   ├── node-expander.md
 │   │   └── qa-reviewer.md
-│   └── skills/           # Skill 实现
-│       ├── chapter-extract/       (提取)
-│       ├── graph-normalize/       (归一化)
-│       ├── knowledge-schema/      (Schema)
-│       └── textbook-outline/      (目录生成)
+│   ├── skills/           # Skill 实现 (4个)
+│   │   ├── chapter-extract/       (提取)
+│   │   ├── graph-normalize/       (归一化)
+│   │   ├── knowledge-schema/      (Schema)
+│   │   └── textbook-outline/      (目录生成)
+│   ├── commands/         # 命令 (1个)
+│   │   └── extract-lesson.md
+│   ├── CONVENTIONS.md    # 编码规范
+│   ├── GLOSSARY.md       # 术语表
+│   └── STYLE_GUIDE.md    # 写作风格
 │
-├── scripts/              # 辅助脚本
-│   ├── viewer_sqlite_api.py       (查看器)
-│   ├── export_snapshot.py         (导出)
-│   └── ...
-│
-├── storage/              # 主存储
-│   └── knowledge.sqlite
-│
+├── scripts/              # 辅助脚本 (20+)
+├── storage/              # SQLite 数据库
 ├── data/                 # 数据文件
-│   ├── outlines/
-│   ├── frameworks/
-│   └── patterns/
+├── ocr/                  # 教材 Markdown
+├── schemas/              # JSON Schema
+├── viewer/               # Web 查看器
 │
-├── schemas/              # JSON Schema 定义
-│   └── v2/
-│
+├── CLAUDE.md             # 项目说明 (Claude Code 入口)
 ├── AGENTS.md             # 详细架构和规则
-├── GLOSSARY.md           # 术语表
-└── README.md             # 本文件
+├── QUICKSTART.md         # 快速上手
+└── DOCS_INDEX.md         # 文档索引
 ```
 
 ## 文档导航
@@ -206,32 +162,6 @@ sqlite3 storage/knowledge.sqlite "SELECT COUNT(*) FROM nodes;"
 **开发文档**:
 - [CHANGELOG.md](CHANGELOG.md) - 变更日志
 - [schemas/v2/README.md](schemas/v2/README.md) - Schema 说明
-
-## 故障排查
-
-### SQLite 锁定
-
-```bash
-# 检查是否有进程占用
-lsof storage/knowledge.sqlite
-
-# 备份并重建
-cp storage/knowledge.sqlite storage/knowledge.backup.sqlite
-```
-
-### 课时处理失败
-
-Manager 会自动停止并报告问题。查看：
-
-```
-runs/{book-id}.pipeline.json
-```
-
-中的 `status` 和 `issues` 字段。
-
-### 上下文溢出
-
-确保使用 Task-per-lesson 模式（默认）。不要在一个会话中处理多个课时。
 
 ## 开发
 
@@ -262,4 +192,4 @@ runs/{book-id}.pipeline.json
 
 ## 许可
 
-[根据项目实际情况填写]
+MIT
