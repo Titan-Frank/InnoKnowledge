@@ -9,3 +9,5 @@ lesson1_*.txt
 data/
 ocr/
 storage/
+node_modules/
+dist/

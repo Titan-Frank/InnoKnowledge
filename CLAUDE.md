@@ -79,9 +79,13 @@ python scripts/merge_staged_lessons.py ... --dry-run
 ### Data Viewing
 
 ```bash
-# Start web viewer
-python scripts/viewer_sqlite_api.py --port 8765
-# Access: http://127.0.0.1:8765/viewer/
+# Start web viewer (TypeScript)
+npm run dev
+# Server: http://127.0.0.1:8765/viewer/
+# Viewer dev: http://127.0.0.1:5173/viewer/
+
+# Legacy Python viewer (still available)
+python scripts/viewer_sqlite_api.py --port 8766
 
 # Query SQLite directly
 sqlite3 storage/knowledge.sqlite "SELECT COUNT(*) FROM nodes;"

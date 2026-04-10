@@ -122,15 +122,33 @@ python scripts/store_lesson_staging.py --help
 # 合并 staged lessons 并跑 normalize/QA
 python scripts/run_parallel_lesson_pipeline.py --help
 
-# 启动查看器
-python scripts/viewer_sqlite_api.py --port 8765
-
-# 访问
-open http://127.0.0.1:8765/viewer/
-
 # 直接查询 SQLite
 sqlite3 storage/knowledge.sqlite "SELECT COUNT(*) FROM nodes;"
 ```
+
+### 启动查看器
+
+```bash
+# 安装依赖（首次）
+npm install
+
+# 开发模式（Hono API + Vite HMR，前后端热更新）
+npm run dev
+# API:       http://127.0.0.1:8765/api/health
+# 查看器:    http://127.0.0.1:5173/viewer/
+
+# 生产模式（构建后单进程服务）
+npm run serve
+# 查看器:    http://127.0.0.1:8765/viewer/
+
+# 仅构建
+npm run build
+
+# 类型检查
+npm run check
+```
+
+> 旧版 Python 查看器仍可使用：`python scripts/viewer_sqlite_api.py --port 8766`
 
 ### 验证数据
 
@@ -169,6 +187,10 @@ python scripts/check_graph_integrity.py --dataset-id main
 │   ├── store_lesson_staging.py
 │   ├── merge_staged_lessons.py
 │   └── run_parallel_lesson_pipeline.py
+├── packages/             # TypeScript Viewer
+│   ├── types/            #   共享 API 类型
+│   ├── server/           #   Hono + better-sqlite3 API 服务
+│   └── viewer/           #   Vite + vanilla TS 前端
 ├── storage/              # SQLite 数据库
 ├── data/                 # 数据文件
 ├── ocr/                  # 教材 Markdown
