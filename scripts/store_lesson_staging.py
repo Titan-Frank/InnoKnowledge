@@ -24,6 +24,9 @@ from knowledge_store_common import (
     require_dataset_row,
     utc_now,
 )
+from embedding_client import embed_texts, DEFAULT_EMBEDDING_URL, DEFAULT_EMBEDDING_MODEL
+
+VALID_CARD_STATUSES = {"draft", "reviewed", "validated"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,7 +45,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mentions-json")
     parser.add_argument("--evidence-json")
     parser.add_argument("--node-cards-json")
+    parser.add_argument(
+        "--input",
+        type=Path,
+        help="Read all artifacts from a JSON file (keys: nodes, edges, profiles, mentions, evidence, node_cards). "
+        "Individual --*-json flags are merged on top and take precedence.",
+    )
     parser.add_argument("--append", action="store_true")
+    parser.add_argument("--embed", action="store_true", default=True,
+                        help="Auto-embed nodes with empty embeddings (default: True)")
+    parser.add_argument("--no-embed", action="store_false", dest="embed",
+                        help="Skip embedding generation")
+    parser.add_argument("--embedding-url", default=DEFAULT_EMBEDDING_URL)
+    parser.add_argument("--embedding-model", default=DEFAULT_EMBEDDING_MODEL)
     return parser.parse_args()
 
 
@@ -211,13 +226,38 @@ def normalize_evidence(
                 "page_end": payload.get("page_end"),
                 "excerpt": str(payload.get("excerpt") or ""),
                 "locator": str(payload.get("locator") or ""),
-                "modality": payload.get("modality"),
-                "extraction_method": str(payload.get("extraction_method") or "llm"),
+                "modality": payload.get("modality") or "text",
+                "extraction_method": str(payload.get("extraction_method") or "ocr"),
                 "normalized_claims_json": dump_json_text(payload.get("normalized_claims", [])),
                 "properties_json": dump_json_text(payload.get("properties", {})),
             }
         )
     return normalized
+
+
+def normalize_card_content(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item).strip()]
+    if value is None:
+        return []
+    text = str(value).strip()
+    return [text] if text else []
+
+
+def normalize_card_status(value: Any) -> str:
+    status = str(value or "").strip()
+    if status in VALID_CARD_STATUSES:
+        return status
+    if status in {"candidate", "active"}:
+        return "draft"
+    return "draft"
+
+
+def normalize_section_id(value: Any, fallback: str = "section") -> str:
+    token = str(value or fallback).strip().lower().replace("_", "-")
+    token = "".join(ch if ch.isalnum() or ch == "-" else "-" for ch in token)
+    token = "-".join(part for part in token.split("-") if part)
+    return token or fallback
 
 
 def normalize_node_cards(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -230,17 +270,27 @@ def normalize_node_cards(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if isinstance(sections, dict):
             sections = [
                 {
-                    "id": section_id,
+                    "id": normalize_section_id(section_id),
                     "title": section_id,
                     "section_type": section_id,
-                    "content": section_value.get("content", "")
+                    "content": normalize_card_content(section_value.get("content", ""))
                     if isinstance(section_value, dict)
-                    else section_value,
+                    else normalize_card_content(section_value),
                     "source_refs": section_value.get("source_refs", [])
                     if isinstance(section_value, dict)
                     else [],
                 }
                 for section_id, section_value in sections.items()
+            ]
+        elif isinstance(sections, list):
+            sections = [
+                {
+                    **section,
+                    "id": normalize_section_id(section.get("id"), f"section-{section_index}"),
+                    "content": normalize_card_content(section.get("content")),
+                }
+                for section_index, section in enumerate(sections, start=1)
+                if isinstance(section, dict)
             ]
         normalized.append(
             {
@@ -256,7 +306,7 @@ def normalize_node_cards(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "source_refs_json": dump_json_text(payload.get("source_refs", [])),
                 "sections_json": dump_json_text(sections),
                 "properties_json": dump_json_text(payload.get("properties", {})),
-                "status": str(payload.get("status") or "candidate"),
+                "status": normalize_card_status(payload.get("status")),
             }
         )
     return normalized
@@ -274,6 +324,43 @@ def replace_table_rows(
     )
 
 
+def auto_embed_nodes(
+    nodes: list[dict[str, Any]],
+    *,
+    url: str,
+    model: str,
+) -> list[dict[str, Any]]:
+    """Backfill empty embeddings by calling the embedding API."""
+    texts_to_embed: list[tuple[int, str]] = []
+    for index, node in enumerate(nodes):
+        embedding = json.loads(node.get("embedding_json", "[]"))
+        if embedding:
+            continue
+        parts = [node.get("canonical_name", "")]
+        if node.get("definition"):
+            parts.append(node["definition"])
+        aliases = json.loads(node.get("aliases_json", "[]"))
+        if aliases:
+            parts.extend(str(a) for a in aliases if a)
+        text = " ".join(p for p in parts if p.strip())
+        if text.strip():
+            texts_to_embed.append((index, text))
+
+    if not texts_to_embed:
+        return nodes
+
+    embeddings = embed_texts(
+        [text for _, text in texts_to_embed],
+        url=url,
+        model=model,
+    )
+    for (index, _), embedding in zip(texts_to_embed, embeddings):
+        if embedding:
+            nodes[index]["embedding_json"] = dump_json_text(embedding)
+
+    return nodes
+
+
 def main() -> int:
     args = parse_args()
     root = Path(args.root).expanduser().resolve()
@@ -288,16 +375,36 @@ def main() -> int:
     lesson_run_id = args.lesson_run_id or make_lesson_run_id(args.book_id, batch_anchor)
     now = utc_now()
 
-    nodes = normalize_nodes(parse_json_array(args.nodes_json, "nodes"))
-    edges = normalize_edges(parse_json_array(args.edges_json, "edges"))
-    profiles = normalize_profiles(parse_json_array(args.profiles_json, "profiles"))
+    # Load from --input file first (if provided), then overlay individual flags
+    file_data: dict[str, Any] = {}
+    if args.input:
+        input_path = Path(args.input).expanduser().resolve()
+        if not input_path.exists():
+            raise SystemExit(f"--input file not found: {input_path}")
+        with open(input_path, encoding="utf-8") as f:
+            file_data = json.load(f)
+        if not isinstance(file_data, dict):
+            raise SystemExit("--input file must contain a JSON object")
+
+    def merge_artifact(key: str, raw_flag: str | None, label: str) -> list[dict[str, Any]]:
+        """Combine file-based and flag-based artifact arrays; flag takes precedence."""
+        from_flag = parse_json_array(raw_flag, label)
+        if from_flag:
+            return from_flag
+        return file_data.get(key, []) if isinstance(file_data.get(key), list) else []
+
+    nodes = normalize_nodes(merge_artifact("nodes", args.nodes_json, "nodes"))
+    if args.embed:
+        nodes = auto_embed_nodes(nodes, url=args.embedding_url, model=args.embedding_model)
+    edges = normalize_edges(merge_artifact("edges", args.edges_json, "edges"))
+    profiles = normalize_profiles(merge_artifact("profiles", args.profiles_json, "profiles"))
     mentions = normalize_mentions(
-        parse_json_array(args.mentions_json, "mentions"), args.book_id, batch_anchor
+        merge_artifact("mentions", args.mentions_json, "mentions"), args.book_id, batch_anchor
     )
     evidence = normalize_evidence(
-        parse_json_array(args.evidence_json, "evidence"), args.book_id, batch_anchor
+        merge_artifact("evidence", args.evidence_json, "evidence"), args.book_id, batch_anchor
     )
-    node_cards = normalize_node_cards(parse_json_array(args.node_cards_json, "node-cards"))
+    node_cards = normalize_node_cards(merge_artifact("node_cards", args.node_cards_json, "node-cards"))
 
     stats = Counter(
         {

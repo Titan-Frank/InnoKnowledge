@@ -674,6 +674,16 @@ def connect_db(db_path: Path | str) -> sqlite3.Connection:
 
 def ensure_sqlite_schema(connection: sqlite3.Connection) -> None:
     connection.executescript(SQLITE_SCHEMA_PATH.read_text(encoding="utf-8"))
+    ensure_embedding_column(connection)
+
+
+def ensure_embedding_column(connection: sqlite3.Connection) -> None:
+    """Add embedding_json column to nodes table if missing (migration)."""
+    columns = {row["name"] for row in connection.execute("PRAGMA table_info(nodes)").fetchall()}
+    if "embedding_json" not in columns:
+        connection.execute(
+            "ALTER TABLE nodes ADD COLUMN embedding_json TEXT NOT NULL DEFAULT '[]'"
+        )
 
 
 def get_table_sql(connection: sqlite3.Connection, table_name: str) -> str | None:
@@ -962,6 +972,8 @@ def load_nodes(
     nodes = []
     for row in rows:
         node = dict(row)
+        # Strip large fields not needed by viewers/exports
+        node.pop("embedding_json", None)
         # Parse JSON fields
         for key in ["aliases", "learning_modes", "bridge_tags", "framework_refs"]:
             if f"{key}_json" in node:

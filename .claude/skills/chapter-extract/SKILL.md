@@ -156,6 +156,10 @@ Lesson-local node candidates should be shaped like canonical nodes, except their
   "learning_modes": ["factual", "conceptual"],
   "bridge_tags": ["matter", "structure", "properties"],
   "framework_refs": ["framework:chem:topic:2-1"],
+  "properties": {
+    "state": "气体",
+    "color": "无色"
+  },
   "status": "candidate"
 }
 ```
@@ -176,7 +180,8 @@ Every backbone node should have a corresponding profile:
   "framework_refs": ["framework:chem:expectation:2-1-3"],
   "learning_objectives": ["描述氧气的物理性质", "掌握氧气的化学性质"],
   "textbook_refs": ["struct:chem:lesson:2-1"],
-  "status": "candidate"
+  "properties": {},
+  "status": "draft"
 }
 ```
 
@@ -195,7 +200,8 @@ Every mention must be backed by lesson-local evidence:
   "page_start": 42,
   "page_end": 42,
   "modality": "text",
-  "extraction_method": "ocr"
+  "extraction_method": "ocr",
+  "properties": {}
 }
 ```
 
@@ -213,7 +219,8 @@ Every backbone node must have at least one lesson-local mention:
   "target_id": "entity/substance:oxygen",
   "role": "focuses_on",
   "source_refs": ["evidence:chem:p42-para-3"],
-  "confidence": 0.95
+  "confidence": 0.95,
+  "properties": {}
 }
 ```
 

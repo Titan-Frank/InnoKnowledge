@@ -20,19 +20,15 @@ Use node cards to expand one canonical node into a readable, evidence-backed exp
 - Every card should keep section-level or card-level `source_refs`.
 - If a section is weakly supported, omit it instead of guessing.
 
-## File Path
+## Storage
 
-Write cards to:
+Node cards are stored in SQLite via the staging workflow:
 
-- `<output-root>/node_cards/<safe-node-id>.json`
+1. `@node-expander` generates provisional node card payloads
+2. `@lesson-processor` passes them to `scripts/store_lesson_staging.py` → `staging_node_cards` table
+3. `@kg-reducer` merges them into the canonical `node_cards` table via `scripts/merge_staged_lessons.py`
 
-Where:
-
-- `safe-node-id = node_id.replace(":", "__").replace("/", "__")`
-
-Example:
-
-- `entity/substance:oxygen` -> `<output-root>/node_cards/entity__substance__oxygen.json`
+Do not write node cards as individual JSON files.
 
 ## What Belongs In A Card
 

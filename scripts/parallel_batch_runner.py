@@ -23,7 +23,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--book-id", required=True)
     parser.add_argument("--output-root", required=True)
     parser.add_argument("--parallel", type=int, default=4)
-    parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=1,
+        help="Deprecated compatibility flag. Must be 1 because each Task processes exactly one lesson.",
+    )
     parser.add_argument("--generate-tasks", action="store_true")
     return parser.parse_args()
 
@@ -34,6 +39,10 @@ def chunked(items: list[dict[str, Any]], size: int) -> list[list[dict[str, Any]]
 
 def main() -> int:
     args = parse_args()
+    if args.batch_size != 1:
+        raise SystemExit(
+            "--batch-size must be 1. The pipeline requires one isolated Task per lesson."
+        )
     lessons = [
         item
         for item in load_outline_items(args.book_id)
@@ -55,7 +64,7 @@ def main() -> int:
             }
         )
 
-    groups = chunked(lesson_runs, max(1, args.batch_size))
+    groups = chunked(lesson_runs, 1)
     workers: list[dict[str, Any]] = []
     for index, group in enumerate(groups):
         worker_slot = index % max(1, args.parallel)

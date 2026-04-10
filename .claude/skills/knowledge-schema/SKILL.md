@@ -10,15 +10,9 @@ Enforce schema compliance for all knowledge artifacts. This skill provides schem
 
 ## Quick Start
 
-```bash
-# Schema validation
-python -m scripts.validate \
-  --schema schemas/v2/node.schema.json \
-  --data <node.json>
-
-# Used implicitly by other skills
-# No direct invocation required for normal workflow
-```
+Schema validation is performed by `scripts/strict_qa_sqlite.py` during the pipeline.
+No separate validation script is needed. This skill is used implicitly by other skills
+for schema knowledge and ID generation conventions.
 
 ## Schema Overview
 
@@ -51,13 +45,15 @@ Before using any artifact, read in this order:
 
 | Field | Type | Values | Description |
 |-------|------|--------|-------------|
-| `id` | URN | `urn:knowledge:{subject}:{name}` | Stable canonical identifier |
-| `canonical_label` | String | Text | Primary display name |
+| `id` | String | `^[a-z0-9/_:-]+$` | Stable node identifier, e.g. `concept:chemical-change` |
+| `canonical_name` | String | Text | Primary display name |
 | `aliases` | Array | [String] | Alternative names |
 | `node_kind` | Enum | see below | Ontology type |
 | `node_layer` | Enum | `backbone`, `support` | Visibility layer |
-| `subject` | String | e.g., `physics`, `chemistry` | Discipline |
+| `definition` | String | Text | Stable definition |
 | `learning_modes` | Array | [Enum] | Required, non-empty |
+| `properties` | Object | JSON object | Compact structured facts |
+| `status` | Enum | `candidate`, `active`, `merged`, `deprecated` | Node lifecycle |
 
 ### Node Kinds
 
@@ -115,12 +111,16 @@ Move to node cards instead.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | URN | `urn:knowledge:edge:{from}-{type}-{to}` |
-| `source` | URN | Origin node ID |
-| `target` | URN | Destination node ID |
-| `relation` | Enum | Edge type |
+| `id` | String | `edge:{stable-suffix}` |
+| `from` | String | Origin node ID |
+| `to` | String | Destination node ID |
+| `edge_type` | Enum | Edge type |
 | `edge_layer` | Enum | `backbone`, `support` |
 | `backbone_expand` | Boolean | Show in default expansion? |
+| `directionality` | Enum | `directed`, `undirected` |
+| `confidence` | Number | `0.0` to `1.0` |
+| `properties` | Object | JSON object |
+| `status` | Enum | `candidate`, `active`, `deprecated` |
 
 ### Edge Types
 
@@ -184,17 +184,21 @@ related_to    - General association
 | `id` | URN | Profile identifier |
 | `node_id` | URN | Linked canonical node |
 | `subject` | String | Discipline |
-| `school_stage` | Enum | `primary`, `junior_high`, `senior_high` |
-| `grade_band` | String | e.g., `grade_8`, `grade_10-12` |
-| `learning_modes` | Array | Instructional approaches |
+| `school_stage` | Enum | `primary`, `junior_secondary`, `senior_secondary`, `higher`, `cross_stage` |
+| `grade_band` | String | e.g., `7-9`, `10-12` |
+| `curriculum_role` | Enum | introduced/reinforced/developed/integrated/transferred/assessed |
+| `mastery_level` | Enum | aware/identify/understand/apply/analyze/model/transfer/evaluate/create |
+| `framework_refs` | Array | Required, non-empty |
+| `learning_objectives` | Array | Required, non-empty |
+| `properties` | Object | JSON object |
+| `status` | Enum | `draft`, `reviewed`, `validated` |
 
 ### Optional Fields
 
 | Field | Use |
 |-------|-----|
-| `objectives` | Learning objectives |
-| `framework_refs` | Curriculum standard mappings |
 | `textbook_refs` | Textbook locations |
+| `textbook_ids` | Textbook source IDs |
 | `source_refs` | Evidence references |
 
 ## Mention Schema
@@ -208,9 +212,15 @@ related_to    - General association
 | Field | Type | Description |
 |-------|------|-------------|
 | `id` | URN | Mention identifier |
+| `source_type` | Enum | textbook/curriculum/exercise/assessment/note/media/other |
+| `source_id` | String | Source artifact ID |
 | `target_id` | URN | Canonical node ID |
 | `anchor_ref` | String | Outline anchor |
+| `target_type` | Enum | node/edge/profile/card |
 | `role` | Enum | How lesson treats the node |
+| `source_refs` | Array | Evidence IDs, required non-empty |
+| `confidence` | Number | `0.0` to `1.0` |
+| `properties` | Object | JSON object |
 
 ### Roles
 
@@ -220,8 +230,12 @@ related_to    - General association
 | `defines` | Formal definition |
 | `focuses_on` | Main topic |
 | `demonstrates` | Example/illustration |
+| `applies` | Applies or uses the target |
 | `reviews` | Review/practice |
 | `mentions` | Passing reference |
+| `supports` | Provides support for the target |
+| `assesses` | Assessment reference |
+| `extends` | Extends prior treatment |
 
 ## Evidence Schema
 
@@ -230,10 +244,13 @@ related_to    - General association
 | Field | Type | Description |
 |-------|------|-------------|
 | `id` | URN | Evidence identifier |
+| `source_type` | Enum | textbook/curriculum/exercise/assessment/note/media/other |
 | `source_id` | String | Book identifier |
-| `anchor` | String | Location anchor |
+| `anchor_ref` | String | Location anchor |
 | `excerpt` | String | Text fragment |
-| `method` | String | Extraction method |
+| `locator` | String | Page/paragraph/table/figure locator |
+| `extraction_method` | Enum | manual/pdftotext/ocr/speech_to_text/mixed |
+| `properties` | Object | JSON object |
 
 ### Anchors
 
@@ -246,7 +263,9 @@ related_to    - General association
 
 - `ocr` - OCR-completed markdown
 - `manual` - Manual entry
-- `import` - Imported from external source
+- `pdftotext` - Extracted with PDF text tooling
+- `speech_to_text` - Audio/video transcript extraction
+- `mixed` - Multiple methods
 
 ## Node Card Schema
 
@@ -256,17 +275,22 @@ Each node card contains detailed explanation:
 
 ```json
 {
-  "id": "urn:knowledge:card:{node-id}",
-  "node_id": "urn:knowledge:{subject}:{name}",
+  "id": "node-card:{node-id}",
+  "node_id": "concept:chemical-change",
   "card_layer": "backbone|support",
+  "title": "化学变化",
+  "summary": "Short evidence-backed summary.",
   "sections": [
     {
-      "id": "conceptual-overview",
-      "title": "Conceptual Overview",
-      "content": "...",
-      "pattern_ref": "explanation/v2/concept-overview"
+      "id": "definition",
+      "title": "定义",
+      "section_type": "definition",
+      "content": ["Evidence-backed definition."],
+      "source_refs": ["evidence:auto-example"]
     }
-  ]
+  ],
+  "properties": {},
+  "status": "draft"
 }
 ```
 
@@ -288,31 +312,33 @@ Keep sections **compact, structured, evidence-backed**.
 ### Node ID
 
 ```
-urn:knowledge:{subject}:{canonical-name}
+{node_kind}[/node_subkind]:{stable-token}
 ```
 
-- `subject`: lowercase, e.g., `physics`, `chemistry`
-- `canonical-name`: lowercase, hyphen-separated, ASCII only
+- Use ASCII IDs only.
+- Legacy IDs such as `concept:chemical-change` are allowed.
+- New auto IDs commonly use `concept:auto-{hash}` or `entity/substance:auto-{hash}`.
 
 Examples:
-- `urn:knowledge:physics:newtons-first-law`
-- `urn:knowledge:chemistry:chemical-bond`
+- `concept:chemical-change`
+- `entity/substance:oxygen`
+- `activity/experiment:auto-abc123`
 
 ### Edge ID
 
 ```
-urn:knowledge:edge:{from-node}-{relation}-{to-node}
+edge:auto-{stable-hash}
 ```
 
 Example:
-- `urn:knowledge:edge:chemical-bond-contains-ionic-bond`
+- `edge:auto-abc123def456`
 
 ### Safe Node ID (for filenames)
 
 ```python
 safe_id = node_id.replace(":", "__").replace("/", "__")
-# e.g., "urn:knowledge:physics:newtons-first-law"
-#       → "urn__knowledge__physics__newtons-first-law"
+# e.g., "entity/substance:oxygen"
+#       → "entity__substance__oxygen"
 ```
 
 ## Validation
@@ -330,15 +356,11 @@ Before writing any artifact:
 ### Validation Tools
 
 ```bash
-# Validate single artifact
-scripts/validate.py \
-  --schema schemas/v2/node.schema.json \
-  --data path/to/node.json
+# QA validation (schema + completeness + integrity)
+python scripts/strict_qa_sqlite.py --dataset-id main
 
-# Validate batch
-scripts/validate_batch.py \
-  --output-root data/main/ \
-  --scope nodes
+# Graph integrity check (cycles, isolated nodes, connectivity)
+python scripts/check_graph_integrity.py --dataset-id main
 ```
 
 ## References

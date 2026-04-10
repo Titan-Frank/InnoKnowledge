@@ -55,42 +55,42 @@ Return:
         "id": "definition",
         "title": "定义",
         "section_type": "definition",
-        "content": "Definition grounded in lesson evidence",
+        "content": ["Definition grounded in lesson evidence"],
         "source_refs": ["raw-evidence-id"]
       },
       {
         "id": "essence",
         "title": "核心本质",
         "section_type": "essence",
-        "content": "Core distilled understanding",
+        "content": ["Core distilled understanding"],
         "source_refs": ["raw-evidence-id"]
       },
       {
-        "id": "key_points",
+        "id": "key-points",
         "title": "关键要点",
         "section_type": "key_points",
-        "content": "3-5 key points",
+        "content": ["Key point 1", "Key point 2", "Key point 3"],
         "source_refs": ["raw-evidence-id"]
       },
       {
-        "id": "example",
+        "id": "examples",
         "title": "示例",
         "section_type": "example",
-        "content": "Lesson-local example",
+        "content": ["Lesson-local example"],
         "source_refs": ["raw-evidence-id"]
       },
       {
         "id": "application",
         "title": "应用",
         "section_type": "application",
-        "content": "Practical applications",
+        "content": ["Practical applications"],
         "source_refs": ["raw-evidence-id"]
       },
       {
-        "id": "misconception",
+        "id": "misconceptions",
         "title": "常见误解",
         "section_type": "misconception",
-        "content": "Common misconception when applicable",
+        "content": ["Common misconception when applicable"],
         "source_refs": ["raw-evidence-id"]
       }
     ],
@@ -99,7 +99,7 @@ Return:
     "properties": {
       "provisional": true
     },
-    "status": "candidate"
+    "status": "draft"
   },
   "issues": []
 }

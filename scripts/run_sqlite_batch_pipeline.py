@@ -271,7 +271,7 @@ def main() -> int:
     )
 
     try:
-        mark_manifest(manifest_path, "backbone", "in_progress", batch_anchor)
+        mark_manifest(manifest_path, "staging", "in_progress", batch_anchor)
         if not args.skip_coverage:
             run_step(
                 [
@@ -292,8 +292,9 @@ def main() -> int:
             )
         if not args.skip_local_subgraph:
             run_local_subgraph(args, root, batch_anchor, dataset_args)
-        mark_manifest(manifest_path, "backbone", "completed", batch_anchor)
+        mark_manifest(manifest_path, "staging", "completed", batch_anchor)
 
+        mark_manifest(manifest_path, "merge", "completed", batch_anchor)
         mark_manifest(manifest_path, "normalize", "in_progress", batch_anchor)
         finalize_cmd = [
             sys.executable,
@@ -332,7 +333,7 @@ def main() -> int:
     except subprocess.CalledProcessError as exc:
         note = f"Command failed with exit {exc.returncode}: {' '.join(exc.cmd)}"
         if manifest_path is not None:
-            for stage in ("qa", "normalize", "backbone"):
+            for stage in ("qa", "normalize", "merge", "staging"):
                 try:
                     mark_manifest(manifest_path, stage, "blocked", batch_anchor, note)
                     break

@@ -66,7 +66,7 @@
 
 ### S
 
-**School Stage** - 学段，如 `primary`, `junior_high`, `senior_high`。
+**School Stage** - 学段，如 `primary`, `junior_secondary`, `senior_secondary`。
 
 **Schema** - 模式，定义数据结构的标准，位于 `schemas/v2/`。
 
@@ -118,8 +118,8 @@
 
 ### ID 格式
 
-- 节点: `urn:knowledge:{subject}:{concept-name}`
-- 边: `urn:knowledge:edge:{from}-{type}-{to}`
+- 节点: `{node_kind}[/node_subkind]:{stable-token}`，如 `concept:chemical-change`
+- 边: `edge:auto-{stable-hash}`
 - 批次锚点: `struct:{book-id}:lesson:{x-y-z}`
 
 ### 变量命名（代码中）

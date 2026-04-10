@@ -63,16 +63,46 @@ VALID_NODE_KINDS = [
 ]
 
 VALID_NODE_LAYERS = ["backbone", "support"]
+VALID_NODE_STATUSES = ["candidate", "active", "merged", "deprecated"]
+VALID_LEARNING_MODES = ["factual", "conceptual", "procedural", "metacognitive"]
+VALID_EDGE_LAYERS = ["backbone", "support"]
+VALID_EDGE_STATUSES = ["candidate", "active", "deprecated"]
+VALID_DIRECTIONALITIES = ["directed", "undirected"]
 
 VALID_MENTION_ROLES = [
     "introduces",
     "defines",
     "focuses_on",
     "demonstrates",
+    "applies",
     "reviews",
     "mentions",
-    "prerequisite_to",
+    "supports",
+    "assesses",
+    "extends",
 ]
+
+VALID_PROFILE_STATUSES = ["draft", "reviewed", "validated"]
+VALID_CARD_STATUSES = ["draft", "reviewed", "validated"]
+VALID_CARD_SECTION_TYPES = [
+    "definition",
+    "essence",
+    "key_points",
+    "structure",
+    "procedure",
+    "application",
+    "misconception",
+    "example",
+    "assessment",
+    "extension",
+    "evidence",
+    "background",
+    "comparison",
+    "reflection",
+    "other",
+]
+VALID_EVIDENCE_MODALITIES = ["text", "image", "table", "equation", "audio", "video", "mixed"]
+VALID_EXTRACTION_METHODS = ["manual", "pdftotext", "ocr", "speech_to_text", "mixed"]
 
 
 class StrictQA:
@@ -170,21 +200,52 @@ class StrictQA:
                 )
                 error_count += 1
 
+            if row["status"] not in VALID_NODE_STATUSES:
+                self._add_error(
+                    "node",
+                    node_id,
+                    f"Invalid status: {row['status']}",
+                    {"valid_values": VALID_NODE_STATUSES},
+                )
+                error_count += 1
+
+            parsed_json: dict[str, Any] = {}
             # Validate JSON fields
-            for json_field in [
-                "aliases_json",
-                "learning_modes_json",
-                "bridge_tags_json",
-            ]:
+            for json_field in ["aliases_json", "learning_modes_json", "bridge_tags_json"]:
                 try:
-                    value = json.loads(row[json_field])
-                    if not isinstance(value, (list, dict)):
-                        raise ValueError("Not a valid JSON array/object")
+                    value = json.loads(row[json_field] or "[]")
+                    if not isinstance(value, list):
+                        raise ValueError("Not a valid JSON array")
+                    parsed_json[json_field] = value
                 except (json.JSONDecodeError, ValueError) as e:
                     self._add_error(
                         "node", node_id, f"Invalid JSON in {json_field}: {e}"
                     )
                     error_count += 1
+
+            learning_modes = parsed_json.get("learning_modes_json", [])
+            if not learning_modes:
+                self._add_error("node", node_id, "learning_modes must be non-empty")
+                error_count += 1
+            else:
+                invalid_modes = [mode for mode in learning_modes if mode not in VALID_LEARNING_MODES]
+                if invalid_modes:
+                    self._add_error(
+                        "node",
+                        node_id,
+                        f"Invalid learning_modes: {invalid_modes}",
+                        {"valid_values": VALID_LEARNING_MODES},
+                    )
+                    error_count += 1
+
+            try:
+                properties_value = json.loads(row["properties_json"] or "{}")
+                if not isinstance(properties_value, dict):
+                    raise ValueError("properties_json must be an object")
+            except (json.JSONDecodeError, ValueError) as e:
+                self._add_error("node", node_id, f"Invalid properties_json: {e}")
+                error_count += 1
+                properties_value = {}
 
             # Check backbone nodes have cards
             if row["node_layer"] == "backbone":
@@ -213,9 +274,7 @@ class StrictQA:
                 error_count += 1
 
             # Check properties for specific node types (RECOMMENDED with explanation)
-            properties = (
-                json.loads(row["properties_json"]) if row["properties_json"] else {}
-            )
+            properties = properties_value
             notes = row["notes"] or ""
 
             # Entity/substance nodes SHOULD have meaningful properties
@@ -264,30 +323,36 @@ class StrictQA:
                             },
                         )
 
-            # Activity/experiment nodes MUST have properties
+            # Activity/experiment nodes SHOULD have properties (warning, not error)
             if (
                 row["node_kind"] == "activity"
                 and row["node_subkind"] == "experiment"
             ):
                 if not properties or properties == {}:
-                    self._add_error(
-                        "node",
-                        node_id,
-                        "activity/experiment node has empty properties (MUST have method/steps/materials)",
-                        {"node_subkind": row["node_subkind"]},
-                    )
-                    error_count += 1
+                    if not notes:
+                        self._add_warning(
+                            "node",
+                            node_id,
+                            "activity/experiment node has empty properties and no explanation in notes",
+                            {
+                                "node_subkind": row["node_subkind"],
+                                "suggestion": "Add method/steps/materials or explain in notes",
+                            },
+                        )
 
-            # Entity/equipment nodes MUST have properties
+            # Entity/equipment nodes SHOULD have properties (warning, not error)
             if row["node_kind"] == "entity" and row["node_subkind"] == "equipment":
                 if not properties or properties == {}:
-                    self._add_error(
-                        "node",
-                        node_id,
-                        "entity/equipment node has empty properties (MUST have instrument_type)",
-                        {"node_subkind": row["node_subkind"]},
-                    )
-                    error_count += 1
+                    if not notes:
+                        self._add_warning(
+                            "node",
+                            node_id,
+                            "entity/equipment node has empty properties and no explanation in notes",
+                            {
+                                "node_subkind": row["node_subkind"],
+                                "suggestion": "Add instrument_type/usage or explain in notes",
+                            },
+                        )
 
         print(f"  ✓ Validated {len(rows)} nodes, found {error_count} errors")
         return error_count
@@ -300,6 +365,14 @@ class StrictQA:
             "SELECT * FROM edges WHERE dataset_id = ? AND status != 'deprecated'",
             (self.dataset_id,),
         ).fetchall()
+
+        # Pre-load all node IDs for O(1) endpoint checks
+        node_ids = {
+            r["id"]
+            for r in self.connection.execute(
+                "SELECT id FROM nodes WHERE dataset_id = ?", (self.dataset_id,)
+            ).fetchall()
+        }
 
         error_count = 0
 
@@ -316,24 +389,41 @@ class StrictQA:
                 )
                 error_count += 1
 
-            # Validate endpoints exist
-            from_exists = self.connection.execute(
-                "SELECT 1 FROM nodes WHERE dataset_id = ? AND id = ?",
-                (self.dataset_id, row["from_id"]),
-            ).fetchone()
+            if row["edge_layer"] not in VALID_EDGE_LAYERS:
+                self._add_error(
+                    "edge",
+                    edge_id,
+                    f"Invalid edge_layer: {row['edge_layer']}",
+                    {"valid_values": VALID_EDGE_LAYERS},
+                )
+                error_count += 1
 
-            if not from_exists:
+            if row["directionality"] not in VALID_DIRECTIONALITIES:
+                self._add_error(
+                    "edge",
+                    edge_id,
+                    f"Invalid directionality: {row['directionality']}",
+                    {"valid_values": VALID_DIRECTIONALITIES},
+                )
+                error_count += 1
+
+            if row["status"] not in VALID_EDGE_STATUSES:
+                self._add_error(
+                    "edge",
+                    edge_id,
+                    f"Invalid status: {row['status']}",
+                    {"valid_values": VALID_EDGE_STATUSES},
+                )
+                error_count += 1
+
+            # Validate endpoints exist
+            if row["from_id"] not in node_ids:
                 self._add_error(
                     "edge", edge_id, f"Source node does not exist: {row['from_id']}"
                 )
                 error_count += 1
 
-            to_exists = self.connection.execute(
-                "SELECT 1 FROM nodes WHERE dataset_id = ? AND id = ?",
-                (self.dataset_id, row["to_id"]),
-            ).fetchone()
-
-            if not to_exists:
+            if row["to_id"] not in node_ids:
                 self._add_error(
                     "edge", edge_id, f"Target node does not exist: {row['to_id']}"
                 )
@@ -390,15 +480,35 @@ class StrictQA:
                 self._add_error("profile", profile_id, "Missing context_key")
                 error_count += 1
 
+            if row["status"] not in VALID_PROFILE_STATUSES:
+                self._add_error(
+                    "profile",
+                    profile_id,
+                    f"Invalid status: {row['status']}",
+                    {"valid_values": VALID_PROFILE_STATUSES},
+                )
+                error_count += 1
+
             # Validate learning_objectives not empty
-            objectives = json.loads(row["learning_objectives_json"])
+            objectives = json.loads(row["learning_objectives_json"] or "[]")
             if not objectives:
-                self._add_warning(
+                self._add_error(
                     "profile",
                     profile_id,
                     "Empty learning_objectives",
                     {"node_id": row["node_id"]},
                 )
+                error_count += 1
+
+            framework_refs = json.loads(row["framework_refs_json"] or "[]")
+            if not framework_refs:
+                self._add_error(
+                    "profile",
+                    profile_id,
+                    "Empty framework_refs",
+                    {"node_id": row["node_id"]},
+                )
+                error_count += 1
 
         print(f"  ✓ Validated {len(rows)} profiles, found {error_count} errors")
         return error_count
@@ -467,6 +577,27 @@ class StrictQA:
             "SELECT * FROM mentions WHERE dataset_id = ?", (self.dataset_id,)
         ).fetchall()
 
+        # Pre-load all node IDs for O(1) target checks
+        node_ids = {
+            r["id"]
+            for r in self.connection.execute(
+                "SELECT id FROM nodes WHERE dataset_id = ?", (self.dataset_id,)
+            ).fetchall()
+        }
+
+        # Pre-load evidence link counts for O(1) checks
+        evidence_link_counts: dict[str, int] = {}
+        for r in self.connection.execute(
+            """
+            SELECT owner_id, COUNT(*) as cnt
+            FROM evidence_links
+            WHERE dataset_id = ?
+            GROUP BY owner_id
+            """,
+            (self.dataset_id,),
+        ).fetchall():
+            evidence_link_counts[r["owner_id"]] = r["cnt"]
+
         error_count = 0
 
         for row in rows:
@@ -474,12 +605,7 @@ class StrictQA:
 
             # Validate target_id exists
             if row["target_type"] == "node":
-                target_exists = self.connection.execute(
-                    "SELECT 1 FROM nodes WHERE dataset_id = ? AND id = ?",
-                    (self.dataset_id, row["target_id"]),
-                ).fetchone()
-
-                if not target_exists:
+                if row["target_id"] not in node_ids:
                     self._add_error(
                         "mention",
                         mention_id,
@@ -506,18 +632,11 @@ class StrictQA:
                 )
                 error_count += 1
 
-            # Check for evidence links
-            evidence_count = self.connection.execute(
-                """
-                SELECT COUNT(*) as cnt
-                FROM evidence_links
-                WHERE owner_id = ?
-                """,
-                (mention_id,),
-            ).fetchone()["cnt"]
+            # Check for evidence links (using pre-loaded counts)
+            evidence_count = evidence_link_counts.get(mention_id, 0)
 
             if evidence_count == 0:
-                source_refs = json.loads(row["source_refs_json"])
+                source_refs = json.loads(row["source_refs_json"] or "[]")
                 if not source_refs:
                     self._add_error(
                         "mention",
@@ -554,14 +673,23 @@ class StrictQA:
                 error_count += 1
 
             # Validate modality
-            valid_modalities = ["text", "image", "table", "equation", "diagram"]
-            if row["modality"] and row["modality"] not in valid_modalities:
-                self._add_warning(
+            if row["modality"] and row["modality"] not in VALID_EVIDENCE_MODALITIES:
+                self._add_error(
                     "evidence",
                     evidence_id,
-                    f"Unusual modality: {row['modality']}",
-                    {"valid_values": valid_modalities},
+                    f"Invalid modality: {row['modality']}",
+                    {"valid_values": VALID_EVIDENCE_MODALITIES},
                 )
+                error_count += 1
+
+            if row["extraction_method"] not in VALID_EXTRACTION_METHODS:
+                self._add_error(
+                    "evidence",
+                    evidence_id,
+                    f"Invalid extraction_method: {row['extraction_method']}",
+                    {"valid_values": VALID_EXTRACTION_METHODS},
+                )
+                error_count += 1
 
         print(f"  ✓ Validated {len(rows)} evidence records, found {error_count} errors")
         return error_count
@@ -603,6 +731,15 @@ class StrictQA:
                 )
                 error_count += 1
 
+            if row["status"] not in VALID_CARD_STATUSES:
+                self._add_error(
+                    "node_card",
+                    card_id,
+                    f"Invalid status: {row['status']}",
+                    {"valid_values": VALID_CARD_STATUSES},
+                )
+                error_count += 1
+
             # Check summary length (100-500 characters recommended)
             summary_len = len(row["summary"])
             if summary_len < 50:
@@ -619,7 +756,7 @@ class StrictQA:
 
             # Validate sections
             try:
-                sections = json.loads(row["sections_json"])
+                sections = json.loads(row["sections_json"] or "[]")
                 if not isinstance(sections, list):
                     raise ValueError("Sections must be a list")
 
@@ -629,17 +766,17 @@ class StrictQA:
                 else:
                     # Check required sections for backbone cards
                     if row["card_layer"] == "backbone":
-                        section_ids = {
-                            s.get("id") for s in sections if isinstance(s, dict)
+                        section_types = {
+                            s.get("section_type") for s in sections if isinstance(s, dict)
                         }
-                        recommended = {"definition", "key_points", "example"}
-                        missing = recommended - section_ids
+                        recommended = {"definition", "essence", "key_points"}
+                        missing = recommended - section_types
                         if missing:
                             self._add_warning(
                                 "node_card",
                                 card_id,
-                                f"Recommended sections missing: {missing}",
-                                {"present": list(section_ids)},
+                                f"Recommended section types missing: {missing}",
+                                {"present": list(section_types)},
                             )
 
                     # Validate each section
@@ -656,6 +793,14 @@ class StrictQA:
                                 "node_card", card_id, f"Section {i} missing 'id'"
                             )
                             error_count += 1
+                        elif not re.match(r"^[a-z0-9-]+$", str(section["id"])):
+                            self._add_error(
+                                "node_card",
+                                card_id,
+                                f"Invalid section id: {section['id']}",
+                                {"expected_pattern": "^[a-z0-9-]+$"},
+                            )
+                            error_count += 1
 
                         if "title" not in section:
                             self._add_error(
@@ -668,6 +813,32 @@ class StrictQA:
                                 "node_card",
                                 card_id,
                                 f"Section {section.get('id', i)} missing 'content'",
+                            )
+                            error_count += 1
+                        elif not isinstance(section["content"], list):
+                            self._add_error(
+                                "node_card",
+                                card_id,
+                                f"Section {section.get('id', i)} content must be an array",
+                            )
+                            error_count += 1
+                        elif not section["content"] or not all(
+                            isinstance(item, str) and item.strip()
+                            for item in section["content"]
+                        ):
+                            self._add_error(
+                                "node_card",
+                                card_id,
+                                f"Section {section.get('id', i)} content must contain non-empty strings",
+                            )
+                            error_count += 1
+
+                        if "section_type" in section and section["section_type"] not in VALID_CARD_SECTION_TYPES:
+                            self._add_error(
+                                "node_card",
+                                card_id,
+                                f"Invalid section_type: {section['section_type']}",
+                                {"valid_values": VALID_CARD_SECTION_TYPES},
                             )
                             error_count += 1
 
@@ -819,8 +990,8 @@ class StrictQA:
             """
             SELECT n.id, n.canonical_name, n.node_layer
             FROM nodes n
-            LEFT JOIN edges e1 ON n.id = e1.from_id AND e1.dataset_id = ?
-            LEFT JOIN edges e2 ON n.id = e2.to_id AND e2.dataset_id = ?
+            LEFT JOIN edges e1 ON n.id = e1.from_id AND e1.dataset_id = ? AND e1.status != 'deprecated'
+            LEFT JOIN edges e2 ON n.id = e2.to_id AND e2.dataset_id = ? AND e2.status != 'deprecated'
             WHERE n.dataset_id = ?
               AND e1.id IS NULL
               AND e2.id IS NULL

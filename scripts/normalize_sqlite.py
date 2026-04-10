@@ -23,6 +23,13 @@ from knowledge_store_common import (
     rebuild_node_terms,
 )
 
+
+def normalize_section_id(value: object, fallback: str = "section") -> str:
+    token = str(value or fallback).strip().lower().replace("_", "-")
+    token = re.sub(r"[^a-z0-9-]+", "-", token)
+    token = "-".join(part for part in token.split("-") if part)
+    return token or fallback
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB_PATH = REPO_ROOT / "storage" / "knowledge.sqlite"
 
@@ -72,7 +79,7 @@ class GraphNormalizer:
                     "id": row["id"],
                     "canonical_name": row["canonical_name"],
                     "definition": row["definition"],
-                    "aliases": json.loads(row["aliases_json"]),
+                    "aliases": json.loads(row["aliases_json"] or "[]"),
                     "node_kind": row["node_kind"],
                 }
             )
@@ -91,7 +98,7 @@ class GraphNormalizer:
                     continue
 
                 similarity = self._compute_similarity(node1, node2)
-                if similarity > 0.85:  # High similarity threshold
+                if similarity > 0.95:  # High threshold — Jaccard is unreliable for Chinese
                     similar.append(
                         {
                             "node": node2,
@@ -147,7 +154,14 @@ class GraphNormalizer:
         return sum(scores)
 
     def _text_similarity(self, text1: str, text2: str) -> float:
-        """Simple Jaccard-like similarity."""
+        """Jaccard-like similarity on word tokens.
+
+        NOTE: This is character-level for Chinese text (no whitespace
+        delimiters), so it produces inflated similarity for terms that
+        share common characters (e.g., "氧化铜" vs "氧化铁"). The
+        embedding cosine similarity in merge_staged_lessons.py is the
+        primary semantic signal; this is a secondary tiebreaker only.
+        """
         words1 = set(re.findall(r"\w+", text1)) if text1 else set()
         words2 = set(re.findall(r"\w+", text2)) if text2 else set()
 
@@ -296,7 +310,7 @@ class GraphNormalizer:
         # Find cards that need normalization
         cards = self.connection.execute(
             """
-            SELECT node_id, sections_json
+            SELECT node_id, sections_json, status
             FROM node_cards
             WHERE dataset_id = ?
             """,
@@ -314,22 +328,48 @@ class GraphNormalizer:
                     if "id" not in section:
                         section["id"] = f"section-{i}"
                         modified = True
+                    normalized_id = normalize_section_id(section.get("id"), f"section-{i}")
+                    if normalized_id != section.get("id"):
+                        section["id"] = normalized_id
+                        modified = True
                     if "title" not in section:
                         section["title"] = section.get("id", "Section")
                         modified = True
                     if "section_type" not in section:
-                        section["section_type"] = "content"
+                        section["section_type"] = "other"
                         modified = True
+                    elif section["section_type"] == "content":
+                        section["section_type"] = "other"
+                        modified = True
+                    content = section.get("content")
+                    if isinstance(content, list):
+                        normalized_content = [
+                            str(item).strip() for item in content if str(item).strip()
+                        ]
+                    elif content is None:
+                        normalized_content = []
+                    else:
+                        text = str(content).strip()
+                        normalized_content = [text] if text else []
+                    if content != normalized_content:
+                        section["content"] = normalized_content
+                        modified = True
+
+            status = card["status"]
+            normalized_status = status if status in {"draft", "reviewed", "validated"} else "draft"
+            if normalized_status != status:
+                modified = True
 
             if modified:
                 self.connection.execute(
                     """
                     UPDATE node_cards
-                    SET sections_json = ?, updated_at = ?
+                    SET sections_json = ?, status = ?, updated_at = ?
                     WHERE dataset_id = ? AND node_id = ?
                     """,
                     (
                         json.dumps(sections, ensure_ascii=False),
+                        normalized_status,
                         self.now,
                         self.dataset_id,
                         card["node_id"],
@@ -464,8 +504,11 @@ class GraphNormalizer:
         if any(kw in notes_lower for kw in intentional_keywords):
             return True
 
-        # Support nodes may be intentionally isolated
-        if node.get("node_layer") == "support":
+        # Support nodes of inherently ancillary kinds (representation, method)
+        # are common without explicit edges — downgrade to a soft signal
+        # rather than flagging for mandatory human review.
+        ancillary_kinds = {"representation", "method"}
+        if node.get("node_layer") == "support" and node.get("node_kind") in ancillary_kinds:
             return True
 
         return False
@@ -565,9 +608,9 @@ class GraphNormalizer:
                 """
                 INSERT INTO edges (
                     id, dataset_id, from_id, to_id, edge_type,
-                    edge_layer, backbone_expand, source_refs_json,
+                    edge_layer, backbone_expand, directionality, source_refs_json,
                     confidence, status, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     edge_id,
@@ -577,6 +620,7 @@ class GraphNormalizer:
                     edge_type,
                     edge_layer,
                     backbone_expand,
+                    "directed",
                     json.dumps([evidence["id"]]),
                     0.7,  # Moderate confidence for auto-added
                     "active",
@@ -908,17 +952,51 @@ def main() -> int:
     print("\n[5/6] Checking for cycles in hierarchical edges...")
     hierarchical_types = list(HIERARCHICAL_EDGE_TYPES)
     placeholders = ",".join(["?"] * len(hierarchical_types))
-    cycle_count = connection.execute(
+    hier_rows = connection.execute(
         f"""
-        SELECT COUNT(*) FROM edges
-        WHERE dataset_id = ? 
+        SELECT from_id, to_id, edge_type FROM edges
+        WHERE dataset_id = ?
           AND status != 'deprecated'
           AND edge_type IN ({placeholders})
         """,
         (args.dataset_id, *hierarchical_types),
-    ).fetchone()[0]
-    print(f"  Checked {cycle_count} hierarchical edges")
-    print("  ✓ No cycles detected (basic check)")
+    ).fetchall()
+    print(f"  Checked {len(hier_rows)} hierarchical edges")
+
+    # Build adjacency list and detect cycles via DFS
+    adj: dict[str, list[str]] = {}
+    for row in hier_rows:
+        adj.setdefault(row["from_id"], []).append(row["to_id"])
+
+    visited: set[str] = set()
+    rec_stack: set[str] = set()
+    cycles_found: list[list[str]] = []
+
+    def _dfs(node: str, path: list[str]) -> None:
+        visited.add(node)
+        rec_stack.add(node)
+        path.append(node)
+        for neighbor in adj.get(node, []):
+            if neighbor not in visited:
+                _dfs(neighbor, path)
+            elif neighbor in rec_stack:
+                cycle_start = path.index(neighbor)
+                cycles_found.append(path[cycle_start:] + [neighbor])
+        path.pop()
+        rec_stack.discard(node)
+
+    for node in list(adj.keys()):
+        if node not in visited:
+            _dfs(node, [])
+
+    if cycles_found:
+        print(f"  ⚠ Found {len(cycles_found)} cycle(s) in hierarchical edges:")
+        for i, cycle in enumerate(cycles_found[:5], 1):
+            print(f"    {i}. {' → '.join(cycle)}")
+        if len(cycles_found) > 5:
+            print(f"    ... and {len(cycles_found) - 5} more")
+    else:
+        print("  ✓ No cycles detected in hierarchical edges")
 
     # Step 6: Rebuild FTS indexes
     print("\n[6/6] Rebuilding FTS indexes...")

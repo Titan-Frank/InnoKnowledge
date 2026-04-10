@@ -6,9 +6,9 @@ Turn textbook content into a stable, evidence-backed, cross-disciplinary knowled
 
 | Document | Purpose |
 |----------|---------|
-| [GLOSSARY.md](./GLOSSARY.md) | Standardized terminology |
-| [CONVENTIONS.md](./CONVENTIONS.md) | Coding and documentation standards |
-| [STYLE_GUIDE.md](./STYLE_GUIDE.md) | Writing style guidelines |
+| [GLOSSARY.md](./.claude/GLOSSARY.md) | Standardized terminology |
+| [CONVENTIONS.md](./.claude/CONVENTIONS.md) | Coding and documentation standards |
+| [STYLE_GUIDE.md](./.claude/STYLE_GUIDE.md) | Writing style guidelines |
 | [schemas/v2/](./schemas/v2/) | JSON schemas for all artifacts |
 
 ## Core Principles
@@ -126,12 +126,12 @@ Active storage: `storage/knowledge.sqlite`
 
 **JSONL/JSON files are DERIVED EXPORTS only.** Do not treat them as primary storage. Generate them from SQLite only through the current SQLite-native export helpers when an external consumer needs them.
 
-### Deprecated Components (moved to `/deprecated/`)
+### Deprecated Components
 
 | Component | Reason | Replacement |
 |-----------|--------|-------------|
-| `scripts/apply_batch_artifacts.py` | JSON→SQLite conversion no longer needed | `extract_lesson_sqlite.py` (direct INSERT) |
-| `scripts/import_to_sqlite.py` | JSON→SQLite conversion no longer needed | Direct writes from extraction scripts |
+| `scripts/apply_batch_artifacts.py` | JSON→SQLite conversion no longer needed | `store_lesson_staging.py` (staging INSERT) |
+| `scripts/import_to_sqlite.py` | JSON→SQLite conversion no longer needed | `store_lesson_staging.py` + `merge_staged_lessons.py` |
 | `data/{version}/graph/*.jsonl` | No longer generated as intermediate | Export from SQLite if needed |
 | `data/{version}/node_cards/*.json` | No longer generated as intermediate | SQLite `node_cards` table |
 
@@ -344,27 +344,25 @@ See [CONVENTIONS.md](./CONVENTIONS.md) for documentation standards.
 
 ### DO NOT USE
 
-The following scripts have been **deprecated** and moved to `/deprecated/`:
-
 | Script | Status | Reason |
 |--------|--------|--------|
 | `extract_chemistry_complete.py` | ❌ REMOVED | Directly writes JSONL, bypasses SQLite |
 | `extract_chemistry_v4.py` | ❌ REMOVED | Directly writes JSONL, bypasses SQLite |
+| `insert_batch.py` | ⚠️ LEGACY | Writes canonical tables directly, bypasses staging |
 
 ### Why They Were Deprecated
 
-These scripts violated the **SQLite-first principle**:
-- They wrote directly to `data/main/graph/*.jsonl` files
-- They never updated `storage/knowledge.sqlite`
-- This caused **data inconsistency**: SQLite had 85 nodes while JSONL had 145
-- The Viewer API (which reads SQLite) could not see the new data
+These scripts violated the **SQLite-first** or **staging-first** principle:
+- They wrote directly to JSONL or canonical SQLite tables
+- They bypassed the staging→reducer workflow
+- This caused **data inconsistency** and duplicate nodes
 
 ### Correct Alternatives
 
 **For extraction:**
-- Use `/chapter-extract` skill (writes to SQLite)
-- Use `scripts/run_single_lesson.py` (orchestrates correct workflow)
-- **Process lessons sequentially**, not in parallel
+- Use `/chapter-extract` skill (produces lesson-local artifacts)
+- Use `scripts/store_lesson_staging.py` (writes staging tables with auto-embedding)
+- Use `scripts/merge_staged_lessons.py` (merges staging → canonical with semantic alignment)
 
 **For viewing data:**
 - Use `scripts/viewer_sqlite_api.py` (serves from SQLite)
@@ -375,10 +373,9 @@ These scripts violated the **SQLite-first principle**:
 Always verify data consistency after extraction:
 
 ```bash
-# Check SQLite vs JSONL consistency
+# QA validation
+python scripts/strict_qa_sqlite.py --dataset-id main
 
-# If inconsistent, stop and repair the active SQLite-native workflow.
-# Do not re-import JSONL back into SQLite.
+# Graph integrity check
+python scripts/check_graph_integrity.py --dataset-id main
 ```
-
-See [PIPELINE_SAFETY.md](./PIPELINE_SAFETY.md) for detailed safety guidelines.

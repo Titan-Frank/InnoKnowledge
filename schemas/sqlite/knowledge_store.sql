@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS nodes (
   card_ref TEXT,
   same_as_refs_json TEXT NOT NULL DEFAULT '[]',
   properties_json TEXT NOT NULL DEFAULT '{}',
+  embedding_json TEXT NOT NULL DEFAULT '[]',
   status TEXT NOT NULL,
   deprecated_by TEXT,
   created_at TEXT,

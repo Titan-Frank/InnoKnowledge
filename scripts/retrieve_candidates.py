@@ -5,8 +5,9 @@ The default path now uses a LightRAG-inspired hybrid retrieval strategy:
 
 - `local`: exact/prefix/FTS matching on canonical node terms
 - `global`: relation-aware graph expansion from local seed hits
-- `hybrid`: local + global fusion
+- `hybrid`: local + global + vector fusion
 - `mix`: hybrid + profile/evidence text support
+- `vector`: embedding cosine similarity against canonical node embeddings
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ from typing import Any
 from knowledge_store_common import (
     DEFAULT_DB_PATH,
     connect_db,
+    cosine_similarity,
     dump_json_text,
     ensure_sqlite_schema,
     make_query_id,
@@ -29,6 +31,7 @@ from knowledge_store_common import (
     utc_now,
     unique_stable,
 )
+from embedding_client import embed_single, DEFAULT_EMBEDDING_URL, DEFAULT_EMBEDDING_MODEL
 
 
 def parse_args() -> argparse.Namespace:
@@ -47,7 +50,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--node-kind")
     parser.add_argument(
         "--mode",
-        choices=("local", "global", "hybrid", "mix"),
+        choices=("local", "global", "hybrid", "mix", "vector"),
         default="hybrid",
         help="LightRAG-inspired retrieval mode. Defaults to hybrid fusion.",
     )
@@ -69,6 +72,22 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=18,
         help="Maximum number of profile/evidence text hits considered in mix mode.",
+    )
+    parser.add_argument(
+        "--embedding-url",
+        default=DEFAULT_EMBEDDING_URL,
+        help="URL for the embedding API endpoint.",
+    )
+    parser.add_argument(
+        "--embedding-model",
+        default=DEFAULT_EMBEDDING_MODEL,
+        help="Embedding model name.",
+    )
+    parser.add_argument(
+        "--vector-min-similarity",
+        type=float,
+        default=0.5,
+        help="Minimum cosine similarity for vector retrieval candidates.",
     )
     parser.add_argument(
         "--write",
@@ -555,6 +574,47 @@ def collect_text_support(
         )
 
 
+def collect_vector_support(
+    connection,
+    dataset_id: str,
+    query_text: str,
+    args: argparse.Namespace,
+    candidates: dict[str, dict[str, Any]],
+) -> None:
+    """Embed the query and find canonical nodes by cosine similarity."""
+    query_embedding = embed_single(
+        query_text,
+        url=args.embedding_url,
+        model=args.embedding_model,
+    )
+    if not query_embedding:
+        return
+
+    rows = connection.execute(
+        """
+        SELECT id, canonical_name, node_kind, embedding_json
+        FROM nodes
+        WHERE dataset_id = ? AND status != 'deprecated'
+          AND embedding_json != '[]'
+        """,
+        (dataset_id,),
+    ).fetchall()
+
+    scored: list[tuple[str, str, str, float]] = []
+    for row in rows:
+        node_embedding = json.loads(row["embedding_json"] or "[]")
+        if not node_embedding:
+            continue
+        similarity = cosine_similarity(query_embedding, node_embedding)
+        if similarity >= args.vector_min_similarity:
+            scored.append((row["id"], row["canonical_name"], row["node_kind"], similarity))
+
+    scored.sort(key=lambda x: -x[3])
+    for rank, (node_id, name, kind, sim) in enumerate(scored[:args.limit], start=1):
+        score = 40.0 + sim * 50.0 - min(rank, 10) * 1.0
+        add_candidate_support(candidates, node_id, name, kind, score, "vector", "cosine_sim")
+
+
 def retrieve_for_query(
     connection,
     dataset_id: str,
@@ -577,6 +637,8 @@ def retrieve_for_query(
         merge_candidate_sets(fused_candidates, seed_candidates)
     if args.mode in {"global", "hybrid", "mix"}:
         collect_global_support(connection, dataset_id, sorted_seed_candidates, args, fused_candidates)
+    if args.mode in {"hybrid", "mix", "vector"}:
+        collect_vector_support(connection, dataset_id, query_text, args, fused_candidates)
     if args.mode == "mix":
         collect_text_support(connection, dataset_id, query_text, args, fused_candidates)
 

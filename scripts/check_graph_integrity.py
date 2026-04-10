@@ -74,23 +74,25 @@ class GraphIntegrityChecker:
             graph[row["from_id"]].append(row["to_id"])
             edge_map[(row["from_id"], row["to_id"])] = row["id"]
 
+        # Build edge type lookup once (outside DFS loop)
+        edge_type_map = {(row["from_id"], row["to_id"]): row["edge_type"] for row in rows}
+
         # Detect cycles using DFS
         cycles_found = []
         visited = set()
         rec_stack = set()
         path = []
 
-        def dfs(node: str) -> bool:
+        def dfs(node: str) -> None:
             visited.add(node)
             rec_stack.add(node)
             path.append(node)
 
-            for neighbor in graph[node]:
+            for neighbor in graph.get(node, []):
                 if neighbor not in visited:
-                    if dfs(neighbor):
-                        return True
+                    dfs(neighbor)
                 elif neighbor in rec_stack:
-                    # Cycle detected
+                    # Cycle detected — record it but continue exploring
                     cycle_start = path.index(neighbor)
                     cycle_nodes = path[cycle_start:] + [neighbor]
                     cycle_edges = [
@@ -102,17 +104,14 @@ class GraphIntegrityChecker:
                             "nodes": cycle_nodes,
                             "edges": cycle_edges,
                             "edge_types": [
-                                row["edge_type"]
-                                for row in rows
-                                if row["id"] in cycle_edges
+                                edge_type_map.get((cycle_nodes[i], cycle_nodes[i + 1]), "unknown")
+                                for i in range(len(cycle_nodes) - 1)
                             ],
                         }
                     )
-                    return False
 
             path.pop()
-            rec_stack.remove(node)
-            return False
+            rec_stack.discard(node)
 
         for node in graph:
             if node not in visited:
@@ -136,12 +135,13 @@ class GraphIntegrityChecker:
         print("\n[2/3] Checking for isolated nodes (no edges)...")
 
         # Find nodes with no edges (neither incoming nor outgoing)
+        # Only consider active (non-deprecated) edges
         rows = self.connection.execute(
             """
             SELECT n.id, n.canonical_name, n.node_kind, n.node_layer
             FROM nodes n
-            LEFT JOIN edges e1 ON n.id = e1.from_id AND e1.dataset_id = ?
-            LEFT JOIN edges e2 ON n.id = e2.to_id AND e2.dataset_id = ?
+            LEFT JOIN edges e1 ON n.id = e1.from_id AND e1.dataset_id = ? AND e1.status != 'deprecated'
+            LEFT JOIN edges e2 ON n.id = e2.to_id AND e2.dataset_id = ? AND e2.status != 'deprecated'
             WHERE n.dataset_id = ?
               AND e1.id IS NULL
               AND e2.id IS NULL
@@ -204,10 +204,11 @@ class GraphIntegrityChecker:
         components = []
 
         def bfs(start: str) -> set[str]:
+            from collections import deque
             component = set()
-            queue = [start]
+            queue = deque([start])
             while queue:
-                node = queue.pop(0)
+                node = queue.popleft()
                 if node not in visited:
                     visited.add(node)
                     component.add(node)

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sqlite3
 from collections import Counter, defaultdict
 from dataclasses import dataclass
@@ -46,6 +47,10 @@ class CanonicalNode:
     name_terms: set[str]
     semantic_key: str | None
     embedding: list[float]
+
+
+VALID_CARD_STATUSES = {"draft", "reviewed", "validated"}
+VALID_PROFILE_STATUSES = {"draft", "reviewed", "validated"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -101,13 +106,22 @@ def normalized_name_terms(payload: dict[str, Any]) -> set[str]:
 
 
 def pick_primary_name(current: str, candidate: str) -> str:
+    """Pick the preferred canonical name. Prefer shorter, more precise names.
+
+    Only replace current with candidate when the candidate is a true substring
+    of current — this avoids replacing a precise child term with a vague parent
+    (e.g., won't replace "氧化铜" with "铜"). But will replace "化学键能及其应用"
+    with "化学键" since the shorter name is a substring of the longer one.
+    """
     current_clean = current.strip()
     candidate_clean = candidate.strip()
     if not current_clean:
         return candidate_clean
     if not candidate_clean:
         return current_clean
-    if len(candidate_clean) > len(current_clean):
+    # Replace only if candidate is a true substring of current — meaning
+    # current is a qualified/extended form of the same concept.
+    if candidate_clean in current_clean and len(candidate_clean) < len(current_clean):
         return candidate_clean
     return current_clean
 
@@ -193,11 +207,18 @@ def merge_node_payload(existing: dict[str, Any], staged: dict[str, Any]) -> dict
     )
     if staged.get("semantic_key"):
         merged["properties"]["semantic_key"] = staged["semantic_key"]
-    if staged.get("embedding"):
-        merged["properties"]["embedding"] = staged["embedding"]
     merged["notes"] = merge_text_blocks(existing.get("notes", ""), staged.get("notes", ""))
     merged["status"] = existing.get("status") or staged.get("status") or "active"
     return merged
+
+
+def normalize_review_status(value: Any, *, default: str = "draft") -> str:
+    status = str(value or "").strip()
+    if status in VALID_CARD_STATUSES:
+        return status
+    if status in {"candidate", "active", "merged"}:
+        return default
+    return default
 
 
 def merge_profile_payload(existing: dict[str, Any], staged: dict[str, Any]) -> dict[str, Any]:
@@ -209,7 +230,30 @@ def merge_profile_payload(existing: dict[str, Any], staged: dict[str, Any]) -> d
     merged["assessment_signals"] = merge_unique_strings(existing.get("assessment_signals", []), staged.get("assessment_signals", []))
     merged["source_refs"] = merge_unique_strings(existing.get("source_refs", []), staged.get("source_refs", []))
     merged["properties"] = merge_json_objects(existing.get("properties", {}), staged.get("properties", {}))
+    merged["status"] = normalize_review_status(
+        existing.get("status") or staged.get("status"), default="draft"
+    )
     return merged
+
+
+def card_content_items(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if value is None:
+        return []
+    text = str(value).strip()
+    return [text] if text else []
+
+
+def merge_card_content(*values: Any) -> list[str]:
+    return merge_unique_strings(*(card_content_items(value) for value in values))
+
+
+def normalize_section_id(value: Any, fallback: str = "section") -> str:
+    token = str(value or fallback).strip().lower().replace("_", "-")
+    token = re.sub(r"[^a-z0-9-]+", "-", token)
+    token = "-".join(part for part in token.split("-") if part)
+    return token or fallback
 
 
 def merge_card_payload(existing: dict[str, Any], staged: dict[str, Any], title: str) -> dict[str, Any]:
@@ -226,20 +270,25 @@ def merge_card_payload(existing: dict[str, Any], staged: dict[str, Any], title: 
     for section in existing.get("sections", []) + staged.get("sections", []):
         if not isinstance(section, dict):
             continue
-        key = str(section.get("section_type") or section.get("id") or "content")
+        key = str(section.get("section_type") or section.get("id") or "other")
         current = sections_by_key.setdefault(
             key,
             {
-                "id": str(section.get("id") or key),
+                "id": normalize_section_id(section.get("id"), key),
                 "title": str(section.get("title") or key),
                 "section_type": key,
-                "content": "",
+                "content": [],
                 "source_refs": [],
             },
         )
-        current["content"] = merge_text_blocks(current.get("content", ""), str(section.get("content") or ""))
+        current["content"] = merge_card_content(
+            current.get("content", []), section.get("content")
+        )
         current["source_refs"] = merge_unique_strings(current.get("source_refs", []), section.get("source_refs", []))
     merged["sections"] = list(sections_by_key.values())
+    merged["status"] = normalize_review_status(
+        existing.get("status") or staged.get("status"), default="draft"
+    )
     return merged
 
 
@@ -501,10 +550,11 @@ def main() -> int:
             "profile_refs_json": "profile_refs",
             "same_as_refs_json": "same_as_refs",
             "properties_json": "properties",
+            "embedding_json": "embedding_col",
         },
     ):
         semantic_key = row.get("properties", {}).get("semantic_key")
-        embedding = row.get("properties", {}).get("embedding", [])
+        embedding = row.get("embedding_col") or row.get("properties", {}).get("embedding", [])
         canonical = CanonicalNode(
             payload=row,
             name_terms=normalized_name_terms(row),
@@ -577,11 +627,28 @@ def main() -> int:
         if staged_semantic_key:
             candidate_ids.update(semantic_key_index.get(str(staged_semantic_key), set()))
         if not candidate_ids:
-            candidate_ids.update(
+            # Fallback: scan all nodes of the same kind.
+            # If the staged node has an embedding, pre-filter by cosine
+            # similarity to avoid O(N*M) full scoring against every node.
+            same_kind_ids = [
                 node_id
                 for node_id, candidate in existing_nodes.items()
                 if candidate.payload["node_kind"] == staged["node_kind"]
-            )
+            ]
+            if staged_embedding and len(same_kind_ids) > 20:
+                # Compute similarity to each same-kind node and keep top-K
+                scored: list[tuple[float, str]] = []
+                for nid in same_kind_ids:
+                    cand_emb = existing_nodes[nid].embedding
+                    if cand_emb:
+                        sim = cosine_similarity(staged_embedding, cand_emb)
+                    else:
+                        sim = 0.0
+                    scored.append((sim, nid))
+                scored.sort(reverse=True)
+                candidate_ids = {nid for _, nid in scored[:15]}
+            else:
+                candidate_ids = set(same_kind_ids)
 
         best_id: str | None = None
         best_score = 0.0
@@ -615,7 +682,8 @@ def main() -> int:
                 existing_nodes[canonical_id].payload.get("properties", {}).get("semantic_key")
             )
             existing_nodes[canonical_id].embedding = (
-                existing_nodes[canonical_id].payload.get("properties", {}).get("embedding", [])
+                existing_nodes[canonical_id].payload.get("embedding_col")
+                or existing_nodes[canonical_id].payload.get("properties", {}).get("embedding", [])
             )
         else:
             canonical_id = make_canonical_node_id(
@@ -650,10 +718,9 @@ def main() -> int:
                         dict(staged.get("properties", {})),
                         {
                             "semantic_key": staged_semantic_key,
-                            "embedding": staged_embedding,
                         },
                     ),
-                    "status": staged.get("status") or "active",
+                    "status": "active",
                     "deprecated_by": None,
                     "created_at": now,
                     "updated_at": now,
@@ -771,7 +838,7 @@ def main() -> int:
                 "assessment_signals": [],
                 "source_refs": [],
                 "properties": {},
-                "status": "active",
+                "status": "draft",
                 "updated_at": now,
             },
         )
@@ -866,10 +933,10 @@ def main() -> int:
                 continue
             remapped_sections.append(
                 {
-                    "id": str(section.get("id") or "section"),
+                    "id": normalize_section_id(section.get("id"), "section"),
                     "title": str(section.get("title") or section.get("section_type") or "Section"),
-                    "section_type": str(section.get("section_type") or section.get("id") or "content"),
-                    "content": str(section.get("content") or ""),
+                    "section_type": str(section.get("section_type") or section.get("id") or "other"),
+                    "content": card_content_items(section.get("content")),
                     "source_refs": merge_unique_strings(
                         [
                             evidence_id_map.get((card["lesson_run_id"], source_ref), source_ref)
@@ -894,7 +961,7 @@ def main() -> int:
                 "source_refs": [],
                 "sections": [],
                 "properties": {},
-                "status": "active",
+                "status": "draft",
                 "updated_at": now,
             },
         )
@@ -940,12 +1007,12 @@ def main() -> int:
                     "id": "definition",
                     "title": "定义",
                     "section_type": "definition",
-                    "content": payload.get("definition", ""),
+                    "content": card_content_items(payload.get("definition", "")),
                     "source_refs": fallback_source_refs,
                 }
             ],
             "properties": {"generated_by": "merge_staged_lessons"},
-            "status": "active",
+            "status": "draft",
             "updated_at": now,
         }
         stats["generated_fallback_cards"] += 1
@@ -1099,12 +1166,31 @@ def main() -> int:
 
         connection.executemany(
             """
-            INSERT OR REPLACE INTO nodes (
+            INSERT INTO nodes (
               dataset_id, id, canonical_name, node_kind, node_layer, node_subkind,
               definition, aliases_json, learning_modes_json, bridge_tags_json,
               framework_refs_json, profile_refs_json, card_ref, same_as_refs_json,
-              properties_json, status, deprecated_by, created_at, updated_at, notes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              properties_json, embedding_json, status, deprecated_by, created_at, updated_at, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(dataset_id, id) DO UPDATE SET
+              canonical_name=excluded.canonical_name,
+              node_kind=excluded.node_kind,
+              node_layer=excluded.node_layer,
+              node_subkind=excluded.node_subkind,
+              definition=excluded.definition,
+              aliases_json=excluded.aliases_json,
+              learning_modes_json=excluded.learning_modes_json,
+              bridge_tags_json=excluded.bridge_tags_json,
+              framework_refs_json=excluded.framework_refs_json,
+              profile_refs_json=excluded.profile_refs_json,
+              card_ref=excluded.card_ref,
+              same_as_refs_json=excluded.same_as_refs_json,
+              properties_json=excluded.properties_json,
+              embedding_json=excluded.embedding_json,
+              status=excluded.status,
+              deprecated_by=excluded.deprecated_by,
+              updated_at=excluded.updated_at,
+              notes=excluded.notes
             """,
             [
                 (
@@ -1123,6 +1209,7 @@ def main() -> int:
                     canonical.payload.get("card_ref"),
                     dump_json_text(canonical.payload.get("same_as_refs", [])),
                     dump_json_text(canonical.payload.get("properties", {})),
+                    dump_json_text(canonical.embedding),
                     canonical.payload.get("status", "active"),
                     canonical.payload.get("deprecated_by"),
                     canonical.payload.get("created_at") or now,
@@ -1135,12 +1222,29 @@ def main() -> int:
 
         connection.executemany(
             """
-            INSERT OR REPLACE INTO profiles (
+            INSERT INTO profiles (
               dataset_id, id, node_id, subject, school_stage, grade_band, context_key,
               curriculum_role, mastery_level, framework_refs_json, textbook_refs_json,
               textbook_ids_json, learning_objectives_json, assessment_signals_json,
               source_refs_json, properties_json, status, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(dataset_id, id) DO UPDATE SET
+              node_id=excluded.node_id,
+              subject=excluded.subject,
+              school_stage=excluded.school_stage,
+              grade_band=excluded.grade_band,
+              context_key=excluded.context_key,
+              curriculum_role=excluded.curriculum_role,
+              mastery_level=excluded.mastery_level,
+              framework_refs_json=excluded.framework_refs_json,
+              textbook_refs_json=excluded.textbook_refs_json,
+              textbook_ids_json=excluded.textbook_ids_json,
+              learning_objectives_json=excluded.learning_objectives_json,
+              assessment_signals_json=excluded.assessment_signals_json,
+              source_refs_json=excluded.source_refs_json,
+              properties_json=excluded.properties_json,
+              status=excluded.status,
+              updated_at=excluded.updated_at
             """,
             [
                 (
@@ -1160,7 +1264,7 @@ def main() -> int:
                     dump_json_text(profile.get("assessment_signals", [])),
                     dump_json_text(profile.get("source_refs", [])),
                     dump_json_text(profile.get("properties", {})),
-                    profile.get("status", "active"),
+                    normalize_review_status(profile.get("status"), default="draft"),
                     now,
                 )
                 for profile in canonical_profiles.values()
@@ -1169,10 +1273,20 @@ def main() -> int:
 
         connection.executemany(
             """
-            INSERT OR REPLACE INTO mentions (
+            INSERT INTO mentions (
               dataset_id, id, source_type, source_id, anchor_ref, target_type, target_id,
               role, source_refs_json, confidence, properties_json
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(dataset_id, id) DO UPDATE SET
+              source_type=excluded.source_type,
+              source_id=excluded.source_id,
+              anchor_ref=excluded.anchor_ref,
+              target_type=excluded.target_type,
+              target_id=excluded.target_id,
+              role=excluded.role,
+              source_refs_json=excluded.source_refs_json,
+              confidence=excluded.confidence,
+              properties_json=excluded.properties_json
             """,
             [
                 (
@@ -1194,11 +1308,25 @@ def main() -> int:
 
         connection.executemany(
             """
-            INSERT OR REPLACE INTO edges (
+            INSERT INTO edges (
               dataset_id, id, edge_type, edge_layer, backbone_expand, from_id, to_id,
               directionality, confidence, framework_refs_json, profile_refs_json,
               source_refs_json, properties_json, status, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(dataset_id, id) DO UPDATE SET
+              edge_type=excluded.edge_type,
+              edge_layer=excluded.edge_layer,
+              backbone_expand=excluded.backbone_expand,
+              from_id=excluded.from_id,
+              to_id=excluded.to_id,
+              directionality=excluded.directionality,
+              confidence=excluded.confidence,
+              framework_refs_json=excluded.framework_refs_json,
+              profile_refs_json=excluded.profile_refs_json,
+              source_refs_json=excluded.source_refs_json,
+              properties_json=excluded.properties_json,
+              status=excluded.status,
+              updated_at=excluded.updated_at
             """,
             [
                 (
@@ -1225,11 +1353,24 @@ def main() -> int:
 
         connection.executemany(
             """
-            INSERT OR REPLACE INTO node_cards (
+            INSERT INTO node_cards (
               dataset_id, node_id, id, card_layer, title, summary, pattern_refs_json,
               framework_refs_json, profile_refs_json, mention_refs_json, source_refs_json,
               sections_json, properties_json, status, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(dataset_id, node_id) DO UPDATE SET
+              card_layer=excluded.card_layer,
+              title=excluded.title,
+              summary=excluded.summary,
+              pattern_refs_json=excluded.pattern_refs_json,
+              framework_refs_json=excluded.framework_refs_json,
+              profile_refs_json=excluded.profile_refs_json,
+              mention_refs_json=excluded.mention_refs_json,
+              source_refs_json=excluded.source_refs_json,
+              sections_json=excluded.sections_json,
+              properties_json=excluded.properties_json,
+              status=excluded.status,
+              updated_at=excluded.updated_at
             """,
             [
                 (
@@ -1246,7 +1387,7 @@ def main() -> int:
                     dump_json_text(card.get("source_refs", [])),
                     dump_json_text(card.get("sections", [])),
                     dump_json_text(card.get("properties", {})),
-                    card.get("status", "active"),
+                    normalize_review_status(card.get("status"), default="draft"),
                     now,
                 )
                 for node_id, card in canonical_cards.items()

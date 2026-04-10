@@ -25,7 +25,7 @@ python scripts/parallel_batch_runner.py \
   --book-id chem-grade8-all-in-one \
   --output-root data/main \
   --parallel 4 \
-  --batch-size 4 \
+  --batch-size 1 \
   --generate-tasks
 
 # 课时 worker 完成抽取后，写入 staging
@@ -147,7 +147,7 @@ python scripts/check_graph_integrity.py --dataset-id main
 ```
 .
 ├── .claude/
-│   ├── agents/           # Agent 定义 (5个)
+│   ├── agents/           # Agent 定义 (6个)
 │   │   ├── kg-pipeline.md         (Manager)
 │   │   ├── lesson-processor.md    (Worker)
 │   │   ├── outline-reader.md
@@ -177,20 +177,15 @@ python scripts/check_graph_integrity.py --dataset-id main
 │
 ├── CLAUDE.md             # 项目说明 (Claude Code 入口)
 ├── AGENTS.md             # 详细架构和规则
-├── QUICKSTART.md         # 快速上手
-└── DOCS_INDEX.md         # 文档索引
+└── CHANGELOG.md          # 变更日志
 ```
 
 ## 文档导航
 
-**快速开始**:
-- [QUICKSTART.md](QUICKSTART.md) - 5 分钟快速上手
-- [DOCS_INDEX.md](DOCS_INDEX.md) - 完整文档索引
-
 **核心文档**:
 - [AGENTS.md](AGENTS.md) - 完整架构、约束和检查清单
-- [GLOSSARY.md](GLOSSARY.md) - 术语定义
-- [PIPELINE_SAFETY.md](PIPELINE_SAFETY.md) - 安全操作指南
+- [.claude/GLOSSARY.md](.claude/GLOSSARY.md) - 术语定义
+- [.claude/CONVENTIONS.md](.claude/CONVENTIONS.md) - 编码和文档标准
 
 **开发文档**:
 - [CHANGELOG.md](CHANGELOG.md) - 变更日志

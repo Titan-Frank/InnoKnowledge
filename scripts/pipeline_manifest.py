@@ -13,8 +13,8 @@ from pathlib import Path
 
 
 RUN_STAGE_NAMES = ("outline", "framework", "pattern", "final_qa")
-BATCH_STAGE_NAMES = ("backbone", "normalize", "qa", "node_expand")
-REQUIRED_BATCH_STAGE_NAMES = ("backbone", "normalize", "qa")
+BATCH_STAGE_NAMES = ("staging", "merge", "normalize", "qa")
+REQUIRED_BATCH_STAGE_NAMES = ("staging", "merge", "normalize", "qa")
 VALID_STATUSES = {
     "pending",
     "in_progress",
@@ -46,7 +46,8 @@ def manifest_path_for(root: Path, book_id: str) -> Path:
 
 
 def normalize_stage_name(stage: str) -> str:
-    return stage.replace("-", "_")
+    normalized = stage.replace("-", "_")
+    return {"backbone": "staging", "node_expand": "merge"}.get(normalized, normalized)
 
 
 def split_csv(value: str | None) -> list[str]:
@@ -56,9 +57,7 @@ def split_csv(value: str | None) -> list[str]:
 
 
 def batch_stage_template() -> dict:
-    return {stage: "pending" for stage in REQUIRED_BATCH_STAGE_NAMES} | {
-        "node_expand": "not_requested"
-    }
+    return {stage: "pending" for stage in REQUIRED_BATCH_STAGE_NAMES}
 
 
 def make_batch(item: dict) -> dict:
@@ -147,7 +146,7 @@ def validate_manifest(manifest: dict) -> list[str]:
         seen_anchors.add(anchor_id)
 
         stages = batch.get("stages", {})
-        # Only validate required stages strictly; node_expand can be missing
+        # Validate the canonical staging -> merge -> normalize -> qa sequence.
         for stage in REQUIRED_BATCH_STAGE_NAMES:
             status = stages.get(stage)
             if status not in VALID_STATUSES:
@@ -155,28 +154,17 @@ def validate_manifest(manifest: dict) -> list[str]:
                     f"Batch '{anchor_id}' stage '{stage}' has invalid status '{status}'."
                 )
 
-        # node_expand is optional, only validate if present
-        if "node_expand" in stages:
-            status = stages.get("node_expand")
-            if status not in VALID_STATUSES:
-                errors.append(
-                    f"Batch '{anchor_id}' stage 'node_expand' has invalid status '{status}'."
-                )
-
-        if (
-            stages.get("normalize") == "completed"
-            and stages.get("backbone") != "completed"
-        ):
+        if stages.get("merge") == "completed" and stages.get("staging") != "completed":
             errors.append(
-                f"Batch '{anchor_id}' completed normalize before backbone was completed."
+                f"Batch '{anchor_id}' completed merge before staging was completed."
+            )
+        if stages.get("normalize") == "completed" and stages.get("merge") != "completed":
+            errors.append(
+                f"Batch '{anchor_id}' completed normalize before merge was completed."
             )
         if stages.get("qa") == "completed" and stages.get("normalize") != "completed":
             errors.append(
                 f"Batch '{anchor_id}' completed QA before normalize was completed."
-            )
-        if stages.get("node_expand") == "completed" and stages.get("qa") != "completed":
-            errors.append(
-                f"Batch '{anchor_id}' completed node_expand before QA was completed."
             )
 
     return errors
@@ -392,9 +380,10 @@ def cmd_status(args: argparse.Namespace) -> int:
     for batch in manifest["batches"]:
         print(
             f"- {batch['anchor_id']} [{batch['kind']}] {batch['status']} "
-            f"(backbone={batch['stages']['backbone']}, "
-            f"normalize={batch['stages']['normalize']}, qa={batch['stages']['qa']}, "
-            f"node_expand={batch['stages']['node_expand']})"
+            f"(staging={batch['stages'].get('staging')}, "
+            f"merge={batch['stages'].get('merge')}, "
+            f"normalize={batch['stages'].get('normalize')}, "
+            f"qa={batch['stages'].get('qa')})"
         )
     return 0
 
