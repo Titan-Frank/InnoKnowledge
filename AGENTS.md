@@ -348,7 +348,6 @@ See [CONVENTIONS.md](./CONVENTIONS.md) for documentation standards.
 |--------|--------|--------|
 | `extract_chemistry_complete.py` | ❌ REMOVED | Directly writes JSONL, bypasses SQLite |
 | `extract_chemistry_v4.py` | ❌ REMOVED | Directly writes JSONL, bypasses SQLite |
-| `insert_batch.py` | ⚠️ LEGACY | Writes canonical tables directly, bypasses staging |
 
 ### Why They Were Deprecated
 

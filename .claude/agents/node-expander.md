@@ -107,7 +107,5 @@ Return:
 
 ## Constraints
 
-- Do not call `insert_batch.py`
-- Do not call `expand_node_sqlite.py`
 - Do not write canonical SQLite tables directly
 - Do not invent evidence refs not present in the lesson context

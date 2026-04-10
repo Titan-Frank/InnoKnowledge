@@ -199,9 +199,10 @@ UPDATE mentions SET target_id = ? WHERE target_id = ?;
 
 ### Phase 9: Finalize
 
-1. Run `scripts/finalize_batch_runtime.py`
-   - Mark proposals as resolved or queued
-   - Clean up temporary records
+1. Run `scripts/normalize_sqlite.py --dataset-id <id>`
+   - Deduplicate nodes and edges
+   - Resolve isolated nodes
+   - Detect cycles in hierarchical edges
 
 ## Input Parameters
 

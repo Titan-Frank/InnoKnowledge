@@ -266,7 +266,6 @@ Before returning:
 
 ## Constraints
 
-- Do not call `insert_batch.py`
 - Do not write canonical `nodes`, `edges`, `profiles`, `mentions`, `evidence`, or `node_cards`
 - Do not continue to the next lesson
 - Do not operate on the whole graph directly

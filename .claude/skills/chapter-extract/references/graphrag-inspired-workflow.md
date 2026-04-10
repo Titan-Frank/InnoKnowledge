@@ -77,7 +77,7 @@ Map the GraphRAG-style stages into this project as follows:
 - local graph -> SQLite runtime staging for nodes, mentions, evidence, and relation proposals
 - retrieval narrowing -> `scripts/retrieve_candidates.py`
 - LightRAG-style fusion -> `scripts/retrieve_candidates.py --mode hybrid|mix`
-- neighborhood-aware normalization -> `scripts/finalize_batch_runtime.py` plus conservative review
+- neighborhood-aware normalization -> `scripts/normalize_sqlite.py` plus conservative review
 - community / thematic summary -> chapter-level normalization notes or QA notes, not canonical graph writes
 
 ## Guardrails
