@@ -1,4 +1,4 @@
-import type { AppState } from '../state.js';
+import type { AppState } from '../store/types.js';
 import { getVisibleNodes, getVisibleEdges } from './visibility.js';
 
 export function startSimulation(state: AppState, draw: () => void): void {

@@ -148,8 +148,6 @@ npm run build
 npm run check
 ```
 
-> 旧版 Python 查看器仍可使用：`python scripts/viewer_sqlite_api.py --port 8766`
-
 ### 验证数据
 
 ```bash

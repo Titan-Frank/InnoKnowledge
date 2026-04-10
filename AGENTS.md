@@ -364,7 +364,7 @@ These scripts violated the **SQLite-first** or **staging-first** principle:
 - Use `scripts/merge_staged_lessons.py` (merges staging → canonical with semantic alignment)
 
 **For viewing data:**
-- Use `scripts/viewer_sqlite_api.py` (serves from SQLite)
+- Use `npm run dev` (starts Hono server + Vite viewer)
 - Never read JSONL directly for canonical data
 
 ### Data Validation

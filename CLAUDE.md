@@ -84,8 +84,6 @@ npm run dev
 # Server: http://127.0.0.1:8765/viewer/
 # Viewer dev: http://127.0.0.1:5173/viewer/
 
-# Legacy Python viewer (still available)
-python scripts/viewer_sqlite_api.py --port 8766
 
 # Query SQLite directly
 sqlite3 storage/knowledge.sqlite "SELECT COUNT(*) FROM nodes;"

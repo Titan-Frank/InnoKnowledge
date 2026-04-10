@@ -2,8 +2,8 @@ import type {
   ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence,
   Framework, PatternLibrary,
 } from '@okm/types';
-import type { GraphNode, GraphEdge, GraphData } from '../state.js';
-import { TYPE_META } from '../types/constants.js';
+import type { GraphNode, GraphEdge, GraphData } from '../store/types.js';
+import { TYPE_META } from '../constants/index.js';
 
 export function getTypeColor(type: string): string {
   return TYPE_META[type]?.color ?? TYPE_META.other.color;

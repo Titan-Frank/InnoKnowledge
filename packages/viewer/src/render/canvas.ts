@@ -1,6 +1,8 @@
-import type { AppState, GraphNode, GraphEdge } from '../state.js';
+import type { AppState, GraphNode, GraphEdge } from '../store/types.js';
 import { getVisibleNodes, getVisibleEdges } from '../graph/visibility.js';
 import { isSupportNode } from '../graph/layout.js';
+
+const FONT_STACK = '"PingFang SC", "Hiragino Sans GB", sans-serif';
 
 export function draw(state: AppState, canvas: HTMLCanvasElement): void {
   if (!state.data) return;
@@ -37,11 +39,11 @@ function drawEdges(edges: GraphEdge[], state: AppState, ctx: CanvasRenderingCont
     ctx.lineTo(edge.target.x, edge.target.y);
     ctx.strokeStyle = selected
       ? supportEdge
-        ? 'rgba(158, 79, 43, 0.42)'
-        : 'rgba(158, 79, 43, 0.58)'
+        ? 'rgba(85, 90, 255, 0.4)'
+        : 'rgba(85, 90, 255, 0.6)'
       : supportEdge
-        ? 'rgba(82, 62, 45, 0.11)'
-        : 'rgba(82, 62, 45, 0.18)';
+        ? 'rgba(10, 10, 40, 0.08)'
+        : 'rgba(10, 10, 40, 0.15)';
     ctx.lineWidth = selected ? 2.2 : supportEdge ? 0.95 : 1.15;
     ctx.stroke();
     ctx.setLineDash([]);
@@ -69,21 +71,21 @@ function drawNodes(nodes: GraphNode[], state: AppState, ctx: CanvasRenderingCont
     ctx.strokeStyle =
       selected
         ? supportNode
-          ? 'rgba(255, 243, 229, 0.85)'
-          : 'rgba(250, 247, 241, 0.95)'
+          ? 'rgba(238, 238, 255, 0.9)'
+          : 'rgba(238, 238, 255, 0.95)'
         : hovered || searchMatched
-          ? 'rgba(255, 245, 235, 0.85)'
+          ? 'rgba(238, 238, 255, 0.7)'
           : supportNode
-            ? 'rgba(255, 248, 239, 0.34)'
-            : 'rgba(255, 248, 239, 0.48)';
+            ? 'rgba(10, 10, 40, 0.08)'
+            : 'rgba(10, 10, 40, 0.15)';
     ctx.stroke();
 
     if (!state.showLabels && !selected && !hovered) return;
     if (state.transform.scale < 0.65 && !selected && !hovered) return;
 
-    ctx.font = selected ? '600 14px "Avenir Next"' : '500 12px "Avenir Next"';
+    ctx.font = selected ? `600 14px ${FONT_STACK}` : `500 12px ${FONT_STACK}`;
     ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(40, 29, 20, 0.95)';
+    ctx.fillStyle = 'rgba(10, 10, 40, 0.9)';
     ctx.fillText(node.name, node.x, node.y + radius + 16);
   });
 }

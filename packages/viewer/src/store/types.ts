@@ -1,5 +1,5 @@
-import type { ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard } from '@okm/types';
-import type { LayerMode } from './types/constants.js';
+import type { ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence } from '@okm/types';
+import type { LayerMode } from '../constants/index.js';
 
 export interface GraphNode extends ApiNode {
   name: string;
@@ -79,35 +79,7 @@ export interface AppState {
   panning: boolean;
   lastPointer: { x: number; y: number } | null;
   raf: number | null;
-  cardCache: Map<string, ApiNodeCard | null>;
+  cardCache: Map<string, import('@okm/types').ApiNodeCard | null>;
   detailRequestId: number;
   visibleNodesCache: { key: string | null; nodes: GraphNode[] };
-}
-
-export function createInitialState(): AppState {
-  return {
-    manifest: null,
-    sourceConfigs: new Map(),
-    selectedSourceKey: null,
-    sourceLoading: false,
-    sourceRequestId: 0,
-    data: null,
-    selectedNodeId: null,
-    hoverNodeId: null,
-    searchTerm: '',
-    selectedBook: 'all',
-    selectedTypes: new Set(),
-    focusConnected: false,
-    layerMode: 'backbone-expand',
-    expandedBackboneNodeId: null,
-    showLabels: true,
-    transform: { x: 0, y: 0, scale: 1 },
-    dragNodeId: null,
-    panning: false,
-    lastPointer: null,
-    raf: null,
-    cardCache: new Map(),
-    detailRequestId: 0,
-    visibleNodesCache: { key: null, nodes: [] },
-  };
 }

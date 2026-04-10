@@ -1,4 +1,4 @@
-import type { GraphNode, GraphEdge, AppState } from '../state.js';
+import type { GraphNode, GraphEdge, AppState } from '../store/types.js';
 import type { ApiEvidence } from '@okm/types';
 import { isBackboneNode, isSupportNode } from './layout.js';
 
