@@ -84,6 +84,13 @@ Before returning success, verify:
 - at least one mention exists in `staging_mentions`
 - at least one evidence record exists in `staging_evidence`
 - every backbone node created in this lesson has a provisional node card in `staging_node_cards`
+- every backbone node satisfies five-category completeness at the lesson-local level:
+  - node
+  - profile
+  - evidence
+  - mention
+  - provisional node card
+- support nodes are present when lesson content clearly contains experiments, methods, equipment, or representations
 
 If verification fails, return `status=blocked`.
 

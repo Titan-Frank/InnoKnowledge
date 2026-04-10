@@ -23,15 +23,19 @@ Expand **one lesson-local backbone node** into a **provisional** node card.
 2. Read `schemas/v2/node-card.schema.json`
 3. Read `schemas/v2/pattern-library.schema.json`
 4. Use the lesson-local node payload and lesson-local evidence refs provided by the caller
-5. Generate one provisional node card with:
-   - `summary`
-   - `definition`
-   - `essence`
-   - `key_points`
-   - `example`
-   - `application`
-   - `misconception` when applicable
+5. Generate one provisional node card
 6. Return the payload to the caller
+
+## Quality Requirements
+
+- `summary` should be substantial and knowledge-dense
+- `definition` should stay closest to textbook evidence
+- `essence` should distill the core understanding
+- `key_points` should contain 3-5 crisp points
+- `example` should come from the current lesson when available
+- `application` should name practical scenarios when supported
+- `misconception` should be included when the concept commonly invites confusion
+- every section using evidence must include valid lesson-local `source_refs`
 
 ## Output Contract
 
@@ -52,6 +56,41 @@ Return:
         "title": "定义",
         "section_type": "definition",
         "content": "Definition grounded in lesson evidence",
+        "source_refs": ["raw-evidence-id"]
+      },
+      {
+        "id": "essence",
+        "title": "核心本质",
+        "section_type": "essence",
+        "content": "Core distilled understanding",
+        "source_refs": ["raw-evidence-id"]
+      },
+      {
+        "id": "key_points",
+        "title": "关键要点",
+        "section_type": "key_points",
+        "content": "3-5 key points",
+        "source_refs": ["raw-evidence-id"]
+      },
+      {
+        "id": "example",
+        "title": "示例",
+        "section_type": "example",
+        "content": "Lesson-local example",
+        "source_refs": ["raw-evidence-id"]
+      },
+      {
+        "id": "application",
+        "title": "应用",
+        "section_type": "application",
+        "content": "Practical applications",
+        "source_refs": ["raw-evidence-id"]
+      },
+      {
+        "id": "misconception",
+        "title": "常见误解",
+        "section_type": "misconception",
+        "content": "Common misconception when applicable",
         "source_refs": ["raw-evidence-id"]
       }
     ],
