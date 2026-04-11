@@ -1,209 +1,217 @@
-# Chapter Extraction Rules
+# 课题抽取规则
 
-## Scope
+## 范围
 
-- Extract one lesson, one activity block, or one short page range at a time.
-- Avoid whole-book extraction in a single pass.
-- Treat textbook structure as provenance, not as the canonical knowledge tree.
-- Prefer GraphRAG-style micro-chunk extraction within the lesson rather than reasoning over the whole lesson body at once.
+- 每次只抽取一个课题、一个活动块、或一小段页码范围
+- 不要一次性全书抽取
+- 教材结构是来源标记，不是知识图谱本身
+- 课题内部优先拆成小块分别抽取，而非对整课全文一次性推理
 
-## Outline Kind Selection
+## Outline 类型选择
 
-Not all outline items should become canonical nodes. Follow these rules:
+不是所有 outline 条目都应该变成 canonical 节点：
 
-| Outline Kind | Extract? | Notes |
-|--------------|----------|-------|
-| `lesson` | ✅ Yes | Core content, always extract |
-| `activity` | ✅ Yes | Experiments and activities, extract as `activity/experiment` nodes |
-| `topic` | ✅ Yes | Standalone topics like introduction/preface |
-| `theme` | ❌ No | Chapter/unit titles, only serve as parent containers for lessons |
-| `review` | ❌ No | Chapter review sections, do not create nodes or profiles |
+| Outline 类型 | 是否抽取 | 说明 |
+|-------------|---------|------|
+| `lesson` | ✅ 是 | 核心内容，总是抽取 |
+| `activity` | ✅ 是 | 实验和活动，抽取为 `activity/experiment` 节点 |
+| `topic` | ✅ 是 | 独立专题，如引言/前言 |
+| `theme` | ❌ 否 | 只是章节/单元标题，作为课题的父容器 |
+| `review` | ❌ 否 | 章节复习，不创建节点或画像 |
 
-- `theme` and `review` items exist only as provenance anchors in the outline.
-- Do not create canonical nodes, profiles, mentions, or node cards for `theme` or `review` items.
-- Skip `theme` and `review` batches during backbone extraction.
+- `theme` 和 `review` 仅在 outline 中作为来源标记
+- 不要为 `theme` 或 `review` 创建 canonical 节点、画像、提及或节点卡片
+- backbone 抽取时跳过 `theme` 和 `review`
 
-## Evidence First
+## 证据优先
 
-- Split the current lesson into small evidence-bearing units before canonical decisions.
-- Good units:
-  - definition paragraph
-  - example paragraph
-  - experiment step block
-  - figure caption
-  - table-local row group
-- Create evidence records before nodes and edges.
-- Keep `excerpt` concise and local to the claim.
-- Use captions and tables only when they add information not already present in the body text.
-- Put the local lesson or activity id into `anchor_ref`.
+- 在决定节点之前，先把当前课题拆成小的证据单元
+- 好的拆分单元：
+  - 定义段落
+  - 示例段落
+  - 实验步骤块
+  - 图表说明
+  - 表格行组
+- 先创建 evidence 记录，再创建节点和边
+- `excerpt` 保持简洁，只摘录与声明直接相关的原文
+- 图表说明和表格仅在补充正文未包含的信息时使用
+- 把当前课题或活动的 ID 写入 `anchor_ref`
 
-## Three-Layer Selection Rule
+## 三层筛选规则
 
-### G1: Backbone Node
+### 第一层：准入门槛（Backbone 节点）
 
-Create a canonical node only when the item:
+只有同时满足以下全部条件，才创建 canonical 节点：
 
-1. can be defined independently
-2. can connect to other nodes through stable relations
-3. is likely to recur across lessons, textbooks, or stages
-4. can stand as a learning goal or assessment focus
+1. 可独立定义
+2. 可通过稳定关系连接其他节点
+3. 可能在跨课、跨教材、跨学段中复现
+4. 可作为学习目标或考核焦点
 
-### G2: Card Section / Micro-claim
+**反面示例 — 以下内容不应创建 backbone 节点：**
 
-Keep these out of the backbone by default:
+- 学科/科目名："化学""物理""数学" — 粒度过粗，无法考核
+- 章节/单元标题："化学的魅力""空气与氧" — 只是结构容器，不是知识点
+- 元分类标签："微观结构""定量关系" — 应放入 `bridge_tags`，不单独建节点
+- 模糊描述："实验探究""科学方法" — 太泛，无法给出明确定义或考核
+- 课题名称："课题1 开启化学之门" — 仅作来源标记，不是知识点
 
-- local properties
-- key judgment points
-- procedural substeps
-- common errors
-- explanatory examples
+### 第二层：卡片级内容
 
-These belong in node cards later.
+以下内容不做 backbone，默认归入属性或卡片：
 
-### G2.5: `properties` Vs Node Card
+- 局部属性
+- 关键判断点
+- 操作子步骤
+- 易错点
+- 解释性示例
 
-Use canonical node `properties` only for compact structured facts.
+这些后续放入 node cards。
 
-Put information into `properties` when it is:
+### 第二层补充：`properties` 与 Node Card 的边界
 
-1. short enough to read as a field-value pair
-2. stable for the canonical node
-3. likely to help quick scanning, filtering, or future retrieval
-4. not dependent on long explanation
+`properties` 只放简短的结构化事实。
 
-Put information into node cards when it is:
+适合放入 `properties`：
 
-1. explanatory
-2. example-driven
-3. cautionary
-4. comparative
-5. procedural with important context
+1. 足够短，一个字段一个值就能看懂
+2. 对该 canonical 节点是稳定的
+3. 有助于快速浏览、筛选或检索
+4. 不需要长篇解释
 
-Default extraction rule:
+适合放入 node cards：
 
-- if unsure, leave `properties` sparse and defer the detail to a node card
-- do not invent filler properties just to avoid an empty section in the viewer
+1. 需要展开解释的
+2. 以示例说明的
+3. 需要提醒/警示的
+4. 需要对比分析的
+5. 操作性内容且需要关键上下文的
 
-### G3: Evidence / Example
+默认规则：
 
-Keep these in provenance only:
+- 拿不准时，`properties` 留空，细节推迟到 node card
+- 不要为了凑字段而编造属性
 
-- textbook sentences
-- examples
-- figure descriptions
-- exercise prompts
-- local observations
+### 第三层：证据级内容
 
-## Node Selection
+以下内容只记录出处，不建节点：
 
-- Create `concept` nodes for abstract ideas, categories, and definitions.
-- Create `entity` nodes for named substances, organisms, places, persons, or institutional objects.
-- Create `activity` nodes for explicit experiments, investigations, and task blocks worth preserving.
-- Create `method` nodes for reusable operations such as collection, heating, filtration, testing, comparison, or source analysis.
-- Create `principle` nodes for laws, mechanisms, rules, and stable explanatory claims.
-- Create `representation` nodes for formulas, equations, diagrams, notation, and symbol systems taught as distinct content.
-- Create `skill` nodes for reusable, assessable capabilities.
-- Create `issue` nodes only when the source clearly frames a persistent topic as a discussable issue.
+- 教材原句
+- 示例
+- 图片描述
+- 习题提示
+- 课堂观察记录
 
-Use `node_subkind` when a narrower label helps:
+## 节点类型选择
+
+- 抽象观念、类别、定义 → `concept` 节点
+- 具体物质、生物、地点、人物或机构 → `entity` 节点
+- 值得保留的实验、探究、任务块 → `activity` 节点
+- 可复用的操作（收集、加热、过滤、检验、比较等） → `method` 节点
+- 定律、机制、规则等稳定的原理性陈述 → `principle` 节点
+- 作为教学内容专门教授的公式、方程式、图示、符号系统 → `representation` 节点
+- 可复用、可考核的能力 → `skill` 节点
+- 仅当来源明确将其框定为可讨论的问题时 → `issue` 节点
+
+需要更细标签时使用 `node_subkind`：
 
 - `entity/substance`
 - `activity/experiment`
 - `representation/symbol`
 
-## Properties Selection
+## 属性选择
 
-Good `properties` candidates:
+适合放入 `properties` 的：
 
 - `entity/substance`
-  - `appearance`
-  - `color`
-  - `odor`
-  - `state`
-  - `solubility`
-- equipment-like `entity`
-  - `instrument_type`
+  - `appearance`（外观）
+  - `color`（颜色）
+  - `odor`（气味）
+  - `state`（状态）
+  - `solubility`（溶解性）
+- 器材类 `entity`
+  - `instrument_type`（仪器类型）
 - `activity/experiment`
-  - `method`
-  - short `steps`
-  - short `materials`
+  - `method`（方法）
+  - 短 `steps`（步骤）
+  - 短 `materials`（材料）
 - `issue`
   - `issue_type`
   - `application_domain`
 - `representation`
   - `notation_type`
 
-Avoid putting these in `properties`:
+不应放入 `properties` 的：
 
-- textbook sentences copied verbatim
-- long lists of examples
-- definitions that belong in `definition`
-- grade/stage expectations that belong in profiles
-- relation facts that belong in edges
-- long explanation or reasoning that belongs in node cards
+- 教材原句逐字复制
+- 长示例列表
+- 应属于 `definition` 的定义
+- 应属于 profiles 的年级/学段要求
+- 应属于 edges 的关系事实
+- 应属于 node cards 的长篇解释或推理
 
-Few-shot examples:
+示例：
 
 1. `entity/substance:nitrogen`
-   - good `properties`
+   - 适合的 `properties`：
      - `{"color":"无色","odor":"无气味","solubility":"难溶于水"}`
-   - not `properties`
-     - "氮气为什么能作保护气" -> node card
+   - 不适合 `properties`：
+     - "氮气为什么能作保护气" → node card
 
 2. `entity/equipment:funnel`
-   - good `properties`
+   - 适合的 `properties`：
      - `{"instrument_type":"玻璃仪器"}`
-   - not `properties`
-     - "过滤时如何配合玻璃棒使用" -> node card
+   - 不适合 `properties`：
+     - "过滤时如何配合玻璃棒使用" → node card
 
 3. `activity/experiment:salt-purification`
-   - good `properties`
+   - 适合的 `properties`：
      - `{"steps":["溶解","过滤","蒸发"]}`
-   - not `properties`
-     - "为什么先过滤再蒸发" -> node card
+   - 不适合 `properties`：
+     - "为什么先过滤再蒸发" → node card
 
 4. `concept:chemical-change`
-   - good `properties`
-     - usually none
-   - not `properties`
-     - "与物理变化的区别、例子、易错点" -> node card
+   - 适合的 `properties`：
+     - 通常没有
+   - 不适合 `properties`：
+     - "与物理变化的区别、例子、易错点" → node card
 
-## Node Layer Selection
+## 节点层级选择
 
-- Use `node_layer = backbone` when the node is a stable, cross-lesson knowledge anchor that should appear in the main knowledge trunk.
-- Use `node_layer = support` when the node is mainly there to explain, operate on, evidence, represent, or contextualize a backbone node.
-- Typical `backbone` nodes:
-  - core concepts
-  - principles
-  - processes
-  - key substances or other stable entities
-  - essential microscopic entities when they are themselves learning anchors
-- Typical `support` nodes:
-  - experiments
-  - reusable methods
-  - equipment
-  - formulas, equations, diagrams, and other representations
-  - issue or application contexts
-- If the node is reusable but would clutter the main trunk when shown by default, keep it canonical but mark it as `support`.
+- 节点是稳定的跨课知识锚点，应在主干视图中显示 → `node_layer = backbone`
+- 节点主要用来解释、操作、佐证、表示 backbone 节点 → `node_layer = support`
+- 典型 backbone 节点：
+  - 核心概念
+  - 原理
+  - 过程
+  - 关键物质或其他稳定实体
+  - 本身作为学习锚点的微观实体（如原子、分子）
+- 典型 support 节点：
+  - 实验
+  - 可复用方法
+  - 器材
+  - 公式、方程式、图示等表示
+  - 问题或应用场景
+- 如果节点可复用但默认显示会撑乱主干图，仍保留为 canonical 节点，但标记为 `support`
 
-## Canonicalization
+## 规范化
 
-- Prefer reusing existing canonical nodes from the active SQLite dataset.
-- Create or refine curriculum profiles in the active SQLite dataset.
-- If the same canonical node is learned in a new stage or grade, add another curriculum profile for that context instead of replacing the old one.
-- Do not delete prior stage coverage during a new extraction pass. Existing junior-secondary and senior-secondary profiles may coexist on the same canonical node.
-- Use `framework_refs` primarily on profiles.
-- Do not create lesson nodes in the canonical graph.
-- Record lesson-level appearance through mentions, not through chapter-parent edges.
-- Record only backbone-worthy concepts and relations here. Detailed explanation should be deferred to node cards.
-- Before deciding reuse or relation creation, retrieve a small seed candidate node set using exact names, aliases, normalized terms, and filtered search.
-- After seed retrieval, inspect only a narrow local subgraph around the most relevant candidates conceptually. Do not widen to the whole book or whole graph.
-- Persist the batch retrieval inputs in SQLite runtime staging.
-- Do not ask the extractor to reason over the whole canonical graph at once.
+- 优先复用已有 canonical 节点
+- 在当前 SQLite 数据集中创建或完善课程画像
+- 同一 canonical 节点在新学段/年级出现时，添加新的课程画像，不要替换旧的
+- 新一轮抽取时不要删除之前学段的画像。初中和高中画像可以共存于同一 canonical 节点
+- `framework_refs` 主要写在 profiles 上
+- 不要在 canonical 图中创建课题级节点
+- 课题的出现通过 mentions 记录，不通过章节父级边
+- 只记录值得进入 backbone 的概念和关系，详细解释推迟到 node cards
+- 决定复用或创建关系前，先用精确名称、别名、规范术语和过滤搜索检索一小批种子候选节点
+- 种子检索后，只在最相关的候选周围检查局部子图，不要扩展到整书或整图
+- 将批量检索的输入持久化到 SQLite runtime staging
+- 不要让抽取器一次性推理整个 canonical 图
 
-## Relation Selection
+## 关系选择
 
-- Use only schema-valid edge types:
+- 只使用 schema 合法的 edge_type：
   - `is_a`
   - `instance_of`
   - `part_of`
@@ -225,75 +233,75 @@ Few-shot examples:
   - `analogous_to`
   - `same_as`
   - `related_to`
-- Do not invent near-synonyms such as `relates_to`, `represents`, `contrasts_with`, or `improves`.
-- Use `contains` and `part_of` only for stable structural relations.
-- Use `is_a` for clear type membership.
-- Use `has_property` when a property is stable and reusable.
-- Use `uses` when an activity or method directly uses a substance, tool, or representation.
-- Use `measures` only when measurement is explicit.
-- Use `produces` and `consumes` only when the source clearly indicates a process relation.
-- Use `prerequisite_for` and `depends_on` sparingly and only when learning or semantic dependence is clear.
-- Prefer `related_to` over inventing a new relation type.
-- Extract relations in two steps:
-  - first as lesson-local proposals
-  - then as small-scope normalized canonical edges
-- Keep the batch-local provisional graph denser than the canonical graph when needed for review. Temporary support nodes and unresolved alternatives may exist locally as long as they remain evidence-backed.
-- Persist lesson-local relation proposals in SQLite runtime staging.
-- Only promote a proposal into a canonical edge when:
-  - both endpoints are justified in the current constrained candidate context
-  - the relation has explicit evidence support
-  - the relation does not conflict with an existing canonical edge without review
-- If a relation conflicts with an existing canonical edge, do not overwrite the older edge automatically.
-- If evidence is weak or absent, keep the relation out of the canonical graph.
+- 不要自造近义词，如 `relates_to`、`represents`、`contrasts_with`、`improves`
+- `contains` 和 `part_of` 只用于稳定的结构关系（如"纯净物"包含"化合物"）
+- `is_a` 用于明确的类型归属（如"氧气" is_a "单质"）
+- `has_property` 用于稳定且可复用的属性
+- `uses` 用于活动或方法直接使用物质、工具或表示
+- `measures` 只在测量关系明确时使用
+- `produces` 和 `consumes` 只在来源明确指出过程关系时使用
+- `prerequisite_for` 和 `depends_on` 谨慎使用，仅在学习先后或语义依赖明确时
+- 宁可用 `related_to`，不要自造新的关系类型
+- 关系抽取分两步：
+  - 先作为课题内的提议
+  - 再在小范围内规范化为 canonical 边
+- 批次级的临时图可以比 canonical 图更密。临时支撑节点和未决的替代方案可以局部存在，只要有证据支撑
+- 将课题内的关系提议持久化到 SQLite runtime staging
+- 只有满足以下条件才将提议提升为 canonical 边：
+  - 两个端点在当前候选上下文中有依据
+  - 关系有明确的证据支撑
+  - 关系不与已有 canonical 边冲突（除非经过审查）
+- 如果与已有 canonical 边冲突，不要自动覆盖旧边
+- 证据薄弱或缺失时，不要将该关系纳入 canonical 图
 
-## Edge Layer Selection
+## 边层级选择
 
-- Use `edge_layer = backbone` when the relation should remain visible in the default main-trunk view.
-- Use `edge_layer = support` when the relation mainly exists to attach experiments, methods, representations, equipment, or contextual issues around a backbone node.
-- Use `backbone_expand = true` only when the relation should serve as a default expansion handle from a backbone node to a support node.
-- Typical default:
-  - backbone -> backbone: `edge_layer = backbone`, `backbone_expand = false`
-  - backbone <-> support: `edge_layer = support`, `backbone_expand = true`
-  - support <-> support: `edge_layer = support`, `backbone_expand = false`
+- 关系应在默认主干视图中显示 → `edge_layer = backbone`
+- 关系主要用来把实验、方法、表示、器材或上下文问题挂到 backbone 节点上 → `edge_layer = support`
+- 关系应作为从 backbone 节点到支撑节点的默认展开入口 → `backbone_expand = true`
+- 典型默认值：
+  - backbone → backbone：`edge_layer = backbone`，`backbone_expand = false`
+  - backbone ↔ support：`edge_layer = support`，`backbone_expand = true`
+  - support ↔ support：`edge_layer = support`，`backbone_expand = false`
 
-## Mention Selection
+## 提及选择
 
-- **Every canonical node must have at least one mention pointing to a textbook location.**
-- A node without a mention means it has no provenance in the source material and should not exist in the canonical graph.
-- Create a mention for every canonical node, edge, or profile that is substantively supported in the current lesson.
-- Use the mention `role` to preserve how the lesson treats the target, such as `introduces`, `defines`, `focuses_on`, `demonstrates`, or `reviews`.
-- When adding nodes manually (e.g., during normalization or edge supplementation), always:
-  1. Verify the node exists in the source textbook
-  2. Create the corresponding evidence and mention records
-  3. Link the mention to the appropriate anchor (lesson or activity)
-- Do not create nodes that do not appear in any textbook or curriculum source.
+- **每个 canonical 节点必须至少有一条提及指向教材位置**
+- 没有提及的节点说明在来源材料中找不到出处，不应存在于 canonical 图中
+- 为当前课题中有实质性支撑的每个 canonical 节点、边或画像创建提及
+- 用提及的 `role` 记录课题对该目标的处理方式，如 `introduces`（首次引入）、`defines`（给出定义）、`focuses_on`（重点讨论）、`demonstrates`（举例说明）、`reviews`（复习回顾）
+- 手动添加节点时（如规范化或补充边时），务必：
+  1. 验证节点确实出现在来源教材中
+  2. 创建对应的证据和提及记录
+  3. 将提及链接到对应的锚点（课题或活动）
+- 不要创建在任何教材或课程来源中都找不到出处的节点
 
-## Required Minimal Fields
+## 必填最小字段
 
-- Every canonical node must include at least one `learning_modes` value.
-- Prefer these defaults when the source does not make the mode explicit:
-  - `concept`, `principle`, `process`, backbone `entity`, `representation` -> `conceptual`
-  - support `entity` -> `factual`
-  - `method`, `skill`, `activity` -> `procedural`
-  - `issue` -> `conceptual`
+- 每个 canonical 节点必须包含至少一个 `learning_modes` 值
+- 来源未明确时，按以下规则默认：
+  - `concept`、`principle`、`process`、backbone `entity`、`representation` → `conceptual`
+  - support `entity` → `factual`
+  - `method`、`skill`、`activity` → `procedural`
+  - `issue` → `conceptual`
 
-## Expansion Boundary
+## 展开边界
 
-- Do not write node cards during backbone extraction unless the user explicitly asks for it.
-- Keep the backbone sparse enough that a human can review it quickly.
+- 除非用户明确要求，否则 backbone 抽取阶段不写 node cards
+- backbone 保持足够稀疏，让人可以快速审查
 
-## Small-Group Roll-Up
+## 小组汇总
 
-- After a small group of lessons, prepare a short thematic roll-up for normalization or QA.
-- This roll-up may summarize:
-  - recurring concepts
-  - duplicate naming drift
-  - likely missing cross-lesson links
-  - unstable terminology
-- Do not write the roll-up back as canonical nodes or canonical edges by default.
+- 处理完一小批课题后，准备一份简短的主题汇总，供规范化或 QA 使用
+- 汇总可以包含：
+  - 反复出现的概念
+  - 命名不一致的情况
+  - 可能缺失的跨课链接
+  - 术语不稳定的地方
+- 默认不把汇总回写成 canonical 节点或 canonical 边
 
-## Naming
+## 命名
 
-- Keep textbook wording in `canonical_name` when it is stable and reusable.
-- Put formulas, abbreviations, and alternate phrasings in `aliases`.
-- Avoid merging two names during extraction; leave deduplication to normalization.
+- 教材用词稳定且可复用时，`canonical_name` 保持教材原词
+- 公式、缩写和替代表述放入 `aliases`
+- 抽取时不要合并两个名称；去重留给规范化阶段

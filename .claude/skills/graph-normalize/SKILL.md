@@ -1,114 +1,112 @@
 ---
 name: graph-normalize
-description: Deduplicates, canonicalizes, and cleans knowledge graph while preserving textbook provenance and schema validity. Use after extraction to normalize the knowledge graph.
+description: 对知识图谱去重、规范化、清理，同时保留教材来源和 schema 合规性。用于抽取后归一化知识图谱。
 user-invocable: true
 ---
 
-# Graph Normalize
+# 图归一化
 
-Normalize canonical graph artifacts after extraction. This skill handles node deduplication, alias merging, cycle detection, isolated node resolution, and relation consolidation.
+在抽取之后对 canonical 图做归一化处理。包括节点去重、别名合并、环路检测、无连接节点的处理、以及关系整理。
 
-## Quick Start
+## 快速开始
 
 ```bash
-# Called by @kg-pipeline after extraction
-# Requires:
-#   --output-root (active version)
-#   --batch-anchor or --batch-group (for scope)
+# 由 @kg-pipeline 在抽取后调用
+# 需要：
+#   --output-root（活跃版本）
+#   --batch-anchor 或 --batch-group（用于范围）
 ```
 
-## Workflow
+## 工作流程
 
-### Phase 1: Pre-flight
+### 阶段一：预处理
 
-1. Read `../../AGENTS.md` for principles
-2. Read `../../GLOSSARY.md` for terminology
-3. Read `references/normalization-rules.md`
-4. Verify `--output-root` exists and contains SQLite dataset
-5. Determine scope:
-   - Single batch: `--batch-anchor struct:book:lesson:X-Y-Z`
-   - Batch group: `--batch-group lesson-X-Y-Z,lesson-X-Y-Z+1,`
+1. 读取 `../../AGENTS.md` 了解原则
+2. 读取 `../../GLOSSARY.md` 了解术语
+3. 读取 `references/normalization-rules.md`
+4. 验证 `--output-root` 存在且包含 SQLite 数据集
+5. 确定范围：
+   - 单批次：`--batch-anchor struct:book:lesson:X-Y-Z`
+   - 批次组：`--batch-group lesson-X-Y-Z,lesson-X-Y-Z+1,`
 
-### Phase 2: Load Current State
+### 阶段二：加载当前状态
 
-1. Connect to SQLite dataset
-2. Load canonical tables:
-   - `nodes`, `edges`
-   - `profiles`, `mentions`, `evidence`
-3. Identify nodes/edges created in current scope for potential deduplication
+1. 连接 SQLite 数据集
+2. 加载 canonical 表：`nodes`、`edges`、`profiles`、`mentions`、`evidence`
+3. 识别当前范围内创建的节点/边，用于潜在去重
 
-### Phase 3: Node Deduplication
+### 阶段三：节点去重
 
-**Merge candidates** (conservative):
+**合并候选**（保守策略）：
 
-1. Same `node_kind` + identical `canonical_name`
-2. Same `node_kind` + one name in other's `aliases`
-3. Same `node_kind` + only whitespace/punctuation differs
-4. Same `node_kind` + legacy-vs-v2 naming differs
+1. 相同 `node_kind` + 相同 `canonical_name`
+2. 相同 `node_kind` + 一个名称在另一个的 `aliases` 中
+3. 相同 `node_kind` + 仅空格/标点差异
+4. 相同 `node_kind` + 遗留名称与 v2 名称差异
 
-**Never merge** across:
-- Different `node_kind` or `node_subkind`
-- Without explicit evidence or user approval
+**绝不跨类合并**：
+- 不同 `node_kind` 或 `node_subkind`
+- 没有明确证据或用户批准
 
-**Merge procedure**:
+**合并过程**：
 
 ```
-For each candidate pair:
-  ├─ Verify same semantics
-  ├─ Choose survivor (prefer stable ID)
-  ├─ Merge aliases
-  ├─ Merge profiles (same context only)
-  ├─ Update mentions to survivor
-  ├─ Propagate ID changes to edges
-  └─ Delete duplicate
+对每个候选对：
+  ├─ 验证语义相同
+  ├─ 选择保留节点（优先稳定 ID）
+  ├─ 合并别名
+  ├─ 合并画像（仅相同上下文）
+  ├─ 更新提及指向保留节点
+  ├─ 将 ID 变更传播到边
+  └─ 删除重复节点
 ```
 
-### Phase 4: Edge Consolidation
+### 阶段四：边整合
 
-1. **Exact duplicates**: Same `(from, to, edge_type)`
-   - Keep one with highest confidence
-   - Merge evidence references
+1. **完全重复**：相同 `(from, to, edge_type)`
+   - 保留置信度最高的一条
+   - 合并证据引用
 
-2. **Conflicting relations**: New proposal vs existing edge
-   - Do not auto-overwrite
-   - Options:
-     - Keep old, queue new for review
-     - Keep both if not semantically conflicting
-     - Request user resolution
+2. **冲突关系**：新提议 vs 已有边
+   - 不要自动覆盖
+   - 选项：
+     - 保留旧的，将新的排队审查
+     - 语义不冲突时两者都保留
+     - 请求用户解决
 
-3. **Update `edge_layer` and `backbone_expand`**
-   - Recompute if node layer changed
-   - backbone→backbone: `edge_layer=backbone, backbone_expand=false`
-   - backbone↔support: `edge_layer=support, backbone_expand=true`
+3. **更新 `edge_layer` 和 `backbone_expand`**
+   - 节点层级变更时重新计算
+   - backbone→backbone：`edge_layer=backbone, backbone_expand=false`
+   - backbone↔support：`edge_layer=support, backbone_expand=true`
 
-### Phase 5: Cycle Detection
+### 阶段五：环路检测
 
-**Check hierarchical/dependency edges**
+**检查层级/依赖边**
 
-Must NOT cycle:
-- `is_a`, `instance_of`, `contains`, `part_of`
-- `prerequisite_for`, `depends_on`, `extends`
+以下类型不得形成环路：
+- `is_a`、`instance_of`、`contains`、`part_of`
+- `prerequisite_for`、`depends_on`、`extends`
 
 ```
-Algorithm:
-1. Build graph with restricted edge types
-2. Run cycle detection (DFS or Tarjan)
-3. For each found cycle:
-   ├─ Identify problematic edge
-   ├─ Log cycle for review
-   └─ Halt if cycle includes backbone edges
+算法：
+1. 用限制边类型构建图
+2. 运行环路检测（DFS 或 Tarjan）
+3. 对每个发现的环：
+   ├─ 识别有问题的边
+   ├─ 记录环路供审查
+   └─ 环路包含 backbone 边时停止
 ```
 
-**Acceptable cycles** (association edges):
-- `related_to`, `explains`, `uses`, `produces`
+**可接受的环路**（关联边）：
+- `related_to`、`explains`、`uses`、`produces`
 
-### Phase 6: Isolated Node Detection & Resolution
+### 阶段六：孤立节点检测与解决
 
-**Definition**: Isolated nodes have NO edges connecting them to the graph.
+**定义**：孤立节点是指没有任何边与之相连的节点。
 
-**Detection algorithm**:
+**检测算法**：
 ```sql
--- Find nodes with no incoming or outgoing edges
+-- 查找没有入边或出边的节点
 SELECT node_id, canonical_name, node_kind, node_layer
 FROM nodes n
 WHERE NOT EXISTS (
@@ -117,192 +115,172 @@ WHERE NOT EXISTS (
 );
 ```
 
-**Resolution workflow**:
+**解决流程**：
 
 ```
-For each isolated node:
-  ├─ Determine if isolation is intentional
-  │   ├─ Check node_kind (some types may be intentionally isolated)
-  │   ├─ Check node_layer (backbone nodes should rarely be isolated)
-  │   └─ Check lesson context (introductory concepts may be standalone)
+对每个孤立节点：
+  ├─ 判断孤立是否是合理的
+  │   ├─ 检查 node_kind（某些类型天然没有连接）
+  │   ├─ 检查 node_layer（backbone 节点很少应有意图立）
+  │   └─ 检查课题上下文（引言性概念可能是独立的）
   │
-  ├─ If isolation is problematic:
-  │   ├─ Search for semantically related nodes in current batch
-  │   ├─ Verify relation has evidence support from textbook
-  │   ├─ If evidence exists:
-  │   │   └─ Add appropriate edge (prefer `related_to` for weak relations)
-  │   └─ If no evidence:
-  │       └─ Flag for human review, do NOT auto-add edge
+  ├─ 如果孤立是有问题的：
+  │   ├─ 在当前批次中搜索语义相关节点
+  │   ├─ 验证关系有教材证据支撑
+  │   ├─ 如有证据：
+  │   │   └─ 添加适当的边（弱关系优先用 `related_to`）
+  │   └─ 如无证据：
+  │       └─ 标记供人工审查，不要自动添加边
   │
-  └─ If isolation is intentional:
-      └─ Document reason in node.notes field
+  └─ 如果孤立是合理的：
+      └─ 在 node.notes 字段中记录原因
 ```
 
-**Edge type selection for resolution**:
+**解决时的边类型选择**：
 
-| Node Kind | Preferred Edge Types | Notes |
-|-----------|---------------------|-------|
-| `concept/*` | `is_a`, `related_to` | Check for parent concepts first |
-| `entity/*` | `contains`, `related_to`, `uses` | Check for containment or usage |
-| `activity/*` | `uses`, `produces`, `measures` | Link to equipment or substances |
-| `method/*` | `applies`, `extends` | Link to parent methods |
-| `representation/*` | `represents`, `explains` | Link to what it represents |
+| 节点类型 | 首选边类型 | 说明 |
+|---------|-----------|------|
+| `concept/*` | `is_a`、`related_to` | 先检查父概念 |
+| `entity/*` | `contains`、`related_to`、`uses` | 检查包含或使用关系 |
+| `activity/*` | `uses`、`produces`、`measures` | 链接到器材或物质 |
+| `method/*` | `applies`、`extends` | 链接到父方法 |
+| `representation/*` | `represented_by`、`explains` | 链接到其表示的对象 |
 
-**Isolation acceptance criteria**:
+**孤立可接受条件**：
 
-Isolation is ACCEPTABLE when:
-- Node is explicitly introduced in current lesson but not yet connected (early in book)
-- Node is a placeholder or cross-reference entry
-- Node has `node_layer=support` and serves as auxiliary reference
-- Lesson context shows intentional standalone presentation
+以下情况孤立是可接受的：
+- 节点在当前课题中显式引入但尚未连接（教材早期）
+- 节点是占位符或交叉引用条目
+- 节点 `node_layer=support`，仅作辅助参考
+- 课题上下文表明有意独立呈现
 
-Isolation is PROBLEMATIC when:
-- Node has `node_layer=backbone` (core concepts should connect)
-- Node appears in middle/later lessons (should have established relations)
-- Node kind typically requires context (`activity/experiment` needs equipment, etc.)
-- Multiple isolated nodes suggest systematic extraction gap
+以下情况孤立是有问题的：
+- 节点 `node_layer=backbone`（核心概念应有连接）
+- 节点出现在中期/后期课题（应已建立关系）
+- 节点类型通常需要上下文（`activity/experiment` 需要器材等）
+- 多个孤立节点暗示系统性抽取缺陷
 
-**Output**:
-- Updated edges table with new connections
-- Updated nodes.notes for intentionally isolated nodes
-- Report listing: resolved nodes, flagged nodes, intentional isolations
+**输出**：
+- 更新 edges 表（新增连接）
+- 更新 nodes.notes（有意孤立的节点）
+- 报告：已解决节点、已标记节点、有意孤立
 
-### Phase 7: Alias and Profile Management
+### 阶段七：别名与画像管理
 
-**Alias policy**:
-- Prefer one canonical Chinese name per node
-- Move formulas/abbreviations to `aliases`
-- Keep `aliases` unique and sorted
+**别名策略**：
+- 每个节点优先一个中文标准名称
+- 公式/缩写放入 `aliases`
+- `aliases` 保持唯一且有序
 
-**Profile policy**:
-- Never merge across different subject/stage/grade combinations
-- Merge same-context profiles conservatively
-- Preserve all `framework_refs`, `textbook_refs`, `source_refs`
-- Junior-secondary and senior-secondary profiles coexist
+**画像策略**：
+- 不要跨不同学科/学段/年级合并
+- 相同上下文的画像保守合并
+- 保留所有 `framework_refs`、`textbook_refs`、`source_refs`
+- 初中和高中画像共存
 
-### Phase 8: ID Propagation
+### 阶段八：ID 传播
 
-When canonical IDs change:
+当 canonical ID 变更时：
 
-1. Update `profiles.node_id`
-2. Update `mentions.target_id`
-3. Update `edges.source` / `edges.target`
-4. Update `node_cards` references
-5. Update `evidence` references if applicable
+1. 更新 `profiles.node_id`
+2. 更新 `mentions.target_id`
+3. 更新 `edges.source` / `edges.target`
+4. 更新 `node_cards` 引用
+5. 如适用，更新 `evidence` 引用
 
 ```sql
--- Example propagation pattern
+-- ID 传播模式示例
 UPDATE edges SET source = ? WHERE source = ?;
 UPDATE edges SET target = ? WHERE target = ?;
 UPDATE mentions SET target_id = ? WHERE target_id = ?;
 ```
 
-### Phase 9: Finalize
+### 阶段九：收尾
 
-1. Run `scripts/normalize_sqlite.py --dataset-id <id>`
-   - Deduplicate nodes and edges
-   - Resolve isolated nodes
-   - Detect cycles in hierarchical edges
+1. 运行 `scripts/normalize_sqlite.py --dataset-id <id>`
+   - 去重节点和边
+   - 解决孤立节点
+   - 检测层级边中的环路
 
-## Input Parameters
+## 输入参数
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `--output-root` | Path | Yes | Active output directory |
-| `--batch-anchor` | String | No* | Single batch ID |
-| `--batch-group` | String | No* | Comma-separated batch IDs |
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `--output-root` | 路径 | 是 | 活跃输出目录 |
+| `--batch-anchor` | 字符串 | 否* | 单批次 ID |
+| `--batch-group` | 字符串 | 否* | 逗号分隔的批次 ID |
 
-*At least one of `--batch-anchor` or `--batch-group` required.
+*`--batch-anchor` 或 `--batch-group` 至少需要一个。
 
-## Output
+## 输出
 
-**Primary**: SQLite canonical tables (updated)
+**主要**：SQLite canonical 表（已更新）
 
-**Secondary**: Optional JSON/JSONL snapshots
+**次要**：可选 JSON/JSONL 快照
 
-**State**: SQLite runtime records updated
+**状态**：SQLite runtime 记录已更新
 
-## Key Rules
+## 关键规则
 
-### Code Management
+### 合并策略
+- 保守：仅处理明确的重复
+- 语义安全：避免纯领域名的合并
+- 宁可使用 `related_to`，不要强行合并
 
-When generating or executing code:
+### 保留原则
+- 合并时不要丢弃证据
+- 不要断开来源链
+- 保持 `card_layer` 与节点层级对齐
 
-1. **Temporary Code**: Do NOT save
-   - One-off scripts for debugging
-   - Quick prototypes
-   - Throwaway verification scripts
+### 画像处理
+- 添加新画像时保留旧覆盖
+- 缺少当前批次覆盖 ≠ 可以删除
+- 删除画像需要用户明确指示
 
-2. **Reusable Code**: Save to project
-   - Utility scripts that solve common problems
-   - Reusable functions/modules
-   - Scripts in `scripts/` directory
+### 边安全
+- 不自动覆盖冲突边
+- 候选接受 ≠ 重复清理
+- 保持边语义明确
 
-3. **Specified Code Errors**: Fix as needed
-   - If documented commands/scripts have errors, fix them based on actual context
-   - Update documentation if the fix is permanent
-   - Report significant discrepancies to user
+### 环路预防
+**必须无环**：`is_a`、`instance_of`、`contains`、`part_of`、`prerequisite_for`、`depends_on`、`extends`
 
-### Merge Policy
-- Conservative: only clear duplicates
-- Semantic safety: avoid domain-only merges
-- Prefer `related_to` over forced merge
+**检测到环路时的解决**：
+1. 识别导致环路的边
+2. 审查语义
+3. 通过删除、改类型或人工审查来解决
 
-### Preservation
-- Never drop evidence while merging
-- Never break provenance chain
-- Keep `card_layer` aligned with node layer
+### 孤立节点解决
+- **证据优先**：只添加有教材证据支撑的边
+- **保守连接**：不确定的关系优先用 `related_to`
+- **Backbone 优先**：backbone 节点必须有连接；support 节点可以孤立
+- **文档化**：合理的孤立节点必须在 `notes` 字段中说明原因
+- **系统性问题**：高孤立率说明是抽取环节的问题，不是归一化能解决的
 
-### Profile Handling
-- Preserve older coverage when adding new
-- Missing current batch coverage != deletion warrant
-- Explicit user instruction required for profile deletion
+## 错误处理
 
-### Edge Safety
-- No auto-overwrite of conflicting edges
-- Candidate acceptance ≠ duplicate cleanup
-- Keep edge semantics distinct
+### 阻塞场景
 
-### Cycle Prevention
-**Must be acyclic**:
-`is_a`, `instance_of`, `contains`, `part_of`, `prerequisite_for`, `depends_on`, `extends`
+| 场景 | 操作 |
+|------|------|
+| 层级边中有环路 | 停止，报告阻塞 |
+| canonical 边冲突 | 停止（或根据配置排队审查） |
+| 边的目标节点缺失 | 停止，报告阻塞 |
+| ID 传播失败 | 停止，回滚变更 |
+| 孤立 backbone 节点过多（>10%） | 停止，报告系统性抽取缺陷 |
 
-**Resolution on cycle detection**:
-1. Identify edge causing cycle
-2. Review semantics
-3. Resolve by: delete, retype, or manual review
+### 警告场景
 
-### Isolated Node Resolution
-**Evidence-first**: Only add edges with textbook evidence support
-**Conservative connection**: Prefer `related_to` for uncertain relations
-**Backbone priority**: Backbone nodes must connect; support nodes may be isolated
-**Documentation**: Intentionally isolated nodes must have reason in `notes` field
-**Systematic gaps**: High isolated node rate indicates extraction issues, not normalization issues
+| 场景 | 操作 |
+|------|------|
+| 检测到近似重复但不确定 | 记录，保持分开 |
+| 画像合并冲突 | 两者都保留，标记审查 |
+| 孤立 backbone 节点（单个） | 有证据时自动解决，否则标记 |
+| 孤立 support 节点 | 在 notes 中记录，继续 |
 
-## Error Handling
+## 参考
 
-### Blocker Scenarios
-
-| Scenario | Action |
-|----------|--------|
-| Cycle in hierarchical edges | Halt, report blocker |
-| Conflicting canonical edges | Halt (or queue for review based on config) |
-| Missing target node for edge | Halt, report blocker |
-| ID propagation fails | Halt, rollback changes |
-| Excessive isolated backbone nodes (>10%) | Halt, report systematic extraction gap |
-
-### Warning Scenarios
-
-| Scenario | Action |
-|----------|--------|
-| Near-duplicate detected but uncertain | Log, keep separate |
-| Profile merge conflict | Keep both, flag for review |
-| Isolated backbone node (single) | Auto-resolve if evidence exists, else flag |
-| Isolated support node | Document in notes, continue |
-
-## References
-
-- `references/normalization-rules.md` - Detailed normalization rules (99 lines)
-- `../knowledge-schema/references/schema-guide.md` - Schema semantics
-- `../../GLOSSARY.md` - Terminology
-- `../../CONVENTIONS.md` - Standards
+- `references/normalization-rules.md` — 详细归一化规则（99 行）
+- `../knowledge-schema/references/schema-guide.md` — schema 语义
+- `../../GLOSSARY.md` — 术语
+- `../../CONVENTIONS.md` — 标准

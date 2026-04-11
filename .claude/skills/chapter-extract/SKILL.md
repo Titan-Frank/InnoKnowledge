@@ -1,29 +1,29 @@
 ---
 name: chapter-extract
-description: Extracts one lesson or small page range into lesson-local staged artifacts. Use when processing textbook content for knowledge extraction.
+description: 从单个课题或小页码范围提取课题级 staging 产物。用于教材内容知识抽取。
 user-invocable: true
 ---
 
-# Chapter Extract
+# 课题抽取
 
-## ⚠️ Critical: Single Lesson Scope Only
+## ⚠️ 关键约束：只处理一个课题
 
-Process **exactly one lesson** and stop.
+只处理**一个课题**，处理完即停。
 
-This skill returns **lesson-local structured artifacts** only. It does **not** commit canonical graph updates directly. The extraction standard should remain as strict and detailed as the previous canonical workflow; only the persistence target has changed.
+本 skill 只返回**课题内的结构化产物**，不直接写入 canonical 图表。抽取标准与之前的 canonical 流程同样严格，只是写入目标从 canonical 表改为了 staging 表。
 
-## Workflow
+## 工作流程
 
-### Phase 1: Pre-flight
+### 阶段一：预处理
 
-Before processing, ensure:
+处理前确认：
 
-1. Read `../../AGENTS.md` for project principles
-2. Read `../../GLOSSARY.md` for terminology
-3. Resolve `--output-root`
-4. Verify `--batch-anchor` is a valid outline ID
-5. Check SQLite is accessible
-6. Read required schemas:
+1. 读取 `../../AGENTS.md` 了解项目原则
+2. 读取 `../../GLOSSARY.md` 了解术语
+3. 确定 `--output-root`
+4. 验证 `--batch-anchor` 是有效的 outline ID
+5. 确认 SQLite 可访问
+6. 读取必要 schema：
    - `schemas/v2/node.schema.json`
    - `schemas/v2/edge.schema.json`
    - `schemas/v2/curriculum-profile.schema.json`
@@ -31,58 +31,84 @@ Before processing, ensure:
    - `schemas/v2/evidence.schema.json`
    - `schemas/v2/node-card.schema.json`
 
-### Phase 2: Load and Chunk
+### 阶段二：加载与分块
 
-1. Locate lesson scope from `data/outlines/{book-id}.outline.json`
-2. Read OCR-completed markdown for the target lesson
-3. Split into **evidence-bearing units**:
-   - definition paragraphs
-   - example paragraphs
-   - experiment step blocks
-   - figure captions
-   - table row groups
-4. Create lesson-local evidence records first
+1. 从 `data/outlines/{book-id}.outline.json` 定位课题范围
+2. 读取目标课题的 OCR markdown
+3. 拆分为**证据单元**：
+   - 定义段落
+   - 示例段落
+   - 实验步骤块
+   - 图表说明
+   - 表格行组
+4. 先创建课题内的 evidence 记录
 
-### Phase 3: Retrieval-First Processing
+### 阶段三：检索优先
 
-For each evidence unit:
+对每个证据单元：
 
-1. Extract candidate concepts, entities, and relationships
-2. Retrieve canonical candidates with `scripts/retrieve_candidates.py`
-3. Apply hard filters:
-   - `node_kind`
-   - `subject`
-   - `school_stage`
-   - `grade_band`
-4. Use local subgraph reasoning when needed
-5. Reuse canonical candidates only as retrieval hints
-6. Produce **lesson-local raw nodes and edges**
-7. Do not make the final canonical merge decision here
+1. 提取候选概念、实体和关系
+2. 用 `scripts/retrieve_candidates.py` 检索已有的 canonical 候选
+3. 应用硬过滤：`node_kind`、`subject`、`school_stage`、`grade_band`
+4. 必要时在局部子图上推理
+5. 已有 canonical 候选仅作为检索参考，不直接复用
+6. 产出**课题内的原始节点和边**
+7. 不在这里做 canonical 合并决策
 
-### Phase 4: Build Complete Artifacts for Each Node
+### 阶段四：为每个节点构建完整产物
 
-#### Step 4.1: Identify All Node Types
+#### 步骤 4.1：节点筛选 — 三层规则
 
-For each lesson, identify and extract:
+**第一层：准入门槛 — backbone 节点必须同时满足四条**
 
-1. **Backbone nodes**
-   - core concepts and principles
-   - key substances and entities
-   - stable cross-lesson knowledge anchors
+1. 可独立定义（有清晰、有边界的定义）
+2. 可通过稳定关系连接其他节点
+3. 可能在跨课、跨教材、跨学段中复现
+4. 可作为**学习目标或考核焦点**
 
-2. **Support nodes** where applicable
+任一条不满足，就不应成为 backbone 节点。
+
+**反面示例 — 以下内容不应创建 backbone 节点：**
+
+- 学科/科目名："化学""物理""数学" — 粒度过粗，无法考核
+- 章节/单元标题："化学的魅力""空气与氧" — 只是结构容器，不是知识点
+- 元分类标签："微观结构""定量关系" — 应放入 `bridge_tags`，不单独建节点
+- 模糊描述："实验探究""科学方法" — 太泛，无法给出明确定义或考核
+- 课题名称："课题1 开启化学之门" — 仅作来源标记，不是知识点
+
+**第二层：卡片级内容 — 不做 backbone，归入属性或卡片**
+
+- 局部属性 → 放入 `properties`
+- 关键判断点、易错点 → 放入 node cards
+- 操作子步骤 → 放入 node cards 或 `method` 支撑节点
+- 解释性示例 → 放入 evidence
+
+**第三层：证据级内容 — 只记录出处**
+
+- 教材原句、图片描述、习题提示 → 只建 evidence 记录
+
+---
+
+经过三层筛选后，确定：
+
+1. **Backbone 节点** — 通过第一层四条准入门槛的项目
+   - 核心概念和原理（如：化学变化, 质量守恒定律）
+   - 关键物质和实体（如：氧气, 二氧化碳）
+   - 稳定的跨课知识锚点
+
+2. **支撑节点** — 视课题内容而定
    - `activity/experiment`
    - `method`
    - `entity/equipment`
    - `representation`
 
-If no support nodes are present:
-- verify the lesson is concept/theory heavy
-- do not fabricate support nodes
+如果没有支撑节点：
+- 确认该课题确实是纯概念/理论型
+- 不要凭空捏造支撑节点
 
-#### Step 4.2: Extract Properties Carefully
+#### 步骤 4.2：谨慎提取属性
 
-**Entity/Substance nodes should have properties when supported by evidence**
+**物质节点：有证据支持时应填写属性**
 
 ```json
 {
@@ -96,7 +122,7 @@ If no support nodes are present:
 }
 ```
 
-**Activity/Experiment nodes should have properties when supported**
+**实验节点：有证据支持时应填写属性**
 
 ```json
 {
@@ -110,7 +136,7 @@ If no support nodes are present:
 }
 ```
 
-**Entity/Equipment nodes should have structured properties when supported**
+**器材节点：有证据支持时应填写结构化属性**
 
 ```json
 {
@@ -123,26 +149,26 @@ If no support nodes are present:
 }
 ```
 
-If evidence does not support such fields:
-- leave properties sparse
-- add `notes` only when needed
-- do not fabricate details
+如果证据不支持这些字段：
+- `properties` 留空即可
+- 仅在需要时添加 `notes`
+- 不要编造细节
 
-#### Step 4.3: Enforce Five-Category Completeness
+#### 步骤 4.3：确保五类完整性
 
-Every new backbone node must be supported by all five categories:
+每个新 backbone 节点必须有全部五类支撑：
 
-1. Node
-2. Curriculum profile
-3. Evidence
-4. Mention
-5. Node card target via `new_backbone_nodes`
+1. 节点本身（Node）
+2. 课程画像（Profile）
+3. 证据（Evidence）
+4. 提及（Mention）
+5. 节点卡片 — 通过 `new_backbone_nodes` 列表返回，由调用方生成
 
-This skill returns the first four categories directly and returns `new_backbone_nodes` so the caller can generate provisional node cards.
+本 skill 直接返回前四类，通过 `new_backbone_nodes` 告知调用方需要生成哪些节点卡片。
 
-#### Step 4.4: Node Requirements
+#### 步骤 4.4：节点格式要求
 
-Lesson-local node candidates should be shaped like canonical nodes, except their lifecycle remains candidate/staged:
+课题内的节点候选格式与 canonical 节点一致，但 status 保持 candidate/staged：
 
 ```json
 {
@@ -164,9 +190,9 @@ Lesson-local node candidates should be shaped like canonical nodes, except their
 }
 ```
 
-#### Step 4.5: Profile Requirements
+#### 步骤 4.5：画像格式要求
 
-Every backbone node should have a corresponding profile:
+每个 backbone 节点应有对应的课程画像：
 
 ```json
 {
@@ -185,9 +211,9 @@ Every backbone node should have a corresponding profile:
 }
 ```
 
-#### Step 4.6: Evidence Requirements
+#### 步骤 4.6：证据格式要求
 
-Every mention must be backed by lesson-local evidence:
+每条提及必须有课题内的证据支撑：
 
 ```json
 {
@@ -205,9 +231,9 @@ Every mention must be backed by lesson-local evidence:
 }
 ```
 
-#### Step 4.7: Mention Requirements
+#### 步骤 4.7：提及格式要求
 
-Every backbone node must have at least one lesson-local mention:
+每个 backbone 节点必须至少有一条课题内的提及：
 
 ```json
 {
@@ -224,9 +250,9 @@ Every backbone node must have at least one lesson-local mention:
 }
 ```
 
-### Phase 5: Return Structured Lesson Bundle
+### 阶段五：返回结构化课题包
 
-Return:
+返回：
 
 ```json
 {
@@ -246,56 +272,57 @@ Return:
 }
 ```
 
-The caller is responsible for:
-1. expanding provisional node cards
-2. calling `scripts/store_lesson_staging.py`
-3. verifying staging completeness
+调用方负责：
+1. 为每个 backbone 节点生成临时节点卡片
+2. 调用 `scripts/store_lesson_staging.py` 写入 staging 表
+3. 验证 staging 完整性
 
-### Phase 6: Validate Bundle
+### 阶段六：验证产物包
 
-Before returning:
+返回前验证：
 
-1. Verify every backbone node has:
-   - a node candidate
-   - a profile
-   - a mention
-   - evidence support
-2. Verify edge endpoints refer to lesson-local node IDs
-3. Verify all `source_refs` refer to lesson-local evidence IDs
-4. Verify no required schema fields are missing
+1. 每个 backbone 节点都有：节点候选、画像、提及、证据支撑
+2. 边的端点都指向课题内的节点 ID
+3. 所有 `source_refs` 都指向课题内的 evidence ID
+4. 没有缺失必要的 schema 字段
 
-## Constraints
+## 约束
 
-- Do not write canonical `nodes`, `edges`, `profiles`, `mentions`, `evidence`, or `node_cards`
-- Do not continue to the next lesson
-- Do not operate on the whole graph directly
+- 不写入 canonical 的 `nodes`、`edges`、`profiles`、`mentions`、`evidence`、`node_cards`
+- 不继续处理下一个课题
+- 不直接操作整个图
 
-## Key Rules
+## 关键规则
 
-### Scope
-- one lesson only
-- stop after the requested `batch-anchor`
+### 范围
+- 只处理一个课题
+- 处理完指定的 `batch-anchor` 即停
 
-### Storage
-- canonical SQLite tables are not the output of this skill
-- the output of this skill is a lesson-local artifact bundle
+### 存储
+- canonical SQLite 表不是本 skill 的输出目标
+- 本 skill 输出的是课题内产物包
 
-### Evidence First
-- split into evidence units before node decisions
-- every node and edge must remain evidence-backed
+### 证据优先
+- 先拆分证据单元，再做节点决策
+- 每个节点和边必须有证据支撑
 
-### Retrieval First
-- retrieve candidates before reasoning
-- use retrieval as narrowing aid, not as evidence
+### 检索优先
+- 推理前先检索已有候选
+- 检索仅用于收窄范围，不作为证据
 
-### Support Nodes
-- extract support nodes when lesson content warrants them
-- do not fabricate support nodes for lessons that genuinely lack them
+### 支撑节点
+- 课题内容需要时才抽取支撑节点
+- 纯概念/理论型课题确实没有支撑节点时不要捏造
 
-### Properties
-- fill meaningful structured properties when evidence supports them
-- otherwise keep sparse and avoid hallucination
+### 属性
+- 证据支持时填写有意义的结构化属性
+- 否则留空，不要编造
 
-### Node Layers
-- `backbone` for stable cross-lesson anchors
-- `support` for auxiliary content
+### 节点层级
+- `backbone`：稳定的跨课知识锚点
+- `support`：辅助内容
+
+### 节点粒度（准入四条门槛）
+- 每个 backbone 节点必须同时满足：可独立定义、有稳定关系、跨课复现、可考核
+- 学科名、章节标题、元分类、模糊描述 → 不建节点（元分类用 `bridge_tags`）
+- 拿不准时，选更窄、可考核的概念，而不是宽泛的大词
