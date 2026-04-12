@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
-"""Shared helpers for the SQLite knowledge store scripts."""
+"""Shared helpers for the PostgreSQL knowledge store scripts."""
 
 from __future__ import annotations
 
 import hashlib
 import json
 import math
+import os
 import re
-import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+import psycopg
+from psycopg.rows import dict_row
+from psycopg import sql as pg_sql
+from psycopg.types import TypeInfo
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_DB_PATH = REPO_ROOT / "storage" / "knowledge.sqlite"
-SQLITE_SCHEMA_PATH = REPO_ROOT / "schemas" / "sqlite" / "knowledge_store.sql"
+PG_SCHEMA_PATH = REPO_ROOT / "schemas" / "pg" / "knowledge_store.sql"
 OUTLINES_DIR = REPO_ROOT / "data" / "outlines"
 RUNTIME_RECORD_TYPES = (
     "query",
@@ -64,6 +68,13 @@ ANCHOR_ID_PATTERN = re.compile(
 )
 TEXTBOOK_SOURCE_PREFIX = "textbook:"
 
+# pgvector dimension — matches BGE-large-zh-v1.5
+VECTOR_DIM = 1024
+
+
+# ---------------------------------------------------------------------------
+# JSON helpers (kept for JSONL export / legacy compat)
+# ---------------------------------------------------------------------------
 
 def load_json(path: Path) -> Any:
     with path.open("r", encoding="utf-8") as handle:
@@ -83,6 +94,7 @@ def normalize_term(value: str) -> str:
 
 
 def load_json_text(value: str | None, default: Any) -> Any:
+    """Parse JSON text — kept for reading non-JSONB sources (e.g. JSONL files)."""
     if value is None or value == "":
         return default
     try:
@@ -90,6 +102,10 @@ def load_json_text(value: str | None, default: Any) -> Any:
     except json.JSONDecodeError:
         return default
 
+
+# ---------------------------------------------------------------------------
+# Domain helpers (unchanged from SQLite version)
+# ---------------------------------------------------------------------------
 
 def infer_learning_modes(
     node_kind: str | None, node_layer: str | None = None
@@ -128,6 +144,10 @@ def require_valid_edge_type(edge_type: str) -> str:
         )
     return edge_type
 
+
+# ---------------------------------------------------------------------------
+# ID generation helpers
+# ---------------------------------------------------------------------------
 
 def make_stable_suffix(*parts: str, length: int = 16) -> str:
     digest = hashlib.sha1("||".join(parts).encode("utf-8")).hexdigest()
@@ -212,6 +232,10 @@ def make_mention_id(
     return f"mention:auto-{suffix}"
 
 
+# ---------------------------------------------------------------------------
+# String / collection helpers
+# ---------------------------------------------------------------------------
+
 def safe_path_token(value: str) -> str:
     token = re.sub(r"[^a-zA-Z0-9._-]+", "__", value.strip())
     token = token.strip("._")
@@ -288,21 +312,29 @@ def cosine_similarity(left: Iterable[float], right: Iterable[float]) -> float:
     return numerator / (left_norm * right_norm)
 
 
-def rebuild_node_terms(connection: sqlite3.Connection, dataset_id: str) -> int:
-    connection.execute("DELETE FROM node_terms WHERE dataset_id = ?", (dataset_id,))
-    rows = connection.execute(
-        """
-        SELECT id, canonical_name, aliases_json
-        FROM nodes
-        WHERE dataset_id = ? AND status != 'deprecated'
-        """,
-        (dataset_id,),
-    ).fetchall()
+# ---------------------------------------------------------------------------
+# node_terms rebuild
+# ---------------------------------------------------------------------------
+
+def rebuild_node_terms(connection: psycopg.Connection, dataset_id: str) -> int:
+    with connection.cursor() as cur:
+        cur.execute("DELETE FROM node_terms WHERE dataset_id = %s", (dataset_id,))
+        cur.execute(
+            """
+            SELECT id, canonical_name, aliases_json
+            FROM nodes
+            WHERE dataset_id = %s AND status != 'deprecated'
+            """,
+            (dataset_id,),
+        )
+        rows = cur.fetchall()
+
     inserts: list[tuple[str, str, str, str, str]] = []
     for row in rows:
         node_id = row["id"]
         canonical_name = row["canonical_name"] or ""
-        aliases = load_json_text(row["aliases_json"], [])
+        # aliases_json is JSONB → already a Python list
+        aliases = row["aliases_json"] if isinstance(row["aliases_json"], list) else []
         for term, term_type in [(canonical_name, "canonical"), *[(alias, "alias") for alias in aliases]]:
             if not isinstance(term, str):
                 continue
@@ -311,20 +343,24 @@ def rebuild_node_terms(connection: sqlite3.Connection, dataset_id: str) -> int:
                 continue
             inserts.append((dataset_id, node_id, term, normalized, term_type))
     if inserts:
-        connection.executemany(
-            """
-            INSERT OR REPLACE INTO node_terms (
-              dataset_id,
-              node_id,
-              term,
-              term_norm,
-              term_type
-            ) VALUES (?, ?, ?, ?, ?)
-            """,
-            inserts,
-        )
+        with connection.cursor() as cur:
+            psycopg.extras.execute_values(
+                cur,
+                """
+                INSERT INTO node_terms (
+                  dataset_id, node_id, term, term_norm, term_type
+                ) VALUES %s
+                ON CONFLICT (dataset_id, node_id, term_norm, term_type)
+                DO UPDATE SET term = EXCLUDED.term
+                """,
+                inserts,
+            )
     return len(inserts)
 
+
+# ---------------------------------------------------------------------------
+# Outline helpers
+# ---------------------------------------------------------------------------
 
 def outline_path_for_book(book_id: str) -> Path:
     return OUTLINES_DIR / f"{book_id}.outline.json"
@@ -348,7 +384,6 @@ def load_outline_items(book_id: str) -> list[dict[str, Any]]:
         return []
     outline = load_json(outline_path)
     if isinstance(outline, dict):
-        # Support both 'structure' (current) and 'items' (legacy) field names
         items = outline.get("structure", outline.get("items", []))
     else:
         items = []
@@ -471,6 +506,10 @@ def equivalent_anchor_tokens(book_id: str, anchor: str) -> list[str]:
     return unique_stable(variants)
 
 
+# ---------------------------------------------------------------------------
+# Runtime path helpers
+# ---------------------------------------------------------------------------
+
 def runtime_batch_dir(output_root: Path | str, book_id: str) -> Path:
     root = Path(output_root).expanduser().resolve()
     return root / "runs" / "runtime" / safe_path_token(book_id)
@@ -589,8 +628,12 @@ def runtime_record_id(record_type: str, payload: dict[str, Any]) -> str:
     raise ValueError(f"Unsupported runtime record type: {record_type}")
 
 
+# ---------------------------------------------------------------------------
+# Batch runtime records
+# ---------------------------------------------------------------------------
+
 def store_batch_runtime_records(
-    connection: sqlite3.Connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     book_id: str,
     batch_anchor: str,
@@ -601,116 +644,110 @@ def store_batch_runtime_records(
 ) -> int:
     if record_type not in RUNTIME_RECORD_TYPES:
         raise ValueError(f"Unsupported runtime record type: {record_type}")
-    if replace:
-        connection.execute(
-            """
-            DELETE FROM batch_runtime_records
-            WHERE dataset_id = ? AND book_id = ? AND batch_anchor = ? AND record_type = ?
-            """,
-            (dataset_id, book_id, batch_anchor, record_type),
-        )
-    now = utc_now()
-    rows = []
-    for payload in records:
-        record_id = runtime_record_id(record_type, payload)
-        rows.append(
-            (
-                dataset_id,
-                book_id,
-                batch_anchor,
-                record_type,
-                record_id,
-                dump_json_text(payload),
-                now,
-                now,
+    with connection.cursor() as cur:
+        if replace:
+            cur.execute(
+                """
+                DELETE FROM batch_runtime_records
+                WHERE dataset_id = %s AND book_id = %s AND batch_anchor = %s AND record_type = %s
+                """,
+                (dataset_id, book_id, batch_anchor, record_type),
             )
-        )
-    if rows:
-        connection.executemany(
-            """
-            INSERT OR REPLACE INTO batch_runtime_records (
-              dataset_id,
-              book_id,
-              batch_anchor,
-              record_type,
-              record_id,
-              payload_json,
-              created_at,
-              updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            rows,
-        )
+        now = utc_now()
+        rows = []
+        for payload in records:
+            record_id = runtime_record_id(record_type, payload)
+            rows.append(
+                (
+                    dataset_id,
+                    book_id,
+                    batch_anchor,
+                    record_type,
+                    record_id,
+                    json.dumps(payload, ensure_ascii=False),  # JSONB accepts JSON text
+                    now,
+                    now,
+                )
+            )
+        if rows:
+            psycopg.extras.execute_values(
+                cur,
+                """
+                INSERT INTO batch_runtime_records (
+                  dataset_id, book_id, batch_anchor, record_type,
+                  record_id, payload_json, created_at, updated_at
+                ) VALUES %s
+                ON CONFLICT (dataset_id, batch_anchor, record_type, record_id)
+                DO UPDATE SET
+                  payload_json = EXCLUDED.payload_json,
+                  updated_at = EXCLUDED.updated_at
+                """,
+                rows,
+            )
     return len(rows)
 
 
 def load_batch_runtime_records(
-    connection: sqlite3.Connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     book_id: str,
     batch_anchor: str,
     record_type: str,
 ) -> list[dict[str, Any]]:
-    rows = connection.execute(
-        """
-        SELECT payload_json
-        FROM batch_runtime_records
-        WHERE dataset_id = ? AND book_id = ? AND batch_anchor = ? AND record_type = ?
-        ORDER BY record_id
-        """,
-        (dataset_id, book_id, batch_anchor, record_type),
-    ).fetchall()
-    return [json.loads(row["payload_json"]) for row in rows]
-
-
-def connect_db(db_path: Path | str) -> sqlite3.Connection:
-    path = Path(db_path).expanduser().resolve()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(path)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys = ON")
-    return connection
-
-
-def ensure_sqlite_schema(connection: sqlite3.Connection) -> None:
-    connection.executescript(SQLITE_SCHEMA_PATH.read_text(encoding="utf-8"))
-    ensure_embedding_column(connection)
-
-
-def ensure_embedding_column(connection: sqlite3.Connection) -> None:
-    """Add embedding_json column to nodes table if missing (migration)."""
-    columns = {row["name"] for row in connection.execute("PRAGMA table_info(nodes)").fetchall()}
-    if "embedding_json" not in columns:
-        connection.execute(
-            "ALTER TABLE nodes ADD COLUMN embedding_json TEXT NOT NULL DEFAULT '[]'"
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            SELECT payload_json
+            FROM batch_runtime_records
+            WHERE dataset_id = %s AND book_id = %s AND batch_anchor = %s AND record_type = %s
+            ORDER BY record_id
+            """,
+            (dataset_id, book_id, batch_anchor, record_type),
         )
+        rows = cur.fetchall()
+    # JSONB columns are returned as native Python dicts by psycopg3
+    return [row["payload_json"] if isinstance(row["payload_json"], dict) else row["payload_json"] for row in rows]
 
 
-def get_table_sql(connection: sqlite3.Connection, table_name: str) -> str | None:
-    row = connection.execute(
-        """
-        SELECT sql
-        FROM sqlite_master
-        WHERE type = 'table' AND name = ?
-        """,
-        (table_name,),
-    ).fetchone()
-    if row is None:
-        return None
-    return row["sql"]
+# ---------------------------------------------------------------------------
+# PostgreSQL connection & schema
+# ---------------------------------------------------------------------------
+
+def connect_db(database_url: str | None = None) -> psycopg.Connection:
+    """Connect to PostgreSQL using DATABASE_URL env var or explicit URL.
+
+    The --db CLI flag or DATABASE_URL environment variable should contain
+    a PostgreSQL connection string like:
+        postgresql://user:pass@host:port/dbname
+    """
+    url = database_url or os.environ.get("DATABASE_URL")
+    if not url:
+        raise SystemExit(
+            "No database URL provided. Set DATABASE_URL or pass --db with a "
+            "PostgreSQL connection string (e.g. postgresql://okm:okm@localhost:5432/knowledge)"
+        )
+    conn = psycopg.connect(url, row_factory=dict_row, autocommit=False)
+    return conn
 
 
-def schema_supports_evidence_link_owner_type(
-    connection: sqlite3.Connection, owner_type: str
-) -> bool:
-    table_sql = get_table_sql(connection, "evidence_links")
-    if not table_sql:
-        return False
-    return f"'{owner_type}'" in table_sql
+def ensure_pg_schema(connection: psycopg.Connection) -> None:
+    """Apply the PG schema DDL file if tables do not exist yet."""
+    with connection.cursor() as cur:
+        cur.execute(
+            "SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'datasets')"
+        )
+        exists = cur.fetchone()["exists"]
+    if exists:
+        return
+    schema_sql = PG_SCHEMA_PATH.read_text(encoding="utf-8")
+    # Execute the schema file — psycopg3 can run multi-statement SQL
+    with connection.cursor() as cur:
+        cur.execute(schema_sql)
+    connection.commit()
 
 
 def resolve_dataset_id(
-    connection: sqlite3.Connection,
+    connection: psycopg.Connection,
     dataset_id: str | None = None,
     output_root: Path | str | None = None,
 ) -> str:
@@ -719,71 +756,73 @@ def resolve_dataset_id(
     if output_root is not None:
         return dataset_id_from_output_root(output_root)
 
-    row = connection.execute(
-        "SELECT dataset_id FROM datasets WHERE is_active = 1 LIMIT 1"
-    ).fetchone()
+    with connection.cursor() as cur:
+        cur.execute(
+            "SELECT dataset_id FROM datasets WHERE is_active = 1 LIMIT 1"
+        )
+        row = cur.fetchone()
     if row is None:
         raise SystemExit(
-            "No dataset id provided and no active dataset found in SQLite."
+            "No dataset id provided and no active dataset found in PostgreSQL."
         )
     return row["dataset_id"]
 
 
-def require_dataset_row(connection: sqlite3.Connection, dataset_id: str) -> sqlite3.Row:
-    row = connection.execute(
-        "SELECT * FROM datasets WHERE dataset_id = ?",
-        (dataset_id,),
-    ).fetchone()
+def require_dataset_row(connection: psycopg.Connection, dataset_id: str) -> dict:
+    with connection.cursor() as cur:
+        cur.execute(
+            "SELECT * FROM datasets WHERE dataset_id = %s",
+            (dataset_id,),
+        )
+        row = cur.fetchone()
     if row is None:
-        raise SystemExit(f"Dataset '{dataset_id}' not found in SQLite.")
+        raise SystemExit(f"Dataset '{dataset_id}' not found in PostgreSQL.")
     return row
 
 
 def ensure_dataset(
-    connection: sqlite3.Connection, dataset_id: str, root: Path | str
+    connection: psycopg.Connection, dataset_id: str, root: Path | str
 ) -> None:
-    row = connection.execute(
-        "SELECT dataset_id FROM datasets WHERE dataset_id = ?",
-        (dataset_id,),
-    ).fetchone()
-    if row is not None:
-        return
+    with connection.cursor() as cur:
+        cur.execute(
+            "SELECT dataset_id FROM datasets WHERE dataset_id = %s",
+            (dataset_id,),
+        )
+        if cur.fetchone() is not None:
+            return
 
-    now = utc_now()
-    root_path = str(Path(root).expanduser().resolve())
-    connection.execute(
-        """
-        INSERT INTO datasets (
-          dataset_id,
-          version_key,
-          root_path,
-          schema_version,
-          status,
-          is_active,
-          created_at,
-          notes
-        ) VALUES (?, ?, ?, 'v2', 'draft', 0, ?, ?)
-        """,
-        (dataset_id, version_key_from_output_root(root), root_path, now, None),
-    )
+        now = utc_now()
+        root_path = str(Path(root).expanduser().resolve())
+        cur.execute(
+            """
+            INSERT INTO datasets (
+              dataset_id, version_key, root_path, schema_version,
+              status, is_active, created_at, notes
+            ) VALUES (%s, %s, %s, 'v2', 'draft', 0, %s, %s)
+            """,
+            (dataset_id, version_key_from_output_root(root), root_path, now, None),
+        )
+    connection.commit()
 
 
 def fetch_existing_edges(
-    connection: sqlite3.Connection, dataset_id: str
-) -> list[sqlite3.Row]:
-    return connection.execute(
-        """
-        SELECT id, edge_type, from_id, to_id, directionality, confidence, status
-        FROM edges
-        WHERE dataset_id = ?
-          AND status != 'deprecated'
-        """,
-        (dataset_id,),
-    ).fetchall()
+    connection: psycopg.Connection, dataset_id: str
+) -> list[dict]:
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, edge_type, from_id, to_id, directionality, confidence, status
+            FROM edges
+            WHERE dataset_id = %s
+              AND status != 'deprecated'
+            """,
+            (dataset_id,),
+        )
+        return cur.fetchall()
 
 
 def detect_edge_conflict(
-    proposal: dict[str, Any], existing_edges: Iterable[sqlite3.Row]
+    proposal: dict[str, Any], existing_edges: Iterable[dict]
 ) -> tuple[str | None, str | None]:
     from_id = proposal["from_node_id"]
     to_id = proposal["to_node_id"]
@@ -813,6 +852,33 @@ def detect_edge_conflict(
                 return "reverse_hierarchical_conflict", edge["id"]
 
     return None, None
+
+
+# ---------------------------------------------------------------------------
+# Snapshot dataclasses (unchanged structure)
+# ---------------------------------------------------------------------------
+
+@dataclass
+class SnapshotPaths:
+    output_root: Path
+    graph_dir: Path
+    nodes_path: Path
+    edges_path: Path
+    profiles_path: Path | None
+    node_cards_dir: Path | None
+    mention_paths: tuple[Path, ...]
+    evidence_paths: tuple[Path, ...]
+    node_card_paths: tuple[Path, ...]
+
+
+@dataclass
+class SnapshotData:
+    nodes: list[dict[str, Any]]
+    edges: list[dict[str, Any]]
+    profiles: list[dict[str, Any]]
+    mentions: list[dict[str, Any]]
+    evidence: list[dict[str, Any]]
+    node_cards: list[dict[str, Any]]
 
 
 def build_snapshot_paths(output_root: Path | str) -> SnapshotPaths:
@@ -941,44 +1007,52 @@ def collect_source_artifacts(snapshot: SnapshotData) -> list[dict[str, Any]]:
 
 
 # ============================================================================
-# SQLite Data Access Functions
+# PostgreSQL Data Access Functions
 # ============================================================================
 
 
+def _strip_json_suffix(row: dict, keys: list[str]) -> dict:
+    """For JSONB columns named `key_json`, expose as `key` (without _json suffix).
+
+    psycopg3 returns JSONB columns as native Python objects already,
+    so no json.loads() needed.  This function renames `key_json` → `key`
+    for backward-compatible API output.
+    """
+    result = dict(row)
+    for key in keys:
+        json_key = f"{key}_json"
+        if json_key in result:
+            result[key] = result[json_key]
+            del result[json_key]
+    return result
+
+
 def load_nodes(
-    connection: sqlite3.Connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     output_path: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """Load nodes from SQLite, optionally export to JSONL.
-
-    Args:
-        connection: SQLite database connection
-        dataset_id: Dataset ID to load
-        output_path: Optional path to export JSONL (for backup/external systems)
-
-    Returns:
-        List of node dictionaries with parsed JSON fields
-    """
-    rows = connection.execute(
-        """
-        SELECT * FROM nodes
-        WHERE dataset_id = ?
-        ORDER BY id
-        """,
-        (dataset_id,),
-    ).fetchall()
+    """Load nodes from PostgreSQL, optionally export to JSONL."""
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            SELECT * FROM nodes
+            WHERE dataset_id = %s
+            ORDER BY id
+            """,
+            (dataset_id,),
+        )
+        rows = cur.fetchall()
 
     nodes = []
     for row in rows:
-        node = dict(row)
+        node = _strip_json_suffix(
+            row,
+            ["aliases", "learning_modes", "bridge_tags", "framework_refs",
+             "profile_refs", "same_as_refs", "properties"],
+        )
         # Strip large fields not needed by viewers/exports
-        node.pop("embedding_json", None)
-        # Parse JSON fields
-        for key in ["aliases", "learning_modes", "bridge_tags", "framework_refs"]:
-            if f"{key}_json" in node:
-                node[key] = json.loads(node[f"{key}_json"])
-                del node[f"{key}_json"]
+        node.pop("embedding", None)
         nodes.append(node)
 
     if output_path:
@@ -991,33 +1065,33 @@ def load_nodes(
 
 
 def load_edges(
-    connection: sqlite3.Connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     output_path: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """Load edges from SQLite, optionally export to JSONL."""
-    rows = connection.execute(
-        """
-        SELECT * FROM edges
-        WHERE dataset_id = ?
-        ORDER BY id
-        """,
-        (dataset_id,),
-    ).fetchall()
+    """Load edges from PostgreSQL, optionally export to JSONL."""
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            SELECT * FROM edges
+            WHERE dataset_id = %s
+            ORDER BY id
+            """,
+            (dataset_id,),
+        )
+        rows = cur.fetchall()
 
     edges = []
     for row in rows:
-        edge = dict(row)
+        edge = _strip_json_suffix(
+            row,
+            ["framework_refs", "profile_refs", "source_refs", "properties"],
+        )
         # Map database column names to API field names
         if "from_id" in edge:
             edge["from"] = edge["from_id"]
         if "to_id" in edge:
             edge["to"] = edge["to_id"]
-        # Parse JSON fields
-        for key in ["source_refs"]:
-            if f"{key}_json" in edge:
-                edge[key] = json.loads(edge[f"{key}_json"])
-                del edge[f"{key}_json"]
         edges.append(edge)
 
     if output_path:
@@ -1030,28 +1104,29 @@ def load_edges(
 
 
 def load_profiles(
-    connection: sqlite3.Connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     output_path: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """Load curriculum profiles from SQLite, optionally export to JSONL."""
-    rows = connection.execute(
-        """
-        SELECT * FROM profiles
-        WHERE dataset_id = ?
-        ORDER BY id
-        """,
-        (dataset_id,),
-    ).fetchall()
+    """Load curriculum profiles from PostgreSQL, optionally export to JSONL."""
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            SELECT * FROM profiles
+            WHERE dataset_id = %s
+            ORDER BY id
+            """,
+            (dataset_id,),
+        )
+        rows = cur.fetchall()
 
     profiles = []
     for row in rows:
-        profile = dict(row)
-        # Parse JSON fields
-        for key in ["learning_objectives", "framework_refs", "textbook_refs"]:
-            if f"{key}_json" in profile:
-                profile[key] = json.loads(profile[f"{key}_json"])
-                del profile[f"{key}_json"]
+        profile = _strip_json_suffix(
+            row,
+            ["framework_refs", "textbook_refs", "textbook_ids",
+             "learning_objectives", "assessment_signals", "source_refs", "properties"],
+        )
         profiles.append(profile)
 
     if output_path:
@@ -1064,34 +1139,31 @@ def load_profiles(
 
 
 def load_mentions(
-    connection: sqlite3.Connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     book_id: str | None = None,
     output_path: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """Load mentions from SQLite, optionally export to JSONL."""
+    """Load mentions from PostgreSQL, optionally export to JSONL."""
     sql = """
         SELECT * FROM mentions
-        WHERE dataset_id = ?
+        WHERE dataset_id = %s
     """
-    params = [dataset_id]
+    params: list[Any] = [dataset_id]
 
     if book_id:
-        sql += " AND source_id = ?"
+        sql += " AND source_id = %s"
         params.append(book_id)
 
     sql += " ORDER BY id"
 
-    rows = connection.execute(sql, params).fetchall()
+    with connection.cursor() as cur:
+        cur.execute(sql, params)
+        rows = cur.fetchall()
 
     mentions = []
     for row in rows:
-        mention = dict(row)
-        # Parse JSON fields
-        for key in ["source_refs"]:
-            if f"{key}_json" in mention:
-                mention[key] = json.loads(mention[f"{key}_json"])
-                del mention[f"{key}_json"]
+        mention = _strip_json_suffix(row, ["source_refs", "properties"])
         mentions.append(mention)
 
     if output_path:
@@ -1104,34 +1176,31 @@ def load_mentions(
 
 
 def load_evidence(
-    connection: sqlite3.Connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     book_id: str | None = None,
     output_path: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """Load evidence from SQLite, optionally export to JSONL."""
+    """Load evidence from PostgreSQL, optionally export to JSONL."""
     sql = """
         SELECT * FROM evidence
-        WHERE dataset_id = ?
+        WHERE dataset_id = %s
     """
-    params = [dataset_id]
+    params: list[Any] = [dataset_id]
 
     if book_id:
-        sql += " AND source_id = ?"
+        sql += " AND source_id = %s"
         params.append(book_id)
 
     sql += " ORDER BY id"
 
-    rows = connection.execute(sql, params).fetchall()
+    with connection.cursor() as cur:
+        cur.execute(sql, params)
+        rows = cur.fetchall()
 
     evidence_list = []
     for row in rows:
-        evidence = dict(row)
-        # Parse JSON fields
-        for key in ["properties"]:
-            if f"{key}_json" in evidence:
-                evidence[key] = json.loads(evidence[f"{key}_json"])
-                del evidence[f"{key}_json"]
+        evidence = _strip_json_suffix(row, ["normalized_claims", "properties"])
         evidence_list.append(evidence)
 
     if output_path:
@@ -1144,34 +1213,34 @@ def load_evidence(
 
 
 def load_node_cards(
-    connection: sqlite3.Connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     output_dir: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """Load node cards from SQLite, optionally export to individual JSON files."""
-    rows = connection.execute(
-        """
-        SELECT * FROM node_cards
-        WHERE dataset_id = ?
-        ORDER BY node_id
-        """,
-        (dataset_id,),
-    ).fetchall()
+    """Load node cards from PostgreSQL, optionally export to individual JSON files."""
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            SELECT * FROM node_cards
+            WHERE dataset_id = %s
+            ORDER BY node_id
+            """,
+            (dataset_id,),
+        )
+        rows = cur.fetchall()
 
     cards = []
     for row in rows:
-        card = dict(row)
-        # Parse JSON fields
-        for key in ["sections", "mention_refs", "source_refs", "properties"]:
-            if f"{key}_json" in card:
-                card[key] = json.loads(card[f"{key}_json"])
-                del card[f"{key}_json"]
+        card = _strip_json_suffix(
+            row,
+            ["pattern_refs", "framework_refs", "profile_refs",
+             "mention_refs", "source_refs", "sections", "properties"],
+        )
         cards.append(card)
 
     if output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)
         for card in cards:
-            # Create safe filename from node_id
             safe_id = card["node_id"].replace(":", "__").replace("/", "__")
             card_path = output_dir / f"{safe_id}.json"
             with open(card_path, "w", encoding="utf-8") as f:
@@ -1181,28 +1250,16 @@ def load_node_cards(
 
 
 def export_full_snapshot(
-    connection: sqlite3.Connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     output_root: Path,
     book_id: str | None = None,
 ) -> dict[str, int]:
-    """Export complete snapshot to output_root (for backup/external systems).
-
-    Creates:
-    - output_root/graph/knowledge.nodes.jsonl
-    - output_root/graph/knowledge.edges.jsonl
-    - output_root/profiles/knowledge.profiles.jsonl
-    - output_root/graph/{book_id}.mentions.jsonl
-    - output_root/graph/{book_id}.evidence.jsonl
-    - output_root/node_cards/*.json
-
-    Returns count of each artifact type.
-    """
+    """Export complete snapshot to output_root (for backup/external systems)."""
     output_root.mkdir(parents=True, exist_ok=True)
 
     counts = {}
 
-    # Export graph
     graph_dir = output_root / "graph"
     graph_dir.mkdir(exist_ok=True)
 
@@ -1213,14 +1270,12 @@ def export_full_snapshot(
         load_edges(connection, dataset_id, graph_dir / "knowledge.edges.jsonl")
     )
 
-    # Export profiles
     profiles_dir = output_root / "profiles"
     profiles_dir.mkdir(exist_ok=True)
     counts["profiles"] = len(
         load_profiles(connection, dataset_id, profiles_dir / "knowledge.profiles.jsonl")
     )
 
-    # Export mentions and evidence
     counts["mentions"] = len(
         load_mentions(
             connection,
@@ -1238,7 +1293,6 @@ def export_full_snapshot(
         )
     )
 
-    # Export node cards
     counts["node_cards"] = len(
         load_node_cards(connection, dataset_id, output_root / "node_cards")
     )

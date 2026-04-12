@@ -1,11 +1,17 @@
-import Database from 'better-sqlite3';
+import postgres from 'postgres';
 
-export function openDb(dbPath: string): Database.Database {
-  const db = new Database(dbPath, { readonly: true });
-  db.pragma('foreign_keys = ON');
-  return db;
+export type Sql = postgres.Sql<{}>;
+
+export function createPool(connectionString?: string): Sql {
+  const url = connectionString || process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error(
+      'DATABASE_URL not set. Provide a PostgreSQL connection string via --db or DATABASE_URL env var.',
+    );
+  }
+  return postgres(url, { max: 10 });
 }
 
-export function ensureSchema(_db: Database.Database): void {
-  // Schema is managed by pipeline scripts; viewer only reads.
+export function closePool(sql: Sql): Promise<void> {
+  return sql.end();
 }

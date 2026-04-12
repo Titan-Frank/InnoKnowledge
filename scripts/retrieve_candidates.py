@@ -7,7 +7,7 @@ The default path now uses a LightRAG-inspired hybrid retrieval strategy:
 - `global`: relation-aware graph expansion from local seed hits
 - `hybrid`: local + global + vector fusion
 - `mix`: hybrid + profile/evidence text support
-- `vector`: embedding cosine similarity against canonical node embeddings
+- `vector`: embedding cosine similarity via pgvector `<=>` operator
 """
 
 from __future__ import annotations
@@ -15,15 +15,17 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 import json
+import os
 from pathlib import Path
 from typing import Any
 
+import psycopg
+from psycopg.rows import dict_row
+
 from knowledge_store_common import (
-    DEFAULT_DB_PATH,
     connect_db,
-    cosine_similarity,
     dump_json_text,
-    ensure_sqlite_schema,
+    ensure_pg_schema,
     make_query_id,
     normalize_term,
     require_dataset_row,
@@ -36,11 +38,12 @@ from embedding_client import embed_single, DEFAULT_EMBEDDING_URL, DEFAULT_EMBEDD
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Retrieve constrained node candidates from the SQLite knowledge store."
+        description="Retrieve constrained node candidates from the PostgreSQL knowledge store."
     )
     parser.add_argument("queries", nargs="*", help="One or more query strings.")
     parser.add_argument("--queries-file", help="Optional text or JSONL file of queries.")
-    parser.add_argument("--db", default=str(DEFAULT_DB_PATH))
+    parser.add_argument("--db", default=os.environ.get("DATABASE_URL"),
+                        help="PostgreSQL connection URL (or set DATABASE_URL env var)")
     parser.add_argument("--dataset-id")
     parser.add_argument("--output-root")
     parser.add_argument("--batch-anchor", help="Batch anchor used when persisting retrieval results.")
@@ -141,13 +144,13 @@ def build_profile_exists_clause(
     clauses: list[str] = []
     params: list[str] = []
     if args.subject:
-        clauses.append(f"{profile_alias}.subject = ?")
+        clauses.append(f"{profile_alias}.subject = %s")
         params.append(args.subject)
     if args.school_stage:
-        clauses.append(f"{profile_alias}.school_stage = ?")
+        clauses.append(f"{profile_alias}.school_stage = %s")
         params.append(args.school_stage)
     if args.grade_band:
-        clauses.append(f"{profile_alias}.grade_band = ?")
+        clauses.append(f"{profile_alias}.grade_band = %s")
         params.append(args.grade_band)
 
     if not clauses:
@@ -264,13 +267,26 @@ def finalize_candidates(
     return payloads
 
 
-def fts_phrase_query(query_text: str) -> str:
-    escaped = query_text.replace('"', '""').strip()
-    return f'"{escaped}"'
+def fts_tsquery(query_text: str) -> str:
+    """Convert a query string to a tsquery-compatible form for pg_jieba.
+
+    pg_jieba tokenizes Chinese text automatically; we join tokens with
+    '&' (AND) so that all words must appear.  For a single phrase this
+    is effectively the same as phrase search.
+    """
+    # Strip characters that are not alphanumeric, CJK, or whitespace
+    cleaned = re.sub(r"[^\w\s]", " ", query_text).strip()
+    if not cleaned:
+        return ""
+    tokens = cleaned.split()
+    return " & ".join(tokens)
+
+
+import re as _re  # ensure re is available for fts_tsquery
 
 
 def fetch_filtered_nodes(
-    connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     node_ids: set[str],
     args: argparse.Namespace,
@@ -279,23 +295,26 @@ def fetch_filtered_nodes(
         return {}
 
     profile_clause, profile_params = build_profile_exists_clause(args, node_alias="n", profile_alias="pf")
-    where_parts = ["n.dataset_id = ?", f"n.id IN ({','.join('?' for _ in node_ids)})"]
+    id_placeholders = ",".join(["%s"] * len(node_ids))
+    where_parts = ["n.dataset_id = %s", f"n.id IN ({id_placeholders})"]
     params: list[Any] = [dataset_id, *sorted(node_ids)]
     if args.node_kind:
-        where_parts.append("n.node_kind = ?")
+        where_parts.append("n.node_kind = %s")
         params.append(args.node_kind)
     if profile_clause:
         where_parts.append(profile_clause)
         params.extend(profile_params)
 
-    rows = connection.execute(
-        f"""
-        SELECT n.id, n.canonical_name, n.node_kind
-        FROM nodes n
-        WHERE {' AND '.join(where_parts)}
-        """,
-        params,
-    ).fetchall()
+    with connection.cursor() as cur:
+        cur.execute(
+            f"""
+            SELECT n.id, n.canonical_name, n.node_kind
+            FROM nodes n
+            WHERE {' AND '.join(where_parts)}
+            """,
+            params,
+        )
+        rows = cur.fetchall()
     return {
         row["id"]: {
             "canonical_name": row["canonical_name"],
@@ -306,7 +325,7 @@ def fetch_filtered_nodes(
 
 
 def collect_local_support(
-    connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     query_text: str,
     args: argparse.Namespace,
@@ -317,29 +336,33 @@ def collect_local_support(
     normalized = normalize_term(query_text)
     profile_clause, profile_params = build_profile_exists_clause(args, node_alias="n", profile_alias="p")
 
-    where_parts = ["n.dataset_id = ?"]
+    where_parts = ["n.dataset_id = %s"]
     base_params: list[Any] = [dataset_id]
     if args.node_kind:
-        where_parts.append("n.node_kind = ?")
+        where_parts.append("n.node_kind = %s")
         base_params.append(args.node_kind)
     if profile_clause:
         where_parts.append(profile_clause)
         base_params.extend(profile_params)
     where_sql = " AND ".join(where_parts)
 
-    exact_rows = connection.execute(
-        f"""
-        SELECT nt.node_id, nt.term_type, n.canonical_name, n.node_kind
-        FROM node_terms nt
-        JOIN nodes n
-          ON n.dataset_id = nt.dataset_id AND n.id = nt.node_id
-        WHERE {where_sql}
-          AND nt.term_norm = ?
-        ORDER BY CASE nt.term_type WHEN 'canonical' THEN 0 ELSE 1 END, n.canonical_name
-        LIMIT ?
-        """,
-        (*base_params, normalized, limit_override or max(args.limit, args.graph_seed_limit, 12)),
-    ).fetchall()
+    # Exact term match
+    with connection.cursor() as cur:
+        cur.execute(
+            f"""
+            SELECT nt.node_id, nt.term_type, n.canonical_name, n.node_kind
+            FROM node_terms nt
+            JOIN nodes n
+              ON n.dataset_id = nt.dataset_id AND n.id = nt.node_id
+            WHERE {where_sql}
+              AND nt.term_norm = %s
+            ORDER BY CASE nt.term_type WHEN 'canonical' THEN 0 ELSE 1 END, n.canonical_name
+            LIMIT %s
+            """,
+            (*base_params, normalized, limit_override or max(args.limit, args.graph_seed_limit, 12)),
+        )
+        exact_rows = cur.fetchall()
+
     for row in exact_rows:
         score = 100.0 if row["term_type"] == "canonical" else 95.0
         add_candidate_support(
@@ -352,19 +375,23 @@ def collect_local_support(
             f"exact_{row['term_type']}",
         )
 
-    prefix_rows = connection.execute(
-        f"""
-        SELECT nt.node_id, nt.term_type, n.canonical_name, n.node_kind
-        FROM node_terms nt
-        JOIN nodes n
-          ON n.dataset_id = nt.dataset_id AND n.id = nt.node_id
-        WHERE {where_sql}
-          AND nt.term_norm LIKE ?
-        ORDER BY CASE nt.term_type WHEN 'canonical' THEN 0 ELSE 1 END, n.canonical_name
-        LIMIT ?
-        """,
-        (*base_params, f"{normalized}%", limit_override or max(args.limit * 3, 18)),
-    ).fetchall()
+    # Prefix match
+    with connection.cursor() as cur:
+        cur.execute(
+            f"""
+            SELECT nt.node_id, nt.term_type, n.canonical_name, n.node_kind
+            FROM node_terms nt
+            JOIN nodes n
+              ON n.dataset_id = nt.dataset_id AND n.id = nt.node_id
+            WHERE {where_sql}
+              AND nt.term_norm LIKE %s
+            ORDER BY CASE nt.term_type WHEN 'canonical' THEN 0 ELSE 1 END, n.canonical_name
+            LIMIT %s
+            """,
+            (*base_params, f"{normalized}%", limit_override or max(args.limit * 3, 18)),
+        )
+        prefix_rows = cur.fetchall()
+
     for rank, row in enumerate(prefix_rows, start=1):
         score = 85.0 - min(rank, 20) * 0.5
         add_candidate_support(
@@ -377,21 +404,26 @@ def collect_local_support(
             f"prefix_{row['term_type']}",
         )
 
-    match_query = fts_phrase_query(query_text)
-    if match_query.strip('"'):
-        fts_rows = connection.execute(
-            f"""
-            SELECT ns.node_id, n.canonical_name, n.node_kind, bm25(node_search) AS rank_score
-            FROM node_search ns
-            JOIN nodes n
-              ON n.dataset_id = ns.dataset_id AND n.id = ns.node_id
-            WHERE {where_sql}
-              AND node_search MATCH ?
-            ORDER BY rank_score
-            LIMIT ?
-            """,
-            (*base_params, match_query, limit_override or max(args.limit * 3, 18)),
-        ).fetchall()
+    # Full-text search via pg_jieba tsvector
+    ts_query_str = fts_tsquery(query_text)
+    if ts_query_str:
+        with connection.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT ns.node_id, n.canonical_name, n.node_kind,
+                       ts_rank(ns.search_vector, to_tsquery('jiebacfg', %s)) AS rank_score
+                FROM node_search ns
+                JOIN nodes n
+                  ON n.dataset_id = ns.dataset_id AND n.id = ns.node_id
+                WHERE {where_sql}
+                  AND ns.search_vector @@ to_tsquery('jiebacfg', %s)
+                ORDER BY rank_score DESC
+                LIMIT %s
+                """,
+                (*base_params, ts_query_str, ts_query_str, limit_override or max(args.limit * 3, 18)),
+            )
+            fts_rows = cur.fetchall()
+
         for rank, row in enumerate(fts_rows, start=1):
             score = 70.0 - min(rank, 20) * 0.5
             add_candidate_support(
@@ -406,7 +438,7 @@ def collect_local_support(
 
 
 def collect_global_support(
-    connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     seed_candidates: list[dict[str, Any]],
     args: argparse.Namespace,
@@ -433,20 +465,23 @@ def collect_global_support(
             "seed_local_support",
         )
 
-    rows = connection.execute(
-        f"""
-        SELECT id, edge_type, confidence, from_id, to_id
-        FROM edges
-        WHERE dataset_id = ?
-          AND status != 'deprecated'
-          AND (
-            from_id IN ({','.join('?' for _ in seed_ids)})
-            OR to_id IN ({','.join('?' for _ in seed_ids)})
-          )
-        ORDER BY confidence DESC, id ASC
-        """,
-        (dataset_id, *sorted(seed_ids), *sorted(seed_ids)),
-    ).fetchall()
+    seed_id_placeholders = ",".join(["%s"] * len(seed_ids))
+    with connection.cursor() as cur:
+        cur.execute(
+            f"""
+            SELECT id, edge_type, confidence, from_id, to_id
+            FROM edges
+            WHERE dataset_id = %s
+              AND status != 'deprecated'
+              AND (
+                from_id IN ({seed_id_placeholders})
+                OR to_id IN ({seed_id_placeholders})
+              )
+            ORDER BY confidence DESC, id ASC
+            """,
+            (dataset_id, *sorted(seed_ids), *sorted(seed_ids)),
+        )
+        rows = cur.fetchall()
 
     per_seed_neighbor_count: Counter[str] = Counter()
     neighbor_edges: list[tuple[str, str, str, float]] = []
@@ -489,29 +524,34 @@ def collect_global_support(
 
 
 def collect_text_support(
-    connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     query_text: str,
     args: argparse.Namespace,
     candidates: dict[str, dict[str, Any]],
 ) -> None:
-    match_query = fts_phrase_query(query_text)
-    if not match_query.strip('"'):
+    ts_query_str = fts_tsquery(query_text)
+    if not ts_query_str:
         return
 
-    profile_rows = connection.execute(
-        """
-        SELECT p.node_id, bm25(profile_search) AS rank_score
-        FROM profile_search
-        JOIN profiles p
-          ON p.dataset_id = profile_search.dataset_id AND p.id = profile_search.profile_id
-        WHERE profile_search.dataset_id = ?
-          AND profile_search MATCH ?
-        ORDER BY rank_score
-        LIMIT ?
-        """,
-        (dataset_id, match_query, args.text_hit_limit),
-    ).fetchall()
+    # Profile text search
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            SELECT p.node_id,
+                   ts_rank(ps.search_vector, to_tsquery('jiebacfg', %s)) AS rank_score
+            FROM profile_search ps
+            JOIN profiles p
+              ON p.dataset_id = ps.dataset_id AND p.id = ps.profile_id
+            WHERE ps.dataset_id = %s
+              AND ps.search_vector @@ to_tsquery('jiebacfg', %s)
+            ORDER BY rank_score DESC
+            LIMIT %s
+            """,
+            (ts_query_str, dataset_id, ts_query_str, args.text_hit_limit),
+        )
+        profile_rows = cur.fetchall()
+
     profile_nodes = fetch_filtered_nodes(
         connection,
         dataset_id,
@@ -533,25 +573,30 @@ def collect_text_support(
             "profile_text",
         )
 
-    evidence_rows = connection.execute(
-        """
-        SELECT m.target_id AS node_id, bm25(evidence_search) AS rank_score
-        FROM evidence_search
-        JOIN evidence_links el
-          ON el.dataset_id = evidence_search.dataset_id
-         AND el.evidence_id = evidence_search.evidence_id
-         AND el.owner_type = 'mention'
-        JOIN mentions m
-          ON m.dataset_id = el.dataset_id
-         AND m.id = el.owner_id
-         AND m.target_type = 'node'
-        WHERE evidence_search.dataset_id = ?
-          AND evidence_search MATCH ?
-        ORDER BY rank_score
-        LIMIT ?
-        """,
-        (dataset_id, match_query, args.text_hit_limit),
-    ).fetchall()
+    # Evidence text search
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            SELECT m.target_id AS node_id,
+                   ts_rank(es.search_vector, to_tsquery('jiebacfg', %s)) AS rank_score
+            FROM evidence_search es
+            JOIN evidence_links el
+              ON el.dataset_id = es.dataset_id
+             AND el.evidence_id = es.evidence_id
+             AND el.owner_type = 'mention'
+            JOIN mentions m
+              ON m.dataset_id = el.dataset_id
+             AND m.id = el.owner_id
+             AND m.target_type = 'node'
+            WHERE es.dataset_id = %s
+              AND es.search_vector @@ to_tsquery('jiebacfg', %s)
+            ORDER BY rank_score DESC
+            LIMIT %s
+            """,
+            (ts_query_str, dataset_id, ts_query_str, args.text_hit_limit),
+        )
+        evidence_rows = cur.fetchall()
+
     evidence_nodes = fetch_filtered_nodes(
         connection,
         dataset_id,
@@ -575,13 +620,13 @@ def collect_text_support(
 
 
 def collect_vector_support(
-    connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     query_text: str,
     args: argparse.Namespace,
     candidates: dict[str, dict[str, Any]],
 ) -> None:
-    """Embed the query and find canonical nodes by cosine similarity."""
+    """Embed the query and find canonical nodes via pgvector cosine distance."""
     query_embedding = embed_single(
         query_text,
         url=args.embedding_url,
@@ -590,33 +635,40 @@ def collect_vector_support(
     if not query_embedding:
         return
 
-    rows = connection.execute(
-        """
-        SELECT id, canonical_name, node_kind, embedding_json
-        FROM nodes
-        WHERE dataset_id = ? AND status != 'deprecated'
-          AND embedding_json != '[]'
-        """,
-        (dataset_id,),
-    ).fetchall()
+    # pgvector: `<=>` is cosine distance (1 - cosine_similarity).
+    # Pass the embedding list directly — psycopg3 + pgvector handle casting.
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, canonical_name, node_kind,
+                   1 - (embedding <=> %s::vector) AS similarity
+            FROM nodes
+            WHERE dataset_id = %s AND status != 'deprecated' AND embedding IS NOT NULL
+            ORDER BY embedding <=> %s::vector
+            LIMIT %s
+            """,
+            (query_embedding, dataset_id, query_embedding, args.limit),
+        )
+        rows = cur.fetchall()
 
-    scored: list[tuple[str, str, str, float]] = []
-    for row in rows:
-        node_embedding = json.loads(row["embedding_json"] or "[]")
-        if not node_embedding:
+    for rank, row in enumerate(rows, start=1):
+        similarity = float(row["similarity"])
+        if similarity < args.vector_min_similarity:
             continue
-        similarity = cosine_similarity(query_embedding, node_embedding)
-        if similarity >= args.vector_min_similarity:
-            scored.append((row["id"], row["canonical_name"], row["node_kind"], similarity))
-
-    scored.sort(key=lambda x: -x[3])
-    for rank, (node_id, name, kind, sim) in enumerate(scored[:args.limit], start=1):
-        score = 40.0 + sim * 50.0 - min(rank, 10) * 1.0
-        add_candidate_support(candidates, node_id, name, kind, score, "vector", "cosine_sim")
+        score = 40.0 + similarity * 50.0 - min(rank, 10) * 1.0
+        add_candidate_support(
+            candidates,
+            row["id"],
+            row["canonical_name"],
+            row["node_kind"],
+            score,
+            "vector",
+            "cosine_sim",
+        )
 
 
 def retrieve_for_query(
-    connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     query_text: str,
     args: argparse.Namespace,
@@ -648,7 +700,7 @@ def retrieve_for_query(
 
 
 def persist_candidates(
-    connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     batch_anchor: str,
     query_id: str,
@@ -656,18 +708,18 @@ def persist_candidates(
     candidates: list[dict[str, Any]],
     args: argparse.Namespace,
 ) -> None:
-    if args.replace:
-        connection.execute(
-            """
-            DELETE FROM retrieval_candidates
-            WHERE dataset_id = ? AND query_id = ?
-            """,
-            (dataset_id, query_id),
-        )
+    with connection.cursor() as cur:
+        if args.replace:
+            cur.execute(
+                """
+                DELETE FROM retrieval_candidates
+                WHERE dataset_id = %s AND query_id = %s
+                """,
+                (dataset_id, query_id),
+            )
 
-    now = utc_now()
-    filters_json = dump_json_text(
-        {
+        now = utc_now()
+        filters = {
             "mode": args.mode,
             "subject": args.subject,
             "school_stage": args.school_stage,
@@ -678,23 +730,8 @@ def persist_candidates(
             "graph_neighbor_limit": args.graph_neighbor_limit,
             "text_hit_limit": args.text_hit_limit,
         }
-    )
-    connection.executemany(
-        """
-        INSERT INTO retrieval_candidates (
-          dataset_id,
-          batch_anchor,
-          query_id,
-          query_text,
-          candidate_node_id,
-          rank,
-          score,
-          retrieval_method,
-          filters_json,
-          created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        [
+
+        rows = [
             (
                 dataset_id,
                 batch_anchor,
@@ -704,19 +741,46 @@ def persist_candidates(
                 rank,
                 candidate["score"],
                 candidate["method"],
-                filters_json,
+                filters,  # JSONB — pass native Python dict directly
                 now,
             )
             for rank, candidate in enumerate(candidates, start=1)
-        ],
-    )
+        ]
+        if rows:
+            psycopg.extras.execute_values(
+                cur,
+                """
+                INSERT INTO retrieval_candidates (
+                  dataset_id,
+                  batch_anchor,
+                  query_id,
+                  query_text,
+                  candidate_node_id,
+                  rank,
+                  score,
+                  retrieval_method,
+                  filters_json,
+                  created_at
+                ) VALUES %s
+                ON CONFLICT (dataset_id, query_id, candidate_node_id)
+                DO UPDATE SET
+                  batch_anchor = EXCLUDED.batch_anchor,
+                  query_text = EXCLUDED.query_text,
+                  rank = EXCLUDED.rank,
+                  score = EXCLUDED.score,
+                  retrieval_method = EXCLUDED.retrieval_method,
+                  filters_json = EXCLUDED.filters_json,
+                  created_at = EXCLUDED.created_at
+                """,
+                rows,
+            )
 
 
 def main() -> int:
     args = parse_args()
     queries = load_queries(args)
     connection = connect_db(args.db)
-    ensure_sqlite_schema(connection)
+    ensure_pg_schema(connection)
     dataset_id = resolve_dataset_id(connection, args.dataset_id, args.output_root)
     require_dataset_row(connection, dataset_id)
 

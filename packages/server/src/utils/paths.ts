@@ -5,7 +5,8 @@ export const __dirname = dirname(fileURLToPath(import.meta.url));
 // From src/utils/ or dist/utils/, go up 4 levels to reach repo root
 export const REPO_ROOT = resolve(__dirname, '../../../..');
 
-export const DEFAULT_DB_PATH = resolve(REPO_ROOT, 'storage/knowledge.sqlite');
+export const DEFAULT_DATABASE_URL =
+  process.env.DATABASE_URL || 'postgresql://okm:okm@localhost:5432/knowledge';
 export const DEFAULT_FRAMEWORK_PATH = resolve(
   REPO_ROOT,
   'data/frameworks/junior-chemistry-framework.json',

@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
-"""Store one lesson's extracted artifacts into explicit staging tables."""
+"""Store one lesson's extracted artifacts into explicit staging tables (PostgreSQL)."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
+import psycopg
+from psycopg.rows import dict_row
+
 from knowledge_store_common import (
-    DEFAULT_DB_PATH,
     canonicalize_source_anchor,
     connect_db,
     dump_json_text,
     ensure_dataset,
-    ensure_sqlite_schema,
+    ensure_pg_schema,
     load_json_text,
     make_lesson_run_id,
     normalize_textbook_source_id,
@@ -37,7 +40,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--book-id", required=True)
     parser.add_argument("--batch-anchor", required=True)
     parser.add_argument("--lesson-run-id")
-    parser.add_argument("--db", default=str(DEFAULT_DB_PATH))
+    parser.add_argument("--db", default=os.environ.get("DATABASE_URL"))
     parser.add_argument("--dataset-id")
     parser.add_argument("--nodes-json")
     parser.add_argument("--edges-json")
@@ -86,16 +89,16 @@ def normalize_nodes(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "node_layer": str(payload.get("node_layer") or "backbone"),
                 "node_subkind": payload.get("node_subkind"),
                 "definition": str(payload.get("definition") or ""),
-                "aliases_json": dump_json_text(payload.get("aliases", [])),
-                "learning_modes_json": dump_json_text(payload.get("learning_modes", [])),
-                "bridge_tags_json": dump_json_text(payload.get("bridge_tags", [])),
-                "framework_refs_json": dump_json_text(payload.get("framework_refs", [])),
-                "profile_refs_json": dump_json_text(payload.get("profile_refs", [])),
-                "same_as_refs_json": dump_json_text(payload.get("same_as_refs", [])),
-                "properties_json": dump_json_text(properties),
+                "aliases_json": payload.get("aliases", []),
+                "learning_modes_json": payload.get("learning_modes", []),
+                "bridge_tags_json": payload.get("bridge_tags", []),
+                "framework_refs_json": payload.get("framework_refs", []),
+                "profile_refs_json": payload.get("profile_refs", []),
+                "same_as_refs_json": payload.get("same_as_refs", []),
+                "properties_json": properties,
                 "semantic_key": semantic_key,
-                "embedding_json": dump_json_text(embedding),
-                "source_refs_json": dump_json_text(payload.get("source_refs", [])),
+                "embedding_json": embedding,
+                "source_refs_json": payload.get("source_refs", []),
                 "status": str(payload.get("status") or "candidate"),
                 "notes": payload.get("notes"),
             }
@@ -117,10 +120,10 @@ def normalize_edges(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "to_raw_node_id": str(payload.get("to") or payload.get("to_raw_node_id") or ""),
                 "directionality": str(payload.get("directionality") or "directed"),
                 "confidence": float(payload.get("confidence") or 0.8),
-                "framework_refs_json": dump_json_text(payload.get("framework_refs", [])),
-                "profile_refs_json": dump_json_text(payload.get("profile_refs", [])),
-                "source_refs_json": dump_json_text(payload.get("source_refs", [])),
-                "properties_json": dump_json_text(payload.get("properties", {})),
+                "framework_refs_json": payload.get("framework_refs", []),
+                "profile_refs_json": payload.get("profile_refs", []),
+                "source_refs_json": payload.get("source_refs", []),
+                "properties_json": payload.get("properties", {}),
                 "status": str(payload.get("status") or "candidate"),
             }
         )
@@ -147,13 +150,13 @@ def normalize_profiles(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "context_key": context_key,
                 "curriculum_role": str(payload.get("curriculum_role") or "introduced"),
                 "mastery_level": str(payload.get("mastery_level") or "understand"),
-                "framework_refs_json": dump_json_text(payload.get("framework_refs", [])),
-                "textbook_refs_json": dump_json_text(payload.get("textbook_refs", [])),
-                "textbook_ids_json": dump_json_text(payload.get("textbook_ids", [])),
-                "learning_objectives_json": dump_json_text(payload.get("learning_objectives", [])),
-                "assessment_signals_json": dump_json_text(payload.get("assessment_signals", [])),
-                "source_refs_json": dump_json_text(payload.get("source_refs", [])),
-                "properties_json": dump_json_text(payload.get("properties", {})),
+                "framework_refs_json": payload.get("framework_refs", []),
+                "textbook_refs_json": payload.get("textbook_refs", []),
+                "textbook_ids_json": payload.get("textbook_ids", []),
+                "learning_objectives_json": payload.get("learning_objectives", []),
+                "assessment_signals_json": payload.get("assessment_signals", []),
+                "source_refs_json": payload.get("source_refs", []),
+                "properties_json": payload.get("properties", {}),
                 "status": str(payload.get("status") or "candidate"),
             }
         )
@@ -188,9 +191,9 @@ def normalize_mentions(
                 "target_type": str(payload.get("target_type") or "node"),
                 "target_raw_id": str(payload.get("target_id") or payload.get("target_raw_id") or ""),
                 "role": str(payload.get("role") or "focuses_on"),
-                "source_refs_json": dump_json_text(payload.get("source_refs", [])),
+                "source_refs_json": payload.get("source_refs", []),
                 "confidence": float(payload.get("confidence") or 0.95),
-                "properties_json": dump_json_text(payload.get("properties", {})),
+                "properties_json": payload.get("properties", {}),
             }
         )
     return normalized
@@ -228,8 +231,8 @@ def normalize_evidence(
                 "locator": str(payload.get("locator") or ""),
                 "modality": payload.get("modality") or "text",
                 "extraction_method": str(payload.get("extraction_method") or "ocr"),
-                "normalized_claims_json": dump_json_text(payload.get("normalized_claims", [])),
-                "properties_json": dump_json_text(payload.get("properties", {})),
+                "normalized_claims_json": payload.get("normalized_claims", []),
+                "properties_json": payload.get("properties", {}),
             }
         )
     return normalized
@@ -299,13 +302,13 @@ def normalize_node_cards(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "card_layer": str(payload.get("card_layer") or "backbone"),
                 "title": str(payload.get("title") or ""),
                 "summary": str(payload.get("summary") or ""),
-                "pattern_refs_json": dump_json_text(payload.get("pattern_refs", [])),
-                "framework_refs_json": dump_json_text(payload.get("framework_refs", [])),
-                "profile_refs_json": dump_json_text(payload.get("profile_refs", [])),
-                "mention_refs_json": dump_json_text(payload.get("mention_refs", [])),
-                "source_refs_json": dump_json_text(payload.get("source_refs", [])),
-                "sections_json": dump_json_text(sections),
-                "properties_json": dump_json_text(payload.get("properties", {})),
+                "pattern_refs_json": payload.get("pattern_refs", []),
+                "framework_refs_json": payload.get("framework_refs", []),
+                "profile_refs_json": payload.get("profile_refs", []),
+                "mention_refs_json": payload.get("mention_refs", []),
+                "source_refs_json": payload.get("source_refs", []),
+                "sections_json": sections,
+                "properties_json": payload.get("properties", {}),
                 "status": normalize_card_status(payload.get("status")),
             }
         )
@@ -318,10 +321,11 @@ def replace_table_rows(
     dataset_id: str,
     lesson_run_id: str,
 ) -> None:
-    connection.execute(
-        f"DELETE FROM {table_name} WHERE dataset_id = ? AND lesson_run_id = ?",
-        (dataset_id, lesson_run_id),
-    )
+    with connection.cursor() as cur:
+        cur.execute(
+            f"DELETE FROM {table_name} WHERE dataset_id = %s AND lesson_run_id = %s",
+            (dataset_id, lesson_run_id),
+        )
 
 
 def auto_embed_nodes(
@@ -333,13 +337,13 @@ def auto_embed_nodes(
     """Backfill empty embeddings by calling the embedding API."""
     texts_to_embed: list[tuple[int, str]] = []
     for index, node in enumerate(nodes):
-        embedding = json.loads(node.get("embedding_json", "[]"))
+        embedding = node.get("embedding_json", [])
         if embedding:
             continue
         parts = [node.get("canonical_name", "")]
         if node.get("definition"):
             parts.append(node["definition"])
-        aliases = json.loads(node.get("aliases_json", "[]"))
+        aliases = node.get("aliases_json", [])
         if aliases:
             parts.extend(str(a) for a in aliases if a)
         text = " ".join(p for p in parts if p.strip())
@@ -356,7 +360,7 @@ def auto_embed_nodes(
     )
     for (index, _), embedding in zip(texts_to_embed, embeddings):
         if embedding:
-            nodes[index]["embedding_json"] = dump_json_text(embedding)
+            nodes[index]["embedding_json"] = embedding
 
     return nodes
 
@@ -367,7 +371,7 @@ def main() -> int:
     batch_anchor = resolve_outline_anchor(args.book_id, args.batch_anchor, strict=True)
 
     connection = connect_db(args.db)
-    ensure_sqlite_schema(connection)
+    ensure_pg_schema(connection)
     dataset_id = resolve_dataset_id(connection, args.dataset_id, root)
     ensure_dataset(connection, dataset_id, root)
     require_dataset_row(connection, dataset_id)
@@ -418,46 +422,39 @@ def main() -> int:
     )
 
     with connection:
-        connection.execute(
-            """
-            INSERT OR REPLACE INTO lesson_runs (
-              dataset_id,
-              lesson_run_id,
-              book_id,
-              batch_anchor,
-              status,
-              counts_json,
-              properties_json,
-              created_at,
-              updated_at
-            ) VALUES (
-              ?,
-              ?,
-              ?,
-              ?,
-              COALESCE((SELECT status FROM lesson_runs WHERE dataset_id = ? AND lesson_run_id = ?), 'staged'),
-              ?,
-              COALESCE((SELECT properties_json FROM lesson_runs WHERE dataset_id = ? AND lesson_run_id = ?), '{}'),
-              COALESCE((SELECT created_at FROM lesson_runs WHERE dataset_id = ? AND lesson_run_id = ?), ?),
-              ?
+        with connection.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO lesson_runs (
+                  dataset_id,
+                  lesson_run_id,
+                  book_id,
+                  batch_anchor,
+                  status,
+                  counts_json,
+                  properties_json,
+                  created_at,
+                  updated_at
+                ) VALUES (%s, %s, %s, %s, 'staged', %s, %s, %s, %s)
+                ON CONFLICT (dataset_id, lesson_run_id) DO UPDATE SET
+                  book_id = EXCLUDED.book_id,
+                  batch_anchor = EXCLUDED.batch_anchor,
+                  status = EXCLUDED.status,
+                  counts_json = EXCLUDED.counts_json,
+                  properties_json = EXCLUDED.properties_json,
+                  updated_at = EXCLUDED.updated_at
+                """,
+                (
+                    dataset_id,
+                    lesson_run_id,
+                    args.book_id,
+                    batch_anchor,
+                    dict(stats),
+                    {},
+                    now,
+                    now,
+                ),
             )
-            """,
-            (
-                dataset_id,
-                lesson_run_id,
-                args.book_id,
-                batch_anchor,
-                dataset_id,
-                lesson_run_id,
-                dump_json_text(dict(stats)),
-                dataset_id,
-                lesson_run_id,
-                dataset_id,
-                lesson_run_id,
-                now,
-                now,
-            ),
-        )
 
         if not args.append:
             for table_name in (
@@ -471,227 +468,335 @@ def main() -> int:
                 replace_table_rows(connection, table_name, dataset_id, lesson_run_id)
 
         if nodes:
-            connection.executemany(
-                """
-                INSERT OR REPLACE INTO staging_nodes (
-                  dataset_id, lesson_run_id, raw_node_id, book_id, batch_anchor,
-                  canonical_name, node_kind, node_layer, node_subkind, definition,
-                  aliases_json, learning_modes_json, bridge_tags_json, framework_refs_json,
-                  profile_refs_json, same_as_refs_json, properties_json, semantic_key,
-                  embedding_json, source_refs_json, status, created_at, updated_at, notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                [
-                    (
-                        dataset_id,
-                        lesson_run_id,
-                        record["raw_node_id"],
-                        args.book_id,
-                        batch_anchor,
-                        record["canonical_name"],
-                        record["node_kind"],
-                        record["node_layer"],
-                        record["node_subkind"],
-                        record["definition"],
-                        record["aliases_json"],
-                        record["learning_modes_json"],
-                        record["bridge_tags_json"],
-                        record["framework_refs_json"],
-                        record["profile_refs_json"],
-                        record["same_as_refs_json"],
-                        record["properties_json"],
-                        record["semantic_key"],
-                        record["embedding_json"],
-                        record["source_refs_json"],
-                        record["status"],
-                        now,
-                        now,
-                        record["notes"],
-                    )
-                    for record in nodes
-                ],
-            )
+            with connection.cursor() as cur:
+                psycopg.extras.execute_values(
+                    cur,
+                    """
+                    INSERT INTO staging_nodes (
+                      dataset_id, lesson_run_id, raw_node_id, book_id, batch_anchor,
+                      canonical_name, node_kind, node_layer, node_subkind, definition,
+                      aliases_json, learning_modes_json, bridge_tags_json, framework_refs_json,
+                      profile_refs_json, same_as_refs_json, properties_json, semantic_key,
+                      embedding_json, source_refs_json, status, created_at, updated_at, notes
+                    ) VALUES %s
+                    ON CONFLICT (dataset_id, lesson_run_id, raw_node_id) DO UPDATE SET
+                      book_id = EXCLUDED.book_id,
+                      batch_anchor = EXCLUDED.batch_anchor,
+                      canonical_name = EXCLUDED.canonical_name,
+                      node_kind = EXCLUDED.node_kind,
+                      node_layer = EXCLUDED.node_layer,
+                      node_subkind = EXCLUDED.node_subkind,
+                      definition = EXCLUDED.definition,
+                      aliases_json = EXCLUDED.aliases_json,
+                      learning_modes_json = EXCLUDED.learning_modes_json,
+                      bridge_tags_json = EXCLUDED.bridge_tags_json,
+                      framework_refs_json = EXCLUDED.framework_refs_json,
+                      profile_refs_json = EXCLUDED.profile_refs_json,
+                      same_as_refs_json = EXCLUDED.same_as_refs_json,
+                      properties_json = EXCLUDED.properties_json,
+                      semantic_key = EXCLUDED.semantic_key,
+                      embedding_json = EXCLUDED.embedding_json,
+                      source_refs_json = EXCLUDED.source_refs_json,
+                      status = EXCLUDED.status,
+                      updated_at = EXCLUDED.updated_at,
+                      notes = EXCLUDED.notes
+                    """,
+                    [
+                        (
+                            dataset_id,
+                            lesson_run_id,
+                            record["raw_node_id"],
+                            args.book_id,
+                            batch_anchor,
+                            record["canonical_name"],
+                            record["node_kind"],
+                            record["node_layer"],
+                            record["node_subkind"],
+                            record["definition"],
+                            json.dumps(record["aliases_json"]),
+                            json.dumps(record["learning_modes_json"]),
+                            json.dumps(record["bridge_tags_json"]),
+                            json.dumps(record["framework_refs_json"]),
+                            json.dumps(record["profile_refs_json"]),
+                            json.dumps(record["same_as_refs_json"]),
+                            json.dumps(record["properties_json"]),
+                            record["semantic_key"],
+                            json.dumps(record["embedding_json"]),
+                            json.dumps(record["source_refs_json"]),
+                            record["status"],
+                            now,
+                            now,
+                            record["notes"],
+                        )
+                        for record in nodes
+                    ],
+                )
 
         if edges:
-            connection.executemany(
-                """
-                INSERT OR REPLACE INTO staging_edges (
-                  dataset_id, lesson_run_id, raw_edge_id, book_id, batch_anchor,
-                  edge_type, edge_layer, backbone_expand, from_raw_node_id, to_raw_node_id,
-                  directionality, confidence, framework_refs_json, profile_refs_json,
-                  source_refs_json, properties_json, status, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                [
-                    (
-                        dataset_id,
-                        lesson_run_id,
-                        record["raw_edge_id"],
-                        args.book_id,
-                        batch_anchor,
-                        record["edge_type"],
-                        record["edge_layer"],
-                        record["backbone_expand"],
-                        record["from_raw_node_id"],
-                        record["to_raw_node_id"],
-                        record["directionality"],
-                        record["confidence"],
-                        record["framework_refs_json"],
-                        record["profile_refs_json"],
-                        record["source_refs_json"],
-                        record["properties_json"],
-                        record["status"],
-                        now,
-                        now,
-                    )
-                    for record in edges
-                ],
-            )
+            with connection.cursor() as cur:
+                psycopg.extras.execute_values(
+                    cur,
+                    """
+                    INSERT INTO staging_edges (
+                      dataset_id, lesson_run_id, raw_edge_id, book_id, batch_anchor,
+                      edge_type, edge_layer, backbone_expand, from_raw_node_id, to_raw_node_id,
+                      directionality, confidence, framework_refs_json, profile_refs_json,
+                      source_refs_json, properties_json, status, created_at, updated_at
+                    ) VALUES %s
+                    ON CONFLICT (dataset_id, lesson_run_id, raw_edge_id) DO UPDATE SET
+                      book_id = EXCLUDED.book_id,
+                      batch_anchor = EXCLUDED.batch_anchor,
+                      edge_type = EXCLUDED.edge_type,
+                      edge_layer = EXCLUDED.edge_layer,
+                      backbone_expand = EXCLUDED.backbone_expand,
+                      from_raw_node_id = EXCLUDED.from_raw_node_id,
+                      to_raw_node_id = EXCLUDED.to_raw_node_id,
+                      directionality = EXCLUDED.directionality,
+                      confidence = EXCLUDED.confidence,
+                      framework_refs_json = EXCLUDED.framework_refs_json,
+                      profile_refs_json = EXCLUDED.profile_refs_json,
+                      source_refs_json = EXCLUDED.source_refs_json,
+                      properties_json = EXCLUDED.properties_json,
+                      status = EXCLUDED.status,
+                      updated_at = EXCLUDED.updated_at
+                    """,
+                    [
+                        (
+                            dataset_id,
+                            lesson_run_id,
+                            record["raw_edge_id"],
+                            args.book_id,
+                            batch_anchor,
+                            record["edge_type"],
+                            record["edge_layer"],
+                            record["backbone_expand"],
+                            record["from_raw_node_id"],
+                            record["to_raw_node_id"],
+                            record["directionality"],
+                            record["confidence"],
+                            json.dumps(record["framework_refs_json"]),
+                            json.dumps(record["profile_refs_json"]),
+                            json.dumps(record["source_refs_json"]),
+                            json.dumps(record["properties_json"]),
+                            record["status"],
+                            now,
+                            now,
+                        )
+                        for record in edges
+                    ],
+                )
 
         if profiles:
-            connection.executemany(
-                """
-                INSERT OR REPLACE INTO staging_profiles (
-                  dataset_id, lesson_run_id, raw_profile_id, raw_node_id, subject,
-                  school_stage, grade_band, context_key, curriculum_role, mastery_level,
-                  framework_refs_json, textbook_refs_json, textbook_ids_json,
-                  learning_objectives_json, assessment_signals_json, source_refs_json,
-                  properties_json, status, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                [
-                    (
-                        dataset_id,
-                        lesson_run_id,
-                        record["raw_profile_id"],
-                        record["raw_node_id"],
-                        record["subject"],
-                        record["school_stage"],
-                        record["grade_band"],
-                        record["context_key"],
-                        record["curriculum_role"],
-                        record["mastery_level"],
-                        record["framework_refs_json"],
-                        record["textbook_refs_json"],
-                        record["textbook_ids_json"],
-                        record["learning_objectives_json"],
-                        record["assessment_signals_json"],
-                        record["source_refs_json"],
-                        record["properties_json"],
-                        record["status"],
-                        now,
-                        now,
-                    )
-                    for record in profiles
-                ],
-            )
+            with connection.cursor() as cur:
+                psycopg.extras.execute_values(
+                    cur,
+                    """
+                    INSERT INTO staging_profiles (
+                      dataset_id, lesson_run_id, raw_profile_id, raw_node_id, subject,
+                      school_stage, grade_band, context_key, curriculum_role, mastery_level,
+                      framework_refs_json, textbook_refs_json, textbook_ids_json,
+                      learning_objectives_json, assessment_signals_json, source_refs_json,
+                      properties_json, status, created_at, updated_at
+                    ) VALUES %s
+                    ON CONFLICT (dataset_id, lesson_run_id, raw_profile_id) DO UPDATE SET
+                      raw_node_id = EXCLUDED.raw_node_id,
+                      subject = EXCLUDED.subject,
+                      school_stage = EXCLUDED.school_stage,
+                      grade_band = EXCLUDED.grade_band,
+                      context_key = EXCLUDED.context_key,
+                      curriculum_role = EXCLUDED.curriculum_role,
+                      mastery_level = EXCLUDED.mastery_level,
+                      framework_refs_json = EXCLUDED.framework_refs_json,
+                      textbook_refs_json = EXCLUDED.textbook_refs_json,
+                      textbook_ids_json = EXCLUDED.textbook_ids_json,
+                      learning_objectives_json = EXCLUDED.learning_objectives_json,
+                      assessment_signals_json = EXCLUDED.assessment_signals_json,
+                      source_refs_json = EXCLUDED.source_refs_json,
+                      properties_json = EXCLUDED.properties_json,
+                      status = EXCLUDED.status,
+                      updated_at = EXCLUDED.updated_at
+                    """,
+                    [
+                        (
+                            dataset_id,
+                            lesson_run_id,
+                            record["raw_profile_id"],
+                            record["raw_node_id"],
+                            record["subject"],
+                            record["school_stage"],
+                            record["grade_band"],
+                            record["context_key"],
+                            record["curriculum_role"],
+                            record["mastery_level"],
+                            json.dumps(record["framework_refs_json"]),
+                            json.dumps(record["textbook_refs_json"]),
+                            json.dumps(record["textbook_ids_json"]),
+                            json.dumps(record["learning_objectives_json"]),
+                            json.dumps(record["assessment_signals_json"]),
+                            json.dumps(record["source_refs_json"]),
+                            json.dumps(record["properties_json"]),
+                            record["status"],
+                            now,
+                            now,
+                        )
+                        for record in profiles
+                    ],
+                )
 
         if mentions:
-            connection.executemany(
-                """
-                INSERT OR REPLACE INTO staging_mentions (
-                  dataset_id, lesson_run_id, raw_mention_id, source_type, source_id,
-                  anchor_ref, target_type, target_raw_id, role, source_refs_json,
-                  confidence, properties_json, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                [
-                    (
-                        dataset_id,
-                        lesson_run_id,
-                        record["raw_mention_id"],
-                        record["source_type"],
-                        record["source_id"],
-                        record["anchor_ref"],
-                        record["target_type"],
-                        record["target_raw_id"],
-                        record["role"],
-                        record["source_refs_json"],
-                        record["confidence"],
-                        record["properties_json"],
-                        now,
-                        now,
-                    )
-                    for record in mentions
-                ],
-            )
+            with connection.cursor() as cur:
+                psycopg.extras.execute_values(
+                    cur,
+                    """
+                    INSERT INTO staging_mentions (
+                      dataset_id, lesson_run_id, raw_mention_id, source_type, source_id,
+                      anchor_ref, target_type, target_raw_id, role, source_refs_json,
+                      confidence, properties_json, created_at, updated_at
+                    ) VALUES %s
+                    ON CONFLICT (dataset_id, lesson_run_id, raw_mention_id) DO UPDATE SET
+                      source_type = EXCLUDED.source_type,
+                      source_id = EXCLUDED.source_id,
+                      anchor_ref = EXCLUDED.anchor_ref,
+                      target_type = EXCLUDED.target_type,
+                      target_raw_id = EXCLUDED.target_raw_id,
+                      role = EXCLUDED.role,
+                      source_refs_json = EXCLUDED.source_refs_json,
+                      confidence = EXCLUDED.confidence,
+                      properties_json = EXCLUDED.properties_json,
+                      updated_at = EXCLUDED.updated_at
+                    """,
+                    [
+                        (
+                            dataset_id,
+                            lesson_run_id,
+                            record["raw_mention_id"],
+                            record["source_type"],
+                            record["source_id"],
+                            record["anchor_ref"],
+                            record["target_type"],
+                            record["target_raw_id"],
+                            record["role"],
+                            json.dumps(record["source_refs_json"]),
+                            record["confidence"],
+                            json.dumps(record["properties_json"]),
+                            now,
+                            now,
+                        )
+                        for record in mentions
+                    ],
+                )
 
         if evidence:
-            connection.executemany(
-                """
-                INSERT OR REPLACE INTO staging_evidence (
-                  dataset_id, lesson_run_id, raw_evidence_id, source_type, source_id,
-                  anchor_ref, source_path, page_start, page_end, excerpt, locator,
-                  modality, extraction_method, normalized_claims_json, properties_json,
-                  created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                [
-                    (
-                        dataset_id,
-                        lesson_run_id,
-                        record["raw_evidence_id"],
-                        record["source_type"],
-                        record["source_id"],
-                        record["anchor_ref"],
-                        record["source_path"],
-                        record["page_start"],
-                        record["page_end"],
-                        record["excerpt"],
-                        record["locator"],
-                        record["modality"],
-                        record["extraction_method"],
-                        record["normalized_claims_json"],
-                        record["properties_json"],
-                        now,
-                        now,
-                    )
-                    for record in evidence
-                ],
-            )
+            with connection.cursor() as cur:
+                psycopg.extras.execute_values(
+                    cur,
+                    """
+                    INSERT INTO staging_evidence (
+                      dataset_id, lesson_run_id, raw_evidence_id, source_type, source_id,
+                      anchor_ref, source_path, page_start, page_end, excerpt, locator,
+                      modality, extraction_method, normalized_claims_json, properties_json,
+                      created_at, updated_at
+                    ) VALUES %s
+                    ON CONFLICT (dataset_id, lesson_run_id, raw_evidence_id) DO UPDATE SET
+                      source_type = EXCLUDED.source_type,
+                      source_id = EXCLUDED.source_id,
+                      anchor_ref = EXCLUDED.anchor_ref,
+                      source_path = EXCLUDED.source_path,
+                      page_start = EXCLUDED.page_start,
+                      page_end = EXCLUDED.page_end,
+                      excerpt = EXCLUDED.excerpt,
+                      locator = EXCLUDED.locator,
+                      modality = EXCLUDED.modality,
+                      extraction_method = EXCLUDED.extraction_method,
+                      normalized_claims_json = EXCLUDED.normalized_claims_json,
+                      properties_json = EXCLUDED.properties_json,
+                      updated_at = EXCLUDED.updated_at
+                    """,
+                    [
+                        (
+                            dataset_id,
+                            lesson_run_id,
+                            record["raw_evidence_id"],
+                            record["source_type"],
+                            record["source_id"],
+                            record["anchor_ref"],
+                            record["source_path"],
+                            record["page_start"],
+                            record["page_end"],
+                            record["excerpt"],
+                            record["locator"],
+                            record["modality"],
+                            record["extraction_method"],
+                            json.dumps(record["normalized_claims_json"]),
+                            json.dumps(record["properties_json"]),
+                            now,
+                            now,
+                        )
+                        for record in evidence
+                    ],
+                )
 
         if node_cards:
-            connection.executemany(
+            with connection.cursor() as cur:
+                psycopg.extras.execute_values(
+                    cur,
+                    """
+                    INSERT INTO staging_node_cards (
+                      dataset_id, lesson_run_id, raw_card_id, raw_node_id, card_layer,
+                      title, summary, pattern_refs_json, framework_refs_json, profile_refs_json,
+                      mention_refs_json, source_refs_json, sections_json, properties_json,
+                      status, created_at, updated_at
+                    ) VALUES %s
+                    ON CONFLICT (dataset_id, lesson_run_id, raw_card_id) DO UPDATE SET
+                      raw_node_id = EXCLUDED.raw_node_id,
+                      card_layer = EXCLUDED.card_layer,
+                      title = EXCLUDED.title,
+                      summary = EXCLUDED.summary,
+                      pattern_refs_json = EXCLUDED.pattern_refs_json,
+                      framework_refs_json = EXCLUDED.framework_refs_json,
+                      profile_refs_json = EXCLUDED.profile_refs_json,
+                      mention_refs_json = EXCLUDED.mention_refs_json,
+                      source_refs_json = EXCLUDED.source_refs_json,
+                      sections_json = EXCLUDED.sections_json,
+                      properties_json = EXCLUDED.properties_json,
+                      status = EXCLUDED.status,
+                      updated_at = EXCLUDED.updated_at
+                    """,
+                    [
+                        (
+                            dataset_id,
+                            lesson_run_id,
+                            record["raw_card_id"],
+                            record["raw_node_id"],
+                            record["card_layer"],
+                            record["title"],
+                            record["summary"],
+                            json.dumps(record["pattern_refs_json"]),
+                            json.dumps(record["framework_refs_json"]),
+                            json.dumps(record["profile_refs_json"]),
+                            json.dumps(record["mention_refs_json"]),
+                            json.dumps(record["source_refs_json"]),
+                            json.dumps(record["sections_json"]),
+                            json.dumps(record["properties_json"]),
+                            record["status"],
+                            now,
+                            now,
+                        )
+                        for record in node_cards
+                    ],
+                )
+
+        with connection.cursor() as cur:
+            cur.execute(
                 """
-                INSERT OR REPLACE INTO staging_node_cards (
-                  dataset_id, lesson_run_id, raw_card_id, raw_node_id, card_layer,
-                  title, summary, pattern_refs_json, framework_refs_json, profile_refs_json,
-                  mention_refs_json, source_refs_json, sections_json, properties_json,
-                  status, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                UPDATE lesson_runs
+                SET status = 'staged', counts_json = %s, updated_at = %s
+                WHERE dataset_id = %s AND lesson_run_id = %s
                 """,
-                [
-                    (
-                        dataset_id,
-                        lesson_run_id,
-                        record["raw_card_id"],
-                        record["raw_node_id"],
-                        record["card_layer"],
-                        record["title"],
-                        record["summary"],
-                        record["pattern_refs_json"],
-                        record["framework_refs_json"],
-                        record["profile_refs_json"],
-                        record["mention_refs_json"],
-                        record["source_refs_json"],
-                        record["sections_json"],
-                        record["properties_json"],
-                        record["status"],
-                        now,
-                        now,
-                    )
-                    for record in node_cards
-                ],
+                (dict(stats), now, dataset_id, lesson_run_id),
             )
 
-        connection.execute(
-            """
-            UPDATE lesson_runs
-            SET status = 'staged', counts_json = ?, updated_at = ?
-            WHERE dataset_id = ? AND lesson_run_id = ?
-            """,
-            (dump_json_text(dict(stats)), now, dataset_id, lesson_run_id),
-        )
+    connection.commit()
 
     print(
         dump_json_text(

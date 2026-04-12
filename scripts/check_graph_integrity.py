@@ -5,15 +5,17 @@ from __future__ import annotations
 
 import argparse
 import json
-import sqlite3
+import os
 import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+import psycopg
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from knowledge_store_common import connect_db, DEFAULT_DB_PATH
+from knowledge_store_common import connect_db, ensure_pg_schema
 
 # Edge types that MUST NOT form cycles
 HIERARCHICAL_EDGE_TYPES = {
@@ -41,7 +43,7 @@ ASSOCIATIVE_EDGE_TYPES = {
 class GraphIntegrityChecker:
     """Check graph for cycles and isolated nodes."""
 
-    def __init__(self, connection: sqlite3.Connection, dataset_id: str):
+    def __init__(self, connection: psycopg.Connection, dataset_id: str):
         self.connection = connection
         self.dataset_id = dataset_id
         self.issues: dict[str, list[dict[str, Any]]] = {
@@ -55,16 +57,18 @@ class GraphIntegrityChecker:
         print("\n[1/3] Checking for cycles in hierarchical edges...")
 
         # Load hierarchical edges
-        rows = self.connection.execute(
-            f"""
-            SELECT id, edge_type, from_id, to_id
-            FROM edges
-            WHERE dataset_id = ?
-              AND edge_type IN ({",".join(["?"] * len(HIERARCHICAL_EDGE_TYPES))})
-              AND status != 'deprecated'
-            """,
-            (self.dataset_id, *HIERARCHICAL_EDGE_TYPES),
-        ).fetchall()
+        with self.connection.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT id, edge_type, from_id, to_id
+                FROM edges
+                WHERE dataset_id = %s
+                  AND edge_type IN ({",".join(["%s"] * len(HIERARCHICAL_EDGE_TYPES))})
+                  AND status != 'deprecated'
+                """,
+                (self.dataset_id, *HIERARCHICAL_EDGE_TYPES),
+            )
+            rows = cur.fetchall()
 
         # Build adjacency list
         graph = defaultdict(list)
@@ -136,19 +140,21 @@ class GraphIntegrityChecker:
 
         # Find nodes with no edges (neither incoming nor outgoing)
         # Only consider active (non-deprecated) edges
-        rows = self.connection.execute(
-            """
-            SELECT n.id, n.canonical_name, n.node_kind, n.node_layer
-            FROM nodes n
-            LEFT JOIN edges e1 ON n.id = e1.from_id AND e1.dataset_id = ? AND e1.status != 'deprecated'
-            LEFT JOIN edges e2 ON n.id = e2.to_id AND e2.dataset_id = ? AND e2.status != 'deprecated'
-            WHERE n.dataset_id = ?
-              AND e1.id IS NULL
-              AND e2.id IS NULL
-              AND n.status != 'deprecated'
-            """,
-            (self.dataset_id, self.dataset_id, self.dataset_id),
-        ).fetchall()
+        with self.connection.cursor() as cur:
+            cur.execute(
+                """
+                SELECT n.id, n.canonical_name, n.node_kind, n.node_layer
+                FROM nodes n
+                LEFT JOIN edges e1 ON n.id = e1.from_id AND e1.dataset_id = %s AND e1.status != 'deprecated'
+                LEFT JOIN edges e2 ON n.id = e2.to_id AND e2.dataset_id = %s AND e2.status != 'deprecated'
+                WHERE n.dataset_id = %s
+                  AND e1.id IS NULL
+                  AND e2.id IS NULL
+                  AND n.status != 'deprecated'
+                """,
+                (self.dataset_id, self.dataset_id, self.dataset_id),
+            )
+            rows = cur.fetchall()
 
         isolated_nodes = []
         for row in rows:
@@ -181,14 +187,16 @@ class GraphIntegrityChecker:
         print("\n[3/3] Checking graph connectivity...")
 
         # Build undirected graph
-        rows = self.connection.execute(
-            """
-            SELECT from_id, to_id
-            FROM edges
-            WHERE dataset_id = ? AND status != 'deprecated'
-            """,
-            (self.dataset_id,),
-        ).fetchall()
+        with self.connection.cursor() as cur:
+            cur.execute(
+                """
+                SELECT from_id, to_id
+                FROM edges
+                WHERE dataset_id = %s AND status != 'deprecated'
+                """,
+                (self.dataset_id,),
+            )
+            rows = cur.fetchall()
 
         graph = defaultdict(set)
         all_nodes = set()
@@ -299,8 +307,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--db",
-        default=str(DEFAULT_DB_PATH),
-        help="Path to SQLite database",
+        default=None,
+        help="PostgreSQL connection URL (default: $DATABASE_URL)",
     )
     parser.add_argument(
         "--fail-on-cycles",
@@ -317,24 +325,27 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
 
-    db_path = Path(args.db).expanduser().resolve()
-    if not db_path.exists():
-        print(f"Error: Database not found: {db_path}")
+    db_url = args.db or os.environ.get("DATABASE_URL")
+    if not db_url:
+        print("Error: No database URL provided. Set DATABASE_URL or pass --db.")
         return 1
 
-    conn = connect_db(db_path)
+    conn = connect_db(db_url)
+    ensure_pg_schema(conn)
 
     # Verify dataset exists
-    dataset_count = conn.execute(
-        "SELECT COUNT(*) FROM datasets WHERE dataset_id = ?", (args.dataset_id,)
-    ).fetchone()[0]
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT COUNT(*) FROM datasets WHERE dataset_id = %s", (args.dataset_id,)
+        )
+        dataset_count = cur.fetchone()["count"]
 
     if dataset_count == 0:
         print(f"Error: Dataset '{args.dataset_id}' not found")
         return 1
 
     print(f"Checking graph integrity for dataset: {args.dataset_id}")
-    print(f"Database: {db_path}")
+    print(f"Database: {db_url}")
 
     checker = GraphIntegrityChecker(conn, args.dataset_id)
     results = checker.run_all_checks()

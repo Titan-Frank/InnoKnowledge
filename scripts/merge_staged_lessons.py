@@ -1,25 +1,27 @@
 #!/usr/bin/env python3
-"""Merge staged lesson artifacts into the canonical SQLite knowledge graph."""
+"""Merge staged lesson artifacts into the canonical PostgreSQL knowledge graph."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
-import sqlite3
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
+import psycopg
+from psycopg.rows import dict_row
+
 from knowledge_store_common import (
-    DEFAULT_DB_PATH,
     connect_db,
     cosine_similarity,
     dump_json_text,
     ensure_dataset,
-    ensure_sqlite_schema,
+    ensure_pg_schema,
     load_json_text,
     make_canonical_node_id,
     make_edge_id,
@@ -58,7 +60,7 @@ def parse_args() -> argparse.Namespace:
         description="Merge staged lesson artifacts into canonical nodes, edges, profiles, evidence, mentions, and node cards."
     )
     parser.add_argument("--root", required=True)
-    parser.add_argument("--db", default=str(DEFAULT_DB_PATH))
+    parser.add_argument("--db", default=os.environ.get("DATABASE_URL"))
     parser.add_argument("--dataset-id")
     parser.add_argument("--book-id")
     parser.add_argument("--batch-anchor", action="append", dest="batch_anchors")
@@ -69,26 +71,47 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def parse_embedding(value: str | None) -> list[float]:
+def parse_embedding(value: Any) -> list[float]:
+    """Parse embedding from JSONB (already a Python list) or raw JSON text."""
+    if isinstance(value, list):
+        result: list[float] = []
+        for item in value:
+            try:
+                result.append(float(item))
+            except (TypeError, ValueError):
+                return []
+        return result
+    if value is None or value == "":
+        return []
     payload = load_json_text(value, [])
     if not isinstance(payload, list):
         return []
-    result: list[float] = []
+    result_list: list[float] = []
     for item in payload:
         try:
-            result.append(float(item))
+            result_list.append(float(item))
         except (TypeError, ValueError):
             return []
-    return result
+    return result_list
 
 
-def parse_rows(rows: list[sqlite3.Row], json_fields: dict[str, str]) -> list[dict[str, Any]]:
+def parse_rows(rows: list[dict[str, Any]], json_fields: dict[str, str]) -> list[dict[str, Any]]:
+    """Parse rows from PostgreSQL. JSONB columns are already native Python objects."""
     parsed: list[dict[str, Any]] = []
     for row in rows:
         item = dict(row)
         for source_field, target_field in json_fields.items():
-            default_value: Any = {} if source_field == "properties_json" else []
-            item[target_field] = load_json_text(item.get(source_field), default_value)
+            value = item.get(source_field)
+            # JSONB columns come back as native Python objects from psycopg3
+            if isinstance(value, (dict, list)):
+                item[target_field] = value
+            elif value is None or value == "":
+                default_value: Any = {} if source_field == "properties_json" else []
+                item[target_field] = default_value
+            else:
+                # Fallback for text-encoded JSON (shouldn't happen with JSONB)
+                default_value = {} if source_field == "properties_json" else []
+                item[target_field] = load_json_text(value, default_value)
         parsed.append(item)
     return parsed
 
@@ -292,26 +315,15 @@ def merge_card_payload(existing: dict[str, Any], staged: dict[str, Any], title: 
     return merged
 
 
-def ensure_source_artifacts(connection: sqlite3.Connection, dataset_id: str, evidence_rows: list[dict[str, Any]]) -> None:
+def ensure_source_artifacts(connection: psycopg.Connection, dataset_id: str, evidence_rows: list[dict[str, Any]]) -> None:
     seen: set[tuple[str, str]] = set()
+    rows_to_insert: list[tuple] = []
     for record in evidence_rows:
         key = (record["source_type"], record["source_id"])
         if key in seen:
             continue
         seen.add(key)
-        connection.execute(
-            """
-            INSERT OR IGNORE INTO source_artifacts (
-              dataset_id,
-              source_id,
-              source_type,
-              book_id,
-              title,
-              file_path,
-              outline_path,
-              properties_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
+        rows_to_insert.append(
             (
                 dataset_id,
                 record["source_id"],
@@ -320,47 +332,73 @@ def ensure_source_artifacts(connection: sqlite3.Connection, dataset_id: str, evi
                 None,
                 record.get("source_path"),
                 None,
-                "{}",
-            ),
+                {},
+            )
+        )
+    if not rows_to_insert:
+        return
+    with connection.cursor() as cur:
+        psycopg.extras.execute_values(
+            cur,
+            """
+            INSERT INTO source_artifacts (
+              dataset_id,
+              source_id,
+              source_type,
+              book_id,
+              title,
+              file_path,
+              outline_path,
+              properties_json
+            ) VALUES %s
+            ON CONFLICT DO NOTHING
+            """,
+            rows_to_insert,
         )
 
 
 def upsert_evidence_links(
-    connection: sqlite3.Connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     owner_type: str,
     owner_id: str,
     evidence_ids: list[str],
 ) -> None:
-    connection.execute(
-        """
-        DELETE FROM evidence_links
-        WHERE dataset_id = ? AND owner_type = ? AND owner_id = ?
-        """,
-        (dataset_id, owner_type, owner_id),
-    )
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            DELETE FROM evidence_links
+            WHERE dataset_id = %s AND owner_type = %s AND owner_id = %s
+            """,
+            (dataset_id, owner_type, owner_id),
+        )
     if not evidence_ids:
         return
-    connection.executemany(
-        """
-        INSERT OR REPLACE INTO evidence_links (
-          dataset_id,
-          owner_type,
-          owner_id,
-          evidence_id,
-          ordinal
-        ) VALUES (?, ?, ?, ?, ?)
-        """,
-        [
-            (dataset_id, owner_type, owner_id, evidence_id, index)
-            for index, evidence_id in enumerate(evidence_ids, start=1)
-        ],
-    )
+    rows = [
+        (dataset_id, owner_type, owner_id, evidence_id, index)
+        for index, evidence_id in enumerate(evidence_ids, start=1)
+    ]
+    with connection.cursor() as cur:
+        psycopg.extras.execute_values(
+            cur,
+            """
+            INSERT INTO evidence_links (
+              dataset_id,
+              owner_type,
+              owner_id,
+              evidence_id,
+              ordinal
+            ) VALUES %s
+            ON CONFLICT (dataset_id, owner_type, owner_id, evidence_id) DO UPDATE SET
+              ordinal = EXCLUDED.ordinal
+            """,
+            rows,
+        )
 
 
-def load_selected_lesson_runs(connection: sqlite3.Connection, args: argparse.Namespace, dataset_id: str) -> list[sqlite3.Row]:
+def load_selected_lesson_runs(connection: psycopg.Connection, args: argparse.Namespace, dataset_id: str) -> list[dict[str, Any]]:
     params: list[Any] = [dataset_id]
-    filters = ["dataset_id = ?"]
+    filters = ["dataset_id = %s"]
 
     explicit_run_ids = args.lesson_run_ids or []
     explicit_anchors = [
@@ -371,14 +409,14 @@ def load_selected_lesson_runs(connection: sqlite3.Connection, args: argparse.Nam
     ]
 
     if explicit_run_ids:
-        placeholders = ",".join(["?"] * len(explicit_run_ids))
+        placeholders = ",".join(["%s"] * len(explicit_run_ids))
         filters.append(f"lesson_run_id IN ({placeholders})")
         params.extend(explicit_run_ids)
     if args.book_id:
-        filters.append("book_id = ?")
+        filters.append("book_id = %s")
         params.append(args.book_id)
     if explicit_anchors:
-        placeholders = ",".join(["?"] * len(explicit_anchors))
+        placeholders = ",".join(["%s"] * len(explicit_anchors))
         filters.append(f"batch_anchor IN ({placeholders})")
         params.extend(explicit_anchors)
     if not explicit_run_ids and not explicit_anchors:
@@ -390,14 +428,16 @@ def load_selected_lesson_runs(connection: sqlite3.Connection, args: argparse.Nam
         WHERE {' AND '.join(filters)}
         ORDER BY book_id, batch_anchor, lesson_run_id
     """
-    return connection.execute(sql, params).fetchall()
+    with connection.cursor() as cur:
+        cur.execute(sql, params)
+        return cur.fetchall()
 
 
 def main() -> int:
     args = parse_args()
     root = Path(args.root).expanduser().resolve()
     connection = connect_db(args.db)
-    ensure_sqlite_schema(connection)
+    ensure_pg_schema(connection)
     dataset_id = resolve_dataset_id(connection, args.dataset_id, root)
     ensure_dataset(connection, dataset_id, root)
     require_dataset_row(connection, dataset_id)
@@ -410,19 +450,23 @@ def main() -> int:
     merge_run_id = make_merge_run_id(dataset_id, lesson_run_ids)
     now = utc_now()
 
-    placeholders = ",".join(["?"] * len(lesson_run_ids))
+    placeholders = ",".join(["%s"] * len(lesson_run_ids))
     lesson_params = [dataset_id, *lesson_run_ids]
 
-    staging_nodes = parse_rows(
-        connection.execute(
+    with connection.cursor() as cur:
+        cur.execute(
             f"""
             SELECT *
             FROM staging_nodes
-            WHERE dataset_id = ? AND lesson_run_id IN ({placeholders})
+            WHERE dataset_id = %s AND lesson_run_id IN ({placeholders})
             ORDER BY lesson_run_id, raw_node_id
             """,
             lesson_params,
-        ).fetchall(),
+        )
+        staging_node_rows = cur.fetchall()
+
+    staging_nodes = parse_rows(
+        staging_node_rows,
         {
             "aliases_json": "aliases",
             "learning_modes_json": "learning_modes",
@@ -436,16 +480,20 @@ def main() -> int:
         },
     )
 
-    staging_edges = parse_rows(
-        connection.execute(
+    with connection.cursor() as cur:
+        cur.execute(
             f"""
             SELECT *
             FROM staging_edges
-            WHERE dataset_id = ? AND lesson_run_id IN ({placeholders})
+            WHERE dataset_id = %s AND lesson_run_id IN ({placeholders})
             ORDER BY lesson_run_id, raw_edge_id
             """,
             lesson_params,
-        ).fetchall(),
+        )
+        staging_edge_rows = cur.fetchall()
+
+    staging_edges = parse_rows(
+        staging_edge_rows,
         {
             "framework_refs_json": "framework_refs",
             "profile_refs_json": "profile_refs",
@@ -454,16 +502,20 @@ def main() -> int:
         },
     )
 
-    staging_profiles = parse_rows(
-        connection.execute(
+    with connection.cursor() as cur:
+        cur.execute(
             f"""
             SELECT *
             FROM staging_profiles
-            WHERE dataset_id = ? AND lesson_run_id IN ({placeholders})
+            WHERE dataset_id = %s AND lesson_run_id IN ({placeholders})
             ORDER BY lesson_run_id, raw_profile_id
             """,
             lesson_params,
-        ).fetchall(),
+        )
+        staging_profile_rows = cur.fetchall()
+
+    staging_profiles = parse_rows(
+        staging_profile_rows,
         {
             "framework_refs_json": "framework_refs",
             "textbook_refs_json": "textbook_refs",
@@ -475,48 +527,60 @@ def main() -> int:
         },
     )
 
-    staging_mentions = parse_rows(
-        connection.execute(
+    with connection.cursor() as cur:
+        cur.execute(
             f"""
             SELECT *
             FROM staging_mentions
-            WHERE dataset_id = ? AND lesson_run_id IN ({placeholders})
+            WHERE dataset_id = %s AND lesson_run_id IN ({placeholders})
             ORDER BY lesson_run_id, raw_mention_id
             """,
             lesson_params,
-        ).fetchall(),
+        )
+        staging_mention_rows = cur.fetchall()
+
+    staging_mentions = parse_rows(
+        staging_mention_rows,
         {
             "source_refs_json": "source_refs",
             "properties_json": "properties",
         },
     )
 
-    staging_evidence = parse_rows(
-        connection.execute(
+    with connection.cursor() as cur:
+        cur.execute(
             f"""
             SELECT *
             FROM staging_evidence
-            WHERE dataset_id = ? AND lesson_run_id IN ({placeholders})
+            WHERE dataset_id = %s AND lesson_run_id IN ({placeholders})
             ORDER BY lesson_run_id, raw_evidence_id
             """,
             lesson_params,
-        ).fetchall(),
+        )
+        staging_evidence_rows = cur.fetchall()
+
+    staging_evidence = parse_rows(
+        staging_evidence_rows,
         {
             "normalized_claims_json": "normalized_claims",
             "properties_json": "properties",
         },
     )
 
-    staging_cards = parse_rows(
-        connection.execute(
+    with connection.cursor() as cur:
+        cur.execute(
             f"""
             SELECT *
             FROM staging_node_cards
-            WHERE dataset_id = ? AND lesson_run_id IN ({placeholders})
+            WHERE dataset_id = %s AND lesson_run_id IN ({placeholders})
             ORDER BY lesson_run_id, raw_card_id
             """,
             lesson_params,
-        ).fetchall(),
+        )
+        staging_card_rows = cur.fetchall()
+
+    staging_cards = parse_rows(
+        staging_card_rows,
         {
             "pattern_refs_json": "pattern_refs",
             "framework_refs_json": "framework_refs",
@@ -532,16 +596,20 @@ def main() -> int:
     exact_term_index: defaultdict[str, set[str]] = defaultdict(set)
     semantic_key_index: defaultdict[str, set[str]] = defaultdict(set)
 
-    for row in parse_rows(
-        connection.execute(
+    with connection.cursor() as cur:
+        cur.execute(
             """
             SELECT *
             FROM nodes
-            WHERE dataset_id = ? AND status != 'deprecated'
+            WHERE dataset_id = %s AND status != 'deprecated'
             ORDER BY id
             """,
             (dataset_id,),
-        ).fetchall(),
+        )
+        existing_node_rows = cur.fetchall()
+
+    for row in parse_rows(
+        existing_node_rows,
         {
             "aliases_json": "aliases",
             "learning_modes_json": "learning_modes",
@@ -567,38 +635,52 @@ def main() -> int:
         if semantic_key:
             semantic_key_index[str(semantic_key)].add(row["id"])
 
-    existing_edges = {
-        (row["from_id"], row["edge_type"], row["to_id"]): dict(row)
-        for row in connection.execute(
+    with connection.cursor() as cur:
+        cur.execute(
             """
             SELECT *
             FROM edges
-            WHERE dataset_id = ? AND status != 'deprecated'
+            WHERE dataset_id = %s AND status != 'deprecated'
             """,
             (dataset_id,),
-        ).fetchall()
+        )
+        edge_rows = cur.fetchall()
+
+    existing_edges = {
+        (row["from_id"], row["edge_type"], row["to_id"]): dict(row)
+        for row in edge_rows
     }
-    existing_profiles = {
-        (row["node_id"], row["context_key"]): dict(row)
-        for row in connection.execute(
+
+    with connection.cursor() as cur:
+        cur.execute(
             """
             SELECT *
             FROM profiles
-            WHERE dataset_id = ? AND status != 'deprecated'
+            WHERE dataset_id = %s AND status != 'deprecated'
             """,
             (dataset_id,),
-        ).fetchall()
+        )
+        profile_rows = cur.fetchall()
+
+    existing_profiles = {
+        (row["node_id"], row["context_key"]): dict(row)
+        for row in profile_rows
     }
-    existing_cards = {
-        row["node_id"]: dict(row)
-        for row in connection.execute(
+
+    with connection.cursor() as cur:
+        cur.execute(
             """
             SELECT *
             FROM node_cards
-            WHERE dataset_id = ?
+            WHERE dataset_id = %s
             """,
             (dataset_id,),
-        ).fetchall()
+        )
+        card_rows = cur.fetchall()
+
+    existing_cards = {
+        row["node_id"]: dict(row)
+        for row in card_rows
     }
 
     stats = Counter(
@@ -614,7 +696,7 @@ def main() -> int:
     )
 
     node_map: dict[tuple[str, str], str] = {}
-    canonical_map_rows: list[tuple[str, str, str, str, str, str, float, str, str]] = []
+    canonical_map_rows: list[tuple[str, str, str, str, str, str, float, dict, str]] = []
 
     for staged in staging_nodes:
         staged["raw_node_ref"] = f"{staged['lesson_run_id']}:{staged['raw_node_id']}"
@@ -748,12 +830,10 @@ def main() -> int:
                 canonical_id,
                 resolution,
                 round(best_score, 4),
-                dump_json_text(
-                    {
-                        "semantic_key": staged_semantic_key,
-                        "matched_terms": sorted(staged_terms),
-                    }
-                ),
+                {
+                    "semantic_key": staged_semantic_key,
+                    "matched_terms": sorted(staged_terms),
+                },
                 now,
             )
         )
@@ -798,13 +878,28 @@ def main() -> int:
     canonical_profiles: dict[tuple[str, str], dict[str, Any]] = {}
     for key, row in existing_profiles.items():
         profile = dict(row)
-        profile["framework_refs"] = load_json_text(profile.pop("framework_refs_json"), [])
-        profile["textbook_refs"] = load_json_text(profile.pop("textbook_refs_json"), [])
-        profile["textbook_ids"] = load_json_text(profile.pop("textbook_ids_json"), [])
-        profile["learning_objectives"] = load_json_text(profile.pop("learning_objectives_json"), [])
-        profile["assessment_signals"] = load_json_text(profile.pop("assessment_signals_json"), [])
-        profile["source_refs"] = load_json_text(profile.pop("source_refs_json"), [])
-        profile["properties"] = load_json_text(profile.pop("properties_json"), {})
+        # JSONB columns are already native Python objects from psycopg3
+        profile["framework_refs"] = profile.pop("framework_refs_json", [])
+        if not isinstance(profile["framework_refs"], list):
+            profile["framework_refs"] = load_json_text(profile["framework_refs"], [])
+        profile["textbook_refs"] = profile.pop("textbook_refs_json", [])
+        if not isinstance(profile["textbook_refs"], list):
+            profile["textbook_refs"] = load_json_text(profile["textbook_refs"], [])
+        profile["textbook_ids"] = profile.pop("textbook_ids_json", [])
+        if not isinstance(profile["textbook_ids"], list):
+            profile["textbook_ids"] = load_json_text(profile["textbook_ids"], [])
+        profile["learning_objectives"] = profile.pop("learning_objectives_json", [])
+        if not isinstance(profile["learning_objectives"], list):
+            profile["learning_objectives"] = load_json_text(profile["learning_objectives"], [])
+        profile["assessment_signals"] = profile.pop("assessment_signals_json", [])
+        if not isinstance(profile["assessment_signals"], list):
+            profile["assessment_signals"] = load_json_text(profile["assessment_signals"], [])
+        profile["source_refs"] = profile.pop("source_refs_json", [])
+        if not isinstance(profile["source_refs"], list):
+            profile["source_refs"] = load_json_text(profile["source_refs"], [])
+        profile["properties"] = profile.pop("properties_json", {})
+        if not isinstance(profile["properties"], dict):
+            profile["properties"] = load_json_text(profile["properties"], {})
         canonical_profiles[key] = profile
 
     for profile in staging_profiles:
@@ -905,13 +1000,13 @@ def main() -> int:
             "card_layer": row["card_layer"],
             "title": row["title"],
             "summary": row["summary"],
-            "pattern_refs": load_json_text(row.get("pattern_refs_json"), []),
-            "framework_refs": load_json_text(row.get("framework_refs_json"), []),
-            "profile_refs": load_json_text(row.get("profile_refs_json"), []),
-            "mention_refs": load_json_text(row.get("mention_refs_json"), []),
-            "source_refs": load_json_text(row.get("source_refs_json"), []),
-            "sections": load_json_text(row.get("sections_json"), []),
-            "properties": load_json_text(row.get("properties_json"), {}),
+            "pattern_refs": row.get("pattern_refs_json") if isinstance(row.get("pattern_refs_json"), list) else load_json_text(row.get("pattern_refs_json"), []),
+            "framework_refs": row.get("framework_refs_json") if isinstance(row.get("framework_refs_json"), list) else load_json_text(row.get("framework_refs_json"), []),
+            "profile_refs": row.get("profile_refs_json") if isinstance(row.get("profile_refs_json"), list) else load_json_text(row.get("profile_refs_json"), []),
+            "mention_refs": row.get("mention_refs_json") if isinstance(row.get("mention_refs_json"), list) else load_json_text(row.get("mention_refs_json"), []),
+            "source_refs": row.get("source_refs_json") if isinstance(row.get("source_refs_json"), list) else load_json_text(row.get("source_refs_json"), []),
+            "sections": row.get("sections_json") if isinstance(row.get("sections_json"), list) else load_json_text(row.get("sections_json"), []),
+            "properties": row.get("properties_json") if isinstance(row.get("properties_json"), dict) else load_json_text(row.get("properties_json"), {}),
             "status": row["status"],
             "updated_at": row.get("updated_at") or now,
         }
@@ -1020,10 +1115,19 @@ def main() -> int:
     canonical_edges: dict[tuple[str, str, str], dict[str, Any]] = {}
     for key, row in existing_edges.items():
         edge = dict(row)
-        edge["framework_refs"] = load_json_text(edge.pop("framework_refs_json"), [])
-        edge["profile_refs"] = load_json_text(edge.pop("profile_refs_json"), [])
-        edge["source_refs"] = load_json_text(edge.pop("source_refs_json"), [])
-        edge["properties"] = load_json_text(edge.pop("properties_json"), {})
+        # JSONB columns are already native Python objects from psycopg3
+        edge["framework_refs"] = edge.pop("framework_refs_json", [])
+        if not isinstance(edge["framework_refs"], list):
+            edge["framework_refs"] = load_json_text(edge["framework_refs"], [])
+        edge["profile_refs"] = edge.pop("profile_refs_json", [])
+        if not isinstance(edge["profile_refs"], list):
+            edge["profile_refs"] = load_json_text(edge["profile_refs"], [])
+        edge["source_refs"] = edge.pop("source_refs_json", [])
+        if not isinstance(edge["source_refs"], list):
+            edge["source_refs"] = load_json_text(edge["source_refs"], [])
+        edge["properties"] = edge.pop("properties_json", {})
+        if not isinstance(edge["properties"], dict):
+            edge["properties"] = load_json_text(edge["properties"], {})
         canonical_edges[key] = edge
 
     for edge in staging_edges:
@@ -1103,310 +1207,354 @@ def main() -> int:
         return 0
 
     with connection:
-        connection.execute(
-            """
-            INSERT OR REPLACE INTO merge_runs (
-              dataset_id,
-              merge_run_id,
-              selection_json,
-              stats_json,
-              status,
-              created_at,
-              updated_at
-            ) VALUES (?, ?, ?, ?, 'in_progress', ?, ?)
-            """,
-            (
-                dataset_id,
-                merge_run_id,
-                dump_json_text(lesson_run_ids),
-                dump_json_text({}),
-                now,
-                now,
-            ),
-        )
-        connection.executemany(
-            """
-            UPDATE lesson_runs
-            SET status = 'merging', updated_at = ?
-            WHERE dataset_id = ? AND lesson_run_id = ?
-            """,
-            [(now, dataset_id, lesson_run_id) for lesson_run_id in lesson_run_ids],
-        )
+        with connection.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO merge_runs (
+                  dataset_id,
+                  merge_run_id,
+                  selection_json,
+                  stats_json,
+                  status,
+                  created_at,
+                  updated_at
+                ) VALUES (%s, %s, %s, %s, 'in_progress', %s, %s)
+                ON CONFLICT (dataset_id, merge_run_id) DO UPDATE SET
+                  selection_json = EXCLUDED.selection_json,
+                  stats_json = EXCLUDED.stats_json,
+                  status = EXCLUDED.status,
+                  updated_at = EXCLUDED.updated_at
+                """,
+                (
+                    dataset_id,
+                    merge_run_id,
+                    lesson_run_ids,
+                    {},
+                    now,
+                    now,
+                ),
+            )
+
+        with connection.cursor() as cur:
+            for lesson_run_id in lesson_run_ids:
+                cur.execute(
+                    """
+                    UPDATE lesson_runs
+                    SET status = 'merging', updated_at = %s
+                    WHERE dataset_id = %s AND lesson_run_id = %s
+                    """,
+                    (now, dataset_id, lesson_run_id),
+                )
 
         ensure_source_artifacts(connection, dataset_id, list(canonical_evidence_rows.values()))
 
-        connection.executemany(
-            """
-            INSERT OR REPLACE INTO evidence (
-              dataset_id, id, source_type, source_id, anchor_ref, source_path, page_start,
-              page_end, excerpt, locator, modality, extraction_method, normalized_claims_json,
-              properties_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            [
-                (
-                    row["dataset_id"],
-                    row["id"],
-                    row["source_type"],
-                    row["source_id"],
-                    row["anchor_ref"],
-                    row.get("source_path"),
-                    row.get("page_start"),
-                    row.get("page_end"),
-                    row["excerpt"],
-                    row["locator"],
-                    row.get("modality"),
-                    row["extraction_method"],
-                    dump_json_text(row.get("normalized_claims", [])),
-                    dump_json_text(row.get("properties", {})),
-                )
-                for row in canonical_evidence_rows.values()
-            ],
-        )
+        with connection.cursor() as cur:
+            psycopg.extras.execute_values(
+                cur,
+                """
+                INSERT INTO evidence (
+                  dataset_id, id, source_type, source_id, anchor_ref, source_path, page_start,
+                  page_end, excerpt, locator, modality, extraction_method, normalized_claims_json,
+                  properties_json
+                ) VALUES %s
+                ON CONFLICT (dataset_id, id) DO UPDATE SET
+                  source_type = EXCLUDED.source_type,
+                  source_id = EXCLUDED.source_id,
+                  anchor_ref = EXCLUDED.anchor_ref,
+                  source_path = EXCLUDED.source_path,
+                  page_start = EXCLUDED.page_start,
+                  page_end = EXCLUDED.page_end,
+                  excerpt = EXCLUDED.excerpt,
+                  locator = EXCLUDED.locator,
+                  modality = EXCLUDED.modality,
+                  extraction_method = EXCLUDED.extraction_method,
+                  normalized_claims_json = EXCLUDED.normalized_claims_json,
+                  properties_json = EXCLUDED.properties_json
+                """,
+                [
+                    (
+                        row["dataset_id"],
+                        row["id"],
+                        row["source_type"],
+                        row["source_id"],
+                        row["anchor_ref"],
+                        row.get("source_path"),
+                        row.get("page_start"),
+                        row.get("page_end"),
+                        row["excerpt"],
+                        row["locator"],
+                        row.get("modality"),
+                        row["extraction_method"],
+                        row.get("normalized_claims", []),
+                        row.get("properties", {}),
+                    )
+                    for row in canonical_evidence_rows.values()
+                ],
+            )
 
-        connection.executemany(
-            """
-            INSERT INTO nodes (
-              dataset_id, id, canonical_name, node_kind, node_layer, node_subkind,
-              definition, aliases_json, learning_modes_json, bridge_tags_json,
-              framework_refs_json, profile_refs_json, card_ref, same_as_refs_json,
-              properties_json, embedding_json, status, deprecated_by, created_at, updated_at, notes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(dataset_id, id) DO UPDATE SET
-              canonical_name=excluded.canonical_name,
-              node_kind=excluded.node_kind,
-              node_layer=excluded.node_layer,
-              node_subkind=excluded.node_subkind,
-              definition=excluded.definition,
-              aliases_json=excluded.aliases_json,
-              learning_modes_json=excluded.learning_modes_json,
-              bridge_tags_json=excluded.bridge_tags_json,
-              framework_refs_json=excluded.framework_refs_json,
-              profile_refs_json=excluded.profile_refs_json,
-              card_ref=excluded.card_ref,
-              same_as_refs_json=excluded.same_as_refs_json,
-              properties_json=excluded.properties_json,
-              embedding_json=excluded.embedding_json,
-              status=excluded.status,
-              deprecated_by=excluded.deprecated_by,
-              updated_at=excluded.updated_at,
-              notes=excluded.notes
-            """,
-            [
-                (
-                    dataset_id,
-                    node_id,
-                    canonical.payload["canonical_name"],
-                    canonical.payload["node_kind"],
-                    canonical.payload["node_layer"],
-                    canonical.payload.get("node_subkind"),
-                    canonical.payload.get("definition", ""),
-                    dump_json_text(canonical.payload.get("aliases", [])),
-                    dump_json_text(canonical.payload.get("learning_modes", [])),
-                    dump_json_text(canonical.payload.get("bridge_tags", [])),
-                    dump_json_text(canonical.payload.get("framework_refs", [])),
-                    dump_json_text(canonical.payload.get("profile_refs", [])),
-                    canonical.payload.get("card_ref"),
-                    dump_json_text(canonical.payload.get("same_as_refs", [])),
-                    dump_json_text(canonical.payload.get("properties", {})),
-                    dump_json_text(canonical.embedding),
-                    canonical.payload.get("status", "active"),
-                    canonical.payload.get("deprecated_by"),
-                    canonical.payload.get("created_at") or now,
-                    now,
-                    canonical.payload.get("notes", ""),
-                )
-                for node_id, canonical in existing_nodes.items()
-            ],
-        )
+        with connection.cursor() as cur:
+            psycopg.extras.execute_values(
+                cur,
+                """
+                INSERT INTO nodes (
+                  dataset_id, id, canonical_name, node_kind, node_layer, node_subkind,
+                  definition, aliases_json, learning_modes_json, bridge_tags_json,
+                  framework_refs_json, profile_refs_json, card_ref, same_as_refs_json,
+                  properties_json, embedding_json, status, deprecated_by, created_at, updated_at, notes
+                ) VALUES %s
+                ON CONFLICT(dataset_id, id) DO UPDATE SET
+                  canonical_name=excluded.canonical_name,
+                  node_kind=excluded.node_kind,
+                  node_layer=excluded.node_layer,
+                  node_subkind=excluded.node_subkind,
+                  definition=excluded.definition,
+                  aliases_json=excluded.aliases_json,
+                  learning_modes_json=excluded.learning_modes_json,
+                  bridge_tags_json=excluded.bridge_tags_json,
+                  framework_refs_json=excluded.framework_refs_json,
+                  profile_refs_json=excluded.profile_refs_json,
+                  card_ref=excluded.card_ref,
+                  same_as_refs_json=excluded.same_as_refs_json,
+                  properties_json=excluded.properties_json,
+                  embedding_json=excluded.embedding_json,
+                  status=excluded.status,
+                  deprecated_by=excluded.deprecated_by,
+                  updated_at=excluded.updated_at,
+                  notes=excluded.notes
+                """,
+                [
+                    (
+                        dataset_id,
+                        node_id,
+                        canonical.payload["canonical_name"],
+                        canonical.payload["node_kind"],
+                        canonical.payload["node_layer"],
+                        canonical.payload.get("node_subkind"),
+                        canonical.payload.get("definition", ""),
+                        canonical.payload.get("aliases", []),
+                        canonical.payload.get("learning_modes", []),
+                        canonical.payload.get("bridge_tags", []),
+                        canonical.payload.get("framework_refs", []),
+                        canonical.payload.get("profile_refs", []),
+                        canonical.payload.get("card_ref"),
+                        canonical.payload.get("same_as_refs", []),
+                        canonical.payload.get("properties", {}),
+                        canonical.embedding,
+                        canonical.payload.get("status", "active"),
+                        canonical.payload.get("deprecated_by"),
+                        canonical.payload.get("created_at") or now,
+                        now,
+                        canonical.payload.get("notes", ""),
+                    )
+                    for node_id, canonical in existing_nodes.items()
+                ],
+            )
 
-        connection.executemany(
-            """
-            INSERT INTO profiles (
-              dataset_id, id, node_id, subject, school_stage, grade_band, context_key,
-              curriculum_role, mastery_level, framework_refs_json, textbook_refs_json,
-              textbook_ids_json, learning_objectives_json, assessment_signals_json,
-              source_refs_json, properties_json, status, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(dataset_id, id) DO UPDATE SET
-              node_id=excluded.node_id,
-              subject=excluded.subject,
-              school_stage=excluded.school_stage,
-              grade_band=excluded.grade_band,
-              context_key=excluded.context_key,
-              curriculum_role=excluded.curriculum_role,
-              mastery_level=excluded.mastery_level,
-              framework_refs_json=excluded.framework_refs_json,
-              textbook_refs_json=excluded.textbook_refs_json,
-              textbook_ids_json=excluded.textbook_ids_json,
-              learning_objectives_json=excluded.learning_objectives_json,
-              assessment_signals_json=excluded.assessment_signals_json,
-              source_refs_json=excluded.source_refs_json,
-              properties_json=excluded.properties_json,
-              status=excluded.status,
-              updated_at=excluded.updated_at
-            """,
-            [
-                (
-                    dataset_id,
-                    profile["id"],
-                    profile["node_id"],
-                    profile["subject"],
-                    profile["school_stage"],
-                    profile["grade_band"],
-                    profile["context_key"],
-                    profile["curriculum_role"],
-                    profile["mastery_level"],
-                    dump_json_text(profile.get("framework_refs", [])),
-                    dump_json_text(profile.get("textbook_refs", [])),
-                    dump_json_text(profile.get("textbook_ids", [])),
-                    dump_json_text(profile.get("learning_objectives", [])),
-                    dump_json_text(profile.get("assessment_signals", [])),
-                    dump_json_text(profile.get("source_refs", [])),
-                    dump_json_text(profile.get("properties", {})),
-                    normalize_review_status(profile.get("status"), default="draft"),
-                    now,
-                )
-                for profile in canonical_profiles.values()
-            ],
-        )
+        with connection.cursor() as cur:
+            psycopg.extras.execute_values(
+                cur,
+                """
+                INSERT INTO profiles (
+                  dataset_id, id, node_id, subject, school_stage, grade_band, context_key,
+                  curriculum_role, mastery_level, framework_refs_json, textbook_refs_json,
+                  textbook_ids_json, learning_objectives_json, assessment_signals_json,
+                  source_refs_json, properties_json, status, updated_at
+                ) VALUES %s
+                ON CONFLICT(dataset_id, id) DO UPDATE SET
+                  node_id=excluded.node_id,
+                  subject=excluded.subject,
+                  school_stage=excluded.school_stage,
+                  grade_band=excluded.grade_band,
+                  context_key=excluded.context_key,
+                  curriculum_role=excluded.curriculum_role,
+                  mastery_level=excluded.mastery_level,
+                  framework_refs_json=excluded.framework_refs_json,
+                  textbook_refs_json=excluded.textbook_refs_json,
+                  textbook_ids_json=excluded.textbook_ids_json,
+                  learning_objectives_json=excluded.learning_objectives_json,
+                  assessment_signals_json=excluded.assessment_signals_json,
+                  source_refs_json=excluded.source_refs_json,
+                  properties_json=excluded.properties_json,
+                  status=excluded.status,
+                  updated_at=excluded.updated_at
+                """,
+                [
+                    (
+                        dataset_id,
+                        profile["id"],
+                        profile["node_id"],
+                        profile["subject"],
+                        profile["school_stage"],
+                        profile["grade_band"],
+                        profile["context_key"],
+                        profile["curriculum_role"],
+                        profile["mastery_level"],
+                        profile.get("framework_refs", []),
+                        profile.get("textbook_refs", []),
+                        profile.get("textbook_ids", []),
+                        profile.get("learning_objectives", []),
+                        profile.get("assessment_signals", []),
+                        profile.get("source_refs", []),
+                        profile.get("properties", {}),
+                        normalize_review_status(profile.get("status"), default="draft"),
+                        now,
+                    )
+                    for profile in canonical_profiles.values()
+                ],
+            )
 
-        connection.executemany(
-            """
-            INSERT INTO mentions (
-              dataset_id, id, source_type, source_id, anchor_ref, target_type, target_id,
-              role, source_refs_json, confidence, properties_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(dataset_id, id) DO UPDATE SET
-              source_type=excluded.source_type,
-              source_id=excluded.source_id,
-              anchor_ref=excluded.anchor_ref,
-              target_type=excluded.target_type,
-              target_id=excluded.target_id,
-              role=excluded.role,
-              source_refs_json=excluded.source_refs_json,
-              confidence=excluded.confidence,
-              properties_json=excluded.properties_json
-            """,
-            [
-                (
-                    dataset_id,
-                    mention["id"],
-                    mention["source_type"],
-                    mention["source_id"],
-                    mention["anchor_ref"],
-                    mention["target_type"],
-                    mention["target_id"],
-                    mention["role"],
-                    dump_json_text(mention.get("source_refs", [])),
-                    mention["confidence"],
-                    dump_json_text(mention.get("properties", {})),
-                )
-                for mention in canonical_mentions.values()
-            ],
-        )
+        with connection.cursor() as cur:
+            psycopg.extras.execute_values(
+                cur,
+                """
+                INSERT INTO mentions (
+                  dataset_id, id, source_type, source_id, anchor_ref, target_type, target_id,
+                  role, source_refs_json, confidence, properties_json
+                ) VALUES %s
+                ON CONFLICT(dataset_id, id) DO UPDATE SET
+                  source_type=excluded.source_type,
+                  source_id=excluded.source_id,
+                  anchor_ref=excluded.anchor_ref,
+                  target_type=excluded.target_type,
+                  target_id=excluded.target_id,
+                  role=excluded.role,
+                  source_refs_json=excluded.source_refs_json,
+                  confidence=excluded.confidence,
+                  properties_json=excluded.properties_json
+                """,
+                [
+                    (
+                        dataset_id,
+                        mention["id"],
+                        mention["source_type"],
+                        mention["source_id"],
+                        mention["anchor_ref"],
+                        mention["target_type"],
+                        mention["target_id"],
+                        mention["role"],
+                        mention.get("source_refs", []),
+                        mention["confidence"],
+                        mention.get("properties", {}),
+                    )
+                    for mention in canonical_mentions.values()
+                ],
+            )
 
-        connection.executemany(
-            """
-            INSERT INTO edges (
-              dataset_id, id, edge_type, edge_layer, backbone_expand, from_id, to_id,
-              directionality, confidence, framework_refs_json, profile_refs_json,
-              source_refs_json, properties_json, status, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(dataset_id, id) DO UPDATE SET
-              edge_type=excluded.edge_type,
-              edge_layer=excluded.edge_layer,
-              backbone_expand=excluded.backbone_expand,
-              from_id=excluded.from_id,
-              to_id=excluded.to_id,
-              directionality=excluded.directionality,
-              confidence=excluded.confidence,
-              framework_refs_json=excluded.framework_refs_json,
-              profile_refs_json=excluded.profile_refs_json,
-              source_refs_json=excluded.source_refs_json,
-              properties_json=excluded.properties_json,
-              status=excluded.status,
-              updated_at=excluded.updated_at
-            """,
-            [
-                (
-                    dataset_id,
-                    edge["id"],
-                    edge["edge_type"],
-                    edge["edge_layer"],
-                    edge["backbone_expand"],
-                    edge["from_id"],
-                    edge["to_id"],
-                    edge["directionality"],
-                    edge["confidence"],
-                    dump_json_text(edge.get("framework_refs", [])),
-                    dump_json_text(edge.get("profile_refs", [])),
-                    dump_json_text(edge.get("source_refs", [])),
-                    dump_json_text(edge.get("properties", {})),
-                    edge.get("status", "active"),
-                    edge.get("created_at") or now,
-                    now,
-                )
-                for edge in canonical_edges.values()
-            ],
-        )
+        with connection.cursor() as cur:
+            psycopg.extras.execute_values(
+                cur,
+                """
+                INSERT INTO edges (
+                  dataset_id, id, edge_type, edge_layer, backbone_expand, from_id, to_id,
+                  directionality, confidence, framework_refs_json, profile_refs_json,
+                  source_refs_json, properties_json, status, created_at, updated_at
+                ) VALUES %s
+                ON CONFLICT(dataset_id, id) DO UPDATE SET
+                  edge_type=excluded.edge_type,
+                  edge_layer=excluded.edge_layer,
+                  backbone_expand=excluded.backbone_expand,
+                  from_id=excluded.from_id,
+                  to_id=excluded.to_id,
+                  directionality=excluded.directionality,
+                  confidence=excluded.confidence,
+                  framework_refs_json=excluded.framework_refs_json,
+                  profile_refs_json=excluded.profile_refs_json,
+                  source_refs_json=excluded.source_refs_json,
+                  properties_json=excluded.properties_json,
+                  status=excluded.status,
+                  updated_at=excluded.updated_at
+                """,
+                [
+                    (
+                        dataset_id,
+                        edge["id"],
+                        edge["edge_type"],
+                        edge["edge_layer"],
+                        edge["backbone_expand"],
+                        edge["from_id"],
+                        edge["to_id"],
+                        edge["directionality"],
+                        edge["confidence"],
+                        edge.get("framework_refs", []),
+                        edge.get("profile_refs", []),
+                        edge.get("source_refs", []),
+                        edge.get("properties", {}),
+                        edge.get("status", "active"),
+                        edge.get("created_at") or now,
+                        now,
+                    )
+                    for edge in canonical_edges.values()
+                ],
+            )
 
-        connection.executemany(
-            """
-            INSERT INTO node_cards (
-              dataset_id, node_id, id, card_layer, title, summary, pattern_refs_json,
-              framework_refs_json, profile_refs_json, mention_refs_json, source_refs_json,
-              sections_json, properties_json, status, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(dataset_id, node_id) DO UPDATE SET
-              card_layer=excluded.card_layer,
-              title=excluded.title,
-              summary=excluded.summary,
-              pattern_refs_json=excluded.pattern_refs_json,
-              framework_refs_json=excluded.framework_refs_json,
-              profile_refs_json=excluded.profile_refs_json,
-              mention_refs_json=excluded.mention_refs_json,
-              source_refs_json=excluded.source_refs_json,
-              sections_json=excluded.sections_json,
-              properties_json=excluded.properties_json,
-              status=excluded.status,
-              updated_at=excluded.updated_at
-            """,
-            [
-                (
-                    dataset_id,
-                    node_id,
-                    card["id"],
-                    card["card_layer"],
-                    card["title"],
-                    card["summary"],
-                    dump_json_text(card.get("pattern_refs", [])),
-                    dump_json_text(card.get("framework_refs", [])),
-                    dump_json_text(card.get("profile_refs", [])),
-                    dump_json_text(card.get("mention_refs", [])),
-                    dump_json_text(card.get("source_refs", [])),
-                    dump_json_text(card.get("sections", [])),
-                    dump_json_text(card.get("properties", {})),
-                    normalize_review_status(card.get("status"), default="draft"),
-                    now,
-                )
-                for node_id, card in canonical_cards.items()
-            ],
-        )
+        with connection.cursor() as cur:
+            psycopg.extras.execute_values(
+                cur,
+                """
+                INSERT INTO node_cards (
+                  dataset_id, node_id, id, card_layer, title, summary, pattern_refs_json,
+                  framework_refs_json, profile_refs_json, mention_refs_json, source_refs_json,
+                  sections_json, properties_json, status, updated_at
+                ) VALUES %s
+                ON CONFLICT(dataset_id, node_id) DO UPDATE SET
+                  card_layer=excluded.card_layer,
+                  title=excluded.title,
+                  summary=excluded.summary,
+                  pattern_refs_json=excluded.pattern_refs_json,
+                  framework_refs_json=excluded.framework_refs_json,
+                  profile_refs_json=excluded.profile_refs_json,
+                  mention_refs_json=excluded.mention_refs_json,
+                  source_refs_json=excluded.source_refs_json,
+                  sections_json=excluded.sections_json,
+                  properties_json=excluded.properties_json,
+                  status=excluded.status,
+                  updated_at=excluded.updated_at
+                """,
+                [
+                    (
+                        dataset_id,
+                        node_id,
+                        card["id"],
+                        card["card_layer"],
+                        card["title"],
+                        card["summary"],
+                        card.get("pattern_refs", []),
+                        card.get("framework_refs", []),
+                        card.get("profile_refs", []),
+                        card.get("mention_refs", []),
+                        card.get("source_refs", []),
+                        card.get("sections", []),
+                        card.get("properties", {}),
+                        normalize_review_status(card.get("status"), default="draft"),
+                        now,
+                    )
+                    for node_id, card in canonical_cards.items()
+                ],
+            )
 
-        connection.execute(
-            "DELETE FROM canonical_node_map WHERE dataset_id = ? AND merge_run_id = ?",
-            (dataset_id, merge_run_id),
-        )
-        connection.executemany(
-            """
-            INSERT OR REPLACE INTO canonical_node_map (
-              dataset_id, merge_run_id, lesson_run_id, raw_node_id, canonical_node_id,
-              resolution, similarity, rationale_json, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            canonical_map_rows,
-        )
+        with connection.cursor() as cur:
+            cur.execute(
+                "DELETE FROM canonical_node_map WHERE dataset_id = %s AND merge_run_id = %s",
+                (dataset_id, merge_run_id),
+            )
+
+        with connection.cursor() as cur:
+            psycopg.extras.execute_values(
+                cur,
+                """
+                INSERT INTO canonical_node_map (
+                  dataset_id, merge_run_id, lesson_run_id, raw_node_id, canonical_node_id,
+                  resolution, similarity, rationale_json, created_at
+                ) VALUES %s
+                ON CONFLICT (dataset_id, merge_run_id, lesson_run_id, raw_node_id) DO UPDATE SET
+                  canonical_node_id = EXCLUDED.canonical_node_id,
+                  resolution = EXCLUDED.resolution,
+                  similarity = EXCLUDED.similarity,
+                  rationale_json = EXCLUDED.rationale_json,
+                  created_at = EXCLUDED.created_at
+                """,
+                canonical_map_rows,
+            )
 
         for edge in canonical_edges.values():
             upsert_evidence_links(connection, dataset_id, "edge", edge["id"], edge.get("source_refs", []))
@@ -1428,22 +1576,28 @@ def main() -> int:
 
         rebuild_node_terms(connection, dataset_id)
 
-        connection.execute(
-            """
-            UPDATE merge_runs
-            SET stats_json = ?, status = 'completed', updated_at = ?
-            WHERE dataset_id = ? AND merge_run_id = ?
-            """,
-            (dump_json_text(dict(stats)), now, dataset_id, merge_run_id),
-        )
-        connection.executemany(
-            """
-            UPDATE lesson_runs
-            SET status = 'merged', updated_at = ?
-            WHERE dataset_id = ? AND lesson_run_id = ?
-            """,
-            [(now, dataset_id, lesson_run_id) for lesson_run_id in lesson_run_ids],
-        )
+        with connection.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE merge_runs
+                SET stats_json = %s, status = 'completed', updated_at = %s
+                WHERE dataset_id = %s AND merge_run_id = %s
+                """,
+                (dict(stats), now, dataset_id, merge_run_id),
+            )
+
+        with connection.cursor() as cur:
+            for lesson_run_id in lesson_run_ids:
+                cur.execute(
+                    """
+                    UPDATE lesson_runs
+                    SET status = 'merged', updated_at = %s
+                    WHERE dataset_id = %s AND lesson_run_id = %s
+                    """,
+                    (now, dataset_id, lesson_run_id),
+                )
+
+    connection.commit()
 
     print(
         dump_json_text(

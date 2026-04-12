@@ -1,20 +1,24 @@
-import type Database from 'better-sqlite3';
+import type { Sql } from './connection.js';
 import type {
   ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard,
 } from '@okm/types';
 
 // ── Helpers ───────────────────────────────────────────────
 
-function parseJsonFields(
+/**
+ * For JSONB columns named `key_json`, expose as `key` (without _json suffix).
+ * postgres.js returns JSONB columns as native JS objects already,
+ * so no JSON.parse() needed — just rename.
+ */
+function stripJsonSuffix(
   row: Record<string, unknown>,
   fields: string[],
 ): Record<string, unknown> {
   const result = { ...row };
   for (const key of fields) {
     const jsonKey = `${key}_json`;
-    if (jsonKey in result && result[jsonKey] != null) {
-      const raw = result[jsonKey];
-      result[key] = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (jsonKey in result) {
+      result[key] = result[jsonKey];
       delete result[jsonKey];
     }
   }
@@ -30,44 +34,48 @@ interface DatasetRow {
   is_active: number;
 }
 
-export function resolveDatasetRow(
-  db: Database.Database,
+export async function resolveDatasetRow(
+  sql: Sql,
   key: string,
-): DatasetRow | undefined {
-  return db.prepare(`
+): Promise<DatasetRow | undefined> {
+  const rows = await sql<DatasetRow[]>`
     SELECT dataset_id, version_key, root_path, is_active
     FROM datasets
-    WHERE dataset_id = ? OR version_key = ?
+    WHERE dataset_id = ${key} OR version_key = ${key}
     ORDER BY is_active DESC, dataset_id ASC
     LIMIT 1
-  `).get(key, key) as DatasetRow | undefined;
+  `;
+  return rows[0];
 }
 
 // ── Nodes ─────────────────────────────────────────────────
 
-export function loadNodes(db: Database.Database, datasetId: string): ApiNode[] {
-  const rows = db.prepare(`
-    SELECT * FROM nodes WHERE dataset_id = ? ORDER BY id
-  `).all(datasetId) as Record<string, unknown>[];
+export async function loadNodes(sql: Sql, datasetId: string): Promise<ApiNode[]> {
+  const rows = await sql`
+    SELECT * FROM nodes WHERE dataset_id = ${datasetId} ORDER BY id
+  `;
 
-  return rows.map((row) => {
-    const parsed = parseJsonFields(row, [
+  return rows.map((row: Record<string, unknown>) => {
+    const parsed = stripJsonSuffix(row, [
       'aliases', 'learning_modes', 'bridge_tags', 'framework_refs',
+      'profile_refs', 'same_as_refs', 'properties',
     ]);
-    delete parsed.embedding_json;
+    delete parsed.embedding;
     return parsed as unknown as ApiNode;
   });
 }
 
 // ── Edges ─────────────────────────────────────────────────
 
-export function loadEdges(db: Database.Database, datasetId: string): ApiEdge[] {
-  const rows = db.prepare(`
-    SELECT * FROM edges WHERE dataset_id = ? ORDER BY id
-  `).all(datasetId) as Record<string, unknown>[];
+export async function loadEdges(sql: Sql, datasetId: string): Promise<ApiEdge[]> {
+  const rows = await sql`
+    SELECT * FROM edges WHERE dataset_id = ${datasetId} ORDER BY id
+  `;
 
-  return rows.map((row) => {
-    const parsed = parseJsonFields(row, ['source_refs', 'properties']);
+  return rows.map((row: Record<string, unknown>) => {
+    const parsed = stripJsonSuffix(row, [
+      'framework_refs', 'profile_refs', 'source_refs', 'properties',
+    ]);
     // Map DB column names to API field names
     if ('from_id' in parsed) {
       parsed.from = parsed.from_id;
@@ -81,80 +89,75 @@ export function loadEdges(db: Database.Database, datasetId: string): ApiEdge[] {
 
 // ── Profiles ──────────────────────────────────────────────
 
-export function loadProfiles(db: Database.Database, datasetId: string): ApiProfile[] {
-  const rows = db.prepare(`
-    SELECT * FROM profiles WHERE dataset_id = ? ORDER BY id
-  `).all(datasetId) as Record<string, unknown>[];
+export async function loadProfiles(sql: Sql, datasetId: string): Promise<ApiProfile[]> {
+  const rows = await sql`
+    SELECT * FROM profiles WHERE dataset_id = ${datasetId} ORDER BY id
+  `;
 
-  return rows.map((row) => {
-    const parsed = parseJsonFields(row, [
+  return rows.map((row: Record<string, unknown>) => {
+    return stripJsonSuffix(row, [
       'learning_objectives', 'framework_refs', 'textbook_refs',
       'textbook_ids', 'assessment_signals', 'source_refs', 'properties',
-    ]);
-    return parsed as unknown as ApiProfile;
+    ]) as unknown as ApiProfile;
   });
 }
 
 // ── Mentions ──────────────────────────────────────────────
 
-export function loadMentions(db: Database.Database, datasetId: string): ApiMention[] {
-  const rows = db.prepare(`
-    SELECT * FROM mentions WHERE dataset_id = ?
-  `).all(datasetId) as Record<string, unknown>[];
+export async function loadMentions(sql: Sql, datasetId: string): Promise<ApiMention[]> {
+  const rows = await sql`
+    SELECT * FROM mentions WHERE dataset_id = ${datasetId}
+  `;
 
-  return rows.map((row) => {
-    const parsed = parseJsonFields(row, ['source_refs', 'confidence_map', 'properties']);
-    return parsed as unknown as ApiMention;
+  return rows.map((row: Record<string, unknown>) => {
+    return stripJsonSuffix(row, ['source_refs', 'confidence_map', 'properties']) as unknown as ApiMention;
   });
 }
 
 // ── Evidence ──────────────────────────────────────────────
 
-export function loadEvidence(db: Database.Database, datasetId: string): ApiEvidence[] {
-  const rows = db.prepare(`
-    SELECT * FROM evidence WHERE dataset_id = ?
-  `).all(datasetId) as Record<string, unknown>[];
+export async function loadEvidence(sql: Sql, datasetId: string): Promise<ApiEvidence[]> {
+  const rows = await sql`
+    SELECT * FROM evidence WHERE dataset_id = ${datasetId}
+  `;
 
-  return rows.map((row) => {
-    const parsed = parseJsonFields(row, ['normalized_claims', 'properties']);
-    return parsed as unknown as ApiEvidence;
+  return rows.map((row: Record<string, unknown>) => {
+    return stripJsonSuffix(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence;
   });
 }
 
 // ── Node Card ─────────────────────────────────────────────
 
-export function loadNodeCard(
-  db: Database.Database,
+export async function loadNodeCard(
+  sql: Sql,
   datasetId: string,
   nodeId: string,
-): ApiNodeCard | null {
-  const row = db.prepare(`
+): Promise<ApiNodeCard | null> {
+  const rows = await sql`
     SELECT * FROM node_cards
-    WHERE dataset_id = ? AND node_id = ?
+    WHERE dataset_id = ${datasetId} AND node_id = ${nodeId}
     LIMIT 1
-  `).get(datasetId, nodeId) as Record<string, unknown> | undefined;
+  `;
 
-  if (!row) return null;
+  if (!rows.length) return null;
 
-  const parsed = parseJsonFields(row, [
+  return stripJsonSuffix(rows[0] as Record<string, unknown>, [
     'sections', 'pattern_refs', 'framework_refs', 'profile_refs',
     'mention_refs', 'source_refs', 'properties',
-  ]);
-
-  return parsed as unknown as ApiNodeCard;
+  ]) as unknown as ApiNodeCard;
 }
 
 // ── Book IDs ──────────────────────────────────────────────
 
-export function loadBookIds(db: Database.Database, datasetId: string): string[] {
-  const rows = db.prepare(`
+export async function loadBookIds(sql: Sql, datasetId: string): Promise<string[]> {
+  const rows = await sql<{ source_id: string }[]>`
     SELECT DISTINCT source_id FROM evidence
-    WHERE dataset_id = ? AND source_type = 'textbook'
+    WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
     UNION
     SELECT DISTINCT source_id FROM mentions
-    WHERE dataset_id = ? AND source_type = 'textbook'
+    WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
     ORDER BY source_id
-  `).all(datasetId, datasetId) as { source_id: string }[];
+  `;
 
   return rows.map((r) => r.source_id);
 }
@@ -175,34 +178,36 @@ export interface SourcesPayload {
   }>;
 }
 
-export function buildSourcesPayload(db: Database.Database): SourcesPayload {
-  const datasets = db.prepare(`
+export async function buildSourcesPayload(sql: Sql): Promise<SourcesPayload> {
+  const datasets = await sql<DatasetRow[]>`
     SELECT dataset_id, version_key, root_path, is_active
     FROM datasets
     ORDER BY is_active DESC, dataset_id ASC
-  `).all() as DatasetRow[];
+  `;
 
   let activeSource: string | null = null;
-  const sources = datasets.map((row) => {
-    const bookIds = loadBookIds(db, row.dataset_id);
-    const profileCount = (
-      db.prepare('SELECT COUNT(*) AS count FROM profiles WHERE dataset_id = ?')
-        .get(row.dataset_id) as { count: number }
-    ).count;
+  const sources = await Promise.all(
+    datasets.map(async (row) => {
+      const bookIds = await loadBookIds(sql, row.dataset_id);
+      const profileRows = await sql<{ count: number }[]>`
+        SELECT COUNT(*) AS count FROM profiles WHERE dataset_id = ${row.dataset_id}
+      `;
+      const profileCount = profileRows[0].count;
 
-    if (row.is_active) activeSource = row.dataset_id;
+      if (row.is_active) activeSource = row.dataset_id;
 
-    return {
-      key: row.dataset_id,
-      label: row.version_key.toUpperCase(),
-      description: `SQLite dataset ${row.dataset_id}`,
-      has_profiles: profileCount > 0,
-      book_count: bookIds.length,
-      books: bookIds.map((bookId) => ({ book_id: bookId })),
-      is_active: Boolean(row.is_active),
-      root_path: row.root_path,
-    };
-  });
+      return {
+        key: row.dataset_id,
+        label: row.version_key.toUpperCase(),
+        description: `PostgreSQL dataset ${row.dataset_id}`,
+        has_profiles: profileCount > 0,
+        book_count: bookIds.length,
+        books: bookIds.map((bookId) => ({ book_id: bookId })),
+        is_active: Boolean(row.is_active),
+        root_path: row.root_path,
+      };
+    }),
+  );
 
   return {
     active_source: activeSource || (sources[0]?.key ?? null),
@@ -234,23 +239,23 @@ export interface BundlePayload {
   loadWarnings: string[];
 }
 
-export function buildBundlePayload(
-  db: Database.Database,
+export async function buildBundlePayload(
+  sql: Sql,
   datasetId: string,
   framework: Record<string, unknown> | null,
   patterns: Record<string, unknown> | null,
   outlineLoader: (bookId: string) => Record<string, unknown> | null,
-): BundlePayload {
-  const datasetRow = resolveDatasetRow(db, datasetId);
+): Promise<BundlePayload> {
+  const datasetRow = await resolveDatasetRow(sql, datasetId);
   if (!datasetRow) throw new Error(`Unknown dataset: ${datasetId}`);
 
-  const profileCount = (
-    db.prepare('SELECT COUNT(*) AS count FROM profiles WHERE dataset_id = ?')
-      .get(datasetRow.dataset_id) as { count: number }
-  ).count;
+  const profileRows = await sql<{ count: number }[]>`
+    SELECT COUNT(*) AS count FROM profiles WHERE dataset_id = ${datasetRow.dataset_id}
+  `;
+  const profileCount = profileRows[0].count;
 
-  const allMentions = loadMentions(db, datasetRow.dataset_id);
-  const allEvidence = loadEvidence(db, datasetRow.dataset_id);
+  const allMentions = await loadMentions(sql, datasetRow.dataset_id);
+  const allEvidence = await loadEvidence(sql, datasetRow.dataset_id);
 
   const textbookMentions = allMentions.filter((m) => m.source_type === 'textbook');
   const textbookEvidence = allEvidence.filter((e) => e.source_type === 'textbook');
@@ -271,15 +276,15 @@ export function buildBundlePayload(
     source: {
       key: datasetRow.dataset_id,
       label: datasetRow.version_key.toUpperCase(),
-      description: `SQLite dataset ${datasetRow.dataset_id}`,
+      description: `PostgreSQL dataset ${datasetRow.dataset_id}`,
       hasProfiles: profileCount > 0,
       isActive: Boolean(datasetRow.is_active),
       rootPath: datasetRow.root_path,
       nodeCardPath: `/api/source/${datasetRow.dataset_id}/node-card`,
     },
-    nodes: loadNodes(db, datasetRow.dataset_id),
-    edges: loadEdges(db, datasetRow.dataset_id),
-    profiles: loadProfiles(db, datasetRow.dataset_id),
+    nodes: await loadNodes(sql, datasetRow.dataset_id),
+    edges: await loadEdges(sql, datasetRow.dataset_id),
+    profiles: await loadProfiles(sql, datasetRow.dataset_id),
     framework: framework ?? { domains: [] },
     patterns: patterns ?? { patterns: [] },
     books,

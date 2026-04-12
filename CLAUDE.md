@@ -20,7 +20,7 @@ Knowledge Map Extraction project that transforms chemistry textbook content into
 4. 为每个 backbone 节点生成 provisional node_card
 5. 使用 scripts/store_lesson_staging.py 一次性写入完整 staging bundle（自动生成 embedding）
 6. 使用 scripts/merge_staged_lessons.py 合并到 canonical 表
-7. 运行 scripts/normalize_sqlite.py 归一化
+7. 运行 scripts/normalize.py 归一化
 ```
 
 ### Process Entire Book
@@ -38,7 +38,7 @@ Knowledge Map Extraction project that transforms chemistry textbook content into
 ### Key Principles
 
 1. **One lesson per Task** - 每个课题在独立 Task 中处理，避免 context 爆炸
-2. **SQLite-first** - 所有数据写入 SQLite，JSONL 只是导出产物
+2. **PostgreSQL-first** - 所有数据写入 PostgreSQL，JSONL 只是导出产物
 3. **Evidence-backed** - 每个节点/边必须有教材出处
 4. **Staging-first** - 先写 staging 表，再经 reducer 合并到 canonical 表
 
@@ -79,22 +79,24 @@ python scripts/merge_staged_lessons.py ... --dry-run
 ### Data Viewing
 
 ```bash
+# Start PostgreSQL
+docker compose up -d
+
 # Start web viewer (TypeScript)
-npm run dev
+DATABASE_URL=postgresql://okm:okm@localhost:5432/knowledge npm run dev
 # Server: http://127.0.0.1:8765/viewer/
 # Viewer dev: http://127.0.0.1:5173/viewer/
 
-
-# Query SQLite directly
-sqlite3 storage/knowledge.sqlite "SELECT COUNT(*) FROM nodes;"
-sqlite3 storage/knowledge.sqlite "SELECT id, canonical_name FROM nodes ORDER BY created_at DESC LIMIT 10;"
+# Query PostgreSQL directly
+psql "$DATABASE_URL" -c "SELECT COUNT(*) FROM nodes;"
+psql "$DATABASE_URL" -c "SELECT id, canonical_name FROM nodes ORDER BY created_at DESC LIMIT 10;"
 ```
 
 ### Export & Validation
 
 ```bash
 # QA validation
-python scripts/strict_qa_sqlite.py --dataset-id main
+python scripts/strict_qa.py --dataset-id main
 
 # Graph integrity check
 python scripts/check_graph_integrity.py --dataset-id main
@@ -115,8 +117,8 @@ python scripts/check_graph_integrity.py --dataset-id main
 │
 ├── @kg-reducer (merge staging → canonical)
 │   ├── scripts/merge_staged_lessons.py (semantic alignment)
-│   ├── scripts/normalize_sqlite.py (deduplication, cycle detection)
-│   ├── scripts/strict_qa_sqlite.py (quality check)
+│   ├── scripts/normalize.py (deduplication, cycle detection)
+│   ├── scripts/strict_qa.py (quality check)
 │   └── scripts/check_graph_integrity.py (integrity check)
 │
 └── @qa-reviewer (optional read-only review)
@@ -126,7 +128,7 @@ python scripts/check_graph_integrity.py --dataset-id main
 
 ## Core Principles
 
-1. **SQLite-first**: `storage/knowledge.sqlite` is the single source of truth. JSONL/JSON files are derived exports only.
+1. **PostgreSQL-first**: PostgreSQL is the single source of truth (via `DATABASE_URL`). JSONL/JSON files are derived exports only.
 2. **Task-per-lesson**: Lessons processed in isolated Tasks to prevent context explosion.
 3. **Evidence-backed**: Every node and edge must have textbook provenance via mentions/evidence.
 4. **Retrieval-first**: Retrieve candidates before reasoning; never operate on full graph.
@@ -138,24 +140,26 @@ Nodes are automatically embedded via `scripts/embedding_client.py` during stagin
 
 - **Model**: `text-embedding-bge-large-zh-v1.5` (1024-dim, Chinese-optimized)
 - **API**: `http://10.11.20.254:1234/v1/embeddings`
+- **Storage**: `embedding vector(1024)` column via pgvector extension
 - **Auto-embed**: `store_lesson_staging.py --embed` (default on)
 - **Text composition**: `canonical_name + definition + aliases`
 - **Usage in pipeline**:
-  - `merge_staged_lessons.py`: cosine similarity for semantic node alignment (`--embedding-threshold 0.92`)
-  - `retrieve_candidates.py`: vector channel for semantic retrieval (`--mode hybrid` or `--mode vector`)
+  - `merge_staged_lessons.py`: pgvector `<=>` operator for semantic node alignment (`--embedding-threshold 0.92`)
+  - `retrieve_candidates.py`: vector channel via pgvector for semantic retrieval (`--mode hybrid` or `--mode vector`)
 
-If the embedding server is unreachable, the pipeline continues with empty embeddings — no crash, degraded merge accuracy only.
+If the embedding server is unreachable, the pipeline continues with NULL embeddings — no crash, degraded merge accuracy only.
 
 ## Storage Structure
 
 ```
-storage/knowledge.sqlite
-├── nodes            # Canonical knowledge nodes (with embedding_json)
+PostgreSQL (via DATABASE_URL)
+├── nodes            # Canonical knowledge nodes (with embedding vector(1024))
 ├── edges            # Relationships
 ├── profiles         # Curriculum profiles (subject/grade-specific)
 ├── mentions         # Textbook references
 ├── evidence         # Source excerpts
 ├── node_cards       # Detailed node documentation
+├── node_search      # Full-text search (tsvector + pg_jieba)
 ├── lesson_runs      # Lesson processing tracking
 ├── staging_nodes    # Staging: pre-merge node candidates
 ├── staging_edges    # Staging: pre-merge edge candidates
@@ -176,7 +180,7 @@ runs/              # Pipeline execution tracking
 
 ### Do NOT
 - Process multiple lessons in one context
-- Write directly to JSONL files (write to SQLite only)
+- Write directly to JSONL files (write to PostgreSQL only)
 - Use deprecated scripts in `/deprecated/` (e.g., `extract_chemistry_*.py`)
 - Delete nodes without explicit user instruction
 - Write canonical tables directly from lesson workers (use staging tables)
@@ -186,11 +190,12 @@ runs/              # Pipeline execution tracking
 - Keep lesson extraction parallelism limited to staging writes
 - Write to staging via `scripts/store_lesson_staging.py`
 - Merge staging to canonical via `scripts/merge_staged_lessons.py`
-- Verify data in SQLite (not JSONL) after operations
+- Verify data in PostgreSQL (not JSONL) after operations
 
 ## Schema Reference
 
-All schemas in `schemas/v2/`:
+PG schema: `schemas/pg/knowledge_store.sql`
+JSON schemas in `schemas/v2/`:
 - `node.schema.json` - Canonical nodes with `node_kind`, `node_layer`, `learning_modes`
 - `edge.schema.json` - Relationships with `edge_type`, `edge_layer`
 - `curriculum-profile.schema.json` - Subject/grade-specific projections

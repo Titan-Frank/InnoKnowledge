@@ -1,29 +1,64 @@
 #!/usr/bin/env python3
-"""Backfill embeddings for canonical nodes that have empty embedding_json."""
+"""Backfill embeddings for canonical nodes that have NULL embedding vectors."""
 
 from __future__ import annotations
 
-import json
-import sqlite3
+import argparse
+import os
 import sys
 import time
 
+import psycopg
+from psycopg.rows import dict_row
+from psycopg.types import TypeInfo
+
 sys.path.insert(0, ".")
 from scripts.embedding_client import embed_texts
+from knowledge_store_common import connect_db, ensure_pg_schema
+
+
+def register_vector_type(connection: psycopg.Connection) -> None:
+    """Register the pgvector type so psycopg3 can handle ::vector casts."""
+    info = TypeInfo.fetch(connection, "vector")
+    if info is not None:
+        info.register(connection)
 
 
 def main() -> None:
-    db_path = "storage/knowledge.sqlite"
-    batch_size = 32
+    parser = argparse.ArgumentParser(
+        description="Backfill embeddings for canonical nodes that have NULL embedding vectors."
+    )
+    parser.add_argument(
+        "--db",
+        default=None,
+        help="PostgreSQL connection URL (default: $DATABASE_URL)",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=32,
+        help="Number of texts per embedding batch (default: 32)",
+    )
+    args = parser.parse_args()
 
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
+    db_url = args.db or os.environ.get("DATABASE_URL")
+    if not db_url:
+        print("Error: No database URL provided. Set DATABASE_URL or pass --db.")
+        sys.exit(1)
 
-    # Find nodes with empty or placeholder embeddings
-    rows = conn.execute(
-        "SELECT id, canonical_name, definition, aliases_json FROM nodes "
-        "WHERE LENGTH(embedding_json) < 10"
-    ).fetchall()
+    conn = connect_db(db_url)
+    ensure_pg_schema(conn)
+    register_vector_type(conn)
+
+    batch_size = args.batch_size
+
+    # Find nodes with NULL embeddings
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT id, canonical_name, definition, aliases_json FROM nodes "
+            "WHERE embedding IS NULL"
+        )
+        rows = cur.fetchall()
 
     if not rows:
         print("All nodes already have embeddings. Nothing to do.")
@@ -36,8 +71,9 @@ def main() -> None:
         batch = rows[i : i + batch_size]
         texts = []
         for r in batch:
-            aliases = json.loads(r["aliases_json"]) if r["aliases_json"] else []
-            alias_str = "、".join(aliases) if aliases else ""
+            # aliases_json is JSONB — already a Python list
+            aliases = r["aliases_json"] if isinstance(r["aliases_json"], list) else []
+            alias_str = "\u3001".join(aliases) if aliases else ""
             parts = [r["canonical_name"], r["definition"]]
             if alias_str:
                 parts.append(alias_str)
@@ -48,11 +84,11 @@ def main() -> None:
 
         for r, vec in zip(batch, vectors):
             if vec:
-                emb_json = json.dumps(vec, ensure_ascii=False)
-                conn.execute(
-                    "UPDATE nodes SET embedding_json = ? WHERE id = ?",
-                    (emb_json, r["id"]),
-                )
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "UPDATE nodes SET embedding = %s::vector WHERE id = %s",
+                        (vec, r["id"]),
+                    )
             else:
                 print(f"  WARNING: empty vector for {r['id']} ({r['canonical_name']})")
 
@@ -64,10 +100,11 @@ def main() -> None:
             time.sleep(0.5)
 
     # Verify
-    remaining = conn.execute(
-        "SELECT COUNT(*) FROM nodes WHERE LENGTH(embedding_json) < 10"
-    ).fetchone()[0]
-    total = conn.execute("SELECT COUNT(*) FROM nodes").fetchone()[0]
+    with conn.cursor() as cur:
+        cur.execute("SELECT COUNT(*) FROM nodes WHERE embedding IS NULL")
+        remaining = cur.fetchone()["count"]
+        cur.execute("SELECT COUNT(*) FROM nodes")
+        total = cur.fetchone()["count"]
     with_emb = total - remaining
     print(f"Done. {with_emb}/{total} nodes now have embeddings.")
 

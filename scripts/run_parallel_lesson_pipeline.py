@@ -4,16 +4,17 @@
 from __future__ import annotations
 
 import argparse
-import sqlite3
+import os
 import subprocess
 import sys
 from pathlib import Path
 
+import psycopg
+
 from knowledge_store_common import (
-    DEFAULT_DB_PATH,
     connect_db,
+    ensure_pg_schema,
     ensure_dataset,
-    ensure_sqlite_schema,
     resolve_dataset_id,
     utc_now,
 )
@@ -27,7 +28,7 @@ def parse_args() -> argparse.Namespace:
         description="Merge staged lesson runs, normalize the canonical graph, and run QA."
     )
     parser.add_argument("--root", required=True)
-    parser.add_argument("--db", default=str(DEFAULT_DB_PATH))
+    parser.add_argument("--db", default=None, help="PostgreSQL URL (default: $DATABASE_URL)")
     parser.add_argument("--dataset-id")
     parser.add_argument("--book-id")
     parser.add_argument("--batch-anchor", action="append", dest="batch_anchors")
@@ -46,30 +47,35 @@ def run_step(args: list[str]) -> None:
 
 
 def mark_qa_passed(
-    connection: sqlite3.Connection,
+    connection: psycopg.Connection,
     dataset_id: str,
     lesson_run_ids: list[str],
 ) -> None:
     if not lesson_run_ids:
         return
     now = utc_now()
-    connection.executemany(
-        """
-        UPDATE lesson_runs
-        SET status = 'qa_passed', updated_at = ?
-        WHERE dataset_id = ? AND lesson_run_id = ?
-        """,
-        [(now, dataset_id, lesson_run_id) for lesson_run_id in lesson_run_ids],
-    )
+    with connection.cursor() as cur:
+        psycopg.extras.execute_values(
+            cur,
+            """
+            UPDATE lesson_runs
+            SET status = 'qa_passed', updated_at = %s
+            WHERE dataset_id = %s AND lesson_run_id = %s
+            """,
+            [(now, dataset_id, lr_id) for lr_id in lesson_run_ids],
+        )
+    connection.commit()
 
 
 def main() -> int:
     args = parse_args()
     root = Path(args.root).expanduser().resolve()
     connection = connect_db(args.db)
-    ensure_sqlite_schema(connection)
+    ensure_pg_schema(connection)
     dataset_id = resolve_dataset_id(connection, args.dataset_id, root)
     ensure_dataset(connection, dataset_id, root)
+
+    db_url = args.db or os.environ.get("DATABASE_URL", "")
 
     merge_cmd = [
         sys.executable,
@@ -77,7 +83,7 @@ def main() -> int:
         "--root",
         str(root),
         "--db",
-        args.db,
+        db_url,
         "--dataset-id",
         dataset_id,
         "--similarity-threshold",
@@ -96,11 +102,11 @@ def main() -> int:
     if not args.skip_normalize:
         normalize_cmd = [
             sys.executable,
-            str(REPO_ROOT / "scripts" / "normalize_sqlite.py"),
+            str(REPO_ROOT / "scripts" / "normalize.py"),
             "--dataset-id",
             dataset_id,
             "--db",
-            args.db,
+            db_url,
         ]
         if args.normalize_auto_merge:
             normalize_cmd.append("--auto-merge")
@@ -110,11 +116,11 @@ def main() -> int:
         run_step(
             [
                 sys.executable,
-                str(REPO_ROOT / "scripts" / "strict_qa_sqlite.py"),
+                str(REPO_ROOT / "scripts" / "strict_qa.py"),
                 "--dataset-id",
                 dataset_id,
                 "--db",
-                args.db,
+                db_url,
             ]
         )
 
@@ -126,7 +132,7 @@ def main() -> int:
                 "--dataset-id",
                 dataset_id,
                 "--db",
-                args.db,
+                db_url,
             ]
         )
 
@@ -134,26 +140,28 @@ def main() -> int:
         lesson_run_ids = list(args.lesson_run_ids)
     else:
         params: list[str] = [dataset_id]
-        filters = ["dataset_id = ?", "status = 'merged'"]
+        filters = ["dataset_id = %s", "status = 'merged'"]
         if args.book_id:
-            filters.append("book_id = ?")
+            filters.append("book_id = %s")
             params.append(args.book_id)
         if args.batch_anchors:
-            placeholders = ",".join(["?"] * len(args.batch_anchors))
+            placeholders = ",".join(["%s"] * len(args.batch_anchors))
             filters.append(f"batch_anchor IN ({placeholders})")
             params.extend(args.batch_anchors)
-        selected_rows = connection.execute(
-            f"""
-            SELECT lesson_run_id
-            FROM lesson_runs
-            WHERE {' AND '.join(filters)}
-            ORDER BY lesson_run_id
-            """,
-            params,
-        ).fetchall()
+        with connection.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT lesson_run_id
+                FROM lesson_runs
+                WHERE {' AND '.join(filters)}
+                ORDER BY lesson_run_id
+                """,
+                params,
+            )
+            selected_rows = cur.fetchall()
         lesson_run_ids = [row["lesson_run_id"] for row in selected_rows]
-    with connection:
-        mark_qa_passed(connection, dataset_id, lesson_run_ids)
+
+    mark_qa_passed(connection, dataset_id, lesson_run_ids)
 
     print(
         f"Parallel lesson pipeline completed for dataset '{dataset_id}' with {len(lesson_run_ids)} lesson runs."
