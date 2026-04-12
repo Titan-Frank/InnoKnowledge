@@ -1,67 +1,67 @@
+import type { CSSProperties } from 'react';
 import { useGraphStore, setShowLabels } from '../store/graphStore.js';
 import { getTypeLabel, getTypeColor } from '../graph/layout.js';
+import { ActionButton, aiWebComponentTokens } from './aiwc/index.js';
 
 export function GraphToolbar() {
   const data = useGraphStore((s) => s.data);
   const showLabels = useGraphStore((s) => s.showLabels);
 
-  const handleFitView = () => {
-    const canvas = document.getElementById('graph-canvas') as HTMLCanvasElement;
-    const wrap = canvas?.parentElement as HTMLDivElement;
-    if (!canvas || !wrap) return;
-    const dpr = window.devicePixelRatio || 1;
-    const state = useGraphStore.getState();
-    if (!state.data) return;
-
-    const nodes = state.data.nodes;
-    if (nodes.length === 0) return;
-
-    const xs = nodes.map((n) => n.x);
-    const ys = nodes.map((n) => n.y);
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const minY = Math.min(...ys);
-    const maxY = Math.max(...ys);
-
-    const graphWidth = maxX - minX + 200;
-    const graphHeight = maxY - minY + 200;
-    const canvasWidth = wrap.clientWidth;
-    const canvasHeight = wrap.clientHeight;
-    const scale = Math.min(canvasWidth / graphWidth, canvasHeight / graphHeight, 1.5);
-
-    const cx = (minX + maxX) / 2;
-    const cy = (minY + maxY) / 2;
-
-    useGraphStore.setState({
-      transform: {
-        x: (canvasWidth / 2 - cx * scale) * dpr,
-        y: (canvasHeight / 2 - cy * scale) * dpr,
-        scale,
-      },
-    });
-  };
-
   return (
-    <div className="graph-toolbar">
-      <div className="legend">
+    <div style={toolbarStyle}>
+      <div style={legendStyle}>
         {(data?.availableTypes || []).map((type) => (
-          <div className="legend-item" key={type}>
-            <span className="legend-dot" style={{ background: getTypeColor(type) }} />
+          <div style={legendItemStyle} key={type}>
+            <span style={{ ...legendDotStyle, background: getTypeColor(type) }} />
             <span>{getTypeLabel(type)}</span>
           </div>
         ))}
       </div>
-      <div className="toolbar-actions">
-        <button className="toolbar-button" onClick={handleFitView}>重置视图</button>
-        <button
-          className={`toolbar-button ${showLabels ? 'active' : ''}`}
+      <div style={actionsStyle}>
+        <ActionButton
+          variant={showLabels ? 'primary' : 'ghost'}
           onClick={() => setShowLabels(!showLabels)}
-          aria-pressed={showLabels}
-          title={showLabels ? '隐藏画布上的节点名称' : '显示画布上的节点名称'}
         >
           {showLabels ? '隐藏名称' : '显示名称'}
-        </button>
+        </ActionButton>
       </div>
     </div>
   );
 }
+
+const toolbarStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: 12,
+  padding: '16px 16px 8px',
+};
+
+const legendStyle: CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 8,
+};
+
+const legendItemStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  padding: '4px 10px',
+  borderRadius: aiWebComponentTokens.radiusPill,
+  background: aiWebComponentTokens.colorSurfaceMuted,
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  color: aiWebComponentTokens.colorMuted,
+  fontSize: '0.8rem',
+};
+
+const legendDotStyle: CSSProperties = {
+  width: 10,
+  height: 10,
+  borderRadius: '50%',
+};
+
+const actionsStyle: CSSProperties = {
+  display: 'flex',
+  gap: 8,
+};

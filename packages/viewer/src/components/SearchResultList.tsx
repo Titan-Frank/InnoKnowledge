@@ -4,47 +4,37 @@ import { getSearchMatches } from '../graph/visibility.js';
 import { getTypeLabel } from '../graph/layout.js';
 import { NODE_LAYER_LABELS } from '../constants/index.js';
 import { humanizeKey } from '../graph/layout.js';
+import { SessionListPanel } from './aiwc/index.js';
+import type { SessionListItem } from './aiwc/index.js';
 
 export function SearchResultList() {
   const searchTerm = useGraphStore((s) => s.searchTerm);
   const selectedNodeId = useGraphStore((s) => s.selectedNodeId);
+  const selectedBook = useGraphStore((s) => s.selectedBook);
+  const layerMode = useGraphStore((s) => s.layerMode);
+  const focusConnected = useGraphStore((s) => s.focusConnected);
+  const expandedBackboneNodeId = useGraphStore((s) => s.expandedBackboneNodeId);
 
   const matches = useMemo(() => {
     return getSearchMatches(useGraphStore.getState()).slice(0, 60);
-  }, [searchTerm, selectedNodeId, useGraphStore.getState().selectedTypes,
-      useGraphStore.getState().selectedBook, useGraphStore.getState().layerMode,
-      useGraphStore.getState().focusConnected, useGraphStore.getState().expandedBackboneNodeId]);
+  }, [searchTerm, selectedNodeId, selectedBook, layerMode, focusConnected, expandedBackboneNodeId]);
 
-  if (matches.length === 0) {
-    return (
-      <section className="panel-section">
-        <div className="section-head"><h2>搜索结果</h2></div>
-        <div className="result-list">
-          <div className="empty-state">
-            <p>当前筛选下没有匹配结果，可以放宽类型筛选或切换来源范围。</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const items: SessionListItem[] = matches.map((node) => ({
+    id: node.id,
+    title: node.name,
+    description: getTypeLabel(node.node_type),
+    meta: node.id,
+    badge: NODE_LAYER_LABELS[node.node_layer] ?? humanizeKey(node.node_layer),
+  }));
 
   return (
-    <section className="panel-section">
-      <div className="section-head"><h2>搜索结果</h2></div>
-      <div className="result-list">
-        {matches.map((node) => (
-          <button
-            key={node.id}
-            className={`result-item ${selectedNodeId === node.id ? 'active' : ''}`}
-            onClick={() => selectNode(node.id, true)}
-          >
-            <strong>{node.name}</strong>
-            <span>
-              {NODE_LAYER_LABELS[node.node_layer] ?? humanizeKey(node.node_layer)} · {getTypeLabel(node.node_type)} · {node.id}
-            </span>
-          </button>
-        ))}
-      </div>
-    </section>
+    <SessionListPanel
+      title="搜索结果"
+      hideHeader
+      items={items}
+      activeItemId={selectedNodeId ?? undefined}
+      emptyState="当前筛选下没有匹配结果，可以放宽类型筛选或切换来源范围。"
+      onSelect={(item) => selectNode(item.id, true)}
+    />
   );
 }

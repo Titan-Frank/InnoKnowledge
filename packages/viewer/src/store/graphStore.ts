@@ -74,7 +74,6 @@ export function selectNode(nodeId: string | null, recenter = false): void {
   useGraphStore.setState({
     visibleNodesCache: { key: null, nodes: [] },
   });
-  // recenter is handled by the component
   void recenter;
 }
 
@@ -145,26 +144,6 @@ export function collapseSupport(): void {
 
 export function setShowLabels(show: boolean): void {
   useGraphStore.setState({ showLabels: show });
-}
-
-export function setTransform(t: { x: number; y: number; scale: number }): void {
-  useGraphStore.setState({ transform: t });
-}
-
-export function setDragNodeId(id: string | null): void {
-  useGraphStore.setState({ dragNodeId: id });
-}
-
-export function setPanning(panning: boolean): void {
-  useGraphStore.setState({ panning });
-}
-
-export function setLastPointer(p: { x: number; y: number } | null): void {
-  useGraphStore.setState({ lastPointer: p });
-}
-
-export function setRaf(raf: number | null): void {
-  useGraphStore.setState({ raf });
 }
 
 export function invalidateVisibleNodesCache(): void {

@@ -1,11 +1,16 @@
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { useGraphStore, toggleType, resetTypes } from '../store/graphStore.js';
 import { getTypeLabel } from '../graph/layout.js';
 import { getVisibleNodes } from '../graph/visibility.js';
+import { ActionButton, ToneBadge, aiWebComponentTokens } from './aiwc/index.js';
 
 export function TypeFilterSection() {
   const data = useGraphStore((s) => s.data);
   const selectedTypes = useGraphStore((s) => s.selectedTypes);
+  const selectedBook = useGraphStore((s) => s.selectedBook);
+  const layerMode = useGraphStore((s) => s.layerMode);
+  const expandedBackboneNodeId = useGraphStore((s) => s.expandedBackboneNodeId);
+  const focusConnected = useGraphStore((s) => s.focusConnected);
 
   const countsByType = useMemo(() => {
     if (!data) return new Map<string, number>();
@@ -16,18 +21,17 @@ export function TypeFilterSection() {
       counts.set(node.node_type, (counts.get(node.node_type) || 0) + 1);
     });
     return counts;
-  }, [data, useGraphStore.getState().selectedBook, useGraphStore.getState().layerMode,
-      useGraphStore.getState().expandedBackboneNodeId, useGraphStore.getState().focusConnected]);
+  }, [data, selectedBook, layerMode, expandedBackboneNodeId, focusConnected]);
 
   if (!data) return null;
 
   return (
-    <section className="panel-section">
-      <div className="section-head">
-        <h2>节点类型</h2>
-        <button className="ghost-button" onClick={resetTypes}>重置</button>
+    <div style={sectionStyle}>
+      <div style={sectionHeadStyle}>
+        <h2 style={sectionTitleStyle}>节点类型</h2>
+        <ActionButton variant="ghost" onClick={resetTypes}>重置</ActionButton>
       </div>
-      <div className="chip-grid">
+      <div style={chipGridStyle}>
         {data.availableTypes.map((type) => {
           const label = getTypeLabel(type);
           const count = countsByType.get(type) || 0;
@@ -35,14 +39,65 @@ export function TypeFilterSection() {
           return (
             <button
               key={type}
-              className={`chip ${active ? 'active' : ''} ${count === 0 ? 'empty' : ''}`}
               onClick={() => toggleType(type)}
+              style={{
+                ...chipBaseStyle,
+                ...(count === 0 ? chipEmptyStyle : null),
+              }}
             >
-              {label} <span className="section-note">{count}</span>
+              <ToneBadge tone={active ? 'accent' : 'neutral'}>
+                {label}
+              </ToneBadge>
+              <span style={countStyle}>{count}</span>
             </button>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }
+
+const sectionStyle: CSSProperties = {
+  padding: '16px 16px 12px',
+  borderTop: `1px solid ${aiWebComponentTokens.colorBorder}`,
+};
+
+const sectionHeadStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 8,
+  marginBottom: 12,
+};
+
+const sectionTitleStyle: CSSProperties = {
+  margin: 0,
+  fontSize: '1.06rem',
+  fontWeight: 600,
+};
+
+const chipGridStyle: CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 8,
+};
+
+const chipBaseStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  padding: 0,
+  fontFamily: 'inherit',
+};
+
+const chipEmptyStyle: CSSProperties = {
+  opacity: 0.5,
+};
+
+const countStyle: CSSProperties = {
+  color: aiWebComponentTokens.colorMuted,
+  fontSize: '0.82rem',
+};

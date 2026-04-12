@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { useGraphStore } from '../store/graphStore.js';
 import { getVisibleNodes } from '../graph/visibility.js';
 import { isBackboneNode, isSupportNode } from '../graph/layout.js';
+import { aiWebComponentTokens } from './aiwc/index.js';
 
 export function StatsGrid() {
   const data = useGraphStore((s) => s.data);
@@ -36,13 +37,40 @@ export function StatsGrid() {
   ];
 
   return (
-    <div className="stats-grid">
+    <div style={gridStyle}>
       {items.map(([label, value]) => (
-        <div className="stat-card" key={label}>
-          <strong>{value}</strong>
-          <span>{label}</span>
+        <div key={label} style={cardStyle}>
+          <strong style={valueStyle}>{value}</strong>
+          <span style={labelStyle}>{label}</span>
         </div>
       ))}
     </div>
   );
 }
+
+const gridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: 12,
+};
+
+const cardStyle: CSSProperties = {
+  padding: 16,
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  borderRadius: aiWebComponentTokens.radiusSmall,
+  background: aiWebComponentTokens.colorSurface,
+  boxShadow: aiWebComponentTokens.shadowSoft,
+};
+
+const valueStyle: CSSProperties = {
+  display: 'block',
+  fontSize: '1.7rem',
+  fontWeight: 700,
+};
+
+const labelStyle: CSSProperties = {
+  display: 'block',
+  marginTop: 4,
+  color: aiWebComponentTokens.colorMuted,
+  fontSize: '0.92rem',
+};

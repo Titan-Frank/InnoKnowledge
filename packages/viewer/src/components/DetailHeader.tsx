@@ -1,8 +1,10 @@
+import type { CSSProperties } from 'react';
 import type { GraphNode } from '../store/types.js';
 import { useGraphStore } from '../store/graphStore.js';
 import { getTypeLabel, humanizeKey } from '../graph/layout.js';
 import { NODE_LAYER_LABELS } from '../constants/index.js';
 import { getVisibleMentions, getVisibleEvidence } from '../graph/visibility.js';
+import { ToneBadge, aiWebComponentTokens } from './aiwc/index.js';
 
 interface Props {
   node: GraphNode;
@@ -29,16 +31,44 @@ export function DetailHeader({ node }: Props) {
   ];
 
   return (
-    <div className="detail-header">
+    <div style={headerStyle}>
       <div>
-        <p className="eyebrow">{getTypeLabel(node.node_type)}</p>
-        <h2>{node.name}</h2>
+        <p style={eyebrowStyle}>{getTypeLabel(node.node_type)}</p>
+        <h2 style={titleStyle}>{node.name}</h2>
       </div>
-      <div className="meta-badges">
+      <div style={badgesStyle}>
         {badges.map((text, i) => (
-          <span key={i} className="badge active">{text}</span>
+          <ToneBadge key={i} tone="accent">{text}</ToneBadge>
         ))}
       </div>
     </div>
   );
 }
+
+const headerStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  gap: 12,
+};
+
+const eyebrowStyle: CSSProperties = {
+  margin: '0 0 4px',
+  color: aiWebComponentTokens.colorAccent,
+  fontSize: '0.78rem',
+  letterSpacing: '0.16em',
+  textTransform: 'uppercase',
+};
+
+const titleStyle: CSSProperties = {
+  margin: 0,
+  fontSize: '1.7rem',
+  lineHeight: 1.1,
+  fontWeight: 600,
+};
+
+const badgesStyle: CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 8,
+};

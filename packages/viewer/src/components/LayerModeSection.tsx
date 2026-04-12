@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react';
 import { useGraphStore, setLayerMode, collapseSupport } from '../store/graphStore.js';
 import { LAYER_MODE_OPTIONS } from '../constants/index.js';
+import { SegmentedControl, ActionButton, aiWebComponentTokens } from './aiwc/index.js';
 
 export function LayerModeSection() {
   const layerMode = useGraphStore((s) => s.layerMode);
@@ -25,28 +27,54 @@ export function LayerModeSection() {
   const showCollapse = layerMode === 'backbone-expand' && expandedNode;
 
   return (
-    <section className="panel-section">
-      <div className="section-head">
-        <h2>层级视图</h2>
-        <span className="section-note">{layerNote}</span>
+    <div style={sectionStyle}>
+      <div style={sectionHeadStyle}>
+        <h2 style={sectionTitleStyle}>层级视图</h2>
+        <span style={noteStyle}>{layerNote}</span>
       </div>
-      <div className="segmented">
-        {LAYER_MODE_OPTIONS.map((option) => (
-          <button
-            key={option.id}
-            className={`segment ${layerMode === option.id ? 'active' : ''}`}
-            onClick={() => setLayerMode(option.id)}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-      <p className="source-hint">{hints.filter(Boolean).join(' | ')}</p>
+      <SegmentedControl
+        value={layerMode}
+        items={LAYER_MODE_OPTIONS.map((o) => ({ id: o.id, label: o.label }))}
+        onChange={(v) => setLayerMode(v as typeof layerMode)}
+        ariaLabel="层级视图"
+      />
+      <p style={hintStyle}>{hints.filter(Boolean).join(' | ')}</p>
       {showCollapse && (
-        <button className="ghost-button" onClick={collapseSupport}>
+        <ActionButton variant="ghost" onClick={collapseSupport}>
           收起当前支撑展开
-        </button>
+        </ActionButton>
       )}
-    </section>
+    </div>
   );
 }
+
+const sectionStyle: CSSProperties = {
+  padding: '16px 16px 12px',
+  borderTop: `1px solid ${aiWebComponentTokens.colorBorder}`,
+};
+
+const sectionHeadStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 8,
+  marginBottom: 12,
+};
+
+const sectionTitleStyle: CSSProperties = {
+  margin: 0,
+  fontSize: '1.06rem',
+  fontWeight: 600,
+};
+
+const noteStyle: CSSProperties = {
+  color: aiWebComponentTokens.colorMuted,
+  fontSize: '0.82rem',
+};
+
+const hintStyle: CSSProperties = {
+  margin: '8px 0 0',
+  color: aiWebComponentTokens.colorMuted,
+  fontSize: '0.84rem',
+  lineHeight: 1.6,
+};

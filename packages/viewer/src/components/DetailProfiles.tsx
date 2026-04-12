@@ -1,8 +1,10 @@
+import type { CSSProperties } from 'react';
 import type { GraphNode } from '../store/types.js';
 import {
   SCHOOL_STAGE_LABELS, CURRICULUM_ROLE_LABELS, MASTERY_LEVEL_LABELS,
 } from '../constants/index.js';
 import { humanizeKey } from '../graph/layout.js';
+import { ToneBadge, aiWebComponentTokens } from './aiwc/index.js';
 
 interface Props {
   node: GraphNode;
@@ -17,21 +19,19 @@ export function DetailProfiles({ node }: Props) {
 
   if (profiles.length === 0) {
     return (
-      <div className="detail-block">
-        <h3>课程画像</h3>
-        <div className="profile-list">
-          <div className="empty-state">
-            <p>当前数据源里还没有这个节点的课程画像。</p>
-          </div>
+      <div style={blockStyle}>
+        <h3 style={blockTitleStyle}>课程画像</h3>
+        <div style={emptyStyle}>
+          <p style={emptyTextStyle}>当前数据源里还没有这个节点的课程画像。</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="detail-block">
-      <h3>课程画像</h3>
-      <div className="profile-list">
+    <div style={blockStyle}>
+      <h3 style={blockTitleStyle}>课程画像</h3>
+      <div style={listStyle}>
         {profiles.map((profile) => {
           const header = [
             profile.subject || '未标注学科',
@@ -54,26 +54,26 @@ export function DetailProfiles({ node }: Props) {
               : [];
 
           return (
-            <div className="profile-item" key={profile.id}>
-              <h4>{header}</h4>
-              <div className="micro-list">
+            <div style={itemStyle} key={profile.id}>
+              <h4 style={itemTitleStyle}>{header}</h4>
+              <div style={chipsStyle}>
                 {chips.map((chip) => (
-                  <span className="micro-chip" key={chip}>{chip}</span>
+                  <ToneBadge key={chip} tone="neutral">{chip}</ToneBadge>
                 ))}
               </div>
               {profile.learning_objectives?.length > 0 ? (
-                <ul className="card-list">
+                <ul style={objListStyle}>
                   {profile.learning_objectives.map((item, i) => (
                     <li key={i}>{item}</li>
                   ))}
                 </ul>
               ) : (
-                <p>暂无学习目标描述。</p>
+                <p style={emptyTextStyle}>暂无学习目标描述。</p>
               )}
               {assessmentSignals.length > 0 && (
-                <div className="micro-list">
+                <div style={chipsStyle}>
                   {assessmentSignals.map((item) => (
-                    <span className="micro-chip" key={item}>{item}</span>
+                    <ToneBadge key={item} tone="neutral">{item}</ToneBadge>
                   ))}
                 </div>
               )}
@@ -84,3 +84,61 @@ export function DetailProfiles({ node }: Props) {
     </div>
   );
 }
+
+const blockStyle: CSSProperties = {
+  marginTop: 16,
+};
+
+const blockTitleStyle: CSSProperties = {
+  margin: 0,
+  fontSize: '1.06rem',
+  fontWeight: 600,
+};
+
+const listStyle: CSSProperties = {
+  display: 'grid',
+  gap: 8,
+  marginTop: 8,
+};
+
+const itemStyle: CSSProperties = {
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  borderRadius: aiWebComponentTokens.radiusSmall,
+  background: aiWebComponentTokens.colorSurface,
+  padding: 12,
+};
+
+const itemTitleStyle: CSSProperties = {
+  margin: '0 0 6px',
+  fontSize: '0.92rem',
+  fontWeight: 600,
+};
+
+const chipsStyle: CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 8,
+  marginTop: 8,
+};
+
+const objListStyle: CSSProperties = {
+  margin: 0,
+  paddingLeft: 18,
+  color: aiWebComponentTokens.colorMuted,
+  lineHeight: 1.65,
+};
+
+const emptyStyle: CSSProperties = {
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  borderRadius: aiWebComponentTokens.radiusSmall,
+  background: aiWebComponentTokens.colorSurfaceMuted,
+  padding: 12,
+  marginTop: 8,
+};
+
+const emptyTextStyle: CSSProperties = {
+  margin: 0,
+  color: aiWebComponentTokens.colorMuted,
+  fontSize: '0.88rem',
+  lineHeight: 1.6,
+};
