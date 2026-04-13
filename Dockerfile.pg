@@ -1,5 +1,11 @@
 FROM pgvector/pgvector:pg16
 
+# Use China mirrors for faster builds
+RUN sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.list 2>/dev/null; \
+    sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list 2>/dev/null; \
+    sed -i 's|apt.postgresql.org|mirrors.ustc.edu.cn/postgresql|g' /etc/apt/sources.list.d/pgdg.list 2>/dev/null; \
+    true
+
 # Install build dependencies and pg_jieba for Chinese full-text search
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
