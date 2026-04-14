@@ -9,10 +9,13 @@ body {
 }
 
 body {
-  color: #111827;
+  color: rgba(10, 10, 40, 1);
   font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background: #f7f7f8;
+  background:
+    radial-gradient(circle at top left, rgba(140, 85, 255, 0.08), transparent 28%),
+    radial-gradient(circle at top right, rgba(85, 90, 255, 0.08), transparent 24%),
+    #F7F8FF;
 }
 
 /* Used by renderValue() in layout.ts for DetailProperties HTML output */

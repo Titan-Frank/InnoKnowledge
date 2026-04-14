@@ -34,13 +34,16 @@ const toolbarStyle: CSSProperties = {
   justifyContent: 'space-between',
   alignItems: 'center',
   gap: 12,
-  padding: '16px 16px 8px',
+  padding: '16px 16px 10px',
+  borderBottom: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(247,248,255,0.92) 100%)',
 };
 
 const legendStyle: CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: 8,
+  alignItems: 'center',
 };
 
 const legendItemStyle: CSSProperties = {
@@ -49,10 +52,11 @@ const legendItemStyle: CSSProperties = {
   gap: 6,
   padding: '4px 10px',
   borderRadius: aiWebComponentTokens.radiusPill,
-  background: aiWebComponentTokens.colorSurfaceMuted,
+  background: 'rgba(255,255,255,0.9)',
   border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  color: aiWebComponentTokens.colorMuted,
+  color: aiWebComponentTokens.colorTextSubtle,
   fontSize: '0.8rem',
+  boxShadow: aiWebComponentTokens.shadowSoft,
 };
 
 const legendDotStyle: CSSProperties = {

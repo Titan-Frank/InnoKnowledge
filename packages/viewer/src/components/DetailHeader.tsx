@@ -5,6 +5,8 @@ import { getTypeLabel, humanizeKey } from '../graph/layout.js';
 import { NODE_LAYER_LABELS } from '../constants/index.js';
 import { getVisibleMentions, getVisibleEvidence } from '../graph/visibility.js';
 import { ToneBadge, aiWebComponentTokens } from './aiwc/index.js';
+import { resolveNodeLayerVisual } from '../graph/graphPresentation.js';
+import { detailSectionStyle } from './workspaceStyles.js';
 
 interface Props {
   node: GraphNode;
@@ -16,9 +18,9 @@ export function DetailHeader({ node }: Props) {
   const visibleMentions = getVisibleMentions(node, state);
   const visibleEvidence = getVisibleEvidence(node, state);
   const sourceScopeLabel = selectedBook === 'all' ? '当前来源' : '当前教材';
+  const layerVisual = resolveNodeLayerVisual(node.node_layer);
 
   const badges: string[] = [
-    NODE_LAYER_LABELS[node.node_layer] ?? humanizeKey(node.node_layer),
     node.id,
     `${node.degree} 条关联`,
     `${sourceScopeLabel} ${visibleMentions.length} 条出现`,
@@ -31,26 +33,35 @@ export function DetailHeader({ node }: Props) {
   ];
 
   return (
-    <div style={headerStyle}>
+    <div
+      style={{
+        ...detailSectionStyle,
+        borderColor: layerVisual.stroke,
+        background: layerVisual.fill,
+        gap: 12,
+      }}
+    >
       <div>
-        <p style={eyebrowStyle}>{getTypeLabel(node.node_type)}</p>
+        <p style={{ ...eyebrowStyle, color: layerVisual.stroke }}>{getTypeLabel(node.node_type)}</p>
         <h2 style={titleStyle}>{node.name}</h2>
+        <p style={summaryStyle}>
+          {node.node_layer === 'backbone'
+            ? '主干层节点，适合作为核心概念和跨学科骨架来理解。'
+            : '支撑层节点，用于补充方法、实例、表征或局部结构。'}
+        </p>
       </div>
       <div style={badgesStyle}>
+        <ToneBadge tone={layerVisual.badgeTone}>{layerVisual.label}</ToneBadge>
+        <ToneBadge tone="secondary">
+          {NODE_LAYER_LABELS[node.node_layer] ?? humanizeKey(node.node_layer)}
+        </ToneBadge>
         {badges.map((text, i) => (
-          <ToneBadge key={i} tone="accent">{text}</ToneBadge>
+          <ToneBadge key={i} tone="neutral">{text}</ToneBadge>
         ))}
       </div>
     </div>
   );
 }
-
-const headerStyle: CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'flex-start',
-  gap: 12,
-};
 
 const eyebrowStyle: CSSProperties = {
   margin: '0 0 4px',
@@ -65,6 +76,14 @@ const titleStyle: CSSProperties = {
   fontSize: '1.7rem',
   lineHeight: 1.1,
   fontWeight: 600,
+};
+
+const summaryStyle: CSSProperties = {
+  margin: '8px 0 0',
+  color: aiWebComponentTokens.colorTextSubtle,
+  fontSize: '0.92rem',
+  lineHeight: 1.65,
+  maxWidth: 540,
 };
 
 const badgesStyle: CSSProperties = {

@@ -4,7 +4,17 @@ import { useGraphStore, selectNode } from '../store/graphStore.js';
 import { getNeighborEntries } from '../graph/visibility.js';
 import { isBackboneNode, isSupportNode, getTypeLabel, humanizeKey } from '../graph/layout.js';
 import { NODE_LAYER_LABELS } from '../constants/index.js';
-import { ToneBadge, ActionButton, aiWebComponentTokens } from './aiwc/index.js';
+import { ToneBadge, ActionButton } from './aiwc/index.js';
+import { resolveEdgeVisual, resolveNodeLayerVisual } from '../graph/graphPresentation.js';
+import {
+  detailBodyTextStyle,
+  detailEmptyCardStyle,
+  detailSectionHeaderStyle,
+  detailSectionMetaStyle,
+  detailSectionStyle,
+  detailSectionTitleStyle,
+  detailSubcardStyle,
+} from './workspaceStyles.js';
 
 interface Props {
   node: GraphNode;
@@ -37,83 +47,68 @@ export function DetailSupportNodes({ node }: Props) {
       ? '这个主干节点目前还没有拆出支撑节点，后续可以继续补方法、实验、表征等支撑层。'
       : '这个支撑节点暂时还没有挂接到明确的主干节点。';
     return (
-      <div style={blockStyle}>
-        <div style={headStyle}>
-          <h3 style={blockTitleStyle}>支撑节点</h3>
-          <span style={noteStyle}>{noteText}</span>
+      <div style={detailSectionStyle}>
+        <div style={detailSectionHeaderStyle}>
+          <h3 style={detailSectionTitleStyle}>支撑节点</h3>
+          <span style={detailSectionMetaStyle}>{noteText}</span>
         </div>
-        <div style={emptyStyle}>
-          <p style={emptyTextStyle}>{fallbackNote}</p>
+        <div style={detailEmptyCardStyle}>
+          <p style={detailBodyTextStyle}>{fallbackNote}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={blockStyle}>
-      <div style={headStyle}>
-        <h3 style={blockTitleStyle}>支撑节点</h3>
-        <span style={noteStyle}>{noteText}</span>
+    <div style={detailSectionStyle}>
+      <div style={detailSectionHeaderStyle}>
+        <h3 style={detailSectionTitleStyle}>支撑节点</h3>
+        <span style={detailSectionMetaStyle}>{noteText}</span>
       </div>
       <div style={listStyle}>
-        {items.map(({ edge, otherNode }) => (
-          <ActionButton
-            key={otherNode.id}
-            variant="ghost"
-            onClick={() => selectNode(otherNode.id, true)}
-          >
-            <strong>{otherNode.name}</strong>
-            <ToneBadge tone="neutral">
-              {isBackbone
-                ? `${getTypeLabel(otherNode.node_type)} · ${edge.edge_type}`
-                : `${NODE_LAYER_LABELS[otherNode.node_layer] ?? humanizeKey(otherNode.node_layer)} · ${edge.edge_type}`}
-            </ToneBadge>
-          </ActionButton>
-        ))}
+        {items.map(({ edge, otherNode }) => {
+          const layerVisual = resolveNodeLayerVisual(otherNode.node_layer);
+          const edgeVisual = resolveEdgeVisual(edge.edge_type);
+          return (
+            <div
+              key={otherNode.id}
+              style={{
+                ...detailSubcardStyle,
+                borderLeft: `4px solid ${edgeVisual.stroke}`,
+              }}
+            >
+              <ActionButton
+                variant="ghost"
+                onClick={() => selectNode(otherNode.id, true)}
+              >
+                <strong>{otherNode.name}</strong>
+                <ToneBadge tone={layerVisual.badgeTone}>{layerVisual.label}</ToneBadge>
+              </ActionButton>
+              <div style={itemBadgeRowStyle}>
+                <ToneBadge tone={edgeVisual.labelTone}>{edgeVisual.category}</ToneBadge>
+                <ToneBadge tone="secondary">{edge.edge_type}</ToneBadge>
+                <ToneBadge tone="neutral">
+                  {isBackbone
+                    ? getTypeLabel(otherNode.node_type)
+                    : `${NODE_LAYER_LABELS[otherNode.node_layer] ?? humanizeKey(otherNode.node_layer)} · ${getTypeLabel(otherNode.node_type)}`}
+                </ToneBadge>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-const blockStyle: CSSProperties = {
-  marginTop: 16,
-};
-
-const blockTitleStyle: CSSProperties = {
-  margin: 0,
-  fontSize: '1.06rem',
-  fontWeight: 600,
-};
-
-const headStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 8,
-};
-
-const noteStyle: CSSProperties = {
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.82rem',
-};
-
 const listStyle: CSSProperties = {
   display: 'grid',
   gap: 8,
-  marginTop: 8,
 };
 
-const emptyStyle: CSSProperties = {
-  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  borderRadius: aiWebComponentTokens.radiusSmall,
-  background: aiWebComponentTokens.colorSurfaceMuted,
-  padding: 12,
+const itemBadgeRowStyle: CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 8,
   marginTop: 8,
-};
-
-const emptyTextStyle: CSSProperties = {
-  margin: 0,
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.88rem',
-  lineHeight: 1.6,
 };

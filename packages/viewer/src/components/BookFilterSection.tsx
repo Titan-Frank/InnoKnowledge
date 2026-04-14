@@ -1,7 +1,11 @@
-import type { CSSProperties } from 'react';
 import { useGraphStore, setSelectedBook, setFocusConnected } from '../store/graphStore.js';
 import { SegmentedControl } from './aiwc/index.js';
-import { aiWebComponentTokens } from './aiwc/index.js';
+import {
+  workspaceSectionHeaderStyle,
+  workspaceSectionStyle,
+  workspaceSectionTitleStyle,
+  workspaceToggleStyle,
+} from './workspaceStyles.js';
 
 export function BookFilterSection() {
   const data = useGraphStore((s) => s.data);
@@ -17,9 +21,9 @@ export function BookFilterSection() {
   }));
 
   return (
-    <div style={sectionStyle}>
-      <div style={sectionHeadStyle}>
-        <h2 style={sectionTitleStyle}>来源范围</h2>
+    <div style={workspaceSectionStyle}>
+      <div style={workspaceSectionHeaderStyle}>
+        <h2 style={workspaceSectionTitleStyle}>来源范围</h2>
       </div>
       <SegmentedControl
         value={selectedBook}
@@ -27,7 +31,7 @@ export function BookFilterSection() {
         onChange={setSelectedBook}
         ariaLabel="来源范围"
       />
-      <label style={toggleStyle}>
+      <label style={workspaceToggleStyle}>
         <input
           type="checkbox"
           checked={focusConnected}
@@ -38,31 +42,3 @@ export function BookFilterSection() {
     </div>
   );
 }
-
-const sectionStyle: CSSProperties = {
-  padding: '16px 16px 12px',
-  borderTop: `1px solid ${aiWebComponentTokens.colorBorder}`,
-};
-
-const sectionHeadStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 8,
-  marginBottom: 12,
-};
-
-const sectionTitleStyle: CSSProperties = {
-  margin: 0,
-  fontSize: '1.06rem',
-  fontWeight: 600,
-};
-
-const toggleStyle: CSSProperties = {
-  display: 'flex',
-  gap: 8,
-  alignItems: 'flex-start',
-  marginTop: 12,
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.88rem',
-};

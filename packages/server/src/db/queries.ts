@@ -179,6 +179,17 @@ export interface SourcesPayload {
 }
 
 export async function buildSourcesPayload(sql: Sql): Promise<SourcesPayload> {
+  const tableCheck = await sql<{ regclass: string | null }[]>`
+    SELECT to_regclass('datasets') AS regclass
+  `;
+
+  if (!tableCheck[0]?.regclass) {
+    return {
+      active_source: null,
+      sources: [],
+    };
+  }
+
   const datasets = await sql<DatasetRow[]>`
     SELECT dataset_id, version_key, root_path, is_active
     FROM datasets

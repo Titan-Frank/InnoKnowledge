@@ -3,7 +3,15 @@ import type { GraphNode } from '../store/types.js';
 import { useGraphStore, selectNode } from '../store/graphStore.js';
 import { getTypeLabel, humanizeKey } from '../graph/layout.js';
 import { NODE_LAYER_LABELS, EDGE_LAYER_LABELS } from '../constants/index.js';
-import { ToneBadge, ActionButton, aiWebComponentTokens } from './aiwc/index.js';
+import { ToneBadge, ActionButton } from './aiwc/index.js';
+import { resolveEdgeVisual, resolveNodeLayerVisual } from '../graph/graphPresentation.js';
+import {
+  detailBodyTextStyle,
+  detailEmptyCardStyle,
+  detailSectionStyle,
+  detailSectionTitleStyle,
+  detailSubcardStyle,
+} from './workspaceStyles.js';
 
 interface Props {
   node: GraphNode;
@@ -20,29 +28,51 @@ export function DetailRelations({ node }: Props) {
 
   if (relatedEdges.length === 0) {
     return (
-      <div style={blockStyle}>
-        <h3 style={blockTitleStyle}>关联关系</h3>
-        <div style={emptyStyle}>
-          <p style={emptyTextStyle}>这个节点当前还没有关联关系。</p>
+      <div style={detailSectionStyle}>
+        <h3 style={detailSectionTitleStyle}>关联关系</h3>
+        <div style={detailEmptyCardStyle}>
+          <p style={detailBodyTextStyle}>这个节点当前还没有关联关系。</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={blockStyle}>
-      <h3 style={blockTitleStyle}>关联关系</h3>
+    <div style={detailSectionStyle}>
+      <h3 style={detailSectionTitleStyle}>关联关系</h3>
       <div style={listStyle}>
         {relatedEdges.map((edge) => {
           const otherId = edge.from === node.id ? edge.to : edge.from;
           const otherNode = data.nodeById.get(otherId);
           const edgeProps = edge.properties as Record<string, unknown> | undefined;
+          const edgeVisual = resolveEdgeVisual(edge.edge_type);
+          const nodeLayerVisual = resolveNodeLayerVisual(otherNode?.node_layer);
           return (
-            <div style={relationStyle} key={edge.id}>
+            <div
+              style={{
+                ...detailSubcardStyle,
+                borderLeft: `4px solid ${edgeVisual.stroke}`,
+                gap: 8,
+                display: 'grid',
+              }}
+              key={edge.id}
+            >
               <ActionButton variant="ghost" onClick={() => selectNode(otherId, true)}>
                 {edge.edge_type} · {otherNode?.name || otherId}
               </ActionButton>
-              <p style={descStyle}>
+              <div style={badgeRowStyle}>
+                <ToneBadge tone={edgeVisual.labelTone}>{edgeVisual.category}</ToneBadge>
+                <ToneBadge tone="secondary">{edge.edge_type}</ToneBadge>
+                <ToneBadge tone={nodeLayerVisual.badgeTone}>{nodeLayerVisual.label}</ToneBadge>
+              </div>
+              <div style={edgeLegendStyle}>
+                <span style={edgeLegendLabelStyle}>关系线型</span>
+                <span
+                  style={edgeLegendSampleStyle(edgeVisual.stroke, edgeVisual.dashArray)}
+                  aria-hidden
+                />
+              </div>
+              <p style={detailBodyTextStyle}>
                 {edge.backbone_expand ? '主干展开' : EDGE_LAYER_LABELS[edge.edge_layer ?? 'support'] ?? humanizeKey(edge.edge_layer ?? 'support')} · {NODE_LAYER_LABELS[otherNode?.node_layer ?? 'other'] ?? humanizeKey(otherNode?.node_layer ?? 'other')} · {getTypeLabel(otherNode?.node_type ?? 'other')}
               </p>
               {edgeProps?.relation ? (
@@ -56,49 +86,36 @@ export function DetailRelations({ node }: Props) {
   );
 }
 
-const blockStyle: CSSProperties = {
-  marginTop: 16,
-};
-
-const blockTitleStyle: CSSProperties = {
-  margin: 0,
-  fontSize: '1.06rem',
-  fontWeight: 600,
-};
-
 const listStyle: CSSProperties = {
   display: 'grid',
   gap: 8,
-  marginTop: 8,
 };
 
-const relationStyle: CSSProperties = {
-  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  borderRadius: aiWebComponentTokens.radiusSmall,
-  background: aiWebComponentTokens.colorSurface,
-  padding: 12,
-  display: 'grid',
-  gap: 6,
+const badgeRowStyle: CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 8,
 };
 
-const descStyle: CSSProperties = {
-  margin: 0,
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.88rem',
-  lineHeight: 1.6,
+const edgeLegendStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
 };
 
-const emptyStyle: CSSProperties = {
-  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  borderRadius: aiWebComponentTokens.radiusSmall,
-  background: aiWebComponentTokens.colorSurfaceMuted,
-  padding: 12,
-  marginTop: 8,
+const edgeLegendLabelStyle: CSSProperties = {
+  color: detailBodyTextStyle.color,
+  fontSize: '0.84rem',
+  whiteSpace: 'nowrap',
 };
 
-const emptyTextStyle: CSSProperties = {
-  margin: 0,
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.88rem',
-  lineHeight: 1.6,
-};
+function edgeLegendSampleStyle(stroke: string, dashArray?: string): CSSProperties {
+  const lineStyle = dashArray === '3 6' ? 'dotted' : dashArray ? 'dashed' : 'solid';
+  return {
+    display: 'inline-block',
+    width: 84,
+    borderTop: `2px solid ${stroke}`,
+    borderTopStyle: lineStyle,
+    opacity: 0.9,
+  };
+}
