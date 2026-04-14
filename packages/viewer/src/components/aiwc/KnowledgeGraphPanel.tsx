@@ -5,6 +5,7 @@ import {
   Controls,
   Handle,
   MarkerType,
+  MiniMap,
   Position,
   ReactFlow,
   type Edge as FlowEdge,
@@ -27,11 +28,13 @@ import {
 } from "./styles/panelStyles";
 import { aiWebComponentTokens } from "./styles/tokens";
 import { TYPE_META } from "../../constants/index.js";
+import { resolveEdgeVisual, resolveNodeLayerVisual } from "../../graph/graphPresentation.js";
 
 export type KnowledgeNode = {
   id: string;
   label: string;
   category: string;
+  nodeLayer?: string;
   description?: ReactNode;
   meta?: ReactNode;
   badge?: ReactNode;
@@ -42,6 +45,7 @@ export type KnowledgeEdge = {
   source: string;
   target: string;
   label: string;
+  edgeType?: string;
   description?: ReactNode;
   meta?: ReactNode;
   badge?: ReactNode;
@@ -90,38 +94,54 @@ type KnowledgeFlowNodeData = {
 type KnowledgeFlowCanvasNode = FlowNode<KnowledgeFlowNodeData, "knowledge">;
 type KnowledgeFlowCanvasEdge = FlowEdge<{ isActive: boolean }, "smoothstep">;
 
-const knowledgeNodeSize = 88;
-const knowledgeLayerXGap = 280;
-const knowledgeLayerYGap = 124;
-const knowledgeCollisionPadding = 34;
-const knowledgeLayoutPadding = 80;
+const knowledgeNodeWidth = 188;
+const knowledgeNodeHeight = 96;
+const knowledgeLayerXGap = 272;
+const knowledgeLayerYGap = 136;
+const knowledgeCollisionPadding = 42;
+const knowledgeLayoutPadding = 96;
+const knowledgeRelaxationLimit = 32;
 const knowledgeGraphNodeTypes = {
   knowledge: KnowledgeFlowNodeCard
 };
 
 function KnowledgeFlowNodeCard({ data }: NodeProps<KnowledgeFlowCanvasNode>) {
   const { node, isActive, isInteractive, categoryColor, showLabel } = data;
+  const shortLabel = showLabel ? node.label : compactLabel(node.label);
+  const layerVisual = resolveNodeLayerVisual(node.nodeLayer);
+  const isSupport = node.nodeLayer === "support";
 
   return (
     <div
       title={node.label}
       style={{
-        alignItems: "center",
-        background: isActive ? aiWebComponentTokens.colorAccentSoft : `${categoryColor}18`,
-        border: `2px solid ${isActive ? aiWebComponentTokens.colorAccent : categoryColor}`,
-        borderRadius: "50%",
+        background: isSupport ? layerVisual.fill : "rgba(255, 255, 255, 0.98)",
+        border: `1px ${isSupport ? "dashed" : "solid"} ${isActive ? categoryColor : layerVisual.stroke}`,
+        borderRadius: 18,
         boxSizing: "border-box",
-        boxShadow: isActive ? aiWebComponentTokens.shadowSoft : "none",
+        boxShadow: isActive
+          ? `0 16px 36px ${hexToRgba(categoryColor, 0.22)}`
+          : isSupport
+            ? "0 8px 18px rgba(10, 10, 40, 0.04)"
+            : "0 10px 24px rgba(10, 10, 40, 0.08)",
         cursor: isInteractive ? "pointer" : "default",
-        color: isActive ? aiWebComponentTokens.colorAccentStrong : categoryColor,
-        display: "flex",
-        height: "100%",
-        justifyContent: "center",
-        padding: 8,
-        textAlign: "center",
+        display: "grid",
+        gap: 10,
+        gridTemplateRows: "auto 1fr auto",
+        overflow: "hidden",
+        padding: "12px 14px",
+        position: "relative",
         width: "100%"
       }}
     >
+      <div
+        style={{
+          background: `linear-gradient(90deg, ${categoryColor} 0%, ${hexToRgba(categoryColor, 0.22)} 100%)`,
+          height: 4,
+          inset: "0 0 auto 0",
+          position: "absolute"
+        }}
+      />
       <Handle
         isConnectable={false}
         position={Position.Left}
@@ -135,20 +155,112 @@ function KnowledgeFlowNodeCard({ data }: NodeProps<KnowledgeFlowCanvasNode>) {
         type="source"
       />
 
-      <strong
+      <div style={{ alignItems: "center", display: "flex", gap: 8, justifyContent: "space-between" }}>
+        <span
+          style={{
+            background: isSupport ? "rgba(255,255,255,0.78)" : (isActive ? hexToRgba(categoryColor, 0.16) : hexToRgba(categoryColor, 0.12)),
+            border: `1px solid ${hexToRgba(categoryColor, 0.24)}`,
+            borderRadius: aiWebComponentTokens.radiusPill,
+            color: categoryColor,
+            fontSize: 11,
+            fontWeight: 700,
+            maxWidth: 108,
+            overflow: "hidden",
+            padding: "4px 9px",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap"
+          }}
+        >
+          {node.badge ?? node.category}
+        </span>
+        <span
+          style={{
+            background: isSupport ? "rgba(10,10,40,0.06)" : hexToRgba(layerVisual.stroke, 0.12),
+            border: `1px solid ${hexToRgba(layerVisual.stroke, 0.16)}`,
+            borderRadius: aiWebComponentTokens.radiusPill,
+            color: isSupport ? aiWebComponentTokens.colorTextSubtle : layerVisual.stroke,
+            fontSize: 10,
+            fontWeight: 700,
+            padding: "4px 8px",
+            whiteSpace: "nowrap"
+          }}
+        >
+          {layerVisual.label}
+        </span>
+        <span
+          aria-hidden="true"
+          style={{
+            background: categoryColor,
+            borderRadius: "50%",
+            boxShadow: `0 0 0 6px ${hexToRgba(categoryColor, 0.12)}`,
+            display: "inline-block",
+            flexShrink: 0,
+            height: 8,
+            width: 8
+          }}
+        />
+      </div>
+
+      <div style={{ display: "grid", gap: 6, minHeight: 0 }}>
+        <strong
+          style={{
+            color: aiWebComponentTokens.colorText,
+            display: "-webkit-box",
+            fontSize: showLabel ? 14 : 15,
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
+            lineHeight: 1.45,
+            overflow: "hidden",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: showLabel ? 2 : 1
+          }}
+        >
+          {shortLabel}
+        </strong>
+        {showLabel ? (
+          <span
+            style={{
+              color: aiWebComponentTokens.colorMuted,
+              display: "-webkit-box",
+              fontSize: 11,
+              lineHeight: 1.45,
+              overflow: "hidden",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 2
+            }}
+          >
+            {node.description ?? "用于承接当前知识图谱中的核心知识关系。"}
+          </span>
+        ) : null}
+      </div>
+
+      <div
         style={{
-          color: isActive ? aiWebComponentTokens.colorAccentStrong : aiWebComponentTokens.colorText,
+          alignItems: "center",
+          borderTop: `1px solid ${hexToRgba(categoryColor, 0.14)}`,
+          color: aiWebComponentTokens.colorTextSubtle,
+          display: "flex",
           fontSize: 11,
           fontWeight: 700,
-          lineHeight: 1.3,
-          maxWidth: 54,
-          opacity: showLabel ? 1 : 0,
-          transform: showLabel ? "scale(1)" : "scale(0.92)",
-          transition: "opacity 120ms ease, transform 120ms ease"
+          gap: 8,
+          justifyContent: "space-between",
+          minHeight: 18,
+          paddingTop: 8
         }}
       >
-        {showLabel ? node.label : "\u00A0"}
-      </strong>
+        <span
+          style={{
+            color: aiWebComponentTokens.colorTextSubtle,
+            fontWeight: 500,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap"
+          }}
+        >
+          {showLabel ? node.meta ?? "知识节点" : "节点"}
+        </span>
+        <span style={{ color: categoryColor }}>{isActive ? "焦点" : "图谱"}</span>
+      </div>
     </div>
   );
 }
@@ -217,8 +329,8 @@ export function KnowledgeGraphPanel({
   );
   const activeNodeIdResolved = activeNode?.id;
   const layout = useMemo(
-    () => createKnowledgeGraphLayout(nodes, resolvedEdges, activeNodeIdResolved),
-    [nodes, resolvedEdges, activeNodeIdResolved]
+    () => createKnowledgeGraphLayout(nodes, resolvedEdges),
+    [nodes, resolvedEdges]
   );
   const flowNodes = useMemo(
     () =>
@@ -241,52 +353,133 @@ export function KnowledgeGraphPanel({
         (edge) => edge.sourceId === activeNodeIdResolved || edge.targetId === activeNodeIdResolved
       )
     : resolvedEdges;
+  const isLargeGraph = nodes.length > knowledgeRelaxationLimit;
 
   const graphView = (
     <div
-      style={{
-        background: "linear-gradient(180deg, rgba(244, 246, 255, 0.88) 0%, rgba(255, 255, 255, 0.98) 100%)",
-        height: hideSidebar ? "clamp(520px, 74vh, 820px)" : 440,
-        minHeight: 480
-      }}
+      style={graphCanvasShellStyle}
     >
-      <ReactFlow
-        edges={flowEdges}
-        elementsSelectable={Boolean(onSelectNode)}
-        fitView
-        fitViewOptions={{ maxZoom: 1.08, padding: 0.18 }}
-        maxZoom={1.3}
-        minZoom={0.55}
-        nodeTypes={knowledgeGraphNodeTypes}
-        nodes={flowNodes}
-        nodesConnectable={false}
-        nodesDraggable={true}
-        onlyRenderVisibleElements
-        onNodeClick={(_, node) => {
-          onSelectNode?.(node.data.node);
-        }}
-        onNodeDragStop={(_, node) => {
-          onNodeDragStop?.(node.id, node.position);
-        }}
-        panOnDrag
-        proOptions={{ hideAttribution: true }}
-      >
-        <Background
-          color={aiWebComponentTokens.colorBorder}
-          gap={20}
-          size={1}
-          variant={BackgroundVariant.Dots}
-        />
-        <Controls
-          showInteractive={false}
-          style={{
-            background: aiWebComponentTokens.colorSurface,
-            border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-            borderRadius: 12,
-            boxShadow: aiWebComponentTokens.shadowSoft
+      <div style={graphCanvasOverlayTopStyle}>
+        <div style={graphCanvasOverviewCardStyle}>
+          <div style={{ alignItems: "center", display: "flex", gap: 10, justifyContent: "space-between" }}>
+            <div style={{ display: "grid", gap: 3 }}>
+              <div style={{ color: aiWebComponentTokens.colorText, fontSize: 16, fontWeight: 700 }}>
+                图谱总览
+              </div>
+              <div style={{ color: aiWebComponentTokens.colorMuted, fontSize: 12, lineHeight: 1.5 }}>
+                传统知识图谱视角，支持拖拽、缩放和节点聚焦。
+              </div>
+            </div>
+            <span style={createToneBadgeStyle(isLargeGraph ? "warning" : "accent")}>
+              {isLargeGraph ? "大图快速布局" : "精细布局"}
+            </span>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <span style={createToneBadgeStyle("accent")}>节点 {nodes.length}</span>
+            <span style={createToneBadgeStyle("secondary")}>关系 {edges.length}</span>
+            <span style={createToneBadgeStyle("neutral")}>类型 {categories}</span>
+          </div>
+        </div>
+
+        <div style={graphCanvasGuideCardStyle}>
+          <span style={createToneBadgeStyle("secondary")}>拖拽节点</span>
+          <span style={createToneBadgeStyle("neutral")}>滚轮缩放</span>
+          <span style={createToneBadgeStyle(showLabels ? "accent" : "warning")}>
+            {showLabels ? "显示名称" : "压缩标签"}
+          </span>
+        </div>
+      </div>
+
+      <div style={graphCanvasViewportStyle}>
+        <ReactFlow
+          edges={flowEdges}
+          elementsSelectable={Boolean(onSelectNode)}
+          fitView
+          fitViewOptions={{ maxZoom: 1.05, padding: 0.16 }}
+          maxZoom={1.35}
+          minZoom={0.45}
+          nodeTypes={knowledgeGraphNodeTypes}
+          nodes={flowNodes}
+          nodesConnectable={false}
+          nodesDraggable={true}
+          onlyRenderVisibleElements
+          onNodeClick={(_, node) => {
+            onSelectNode?.(node.data.node);
           }}
-        />
-      </ReactFlow>
+          onNodeDragStop={(_, node) => {
+            onNodeDragStop?.(node.id, node.position);
+          }}
+          panOnDrag
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background
+            color="rgba(85, 90, 255, 0.08)"
+            gap={32}
+            lineWidth={1}
+            variant={BackgroundVariant.Lines}
+          />
+          <MiniMap
+            maskColor="rgba(247, 248, 255, 0.72)"
+            nodeColor={(node) =>
+              (node.data as KnowledgeFlowNodeData | undefined)?.categoryColor ?? aiWebComponentTokens.colorAccent
+            }
+            pannable
+            position="bottom-right"
+            style={miniMapStyle}
+            zoomable
+          />
+          <Controls
+            showInteractive={false}
+            style={graphControlsStyle}
+          />
+        </ReactFlow>
+      </div>
+
+      <div style={graphCanvasOverlayBottomStyle}>
+        <div style={graphFocusCardStyle}>
+          <div style={{ ...sectionLabelStyle, color: aiWebComponentTokens.colorAccent }}>
+            Focus Node
+          </div>
+          {activeNode ? (
+            <>
+              <div style={{ display: "grid", gap: 6 }}>
+                <div style={{ color: aiWebComponentTokens.colorText, fontSize: 17, fontWeight: 700 }}>
+                  {activeNode.label}
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  <span style={createToneBadgeStyle("accent")}>{activeNode.badge ?? activeNode.category}</span>
+                  <span style={createToneBadgeStyle("neutral")}>{relatedEdges.length} 条相邻关系</span>
+                </div>
+              </div>
+              <div style={{ color: aiWebComponentTokens.colorTextSubtle, fontSize: 13, lineHeight: 1.65 }}>
+                {activeNode.description ?? "当前节点用于承接知识概念与跨章节关系。"}
+              </div>
+            </>
+          ) : (
+            <div style={{ color: aiWebComponentTokens.colorMuted, fontSize: 13 }}>
+              当前还没有可用焦点节点。
+            </div>
+          )}
+        </div>
+
+        {relatedEdges.length > 0 ? (
+          <div style={graphRelationsStripStyle}>
+            <div style={{ ...sectionLabelStyle, color: aiWebComponentTokens.colorSecondaryAccent }}>
+              Key Relations
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {relatedEdges.slice(0, 6).map((edge) => (
+                <span
+                  key={edge.id}
+                  style={graphRelationChipStyle(resolveEdgeVisual(edge.edgeType ?? edge.label).stroke)}
+                >
+                  {findNodeLabel(nodes, edge.sourceId)} · {edge.label} · {findNodeLabel(nodes, edge.targetId)}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 
@@ -314,16 +507,7 @@ export function KnowledgeGraphPanel({
 
       <div style={bodyStyle}>
         {summary ? (
-          <div
-            style={{
-              background: aiWebComponentTokens.colorSurface,
-              border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-              borderLeft: `3px solid ${aiWebComponentTokens.colorAccent}`,
-              borderRadius: 8,
-              lineHeight: 1.6,
-              padding: "14px 16px"
-            }}
-          >
+          <div style={summaryCardStyle}>
             {summary}
           </div>
         ) : null}
@@ -358,14 +542,7 @@ export function KnowledgeGraphPanel({
 
         {!showError && !showLoading && !showEmpty ? (
           hideSidebar ? (
-            <div
-              style={{
-                background: aiWebComponentTokens.colorSurface,
-                border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-                borderRadius: 8,
-                overflow: "hidden"
-              }}
-            >
+            <div style={graphOnlySurfaceStyle}>
               {graphView}
             </div>
           ) : (
@@ -377,46 +554,20 @@ export function KnowledgeGraphPanel({
               }}
             >
               <div
-                style={{
-                  background: aiWebComponentTokens.colorSurface,
-                  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-                  borderRadius: 8,
-                  display: "grid",
-                  overflow: "hidden"
-                }}
+                style={graphOnlySurfaceStyle}
               >
-                <div
-                  style={{
-                    ...sectionLabelStyle,
-                    borderBottom: `1px solid ${aiWebComponentTokens.colorBorder}`,
-                    padding: "10px 12px"
-                  }}
-                >
+                <div style={sideCardHeaderStyle}>
                   Graph View
                 </div>
                 {graphView}
               </div>
 
               <div style={{ display: "grid", gap: 16 }}>
-                <div
-                  style={{
-                    background: aiWebComponentTokens.colorSurface,
-                    border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-                    borderRadius: 8,
-                    display: "grid",
-                    overflow: "hidden"
-                  }}
-                >
-                  <div
-                    style={{
-                      ...sectionLabelStyle,
-                      borderBottom: `1px solid ${aiWebComponentTokens.colorBorder}`,
-                      padding: "10px 12px"
-                    }}
-                  >
+                <div style={sideCardStyle}>
+                  <div style={sideCardHeaderStyle}>
                     Focus Node
                   </div>
-                  <div style={{ display: "grid", gap: 12, padding: "14px 14px 16px" }}>
+                  <div style={{ display: "grid", gap: 12, padding: "16px 18px 18px" }}>
                     {activeNode ? (
                       <>
                         <div style={{ alignItems: "center", display: "flex", gap: 10, justifyContent: "space-between" }}>
@@ -444,22 +595,8 @@ export function KnowledgeGraphPanel({
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    background: aiWebComponentTokens.colorSurface,
-                    border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-                    borderRadius: 8,
-                    display: "grid",
-                    overflow: "hidden"
-                  }}
-                >
-                  <div
-                    style={{
-                      ...sectionLabelStyle,
-                      borderBottom: `1px solid ${aiWebComponentTokens.colorBorder}`,
-                      padding: "10px 12px"
-                    }}
-                  >
+                <div style={sideCardStyle}>
+                  <div style={sideCardHeaderStyle}>
                     Relations
                   </div>
                   <div style={{ display: "grid" }}>
@@ -554,9 +691,9 @@ function buildFlowNodes(
       style: {
         background: "transparent",
         border: "none",
-        height: knowledgeNodeSize,
+        height: knowledgeNodeHeight,
         padding: 0,
-        width: knowledgeNodeSize
+        width: knowledgeNodeWidth
       },
       type: "knowledge"
     };
@@ -573,29 +710,33 @@ function buildFlowEdges(
       ? edge.sourceId === activeNodeId || edge.targetId === activeNodeId
       : false;
     const shouldShowLabel = showLabels && (edges.length <= 18 || isActive);
+    const edgeVisual = resolveEdgeVisual(edge.edgeType ?? edge.label);
 
     return {
       animated: isActive,
       id: edge.id,
       label: shouldShowLabel ? edge.label : undefined,
-      labelBgBorderRadius: 8,
-      labelBgPadding: [6, 4],
+      labelBgBorderRadius: aiWebComponentTokens.radiusPill,
+      labelBgPadding: [7, 4],
       labelBgStyle: {
-        fill: isActive ? aiWebComponentTokens.colorAccentSoft : aiWebComponentTokens.colorSurface
+        fill: isActive ? hexToRgba(edgeVisual.stroke, 0.14) : "rgba(255, 255, 255, 0.96)",
+        stroke: isActive ? edgeVisual.stroke : hexToRgba(edgeVisual.stroke, 0.2),
+        strokeWidth: 1
       },
       labelStyle: {
-        fill: isActive ? aiWebComponentTokens.colorAccentStrong : aiWebComponentTokens.colorTextSubtle,
+        fill: isActive ? edgeVisual.stroke : aiWebComponentTokens.colorTextSubtle,
         fontSize: 11,
         fontWeight: 700
       },
       markerEnd: {
-        color: isActive ? aiWebComponentTokens.colorAccent : aiWebComponentTokens.colorBorderStrong,
+        color: isActive ? edgeVisual.stroke : hexToRgba(edgeVisual.stroke, 0.72),
         type: MarkerType.ArrowClosed
       },
       source: edge.sourceId,
       style: {
-        stroke: isActive ? aiWebComponentTokens.colorAccent : aiWebComponentTokens.colorBorderStrong,
-        strokeWidth: isActive ? 2.2 : 1.6
+        stroke: isActive ? edgeVisual.stroke : hexToRgba(edgeVisual.stroke, 0.78),
+        strokeDasharray: edgeVisual.dashArray,
+        strokeWidth: isActive ? 2.6 : 1.8
       },
       target: edge.targetId,
       type: "smoothstep"
@@ -605,8 +746,7 @@ function buildFlowEdges(
 
 function createKnowledgeGraphLayout(
   nodes: KnowledgeNode[],
-  edges: ResolvedKnowledgeEdge[],
-  activeNodeId: string | undefined
+  edges: ResolvedKnowledgeEdge[]
 ): Map<string, { x: number; y: number }> {
   const nodeOrder = new Map(nodes.map((node, index) => [node.id, index]));
 
@@ -615,16 +755,19 @@ function createKnowledgeGraphLayout(
   }
 
   const seededPositions = edges.length === 0
-    ? createCategorySeedLayout(nodes, nodeOrder, activeNodeId)
-    : createLayeredSeedLayout(nodes, edges, nodeOrder, activeNodeId);
+    ? createCategorySeedLayout(nodes, nodeOrder)
+    : createLayeredSeedLayout(nodes, edges, nodeOrder);
+
+  if (nodes.length > knowledgeRelaxationLimit) {
+    return normalizeLayoutPositions(nodes, seededPositions);
+  }
 
   return relaxKnowledgeGraphLayout(nodes, edges, seededPositions);
 }
 
 function createCategorySeedLayout(
   nodes: KnowledgeNode[],
-  nodeOrder: Map<string, number>,
-  activeNodeId: string | undefined
+  nodeOrder: Map<string, number>
 ): Map<string, { x: number; y: number }> {
   const positions = new Map<string, { x: number; y: number }>();
   const nodesByCategory = new Map<string, KnowledgeNode[]>();
@@ -639,7 +782,7 @@ function createCategorySeedLayout(
     const categoryOffset = getCenteredColumnOffset(categoryNodes.length);
     categoryNodes
       .slice()
-      .sort((left, right) => compareNodeOrder(left, right, nodeOrder, activeNodeId))
+      .sort((left, right) => compareNodeOrder(left, right, nodeOrder))
       .forEach((node, rowIndex) => {
         positions.set(node.id, {
           x: columnIndex * knowledgeLayerXGap,
@@ -654,8 +797,7 @@ function createCategorySeedLayout(
 function createLayeredSeedLayout(
   nodes: KnowledgeNode[],
   edges: ResolvedKnowledgeEdge[],
-  nodeOrder: Map<string, number>,
-  activeNodeId: string | undefined
+  nodeOrder: Map<string, number>
 ): Map<string, { x: number; y: number }> {
   const positions = new Map<string, { x: number; y: number }>();
   const adjacency = new Map<string, string[]>();
@@ -673,7 +815,7 @@ function createLayeredSeedLayout(
 
   const queue = nodes
     .filter((node) => (indegree.get(node.id) ?? 0) === 0)
-    .sort((left, right) => compareNodeOrder(left, right, nodeOrder, activeNodeId))
+    .sort((left, right) => compareNodeOrder(left, right, nodeOrder))
     .map((node) => node.id);
   const depths = new Map<string, number>(queue.map((nodeId) => [nodeId, 0]));
 
@@ -700,8 +842,8 @@ function createLayeredSeedLayout(
 
   for (const node of nodes) {
     if (!depths.has(node.id)) {
-      depths.set(node.id, node.id === activeNodeId ? 0 : fallbackDepth);
-      fallbackDepth += node.id === activeNodeId ? 0 : 1;
+      depths.set(node.id, fallbackDepth);
+      fallbackDepth += 1;
     }
   }
 
@@ -720,7 +862,7 @@ function createLayeredSeedLayout(
       const layerOffset = getCenteredColumnOffset(layerNodes.length);
       layerNodes
         .slice()
-        .sort((left, right) => compareNodeOrder(left, right, nodeOrder, activeNodeId))
+        .sort((left, right) => compareNodeOrder(left, right, nodeOrder))
         .forEach((node, rowIndex) => {
           positions.set(node.id, {
             x: layer * knowledgeLayerXGap,
@@ -728,6 +870,31 @@ function createLayeredSeedLayout(
           });
         });
     });
+
+  return positions;
+}
+
+function normalizeLayoutPositions(
+  nodes: KnowledgeNode[],
+  seededPositions: Map<string, { x: number; y: number }>
+): Map<string, { x: number; y: number }> {
+  const positions = new Map<string, { x: number; y: number }>();
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+
+  for (const node of nodes) {
+    const current = seededPositions.get(node.id) ?? { x: 0, y: 0 };
+    minX = Math.min(minX, current.x);
+    minY = Math.min(minY, current.y);
+  }
+
+  for (const node of nodes) {
+    const current = seededPositions.get(node.id) ?? { x: 0, y: 0 };
+    positions.set(node.id, {
+      x: current.x - minX + knowledgeLayoutPadding,
+      y: current.y - minY + knowledgeLayoutPadding
+    });
+  }
 
   return positions;
 }
@@ -759,13 +926,13 @@ function relaxKnowledgeGraphLayout(
     });
   });
 
-  const iterations = Math.min(260, Math.max(150, nodes.length * 6));
-  const spring = 0.018;
-  const repulsion = Math.max(14000, nodes.length * 520);
+  const iterations = Math.min(170, Math.max(96, nodes.length * 4));
+  const spring = 0.016;
+  const repulsion = Math.max(9000, nodes.length * 380);
   const centering = 0.012;
   const damping = 0.84;
-  const collisionDistance = knowledgeNodeSize + knowledgeCollisionPadding;
-  const idealLength = knowledgeLayerXGap * 0.72;
+  const collisionDistance = Math.max(knowledgeNodeWidth, knowledgeNodeHeight) + knowledgeCollisionPadding;
+  const idealLength = knowledgeLayerXGap * 0.7;
 
   for (let iteration = 0; iteration < iterations; iteration += 1) {
     const cooling = 1 - iteration / iterations;
@@ -803,7 +970,7 @@ function relaxKnowledgeGraphLayout(
         b.vy += ny * force;
 
         if (dist < collisionDistance) {
-          const overlap = ((collisionDistance - dist) / collisionDistance) * 12;
+          const overlap = ((collisionDistance - dist) / collisionDistance) * 10;
           a.vx -= nx * overlap;
           a.vy -= ny * overlap;
           b.vx += nx * overlap;
@@ -842,7 +1009,7 @@ function relaxKnowledgeGraphLayout(
       }
 
       current.vx += (current.anchorX - current.x) * centering;
-      current.vy += (current.anchorY - current.y) * (centering * 0.65);
+      current.vy += (current.anchorY - current.y) * (centering * 0.68);
       current.vx *= damping;
       current.vy *= damping;
       current.x += current.vx;
@@ -900,20 +1067,31 @@ function findNodeLabel(nodes: KnowledgeNode[], nodeId: string) {
   return nodes.find((node) => node.id === nodeId)?.label ?? nodeId;
 }
 
+function compactLabel(label: string) {
+  return label.length > 8 ? `${label.slice(0, 8)}…` : label;
+}
+
+function hexToRgba(hex: string, alpha: number) {
+  const normalized = hex.replace("#", "");
+  const safe = normalized.length === 3
+    ? normalized.split("").map((item) => `${item}${item}`).join("")
+    : normalized;
+
+  if (safe.length !== 6) {
+    return `rgba(85, 90, 255, ${alpha})`;
+  }
+
+  const red = Number.parseInt(safe.slice(0, 2), 16);
+  const green = Number.parseInt(safe.slice(2, 4), 16);
+  const blue = Number.parseInt(safe.slice(4, 6), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
 function compareNodeOrder(
   left: KnowledgeNode,
   right: KnowledgeNode,
-  nodeOrder: Map<string, number>,
-  activeNodeId: string | undefined
+  nodeOrder: Map<string, number>
 ) {
-  if (left.id === activeNodeId) {
-    return -1;
-  }
-
-  if (right.id === activeNodeId) {
-    return 1;
-  }
-
   return (nodeOrder.get(left.id) ?? 0) - (nodeOrder.get(right.id) ?? 0);
 }
 
@@ -923,4 +1101,153 @@ const hiddenHandleStyle = {
   height: 10,
   opacity: 0,
   width: 10
+} satisfies CSSProperties;
+
+const summaryCardStyle = {
+  background: "rgba(255, 255, 255, 0.94)",
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  borderLeft: `3px solid ${aiWebComponentTokens.colorAccent}`,
+  borderRadius: 16,
+  lineHeight: 1.65,
+  padding: "16px 18px"
+} satisfies CSSProperties;
+
+const graphOnlySurfaceStyle = {
+  background: aiWebComponentTokens.colorSurface,
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  borderRadius: 20,
+  overflow: "hidden",
+  position: "relative"
+} satisfies CSSProperties;
+
+const graphCanvasShellStyle = {
+  background: "linear-gradient(180deg, rgba(247, 248, 255, 0.98) 0%, rgba(255, 255, 255, 0.98) 100%)",
+  height: "clamp(560px, 76vh, 860px)",
+  minHeight: 520,
+  overflow: "hidden",
+  position: "relative"
+} satisfies CSSProperties;
+
+const graphCanvasViewportStyle = {
+  inset: 0,
+  position: "absolute"
+} satisfies CSSProperties;
+
+const graphCanvasOverlayTopStyle = {
+  alignItems: "start",
+  display: "flex",
+  gap: 12,
+  justifyContent: "space-between",
+  left: 16,
+  pointerEvents: "none",
+  position: "absolute",
+  right: 16,
+  top: 16,
+  zIndex: 5
+} satisfies CSSProperties;
+
+const graphCanvasOverviewCardStyle = {
+  backdropFilter: "blur(10px)",
+  background: "rgba(255, 255, 255, 0.88)",
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  borderRadius: 20,
+  boxShadow: aiWebComponentTokens.shadowSoft,
+  display: "grid",
+  gap: 10,
+  maxWidth: 360,
+  padding: "14px 16px",
+  pointerEvents: "auto"
+} satisfies CSSProperties;
+
+const graphCanvasGuideCardStyle = {
+  alignItems: "center",
+  backdropFilter: "blur(10px)",
+  background: "rgba(255, 255, 255, 0.84)",
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  borderRadius: aiWebComponentTokens.radiusPill,
+  boxShadow: aiWebComponentTokens.shadowSoft,
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 8,
+  justifyContent: "flex-end",
+  padding: "10px 12px",
+  pointerEvents: "auto"
+} satisfies CSSProperties;
+
+const graphCanvasOverlayBottomStyle = {
+  bottom: 16,
+  display: "grid",
+  gap: 12,
+  left: 16,
+  maxWidth: 560,
+  pointerEvents: "none",
+  position: "absolute",
+  zIndex: 5
+} satisfies CSSProperties;
+
+const graphFocusCardStyle = {
+  backdropFilter: "blur(10px)",
+  background: "rgba(255, 255, 255, 0.9)",
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  borderRadius: 20,
+  boxShadow: aiWebComponentTokens.shadowSoft,
+  display: "grid",
+  gap: 10,
+  padding: "14px 16px",
+  pointerEvents: "auto"
+} satisfies CSSProperties;
+
+const graphRelationsStripStyle = {
+  backdropFilter: "blur(10px)",
+  background: "rgba(255, 255, 255, 0.84)",
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  borderRadius: 18,
+  boxShadow: aiWebComponentTokens.shadowSoft,
+  display: "grid",
+  gap: 10,
+  padding: "12px 14px",
+  pointerEvents: "auto"
+} satisfies CSSProperties;
+
+function graphRelationChipStyle(stroke: string): CSSProperties {
+  return {
+    background: hexToRgba(stroke, 0.1),
+    border: `1px solid ${hexToRgba(stroke, 0.18)}`,
+    borderRadius: aiWebComponentTokens.radiusPill,
+    color: aiWebComponentTokens.colorTextSubtle,
+    display: "inline-flex",
+    fontSize: 12,
+    fontWeight: 500,
+    lineHeight: 1.45,
+    padding: "6px 10px"
+  };
+}
+
+const miniMapStyle = {
+  background: "rgba(255, 255, 255, 0.92)",
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  borderRadius: 16,
+  boxShadow: aiWebComponentTokens.shadowSoft
+} satisfies CSSProperties;
+
+const graphControlsStyle = {
+  background: "rgba(255, 255, 255, 0.94)",
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  borderRadius: 14,
+  boxShadow: aiWebComponentTokens.shadowSoft
+} satisfies CSSProperties;
+
+const sideCardStyle = {
+  background: aiWebComponentTokens.colorSurface,
+  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  borderRadius: 18,
+  display: "grid",
+  overflow: "hidden"
+} satisfies CSSProperties;
+
+const sideCardHeaderStyle = {
+  ...sectionLabelStyle,
+  borderBottom: `1px solid ${aiWebComponentTokens.colorBorder}`,
+  color: aiWebComponentTokens.colorMuted,
+  padding: "12px 16px"
 } satisfies CSSProperties;

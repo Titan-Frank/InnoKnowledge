@@ -3,6 +3,11 @@ import { useGraphStore, toggleType, resetTypes } from '../store/graphStore.js';
 import { getTypeLabel } from '../graph/layout.js';
 import { getVisibleNodes } from '../graph/visibility.js';
 import { ActionButton, ToneBadge, aiWebComponentTokens } from './aiwc/index.js';
+import {
+  workspaceSectionHeaderStyle,
+  workspaceSectionStyle,
+  workspaceSectionTitleStyle,
+} from './workspaceStyles.js';
 
 export function TypeFilterSection() {
   const data = useGraphStore((s) => s.data);
@@ -26,9 +31,9 @@ export function TypeFilterSection() {
   if (!data) return null;
 
   return (
-    <div style={sectionStyle}>
-      <div style={sectionHeadStyle}>
-        <h2 style={sectionTitleStyle}>节点类型</h2>
+    <div style={workspaceSectionStyle}>
+      <div style={workspaceSectionHeaderStyle}>
+        <h2 style={workspaceSectionTitleStyle}>节点类型</h2>
         <ActionButton variant="ghost" onClick={resetTypes}>重置</ActionButton>
       </div>
       <div style={chipGridStyle}>
@@ -56,25 +61,6 @@ export function TypeFilterSection() {
     </div>
   );
 }
-
-const sectionStyle: CSSProperties = {
-  padding: '16px 16px 12px',
-  borderTop: `1px solid ${aiWebComponentTokens.colorBorder}`,
-};
-
-const sectionHeadStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 8,
-  marginBottom: 12,
-};
-
-const sectionTitleStyle: CSSProperties = {
-  margin: 0,
-  fontSize: '1.06rem',
-  fontWeight: 600,
-};
 
 const chipGridStyle: CSSProperties = {
   display: 'flex',

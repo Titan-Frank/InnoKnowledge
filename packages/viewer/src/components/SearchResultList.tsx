@@ -6,6 +6,12 @@ import { NODE_LAYER_LABELS } from '../constants/index.js';
 import { humanizeKey } from '../graph/layout.js';
 import { SessionListPanel } from './aiwc/index.js';
 import type { SessionListItem } from './aiwc/index.js';
+import {
+  workspaceSectionHeaderStyle,
+  workspaceSectionNoteStyle,
+  workspaceSectionStyle,
+  workspaceSectionTitleStyle,
+} from './workspaceStyles.js';
 
 export function SearchResultList() {
   const searchTerm = useGraphStore((s) => s.searchTerm);
@@ -28,13 +34,19 @@ export function SearchResultList() {
   }));
 
   return (
-    <SessionListPanel
-      title="搜索结果"
-      hideHeader
-      items={items}
-      activeItemId={selectedNodeId ?? undefined}
-      emptyState="当前筛选下没有匹配结果，可以放宽类型筛选或切换来源范围。"
-      onSelect={(item) => selectNode(item.id, true)}
-    />
+    <div style={workspaceSectionStyle}>
+      <div style={workspaceSectionHeaderStyle}>
+        <h2 style={workspaceSectionTitleStyle}>搜索结果</h2>
+        <span style={workspaceSectionNoteStyle}>{items.length} 条匹配</span>
+      </div>
+      <SessionListPanel
+        title="搜索结果"
+        hideHeader
+        items={items}
+        activeItemId={selectedNodeId ?? undefined}
+        emptyState="当前筛选下没有匹配结果，可以放宽类型筛选或切换来源范围。"
+        onSelect={(item) => selectNode(item.id, true)}
+      />
+    </div>
   );
 }

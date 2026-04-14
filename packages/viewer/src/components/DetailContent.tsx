@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import type { GraphNode } from '../store/types.js';
 import { DetailHeader } from './DetailHeader.js';
 import { DetailDescription } from './DetailDescription.js';
@@ -11,6 +10,7 @@ import { DetailNodeCard } from './DetailNodeCard.js';
 import { DetailRelations } from './DetailRelations.js';
 import { DetailMentions } from './DetailMentions.js';
 import { DetailEvidence } from './DetailEvidence.js';
+import { workspacePanelContentStyle } from './workspaceStyles.js';
 
 interface Props {
   node: GraphNode;
@@ -18,7 +18,7 @@ interface Props {
 
 export function DetailContent({ node }: Props) {
   return (
-    <div style={contentStyle}>
+    <div style={workspacePanelContentStyle}>
       <DetailHeader node={node} />
       <DetailDescription node={node} />
       <DetailKnowledgeAxes node={node} />
@@ -33,7 +33,3 @@ export function DetailContent({ node }: Props) {
     </div>
   );
 }
-
-const contentStyle: CSSProperties = {
-  padding: '16px 16px 12px',
-};

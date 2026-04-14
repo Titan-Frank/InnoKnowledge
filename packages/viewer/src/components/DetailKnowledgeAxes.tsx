@@ -2,7 +2,13 @@ import type { CSSProperties } from 'react';
 import type { GraphNode } from '../store/types.js';
 import { getTypeLabel, humanizeKey } from '../graph/layout.js';
 import { LEARNING_MODE_LABELS, BRIDGE_TAG_LABELS } from '../constants/index.js';
-import { ToneBadge, aiWebComponentTokens } from './aiwc/index.js';
+import { ToneBadge } from './aiwc/index.js';
+import {
+  detailBodyTextStyle,
+  detailSectionStyle,
+  detailSectionTitleStyle,
+  detailSubcardStyle,
+} from './workspaceStyles.js';
 
 interface Props {
   node: GraphNode;
@@ -31,13 +37,13 @@ export function DetailKnowledgeAxes({ node }: Props) {
   ];
 
   return (
-    <div style={blockStyle}>
-      <h3 style={blockTitleStyle}>知识轴</h3>
+    <div style={detailSectionStyle}>
+      <h3 style={detailSectionTitleStyle}>知识轴</h3>
       <div style={listStyle}>
         {sections.map((section) => (
-          <div style={groupStyle} key={section.title}>
+          <div style={detailSubcardStyle} key={section.title}>
             <h4 style={groupTitleStyle}>{section.title}</h4>
-            <p style={groupDescStyle}>{section.summary}</p>
+            <p style={detailBodyTextStyle}>{section.summary}</p>
             {section.chips.length > 0 ? (
               <div style={chipsStyle}>
                 {section.chips.map((chip) => (
@@ -45,7 +51,7 @@ export function DetailKnowledgeAxes({ node }: Props) {
                 ))}
               </div>
             ) : (
-              <p style={groupDescStyle}>当前数据源里还没有这部分信息。</p>
+              <p style={detailBodyTextStyle}>当前数据源里还没有这部分信息。</p>
             )}
           </div>
         ))}
@@ -54,27 +60,9 @@ export function DetailKnowledgeAxes({ node }: Props) {
   );
 }
 
-const blockStyle: CSSProperties = {
-  marginTop: 16,
-};
-
-const blockTitleStyle: CSSProperties = {
-  margin: 0,
-  fontSize: '1.06rem',
-  fontWeight: 600,
-};
-
 const listStyle: CSSProperties = {
   display: 'grid',
   gap: 8,
-  marginTop: 8,
-};
-
-const groupStyle: CSSProperties = {
-  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  borderRadius: aiWebComponentTokens.radiusSmall,
-  background: aiWebComponentTokens.colorSurface,
-  padding: 12,
 };
 
 const groupTitleStyle: CSSProperties = {
@@ -83,16 +71,8 @@ const groupTitleStyle: CSSProperties = {
   fontWeight: 600,
 };
 
-const groupDescStyle: CSSProperties = {
-  margin: 0,
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.88rem',
-  lineHeight: 1.6,
-};
-
 const chipsStyle: CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: 8,
-  marginTop: 8,
 };

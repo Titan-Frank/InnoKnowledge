@@ -43,6 +43,7 @@ export function useKnowledgeGraphData() {
       id: node.id,
       label: node.name,
       category: node.node_type,
+      nodeLayer: node.node_layer,
       description: node.description,
       meta: `${node.degree} 条关联 · ${NODE_LAYER_LABELS[node.node_layer] ?? ''}`,
       badge: getTypeLabel(node.node_type),
@@ -53,6 +54,7 @@ export function useKnowledgeGraphData() {
       source: edge.from,
       target: edge.to,
       label: edge.edge_type,
+      edgeType: edge.edge_type,
       description: (edge.properties as Record<string, unknown>)?.relation as string || undefined,
     }));
 
