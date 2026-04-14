@@ -4,7 +4,6 @@ import { TopBar } from './TopBar.js';
 import { Sidebar } from './Sidebar.js';
 import { GraphStage } from './GraphStage.js';
 import { DetailPanel } from './DetailPanel.js';
-import { aiWebComponentTokens } from './aiwc/index.js';
 
 export function AppShell() {
   const data = useGraphStore((s) => s.data);
@@ -12,7 +11,7 @@ export function AppShell() {
 
   if (!data && !sourceLoading) {
     return (
-      <div style={{ ...shellStyle, padding: 64, textAlign: 'center', color: aiWebComponentTokens.colorMuted }}>
+      <div style={{ ...shellStyle, padding: 64, textAlign: 'center', color: '#5a5a70' }}>
         <p>正在连接数据源...</p>
       </div>
     );
@@ -20,7 +19,7 @@ export function AppShell() {
 
   if (!data) {
     return (
-      <div style={{ ...shellStyle, padding: 64, textAlign: 'center', color: aiWebComponentTokens.colorMuted }}>
+      <div style={{ ...shellStyle, padding: 64, textAlign: 'center', color: '#5a5a70' }}>
         <p>数据加载中...</p>
       </div>
     );
@@ -49,6 +48,7 @@ const shellStyle: CSSProperties = {
 const workspaceStyle: CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'minmax(280px, 320px) minmax(0, 1fr) minmax(310px, 360px)',
+  gridTemplateRows: '1fr',
   gap: 16,
-  alignItems: 'start',
+  alignItems: 'stretch',
 };

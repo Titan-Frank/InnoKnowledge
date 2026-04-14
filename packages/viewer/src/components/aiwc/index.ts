@@ -1,7 +1,5 @@
 export { ActionButton } from "./ActionButton";
 export type { ActionButtonProps } from "./ActionButton";
-export { KnowledgeGraphPanel } from "./KnowledgeGraphPanel";
-export type { KnowledgeEdge, KnowledgeGraphPanelProps, KnowledgeNode } from "./KnowledgeGraphPanel";
 export { SegmentedControl } from "./SegmentedControl";
 export type { SegmentedControlItem, SegmentedControlProps } from "./SegmentedControl";
 export { SessionListPanel } from "./SessionListPanel";

@@ -56,7 +56,7 @@ export function resolveEdgeVisual(edgeType: string): EdgeVisual {
   }
 
   return {
-    stroke: 'rgba(10, 10, 40, 0.36)',
+    stroke: 'rgba(90, 90, 112, 0.5)',
     labelTone: 'neutral',
     category: '一般关系',
   };
@@ -66,16 +66,16 @@ export function resolveNodeLayerVisual(nodeLayer: string | null | undefined) {
   if (nodeLayer === 'backbone') {
     return {
       label: '主干节点',
-      stroke: '#555AFF',
-      fill: 'rgba(238, 238, 255, 0.92)',
+      stroke: '#7c3aed',
+      fill: 'rgba(124, 58, 237, 0.18)',
       badgeTone: 'accent' as const,
     };
   }
 
   return {
     label: '支撑节点',
-    stroke: 'rgba(10, 10, 40, 0.26)',
-    fill: 'rgba(255, 255, 255, 0.82)',
+    stroke: 'rgba(42, 42, 58, 0.5)',
+    fill: 'rgba(16, 16, 24, 0.7)',
     badgeTone: 'neutral' as const,
   };
 }

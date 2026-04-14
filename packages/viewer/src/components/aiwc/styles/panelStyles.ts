@@ -27,17 +27,17 @@ const tonePalettes: Record<PanelTone, TonePalette> = {
   },
   success: {
     background: aiWebComponentTokens.colorSuccessSoft,
-    border: "#bde8d3",
+    border: "rgba(16, 185, 129, 0.3)",
     text: aiWebComponentTokens.colorSuccess
   },
   warning: {
     background: aiWebComponentTokens.colorWarningSoft,
-    border: "#f7de95",
-    text: "#b7791f"
+    border: "rgba(245, 158, 11, 0.3)",
+    text: "#f59e0b"
   },
   danger: {
     background: aiWebComponentTokens.colorDangerSoft,
-    border: "#f6c5d1",
+    border: "rgba(239, 68, 68, 0.3)",
     text: aiWebComponentTokens.colorDanger
   }
 };

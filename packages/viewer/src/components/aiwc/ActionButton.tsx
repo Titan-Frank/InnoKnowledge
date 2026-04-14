@@ -73,7 +73,7 @@ function resolveVariantStyle(
   if (variant === "danger") {
     return {
       background: aiWebComponentTokens.colorDangerSoft,
-      borderColor: "#f6c5d1",
+      borderColor: "rgba(239, 68, 68, 0.3)",
       color: aiWebComponentTokens.colorDanger
     };
   }

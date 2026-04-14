@@ -8,7 +8,7 @@ export const workspaceDockStyle = {
   overflow: 'auto',
   border: `1px solid ${aiWebComponentTokens.colorBorder}`,
   borderRadius: 20,
-  background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(247,248,255,0.96) 100%)',
+  background: 'linear-gradient(180deg, rgba(16,16,24,0.96) 0%, rgba(10,10,16,0.96) 100%)',
   boxShadow: aiWebComponentTokens.shadow,
   backdropFilter: 'blur(10px)',
 } satisfies CSSProperties;
@@ -20,7 +20,7 @@ export const workspacePanelContentStyle = {
 } satisfies CSSProperties;
 
 export const workspaceSectionStyle = {
-  background: 'rgba(255,255,255,0.92)',
+  background: 'rgba(22,22,31,0.92)',
   border: `1px solid ${aiWebComponentTokens.colorBorder}`,
   borderRadius: 18,
   boxShadow: aiWebComponentTokens.shadowSoft,
@@ -69,7 +69,7 @@ export const workspaceSelectLikeStyle = {
   color: aiWebComponentTokens.colorText,
   fontSize: '0.96rem',
   fontFamily: 'inherit',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.65)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
 } satisfies CSSProperties;
 
 export const workspaceHintStyle = {
@@ -89,7 +89,7 @@ export const workspaceToggleStyle = {
 } satisfies CSSProperties;
 
 export const detailSectionStyle = {
-  background: 'rgba(255,255,255,0.9)',
+  background: 'rgba(22,22,31,0.9)',
   border: `1px solid ${aiWebComponentTokens.colorBorder}`,
   borderRadius: 18,
   boxShadow: aiWebComponentTokens.shadowSoft,
@@ -120,7 +120,7 @@ export const detailSectionMetaStyle = {
 export const detailSubcardStyle = {
   border: `1px solid ${aiWebComponentTokens.colorBorder}`,
   borderRadius: 14,
-  background: 'rgba(247,248,255,0.78)',
+  background: 'rgba(16,16,24,0.78)',
   padding: 12,
 } satisfies CSSProperties;
 
