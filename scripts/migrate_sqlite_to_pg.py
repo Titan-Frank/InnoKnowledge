@@ -221,18 +221,35 @@ def migrate_table(
     col_list = ", ".join(f'"{c}"' for c in pg_columns)
     placeholders = ", ".join(["%s"] * len(pg_columns))
 
-    with pg_conn.cursor() as cur:
-        for i in range(0, len(converted), batch_size):
-            batch = converted[i : i + batch_size]
-            psycopg.extras.execute_values(
-                cur,
-                f'INSERT INTO {table} ({col_list}) VALUES %s ON CONFLICT DO NOTHING',
-                batch,
-                template=f"({placeholders})",
-            )
+    insert_sql = f'INSERT INTO {table} ({col_list}) VALUES ({placeholders}) ON CONFLICT DO NOTHING'
 
-    print(f"  {table}: {len(converted)} rows migrated")
-    return len(converted)
+    inserted = 0
+    skipped = 0
+    for row_tuple in converted:
+        # Serialize dict/list values (JSONB) to JSON strings for psycopg3
+        safe_row = []
+        for val in row_tuple:
+            if isinstance(val, dict) or isinstance(val, list):
+                safe_row.append(json.dumps(val, ensure_ascii=False))
+            else:
+                safe_row.append(val)
+        try:
+            with pg_conn.cursor() as cur:
+                cur.execute(insert_sql, safe_row)
+            pg_conn.commit()
+            inserted += 1
+        except Exception as e:
+            pg_conn.rollback()
+            skipped += 1
+            if skipped == 1:
+                print(f"    (skipping rows with FK violations: {e})")
+
+    if skipped:
+        print(f"  {table}: {inserted}/{len(converted)} rows migrated ({skipped} skipped)")
+    else:
+        print(f"  {table}: {inserted} rows migrated")
+
+    return inserted
 
 
 def rebuild_search_tables(pg_conn) -> None:
@@ -248,7 +265,7 @@ def verify_row_counts(
     import psycopg
 
     results = {}
-    with pg_conn.cursor() as cur:
+    with pg_conn.cursor(row_factory=psycopg.rows.tuple_row) as cur:
         for table in TABLE_ORDER:
             sqlite_count = sqlite_conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
             cur.execute(f"SELECT COUNT(*) FROM {table}")
@@ -282,9 +299,8 @@ def main() -> int:
 
     # Connect to PostgreSQL
     import psycopg
-    from psycopg.rows import dict_row
 
-    pg_conn = psycopg.connect(pg_url, row_factory=dict_row, autocommit=False)
+    pg_conn = psycopg.connect(pg_url, autocommit=False)
 
     # Check which tables exist in SQLite
     sqlite_tables = get_sqlite_tables(sqlite_conn)
