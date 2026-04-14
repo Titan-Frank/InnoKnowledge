@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useMemo, type CSSProperties, type ReactNode } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -69,6 +69,7 @@ export type KnowledgeGraphPanelProps = {
   summary?: ReactNode;
   headerActions?: ReactNode;
   activeNodeId?: string;
+  showLabels?: boolean;
   onSelectNode?: (node: KnowledgeNode) => void;
   onNodeDragStop?: (nodeId: string, position: { x: number; y: number }) => void;
 };
@@ -83,23 +84,27 @@ type KnowledgeFlowNodeData = {
   isActive: boolean;
   isInteractive: boolean;
   categoryColor: string;
+  showLabel: boolean;
 };
 
 type KnowledgeFlowCanvasNode = FlowNode<KnowledgeFlowNodeData, "knowledge">;
 type KnowledgeFlowCanvasEdge = FlowEdge<{ isActive: boolean }, "smoothstep">;
 
 const knowledgeNodeSize = 88;
-const knowledgeLayerXGap = 320;
-const knowledgeLayerYGap = 28;
+const knowledgeLayerXGap = 280;
+const knowledgeLayerYGap = 124;
+const knowledgeCollisionPadding = 34;
+const knowledgeLayoutPadding = 80;
 const knowledgeGraphNodeTypes = {
   knowledge: KnowledgeFlowNodeCard
 };
 
 function KnowledgeFlowNodeCard({ data }: NodeProps<KnowledgeFlowCanvasNode>) {
-  const { node, isActive, isInteractive, categoryColor } = data;
+  const { node, isActive, isInteractive, categoryColor, showLabel } = data;
 
   return (
     <div
+      title={node.label}
       style={{
         alignItems: "center",
         background: isActive ? aiWebComponentTokens.colorAccentSoft : `${categoryColor}18`,
@@ -136,10 +141,13 @@ function KnowledgeFlowNodeCard({ data }: NodeProps<KnowledgeFlowCanvasNode>) {
           fontSize: 11,
           fontWeight: 700,
           lineHeight: 1.3,
-          maxWidth: 54
+          maxWidth: 54,
+          opacity: showLabel ? 1 : 0,
+          transform: showLabel ? "scale(1)" : "scale(0.92)",
+          transition: "opacity 120ms ease, transform 120ms ease"
         }}
       >
-        {node.label}
+        {showLabel ? node.label : "\u00A0"}
       </strong>
     </div>
   );
@@ -167,6 +175,7 @@ export function KnowledgeGraphPanel({
   summary,
   headerActions,
   activeNodeId,
+  showLabels = true,
   onSelectNode,
   onNodeDragStop
 }: KnowledgeGraphPanelProps) {
@@ -199,13 +208,34 @@ export function KnowledgeGraphPanel({
     unresolvedEdges.push(edge);
   }
 
-  const activeNode =
-    nodes.find((node) => node.id === activeNodeId) ??
-    nodes.find((node) => node.id === resolvedEdges[0]?.sourceId) ??
-    nodes[0];
+  const activeNode = useMemo(
+    () =>
+      nodes.find((node) => node.id === activeNodeId) ??
+      nodes.find((node) => node.id === resolvedEdges[0]?.sourceId) ??
+      nodes[0],
+    [activeNodeId, nodes, resolvedEdges]
+  );
   const activeNodeIdResolved = activeNode?.id;
-  const flowNodes = buildFlowNodes(nodes, resolvedEdges, activeNodeIdResolved, Boolean(onSelectNode), draggedPositions);
-  const flowEdges = buildFlowEdges(resolvedEdges, activeNodeIdResolved);
+  const layout = useMemo(
+    () => createKnowledgeGraphLayout(nodes, resolvedEdges, activeNodeIdResolved),
+    [nodes, resolvedEdges, activeNodeIdResolved]
+  );
+  const flowNodes = useMemo(
+    () =>
+      buildFlowNodes(
+        nodes,
+        activeNodeIdResolved,
+        Boolean(onSelectNode),
+        showLabels,
+        layout,
+        draggedPositions
+      ),
+    [nodes, activeNodeIdResolved, onSelectNode, showLabels, layout, draggedPositions]
+  );
+  const flowEdges = useMemo(
+    () => buildFlowEdges(resolvedEdges, activeNodeIdResolved, showLabels),
+    [resolvedEdges, activeNodeIdResolved, showLabels]
+  );
   const relatedEdges = activeNodeIdResolved
     ? resolvedEdges.filter(
         (edge) => edge.sourceId === activeNodeIdResolved || edge.targetId === activeNodeIdResolved
@@ -216,21 +246,22 @@ export function KnowledgeGraphPanel({
     <div
       style={{
         background: "linear-gradient(180deg, rgba(244, 246, 255, 0.88) 0%, rgba(255, 255, 255, 0.98) 100%)",
-        height: hideSidebar ? "calc(74vh - 60px)" : 440,
-        minHeight: 440
+        height: hideSidebar ? "clamp(520px, 74vh, 820px)" : 440,
+        minHeight: 480
       }}
     >
       <ReactFlow
         edges={flowEdges}
         elementsSelectable={Boolean(onSelectNode)}
         fitView
-        fitViewOptions={{ maxZoom: 1.12, padding: 0.22 }}
+        fitViewOptions={{ maxZoom: 1.08, padding: 0.18 }}
         maxZoom={1.3}
         minZoom={0.55}
         nodeTypes={knowledgeGraphNodeTypes}
         nodes={flowNodes}
         nodesConnectable={false}
         nodesDraggable={true}
+        onlyRenderVisibleElements
         onNodeClick={(_, node) => {
           onSelectNode?.(node.data.node);
         }}
@@ -500,14 +531,12 @@ export function KnowledgeGraphPanel({
 
 function buildFlowNodes(
   nodes: KnowledgeNode[],
-  edges: ResolvedKnowledgeEdge[],
   activeNodeId: string | undefined,
   interactive: boolean,
+  showLabels: boolean,
+  layout: Map<string, { x: number; y: number }>,
   draggedPositions?: Map<string, { x: number; y: number }>
 ): KnowledgeFlowCanvasNode[] {
-  // Always compute topological layout, then override with dragged positions
-  const layout = createKnowledgeGraphLayout(nodes, edges, activeNodeId);
-
   return nodes.map((node) => {
     const categoryColor = TYPE_META[node.category]?.color ?? TYPE_META.other.color;
     const position = draggedPositions?.get(node.id) ?? layout.get(node.id) ?? { x: 0, y: 0 };
@@ -518,7 +547,8 @@ function buildFlowNodes(
         node,
         isActive: node.id === activeNodeId,
         isInteractive: interactive,
-        categoryColor
+        categoryColor,
+        showLabel: showLabels
       },
       position,
       style: {
@@ -535,17 +565,19 @@ function buildFlowNodes(
 
 function buildFlowEdges(
   edges: ResolvedKnowledgeEdge[],
-  activeNodeId: string | undefined
+  activeNodeId: string | undefined,
+  showLabels: boolean
 ): KnowledgeFlowCanvasEdge[] {
   return edges.map((edge) => {
     const isActive = activeNodeId
       ? edge.sourceId === activeNodeId || edge.targetId === activeNodeId
       : false;
+    const shouldShowLabel = showLabels && (edges.length <= 18 || isActive);
 
     return {
       animated: isActive,
       id: edge.id,
-      label: edge.label,
+      label: shouldShowLabel ? edge.label : undefined,
       labelBgBorderRadius: 8,
       labelBgPadding: [6, 4],
       labelBgStyle: {
@@ -576,33 +608,56 @@ function createKnowledgeGraphLayout(
   edges: ResolvedKnowledgeEdge[],
   activeNodeId: string | undefined
 ): Map<string, { x: number; y: number }> {
-  const positions = new Map<string, { x: number; y: number }>();
   const nodeOrder = new Map(nodes.map((node, index) => [node.id, index]));
 
-  if (edges.length === 0) {
-    const nodesByCategory = new Map<string, KnowledgeNode[]>();
-
-    for (const node of nodes) {
-      const categoryNodes = nodesByCategory.get(node.category) ?? [];
-      categoryNodes.push(node);
-      nodesByCategory.set(node.category, categoryNodes);
-    }
-
-    Array.from(nodesByCategory.entries()).forEach(([_, categoryNodes], columnIndex) => {
-      categoryNodes
-        .slice()
-        .sort((left, right) => compareNodeOrder(left, right, nodeOrder, activeNodeId))
-        .forEach((node, rowIndex) => {
-          positions.set(node.id, {
-            x: columnIndex * knowledgeLayerXGap,
-            y: rowIndex * (knowledgeNodeSize + knowledgeLayerYGap)
-          });
-        });
-    });
-
-    return positions;
+  if (nodes.length === 0) {
+    return new Map();
   }
 
+  const seededPositions = edges.length === 0
+    ? createCategorySeedLayout(nodes, nodeOrder, activeNodeId)
+    : createLayeredSeedLayout(nodes, edges, nodeOrder, activeNodeId);
+
+  return relaxKnowledgeGraphLayout(nodes, edges, seededPositions);
+}
+
+function createCategorySeedLayout(
+  nodes: KnowledgeNode[],
+  nodeOrder: Map<string, number>,
+  activeNodeId: string | undefined
+): Map<string, { x: number; y: number }> {
+  const positions = new Map<string, { x: number; y: number }>();
+  const nodesByCategory = new Map<string, KnowledgeNode[]>();
+
+  for (const node of nodes) {
+    const categoryNodes = nodesByCategory.get(node.category) ?? [];
+    categoryNodes.push(node);
+    nodesByCategory.set(node.category, categoryNodes);
+  }
+
+  Array.from(nodesByCategory.entries()).forEach(([_, categoryNodes], columnIndex) => {
+    const categoryOffset = getCenteredColumnOffset(categoryNodes.length);
+    categoryNodes
+      .slice()
+      .sort((left, right) => compareNodeOrder(left, right, nodeOrder, activeNodeId))
+      .forEach((node, rowIndex) => {
+        positions.set(node.id, {
+          x: columnIndex * knowledgeLayerXGap,
+          y: categoryOffset + rowIndex * knowledgeLayerYGap
+        });
+      });
+  });
+
+  return positions;
+}
+
+function createLayeredSeedLayout(
+  nodes: KnowledgeNode[],
+  edges: ResolvedKnowledgeEdge[],
+  nodeOrder: Map<string, number>,
+  activeNodeId: string | undefined
+): Map<string, { x: number; y: number }> {
+  const positions = new Map<string, { x: number; y: number }>();
   const adjacency = new Map<string, string[]>();
   const indegree = new Map<string, number>();
 
@@ -662,18 +717,171 @@ function createKnowledgeGraphLayout(
   Array.from(layers.entries())
     .sort(([leftLayer], [rightLayer]) => leftLayer - rightLayer)
     .forEach(([layer, layerNodes]) => {
+      const layerOffset = getCenteredColumnOffset(layerNodes.length);
       layerNodes
         .slice()
         .sort((left, right) => compareNodeOrder(left, right, nodeOrder, activeNodeId))
         .forEach((node, rowIndex) => {
           positions.set(node.id, {
             x: layer * knowledgeLayerXGap,
-            y: rowIndex * (knowledgeNodeSize + knowledgeLayerYGap)
+            y: layerOffset + rowIndex * knowledgeLayerYGap
           });
         });
     });
 
   return positions;
+}
+
+function relaxKnowledgeGraphLayout(
+  nodes: KnowledgeNode[],
+  edges: ResolvedKnowledgeEdge[],
+  seededPositions: Map<string, { x: number; y: number }>
+): Map<string, { x: number; y: number }> {
+  const positions = new Map<string, { x: number; y: number }>();
+  const state = new Map<
+    string,
+    { x: number; y: number; vx: number; vy: number; anchorX: number; anchorY: number }
+  >();
+
+  nodes.forEach((node, index) => {
+    const seeded = seededPositions.get(node.id) ?? {
+      x: (index % 4) * knowledgeLayerXGap,
+      y: Math.floor(index / 4) * knowledgeLayerYGap
+    };
+
+    state.set(node.id, {
+      x: seeded.x,
+      y: seeded.y,
+      vx: 0,
+      vy: 0,
+      anchorX: seeded.x,
+      anchorY: seeded.y
+    });
+  });
+
+  const iterations = Math.min(260, Math.max(150, nodes.length * 6));
+  const spring = 0.018;
+  const repulsion = Math.max(14000, nodes.length * 520);
+  const centering = 0.012;
+  const damping = 0.84;
+  const collisionDistance = knowledgeNodeSize + knowledgeCollisionPadding;
+  const idealLength = knowledgeLayerXGap * 0.72;
+
+  for (let iteration = 0; iteration < iterations; iteration += 1) {
+    const cooling = 1 - iteration / iterations;
+
+    for (let i = 0; i < nodes.length; i += 1) {
+      const a = state.get(nodes[i].id);
+      if (!a) {
+        continue;
+      }
+
+      for (let j = i + 1; j < nodes.length; j += 1) {
+        const b = state.get(nodes[j].id);
+        if (!b) {
+          continue;
+        }
+
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        let distSq = dx * dx + dy * dy;
+
+        if (distSq < 1) {
+          dx = 0.5;
+          dy = 0.5;
+          distSq = 0.5;
+        }
+
+        const dist = Math.sqrt(distSq);
+        const nx = dx / dist;
+        const ny = dy / dist;
+        const force = (repulsion * cooling) / distSq;
+
+        a.vx -= nx * force;
+        a.vy -= ny * force;
+        b.vx += nx * force;
+        b.vy += ny * force;
+
+        if (dist < collisionDistance) {
+          const overlap = ((collisionDistance - dist) / collisionDistance) * 12;
+          a.vx -= nx * overlap;
+          a.vy -= ny * overlap;
+          b.vx += nx * overlap;
+          b.vy += ny * overlap;
+        }
+      }
+    }
+
+    for (const edge of edges) {
+      const source = state.get(edge.sourceId);
+      const target = state.get(edge.targetId);
+
+      if (!source || !target) {
+        continue;
+      }
+
+      const dx = target.x - source.x;
+      const dy = target.y - source.y;
+      const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+      const nx = dx / dist;
+      const ny = dy / dist;
+      const delta = dist - idealLength;
+      const force = delta * spring;
+
+      source.vx += nx * force;
+      source.vy += ny * force;
+      target.vx -= nx * force;
+      target.vy -= ny * force;
+    }
+
+    for (const node of nodes) {
+      const current = state.get(node.id);
+
+      if (!current) {
+        continue;
+      }
+
+      current.vx += (current.anchorX - current.x) * centering;
+      current.vy += (current.anchorY - current.y) * (centering * 0.65);
+      current.vx *= damping;
+      current.vy *= damping;
+      current.x += current.vx;
+      current.y += current.vy;
+    }
+  }
+
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+
+  nodes.forEach((node) => {
+    const current = state.get(node.id);
+
+    if (!current) {
+      return;
+    }
+
+    minX = Math.min(minX, current.x);
+    minY = Math.min(minY, current.y);
+  });
+
+  nodes.forEach((node) => {
+    const current = state.get(node.id);
+
+    if (!current) {
+      return;
+    }
+
+    positions.set(node.id, {
+      x: current.x - minX + knowledgeLayoutPadding,
+      y: current.y - minY + knowledgeLayoutPadding
+    });
+  });
+
+  return positions;
+}
+
+function getCenteredColumnOffset(length: number) {
+  return -((Math.max(length - 1, 0) * knowledgeLayerYGap) / 2);
 }
 
 function resolveNodeReference(

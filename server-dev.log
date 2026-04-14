@@ -1,0 +1,4 @@
+
+> @okm/server@0.1.0 dev
+> tsx watch src/index.ts
+

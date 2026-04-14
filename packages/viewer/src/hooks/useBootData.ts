@@ -63,12 +63,24 @@ export function useBootData() {
 
       const manifest = (meta as unknown as Record<string, unknown>).manifest as Record<string, unknown> | null || {};
       const configs = resolveApiSourceConfigs(meta);
+      setSourceConfigs(configs, manifest);
 
       if (configs.size === 0) {
-        throw new Error('SQLite API 没有返回任何可用数据集。');
-      }
+        const graphData = prepareGraphData({
+          nodes: [],
+          edges: [],
+          profiles: [],
+          framework: { domains: [] },
+          patterns: { patterns: [] },
+          books: [],
+          loadWarnings: ['当前 PostgreSQL 中还没有可用数据集，请先初始化 schema 并导入数据。'],
+          source: { key: 'empty', label: 'EMPTY', description: 'No dataset loaded', hasProfiles: false, isActive: false, rootPath: '', nodeCardPath: '' },
+          manifest,
+        });
 
-      setSourceConfigs(configs, manifest);
+        switchSourceComplete(graphData);
+        return;
+      }
 
       const initialKey = resolveInitialSourceKey(meta, configs);
       switchSourceStart(initialKey);
