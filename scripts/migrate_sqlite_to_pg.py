@@ -236,56 +236,8 @@ def migrate_table(
 
 
 def rebuild_search_tables(pg_conn) -> None:
-    """Populate FTS search tables from canonical data."""
-    with pg_conn.cursor() as cur:
-        # node_search
-        cur.execute("DELETE FROM node_search")
-        cur.execute("""
-            INSERT INTO node_search (dataset_id, node_id, search_vector)
-            SELECT dataset_id, id,
-                   to_tsvector('jiebacfg',
-                     coalesce(canonical_name, '') || ' ' ||
-                     coalesce(definition, '') || ' ' ||
-                     coalesce(array_to_string(aliases_json, ' '), ''))
-            FROM nodes WHERE status != 'deprecated'
-        """)
-
-        # profile_search
-        cur.execute("DELETE FROM profile_search")
-        cur.execute("""
-            INSERT INTO profile_search (dataset_id, profile_id, search_vector)
-            SELECT dataset_id, id,
-                   to_tsvector('jiebacfg',
-                     coalesce(array_to_string(learning_objectives_json, ' '), '') || ' ' ||
-                     coalesce(array_to_string(assessment_signals_json, ' '), ''))
-            FROM profiles
-        """)
-
-        # evidence_search
-        cur.execute("DELETE FROM evidence_search")
-        cur.execute("""
-            INSERT INTO evidence_search (dataset_id, evidence_id, search_vector)
-            SELECT dataset_id, id,
-                   to_tsvector('jiebacfg',
-                     coalesce(excerpt, '') || ' ' ||
-                     coalesce(locator, '') || ' ' ||
-                     coalesce(array_to_string(normalized_claims_json, ' '), ''))
-            FROM evidence
-        """)
-
-        # card_search
-        cur.execute("DELETE FROM card_search")
-        cur.execute("""
-            INSERT INTO card_search (dataset_id, node_id, search_vector)
-            SELECT dataset_id, node_id,
-                   to_tsvector('jiebacfg',
-                     coalesce(title, '') || ' ' ||
-                     coalesce(summary, '') || ' ' ||
-                     coalesce(sections_json::text, ''))
-            FROM node_cards
-        """)
-
-    print("  Search tables rebuilt with tsvector")
+    """No-op: FTS search tables removed in favor of LIKE queries."""
+    pass
 
 
 def verify_row_counts(

@@ -690,118 +690,8 @@ class GraphNormalizer:
         return "related_to"
 
     def rebuild_fts_indexes(self) -> dict[str, int]:
-        """Rebuild all FTS indexes using pg_jieba tsvector."""
-        counts = {}
-
-        with self.connection.cursor() as cur:
-            # Node search
-            cur.execute(
-                "DELETE FROM node_search WHERE dataset_id = %s",
-                (self.dataset_id,),
-            )
-            cur.execute(
-                """
-                INSERT INTO node_search (dataset_id, node_id, search_vector)
-                SELECT dataset_id, id,
-                       to_tsvector('jiebacfg',
-                         coalesce(canonical_name, '') || ' ' ||
-                         coalesce(definition, '') || ' ' ||
-                         coalesce(array_to_string(aliases_json, ' '), ''))
-                FROM nodes
-                WHERE dataset_id = %s AND status != 'deprecated'
-                """,
-                (self.dataset_id,),
-            )
-            cur.execute(
-                "SELECT COUNT(*) FROM node_search WHERE dataset_id = %s",
-                (self.dataset_id,),
-            )
-            counts["nodes"] = cur.fetchone()["count"]
-
-        counts["node_terms"] = rebuild_node_terms(self.connection, self.dataset_id)
-
-        with self.connection.cursor() as cur:
-            # Card search
-            cur.execute(
-                "DELETE FROM card_search WHERE dataset_id = %s",
-                (self.dataset_id,),
-            )
-            cur.execute(
-                """
-                INSERT INTO card_search (dataset_id, node_id, search_vector)
-                SELECT dataset_id, node_id,
-                       to_tsvector('jiebacfg',
-                         coalesce(title, '') || ' ' ||
-                         coalesce(summary, '') || ' ' ||
-                         coalesce(
-                           array_to_string(
-                             (SELECT array_agg(
-                                CASE WHEN isinstance(s->>'content', 'list'::text)
-                                     THEN array_to_string(s->'content', ' ')
-                                     ELSE s->>'content'
-                                END
-                             ) FROM jsonb_array_elements(sections_json) AS s),
-                             ' '
-                           ),
-                           ''
-                         )
-                       )
-                FROM node_cards
-                WHERE dataset_id = %s
-                """,
-                (self.dataset_id,),
-            )
-            cur.execute(
-                "SELECT COUNT(*) FROM card_search WHERE dataset_id = %s",
-                (self.dataset_id,),
-            )
-            counts["cards"] = cur.fetchone()["count"]
-
-            # Profile search
-            cur.execute(
-                "DELETE FROM profile_search WHERE dataset_id = %s",
-                (self.dataset_id,),
-            )
-            cur.execute(
-                """
-                INSERT INTO profile_search (dataset_id, profile_id, search_vector)
-                SELECT dataset_id, id,
-                       to_tsvector('jiebacfg',
-                         coalesce(array_to_string(learning_objectives_json, ' '), ''))
-                FROM profiles
-                WHERE dataset_id = %s
-                """,
-                (self.dataset_id,),
-            )
-            cur.execute(
-                "SELECT COUNT(*) FROM profile_search WHERE dataset_id = %s",
-                (self.dataset_id,),
-            )
-            counts["profiles"] = cur.fetchone()["count"]
-
-            # Evidence search
-            cur.execute(
-                "DELETE FROM evidence_search WHERE dataset_id = %s",
-                (self.dataset_id,),
-            )
-            cur.execute(
-                """
-                INSERT INTO evidence_search (dataset_id, evidence_id, search_vector)
-                SELECT dataset_id, id,
-                       to_tsvector('jiebacfg', coalesce(excerpt, ''))
-                FROM evidence
-                WHERE dataset_id = %s
-                """,
-                (self.dataset_id,),
-            )
-            cur.execute(
-                "SELECT COUNT(*) FROM evidence_search WHERE dataset_id = %s",
-                (self.dataset_id,),
-            )
-            counts["evidence"] = cur.fetchone()["count"]
-
-        self.connection.commit()
-        return counts
+        """No-op: FTS search tables removed in favor of LIKE queries."""
+        return {}
 
     def get_stats(self) -> dict[str, Any]:
         """Get normalization statistics."""
@@ -1039,22 +929,12 @@ def main() -> int:
     else:
         print("  No cycles detected in hierarchical edges")
 
-    # Step 6: Rebuild FTS indexes
-    print("\n[6/6] Rebuilding FTS indexes...")
-    if not args.dry_run:
-        counts = normalizer.rebuild_fts_indexes()
-        print(f"  Node search: {counts['nodes']} entries")
-        print(f"  Card search: {counts['cards']} entries")
-        print(f"  Profile search: {counts['profiles']} entries")
-        print(f"  Evidence search: {counts['evidence']} entries")
+    # Step 6: Rebuild FTS indexes (now a no-op — text search uses LIKE)
+    print("\n[6/6] FTS indexes skipped (using LIKE queries)")
     else:
         # Count existing
         with connection.cursor() as cur:
             for table in [
-                "node_search",
-                "card_search",
-                "profile_search",
-                "evidence_search",
             ]:
                 cur.execute(
                     f"SELECT COUNT(*) FROM {table} WHERE dataset_id = %s",

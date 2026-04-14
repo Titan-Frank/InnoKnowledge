@@ -1,9 +1,8 @@
 -- Open Knowledge Map — PostgreSQL schema
 -- Migrated from: schemas/sqlite/knowledge_store.sql
--- Requires extensions: vector (pgvector), pg_jieba
+-- Requires extensions: vector (pgvector)
 
 CREATE EXTENSION IF NOT EXISTS vector;
-CREATE EXTENSION IF NOT EXISTS pg_jieba;
 
 -------------------------------------------------------------------
 -- datasets
@@ -678,47 +677,3 @@ CREATE TABLE IF NOT EXISTS review_queue (
 CREATE INDEX IF NOT EXISTS idx_review_queue_status
 ON review_queue(dataset_id, status, review_type);
 
--------------------------------------------------------------------
--- Full-text search tables (replacing FTS5 virtual tables)
--- Using pg_jieba ('jiebacfg') for Chinese text segmentation
--------------------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS node_search (
-  dataset_id TEXT NOT NULL,
-  node_id TEXT NOT NULL,
-  search_vector tsvector,
-  PRIMARY KEY (dataset_id, node_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_node_search_gin
-ON node_search USING gin(search_vector);
-
-CREATE TABLE IF NOT EXISTS profile_search (
-  dataset_id TEXT NOT NULL,
-  profile_id TEXT NOT NULL,
-  search_vector tsvector,
-  PRIMARY KEY (dataset_id, profile_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_profile_search_gin
-ON profile_search USING gin(search_vector);
-
-CREATE TABLE IF NOT EXISTS evidence_search (
-  dataset_id TEXT NOT NULL,
-  evidence_id TEXT NOT NULL,
-  search_vector tsvector,
-  PRIMARY KEY (dataset_id, evidence_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_evidence_search_gin
-ON evidence_search USING gin(search_vector);
-
-CREATE TABLE IF NOT EXISTS card_search (
-  dataset_id TEXT NOT NULL,
-  node_id TEXT NOT NULL,
-  search_vector tsvector,
-  PRIMARY KEY (dataset_id, node_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_card_search_gin
-ON card_search USING gin(search_vector);

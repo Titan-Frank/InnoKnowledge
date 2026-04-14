@@ -1,23 +1,6 @@
 FROM pgvector/pgvector:pg16
 
-# Use China mirrors for faster builds
+# Use China mirrors for faster builds (only Debian, keep original PostgreSQL repo)
 RUN sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.list 2>/dev/null; \
     sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list 2>/dev/null; \
-    sed -i 's|apt.postgresql.org|mirrors.ustc.edu.cn/postgresql|g' /etc/apt/sources.list.d/pgdg.list 2>/dev/null; \
     true
-
-# Install build dependencies and pg_jieba for Chinese full-text search
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        postgresql-server-dev-16 \
-        wget && \
-    wget -q -O /tmp/pg_jieba.tar.gz https://github.com/jaiminpan/pg_jieba/archive/refs/tags/v1.1.1.tar.gz && \
-    tar xzf /tmp/pg_jieba.tar.gz -C /tmp && \
-    cd /tmp/pg_jieba-1.1.1 && \
-    USE_PGXS=1 make && \
-    USE_PGXS=1 make install && \
-    rm -rf /tmp/pg_jieba* && \
-    apt-get purge -y build-essential postgresql-server-dev-16 wget && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*

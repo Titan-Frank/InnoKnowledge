@@ -159,7 +159,7 @@ PostgreSQL (via DATABASE_URL)
 ├── mentions         # Textbook references
 ├── evidence         # Source excerpts
 ├── node_cards       # Detailed node documentation
-├── node_search      # Full-text search (tsvector + pg_jieba)
+├── node_search      # (removed — text search now uses LIKE on source tables)
 ├── lesson_runs      # Lesson processing tracking
 ├── staging_nodes    # Staging: pre-merge node candidates
 ├── staging_edges    # Staging: pre-merge edge candidates

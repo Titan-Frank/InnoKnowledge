@@ -268,18 +268,13 @@ def finalize_candidates(
 
 
 def fts_tsquery(query_text: str) -> str:
-    """Convert a query string to a tsquery-compatible form for pg_jieba.
+    """Sanitize query text for LIKE-based search.
 
-    pg_jieba tokenizes Chinese text automatically; we join tokens with
-    '&' (AND) so that all words must appear.  For a single phrase this
-    is effectively the same as phrase search.
+    Returns the cleaned query text with percent/wildcard chars removed,
+    suitable for use in LIKE '%%query%%' patterns.
     """
-    # Strip characters that are not alphanumeric, CJK, or whitespace
-    cleaned = re.sub(r"[^\w\s]", " ", query_text).strip()
-    if not cleaned:
-        return ""
-    tokens = cleaned.split()
-    return " & ".join(tokens)
+    cleaned = query_text.replace("%", "").replace("_", "").strip()
+    return cleaned
 
 
 import re as _re  # ensure re is available for fts_tsquery
@@ -404,23 +399,22 @@ def collect_local_support(
             f"prefix_{row['term_type']}",
         )
 
-    # Full-text search via pg_jieba tsvector
+    # Text search via LIKE
     ts_query_str = fts_tsquery(query_text)
     if ts_query_str:
         with connection.cursor() as cur:
             cur.execute(
                 f"""
-                SELECT ns.node_id, n.canonical_name, n.node_kind,
-                       ts_rank(ns.search_vector, to_tsquery('jiebacfg', %s)) AS rank_score
-                FROM node_search ns
-                JOIN nodes n
-                  ON n.dataset_id = ns.dataset_id AND n.id = ns.node_id
+                SELECT id AS node_id, canonical_name, node_kind
+                FROM nodes
                 WHERE {where_sql}
-                  AND ns.search_vector @@ to_tsquery('jiebacfg', %s)
-                ORDER BY rank_score DESC
+                  AND (canonical_name LIKE %s OR definition LIKE %s
+                       OR EXISTS (SELECT 1 FROM jsonb_array_elements_text(aliases_json) AS a WHERE a LIKE %s))
                 LIMIT %s
                 """,
-                (*base_params, ts_query_str, ts_query_str, limit_override or max(args.limit * 3, 18)),
+                (*base_params,
+                 f"%{ts_query_str}%", f"%{ts_query_str}%", f"%{ts_query_str}%",
+                 limit_override or max(args.limit * 3, 18)),
             )
             fts_rows = cur.fetchall()
 
@@ -433,7 +427,7 @@ def collect_local_support(
                 row["node_kind"],
                 score,
                 "local",
-                "fts_phrase",
+                "text_match",
             )
 
 
@@ -538,17 +532,13 @@ def collect_text_support(
     with connection.cursor() as cur:
         cur.execute(
             """
-            SELECT p.node_id,
-                   ts_rank(ps.search_vector, to_tsquery('jiebacfg', %s)) AS rank_score
-            FROM profile_search ps
-            JOIN profiles p
-              ON p.dataset_id = ps.dataset_id AND p.id = ps.profile_id
-            WHERE ps.dataset_id = %s
-              AND ps.search_vector @@ to_tsquery('jiebacfg', %s)
-            ORDER BY rank_score DESC
+            SELECT node_id
+            FROM profiles
+            WHERE dataset_id = %s
+              AND array_to_string(learning_objectives_json, ' ') LIKE %s
             LIMIT %s
             """,
-            (ts_query_str, dataset_id, ts_query_str, args.text_hit_limit),
+            (dataset_id, f"%{ts_query_str}%", args.text_hit_limit),
         )
         profile_rows = cur.fetchall()
 
@@ -577,23 +567,21 @@ def collect_text_support(
     with connection.cursor() as cur:
         cur.execute(
             """
-            SELECT m.target_id AS node_id,
-                   ts_rank(es.search_vector, to_tsquery('jiebacfg', %s)) AS rank_score
-            FROM evidence_search es
+            SELECT DISTINCT m.target_id AS node_id
+            FROM evidence e
             JOIN evidence_links el
-              ON el.dataset_id = es.dataset_id
-             AND el.evidence_id = es.evidence_id
+              ON el.dataset_id = e.dataset_id
+             AND el.evidence_id = e.id
              AND el.owner_type = 'mention'
             JOIN mentions m
               ON m.dataset_id = el.dataset_id
              AND m.id = el.owner_id
              AND m.target_type = 'node'
-            WHERE es.dataset_id = %s
-              AND es.search_vector @@ to_tsquery('jiebacfg', %s)
-            ORDER BY rank_score DESC
+            WHERE e.dataset_id = %s
+              AND e.excerpt LIKE %s
             LIMIT %s
             """,
-            (ts_query_str, dataset_id, ts_query_str, args.text_hit_limit),
+            (dataset_id, f"%{ts_query_str}%", args.text_hit_limit),
         )
         evidence_rows = cur.fetchall()
 
