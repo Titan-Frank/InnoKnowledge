@@ -180,7 +180,7 @@ export interface SourcesPayload {
 
 export async function buildSourcesPayload(sql: Sql): Promise<SourcesPayload> {
   const tableCheck = await sql<{ regclass: string | null }[]>`
-    SELECT to_regclass('public.datasets') AS regclass
+    SELECT to_regclass('datasets') AS regclass
   `;
 
   if (!tableCheck[0]?.regclass) {

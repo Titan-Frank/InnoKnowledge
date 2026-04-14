@@ -299,26 +299,33 @@ export function KnowledgeGraphPanel({
     ? { ...panelSurfaceStyle, background: "transparent", border: "none", borderRadius: 0 }
     : panelSurfaceStyle;
   const bodyStyle = hideHeader ? { ...panelBodyStyle, gap: 10, padding: 0 } : panelBodyStyle;
-  const nodeIdSet = new Set(nodes.map((node) => node.id));
-  const nodeIdByLabel = new Map(nodes.map((node) => [node.label, node.id]));
-  const resolvedEdges: ResolvedKnowledgeEdge[] = [];
-  const unresolvedEdges: KnowledgeEdge[] = [];
+  const { resolvedEdges, unresolvedEdges } = useMemo(() => {
+    const nodeIdSet = new Set(nodes.map((node) => node.id));
+    const nodeIdByLabel = new Map(nodes.map((node) => [node.label, node.id]));
+    const nextResolvedEdges: ResolvedKnowledgeEdge[] = [];
+    const nextUnresolvedEdges: KnowledgeEdge[] = [];
 
-  for (const edge of edges) {
-    const sourceId = resolveNodeReference(edge.source, nodeIdSet, nodeIdByLabel);
-    const targetId = resolveNodeReference(edge.target, nodeIdSet, nodeIdByLabel);
+    for (const edge of edges) {
+      const sourceId = resolveNodeReference(edge.source, nodeIdSet, nodeIdByLabel);
+      const targetId = resolveNodeReference(edge.target, nodeIdSet, nodeIdByLabel);
 
-    if (sourceId && targetId) {
-      resolvedEdges.push({
-        ...edge,
-        sourceId,
-        targetId
-      });
-      continue;
+      if (sourceId && targetId) {
+        nextResolvedEdges.push({
+          ...edge,
+          sourceId,
+          targetId
+        });
+        continue;
+      }
+
+      nextUnresolvedEdges.push(edge);
     }
 
-    unresolvedEdges.push(edge);
-  }
+    return {
+      resolvedEdges: nextResolvedEdges,
+      unresolvedEdges: nextUnresolvedEdges
+    };
+  }, [nodes, edges]);
 
   const activeNode = useMemo(
     () =>
