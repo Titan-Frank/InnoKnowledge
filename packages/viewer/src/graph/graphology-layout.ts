@@ -10,27 +10,42 @@ type LayoutNodeRecord = {
   radius: number;
 };
 
+type RadiusResolver = (nodeId: string, attrs: Record<string, unknown>) => number;
+
 const NOVERLAP_SETTINGS = {
-  maxIterations: 160,
-  ratio: 1.9,
-  margin: 18,
-  expansion: 1.25,
+  maxIterations: 220,
+  ratio: 2.6,
+  margin: 28,
+  expansion: 1.35,
 };
 
-const FINAL_COLLISION_PASSES = 8;
+const FINAL_COLLISION_PASSES = 16;
+const SINGLE_NODE_COLLISION_PASSES = 20;
+const SINGLE_NODE_COLLISION_MARGIN = 12;
 
 function getNodeRadius(attrs: Record<string, unknown>): number {
   const collisionRadius = attrs.collisionRadius;
   if (typeof collisionRadius === 'number' && isFinite(collisionRadius)) {
-    return collisionRadius;
+    return collisionRadius * 1.15;
   }
 
   const size = attrs.size;
   if (typeof size === 'number' && isFinite(size)) {
-    return size + 8;
+    return size * 1.8 + 10;
   }
 
   return 12;
+}
+
+function getResolvedNodeRadius(
+  nodeId: string,
+  attrs: Record<string, unknown>,
+  radiusResolver?: RadiusResolver,
+): number {
+  if (radiusResolver) {
+    return radiusResolver(nodeId, attrs);
+  }
+  return getNodeRadius(attrs);
 }
 
 function getFA2Settings(nodeCount: number) {
@@ -110,8 +125,6 @@ export function startWorkerLayout(
   const duration = getLayoutDuration(nodeCount);
   const timeout = setTimeout(() => {
     layout.stop();
-    runNoverlap(graph);
-    normalizePositions(graph);
     onStopped?.();
   }, duration);
 
@@ -119,8 +132,6 @@ export function startWorkerLayout(
     stop: () => {
       clearTimeout(timeout);
       layout.stop();
-      runNoverlap(graph);
-      normalizePositions(graph);
       onStopped?.();
     },
     kill: () => {
@@ -191,7 +202,7 @@ function ensureSeedPositions(graph: Graph): void {
   });
 }
 
-function collectLayoutNodes(graph: Graph): LayoutNodeRecord[] {
+function collectLayoutNodes(graph: Graph, radiusResolver?: RadiusResolver): LayoutNodeRecord[] {
   const nodes: LayoutNodeRecord[] = [];
 
   graph.forEachNode((id, attrs) => {
@@ -199,11 +210,73 @@ function collectLayoutNodes(graph: Graph): LayoutNodeRecord[] {
       id,
       x: attrs.x as number,
       y: attrs.y as number,
-      radius: getNodeRadius(attrs as Record<string, unknown>),
+      radius: getResolvedNodeRadius(id, attrs as Record<string, unknown>, radiusResolver),
     });
   });
 
   return nodes;
+}
+
+export function resolveSingleNodeCollision(
+  graph: Graph,
+  nodeId: string,
+  radiusResolver?: RadiusResolver,
+): { x: number; y: number } | null {
+  if (!graph.hasNode(nodeId)) return null;
+
+  for (let pass = 0; pass < SINGLE_NODE_COLLISION_PASSES; pass += 1) {
+    const attrs = graph.getNodeAttributes(nodeId);
+    const movingNode: LayoutNodeRecord = {
+      id: nodeId,
+      x: attrs.x as number,
+      y: attrs.y as number,
+      radius: getResolvedNodeRadius(nodeId, attrs as Record<string, unknown>, radiusResolver),
+    };
+
+    let shiftX = 0;
+    let shiftY = 0;
+    let overlapCount = 0;
+
+    graph.forEachNode((otherId, otherAttrs) => {
+      if (otherId === nodeId) return;
+
+      const otherNode: LayoutNodeRecord = {
+        id: otherId,
+        x: otherAttrs.x as number,
+        y: otherAttrs.y as number,
+        radius: getResolvedNodeRadius(otherId, otherAttrs as Record<string, unknown>, radiusResolver),
+      };
+
+      const deltaX = movingNode.x - otherNode.x;
+      const deltaY = movingNode.y - otherNode.y;
+      const distance = Math.hypot(deltaX, deltaY);
+      const minimumDistance = movingNode.radius + otherNode.radius + SINGLE_NODE_COLLISION_MARGIN;
+
+      if (distance >= minimumDistance) return;
+
+      overlapCount += 1;
+
+      const safeDistance = distance || 0.001;
+      const angle = distance > 0
+        ? Math.atan2(deltaY, deltaX)
+        : ((nodeId.length + otherId.length + pass) % 16) * (Math.PI / 8);
+      const overlap = minimumDistance - safeDistance + 1;
+      shiftX += Math.cos(angle) * overlap;
+      shiftY += Math.sin(angle) * overlap;
+    });
+
+    if (overlapCount === 0) {
+      return { x: movingNode.x, y: movingNode.y };
+    }
+
+    const nextX = movingNode.x + shiftX / overlapCount;
+    const nextY = movingNode.y + shiftY / overlapCount;
+    graph.setNodeAttribute(nodeId, 'x', nextX);
+    graph.setNodeAttribute(nodeId, 'y', nextY);
+  }
+
+  const finalAttrs = graph.getNodeAttributes(nodeId);
+  return { x: finalAttrs.x as number, y: finalAttrs.y as number };
 }
 
 function fanOutCoincidentNodes(graph: Graph): void {
@@ -238,15 +311,15 @@ function fanOutCoincidentNodes(graph: Graph): void {
   }
 }
 
-function resolveResidualCollisions(graph: Graph): void {
-  const nodes = collectLayoutNodes(graph);
+export function resolveResidualCollisions(graph: Graph, radiusResolver?: RadiusResolver): void {
+  const nodes = collectLayoutNodes(graph, radiusResolver);
   if (nodes.length < 2) return;
 
   const maxRadius = nodes.reduce((largest, node) => Math.max(largest, node.radius), 0);
   const cellSize = Math.max(24, maxRadius * 2.5);
 
   for (let pass = 0; pass < FINAL_COLLISION_PASSES; pass += 1) {
-    const latest = collectLayoutNodes(graph);
+    const latest = collectLayoutNodes(graph, radiusResolver);
     const buckets = new Map<string, LayoutNodeRecord[]>();
     const shifts = new Map<string, { dx: number; dy: number }>();
     let overlapCount = 0;

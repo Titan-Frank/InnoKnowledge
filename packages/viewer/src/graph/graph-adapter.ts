@@ -25,7 +25,7 @@ const NODE_SIZE_MAP: Record<string, number> = {
   other: 5,
 };
 
-const NODE_COLLISION_PADDING = 8;
+const NODE_COLLISION_PADDING = 16;
 
 // Node mass for ForceAtlas2 — higher mass = more repulsion, pushes nodes apart
 function getNodeMass(nodeType: string, nodeLayer: string | null | undefined, nodeCount: number): number {
@@ -52,7 +52,7 @@ function getNodeMass(nodeType: string, nodeLayer: string | null | undefined, nod
 
 function getCollisionRadius(nodeType: string, nodeLayer: string | null | undefined): number {
   const size = NODE_SIZE_MAP[nodeType] ?? NODE_SIZE_MAP.other;
-  const layerBoost = nodeLayer === 'backbone' ? 1.35 : 1.15;
+  const layerBoost = nodeLayer === 'backbone' ? 1.8 : 1.6;
   return size * layerBoost + NODE_COLLISION_PADDING;
 }
 
