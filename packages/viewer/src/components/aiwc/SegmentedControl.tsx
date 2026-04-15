@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
-import { aiWebComponentTokens } from "./styles/tokens";
+import { useTokens } from "../../hooks/useTokens.js";
+import type { TokenSet } from "./styles/tokens";
 
 export type SegmentedControlItem = {
   id: string;
@@ -15,8 +16,10 @@ export type SegmentedControlProps = {
 };
 
 export function SegmentedControl({ value, items, onChange, ariaLabel }: SegmentedControlProps) {
+  const t = useTokens();
+
   return (
-    <div aria-label={ariaLabel} role="tablist" style={rootStyle}>
+    <div aria-label={ariaLabel} role="tablist" style={createRootStyle(t)}>
       {items.map((item) => {
         const active = item.id === value;
         const disabled = item.disabled || !onChange;
@@ -29,8 +32,8 @@ export function SegmentedControl({ value, items, onChange, ariaLabel }: Segmente
             onClick={() => onChange?.(item.id)}
             role="tab"
             style={{
-              ...buttonStyle,
-              ...(active ? activeButtonStyle : null),
+              ...createButtonStyle(t),
+              ...(active ? createActiveButtonStyle(t) : null),
               ...(disabled ? disabledButtonStyle : null)
             }}
             type="button"
@@ -43,33 +46,39 @@ export function SegmentedControl({ value, items, onChange, ariaLabel }: Segmente
   );
 }
 
-const rootStyle = {
-  alignItems: "center",
-  background: aiWebComponentTokens.colorSurfaceMuted,
-  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  borderRadius: aiWebComponentTokens.radiusPill,
-  display: "inline-flex",
-  gap: 4,
-  padding: 4
-} satisfies CSSProperties;
+function createRootStyle(t: TokenSet): CSSProperties {
+  return {
+    alignItems: "center",
+    background: t.colorSurfaceMuted,
+    border: `1px solid ${t.colorBorder}`,
+    borderRadius: t.radiusPill,
+    display: "inline-flex",
+    gap: 4,
+    padding: 4
+  };
+}
 
-const buttonStyle = {
-  background: "transparent",
-  border: "none",
-  borderRadius: aiWebComponentTokens.radiusPill,
-  color: aiWebComponentTokens.colorTextSubtle,
-  cursor: "pointer",
-  fontSize: 12,
-  fontWeight: 700,
-  minHeight: 30,
-  padding: "7px 12px",
-  whiteSpace: "nowrap"
-} satisfies CSSProperties;
+function createButtonStyle(t: TokenSet): CSSProperties {
+  return {
+    background: "transparent",
+    border: "none",
+    borderRadius: t.radiusPill,
+    color: t.colorTextSubtle,
+    cursor: "pointer",
+    fontSize: 12,
+    fontWeight: 700,
+    minHeight: 30,
+    padding: "7px 12px",
+    whiteSpace: "nowrap"
+  };
+}
 
-const activeButtonStyle = {
-  background: aiWebComponentTokens.colorSurface,
-  color: aiWebComponentTokens.colorText
-} satisfies CSSProperties;
+function createActiveButtonStyle(t: TokenSet): CSSProperties {
+  return {
+    background: t.colorSurface,
+    color: t.colorText
+  };
+}
 
 const disabledButtonStyle = {
   cursor: "not-allowed",

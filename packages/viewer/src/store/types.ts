@@ -1,5 +1,7 @@
 import type { ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence } from '@okm/types';
 import type { LayerMode } from '../constants/index.js';
+import type { CommunityInfo } from '../graph/graph-adapter.js';
+import type { ThemeMode } from '../components/aiwc/styles/tokens.js';
 
 export interface GraphNode extends ApiNode {
   name: string;
@@ -82,4 +84,8 @@ export interface AppState {
   cardCache: Map<string, import('@okm/types').ApiNodeCard | null>;
   detailRequestId: number;
   visibleNodesCache: { key: string | null; nodes: GraphNode[] };
+  communityCount: number;
+  communities: CommunityInfo[];
+  communityMap: Map<string, number>;
+  themeMode: ThemeMode;
 }

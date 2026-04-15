@@ -98,3 +98,50 @@ export type LayerMode = (typeof LAYER_MODE_OPTIONS)[number]['id'];
 
 export const API_BASE = '/api';
 export const META_PATH = `${API_BASE}/meta`;
+
+/** Community color palette — tuned for dark backgrounds (#06060a) */
+export const COMMUNITY_COLORS = [
+  '#ef4444', // red
+  '#f97316', // orange
+  '#eab308', // amber
+  '#22c55e', // green
+  '#06b6d4', // cyan
+  '#3b82f6', // blue
+  '#8b5cf6', // violet
+  '#d946ef', // fuchsia
+  '#ec4899', // pink
+  '#f43f5e', // rose
+  '#14b8a6', // teal
+  '#a3e635', // lime
+];
+
+/** Community color palette — tuned for light backgrounds (#f8f8fb) */
+export const COMMUNITY_COLORS_LIGHT = [
+  '#dc2626', // red (darker)
+  '#ea580c', // orange (darker)
+  '#ca8a04', // amber (darker)
+  '#16a34a', // green (darker)
+  '#0891b2', // cyan (darker)
+  '#2563eb', // blue (darker)
+  '#7c3aed', // violet
+  '#c026d3', // fuchsia (darker)
+  '#db2777', // pink (darker)
+  '#e11d48', // rose (darker)
+  '#0d9488', // teal (darker)
+  '#65a30d', // lime (darker)
+];
+
+import type { ThemeMode } from '../components/aiwc/styles/tokens.js';
+
+export function getCommunityColor(index: number, mode: ThemeMode = 'dark'): string {
+  const palette = mode === 'light' ? COMMUNITY_COLORS_LIGHT : COMMUNITY_COLORS;
+  return palette[index % palette.length];
+}
+
+/** Edge types used for community detection (semantic affinity, not hierarchy) */
+export const COMMUNITY_EDGE_TYPES = new Set([
+  'related_to', 'analogous_to', 'same_as',
+  'explains', 'causes', 'affects',
+  'uses', 'measures', 'produces', 'consumes',
+  'applies_to', 'represented_by', 'symbolizes', 'has_property',
+]);

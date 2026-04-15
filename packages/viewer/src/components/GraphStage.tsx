@@ -2,12 +2,14 @@ import type { CSSProperties } from 'react';
 import { GraphToolbar } from './GraphToolbar.js';
 import { SigmaGraphPanel } from './SigmaGraphPanel.js';
 import { useKnowledgeGraphData } from '../hooks/useKnowledgeGraphData.js';
+import { useTokens } from '../hooks/useTokens.js';
 
 export function GraphStage() {
   const { status } = useKnowledgeGraphData();
+  const t = useTokens();
 
   return (
-    <main style={stageStyle}>
+    <main style={stageStyle(t)}>
       <GraphToolbar />
       <div style={graphContainerStyle}>
         <SigmaGraphPanel
@@ -19,15 +21,17 @@ export function GraphStage() {
   );
 }
 
-const stageStyle: CSSProperties = {
-  height: '76vh',
-  overflow: 'hidden',
-  border: '1px solid #1e1e2a',
-  borderRadius: 12,
-  background: '#06060a',
-  display: 'flex',
-  flexDirection: 'column',
-};
+function stageStyle(t: ReturnType<typeof useTokens>): CSSProperties {
+  return {
+    height: '76vh',
+    overflow: 'hidden',
+    border: `1px solid ${t.colorBorder}`,
+    borderRadius: 12,
+    background: t.colorPage,
+    display: 'flex',
+    flexDirection: 'column',
+  };
+}
 
 const graphContainerStyle: CSSProperties = {
   flex: 1,

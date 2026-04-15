@@ -6,13 +6,13 @@ import {
   createToneBadgeStyle,
   panelBodyStyle,
   panelHeaderMainStyle,
-  panelHeaderStyle,
-  panelSubtitleStyle,
-  panelSurfaceStyle,
+  createPanelHeaderStyle,
+  createPanelSubtitleStyle,
+  createPanelSurfaceStyle,
   panelTitleRowStyle,
-  panelTitleStyle
+  createPanelTitleStyle
 } from "./styles/panelStyles";
-import { aiWebComponentTokens } from "./styles/tokens";
+import { useTokens } from "../../hooks/useTokens.js";
 
 export type SessionListItem = {
   id: string;
@@ -66,25 +66,26 @@ export function SessionListPanel({
   onSelect,
   renderItemActions
 }: SessionListPanelProps) {
+  const t = useTokens();
   const showError = status === "error";
   const showEmpty = items.length === 0 && status === "idle";
   const showLoading = items.length === 0 && status === "loading";
   const surfaceStyle = hideHeader
-    ? { ...panelSurfaceStyle, background: "transparent", border: "none", borderRadius: 0 }
-    : panelSurfaceStyle;
+    ? { ...createPanelSurfaceStyle(t), background: "transparent", border: "none", borderRadius: 0 }
+    : createPanelSurfaceStyle(t);
   const bodyStyle = hideHeader ? { ...panelBodyStyle, gap: 8, padding: 0 } : { ...panelBodyStyle, gap: 10 };
 
   return (
     <section style={surfaceStyle}>
       {!hideHeader ? (
-        <header style={panelHeaderStyle}>
+        <header style={createPanelHeaderStyle(t)}>
           <div style={panelHeaderMainStyle}>
             <div style={panelTitleRowStyle}>
-              {titleIcon ? <span style={createIconFrameStyle("accent")}>{titleIcon}</span> : null}
-              <div style={panelTitleStyle}>{title}</div>
+              {titleIcon ? <span style={createIconFrameStyle("accent", t)}>{titleIcon}</span> : null}
+              <div style={createPanelTitleStyle(t)}>{title}</div>
             </div>
-            {subtitle ? <div style={panelSubtitleStyle}>{subtitle}</div> : null}
-            <span style={createToneBadgeStyle("neutral")}>共 {items.length} 个会话</span>
+            {subtitle ? <div style={createPanelSubtitleStyle(t)}>{subtitle}</div> : null}
+            <span style={createToneBadgeStyle("neutral", t)}>共 {items.length} 个会话</span>
           </div>
           {headerActions ? <div>{headerActions}</div> : null}
         </header>
@@ -130,9 +131,9 @@ export function SessionListPanel({
             <article
               key={item.id}
               style={{
-                ...createSelectableCardStyle(isActive),
+                ...createSelectableCardStyle(isActive, t),
                 borderLeft: `2px solid ${
-                  isActive ? aiWebComponentTokens.colorAccent : "transparent"
+                  isActive ? t.colorAccent : "transparent"
                 }`,
                 display: "grid",
                 gap: 6,
@@ -162,18 +163,18 @@ export function SessionListPanel({
                     justifyContent: "space-between"
                   }}
                 >
-                  <strong style={{ color: aiWebComponentTokens.colorText }}>{item.title}</strong>
+                  <strong style={{ color: t.colorText }}>{item.title}</strong>
                   {item.badge ? (
-                    <span style={createToneBadgeStyle(isActive ? "accent" : "neutral")}>
+                    <span style={createToneBadgeStyle(isActive ? "accent" : "neutral", t)}>
                       {item.badge}
                     </span>
                   ) : null}
                 </div>
                 {item.description ? (
-                  <span style={{ color: aiWebComponentTokens.colorMuted, fontSize: 14 }}>{item.description}</span>
+                  <span style={{ color: t.colorMuted, fontSize: 14 }}>{item.description}</span>
                 ) : null}
                 {item.meta ? (
-                  <span style={{ color: aiWebComponentTokens.colorMuted, fontSize: 12 }}>{item.meta}</span>
+                  <span style={{ color: t.colorMuted, fontSize: 12 }}>{item.meta}</span>
                 ) : null}
               </button>
               {itemActions ? <div style={{ marginTop: 10 }}>{itemActions}</div> : null}

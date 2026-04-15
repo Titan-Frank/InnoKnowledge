@@ -1,16 +1,18 @@
 import { useGraphStore, setSearchTerm } from '../store/graphStore.js';
 import { getSearchMatches } from '../graph/visibility.js';
 import {
-  workspaceFieldLabelStyle,
+  createWorkspaceFieldLabelStyle,
   workspaceFieldStyle,
   workspaceSectionHeaderStyle,
-  workspaceSectionNoteStyle,
-  workspaceSectionStyle,
-  workspaceSectionTitleStyle,
-  workspaceSelectLikeStyle,
+  createWorkspaceSectionNoteStyle,
+  createWorkspaceSectionStyle,
+  createWorkspaceSectionTitleStyle,
+  createWorkspaceSelectLikeStyle,
 } from './workspaceStyles.js';
+import { useTokens } from '../hooks/useTokens.js';
 
 export function SearchSection() {
+  const t = useTokens();
   const searchTerm = useGraphStore((s) => s.searchTerm);
   const data = useGraphStore((s) => s.data);
 
@@ -25,19 +27,19 @@ export function SearchSection() {
     : '0 项';
 
   return (
-    <div style={workspaceSectionStyle}>
+    <div style={createWorkspaceSectionStyle(t)}>
       <div style={workspaceSectionHeaderStyle}>
-        <h2 style={workspaceSectionTitleStyle}>检索</h2>
-        <span style={workspaceSectionNoteStyle}>{countText}</span>
+        <h2 style={createWorkspaceSectionTitleStyle(t)}>检索</h2>
+        <span style={createWorkspaceSectionNoteStyle(t)}>{countText}</span>
       </div>
       <label style={workspaceFieldStyle}>
-        <span style={workspaceFieldLabelStyle}>搜索节点</span>
+        <span style={createWorkspaceFieldLabelStyle(t)}>搜索节点</span>
         <input
           type="search"
           placeholder="输入知识点、物质、实验、方法..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={workspaceSelectLikeStyle}
+          style={createWorkspaceSelectLikeStyle(t)}
         />
       </label>
     </div>

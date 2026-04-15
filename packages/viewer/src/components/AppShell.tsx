@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react';
+import { useEffect } from 'react';
 import { useGraphStore } from '../store/graphStore.js';
+import { useTokens } from '../hooks/useTokens.js';
 import { TopBar } from './TopBar.js';
 import { Sidebar } from './Sidebar.js';
 import { GraphStage } from './GraphStage.js';
@@ -8,10 +10,24 @@ import { DetailPanel } from './DetailPanel.js';
 export function AppShell() {
   const data = useGraphStore((s) => s.data);
   const sourceLoading = useGraphStore((s) => s.sourceLoading);
+  const themeMode = useGraphStore((s) => s.themeMode);
+  const t = useTokens();
+
+  // Sync body style and CSS custom properties with theme
+  useEffect(() => {
+    document.body.style.background = t.colorPage;
+    document.body.style.color = t.colorText;
+    document.documentElement.style.setProperty('--okm-color-page', t.colorPage);
+    document.documentElement.style.setProperty('--okm-color-surface', t.colorSurface);
+    document.documentElement.style.setProperty('--okm-color-border', t.colorBorder);
+    document.documentElement.style.setProperty('--okm-color-text', t.colorText);
+    document.documentElement.style.setProperty('--okm-color-text-subtle', t.colorTextSubtle);
+    document.documentElement.style.setProperty('--okm-color-muted', t.colorMuted);
+  }, [themeMode, t]);
 
   if (!data && !sourceLoading) {
     return (
-      <div style={{ ...shellStyle, padding: 64, textAlign: 'center', color: '#5a5a70' }}>
+      <div style={{ ...shellStyle, padding: 64, textAlign: 'center', color: t.colorMuted }}>
         <p>正在连接数据源...</p>
       </div>
     );
@@ -19,7 +35,7 @@ export function AppShell() {
 
   if (!data) {
     return (
-      <div style={{ ...shellStyle, padding: 64, textAlign: 'center', color: '#5a5a70' }}>
+      <div style={{ ...shellStyle, padding: 64, textAlign: 'center', color: t.colorMuted }}>
         <p>数据加载中...</p>
       </div>
     );

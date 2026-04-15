@@ -3,11 +3,13 @@ import Sigma from 'sigma';
 import { createEdgeCurveProgram } from '@sigma/edge-curve';
 import { createNodeBorderProgram } from '@sigma/node-border';
 import type Graph from 'graphology';
-import { useGraphStore, selectNode, setHoverNodeId } from '../store/graphStore.js';
+import { useGraphStore, selectNode, setHoverNodeId, setCommunityInfo } from '../store/graphStore.js';
 import { getVisibleNodes } from '../graph/visibility.js';
 import { buildGraphologyGraph } from '../graph/graph-adapter.js';
 import { startWorkerLayout } from '../graph/graphology-layout.js';
-import { drawNodeHover, dimColor, brightenColor } from '../components/SigmaHoverRenderer.js';
+import { createDrawNodeHover, dimColor, brightenColor } from '../components/SigmaHoverRenderer.js';
+import type { ThemeMode } from '../components/aiwc/styles/tokens.js';
+import { getTokens } from '../components/aiwc/styles/tokens.js';
 
 type NeighborSet = Set<string>;
 
@@ -15,7 +17,9 @@ function createNodeReducer(
   selectedId: string | null,
   neighbors: NeighborSet,
   visibleNodeIds: Set<string>,
+  mode: ThemeMode,
 ) {
+  const t = getTokens(mode);
   return (_node: string, attrs: Record<string, unknown>) => {
     // Hide nodes not in the current visible set (instead of rebuilding graph)
     if (!visibleNodeIds.has(_node)) {
@@ -37,8 +41,8 @@ function createNodeReducer(
     return {
       ...attrs,
       hidden: false,
-      color: dimColor(attrs.color as string || '#6b7280', 0.25),
-      borderColor: dimColor(attrs.borderColor as string || '#ffffff', 0.25),
+      color: dimColor(attrs.color as string || t.colorMuted, 0.25, mode),
+      borderColor: dimColor(attrs.borderColor as string || t.colorText, 0.25, mode),
       size: baseSize * 0.7,
       label: '',
       zIndex: 0,
@@ -46,7 +50,8 @@ function createNodeReducer(
   };
 }
 
-function createEdgeReducer(selectedId: string | null, graph: Graph, visibleNodeIds: Set<string>) {
+function createEdgeReducer(selectedId: string | null, graph: Graph, visibleNodeIds: Set<string>, mode: ThemeMode) {
+  const t = getTokens(mode);
   return (_edge: string, attrs: Record<string, unknown>) => {
     const src = graph.source(_edge) as string;
     const tgt = graph.target(_edge) as string;
@@ -65,7 +70,7 @@ function createEdgeReducer(selectedId: string | null, graph: Graph, visibleNodeI
       return {
         ...attrs,
         hidden: false,
-        color: brightenColor(attrs.color as string || '#2a2a3a', 1.5),
+        color: brightenColor(attrs.color as string || t.colorBorderStrong, 1.5, mode),
         size: Math.max(3, baseSize * 4),
         zIndex: 2,
       } as Record<string, unknown>;
@@ -73,7 +78,7 @@ function createEdgeReducer(selectedId: string | null, graph: Graph, visibleNodeI
     return {
       ...attrs,
       hidden: false,
-      color: dimColor(attrs.color as string || '#2a2a3a', 0.1),
+      color: dimColor(attrs.color as string || t.colorBorderStrong, 0.1, mode),
       size: 0.3,
       zIndex: 0,
     } as Record<string, unknown>;
@@ -99,6 +104,23 @@ function getStructuralFilterKey(state: {
 
 type LayoutControls = { stop: () => void; kill: () => void } | null;
 
+function makeNodeProgram(mode: ThemeMode) {
+  return createNodeBorderProgram({
+    borders: [
+      {
+        color: { attribute: 'borderColor', defaultValue: mode === 'light' ? '#c8c8d4' : '#ffffff' },
+        size: { value: 2, mode: 'pixels' },
+      },
+      {
+        color: { attribute: 'color', defaultValue: mode === 'light' ? '#9A9AB0' : '#6b7280' },
+        size: { fill: true },
+      },
+    ],
+    drawLabel: undefined,
+    drawHover: createDrawNodeHover(mode),
+  });
+}
+
 export function useSigma() {
   const containerRef = useRef<HTMLDivElement>(null);
   const sigmaRef = useRef<Sigma | null>(null);
@@ -119,6 +141,7 @@ export function useSigma() {
   const layerMode = useGraphStore((s) => s.layerMode);
   const expandedBackboneNodeId = useGraphStore((s) => s.expandedBackboneNodeId);
   const focusConnected = useGraphStore((s) => s.focusConnected);
+  const themeMode = useGraphStore((s) => s.themeMode);
 
   // Observe container size
   useEffect(() => {
@@ -151,6 +174,8 @@ export function useSigma() {
     if (width === 0 || height === 0) return;
 
     const state = useGraphStore.getState();
+    const currentMode = state.themeMode;
+    const t = getTokens(currentMode);
     // Build with ALL nodes (backbone + support) so expansion doesn't require rebuild
     const allNodeIds = new Set(data.nodes.map((n) => n.id));
 
@@ -161,9 +186,10 @@ export function useSigma() {
       return;
     }
 
-    const graph = buildGraphologyGraph(data, allNodeIds);
+    const { graph, communityCount, communities, communityMap } = buildGraphologyGraph(data, allNodeIds);
     graphRef.current = graph;
     allNodeIdsRef.current = allNodeIds;
+    setCommunityInfo(communityCount, communities, communityMap);
 
     // Kill existing layout
     if (layoutRef.current) { layoutRef.current.kill(); layoutRef.current = null; }
@@ -184,8 +210,8 @@ export function useSigma() {
         neighbors = new Set(graph.neighbors(selId));
         neighbors.add(selId);
       }
-      sigmaRef.current.setSetting('nodeReducer', createNodeReducer(selId, neighbors, visibleNodeIds));
-      sigmaRef.current.setSetting('edgeReducer', createEdgeReducer(selId, graph, visibleNodeIds));
+      sigmaRef.current.setSetting('nodeReducer', createNodeReducer(selId, neighbors, visibleNodeIds, currentMode));
+      sigmaRef.current.setSetting('edgeReducer', createEdgeReducer(selId, graph, visibleNodeIds, currentMode));
 
       // Start FA2 worker layout
       setIsLayoutRunning(true);
@@ -214,38 +240,25 @@ export function useSigma() {
       defaultEdgeType: 'curved',
       edgeProgramClasses: { curved: createEdgeCurveProgram() },
       nodeProgramClasses: {
-        bordered: createNodeBorderProgram({
-          borders: [
-            {
-              color: { attribute: 'borderColor', defaultValue: '#ffffff' },
-              size: { value: 2, mode: 'pixels' },
-            },
-            {
-              color: { attribute: 'color', defaultValue: '#6b7280' },
-              size: { fill: true },
-            },
-          ],
-          drawLabel: undefined,
-          drawHover: drawNodeHover,
-        }),
+        bordered: makeNodeProgram(currentMode),
       },
       defaultNodeType: 'bordered',
       renderLabels: state.showLabels,
       labelFont: "'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', monospace",
       labelSize: 11,
       labelWeight: '500',
-      labelColor: { color: '#e4e4ed' },
+      labelColor: { color: t.colorText },
       labelRenderedSizeThreshold: 8,
       labelDensity: 0.1,
       labelGridCellSize: 70,
-      defaultNodeColor: '#6b7280',
-      defaultEdgeColor: '#2a2a3a',
+      defaultNodeColor: currentMode === 'light' ? '#9A9AB0' : '#6b7280',
+      defaultEdgeColor: t.colorBorderStrong,
       minCameraRatio: 0.002,
       maxCameraRatio: 50,
       hideEdgesOnMove: true,
       zIndex: true,
-      nodeReducer: createNodeReducer(selId, neighbors, visibleNodeIds),
-      edgeReducer: createEdgeReducer(selId, graph, visibleNodeIds),
+      nodeReducer: createNodeReducer(selId, neighbors, visibleNodeIds, currentMode),
+      edgeReducer: createEdgeReducer(selId, graph, visibleNodeIds, currentMode),
     });
 
     sigmaRef.current = sigma;
@@ -301,6 +314,7 @@ export function useSigma() {
     if (!sigma || !graph) return;
 
     const state = useGraphStore.getState();
+    const currentMode = state.themeMode;
     const visibleNodes = getVisibleNodes(state);
     const visibleNodeIds = new Set(visibleNodes.map((n) => n.id));
 
@@ -310,8 +324,8 @@ export function useSigma() {
       neighbors.add(selectedNodeId);
     }
 
-    sigma.setSetting('nodeReducer', createNodeReducer(selectedNodeId, neighbors, visibleNodeIds));
-    sigma.setSetting('edgeReducer', createEdgeReducer(selectedNodeId, graph, visibleNodeIds));
+    sigma.setSetting('nodeReducer', createNodeReducer(selectedNodeId, neighbors, visibleNodeIds, currentMode));
+    sigma.setSetting('edgeReducer', createEdgeReducer(selectedNodeId, graph, visibleNodeIds, currentMode));
     sigma.refresh();
 
     // Smooth camera: focus on selected node, or reset when deselected
@@ -333,6 +347,42 @@ export function useSigma() {
     if (!sigma) return;
     sigma.setSetting('renderLabels', showLabels);
   }, [showLabels]);
+
+  // React to theme changes — update Sigma settings without rebuilding the graph
+  useEffect(() => {
+    const sigma = sigmaRef.current;
+    const graph = graphRef.current;
+    if (!sigma || !graph) return;
+
+    const t = getTokens(themeMode);
+
+    // Swap node program (includes new drawHover callback)
+    try {
+      sigma.setSetting('nodeProgramClasses', { bordered: makeNodeProgram(themeMode) });
+    } catch {
+      // Sigma v3 may not support hot-swapping node programs — fallback: add to structural key
+    }
+
+    // Update label and default colors
+    sigma.setSetting('labelColor', { color: t.colorText });
+    sigma.setSetting('defaultNodeColor', themeMode === 'light' ? '#9A9AB0' : '#6b7280');
+    sigma.setSetting('defaultEdgeColor', t.colorBorderStrong);
+
+    // Refresh reducers with theme-aware dimColor
+    const state = useGraphStore.getState();
+    const visibleNodes = getVisibleNodes(state);
+    const visibleNodeIds = new Set(visibleNodes.map((n) => n.id));
+    const selId = state.selectedNodeId;
+    let neighbors: NeighborSet = new Set();
+    if (selId && graph.hasNode(selId)) {
+      neighbors = new Set(graph.neighbors(selId));
+      neighbors.add(selId);
+    }
+    sigma.setSetting('nodeReducer', createNodeReducer(selId, neighbors, visibleNodeIds, themeMode));
+    sigma.setSetting('edgeReducer', createEdgeReducer(selId, graph, visibleNodeIds, themeMode));
+
+    sigma.refresh();
+  }, [themeMode]);
 
   const fitToScreen = useCallback(() => {
     sigmaRef.current?.getCamera().animatedReset({ duration: 600, easing: 'easeInOutCubic' });

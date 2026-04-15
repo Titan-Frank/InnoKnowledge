@@ -1,17 +1,19 @@
 import type { CSSProperties } from 'react';
-import { aiWebComponentTokens } from './aiwc/index.js';
+import type { TokenSet } from './aiwc/styles/tokens.js';
 
-export const workspaceDockStyle = {
-  position: 'sticky',
-  top: 20,
-  maxHeight: 'calc(100vh - 52px)',
-  overflow: 'auto',
-  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  borderRadius: 20,
-  background: 'linear-gradient(180deg, rgba(16,16,24,0.96) 0%, rgba(10,10,16,0.96) 100%)',
-  boxShadow: aiWebComponentTokens.shadow,
-  backdropFilter: 'blur(10px)',
-} satisfies CSSProperties;
+export function createWorkspaceDockStyle(t: TokenSet): CSSProperties {
+  return {
+    position: 'sticky',
+    top: 20,
+    maxHeight: 'calc(100vh - 52px)',
+    overflow: 'auto',
+    border: `1px solid ${t.colorBorder}`,
+    borderRadius: 20,
+    background: t.colorSurface,
+    boxShadow: t.shadow,
+    backdropFilter: 'blur(10px)',
+  };
+}
 
 export const workspacePanelContentStyle = {
   display: 'grid',
@@ -19,15 +21,17 @@ export const workspacePanelContentStyle = {
   padding: 14,
 } satisfies CSSProperties;
 
-export const workspaceSectionStyle = {
-  background: 'rgba(22,22,31,0.92)',
-  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  borderRadius: 18,
-  boxShadow: aiWebComponentTokens.shadowSoft,
-  padding: '14px 16px',
-  display: 'grid',
-  gap: 12,
-} satisfies CSSProperties;
+export function createWorkspaceSectionStyle(t: TokenSet): CSSProperties {
+  return {
+    background: t.colorSurfaceRaised,
+    border: `1px solid ${t.colorBorder}`,
+    borderRadius: 18,
+    boxShadow: t.shadowSoft,
+    padding: '14px 16px',
+    display: 'grid',
+    gap: 12,
+  };
+}
 
 export const workspaceSectionHeaderStyle = {
   display: 'flex',
@@ -36,67 +40,80 @@ export const workspaceSectionHeaderStyle = {
   gap: 8,
 } satisfies CSSProperties;
 
-export const workspaceSectionTitleStyle = {
-  margin: 0,
-  fontSize: '1.02rem',
-  fontWeight: 600,
-  color: aiWebComponentTokens.colorText,
-} satisfies CSSProperties;
+export function createWorkspaceSectionTitleStyle(t: TokenSet): CSSProperties {
+  return {
+    margin: 0,
+    fontSize: '1.02rem',
+    fontWeight: 600,
+    color: t.colorText,
+  };
+}
 
-export const workspaceSectionNoteStyle = {
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.82rem',
-} satisfies CSSProperties;
+export function createWorkspaceSectionNoteStyle(t: TokenSet): CSSProperties {
+  return {
+    color: t.colorMuted,
+    fontSize: '0.82rem',
+  };
+}
 
 export const workspaceFieldStyle = {
   display: 'grid',
   gap: 8,
 } satisfies CSSProperties;
 
-export const workspaceFieldLabelStyle = {
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.88rem',
-  fontWeight: 500,
-} satisfies CSSProperties;
+export function createWorkspaceFieldLabelStyle(t: TokenSet): CSSProperties {
+  return {
+    color: t.colorMuted,
+    fontSize: '0.88rem',
+    fontWeight: 500,
+  };
+}
 
-export const workspaceSelectLikeStyle = {
-  width: '100%',
-  minHeight: 42,
-  padding: '0 14px',
-  border: `1px solid ${aiWebComponentTokens.colorBorderStrong}`,
-  borderRadius: aiWebComponentTokens.radiusSmall,
-  background: aiWebComponentTokens.colorSurface,
-  color: aiWebComponentTokens.colorText,
-  fontSize: '0.96rem',
-  fontFamily: 'inherit',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
-} satisfies CSSProperties;
+export function createWorkspaceSelectLikeStyle(t: TokenSet): CSSProperties {
+  return {
+    width: '100%',
+    minHeight: 42,
+    padding: '0 14px',
+    border: `1px solid ${t.colorBorderStrong}`,
+    borderRadius: t.radiusSmall,
+    background: t.colorSurface,
+    color: t.colorText,
+    fontSize: '0.96rem',
+    fontFamily: 'inherit',
+  };
+}
 
-export const workspaceHintStyle = {
-  margin: 0,
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.84rem',
-  lineHeight: 1.65,
-} satisfies CSSProperties;
+export function createWorkspaceHintStyle(t: TokenSet): CSSProperties {
+  return {
+    margin: 0,
+    color: t.colorMuted,
+    fontSize: '0.84rem',
+    lineHeight: 1.65,
+  };
+}
 
-export const workspaceToggleStyle = {
-  display: 'flex',
-  gap: 8,
-  alignItems: 'flex-start',
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.88rem',
-  lineHeight: 1.6,
-} satisfies CSSProperties;
+export function createWorkspaceToggleStyle(t: TokenSet): CSSProperties {
+  return {
+    display: 'flex',
+    gap: 8,
+    alignItems: 'flex-start',
+    color: t.colorMuted,
+    fontSize: '0.88rem',
+    lineHeight: 1.6,
+  };
+}
 
-export const detailSectionStyle = {
-  background: 'rgba(22,22,31,0.9)',
-  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  borderRadius: 18,
-  boxShadow: aiWebComponentTokens.shadowSoft,
-  padding: '14px 16px',
-  display: 'grid',
-  gap: 10,
-} satisfies CSSProperties;
+export function createDetailSectionStyle(t: TokenSet): CSSProperties {
+  return {
+    background: t.colorSurfaceRaised,
+    border: `1px solid ${t.colorBorder}`,
+    borderRadius: 18,
+    boxShadow: t.shadowSoft,
+    padding: '14px 16px',
+    display: 'grid',
+    gap: 10,
+  };
+}
 
 export const detailSectionHeaderStyle = {
   display: 'flex',
@@ -105,35 +122,45 @@ export const detailSectionHeaderStyle = {
   gap: 8,
 } satisfies CSSProperties;
 
-export const detailSectionTitleStyle = {
-  margin: 0,
-  fontSize: '1rem',
-  fontWeight: 700,
-  color: aiWebComponentTokens.colorText,
-} satisfies CSSProperties;
+export function createDetailSectionTitleStyle(t: TokenSet): CSSProperties {
+  return {
+    margin: 0,
+    fontSize: '1rem',
+    fontWeight: 700,
+    color: t.colorText,
+  };
+}
 
-export const detailSectionMetaStyle = {
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.82rem',
-} satisfies CSSProperties;
+export function createDetailSectionMetaStyle(t: TokenSet): CSSProperties {
+  return {
+    color: t.colorMuted,
+    fontSize: '0.82rem',
+  };
+}
 
-export const detailSubcardStyle = {
-  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  borderRadius: 14,
-  background: 'rgba(16,16,24,0.78)',
-  padding: 12,
-} satisfies CSSProperties;
+export function createDetailSubcardStyle(t: TokenSet): CSSProperties {
+  return {
+    border: `1px solid ${t.colorBorder}`,
+    borderRadius: 14,
+    background: t.colorSurfaceMuted,
+    padding: 12,
+  };
+}
 
-export const detailEmptyCardStyle = {
-  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  borderRadius: 14,
-  background: aiWebComponentTokens.colorSurfaceMuted,
-  padding: 12,
-} satisfies CSSProperties;
+export function createDetailEmptyCardStyle(t: TokenSet): CSSProperties {
+  return {
+    border: `1px solid ${t.colorBorder}`,
+    borderRadius: 14,
+    background: t.colorSurfaceMuted,
+    padding: 12,
+  };
+}
 
-export const detailBodyTextStyle = {
-  margin: 0,
-  color: aiWebComponentTokens.colorTextSubtle,
-  fontSize: '0.9rem',
-  lineHeight: 1.68,
-} satisfies CSSProperties;
+export function createDetailBodyTextStyle(t: TokenSet): CSSProperties {
+  return {
+    margin: 0,
+    color: t.colorTextSubtle,
+    fontSize: '0.9rem',
+    lineHeight: 1.68,
+  };
+}

@@ -7,20 +7,22 @@ import { NODE_LAYER_LABELS } from '../constants/index.js';
 import { ToneBadge, ActionButton } from './aiwc/index.js';
 import { resolveEdgeVisual, resolveNodeLayerVisual } from '../graph/graphPresentation.js';
 import {
-  detailBodyTextStyle,
-  detailEmptyCardStyle,
+  createDetailBodyTextStyle,
+  createDetailEmptyCardStyle,
   detailSectionHeaderStyle,
-  detailSectionMetaStyle,
-  detailSectionStyle,
-  detailSectionTitleStyle,
-  detailSubcardStyle,
+  createDetailSectionMetaStyle,
+  createDetailSectionStyle,
+  createDetailSectionTitleStyle,
+  createDetailSubcardStyle,
 } from './workspaceStyles.js';
+import { useTokens } from '../hooks/useTokens.js';
 
 interface Props {
   node: GraphNode;
 }
 
 export function DetailSupportNodes({ node }: Props) {
+  const t = useTokens();
   const state = useGraphStore.getState();
 
   const neighborEntries = getNeighborEntries(node, state).sort((a, b) =>
@@ -47,23 +49,23 @@ export function DetailSupportNodes({ node }: Props) {
       ? '这个主干节点目前还没有拆出支撑节点，后续可以继续补方法、实验、表征等支撑层。'
       : '这个支撑节点暂时还没有挂接到明确的主干节点。';
     return (
-      <div style={detailSectionStyle}>
+      <div style={createDetailSectionStyle(t)}>
         <div style={detailSectionHeaderStyle}>
-          <h3 style={detailSectionTitleStyle}>支撑节点</h3>
-          <span style={detailSectionMetaStyle}>{noteText}</span>
+          <h3 style={createDetailSectionTitleStyle(t)}>支撑节点</h3>
+          <span style={createDetailSectionMetaStyle(t)}>{noteText}</span>
         </div>
-        <div style={detailEmptyCardStyle}>
-          <p style={detailBodyTextStyle}>{fallbackNote}</p>
+        <div style={createDetailEmptyCardStyle(t)}>
+          <p style={createDetailBodyTextStyle(t)}>{fallbackNote}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={detailSectionStyle}>
+    <div style={createDetailSectionStyle(t)}>
       <div style={detailSectionHeaderStyle}>
-        <h3 style={detailSectionTitleStyle}>支撑节点</h3>
-        <span style={detailSectionMetaStyle}>{noteText}</span>
+        <h3 style={createDetailSectionTitleStyle(t)}>支撑节点</h3>
+        <span style={createDetailSectionMetaStyle(t)}>{noteText}</span>
       </div>
       <div style={listStyle}>
         {items.map(({ edge, otherNode }) => {
@@ -73,7 +75,7 @@ export function DetailSupportNodes({ node }: Props) {
             <div
               key={otherNode.id}
               style={{
-                ...detailSubcardStyle,
+                ...createDetailSubcardStyle(t),
                 borderLeft: `4px solid ${edgeVisual.stroke}`,
               }}
             >

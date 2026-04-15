@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
-import { aiWebComponentTokens } from "./tokens";
+import type { TokenSet } from "./tokens";
+
+
 
 export type PanelTone = "neutral" | "accent" | "secondary" | "success" | "warning" | "danger";
 
@@ -9,55 +11,61 @@ type TonePalette = {
   text: string;
 };
 
-const tonePalettes: Record<PanelTone, TonePalette> = {
-  neutral: {
-    background: aiWebComponentTokens.colorSurfaceMuted,
-    border: aiWebComponentTokens.colorBorder,
-    text: aiWebComponentTokens.colorTextSubtle
-  },
-  accent: {
-    background: aiWebComponentTokens.colorAccentSoft,
-    border: aiWebComponentTokens.colorBorderStrong,
-    text: aiWebComponentTokens.colorAccent
-  },
-  secondary: {
-    background: aiWebComponentTokens.colorSecondaryAccentSoft,
-    border: aiWebComponentTokens.colorBorder,
-    text: aiWebComponentTokens.colorSecondaryAccent
-  },
-  success: {
-    background: aiWebComponentTokens.colorSuccessSoft,
-    border: "rgba(16, 185, 129, 0.3)",
-    text: aiWebComponentTokens.colorSuccess
-  },
-  warning: {
-    background: aiWebComponentTokens.colorWarningSoft,
-    border: "rgba(245, 158, 11, 0.3)",
-    text: "#f59e0b"
-  },
-  danger: {
-    background: aiWebComponentTokens.colorDangerSoft,
-    border: "rgba(239, 68, 68, 0.3)",
-    text: aiWebComponentTokens.colorDanger
-  }
-};
+function getTonePalettes(t: TokenSet): Record<PanelTone, TonePalette> {
+  return {
+    neutral: {
+      background: t.colorSurfaceMuted,
+      border: t.colorBorder,
+      text: t.colorTextSubtle
+    },
+    accent: {
+      background: t.colorAccentSoft,
+      border: t.colorBorderStrong,
+      text: t.colorAccent
+    },
+    secondary: {
+      background: t.colorSecondaryAccentSoft,
+      border: t.colorBorder,
+      text: t.colorSecondaryAccent
+    },
+    success: {
+      background: t.colorSuccessSoft,
+      border: t.colorSuccessSoft,
+      text: t.colorSuccess
+    },
+    warning: {
+      background: t.colorWarningSoft,
+      border: t.colorWarningSoft,
+      text: t.colorWarning
+    },
+    danger: {
+      background: t.colorDangerSoft,
+      border: t.colorDangerSoft,
+      text: t.colorDanger
+    }
+  };
+}
 
-export const panelSurfaceStyle = {
-  background: aiWebComponentTokens.colorSurface,
-  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  borderRadius: aiWebComponentTokens.radius,
-  boxShadow: "none",
-  overflow: "hidden"
-} satisfies CSSProperties;
+export function createPanelSurfaceStyle(t: TokenSet): CSSProperties {
+  return {
+    background: t.colorSurface,
+    border: `1px solid ${t.colorBorder}`,
+    borderRadius: t.radius,
+    boxShadow: "none",
+    overflow: "hidden"
+  };
+}
 
-export const panelHeaderStyle = {
-  alignItems: "start",
-  borderBottom: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  display: "flex",
-  gap: 16,
-  justifyContent: "space-between",
-  padding: "14px 16px"
-} satisfies CSSProperties;
+export function createPanelHeaderStyle(t: TokenSet): CSSProperties {
+  return {
+    alignItems: "start",
+    borderBottom: `1px solid ${t.colorBorder}`,
+    display: "flex",
+    gap: 16,
+    justifyContent: "space-between",
+    padding: "14px 16px"
+  };
+}
 
 export const panelHeaderMainStyle = {
   display: "grid",
@@ -70,18 +78,22 @@ export const panelTitleRowStyle = {
   gap: 12
 } satisfies CSSProperties;
 
-export const panelTitleStyle = {
-  color: aiWebComponentTokens.colorText,
-  fontSize: 16,
-  fontWeight: 700,
-  letterSpacing: "-0.01em"
-} satisfies CSSProperties;
+export function createPanelTitleStyle(t: TokenSet): CSSProperties {
+  return {
+    color: t.colorText,
+    fontSize: 16,
+    fontWeight: 700,
+    letterSpacing: "-0.01em"
+  };
+}
 
-export const panelSubtitleStyle = {
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: 13,
-  lineHeight: 1.5
-} satisfies CSSProperties;
+export function createPanelSubtitleStyle(t: TokenSet): CSSProperties {
+  return {
+    color: t.colorMuted,
+    fontSize: 13,
+    lineHeight: 1.5
+  };
+}
 
 export const panelBodyStyle = {
   display: "grid",
@@ -89,13 +101,15 @@ export const panelBodyStyle = {
   padding: 16
 } satisfies CSSProperties;
 
-export const sectionLabelStyle = {
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: 11,
-  fontWeight: 800,
-  letterSpacing: "0.12em",
-  textTransform: "uppercase"
-} satisfies CSSProperties;
+export function createSectionLabelStyle(t: TokenSet): CSSProperties {
+  return {
+    color: t.colorMuted,
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase"
+  };
+}
 
 export const stackedMetaStyle = {
   display: "flex",
@@ -103,14 +117,14 @@ export const stackedMetaStyle = {
   gap: 8
 } satisfies CSSProperties;
 
-export function createToneBadgeStyle(tone: PanelTone = "accent"): CSSProperties {
-  const palette = tonePalettes[tone];
+export function createToneBadgeStyle(tone: PanelTone, t: TokenSet): CSSProperties {
+  const palette = getTonePalettes(t)[tone];
 
   return {
     alignItems: "center",
     background: palette.background,
     border: `1px solid ${palette.border}`,
-    borderRadius: aiWebComponentTokens.radiusPill,
+    borderRadius: t.radiusPill,
     color: palette.text,
     display: "inline-flex",
     fontSize: 11,
@@ -121,13 +135,13 @@ export function createToneBadgeStyle(tone: PanelTone = "accent"): CSSProperties 
   };
 }
 
-export function createStateCardStyle(tone: PanelTone = "neutral"): CSSProperties {
-  const palette = tonePalettes[tone];
+export function createStateCardStyle(tone: PanelTone, t: TokenSet): CSSProperties {
+  const palette = getTonePalettes(t)[tone];
 
   return {
     background: palette.background,
     border: `1px solid ${palette.border}`,
-    borderRadius: aiWebComponentTokens.radiusSmall,
+    borderRadius: t.radiusSmall,
     color: palette.text,
     display: "grid",
     gap: 6,
@@ -135,14 +149,14 @@ export function createStateCardStyle(tone: PanelTone = "neutral"): CSSProperties
   };
 }
 
-export function createIconFrameStyle(tone: PanelTone = "accent"): CSSProperties {
-  const palette = tonePalettes[tone];
+export function createIconFrameStyle(tone: PanelTone, t: TokenSet): CSSProperties {
+  const palette = getTonePalettes(t)[tone];
 
   return {
     alignItems: "center",
     background: palette.background,
     border: `1px solid ${palette.border}`,
-    borderRadius: aiWebComponentTokens.radiusSmall,
+    borderRadius: t.radiusSmall,
     color: palette.text,
     display: "inline-flex",
     flexShrink: 0,
@@ -152,12 +166,12 @@ export function createIconFrameStyle(tone: PanelTone = "accent"): CSSProperties 
   };
 }
 
-export function createGhostButtonStyle(interactive: boolean): CSSProperties {
+export function createGhostButtonStyle(interactive: boolean, t: TokenSet): CSSProperties {
   return {
-    background: aiWebComponentTokens.colorSurface,
-    border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-    borderRadius: aiWebComponentTokens.radiusPill,
-    color: aiWebComponentTokens.colorText,
+    background: t.colorSurface,
+    border: `1px solid ${t.colorBorder}`,
+    borderRadius: t.radiusPill,
+    color: t.colorText,
     cursor: interactive ? "pointer" : "default",
     fontSize: 12,
     fontWeight: 700,
@@ -165,11 +179,11 @@ export function createGhostButtonStyle(interactive: boolean): CSSProperties {
   };
 }
 
-export function createSelectableCardStyle(active: boolean): CSSProperties {
+export function createSelectableCardStyle(active: boolean, t: TokenSet): CSSProperties {
   return {
-    background: active ? aiWebComponentTokens.colorSurfaceMuted : aiWebComponentTokens.colorSurface,
-    border: `1px solid ${active ? aiWebComponentTokens.colorBorderStrong : aiWebComponentTokens.colorBorder}`,
-    borderRadius: aiWebComponentTokens.radiusSmall,
+    background: active ? t.colorSurfaceMuted : t.colorSurface,
+    border: `1px solid ${active ? t.colorBorderStrong : t.colorBorder}`,
+    borderRadius: t.radiusSmall,
     boxShadow: "none"
   };
 }

@@ -6,18 +6,20 @@ import { NODE_LAYER_LABELS, EDGE_LAYER_LABELS } from '../constants/index.js';
 import { ToneBadge, ActionButton } from './aiwc/index.js';
 import { resolveEdgeVisual, resolveNodeLayerVisual } from '../graph/graphPresentation.js';
 import {
-  detailBodyTextStyle,
-  detailEmptyCardStyle,
-  detailSectionStyle,
-  detailSectionTitleStyle,
-  detailSubcardStyle,
+  createDetailBodyTextStyle,
+  createDetailEmptyCardStyle,
+  createDetailSectionStyle,
+  createDetailSectionTitleStyle,
+  createDetailSubcardStyle,
 } from './workspaceStyles.js';
+import { useTokens } from '../hooks/useTokens.js';
 
 interface Props {
   node: GraphNode;
 }
 
 export function DetailRelations({ node }: Props) {
+  const t = useTokens();
   const data = useGraphStore((s) => s.data);
   if (!data) return null;
 
@@ -28,18 +30,18 @@ export function DetailRelations({ node }: Props) {
 
   if (relatedEdges.length === 0) {
     return (
-      <div style={detailSectionStyle}>
-        <h3 style={detailSectionTitleStyle}>关联关系</h3>
-        <div style={detailEmptyCardStyle}>
-          <p style={detailBodyTextStyle}>这个节点当前还没有关联关系。</p>
+      <div style={createDetailSectionStyle(t)}>
+        <h3 style={createDetailSectionTitleStyle(t)}>关联关系</h3>
+        <div style={createDetailEmptyCardStyle(t)}>
+          <p style={createDetailBodyTextStyle(t)}>这个节点当前还没有关联关系。</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={detailSectionStyle}>
-      <h3 style={detailSectionTitleStyle}>关联关系</h3>
+    <div style={createDetailSectionStyle(t)}>
+      <h3 style={createDetailSectionTitleStyle(t)}>关联关系</h3>
       <div style={listStyle}>
         {relatedEdges.map((edge) => {
           const otherId = edge.from === node.id ? edge.to : edge.from;
@@ -50,7 +52,7 @@ export function DetailRelations({ node }: Props) {
           return (
             <div
               style={{
-                ...detailSubcardStyle,
+                ...createDetailSubcardStyle(t),
                 borderLeft: `4px solid ${edgeVisual.stroke}`,
                 gap: 8,
                 display: 'grid',
@@ -66,13 +68,13 @@ export function DetailRelations({ node }: Props) {
                 <ToneBadge tone={nodeLayerVisual.badgeTone}>{nodeLayerVisual.label}</ToneBadge>
               </div>
               <div style={edgeLegendStyle}>
-                <span style={edgeLegendLabelStyle}>关系线型</span>
+                <span style={edgeLegendLabelStyle(t)}>关系线型</span>
                 <span
                   style={edgeLegendSampleStyle(edgeVisual.stroke, edgeVisual.dashArray)}
                   aria-hidden
                 />
               </div>
-              <p style={detailBodyTextStyle}>
+              <p style={createDetailBodyTextStyle(t)}>
                 {edge.backbone_expand ? '主干展开' : EDGE_LAYER_LABELS[edge.edge_layer ?? 'support'] ?? humanizeKey(edge.edge_layer ?? 'support')} · {NODE_LAYER_LABELS[otherNode?.node_layer ?? 'other'] ?? humanizeKey(otherNode?.node_layer ?? 'other')} · {getTypeLabel(otherNode?.node_type ?? 'other')}
               </p>
               {edgeProps?.relation ? (
@@ -103,11 +105,13 @@ const edgeLegendStyle: CSSProperties = {
   gap: 8,
 };
 
-const edgeLegendLabelStyle: CSSProperties = {
-  color: detailBodyTextStyle.color,
-  fontSize: '0.84rem',
-  whiteSpace: 'nowrap',
-};
+function edgeLegendLabelStyle(t: ReturnType<typeof useTokens>): CSSProperties {
+  return {
+    color: createDetailBodyTextStyle(t).color,
+    fontSize: '0.84rem',
+    whiteSpace: 'nowrap',
+  };
+}
 
 function edgeLegendSampleStyle(stroke: string, dashArray?: string): CSSProperties {
   const lineStyle = dashArray === '3 6' ? 'dotted' : dashArray ? 'dashed' : 'solid';

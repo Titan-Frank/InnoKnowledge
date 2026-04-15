@@ -8,12 +8,14 @@ import { SessionListPanel } from './aiwc/index.js';
 import type { SessionListItem } from './aiwc/index.js';
 import {
   workspaceSectionHeaderStyle,
-  workspaceSectionNoteStyle,
-  workspaceSectionStyle,
-  workspaceSectionTitleStyle,
+  createWorkspaceSectionNoteStyle,
+  createWorkspaceSectionStyle,
+  createWorkspaceSectionTitleStyle,
 } from './workspaceStyles.js';
+import { useTokens } from '../hooks/useTokens.js';
 
 export function SearchResultList() {
+  const t = useTokens();
   const searchTerm = useGraphStore((s) => s.searchTerm);
   const selectedNodeId = useGraphStore((s) => s.selectedNodeId);
   const selectedBook = useGraphStore((s) => s.selectedBook);
@@ -34,10 +36,10 @@ export function SearchResultList() {
   }));
 
   return (
-    <div style={workspaceSectionStyle}>
+    <div style={createWorkspaceSectionStyle(t)}>
       <div style={workspaceSectionHeaderStyle}>
-        <h2 style={workspaceSectionTitleStyle}>搜索结果</h2>
-        <span style={workspaceSectionNoteStyle}>{items.length} 条匹配</span>
+        <h2 style={createWorkspaceSectionTitleStyle(t)}>搜索结果</h2>
+        <span style={createWorkspaceSectionNoteStyle(t)}>{items.length} 条匹配</span>
       </div>
       <SessionListPanel
         title="搜索结果"

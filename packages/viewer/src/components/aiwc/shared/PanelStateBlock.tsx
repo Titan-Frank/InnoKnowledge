@@ -3,6 +3,7 @@ import {
   createStateCardStyle,
   type PanelTone
 } from "../styles/panelStyles";
+import { useTokens } from "../../../hooks/useTokens.js";
 
 export type PanelStateBlockProps = {
   tone?: PanelTone;
@@ -19,8 +20,9 @@ export function PanelStateBlock({
   description,
   action
 }: PanelStateBlockProps) {
+  const t = useTokens();
   return (
-    <div style={createStateCardStyle(tone)}>
+    <div style={createStateCardStyle(tone, t)}>
       {visual ? <div>{visual}</div> : null}
       {title ? (
         <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>

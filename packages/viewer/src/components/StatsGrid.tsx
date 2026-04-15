@@ -2,9 +2,11 @@ import { useMemo, type CSSProperties } from 'react';
 import { useGraphStore } from '../store/graphStore.js';
 import { getVisibleNodes } from '../graph/visibility.js';
 import { isBackboneNode, isSupportNode } from '../graph/layout.js';
-import { aiWebComponentTokens } from './aiwc/index.js';
+import { useTokens } from '../hooks/useTokens.js';
+import type { TokenSet } from './aiwc/styles/tokens.js';
 
 export function StatsGrid() {
+  const t = useTokens();
   const data = useGraphStore((s) => s.data);
   const selectedTypes = useGraphStore((s) => s.selectedTypes);
   const selectedBook = useGraphStore((s) => s.selectedBook);
@@ -39,9 +41,9 @@ export function StatsGrid() {
   return (
     <div style={gridStyle}>
       {items.map(([label, value]) => (
-        <div key={label} style={cardStyle}>
+        <div key={label} style={cardStyle(t)}>
           <strong style={valueStyle}>{value}</strong>
-          <span style={labelStyle}>{label}</span>
+          <span style={labelStyle(t)}>{label}</span>
         </div>
       ))}
     </div>
@@ -54,13 +56,15 @@ const gridStyle: CSSProperties = {
   gap: 12,
 };
 
-const cardStyle: CSSProperties = {
-  padding: 16,
-  border: `1px solid ${aiWebComponentTokens.colorBorder}`,
-  borderRadius: aiWebComponentTokens.radiusSmall,
-  background: aiWebComponentTokens.colorSurface,
-  boxShadow: aiWebComponentTokens.shadowSoft,
-};
+function cardStyle(t: TokenSet): CSSProperties {
+  return {
+    padding: 16,
+    border: `1px solid ${t.colorBorder}`,
+    borderRadius: t.radiusSmall,
+    background: t.colorSurface,
+    boxShadow: t.shadowSoft,
+  };
+}
 
 const valueStyle: CSSProperties = {
   display: 'block',
@@ -68,9 +72,11 @@ const valueStyle: CSSProperties = {
   fontWeight: 700,
 };
 
-const labelStyle: CSSProperties = {
-  display: 'block',
-  marginTop: 4,
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.92rem',
-};
+function labelStyle(t: TokenSet): CSSProperties {
+  return {
+    display: 'block',
+    marginTop: 4,
+    color: t.colorMuted,
+    fontSize: '0.92rem',
+  };
+}

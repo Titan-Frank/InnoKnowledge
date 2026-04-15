@@ -1,19 +1,25 @@
 import type { CSSProperties } from 'react';
 import { StatsGrid } from './StatsGrid.js';
-import { aiWebComponentTokens } from './aiwc/index.js';
+import { ThemeToggle } from './ThemeToggle.js';
+import { useTokens } from '../hooks/useTokens.js';
+import type { TokenSet } from './aiwc/styles/tokens.js';
 
 export function TopBar() {
+  const t = useTokens();
+
   return (
     <header style={topbarStyle}>
       <div>
-        <p style={eyebrowStyle}>Knowledge Backbone Viewer</p>
-        <h1 style={titleStyle}>知识主干网络浏览器</h1>
-        <p style={ledeStyle}>
-          通过本地 SQLite API 读取 canonical nodes、edges、framework、patterns、mentions
-          与 evidence，生成一个可交互的本地知识网络界面。
+        <p style={eyebrowStyle(t)}>Knowledge Map</p>
+        <h1 style={titleStyle}>知识地图</h1>
+        <p style={ledeStyle(t)}>
+          从教材中提取概念、原理与关联，绘制可交互的知识地图——看清全貌，也看清脉络。
         </p>
       </div>
-      <StatsGrid />
+      <div style={rightColStyle}>
+        <ThemeToggle />
+        <StatsGrid />
+      </div>
     </header>
   );
 }
@@ -26,13 +32,21 @@ const topbarStyle: CSSProperties = {
   marginBottom: 20,
 };
 
-const eyebrowStyle: CSSProperties = {
-  margin: '0 0 4px',
-  color: aiWebComponentTokens.colorAccent,
-  fontSize: '0.78rem',
-  letterSpacing: '0.16em',
-  textTransform: 'uppercase',
+const rightColStyle: CSSProperties = {
+  display: 'grid',
+  gap: 12,
+  alignItems: 'end',
 };
+
+function eyebrowStyle(t: TokenSet): CSSProperties {
+  return {
+    margin: '0 0 4px',
+    color: t.colorAccent,
+    fontSize: '0.78rem',
+    letterSpacing: '0.16em',
+    textTransform: 'uppercase',
+  };
+}
 
 const titleStyle: CSSProperties = {
   margin: 0,
@@ -41,9 +55,11 @@ const titleStyle: CSSProperties = {
   fontWeight: 600,
 };
 
-const ledeStyle: CSSProperties = {
-  maxWidth: '70ch',
-  margin: '12px 0 0',
-  color: aiWebComponentTokens.colorMuted,
-  lineHeight: 1.7,
-};
+function ledeStyle(t: TokenSet): CSSProperties {
+  return {
+    maxWidth: '70ch',
+    margin: '12px 0 0',
+    color: t.colorMuted,
+    lineHeight: 1.7,
+  };
+}

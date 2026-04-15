@@ -1,30 +1,37 @@
 import type { CSSProperties } from 'react';
-import { aiWebComponentTokens } from './aiwc/index.js';
+import { useTokens } from '../hooks/useTokens.js';
+import type { TokenSet } from './aiwc/styles/tokens.js';
 
 export function DetailEmpty() {
+  const t = useTokens();
+
   return (
-    <div style={emptyStyle}>
-      <p style={eyebrowStyle}>Node Detail</p>
+    <div style={emptyStyle(t)}>
+      <p style={eyebrowStyle(t)}>Node Detail</p>
       <h2 style={titleStyle}>选择一个节点</h2>
-      <p style={descStyle}>
+      <p style={descStyle(t)}>
         右侧会显示这个知识点的基本信息、关系、来源课题、证据片段，以及已生成的节点说明卡。
       </p>
     </div>
   );
 }
 
-const emptyStyle: CSSProperties = {
-  padding: '16px 16px 12px',
-  background: aiWebComponentTokens.colorSurfaceMuted,
-};
+function emptyStyle(t: TokenSet): CSSProperties {
+  return {
+    padding: '16px 16px 12px',
+    background: t.colorSurfaceMuted,
+  };
+}
 
-const eyebrowStyle: CSSProperties = {
-  margin: '0 0 4px',
-  color: aiWebComponentTokens.colorAccent,
-  fontSize: '0.78rem',
-  letterSpacing: '0.16em',
-  textTransform: 'uppercase',
-};
+function eyebrowStyle(t: TokenSet): CSSProperties {
+  return {
+    margin: '0 0 4px',
+    color: t.colorAccent,
+    fontSize: '0.78rem',
+    letterSpacing: '0.16em',
+    textTransform: 'uppercase',
+  };
+}
 
 const titleStyle: CSSProperties = {
   margin: 0,
@@ -32,9 +39,11 @@ const titleStyle: CSSProperties = {
   fontWeight: 600,
 };
 
-const descStyle: CSSProperties = {
-  margin: '8px 0 0',
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.88rem',
-  lineHeight: 1.6,
-};
+function descStyle(t: TokenSet): CSSProperties {
+  return {
+    margin: '8px 0 0',
+    color: t.colorMuted,
+    fontSize: '0.88rem',
+    lineHeight: 1.6,
+  };
+}

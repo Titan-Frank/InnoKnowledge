@@ -1,17 +1,19 @@
 import { useGraphStore } from '../store/graphStore.js';
 import { useSwitchSource } from '../hooks/useBootData.js';
 import {
-  workspaceFieldLabelStyle,
+  createWorkspaceFieldLabelStyle,
   workspaceFieldStyle,
-  workspaceHintStyle,
+  createWorkspaceHintStyle,
   workspaceSectionHeaderStyle,
-  workspaceSectionNoteStyle,
-  workspaceSectionStyle,
-  workspaceSectionTitleStyle,
-  workspaceSelectLikeStyle,
+  createWorkspaceSectionNoteStyle,
+  createWorkspaceSectionStyle,
+  createWorkspaceSectionTitleStyle,
+  createWorkspaceSelectLikeStyle,
 } from './workspaceStyles.js';
+import { useTokens } from '../hooks/useTokens.js';
 
 export function SourceSection() {
+  const t = useTokens();
   const sourceConfigs = useGraphStore((s) => s.sourceConfigs);
   const selectedSourceKey = useGraphStore((s) => s.selectedSourceKey);
   const sourceLoading = useGraphStore((s) => s.sourceLoading);
@@ -29,25 +31,25 @@ export function SourceSection() {
   if (warnings.length > 0) info.push(`警告：${warnings[0]}`);
 
   return (
-    <div style={workspaceSectionStyle}>
+    <div style={createWorkspaceSectionStyle(t)}>
       <div style={workspaceSectionHeaderStyle}>
-        <h2 style={workspaceSectionTitleStyle}>数据源</h2>
-        <span style={workspaceSectionNoteStyle}>{sourceNote}</span>
+        <h2 style={createWorkspaceSectionTitleStyle(t)}>数据源</h2>
+        <span style={createWorkspaceSectionNoteStyle(t)}>{sourceNote}</span>
       </div>
       <label style={workspaceFieldStyle}>
-        <span style={workspaceFieldLabelStyle}>选择版本</span>
+        <span style={createWorkspaceFieldLabelStyle(t)}>选择版本</span>
         <select
           value={selectedSourceKey || ''}
           disabled={sourceLoading}
           onChange={(e) => switchSource(e.target.value)}
-          style={workspaceSelectLikeStyle}
+          style={createWorkspaceSelectLikeStyle(t)}
         >
           {sources.map((s) => (
             <option key={s.key} value={s.key}>{s.label}</option>
           ))}
         </select>
       </label>
-      <p style={workspaceHintStyle}>{info.join(' | ')}</p>
+      <p style={createWorkspaceHintStyle(t)}>{info.join(' | ')}</p>
     </div>
   );
 }

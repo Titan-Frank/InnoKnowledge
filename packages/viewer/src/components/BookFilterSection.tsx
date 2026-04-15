@@ -2,12 +2,14 @@ import { useGraphStore, setSelectedBook, setFocusConnected } from '../store/grap
 import { SegmentedControl } from './aiwc/index.js';
 import {
   workspaceSectionHeaderStyle,
-  workspaceSectionStyle,
-  workspaceSectionTitleStyle,
-  workspaceToggleStyle,
+  createWorkspaceSectionStyle,
+  createWorkspaceSectionTitleStyle,
+  createWorkspaceToggleStyle,
 } from './workspaceStyles.js';
+import { useTokens } from '../hooks/useTokens.js';
 
 export function BookFilterSection() {
+  const t = useTokens();
   const data = useGraphStore((s) => s.data);
   const selectedBook = useGraphStore((s) => s.selectedBook);
   const focusConnected = useGraphStore((s) => s.focusConnected);
@@ -21,9 +23,9 @@ export function BookFilterSection() {
   }));
 
   return (
-    <div style={workspaceSectionStyle}>
+    <div style={createWorkspaceSectionStyle(t)}>
       <div style={workspaceSectionHeaderStyle}>
-        <h2 style={workspaceSectionTitleStyle}>来源范围</h2>
+        <h2 style={createWorkspaceSectionTitleStyle(t)}>来源范围</h2>
       </div>
       <SegmentedControl
         value={selectedBook}
@@ -31,7 +33,7 @@ export function BookFilterSection() {
         onChange={setSelectedBook}
         ariaLabel="来源范围"
       />
-      <label style={workspaceToggleStyle}>
+      <label style={createWorkspaceToggleStyle(t)}>
         <input
           type="checkbox"
           checked={focusConnected}

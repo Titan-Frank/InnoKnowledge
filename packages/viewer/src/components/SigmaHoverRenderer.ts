@@ -1,9 +1,11 @@
 import type { Settings } from 'sigma/settings';
 import type { NodeDisplayData, PartialButFor } from 'sigma/types';
 import type { Attributes } from 'graphology-types';
+import type { ThemeMode } from './aiwc/styles/tokens.js';
 
-// Dark background color for dimming calculation
-const DARK_BG = { r: 10, g: 10, b: 16 }; // #0a0a10
+// Background RGB values for dimming calculation
+const DARK_BG = { r: 10, g: 10, b: 16 };    // #0a0a10
+const LIGHT_BG = { r: 248, g: 248, b: 251 }; // #f8f8fb
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   if (hex.startsWith('rgba') || hex.startsWith('rgb')) {
@@ -31,18 +33,19 @@ function rgbToHex(r: number, g: number, b: number): string {
   }).join('');
 }
 
-/** Dim a color by mixing it toward the dark background */
-export function dimColor(hex: string, amount: number): string {
+/** Dim a color by mixing it toward the background */
+export function dimColor(hex: string, amount: number, mode: ThemeMode = 'dark'): string {
+  const bg = mode === 'light' ? LIGHT_BG : DARK_BG;
   const rgb = hexToRgb(hex);
   return rgbToHex(
-    DARK_BG.r + (rgb.r - DARK_BG.r) * amount,
-    DARK_BG.g + (rgb.g - DARK_BG.g) * amount,
-    DARK_BG.b + (rgb.b - DARK_BG.b) * amount,
+    bg.r + (rgb.r - bg.r) * amount,
+    bg.g + (rgb.g - bg.g) * amount,
+    bg.b + (rgb.b - bg.b) * amount,
   );
 }
 
 /** Brighten a color (push toward white) */
-export function brightenColor(hex: string, factor: number): string {
+export function brightenColor(hex: string, factor: number, _mode: ThemeMode = 'dark'): string {
   const rgb = hexToRgb(hex);
   return rgbToHex(
     rgb.r + ((255 - rgb.r) * (factor - 1)) / factor,
@@ -51,49 +54,59 @@ export function brightenColor(hex: string, factor: number): string {
   );
 }
 
-export function drawNodeHover(
-  context: CanvasRenderingContext2D,
-  data: PartialButFor<NodeDisplayData, 'x' | 'y' | 'size' | 'label' | 'color'>,
-  _settings: Settings<Attributes, Attributes, Attributes>,
-): void {
-  const { x, y, size, color, label } = data;
+/** Create a theme-aware drawNodeHover function for Sigma.js */
+export function createDrawNodeHover(mode: ThemeMode) {
+  const tooltipBg = mode === 'light' ? '#ffffff' : '#12121c';
+  const tooltipBorder = mode === 'light' ? '#e0e0e8' : undefined; // only light uses border
+  const labelColor = mode === 'light' ? '#1a1a2e' : '#f5f5f7';
 
-  // Glow ring around the node
-  context.beginPath();
-  context.arc(x, y, size + 4, 0, Math.PI * 2);
-  context.strokeStyle = color;
-  context.lineWidth = 2;
-  context.globalAlpha = 0.5;
-  context.stroke();
-  context.globalAlpha = 1;
+  return function drawNodeHover(
+    context: CanvasRenderingContext2D,
+    data: PartialButFor<NodeDisplayData, 'x' | 'y' | 'size' | 'label' | 'color'>,
+    _settings: Settings<Attributes, Attributes, Attributes>,
+  ): void {
+    const { x, y, size, color, label } = data;
 
-  // Tooltip pill above node (dark background, matching GitNexus style)
-  if (label) {
-    const pillHeight = 24;
-    const padding = 10;
-    context.font = "500 11px 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', monospace";
-    const textWidth = context.measureText(label).width;
-    const pillWidth = textWidth + padding * 2;
-    const pillX = x - pillWidth / 2;
-    const pillY = y - size - pillHeight - 10;
-
-    // Dark background pill
-    context.fillStyle = '#12121c';
+    // Glow ring around the node
     context.beginPath();
-    context.roundRect(pillX, pillY, pillWidth, pillHeight, 6);
-    context.fill();
-
-    // Colored border
+    context.arc(x, y, size + 4, 0, Math.PI * 2);
     context.strokeStyle = color;
     context.lineWidth = 2;
-    context.beginPath();
-    context.roundRect(pillX, pillY, pillWidth, pillHeight, 6);
+    context.globalAlpha = 0.5;
     context.stroke();
+    context.globalAlpha = 1;
 
-    // Label text - light color
-    context.fillStyle = '#f5f5f7';
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    context.fillText(label, x, pillY + pillHeight / 2);
-  }
+    // Tooltip pill above node
+    if (label) {
+      const pillHeight = 24;
+      const padding = 10;
+      context.font = "500 11px 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', monospace";
+      const textWidth = context.measureText(label).width;
+      const pillWidth = textWidth + padding * 2;
+      const pillX = x - pillWidth / 2;
+      const pillY = y - size - pillHeight - 10;
+
+      // Background pill
+      context.fillStyle = tooltipBg;
+      context.beginPath();
+      context.roundRect(pillX, pillY, pillWidth, pillHeight, 6);
+      context.fill();
+
+      // Colored border (always the node color in dark, subtle in light)
+      context.strokeStyle = tooltipBorder ?? color;
+      context.lineWidth = tooltipBorder ? 1 : 2;
+      context.beginPath();
+      context.roundRect(pillX, pillY, pillWidth, pillHeight, 6);
+      context.stroke();
+
+      // Label text
+      context.fillStyle = labelColor;
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(label, x, pillY + pillHeight / 2);
+    }
+  };
 }
+
+/** @deprecated Use createDrawNodeHover(mode) instead */
+export const drawNodeHover = createDrawNodeHover('dark');

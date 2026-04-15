@@ -4,29 +4,31 @@ import { useGraphStore } from '../store/graphStore.js';
 import { getVisibleMentions } from '../graph/visibility.js';
 import { ToneBadge } from './aiwc/index.js';
 import {
-  detailBodyTextStyle,
-  detailEmptyCardStyle,
-  detailSectionStyle,
-  detailSectionTitleStyle,
-  detailSubcardStyle,
+  createDetailBodyTextStyle,
+  createDetailEmptyCardStyle,
+  createDetailSectionStyle,
+  createDetailSectionTitleStyle,
+  createDetailSubcardStyle,
 } from './workspaceStyles.js';
+import { useTokens } from '../hooks/useTokens.js';
 
 interface Props {
   node: GraphNode;
 }
 
 export function DetailMentions({ node }: Props) {
+  const t = useTokens();
   const state = useGraphStore.getState();
   const mentions = getVisibleMentions(node, state);
 
   if (mentions.length === 0) {
     const scopeLabel = state.selectedBook === 'all' ? '当前来源范围' : '当前教材';
     return (
-      <div style={detailSectionStyle}>
-        <h3 style={detailSectionTitleStyle}>教材出现位置</h3>
-        <div style={detailEmptyCardStyle}>
-          <p style={detailBodyTextStyle}>{scopeLabel}下没有这个节点的教材出现记录。</p>
-          <p style={detailBodyTextStyle}>这通常表示该版本输出里还没有为这个节点写入对应的 mention。</p>
+      <div style={createDetailSectionStyle(t)}>
+        <h3 style={createDetailSectionTitleStyle(t)}>教材出现位置</h3>
+        <div style={createDetailEmptyCardStyle(t)}>
+          <p style={createDetailBodyTextStyle(t)}>{scopeLabel}下没有这个节点的教材出现记录。</p>
+          <p style={createDetailBodyTextStyle(t)}>这通常表示该版本输出里还没有为这个节点写入对应的 mention。</p>
         </div>
       </div>
     );
@@ -41,8 +43,8 @@ export function DetailMentions({ node }: Props) {
   });
 
   return (
-    <div style={detailSectionStyle}>
-      <h3 style={detailSectionTitleStyle}>教材出现位置</h3>
+    <div style={createDetailSectionStyle(t)}>
+      <h3 style={createDetailSectionTitleStyle(t)}>教材出现位置</h3>
       <div style={listStyle}>
         {mentions.map((mention) => {
           const mentionProps = mention.properties as Record<string, unknown>;
@@ -52,9 +54,9 @@ export function DetailMentions({ node }: Props) {
             outlineTitleByAnchor.get(mention.anchor_ref) || mention.anchor_ref,
           ];
           return (
-            <div style={detailSubcardStyle} key={mention.id}>
+            <div style={createDetailSubcardStyle(t)} key={mention.id}>
               <h4 style={itemTitleStyle}>{String(mentionProps?.book_context || mention.role)}</h4>
-              <p style={detailBodyTextStyle}>{mention.role} · {mention.anchor_ref}</p>
+              <p style={createDetailBodyTextStyle(t)}>{mention.role} · {mention.anchor_ref}</p>
               <div style={chipsStyle}>
                 {chips.map((chip, i) => (
                   <ToneBadge key={i} tone="neutral">{chip}</ToneBadge>

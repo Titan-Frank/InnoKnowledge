@@ -2,14 +2,16 @@ import { useMemo, type CSSProperties } from 'react';
 import { useGraphStore, toggleType, resetTypes } from '../store/graphStore.js';
 import { getTypeLabel } from '../graph/layout.js';
 import { getVisibleNodes } from '../graph/visibility.js';
-import { ActionButton, ToneBadge, aiWebComponentTokens } from './aiwc/index.js';
+import { ActionButton, ToneBadge } from './aiwc/index.js';
 import {
   workspaceSectionHeaderStyle,
-  workspaceSectionStyle,
-  workspaceSectionTitleStyle,
+  createWorkspaceSectionStyle,
+  createWorkspaceSectionTitleStyle,
 } from './workspaceStyles.js';
+import { useTokens } from '../hooks/useTokens.js';
 
 export function TypeFilterSection() {
+  const t = useTokens();
   const data = useGraphStore((s) => s.data);
   const selectedTypes = useGraphStore((s) => s.selectedTypes);
   const selectedBook = useGraphStore((s) => s.selectedBook);
@@ -31,9 +33,9 @@ export function TypeFilterSection() {
   if (!data) return null;
 
   return (
-    <div style={workspaceSectionStyle}>
+    <div style={createWorkspaceSectionStyle(t)}>
       <div style={workspaceSectionHeaderStyle}>
-        <h2 style={workspaceSectionTitleStyle}>节点类型</h2>
+        <h2 style={createWorkspaceSectionTitleStyle(t)}>节点类型</h2>
         <ActionButton variant="ghost" onClick={resetTypes}>重置</ActionButton>
       </div>
       <div style={chipGridStyle}>
@@ -53,7 +55,7 @@ export function TypeFilterSection() {
               <ToneBadge tone={active ? 'accent' : 'neutral'}>
                 {label}
               </ToneBadge>
-              <span style={countStyle}>{count}</span>
+              <span style={countStyle(t)}>{count}</span>
             </button>
           );
         })}
@@ -83,7 +85,9 @@ const chipEmptyStyle: CSSProperties = {
   opacity: 0.5,
 };
 
-const countStyle: CSSProperties = {
-  color: aiWebComponentTokens.colorMuted,
-  fontSize: '0.82rem',
-};
+function countStyle(t: ReturnType<typeof useTokens>): CSSProperties {
+  return {
+    color: t.colorMuted,
+    fontSize: '0.82rem',
+  };
+}

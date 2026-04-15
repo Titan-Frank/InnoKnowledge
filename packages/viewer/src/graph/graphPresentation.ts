@@ -1,3 +1,5 @@
+import type { ThemeMode } from '../components/aiwc/styles/tokens.js';
+
 export type EdgeVisual = {
   stroke: string;
   labelTone: 'accent' | 'secondary' | 'neutral' | 'warning' | 'success';
@@ -62,20 +64,20 @@ export function resolveEdgeVisual(edgeType: string): EdgeVisual {
   };
 }
 
-export function resolveNodeLayerVisual(nodeLayer: string | null | undefined) {
+export function resolveNodeLayerVisual(nodeLayer: string | null | undefined, mode: ThemeMode = 'dark') {
   if (nodeLayer === 'backbone') {
     return {
       label: '主干节点',
       stroke: '#7c3aed',
-      fill: 'rgba(124, 58, 237, 0.18)',
+      fill: mode === 'light' ? 'rgba(124, 58, 237, 0.08)' : 'rgba(124, 58, 237, 0.18)',
       badgeTone: 'accent' as const,
     };
   }
 
   return {
     label: '支撑节点',
-    stroke: 'rgba(42, 42, 58, 0.5)',
-    fill: 'rgba(16, 16, 24, 0.7)',
+    stroke: mode === 'light' ? 'rgba(140, 140, 160, 0.4)' : 'rgba(42, 42, 58, 0.5)',
+    fill: mode === 'light' ? 'rgba(240, 240, 245, 0.7)' : 'rgba(16, 16, 24, 0.7)',
     badgeTone: 'neutral' as const,
   };
 }

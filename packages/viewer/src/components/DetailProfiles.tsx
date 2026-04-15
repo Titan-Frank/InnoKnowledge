@@ -4,21 +4,23 @@ import {
   SCHOOL_STAGE_LABELS, CURRICULUM_ROLE_LABELS, MASTERY_LEVEL_LABELS,
 } from '../constants/index.js';
 import { humanizeKey } from '../graph/layout.js';
-import { ToneBadge, aiWebComponentTokens } from './aiwc/index.js';
+import { ToneBadge } from './aiwc/index.js';
 import {
-  detailBodyTextStyle,
-  detailEmptyCardStyle,
-  detailSectionMetaStyle,
-  detailSectionStyle,
-  detailSectionTitleStyle,
-  detailSubcardStyle,
+  createDetailBodyTextStyle,
+  createDetailEmptyCardStyle,
+  createDetailSectionMetaStyle,
+  createDetailSectionStyle,
+  createDetailSectionTitleStyle,
+  createDetailSubcardStyle,
 } from './workspaceStyles.js';
+import { useTokens } from '../hooks/useTokens.js';
 
 interface Props {
   node: GraphNode;
 }
 
 export function DetailProfiles({ node }: Props) {
+  const t = useTokens();
   const profiles = (node.profiles || []).slice().sort((a, b) => {
     const subjectCompare = String(a.subject || '').localeCompare(String(b.subject || ''), 'zh-CN');
     if (subjectCompare !== 0) return subjectCompare;
@@ -27,23 +29,23 @@ export function DetailProfiles({ node }: Props) {
 
   if (profiles.length === 0) {
     return (
-      <div style={detailSectionStyle}>
+      <div style={createDetailSectionStyle(t)}>
         <div style={headStyle}>
-          <h3 style={detailSectionTitleStyle}>课程画像</h3>
-          <span style={detailSectionMetaStyle}>0 条</span>
+          <h3 style={createDetailSectionTitleStyle(t)}>课程画像</h3>
+          <span style={createDetailSectionMetaStyle(t)}>0 条</span>
         </div>
-        <div style={detailEmptyCardStyle}>
-          <p style={detailBodyTextStyle}>当前数据源里还没有这个节点的课程画像。</p>
+        <div style={createDetailEmptyCardStyle(t)}>
+          <p style={createDetailBodyTextStyle(t)}>当前数据源里还没有这个节点的课程画像。</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={detailSectionStyle}>
+    <div style={createDetailSectionStyle(t)}>
       <div style={headStyle}>
-        <h3 style={detailSectionTitleStyle}>课程画像</h3>
-        <span style={detailSectionMetaStyle}>{profiles.length} 条</span>
+        <h3 style={createDetailSectionTitleStyle(t)}>课程画像</h3>
+        <span style={createDetailSectionMetaStyle(t)}>{profiles.length} 条</span>
       </div>
       <div style={listStyle}>
         {profiles.map((profile) => {
@@ -68,7 +70,7 @@ export function DetailProfiles({ node }: Props) {
               : [];
 
           return (
-            <div style={detailSubcardStyle} key={profile.id}>
+            <div style={createDetailSubcardStyle(t)} key={profile.id}>
               <h4 style={itemTitleStyle}>{header}</h4>
               <div style={chipsStyle}>
                 {chips.map((chip) => (
@@ -76,13 +78,13 @@ export function DetailProfiles({ node }: Props) {
                 ))}
               </div>
               {profile.learning_objectives?.length > 0 ? (
-                <ul style={objListStyle}>
+                <ul style={objListStyle(t)}>
                   {profile.learning_objectives.map((item, i) => (
                     <li key={i}>{item}</li>
                   ))}
                 </ul>
               ) : (
-                <p style={detailBodyTextStyle}>暂无学习目标描述。</p>
+                <p style={createDetailBodyTextStyle(t)}>暂无学习目标描述。</p>
               )}
               {assessmentSignals.length > 0 && (
                 <div style={chipsStyle}>
@@ -123,9 +125,11 @@ const chipsStyle: CSSProperties = {
   gap: 8,
 };
 
-const objListStyle: CSSProperties = {
-  margin: 0,
-  paddingLeft: 18,
-  color: aiWebComponentTokens.colorMuted,
-  lineHeight: 1.65,
-};
+function objListStyle(t: ReturnType<typeof useTokens>): CSSProperties {
+  return {
+    margin: 0,
+    paddingLeft: 18,
+    color: t.colorMuted,
+    lineHeight: 1.65,
+  };
+}

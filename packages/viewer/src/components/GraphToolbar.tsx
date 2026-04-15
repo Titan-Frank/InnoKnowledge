@@ -1,16 +1,19 @@
 import type { CSSProperties } from 'react';
 import { useGraphStore, setShowLabels } from '../store/graphStore.js';
 import { getTypeLabel, getTypeColor } from '../graph/layout.js';
+import { useTokens } from '../hooks/useTokens.js';
+import type { TokenSet } from './aiwc/styles/tokens.js';
 
 export function GraphToolbar() {
+  const t = useTokens();
   const data = useGraphStore((s) => s.data);
   const showLabels = useGraphStore((s) => s.showLabels);
 
   return (
-    <div style={toolbarStyle}>
+    <div style={toolbarStyle(t)}>
       <div style={legendStyle}>
         {(data?.availableTypes || []).map((type) => (
-          <div style={legendItemStyle} key={type}>
+          <div style={legendItemStyle(t)} key={type}>
             <span style={{ ...legendDotStyle, background: getTypeColor(type) }} />
             <span>{getTypeLabel(type)}</span>
           </div>
@@ -18,7 +21,7 @@ export function GraphToolbar() {
       </div>
       <div style={actionsStyle}>
         <button
-          style={showLabels ? activeBtnStyle : ghostBtnStyle}
+          style={showLabels ? activeBtnStyle(t) : ghostBtnStyle(t)}
           onClick={() => setShowLabels(!showLabels)}
         >
           {showLabels ? '隐藏名称' : '显示名称'}
@@ -28,15 +31,17 @@ export function GraphToolbar() {
   );
 }
 
-const toolbarStyle: CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: 12,
-  padding: '12px 14px 8px',
-  borderBottom: '1px solid #1e1e2a',
-  background: 'linear-gradient(180deg, rgba(16,16,24,0.98) 0%, rgba(10,10,16,0.95) 100%)',
-};
+function toolbarStyle(t: TokenSet): CSSProperties {
+  return {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+    padding: '12px 14px 8px',
+    borderBottom: `1px solid ${t.colorBorder}`,
+    background: t.colorSurface,
+  };
+}
 
 const legendStyle: CSSProperties = {
   display: 'flex',
@@ -45,18 +50,20 @@ const legendStyle: CSSProperties = {
   alignItems: 'center',
 };
 
-const legendItemStyle: CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 5,
-  padding: '3px 8px',
-  borderRadius: 999,
-  background: 'rgba(22, 22, 31, 0.8)',
-  border: '1px solid #1e1e2a',
-  color: '#8888a0',
-  fontSize: 11,
-  fontWeight: 500,
-};
+function legendItemStyle(t: TokenSet): CSSProperties {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5,
+    padding: '3px 8px',
+    borderRadius: 999,
+    background: t.colorSurfaceRaised,
+    border: `1px solid ${t.colorBorder}`,
+    color: t.colorTextSubtle,
+    fontSize: 11,
+    fontWeight: 500,
+  };
+}
 
 const legendDotStyle: CSSProperties = {
   width: 8,
@@ -81,16 +88,20 @@ const baseBtnStyle: CSSProperties = {
   transition: 'background 120ms ease-out, color 120ms ease-out',
 };
 
-const activeBtnStyle: CSSProperties = {
-  ...baseBtnStyle,
-  background: 'rgba(124, 58, 237, 0.2)',
-  border: '1px solid rgba(124, 58, 237, 0.3)',
-  color: '#a78bfa',
-};
+function activeBtnStyle(t: TokenSet): CSSProperties {
+  return {
+    ...baseBtnStyle,
+    background: t.colorAccentSoft,
+    border: `1px solid ${t.colorAccent}`,
+    color: t.colorAccent,
+  };
+}
 
-const ghostBtnStyle: CSSProperties = {
-  ...baseBtnStyle,
-  background: 'rgba(22, 22, 31, 0.8)',
-  border: '1px solid #1e1e2a',
-  color: '#5a5a70',
-};
+function ghostBtnStyle(t: TokenSet): CSSProperties {
+  return {
+    ...baseBtnStyle,
+    background: t.colorSurfaceRaised,
+    border: `1px solid ${t.colorBorder}`,
+    color: t.colorMuted,
+  };
+}

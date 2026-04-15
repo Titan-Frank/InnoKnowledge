@@ -8,16 +8,16 @@ export { ToneBadge } from "./ToneBadge";
 export type { ToneBadgeProps } from "./ToneBadge";
 export { PanelStateBlock } from "./shared/PanelStateBlock";
 export type { PanelStateBlockProps } from "./shared/PanelStateBlock";
-export { aiWebComponentTokens } from "./styles/tokens";
+export { aiWebComponentTokens, type ThemeMode, type TokenSet, getTokens, darkTokens, lightTokens } from "./styles/tokens";
 export {
-  panelSurfaceStyle,
-  panelHeaderStyle,
+  createPanelSurfaceStyle,
+  createPanelHeaderStyle,
   panelHeaderMainStyle,
   panelTitleRowStyle,
-  panelTitleStyle,
-  panelSubtitleStyle,
+  createPanelTitleStyle,
+  createPanelSubtitleStyle,
   panelBodyStyle,
-  sectionLabelStyle,
+  createSectionLabelStyle,
   stackedMetaStyle,
   createToneBadgeStyle,
   createStateCardStyle,

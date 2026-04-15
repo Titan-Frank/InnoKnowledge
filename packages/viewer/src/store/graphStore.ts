@@ -2,7 +2,16 @@ import { create } from 'zustand';
 import type { ApiNodeCard } from '@okm/types';
 import type { AppState, GraphData, SourceConfig } from './types.js';
 import type { LayerMode } from '../constants/index.js';
+import type { CommunityInfo } from '../graph/graph-adapter.js';
+import type { ThemeMode } from '../components/aiwc/styles/tokens.js';
 import { resolveExpandedBackboneNodeId, syncSelectionWithVisibility } from '../graph/visibility.js';
+
+function getInitialThemeMode(): ThemeMode {
+  if (typeof window === 'undefined') return 'dark';
+  const stored = localStorage.getItem('okm-theme');
+  if (stored === 'light' || stored === 'dark') return stored;
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
 
 export const useGraphStore = create<AppState>()(() => ({
   manifest: null,
@@ -28,6 +37,10 @@ export const useGraphStore = create<AppState>()(() => ({
   cardCache: new Map<string, ApiNodeCard | null>(),
   detailRequestId: 0,
   visibleNodesCache: { key: null, nodes: [] },
+  communityCount: 0,
+  communities: [],
+  communityMap: new Map(),
+  themeMode: getInitialThemeMode(),
 }));
 
 // --- Actions (mutate store imperatively, called from components/hooks) ---
@@ -148,4 +161,13 @@ export function setShowLabels(show: boolean): void {
 
 export function invalidateVisibleNodesCache(): void {
   useGraphStore.setState({ visibleNodesCache: { key: null, nodes: [] } });
+}
+
+export function setCommunityInfo(communityCount: number, communities: CommunityInfo[], communityMap: Map<string, number>): void {
+  useGraphStore.setState({ communityCount, communities, communityMap });
+}
+
+export function setThemeMode(mode: ThemeMode): void {
+  localStorage.setItem('okm-theme', mode);
+  useGraphStore.setState({ themeMode: mode });
 }

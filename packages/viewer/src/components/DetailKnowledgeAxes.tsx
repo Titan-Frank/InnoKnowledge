@@ -4,17 +4,19 @@ import { getTypeLabel, humanizeKey } from '../graph/layout.js';
 import { LEARNING_MODE_LABELS, BRIDGE_TAG_LABELS } from '../constants/index.js';
 import { ToneBadge } from './aiwc/index.js';
 import {
-  detailBodyTextStyle,
-  detailSectionStyle,
-  detailSectionTitleStyle,
-  detailSubcardStyle,
+  createDetailBodyTextStyle,
+  createDetailSectionStyle,
+  createDetailSectionTitleStyle,
+  createDetailSubcardStyle,
 } from './workspaceStyles.js';
+import { useTokens } from '../hooks/useTokens.js';
 
 interface Props {
   node: GraphNode;
 }
 
 export function DetailKnowledgeAxes({ node }: Props) {
+  const t = useTokens();
   const ontologyChips = [
     node.node_kind ? getTypeLabel(node.node_kind) : null,
     node.node_subkind ? getTypeLabel(node.node_subkind) : null,
@@ -37,13 +39,13 @@ export function DetailKnowledgeAxes({ node }: Props) {
   ];
 
   return (
-    <div style={detailSectionStyle}>
-      <h3 style={detailSectionTitleStyle}>知识轴</h3>
+    <div style={createDetailSectionStyle(t)}>
+      <h3 style={createDetailSectionTitleStyle(t)}>知识轴</h3>
       <div style={listStyle}>
         {sections.map((section) => (
-          <div style={detailSubcardStyle} key={section.title}>
+          <div style={createDetailSubcardStyle(t)} key={section.title}>
             <h4 style={groupTitleStyle}>{section.title}</h4>
-            <p style={detailBodyTextStyle}>{section.summary}</p>
+            <p style={createDetailBodyTextStyle(t)}>{section.summary}</p>
             {section.chips.length > 0 ? (
               <div style={chipsStyle}>
                 {section.chips.map((chip) => (
@@ -51,7 +53,7 @@ export function DetailKnowledgeAxes({ node }: Props) {
                 ))}
               </div>
             ) : (
-              <p style={detailBodyTextStyle}>当前数据源里还没有这部分信息。</p>
+              <p style={createDetailBodyTextStyle(t)}>当前数据源里还没有这部分信息。</p>
             )}
           </div>
         ))}
