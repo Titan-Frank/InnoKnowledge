@@ -53,7 +53,9 @@ export function DetailRelations({ node }: Props) {
             <div
               style={{
                 ...createDetailSubcardStyle(t),
-                borderLeft: `4px solid ${edgeVisual.stroke}`,
+                borderLeftColor: edgeVisual.stroke,
+                borderLeftStyle: 'solid',
+                borderLeftWidth: 4,
                 gap: 8,
                 display: 'grid',
               }}

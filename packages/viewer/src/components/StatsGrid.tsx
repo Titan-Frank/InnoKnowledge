@@ -31,19 +31,20 @@ export function StatsGrid() {
     };
   }, [data, selectedTypes, selectedBook, layerMode, expandedBackboneNodeId, focusConnected, selectedNodeId]);
 
-  const items: Array<[string, number]> = [
-    ['节点数', stats.nodes],
-    ['主干', stats.backbone],
-    ['支撑', stats.support],
-    ['关系数', stats.edges],
+  const items: Array<{ label: string; value: number; accent: string }> = [
+    { label: '节点数', value: stats.nodes, accent: t.colorAccent },
+    { label: '主干', value: stats.backbone, accent: t.colorSuccess },
+    { label: '支撑', value: stats.support, accent: t.colorSecondaryAccent },
+    { label: '关系数', value: stats.edges, accent: t.colorWarning },
   ];
 
   return (
     <div style={gridStyle}>
-      {items.map(([label, value]) => (
-        <div key={label} style={cardStyle(t)}>
-          <strong style={valueStyle}>{value}</strong>
-          <span style={labelStyle(t)}>{label}</span>
+      {items.map((item) => (
+        <div key={item.label} style={cardStyle(t)}>
+          <span style={cardDotStyle(item.accent)} />
+          <strong style={valueStyle}>{item.value}</strong>
+          <span style={labelStyle(t)}>{item.label}</span>
         </div>
       ))}
     </div>
@@ -58,25 +59,41 @@ const gridStyle: CSSProperties = {
 
 function cardStyle(t: TokenSet): CSSProperties {
   return {
-    padding: 16,
+    position: 'relative',
+    display: 'grid',
+    gap: 6,
+    minHeight: 108,
+    padding: '16px 16px 14px',
     border: `1px solid ${t.colorBorder}`,
-    borderRadius: t.radiusSmall,
-    background: t.colorSurface,
+    borderRadius: 20,
+    background: `linear-gradient(180deg, ${t.colorSurface} 0%, ${t.colorSurfaceRaised} 100%)`,
     boxShadow: t.shadowSoft,
+  };
+}
+
+function cardDotStyle(color: string): CSSProperties {
+  return {
+    width: 10,
+    height: 10,
+    borderRadius: '50%',
+    background: color,
+    boxShadow: `0 0 0 6px ${color}22`,
   };
 }
 
 const valueStyle: CSSProperties = {
   display: 'block',
-  fontSize: '1.7rem',
-  fontWeight: 700,
+  fontSize: '2rem',
+  fontWeight: 800,
+  lineHeight: 1,
+  letterSpacing: '-0.04em',
 };
 
 function labelStyle(t: TokenSet): CSSProperties {
   return {
     display: 'block',
-    marginTop: 4,
     color: t.colorMuted,
-    fontSize: '0.92rem',
+    fontSize: '0.88rem',
+    fontWeight: 600,
   };
 }

@@ -10,9 +10,16 @@ import type { TokenSet } from './aiwc/styles/tokens.js';
 interface SigmaGraphPanelProps {
   status?: 'idle' | 'loading' | 'error';
   emptyState?: ReactNode;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void | Promise<void>;
 }
 
-export function SigmaGraphPanel({ status, emptyState }: SigmaGraphPanelProps) {
+export function SigmaGraphPanel({
+  status,
+  emptyState,
+  isFullscreen = false,
+  onToggleFullscreen,
+}: SigmaGraphPanelProps) {
   const { containerRef, fitToScreen, zoomIn, zoomOut, clearSelection, isLayoutRunning } = useSigma();
   const t = useTokens();
   const data = useGraphStore((s) => s.data);
@@ -140,6 +147,7 @@ export function SigmaGraphPanel({ status, emptyState }: SigmaGraphPanelProps) {
               <span style={guideChipStyle(t)}>拖拽平移</span>
               <span style={guideChipStyle(t)}>滚轮缩放</span>
               <span style={guideChipStyle(t)}>点击选中</span>
+              <span style={guideChipStyle(t)}>拖动节点</span>
             </div>
           </div>
 
@@ -172,6 +180,8 @@ export function SigmaGraphPanel({ status, emptyState }: SigmaGraphPanelProps) {
             onZoomIn={zoomIn}
             onZoomOut={zoomOut}
             onFitToScreen={fitToScreen}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={onToggleFullscreen}
           />
         </>
       )}

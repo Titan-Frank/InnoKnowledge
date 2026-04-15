@@ -4,30 +4,30 @@ import type { TokenSet } from './aiwc/styles/tokens.js';
 export function createWorkspaceDockStyle(t: TokenSet): CSSProperties {
   return {
     position: 'sticky',
-    top: 20,
-    maxHeight: 'calc(100vh - 52px)',
+    top: 24,
+    maxHeight: 'calc(100vh - 48px)',
     overflow: 'auto',
     border: `1px solid ${t.colorBorder}`,
-    borderRadius: 20,
-    background: t.colorSurface,
+    borderRadius: 26,
+    background: `linear-gradient(180deg, ${t.colorSurface} 0%, ${t.colorSurfaceRaised} 100%)`,
     boxShadow: t.shadow,
-    backdropFilter: 'blur(10px)',
+    backdropFilter: 'blur(14px)',
   };
 }
 
 export const workspacePanelContentStyle = {
   display: 'grid',
   gap: 14,
-  padding: 14,
+  padding: 16,
 } satisfies CSSProperties;
 
 export function createWorkspaceSectionStyle(t: TokenSet): CSSProperties {
   return {
-    background: t.colorSurfaceRaised,
+    background: t.colorSurface,
     border: `1px solid ${t.colorBorder}`,
-    borderRadius: 18,
+    borderRadius: 20,
     boxShadow: t.shadowSoft,
-    padding: '14px 16px',
+    padding: '16px 16px 15px',
     display: 'grid',
     gap: 12,
   };
@@ -43,8 +43,8 @@ export const workspaceSectionHeaderStyle = {
 export function createWorkspaceSectionTitleStyle(t: TokenSet): CSSProperties {
   return {
     margin: 0,
-    fontSize: '1.02rem',
-    fontWeight: 600,
+    fontSize: '1rem',
+    fontWeight: 700,
     color: t.colorText,
   };
 }
@@ -52,7 +52,7 @@ export function createWorkspaceSectionTitleStyle(t: TokenSet): CSSProperties {
 export function createWorkspaceSectionNoteStyle(t: TokenSet): CSSProperties {
   return {
     color: t.colorMuted,
-    fontSize: '0.82rem',
+    fontSize: '0.8rem',
   };
 }
 
@@ -72,11 +72,11 @@ export function createWorkspaceFieldLabelStyle(t: TokenSet): CSSProperties {
 export function createWorkspaceSelectLikeStyle(t: TokenSet): CSSProperties {
   return {
     width: '100%',
-    minHeight: 42,
+    minHeight: 44,
     padding: '0 14px',
     border: `1px solid ${t.colorBorderStrong}`,
-    borderRadius: t.radiusSmall,
-    background: t.colorSurface,
+    borderRadius: 14,
+    background: t.colorSurfaceMuted,
     color: t.colorText,
     fontSize: '0.96rem',
     fontFamily: 'inherit',
@@ -105,11 +105,11 @@ export function createWorkspaceToggleStyle(t: TokenSet): CSSProperties {
 
 export function createDetailSectionStyle(t: TokenSet): CSSProperties {
   return {
-    background: t.colorSurfaceRaised,
+    background: t.colorSurface,
     border: `1px solid ${t.colorBorder}`,
-    borderRadius: 18,
+    borderRadius: 20,
     boxShadow: t.shadowSoft,
-    padding: '14px 16px',
+    padding: '16px 16px 15px',
     display: 'grid',
     gap: 10,
   };
@@ -140,19 +140,23 @@ export function createDetailSectionMetaStyle(t: TokenSet): CSSProperties {
 
 export function createDetailSubcardStyle(t: TokenSet): CSSProperties {
   return {
-    border: `1px solid ${t.colorBorder}`,
-    borderRadius: 14,
+    borderColor: t.colorBorder,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderRadius: 16,
     background: t.colorSurfaceMuted,
-    padding: 12,
+    padding: 13,
   };
 }
 
 export function createDetailEmptyCardStyle(t: TokenSet): CSSProperties {
   return {
-    border: `1px solid ${t.colorBorder}`,
-    borderRadius: 14,
+    borderColor: t.colorBorder,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderRadius: 16,
     background: t.colorSurfaceMuted,
-    padding: 12,
+    padding: 13,
   };
 }
 

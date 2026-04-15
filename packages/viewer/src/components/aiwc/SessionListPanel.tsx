@@ -132,9 +132,9 @@ export function SessionListPanel({
               key={item.id}
               style={{
                 ...createSelectableCardStyle(isActive, t),
-                borderLeft: `2px solid ${
-                  isActive ? t.colorAccent : "transparent"
-                }`,
+                borderLeftColor: isActive ? t.colorAccent : "transparent",
+                borderLeftStyle: "solid",
+                borderLeftWidth: 2,
                 display: "grid",
                 gap: 6,
                 opacity: item.disabled ? 0.6 : 1,

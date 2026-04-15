@@ -76,7 +76,9 @@ export function DetailSupportNodes({ node }: Props) {
               key={otherNode.id}
               style={{
                 ...createDetailSubcardStyle(t),
-                borderLeft: `4px solid ${edgeVisual.stroke}`,
+                borderLeftColor: edgeVisual.stroke,
+                borderLeftStyle: 'solid',
+                borderLeftWidth: 4,
               }}
             >
               <ActionButton

@@ -182,7 +182,9 @@ export function createGhostButtonStyle(interactive: boolean, t: TokenSet): CSSPr
 export function createSelectableCardStyle(active: boolean, t: TokenSet): CSSProperties {
   return {
     background: active ? t.colorSurfaceMuted : t.colorSurface,
-    border: `1px solid ${active ? t.colorBorderStrong : t.colorBorder}`,
+    borderColor: active ? t.colorBorderStrong : t.colorBorder,
+    borderStyle: "solid",
+    borderWidth: 1,
     borderRadius: t.radiusSmall,
     boxShadow: "none"
   };

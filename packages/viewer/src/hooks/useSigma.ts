@@ -11,6 +11,13 @@ import { createDrawNodeHover, dimColor, brightenColor } from '../components/Sigm
 import type { ThemeMode } from '../components/aiwc/styles/tokens.js';
 import { getTokens } from '../components/aiwc/styles/tokens.js';
 
+// ── Drag state (module-level, shared across renders) ──
+let dragNodeId: string | null = null;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragMoved = false;
+let dragCameraPanningWasEnabled = true;
+
 type NeighborSet = Set<string>;
 
 function createNodeReducer(
@@ -92,6 +99,7 @@ function getStructuralFilterKey(state: {
   selectedBook: string;
   layerMode: string;
   focusConnected: boolean;
+  themeMode: ThemeMode;
 }): string {
   return [
     state.data ? 'has-data' : 'no-data',
@@ -99,6 +107,7 @@ function getStructuralFilterKey(state: {
     state.selectedBook,
     state.layerMode,
     state.focusConnected ? '1' : '0',
+    state.themeMode,
   ].join('|');
 }
 
@@ -165,6 +174,7 @@ export function useSigma() {
     selectedBook,
     layerMode,
     focusConnected,
+    themeMode,
   });
 
   useEffect(() => {
@@ -221,7 +231,7 @@ export function useSigma() {
       });
       layoutRef.current = layout;
 
-      sigmaRef.current.getCamera().animatedReset({ duration: 600, easing: 'easeInOutCubic' });
+      sigmaRef.current.getCamera().animatedReset({ duration: 600, easing: 'cubicInOut' });
       currentStructKeyRef.current = structuralKey;
       return;
     }
@@ -285,6 +295,67 @@ export function useSigma() {
       setHoverNodeId(null);
     });
 
+    // ── Node drag ──
+    sigma.on('downNode', (e) => {
+      dragNodeId = e.node;
+      const orig = e.event.original;
+      if ('clientX' in orig) {
+        dragStartX = orig.clientX;
+        dragStartY = orig.clientY;
+      }
+      dragMoved = false;
+      dragCameraPanningWasEnabled = sigma.getCamera().enabledPanning;
+      sigma.getCamera().enabledPanning = false;
+    });
+
+    const onMove = (e: MouseEvent) => {
+      if (dragNodeId === null || !sigmaRef.current || !graphRef.current || !containerRef.current) return;
+      const dx = e.clientX - dragStartX;
+      const dy = e.clientY - dragStartY;
+      if (!dragMoved && Math.abs(dx) < 3 && Math.abs(dy) < 3) return;
+
+      const sigma = sigmaRef.current;
+      const graph = graphRef.current;
+      if (!graph.hasNode(dragNodeId)) return;
+
+      if (!dragMoved) {
+        dragMoved = true;
+        graph.setNodeAttribute(dragNodeId, 'fixed', true);
+
+        // Stop the active layout once the user takes over a node manually,
+        // otherwise the worker keeps pulling the node away from the cursor.
+        if (layoutRef.current) {
+          layoutRef.current.stop();
+          layoutRef.current = null;
+          setIsLayoutRunning(false);
+        }
+      }
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const pos = sigma.viewportToGraph({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      graph.setNodeAttribute(dragNodeId, 'x', pos.x);
+      graph.setNodeAttribute(dragNodeId, 'y', pos.y);
+      sigma.refresh();
+
+      if (containerRef.current) containerRef.current.style.cursor = 'grabbing';
+    };
+
+    const onUp = () => {
+      if (dragNodeId === null) return;
+      if (sigmaRef.current) {
+        sigmaRef.current.getCamera().enabledPanning = dragCameraPanningWasEnabled;
+      }
+      if (!dragMoved) {
+        selectNode(dragNodeId, false);
+      }
+      dragNodeId = null;
+      dragMoved = false;
+      if (containerRef.current) containerRef.current.style.cursor = 'grab';
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+
     // Start FA2 worker layout
     setIsLayoutRunning(true);
     const layout = startWorkerLayout(graph, () => {
@@ -293,10 +364,15 @@ export function useSigma() {
     });
     layoutRef.current = layout;
 
-    sigma.getCamera().animatedReset({ duration: 600, easing: 'easeInOutCubic' });
+    sigma.getCamera().animatedReset({ duration: 600, easing: 'cubicInOut' });
     currentStructKeyRef.current = structuralKey;
 
     return () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      if (sigmaRef.current) {
+        sigmaRef.current.getCamera().enabledPanning = true;
+      }
       if (layoutRef.current) { layoutRef.current.kill(); layoutRef.current = null; }
       sigma.kill();
       if (sigmaRef.current === sigma) {
@@ -334,10 +410,10 @@ export function useSigma() {
       const attrs = graph.getNodeAttributes(selectedNodeId);
       camera.animate(
         { x: attrs.x, y: attrs.y, ratio: Math.max(camera.ratio, 0.08) },
-        { duration: 500, easing: 'easeInOutCubic' },
+        { duration: 500, easing: 'cubicInOut' },
       );
     } else if (!selectedNodeId) {
-      camera.animatedReset({ duration: 600, easing: 'easeInOutCubic' });
+      camera.animatedReset({ duration: 600, easing: 'cubicInOut' });
     }
   }, [selectedNodeId, expandedBackboneNodeId]);
 
@@ -348,44 +424,17 @@ export function useSigma() {
     sigma.setSetting('renderLabels', showLabels);
   }, [showLabels]);
 
-  // React to theme changes — update Sigma settings without rebuilding the graph
-  useEffect(() => {
-    const sigma = sigmaRef.current;
-    const graph = graphRef.current;
-    if (!sigma || !graph) return;
-
-    const t = getTokens(themeMode);
-
-    // Swap node program (includes new drawHover callback)
-    try {
-      sigma.setSetting('nodeProgramClasses', { bordered: makeNodeProgram(themeMode) });
-    } catch {
-      // Sigma v3 may not support hot-swapping node programs — fallback: add to structural key
-    }
-
-    // Update label and default colors
-    sigma.setSetting('labelColor', { color: t.colorText });
-    sigma.setSetting('defaultNodeColor', themeMode === 'light' ? '#9A9AB0' : '#6b7280');
-    sigma.setSetting('defaultEdgeColor', t.colorBorderStrong);
-
-    // Refresh reducers with theme-aware dimColor
-    const state = useGraphStore.getState();
-    const visibleNodes = getVisibleNodes(state);
-    const visibleNodeIds = new Set(visibleNodes.map((n) => n.id));
-    const selId = state.selectedNodeId;
-    let neighbors: NeighborSet = new Set();
-    if (selId && graph.hasNode(selId)) {
-      neighbors = new Set(graph.neighbors(selId));
-      neighbors.add(selId);
-    }
-    sigma.setSetting('nodeReducer', createNodeReducer(selId, neighbors, visibleNodeIds, themeMode));
-    sigma.setSetting('edgeReducer', createEdgeReducer(selId, graph, visibleNodeIds, themeMode));
-
-    sigma.refresh();
-  }, [themeMode]);
-
   const fitToScreen = useCallback(() => {
-    sigmaRef.current?.getCamera().animatedReset({ duration: 600, easing: 'easeInOutCubic' });
+    const sigma = sigmaRef.current;
+    if (!sigma) return;
+    const camera = sigma.getCamera();
+    camera.enable();
+    camera.enabledZooming = true;
+    camera.enabledPanning = true;
+    camera.animate(
+      { x: 0.5, y: 0.5, ratio: 1, angle: 0 },
+      { duration: 600, easing: 'cubicInOut' },
+    );
   }, []);
 
   const focusOnNode = useCallback((nodeId: string) => {
@@ -395,21 +444,37 @@ export function useSigma() {
     const attrs = graph.getNodeAttributes(nodeId);
     sigma.getCamera().animate(
       { x: attrs.x, y: attrs.y, ratio: 0.15 },
-      { duration: 500, easing: 'easeInOutCubic' },
+      { duration: 500, easing: 'cubicInOut' },
     );
   }, []);
 
   const zoomIn = useCallback(() => {
-    sigmaRef.current?.getCamera().animatedZoom({ duration: 300, easing: 'easeInOutCubic' });
+    const sigma = sigmaRef.current;
+    if (!sigma) return;
+    const camera = sigma.getCamera();
+    camera.enable();
+    camera.enabledZooming = true;
+    camera.animate(
+      { ratio: camera.getBoundedRatio(camera.ratio / 1.5) },
+      { duration: 300, easing: 'cubicInOut' },
+    );
   }, []);
 
   const zoomOut = useCallback(() => {
-    sigmaRef.current?.getCamera().animatedUnzoom({ duration: 300, easing: 'easeInOutCubic' });
+    const sigma = sigmaRef.current;
+    if (!sigma) return;
+    const camera = sigma.getCamera();
+    camera.enable();
+    camera.enabledZooming = true;
+    camera.animate(
+      { ratio: camera.getBoundedRatio(camera.ratio * 1.5) },
+      { duration: 300, easing: 'cubicInOut' },
+    );
   }, []);
 
   const clearSelection = useCallback(() => {
     selectNode(null, false);
-    sigmaRef.current?.getCamera().animatedReset({ duration: 600, easing: 'easeInOutCubic' });
+    sigmaRef.current?.getCamera().animatedReset({ duration: 600, easing: 'cubicInOut' });
   }, []);
 
   return { containerRef, fitToScreen, focusOnNode, zoomIn, zoomOut, clearSelection, isLayoutRunning };

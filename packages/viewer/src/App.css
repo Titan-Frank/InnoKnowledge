@@ -71,11 +71,25 @@ body {
   .workspace {
     grid-template-columns: 1fr !important;
   }
+
+  .topbar-layout {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 @media (max-width: 760px) {
   .app-shell {
     padding: 12px 12px 16px !important;
+  }
+
+  .topbar-hero,
+  .topbar-utility {
+    padding: 20px 18px !important;
+    border-radius: 22px !important;
+  }
+
+  .topbar-utility-header {
+    align-items: flex-start !important;
   }
 }
 
