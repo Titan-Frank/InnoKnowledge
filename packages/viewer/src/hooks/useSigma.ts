@@ -6,7 +6,7 @@ import type Graph from 'graphology';
 import { useGraphStore, selectNode, setHoverNodeId, setCommunityInfo } from '../store/graphStore.js';
 import { getVisibleNodes } from '../graph/visibility.js';
 import { buildGraphologyGraph } from '../graph/graph-adapter.js';
-import { resolveResidualCollisions, resolveSingleNodeCollision, startWorkerLayout } from '../graph/graphology-layout.js';
+import { resolveSingleNodeCollision, startWorkerLayout } from '../graph/graphology-layout.js';
 import { createDrawNodeHover, dimColor, brightenColor } from '../components/SigmaHoverRenderer.js';
 import type { ThemeMode } from '../components/aiwc/styles/tokens.js';
 import { getTokens } from '../components/aiwc/styles/tokens.js';
@@ -24,8 +24,6 @@ const INERTIA_MIN_SPEED = 0.015;
 const INERTIA_MAX_SPEED = 1.2;
 const INERTIA_DAMPING = 0.92;
 const INERTIA_STOP_SPEED = 0.01;
-const VIEWPORT_COLLISION_PASSES = 12;
-const VIEWPORT_COLLISION_MARGIN = 6;
 
 type NeighborSet = Set<string>;
 
@@ -220,90 +218,11 @@ function getNodeCameraTarget(
   return null;
 }
 
-function resolveViewportCollisions(
-  sigma: Sigma,
-  graph: Graph,
-  visibleNodeIds: Set<string>,
-): void {
-  const visibleIds = Array.from(visibleNodeIds).filter((nodeId) => graph.hasNode(nodeId));
-  if (visibleIds.length < 2) return;
-
-  for (let pass = 0; pass < VIEWPORT_COLLISION_PASSES; pass += 1) {
-    const nodes = visibleIds
-      .map((nodeId) => {
-        const display = sigma.getNodeDisplayData(nodeId);
-        if (!display || display.hidden) return null;
-        const attrs = graph.getNodeAttributes(nodeId);
-        const viewport = sigma.graphToViewport({ x: attrs.x as number, y: attrs.y as number });
-        return {
-          id: nodeId,
-          x: viewport.x,
-          y: viewport.y,
-          size: display.size,
-        };
-      })
-      .filter((node): node is { id: string; x: number; y: number; size: number } => Boolean(node));
-
-    const shifts = new Map<string, { dx: number; dy: number }>();
-    let overlapCount = 0;
-
-    nodes.forEach((node) => {
-      shifts.set(node.id, { dx: 0, dy: 0 });
-    });
-
-    for (let i = 0; i < nodes.length; i += 1) {
-      for (let j = i + 1; j < nodes.length; j += 1) {
-        const a = nodes[i];
-        const b = nodes[j];
-        const deltaX = b.x - a.x;
-        const deltaY = b.y - a.y;
-        const distance = Math.hypot(deltaX, deltaY);
-        const minimumDistance = a.size + b.size + VIEWPORT_COLLISION_MARGIN;
-
-        if (distance >= minimumDistance) continue;
-
-        overlapCount += 1;
-        const safeDistance = distance || 0.001;
-        const angle = distance > 0
-          ? Math.atan2(deltaY, deltaX)
-          : ((i + j + pass) % 16) * (Math.PI / 8);
-        const overlap = minimumDistance - safeDistance + 1;
-        const pushPxX = Math.cos(angle) * overlap * 0.5;
-        const pushPxY = Math.sin(angle) * overlap * 0.5;
-
-        const shiftA = shifts.get(a.id)!;
-        shiftA.dx -= pushPxX;
-        shiftA.dy -= pushPxY;
-
-        const shiftB = shifts.get(b.id)!;
-        shiftB.dx += pushPxX;
-        shiftB.dy += pushPxY;
-      }
-    }
-
-    if (overlapCount === 0) break;
-
-    shifts.forEach((shift, nodeId) => {
-      const attrs = graph.getNodeAttributes(nodeId);
-      const currentViewport = sigma.graphToViewport({ x: attrs.x as number, y: attrs.y as number });
-      const nextGraph = sigma.viewportToGraph({
-        x: currentViewport.x + shift.dx,
-        y: currentViewport.y + shift.dy,
-      });
-      graph.setNodeAttribute(nodeId, 'x', nextGraph.x);
-      graph.setNodeAttribute(nodeId, 'y', nextGraph.y);
-    });
-
-    sigma.refresh();
-  }
-}
-
 export function useSigma() {
   const containerRef = useRef<HTMLDivElement>(null);
   const sigmaRef = useRef<Sigma | null>(null);
   const graphRef = useRef<Graph | null>(null);
   const layoutRef = useRef<LayoutControls>(null);
-  const layoutCollisionTimerRef = useRef<number | null>(null);
   const dragLayoutWasRunningRef = useRef(false);
   const dragTargetRef = useRef<{ x: number; y: number } | null>(null);
   const dragAnimationFrameRef = useRef<number | null>(null);
@@ -384,39 +303,11 @@ export function useSigma() {
     const visibleNodes = getVisibleNodes(state);
     const visibleNodeIds = new Set(visibleNodes.map((n) => n.id));
 
-    const stopLayoutCollisionMonitor = () => {
-      if (layoutCollisionTimerRef.current !== null) {
-        window.clearInterval(layoutCollisionTimerRef.current);
-        layoutCollisionTimerRef.current = null;
-      }
-    };
-
-    const startLayoutCollisionMonitor = () => {
-      stopLayoutCollisionMonitor();
-      layoutCollisionTimerRef.current = window.setInterval(() => {
-        const activeSigma = sigmaRef.current;
-        const activeGraph = graphRef.current;
-        if (!activeSigma || !activeGraph || dragNodeId !== null) return;
-        const liveState = useGraphStore.getState();
-        const currentVisibleNodeIds = new Set(getVisibleNodes(liveState).map((node) => node.id));
-        resolveViewportCollisions(activeSigma, activeGraph, currentVisibleNodeIds);
-        activeSigma.refresh();
-      }, 180);
-    };
-
     const startLayoutWorker = (targetGraph: Graph) => {
       setIsLayoutRunning(true);
-      startLayoutCollisionMonitor();
       const layout = startWorkerLayout(targetGraph, () => {
         setIsLayoutRunning(false);
-        stopLayoutCollisionMonitor();
-        const activeSigma = sigmaRef.current;
-        if (activeSigma) {
-          const liveState = useGraphStore.getState();
-          const currentVisibleNodeIds = new Set(getVisibleNodes(liveState).map((node) => node.id));
-          resolveViewportCollisions(activeSigma, targetGraph, currentVisibleNodeIds);
-          activeSigma.refresh();
-        }
+        sigmaRef.current?.refresh();
       });
       layoutRef.current = layout;
     };
@@ -647,7 +538,7 @@ export function useSigma() {
       stopInertiaAnimation();
       pressedNodeIdRef.current = e.node;
       suppressStageClickUntilRef.current = performance.now() + 300;
-      selectNode(e.node, false);
+      // Don't selectNode here — wait for mouseup to distinguish click vs drag
       dragNodeId = e.node;
       const orig = e.event.original;
       if ('clientX' in orig) {
@@ -681,7 +572,6 @@ export function useSigma() {
         // latest position and fixed state, instead of freezing permanently.
         dragLayoutWasRunningRef.current = layoutRef.current !== null;
         if (layoutRef.current) {
-          stopLayoutCollisionMonitor();
           layoutRef.current.kill();
           layoutRef.current = null;
           setIsLayoutRunning(false);
@@ -752,7 +642,6 @@ export function useSigma() {
       document.removeEventListener('mouseup', onUp);
       stopDragAnimation();
       stopInertiaAnimation();
-      stopLayoutCollisionMonitor();
       dragTargetRef.current = null;
       dragVelocityRef.current = null;
       if (sigmaRef.current) {
@@ -787,11 +676,6 @@ export function useSigma() {
 
     sigma.setSetting('nodeReducer', createNodeReducer(selectedNodeId, neighbors, visibleNodeIds, currentMode));
     sigma.setSetting('edgeReducer', createEdgeReducer(selectedNodeId, graph, visibleNodeIds, currentMode));
-    resolveResidualCollisions(
-      graph,
-      (nodeId, attrs) => getInteractiveCollisionRadius(graph, nodeId, attrs, selectedNodeId),
-    );
-    resolveViewportCollisions(sigma, graph, visibleNodeIds);
     sigma.refresh();
 
     // Smooth camera: focus on selected node, or reset when deselected

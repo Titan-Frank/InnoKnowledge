@@ -12,14 +12,15 @@ type LayoutNodeRecord = {
 
 type RadiusResolver = (nodeId: string, attrs: Record<string, unknown>) => number;
 
+// Light noverlap cleanup — matches GitNexus approach
+// Heavy settings cause visible "jump apart" after layout
 const NOVERLAP_SETTINGS = {
-  maxIterations: 220,
-  ratio: 2.6,
-  margin: 28,
-  expansion: 1.35,
+  maxIterations: 20,
+  ratio: 1.1,
+  margin: 10,
+  expansion: 1.05,
 };
 
-const FINAL_COLLISION_PASSES = 16;
 const SINGLE_NODE_COLLISION_PASSES = 20;
 const SINGLE_NODE_COLLISION_MARGIN = 12;
 
@@ -78,11 +79,10 @@ function getFA2Settings(nodeCount: number) {
 }
 
 function getLayoutDuration(nodeCount: number): number {
-  if (nodeCount > 10000) return 45000;
-  if (nodeCount > 5000) return 35000;
-  if (nodeCount > 2000) return 30000;
-  if (nodeCount > 500) return 25000;
-  return 20000;
+  if (nodeCount > 10000) return 20000;
+  if (nodeCount > 2000) return 12000;
+  if (nodeCount > 500) return 8000;
+  return 5000;
 }
 
 /** Synchronous layout (fallback) */
@@ -104,7 +104,11 @@ export function runLayout(graph: Graph): void {
   normalizePositions(graph);
 }
 
-/** Start FA2 in a Web Worker with auto-stop. Returns controls. */
+/**
+ * Start FA2 in a Web Worker with auto-stop.
+ * Stops early when layout converges (sampled node positions stop changing),
+ * or when the max duration is reached.
+ */
 export function startWorkerLayout(
   graph: Graph,
   onStopped?: () => void,
@@ -122,56 +126,96 @@ export function startWorkerLayout(
   const layout = new FA2Layout(graph, { settings });
   layout.start();
 
-  const duration = getLayoutDuration(nodeCount);
-  const timeout = setTimeout(() => {
+  let stopped = false;
+  const doStop = () => {
+    if (stopped) return;
+    stopped = true;
+    clearInterval(convergenceInterval);
+    clearTimeout(maxTimeout);
     layout.stop();
     onStopped?.();
-  }, duration);
+  };
+
+  // Convergence detection: sample positions every 2s, stop when movement is negligible
+  const CONVERGENCE_SAMPLE_INTERVAL = 2000;
+  const CONVERGENCE_THRESHOLD = 0.5; // avg pixel movement per node
+  const CONVERGENCE_ROUNDS_NEEDED = 2; // must be below threshold this many times in a row
+
+  // Sample a subset of nodes for performance
+  const sampleSize = Math.min(nodeCount, 50);
+  const allNodeIds = graph.nodes();
+  const sampleStep = Math.max(1, Math.floor(allNodeIds.length / sampleSize));
+  const sampleIds: string[] = [];
+  for (let i = 0; i < allNodeIds.length; i += sampleStep) {
+    sampleIds.push(allNodeIds[i]);
+  }
+
+  let convergenceCount = 0;
+  let prevPositions = new Map<string, { x: number; y: number }>();
+
+  const convergenceInterval = setInterval(() => {
+    let totalMovement = 0;
+    let count = 0;
+
+    sampleIds.forEach((id) => {
+      if (!graph.hasNode(id)) return;
+      const attrs = graph.getNodeAttributes(id);
+      const x = attrs.x as number;
+      const y = attrs.y as number;
+      const prev = prevPositions.get(id);
+
+      if (prev) {
+        totalMovement += Math.hypot(x - prev.x, y - prev.y);
+        count += 1;
+      }
+
+      prevPositions.set(id, { x, y });
+    });
+
+    if (count === 0) return;
+
+    const avgMovement = totalMovement / count;
+
+    if (avgMovement < CONVERGENCE_THRESHOLD) {
+      convergenceCount += 1;
+      if (convergenceCount >= CONVERGENCE_ROUNDS_NEEDED) {
+        doStop();
+      }
+    } else {
+      convergenceCount = 0;
+    }
+  }, CONVERGENCE_SAMPLE_INTERVAL);
+
+  // Hard cap — never run longer than this
+  const maxDuration = getLayoutDuration(nodeCount);
+  const maxTimeout = setTimeout(doStop, maxDuration);
 
   return {
-    stop: () => {
-      clearTimeout(timeout);
-      layout.stop();
-      onStopped?.();
-    },
+    stop: doStop,
     kill: () => {
-      clearTimeout(timeout);
+      if (stopped) return;
+      stopped = true;
+      clearInterval(convergenceInterval);
+      clearTimeout(maxTimeout);
       layout.kill();
     },
   };
 }
 
 function runNoverlap(graph: Graph): void {
-  const passes = [
-    {
-      maxIterations: NOVERLAP_SETTINGS.maxIterations,
-      settings: {
-        margin: NOVERLAP_SETTINGS.margin,
-        ratio: NOVERLAP_SETTINGS.ratio,
-        expansion: NOVERLAP_SETTINGS.expansion,
-      },
+  // Single light pass — GitNexus-style
+  noverlap.assign(graph, {
+    maxIterations: NOVERLAP_SETTINGS.maxIterations,
+    settings: {
+      ratio: NOVERLAP_SETTINGS.ratio,
+      margin: NOVERLAP_SETTINGS.margin,
+      expansion: NOVERLAP_SETTINGS.expansion,
     },
-    {
-      maxIterations: Math.round(NOVERLAP_SETTINGS.maxIterations * 0.75),
-      settings: {
-        margin: NOVERLAP_SETTINGS.margin + 4,
-        ratio: NOVERLAP_SETTINGS.ratio + 0.15,
-        expansion: NOVERLAP_SETTINGS.expansion + 0.05,
-      },
-    },
-  ];
-
-  for (const pass of passes) {
-    noverlap.assign(graph, {
-      ...pass,
-      inputReducer: (_, attrs) => ({
-        ...attrs,
-        size: getNodeRadius(attrs as Record<string, unknown>),
-      }),
-    });
-  }
-
-  resolveResidualCollisions(graph);
+    inputReducer: (_, attrs) => ({
+      ...attrs,
+      size: getNodeRadius(attrs as Record<string, unknown>),
+    }),
+  });
 }
 
 function normalizePositions(graph: Graph): void {
@@ -200,21 +244,6 @@ function ensureSeedPositions(graph: Graph): void {
       graph.setNodeAttribute(node, 'y', Math.random() * 100);
     }
   });
-}
-
-function collectLayoutNodes(graph: Graph, radiusResolver?: RadiusResolver): LayoutNodeRecord[] {
-  const nodes: LayoutNodeRecord[] = [];
-
-  graph.forEachNode((id, attrs) => {
-    nodes.push({
-      id,
-      x: attrs.x as number,
-      y: attrs.y as number,
-      radius: getResolvedNodeRadius(id, attrs as Record<string, unknown>, radiusResolver),
-    });
-  });
-
-  return nodes;
 }
 
 export function resolveSingleNodeCollision(
@@ -307,76 +336,6 @@ function fanOutCoincidentNodes(graph: Graph): void {
       const angle = (index / nodes.length) * Math.PI * 2;
       graph.setNodeAttribute(node.id, 'x', node.x + Math.cos(angle) * spreadRadius);
       graph.setNodeAttribute(node.id, 'y', node.y + Math.sin(angle) * spreadRadius);
-    });
-  }
-}
-
-export function resolveResidualCollisions(graph: Graph, radiusResolver?: RadiusResolver): void {
-  const nodes = collectLayoutNodes(graph, radiusResolver);
-  if (nodes.length < 2) return;
-
-  const maxRadius = nodes.reduce((largest, node) => Math.max(largest, node.radius), 0);
-  const cellSize = Math.max(24, maxRadius * 2.5);
-
-  for (let pass = 0; pass < FINAL_COLLISION_PASSES; pass += 1) {
-    const latest = collectLayoutNodes(graph, radiusResolver);
-    const buckets = new Map<string, LayoutNodeRecord[]>();
-    const shifts = new Map<string, { dx: number; dy: number }>();
-    let overlapCount = 0;
-
-    latest.forEach((node) => {
-      const cellX = Math.floor(node.x / cellSize);
-      const cellY = Math.floor(node.y / cellSize);
-      const key = `${cellX}:${cellY}`;
-      if (!buckets.has(key)) buckets.set(key, []);
-      buckets.get(key)!.push(node);
-      shifts.set(node.id, { dx: 0, dy: 0 });
-    });
-
-    latest.forEach((node) => {
-      const cellX = Math.floor(node.x / cellSize);
-      const cellY = Math.floor(node.y / cellSize);
-
-      for (let dx = -1; dx <= 1; dx += 1) {
-        for (let dy = -1; dy <= 1; dy += 1) {
-          const bucket = buckets.get(`${cellX + dx}:${cellY + dy}`);
-          if (!bucket) continue;
-
-          for (const other of bucket) {
-            if (other.id <= node.id) continue;
-
-            const deltaX = other.x - node.x;
-            const deltaY = other.y - node.y;
-            const distance = Math.hypot(deltaX, deltaY);
-            const minimumDistance = node.radius + other.radius;
-
-            if (distance >= minimumDistance) continue;
-
-            overlapCount += 1;
-
-            const safeDistance = distance || 0.001;
-            const overlap = minimumDistance - safeDistance + 1;
-            const pushX = (deltaX / safeDistance) * overlap * 0.5;
-            const pushY = (deltaY / safeDistance) * overlap * 0.5;
-
-            const currentShift = shifts.get(node.id)!;
-            currentShift.dx -= pushX;
-            currentShift.dy -= pushY;
-
-            const otherShift = shifts.get(other.id)!;
-            otherShift.dx += pushX;
-            otherShift.dy += pushY;
-          }
-        }
-      }
-    });
-
-    if (overlapCount === 0) break;
-
-    shifts.forEach((shift, nodeId) => {
-      const attrs = graph.getNodeAttributes(nodeId);
-      graph.setNodeAttribute(nodeId, 'x', (attrs.x as number) + shift.dx);
-      graph.setNodeAttribute(nodeId, 'y', (attrs.y as number) + shift.dy);
     });
   }
 }
