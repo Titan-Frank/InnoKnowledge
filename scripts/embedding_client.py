@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Shared embedding client for the local OpenAI-compatible embedding API."""
+"""Shared embedding client for the OpenAI-compatible embedding API."""
 
 from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 import urllib.error
 import urllib.request
@@ -12,9 +13,9 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_EMBEDDING_URL = "http://10.11.20.254:1234/v1/embeddings"
-DEFAULT_EMBEDDING_MODEL = "text-embedding-bge-large-zh-v1.5"
-EMBEDDING_DIMENSION = 1024
+DEFAULT_EMBEDDING_URL = "https://heckb8bcaq88cko9mooamhkbceqq9ecc.openapi-sj.sii.edu.cn/v1/embeddings"
+DEFAULT_EMBEDDING_MODEL = "Qwen/Qwen3-Embedding-4B"
+EMBEDDING_DIMENSION = 2560
 
 
 def embed_texts(
@@ -22,11 +23,12 @@ def embed_texts(
     *,
     url: str = DEFAULT_EMBEDDING_URL,
     model: str = DEFAULT_EMBEDDING_MODEL,
+    api_key: str | None = None,
     max_retries: int = 3,
     retry_delay: float = 2.0,
     timeout: float = 30.0,
 ) -> list[list[float]]:
-    """Embed a batch of texts via the local OpenAI-compatible API.
+    """Embed a batch of texts via the OpenAI-compatible API.
 
     Returns a list of embedding vectors (one per input text).
     On unrecoverable failure, returns empty lists for each input
@@ -37,11 +39,16 @@ def embed_texts(
     if not texts:
         return []
 
-    payload = json.dumps({"model": model, "input": texts}, ensure_ascii=False).encode("utf-8")
+    resolved_key = api_key or os.environ.get("EMBEDDING_API_KEY", "")
+    request_body: dict[str, Any] = {"model": model, "input": texts}
+    payload = json.dumps(request_body, ensure_ascii=False).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    if resolved_key:
+        headers["Authorization"] = f"Bearer {resolved_key}"
     req = urllib.request.Request(
         url,
         data=payload,
-        headers={"Content-Type": "application/json"},
+        headers=headers,
         method="POST",
     )
 
@@ -59,9 +66,15 @@ def embed_texts(
             for item in data:
                 idx = item.get("index", 0)
                 vec = item.get("embedding", [])
-                if len(vec) != EMBEDDING_DIMENSION:
+                if not vec:
+                    continue
+                # If API returns more dimensions than target, truncate (MRL-compatible).
+                # If API returns fewer, skip — unexpected.
+                if len(vec) > EMBEDDING_DIMENSION:
+                    vec = vec[:EMBEDDING_DIMENSION]
+                elif len(vec) < EMBEDDING_DIMENSION:
                     logger.warning(
-                        "Embedding index %d: unexpected dimension %d (expected %d) — skipping",
+                        "Embedding index %d: dimension %d < expected %d — skipping",
                         idx,
                         len(vec),
                         EMBEDDING_DIMENSION,

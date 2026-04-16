@@ -138,9 +138,10 @@ python scripts/check_graph_integrity.py --dataset-id main
 
 Nodes are automatically embedded via `scripts/embedding_client.py` during staging:
 
-- **Model**: `text-embedding-bge-large-zh-v1.5` (1024-dim, Chinese-optimized)
-- **API**: `http://10.11.20.254:1234/v1/embeddings`
-- **Storage**: `embedding vector(1024)` column via pgvector extension
+- **Model**: `Qwen/Qwen3-Embedding-4B` (2560-dim, Chinese-optimized)
+- **API**: `https://heckb8bcaq88cko9mooamhkbceqq9ecc.openapi-sj.sii.edu.cn/v1/embeddings`
+- **Auth**: `EMBEDDING_API_KEY` environment variable (Bearer token)
+- **Storage**: `embedding vector(2560)` column via pgvector extension
 - **Auto-embed**: `store_lesson_staging.py --embed` (default on)
 - **Text composition**: `canonical_name + definition + aliases`
 - **Usage in pipeline**:

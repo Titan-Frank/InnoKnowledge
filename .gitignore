@@ -12,3 +12,4 @@ ocr/
 storage/
 node_modules/
 dist/
+.mcp.json

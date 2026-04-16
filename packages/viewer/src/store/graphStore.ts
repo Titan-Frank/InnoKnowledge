@@ -41,6 +41,10 @@ export const useGraphStore = create<AppState>()(() => ({
   communities: [],
   communityMap: new Map(),
   themeMode: getInitialThemeMode(),
+  serverSearchHits: new Map(),
+  serverSearchLoading: false,
+  serverSearchError: false,
+  serverSearchRequestId: 0,
 }));
 
 // --- Actions (mutate store imperatively, called from components/hooks) ---
@@ -95,7 +99,56 @@ export function setHoverNodeId(id: string | null): void {
 }
 
 export function setSearchTerm(term: string): void {
-  useGraphStore.setState({ searchTerm: term });
+  const s = useGraphStore.getState();
+  useGraphStore.setState({
+    searchTerm: term,
+    serverSearchHits: new Map(),
+    serverSearchLoading: false,
+    serverSearchError: false,
+    serverSearchRequestId: s.serverSearchRequestId + 1,
+  });
+}
+
+export function setServerSearchLoading(): void {
+  const s = useGraphStore.getState();
+  useGraphStore.setState({
+    serverSearchLoading: true,
+    serverSearchError: false,
+    serverSearchRequestId: s.serverSearchRequestId + 1,
+  });
+}
+
+export function setServerSearchHits(
+  hits: Map<string, import('./types.js').SearchHitMeta>,
+  requestId: number,
+): void {
+  const s = useGraphStore.getState();
+  // Ignore stale responses
+  if (requestId !== s.serverSearchRequestId) return;
+  useGraphStore.setState({
+    serverSearchHits: hits,
+    serverSearchLoading: false,
+    serverSearchError: false,
+    visibleNodesCache: { key: null, nodes: [] },
+  });
+}
+
+export function setServerSearchError(requestId: number): void {
+  const s = useGraphStore.getState();
+  if (requestId !== s.serverSearchRequestId) return;
+  useGraphStore.setState({
+    serverSearchLoading: false,
+    serverSearchError: true,
+  });
+}
+
+export function clearServerSearch(): void {
+  useGraphStore.setState({
+    serverSearchHits: new Map(),
+    serverSearchLoading: false,
+    serverSearchError: false,
+    visibleNodesCache: { key: null, nodes: [] },
+  });
 }
 
 export function setSelectedBook(bookId: string): void {

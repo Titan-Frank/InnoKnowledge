@@ -140,6 +140,19 @@ export function getSearchMatches(state: AppState): GraphNode[] {
       .sort((a, b) => b.degree - a.degree || a.name.localeCompare(b.name, 'zh-CN'));
   }
 
+  // Use server search results when available
+  if (state.serverSearchHits.size > 0) {
+    return visibleNodes
+      .filter((node) => state.serverSearchHits.has(node.id))
+      .sort((a, b) => {
+        const aHit = state.serverSearchHits.get(a.id)!;
+        const bHit = state.serverSearchHits.get(b.id)!;
+        return bHit.score - aHit.score || a.name.localeCompare(b.name, 'zh-CN');
+      });
+  }
+
+  // Fallback: local substring search
+  const lowerTerm = state.searchTerm.toLowerCase();
   return visibleNodes
     .filter((node) => {
       const haystack = [
@@ -150,7 +163,7 @@ export function getSearchMatches(state: AppState): GraphNode[] {
       ]
         .join(' ')
         .toLowerCase();
-      return haystack.includes(state.searchTerm);
+      return haystack.includes(lowerTerm);
     })
     .sort((a, b) => b.degree - a.degree || a.name.localeCompare(b.name, 'zh-CN'));
 }

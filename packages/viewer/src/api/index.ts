@@ -1,4 +1,4 @@
-import type { ApiNodeCard, MetaResponse, BundleResponse } from '@okm/types';
+import type { ApiNodeCard, MetaResponse, BundleResponse, SearchResponse } from '@okm/types';
 
 export async function fetchJson<T = unknown>(path: string): Promise<T> {
   const response = await fetch(path);
@@ -31,4 +31,20 @@ export async function loadNodeCard(
   return fetchOptionalJson<ApiNodeCard>(
     `${nodeCardPath}/${encodeURIComponent(nodeId)}`,
   );
+}
+
+export async function searchNodes(
+  sourceKey: string,
+  query: string,
+  limit?: number,
+): Promise<SearchResponse | null> {
+  const params = new URLSearchParams({ q: query });
+  if (limit) params.set('limit', String(limit));
+  try {
+    return await fetchJson<SearchResponse>(
+      `/api/source/${encodeURIComponent(sourceKey)}/search?${params}`,
+    );
+  } catch {
+    return null;
+  }
 }

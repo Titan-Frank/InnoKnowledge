@@ -66,6 +66,26 @@ export interface BundleResponse {
 
 export type NodeCardResponse = ApiNodeCard;
 
+// ── GET /api/source/:key/search ───────────────────────────
+
+export interface SearchHit {
+  id: string;
+  canonical_name: string;
+  node_kind: string;
+  node_layer: string;
+  score: number;
+  text_match: boolean;
+  vector_match: boolean;
+  similarity: number | null;
+}
+
+export interface SearchResponse {
+  query: string;
+  source: string;
+  hits: SearchHit[];
+  mode: 'full' | 'text_only';
+}
+
 // ── Error ─────────────────────────────────────────────────
 
 export interface ApiErrorResponse {

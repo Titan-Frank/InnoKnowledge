@@ -5,6 +5,7 @@ import { registerHealthRoutes } from './routes/health.js';
 import { registerMetaRoutes } from './routes/meta.js';
 import { registerBundleRoutes } from './routes/bundle.js';
 import { registerNodeCardRoutes } from './routes/node-card.js';
+import { registerSearchRoutes } from './routes/search.js';
 import { VIEWER_DIST_DIR } from './utils/paths.js';
 import { existsSync } from 'node:fs';
 
@@ -19,6 +20,7 @@ export function createApp(sql: Sql, dbUrl: string): Hono {
   registerMetaRoutes(app, sql);
   registerBundleRoutes(app, sql);
   registerNodeCardRoutes(app, sql);
+  registerSearchRoutes(app, sql);
 
   // Serve built viewer assets (production mode)
   if (existsSync(VIEWER_DIST_DIR)) {

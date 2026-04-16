@@ -13,6 +13,7 @@ from typing import Any
 import psycopg
 from psycopg.rows import dict_row
 
+
 from knowledge_store_common import (
     canonicalize_source_anchor,
     connect_db,
@@ -333,6 +334,7 @@ def auto_embed_nodes(
     *,
     url: str,
     model: str,
+    api_key: str | None = None,
 ) -> list[dict[str, Any]]:
     """Backfill empty embeddings by calling the embedding API."""
     texts_to_embed: list[tuple[int, str]] = []
@@ -357,6 +359,7 @@ def auto_embed_nodes(
         [text for _, text in texts_to_embed],
         url=url,
         model=model,
+        api_key=api_key,
     )
     for (index, _), embedding in zip(texts_to_embed, embeddings):
         if embedding:
@@ -399,7 +402,12 @@ def main() -> int:
 
     nodes = normalize_nodes(merge_artifact("nodes", args.nodes_json, "nodes"))
     if args.embed:
-        nodes = auto_embed_nodes(nodes, url=args.embedding_url, model=args.embedding_model)
+        nodes = auto_embed_nodes(
+            nodes,
+            url=args.embedding_url,
+            model=args.embedding_model,
+            api_key=os.environ.get("EMBEDDING_API_KEY"),
+        )
     edges = normalize_edges(merge_artifact("edges", args.edges_json, "edges"))
     profiles = normalize_profiles(merge_artifact("profiles", args.profiles_json, "profiles"))
     mentions = normalize_mentions(
@@ -449,8 +457,8 @@ def main() -> int:
                     lesson_run_id,
                     args.book_id,
                     batch_anchor,
-                    dict(stats),
-                    {},
+                    json.dumps(dict(stats)),
+                    json.dumps({}),
                     now,
                     now,
                 ),
@@ -469,39 +477,40 @@ def main() -> int:
 
         if nodes:
             with connection.cursor() as cur:
-                psycopg.extras.execute_values(
-                    cur,
-                    """
-                    INSERT INTO staging_nodes (
-                      dataset_id, lesson_run_id, raw_node_id, book_id, batch_anchor,
-                      canonical_name, node_kind, node_layer, node_subkind, definition,
-                      aliases_json, learning_modes_json, bridge_tags_json, framework_refs_json,
-                      profile_refs_json, same_as_refs_json, properties_json, semantic_key,
-                      embedding_json, source_refs_json, status, created_at, updated_at, notes
-                    ) VALUES %s
-                    ON CONFLICT (dataset_id, lesson_run_id, raw_node_id) DO UPDATE SET
-                      book_id = EXCLUDED.book_id,
-                      batch_anchor = EXCLUDED.batch_anchor,
-                      canonical_name = EXCLUDED.canonical_name,
-                      node_kind = EXCLUDED.node_kind,
-                      node_layer = EXCLUDED.node_layer,
-                      node_subkind = EXCLUDED.node_subkind,
-                      definition = EXCLUDED.definition,
-                      aliases_json = EXCLUDED.aliases_json,
-                      learning_modes_json = EXCLUDED.learning_modes_json,
-                      bridge_tags_json = EXCLUDED.bridge_tags_json,
-                      framework_refs_json = EXCLUDED.framework_refs_json,
-                      profile_refs_json = EXCLUDED.profile_refs_json,
-                      same_as_refs_json = EXCLUDED.same_as_refs_json,
-                      properties_json = EXCLUDED.properties_json,
-                      semantic_key = EXCLUDED.semantic_key,
-                      embedding_json = EXCLUDED.embedding_json,
-                      source_refs_json = EXCLUDED.source_refs_json,
-                      status = EXCLUDED.status,
-                      updated_at = EXCLUDED.updated_at,
-                      notes = EXCLUDED.notes
-                    """,
-                    [
+                for record in nodes:
+                    cur.execute(
+                        """
+                        INSERT INTO staging_nodes (
+                          dataset_id, lesson_run_id, raw_node_id, book_id, batch_anchor,
+                          canonical_name, node_kind, node_layer, node_subkind, definition,
+                          aliases_json, learning_modes_json, bridge_tags_json, framework_refs_json,
+                          profile_refs_json, same_as_refs_json, properties_json, semantic_key,
+                          embedding, source_refs_json, status, created_at, updated_at, notes
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                                  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                                  %s, %s, %s, %s)
+                        ON CONFLICT (dataset_id, lesson_run_id, raw_node_id) DO UPDATE SET
+                          book_id = EXCLUDED.book_id,
+                          batch_anchor = EXCLUDED.batch_anchor,
+                          canonical_name = EXCLUDED.canonical_name,
+                          node_kind = EXCLUDED.node_kind,
+                          node_layer = EXCLUDED.node_layer,
+                          node_subkind = EXCLUDED.node_subkind,
+                          definition = EXCLUDED.definition,
+                          aliases_json = EXCLUDED.aliases_json,
+                          learning_modes_json = EXCLUDED.learning_modes_json,
+                          bridge_tags_json = EXCLUDED.bridge_tags_json,
+                          framework_refs_json = EXCLUDED.framework_refs_json,
+                          profile_refs_json = EXCLUDED.profile_refs_json,
+                          same_as_refs_json = EXCLUDED.same_as_refs_json,
+                          properties_json = EXCLUDED.properties_json,
+                          semantic_key = EXCLUDED.semantic_key,
+                          embedding = EXCLUDED.embedding,
+                          source_refs_json = EXCLUDED.source_refs_json,
+                          status = EXCLUDED.status,
+                          updated_at = EXCLUDED.updated_at,
+                          notes = EXCLUDED.notes
+                        """,
                         (
                             dataset_id,
                             lesson_run_id,
@@ -521,46 +530,44 @@ def main() -> int:
                             json.dumps(record["same_as_refs_json"]),
                             json.dumps(record["properties_json"]),
                             record["semantic_key"],
-                            json.dumps(record["embedding_json"]),
+                            json.dumps(record["embedding_json"]) if record.get("embedding_json") else None,
                             json.dumps(record["source_refs_json"]),
                             record["status"],
                             now,
                             now,
                             record["notes"],
-                        )
-                        for record in nodes
-                    ],
-                )
+                        ),
+                    )
 
         if edges:
             with connection.cursor() as cur:
-                psycopg.extras.execute_values(
-                    cur,
-                    """
-                    INSERT INTO staging_edges (
-                      dataset_id, lesson_run_id, raw_edge_id, book_id, batch_anchor,
-                      edge_type, edge_layer, backbone_expand, from_raw_node_id, to_raw_node_id,
-                      directionality, confidence, framework_refs_json, profile_refs_json,
-                      source_refs_json, properties_json, status, created_at, updated_at
-                    ) VALUES %s
-                    ON CONFLICT (dataset_id, lesson_run_id, raw_edge_id) DO UPDATE SET
-                      book_id = EXCLUDED.book_id,
-                      batch_anchor = EXCLUDED.batch_anchor,
-                      edge_type = EXCLUDED.edge_type,
-                      edge_layer = EXCLUDED.edge_layer,
-                      backbone_expand = EXCLUDED.backbone_expand,
-                      from_raw_node_id = EXCLUDED.from_raw_node_id,
-                      to_raw_node_id = EXCLUDED.to_raw_node_id,
-                      directionality = EXCLUDED.directionality,
-                      confidence = EXCLUDED.confidence,
-                      framework_refs_json = EXCLUDED.framework_refs_json,
-                      profile_refs_json = EXCLUDED.profile_refs_json,
-                      source_refs_json = EXCLUDED.source_refs_json,
-                      properties_json = EXCLUDED.properties_json,
-                      status = EXCLUDED.status,
-                      updated_at = EXCLUDED.updated_at
-                    """,
-                    [
+                for record in edges:
+                    cur.execute(
+                        """
+                        INSERT INTO staging_edges (
+                          dataset_id, lesson_run_id, raw_edge_id, book_id, batch_anchor,
+                          edge_type, edge_layer, backbone_expand, from_raw_node_id, to_raw_node_id,
+                          directionality, confidence, framework_refs_json, profile_refs_json,
+                          source_refs_json, properties_json, status, created_at, updated_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                                  %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (dataset_id, lesson_run_id, raw_edge_id) DO UPDATE SET
+                          book_id = EXCLUDED.book_id,
+                          batch_anchor = EXCLUDED.batch_anchor,
+                          edge_type = EXCLUDED.edge_type,
+                          edge_layer = EXCLUDED.edge_layer,
+                          backbone_expand = EXCLUDED.backbone_expand,
+                          from_raw_node_id = EXCLUDED.from_raw_node_id,
+                          to_raw_node_id = EXCLUDED.to_raw_node_id,
+                          directionality = EXCLUDED.directionality,
+                          confidence = EXCLUDED.confidence,
+                          framework_refs_json = EXCLUDED.framework_refs_json,
+                          profile_refs_json = EXCLUDED.profile_refs_json,
+                          source_refs_json = EXCLUDED.source_refs_json,
+                          properties_json = EXCLUDED.properties_json,
+                          status = EXCLUDED.status,
+                          updated_at = EXCLUDED.updated_at
+                        """,
                         (
                             dataset_id,
                             lesson_run_id,
@@ -581,42 +588,40 @@ def main() -> int:
                             record["status"],
                             now,
                             now,
-                        )
-                        for record in edges
-                    ],
-                )
+                        ),
+                    )
 
         if profiles:
             with connection.cursor() as cur:
-                psycopg.extras.execute_values(
-                    cur,
-                    """
-                    INSERT INTO staging_profiles (
-                      dataset_id, lesson_run_id, raw_profile_id, raw_node_id, subject,
-                      school_stage, grade_band, context_key, curriculum_role, mastery_level,
-                      framework_refs_json, textbook_refs_json, textbook_ids_json,
-                      learning_objectives_json, assessment_signals_json, source_refs_json,
-                      properties_json, status, created_at, updated_at
-                    ) VALUES %s
-                    ON CONFLICT (dataset_id, lesson_run_id, raw_profile_id) DO UPDATE SET
-                      raw_node_id = EXCLUDED.raw_node_id,
-                      subject = EXCLUDED.subject,
-                      school_stage = EXCLUDED.school_stage,
-                      grade_band = EXCLUDED.grade_band,
-                      context_key = EXCLUDED.context_key,
-                      curriculum_role = EXCLUDED.curriculum_role,
-                      mastery_level = EXCLUDED.mastery_level,
-                      framework_refs_json = EXCLUDED.framework_refs_json,
-                      textbook_refs_json = EXCLUDED.textbook_refs_json,
-                      textbook_ids_json = EXCLUDED.textbook_ids_json,
-                      learning_objectives_json = EXCLUDED.learning_objectives_json,
-                      assessment_signals_json = EXCLUDED.assessment_signals_json,
-                      source_refs_json = EXCLUDED.source_refs_json,
-                      properties_json = EXCLUDED.properties_json,
-                      status = EXCLUDED.status,
-                      updated_at = EXCLUDED.updated_at
-                    """,
-                    [
+                for record in profiles:
+                    cur.execute(
+                        """
+                        INSERT INTO staging_profiles (
+                          dataset_id, lesson_run_id, raw_profile_id, raw_node_id, subject,
+                          school_stage, grade_band, context_key, curriculum_role, mastery_level,
+                          framework_refs_json, textbook_refs_json, textbook_ids_json,
+                          learning_objectives_json, assessment_signals_json, source_refs_json,
+                          properties_json, status, created_at, updated_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                                  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (dataset_id, lesson_run_id, raw_profile_id) DO UPDATE SET
+                          raw_node_id = EXCLUDED.raw_node_id,
+                          subject = EXCLUDED.subject,
+                          school_stage = EXCLUDED.school_stage,
+                          grade_band = EXCLUDED.grade_band,
+                          context_key = EXCLUDED.context_key,
+                          curriculum_role = EXCLUDED.curriculum_role,
+                          mastery_level = EXCLUDED.mastery_level,
+                          framework_refs_json = EXCLUDED.framework_refs_json,
+                          textbook_refs_json = EXCLUDED.textbook_refs_json,
+                          textbook_ids_json = EXCLUDED.textbook_ids_json,
+                          learning_objectives_json = EXCLUDED.learning_objectives_json,
+                          assessment_signals_json = EXCLUDED.assessment_signals_json,
+                          source_refs_json = EXCLUDED.source_refs_json,
+                          properties_json = EXCLUDED.properties_json,
+                          status = EXCLUDED.status,
+                          updated_at = EXCLUDED.updated_at
+                        """,
                         (
                             dataset_id,
                             lesson_run_id,
@@ -638,34 +643,32 @@ def main() -> int:
                             record["status"],
                             now,
                             now,
-                        )
-                        for record in profiles
-                    ],
-                )
+                        ),
+                    )
 
         if mentions:
             with connection.cursor() as cur:
-                psycopg.extras.execute_values(
-                    cur,
-                    """
-                    INSERT INTO staging_mentions (
-                      dataset_id, lesson_run_id, raw_mention_id, source_type, source_id,
-                      anchor_ref, target_type, target_raw_id, role, source_refs_json,
-                      confidence, properties_json, created_at, updated_at
-                    ) VALUES %s
-                    ON CONFLICT (dataset_id, lesson_run_id, raw_mention_id) DO UPDATE SET
-                      source_type = EXCLUDED.source_type,
-                      source_id = EXCLUDED.source_id,
-                      anchor_ref = EXCLUDED.anchor_ref,
-                      target_type = EXCLUDED.target_type,
-                      target_raw_id = EXCLUDED.target_raw_id,
-                      role = EXCLUDED.role,
-                      source_refs_json = EXCLUDED.source_refs_json,
-                      confidence = EXCLUDED.confidence,
-                      properties_json = EXCLUDED.properties_json,
-                      updated_at = EXCLUDED.updated_at
-                    """,
-                    [
+                for record in mentions:
+                    cur.execute(
+                        """
+                        INSERT INTO staging_mentions (
+                          dataset_id, lesson_run_id, raw_mention_id, source_type, source_id,
+                          anchor_ref, target_type, target_raw_id, role, source_refs_json,
+                          confidence, properties_json, created_at, updated_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                                  %s, %s, %s, %s)
+                        ON CONFLICT (dataset_id, lesson_run_id, raw_mention_id) DO UPDATE SET
+                          source_type = EXCLUDED.source_type,
+                          source_id = EXCLUDED.source_id,
+                          anchor_ref = EXCLUDED.anchor_ref,
+                          target_type = EXCLUDED.target_type,
+                          target_raw_id = EXCLUDED.target_raw_id,
+                          role = EXCLUDED.role,
+                          source_refs_json = EXCLUDED.source_refs_json,
+                          confidence = EXCLUDED.confidence,
+                          properties_json = EXCLUDED.properties_json,
+                          updated_at = EXCLUDED.updated_at
+                        """,
                         (
                             dataset_id,
                             lesson_run_id,
@@ -681,38 +684,36 @@ def main() -> int:
                             json.dumps(record["properties_json"]),
                             now,
                             now,
-                        )
-                        for record in mentions
-                    ],
-                )
+                        ),
+                    )
 
         if evidence:
             with connection.cursor() as cur:
-                psycopg.extras.execute_values(
-                    cur,
-                    """
-                    INSERT INTO staging_evidence (
-                      dataset_id, lesson_run_id, raw_evidence_id, source_type, source_id,
-                      anchor_ref, source_path, page_start, page_end, excerpt, locator,
-                      modality, extraction_method, normalized_claims_json, properties_json,
-                      created_at, updated_at
-                    ) VALUES %s
-                    ON CONFLICT (dataset_id, lesson_run_id, raw_evidence_id) DO UPDATE SET
-                      source_type = EXCLUDED.source_type,
-                      source_id = EXCLUDED.source_id,
-                      anchor_ref = EXCLUDED.anchor_ref,
-                      source_path = EXCLUDED.source_path,
-                      page_start = EXCLUDED.page_start,
-                      page_end = EXCLUDED.page_end,
-                      excerpt = EXCLUDED.excerpt,
-                      locator = EXCLUDED.locator,
-                      modality = EXCLUDED.modality,
-                      extraction_method = EXCLUDED.extraction_method,
-                      normalized_claims_json = EXCLUDED.normalized_claims_json,
-                      properties_json = EXCLUDED.properties_json,
-                      updated_at = EXCLUDED.updated_at
-                    """,
-                    [
+                for record in evidence:
+                    cur.execute(
+                        """
+                        INSERT INTO staging_evidence (
+                          dataset_id, lesson_run_id, raw_evidence_id, source_type, source_id,
+                          anchor_ref, source_path, page_start, page_end, excerpt, locator,
+                          modality, extraction_method, normalized_claims_json, properties_json,
+                          created_at, updated_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                                  %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (dataset_id, lesson_run_id, raw_evidence_id) DO UPDATE SET
+                          source_type = EXCLUDED.source_type,
+                          source_id = EXCLUDED.source_id,
+                          anchor_ref = EXCLUDED.anchor_ref,
+                          source_path = EXCLUDED.source_path,
+                          page_start = EXCLUDED.page_start,
+                          page_end = EXCLUDED.page_end,
+                          excerpt = EXCLUDED.excerpt,
+                          locator = EXCLUDED.locator,
+                          modality = EXCLUDED.modality,
+                          extraction_method = EXCLUDED.extraction_method,
+                          normalized_claims_json = EXCLUDED.normalized_claims_json,
+                          properties_json = EXCLUDED.properties_json,
+                          updated_at = EXCLUDED.updated_at
+                        """,
                         (
                             dataset_id,
                             lesson_run_id,
@@ -731,38 +732,36 @@ def main() -> int:
                             json.dumps(record["properties_json"]),
                             now,
                             now,
-                        )
-                        for record in evidence
-                    ],
-                )
+                        ),
+                    )
 
         if node_cards:
             with connection.cursor() as cur:
-                psycopg.extras.execute_values(
-                    cur,
-                    """
-                    INSERT INTO staging_node_cards (
-                      dataset_id, lesson_run_id, raw_card_id, raw_node_id, card_layer,
-                      title, summary, pattern_refs_json, framework_refs_json, profile_refs_json,
-                      mention_refs_json, source_refs_json, sections_json, properties_json,
-                      status, created_at, updated_at
-                    ) VALUES %s
-                    ON CONFLICT (dataset_id, lesson_run_id, raw_card_id) DO UPDATE SET
-                      raw_node_id = EXCLUDED.raw_node_id,
-                      card_layer = EXCLUDED.card_layer,
-                      title = EXCLUDED.title,
-                      summary = EXCLUDED.summary,
-                      pattern_refs_json = EXCLUDED.pattern_refs_json,
-                      framework_refs_json = EXCLUDED.framework_refs_json,
-                      profile_refs_json = EXCLUDED.profile_refs_json,
-                      mention_refs_json = EXCLUDED.mention_refs_json,
-                      source_refs_json = EXCLUDED.source_refs_json,
-                      sections_json = EXCLUDED.sections_json,
-                      properties_json = EXCLUDED.properties_json,
-                      status = EXCLUDED.status,
-                      updated_at = EXCLUDED.updated_at
-                    """,
-                    [
+                for record in node_cards:
+                    cur.execute(
+                        """
+                        INSERT INTO staging_node_cards (
+                          dataset_id, lesson_run_id, raw_card_id, raw_node_id, card_layer,
+                          title, summary, pattern_refs_json, framework_refs_json, profile_refs_json,
+                          mention_refs_json, source_refs_json, sections_json, properties_json,
+                          status, created_at, updated_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                                  %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (dataset_id, lesson_run_id, raw_card_id) DO UPDATE SET
+                          raw_node_id = EXCLUDED.raw_node_id,
+                          card_layer = EXCLUDED.card_layer,
+                          title = EXCLUDED.title,
+                          summary = EXCLUDED.summary,
+                          pattern_refs_json = EXCLUDED.pattern_refs_json,
+                          framework_refs_json = EXCLUDED.framework_refs_json,
+                          profile_refs_json = EXCLUDED.profile_refs_json,
+                          mention_refs_json = EXCLUDED.mention_refs_json,
+                          source_refs_json = EXCLUDED.source_refs_json,
+                          sections_json = EXCLUDED.sections_json,
+                          properties_json = EXCLUDED.properties_json,
+                          status = EXCLUDED.status,
+                          updated_at = EXCLUDED.updated_at
+                        """,
                         (
                             dataset_id,
                             lesson_run_id,
@@ -781,10 +780,8 @@ def main() -> int:
                             record["status"],
                             now,
                             now,
-                        )
-                        for record in node_cards
-                    ],
-                )
+                        ),
+                    )
 
         with connection.cursor() as cur:
             cur.execute(
@@ -793,10 +790,15 @@ def main() -> int:
                 SET status = 'staged', counts_json = %s, updated_at = %s
                 WHERE dataset_id = %s AND lesson_run_id = %s
                 """,
-                (dict(stats), now, dataset_id, lesson_run_id),
+                (json.dumps(dict(stats)), now, dataset_id, lesson_run_id),
             )
 
-    connection.commit()
+    # In psycopg3, `with connection:` auto-commits on clean exit.
+    # Explicit commit as safety net.
+    try:
+        connection.commit()
+    except psycopg.OperationalError:
+        pass  # already committed by context manager
 
     print(
         dump_json_text(

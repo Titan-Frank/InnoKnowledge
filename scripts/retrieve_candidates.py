@@ -619,6 +619,7 @@ def collect_vector_support(
         query_text,
         url=args.embedding_url,
         model=args.embedding_model,
+        api_key=os.environ.get("EMBEDDING_API_KEY"),
     )
     if not query_embedding:
         return

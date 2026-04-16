@@ -8,7 +8,7 @@ export type {
 export type {
   HealthResponse, SourceSummary, MetaResponse,
   BundleSourceInfo, ApiBookBundle, BundleResponse,
-  NodeCardResponse, ApiErrorResponse,
+  NodeCardResponse, SearchHit, SearchResponse, ApiErrorResponse,
 } from './api.js';
 
 export type {

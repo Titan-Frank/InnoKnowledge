@@ -60,6 +60,13 @@ export interface SourceConfig {
   nodeCardPath: string;
 }
 
+export interface SearchHitMeta {
+  score: number;
+  text_match: boolean;
+  vector_match: boolean;
+  similarity: number | null;
+}
+
 export interface AppState {
   manifest: Record<string, unknown> | null;
   sourceConfigs: Map<string, SourceConfig>;
@@ -88,4 +95,8 @@ export interface AppState {
   communities: CommunityInfo[];
   communityMap: Map<string, number>;
   themeMode: ThemeMode;
+  serverSearchHits: Map<string, SearchHitMeta>;
+  serverSearchLoading: boolean;
+  serverSearchError: boolean;
+  serverSearchRequestId: number;
 }

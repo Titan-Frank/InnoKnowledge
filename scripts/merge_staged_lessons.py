@@ -475,10 +475,19 @@ def main() -> int:
             "profile_refs_json": "profile_refs",
             "same_as_refs_json": "same_as_refs",
             "properties_json": "properties",
-            "embedding_json": "embedding",
             "source_refs_json": "source_refs",
         },
     )
+    # pgvector column 'embedding' is returned as str by psycopg3 — parse to list
+    for node in staging_nodes:
+        emb = node.get("embedding")
+        if isinstance(emb, str):
+            try:
+                node["embedding"] = json.loads(emb)
+            except (json.JSONDecodeError, ValueError):
+                node["embedding"] = []
+        elif emb is None:
+            node["embedding"] = []
 
     with connection.cursor() as cur:
         cur.execute(
@@ -618,11 +627,20 @@ def main() -> int:
             "profile_refs_json": "profile_refs",
             "same_as_refs_json": "same_as_refs",
             "properties_json": "properties",
-            "embedding_json": "embedding_col",
         },
     ):
+        # pgvector column 'embedding' is returned as str by psycopg3 — parse to list
+        raw_emb = row.get("embedding")
+        if isinstance(raw_emb, str):
+            try:
+                embedding = json.loads(raw_emb)
+            except (json.JSONDecodeError, ValueError):
+                embedding = []
+        elif isinstance(raw_emb, list):
+            embedding = raw_emb
+        else:
+            embedding = []
         semantic_key = row.get("properties", {}).get("semantic_key")
-        embedding = row.get("embedding_col") or row.get("properties", {}).get("embedding", [])
         canonical = CanonicalNode(
             payload=row,
             name_terms=normalized_name_terms(row),
@@ -763,10 +781,10 @@ def main() -> int:
             existing_nodes[canonical_id].semantic_key = (
                 existing_nodes[canonical_id].payload.get("properties", {}).get("semantic_key")
             )
-            existing_nodes[canonical_id].embedding = (
-                existing_nodes[canonical_id].payload.get("embedding_col")
-                or existing_nodes[canonical_id].payload.get("properties", {}).get("embedding", [])
-            )
+            # Keep the best available embedding: prefer existing, fall back to staged
+            existing_emb = existing_nodes[canonical_id].embedding
+            if not existing_emb and staged_embedding:
+                existing_nodes[canonical_id].embedding = staged_embedding
         else:
             canonical_id = make_canonical_node_id(
                 staged["node_kind"], staged["canonical_name"], staged.get("node_subkind")
@@ -1300,7 +1318,7 @@ def main() -> int:
                   dataset_id, id, canonical_name, node_kind, node_layer, node_subkind,
                   definition, aliases_json, learning_modes_json, bridge_tags_json,
                   framework_refs_json, profile_refs_json, card_ref, same_as_refs_json,
-                  properties_json, embedding_json, status, deprecated_by, created_at, updated_at, notes
+                  properties_json, embedding, status, deprecated_by, created_at, updated_at, notes
                 ) VALUES %s
                 ON CONFLICT(dataset_id, id) DO UPDATE SET
                   canonical_name=excluded.canonical_name,
@@ -1316,7 +1334,7 @@ def main() -> int:
                   card_ref=excluded.card_ref,
                   same_as_refs_json=excluded.same_as_refs_json,
                   properties_json=excluded.properties_json,
-                  embedding_json=excluded.embedding_json,
+                  embedding=excluded.embedding,
                   status=excluded.status,
                   deprecated_by=excluded.deprecated_by,
                   updated_at=excluded.updated_at,
@@ -1339,7 +1357,7 @@ def main() -> int:
                         canonical.payload.get("card_ref"),
                         canonical.payload.get("same_as_refs", []),
                         canonical.payload.get("properties", {}),
-                        canonical.embedding,
+                        json.dumps(canonical.embedding) if canonical.embedding else None,
                         canonical.payload.get("status", "active"),
                         canonical.payload.get("deprecated_by"),
                         canonical.payload.get("created_at") or now,
