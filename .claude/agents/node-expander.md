@@ -15,7 +15,7 @@ Expand **one lesson-local backbone node** into a **provisional** node card.
 - Called by `@lesson-processor`
 - Uses only current lesson evidence and mentions
 - Returns one node card payload to the caller
-- Does **not** write canonical SQLite tables directly
+- Does **not** write canonical PostgreSQL tables directly
 
 ## Workflow
 
@@ -107,5 +107,5 @@ Return:
 
 ## Constraints
 
-- Do not write canonical SQLite tables directly
+- Do not write canonical PostgreSQL tables directly
 - Do not invent evidence refs not present in the lesson context

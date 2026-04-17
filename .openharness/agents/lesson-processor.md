@@ -65,7 +65,7 @@ For each new backbone node, spawn `node-expander` via SubAgent.
 Each SubAgent call must:
 - use current lesson evidence only
 - return one provisional node card payload
-- not write canonical SQLite tables directly
+- not write canonical PostgreSQL tables directly
 
 Aggregate all returned node card payloads into `node_cards`.
 
@@ -151,8 +151,8 @@ Return:
 ## Constraints
 
 - Do not write canonical `nodes`, `edges`, `profiles`, `mentions`, `evidence`, or `node_cards`
-- Do not run `normalize_sqlite.py`
-- Do not run `strict_qa_sqlite.py`
+- Do not run `normalize.py`
+- Do not run `strict_qa.py`
 - Do not continue to the next lesson
 
 ## Error Handling
@@ -164,5 +164,5 @@ Return `blocked` when:
 
 Return `failed` when:
 - extraction crashes
-- SQLite is unavailable
+- PostgreSQL is unavailable
 - `store_lesson_staging.py` crashes

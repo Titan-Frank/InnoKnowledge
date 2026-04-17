@@ -1,12 +1,12 @@
 ---
 name: kg-reducer
-description: Merges staged lesson artifacts into canonical SQLite tables, then runs normalize and QA.
+description: Merges staged lesson artifacts into canonical PostgreSQL tables, then runs normalize and QA.
 tools: Read, Bash
 ---
 
 # KG Reducer
 
-Merge staged lesson artifacts into the canonical graph.
+Merge staged lesson artifacts into the canonical PostgreSQL graph.
 
 ## Role
 
@@ -43,25 +43,22 @@ python scripts/merge_staged_lessons.py \
 2. Run:
 
 ```bash
-python scripts/normalize_sqlite.py \
-  --dataset-id <dataset-id> \
-  --db storage/knowledge.sqlite
+python scripts/normalize.py \
+  --dataset-id <dataset-id>
 ```
 
 3. Run:
 
 ```bash
-python scripts/strict_qa_sqlite.py \
-  --dataset-id <dataset-id> \
-  --db storage/knowledge.sqlite
+python scripts/strict_qa.py \
+  --dataset-id <dataset-id>
 ```
 
 4. Run:
 
 ```bash
 python scripts/check_graph_integrity.py \
-  --dataset-id <dataset-id> \
-  --db storage/knowledge.sqlite
+  --dataset-id <dataset-id>
 ```
 
 5. Run:

@@ -55,7 +55,7 @@ kg-pipeline
 3. Resolve:
    - `--output-root`
    - `--book-md-path`
-   - SQLite path
+   - PostgreSQL connection (DATABASE_URL)
    - optional lesson scope
 4. Ensure `data/outlines/{book-id}.outline.json` exists
 5. If outline is missing, spawn `outline-reader` and wait
@@ -115,7 +115,7 @@ The reducer owns:
 
 After reducer success:
 
-1. Confirm staged lesson runs exist in SQLite
+1. Confirm staged lesson runs exist in PostgreSQL
 2. Optionally spawn `qa-reviewer`
 3. Report summary counts and any warnings
 
@@ -126,7 +126,7 @@ Halt immediately when:
 - any lesson SubAgent returns `blocked`
 - reducer returns `failed`
 - reducer returns `blocked`
-- SQLite is inaccessible
+- PostgreSQL is inaccessible
 
 ## Recovery
 
@@ -137,7 +137,7 @@ Halt immediately when:
 ## Output
 
 - `lesson_runs` + `staging_*` rows from lesson workers
-- canonical SQLite graph from reducer
+- canonical PostgreSQL graph from reducer
 - optional review report
 
 ## Key Principles

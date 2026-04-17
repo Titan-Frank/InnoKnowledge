@@ -24,14 +24,14 @@ user-invocable: true
 1. 读取 `../../AGENTS.md` 了解原则
 2. 读取 `../../GLOSSARY.md` 了解术语
 3. 读取 `references/normalization-rules.md`
-4. 验证 `--output-root` 存在且包含 SQLite 数据集
+4. 验证 `--output-root` 存在且包含 PostgreSQL 数据集
 5. 确定范围：
    - 单批次：`--batch-anchor struct:book:lesson:X-Y-Z`
    - 批次组：`--batch-group lesson-X-Y-Z,lesson-X-Y-Z+1,`
 
 ### 阶段二：加载当前状态
 
-1. 连接 SQLite 数据集
+1. 连接 PostgreSQL 数据集
 2. 加载 canonical 表：`nodes`、`edges`、`profiles`、`mentions`、`evidence`
 3. 识别当前范围内创建的节点/边，用于潜在去重
 
@@ -197,7 +197,7 @@ UPDATE mentions SET target_id = ? WHERE target_id = ?;
 
 ### 阶段九：收尾
 
-1. 运行 `scripts/normalize_sqlite.py --dataset-id <id>`
+1. 运行 `scripts/normalize.py --dataset-id <id>`
    - 去重节点和边
    - 解决孤立节点
    - 检测层级边中的环路
@@ -214,11 +214,11 @@ UPDATE mentions SET target_id = ? WHERE target_id = ?;
 
 ## 输出
 
-**主要**：SQLite canonical 表（已更新）
+**主要**：PostgreSQL canonical 表（已更新）
 
 **次要**：可选 JSON/JSONL 快照
 
-**状态**：SQLite runtime 记录已更新
+**状态**：PostgreSQL runtime 记录已更新
 
 ## 关键规则
 

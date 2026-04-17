@@ -9,7 +9,7 @@ Enforce schema compliance for all knowledge artifacts. This skill provides schem
 
 ## Quick Start
 
-Schema validation is performed by `scripts/strict_qa_sqlite.py` during the pipeline.
+Schema validation is performed by `scripts/strict_qa.py` during the pipeline.
 No separate validation script is needed. This skill is used implicitly by other skills
 for schema knowledge and ID generation conventions.
 
@@ -356,7 +356,7 @@ Before writing any artifact:
 
 ```bash
 # QA validation (schema + completeness + integrity)
-python scripts/strict_qa_sqlite.py --dataset-id main
+python scripts/strict_qa.py --dataset-id main
 
 # Graph integrity check (cycles, isolated nodes, connectivity)
 python scripts/check_graph_integrity.py --dataset-id main

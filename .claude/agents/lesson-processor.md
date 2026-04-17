@@ -53,7 +53,7 @@ tools: Agent, Read, Bash, Edit, Write
 每个 `@node-expander` Task 必须：
 - 只使用当前课题的证据
 - 返回一个临时节点卡片 payload
-- 不直接写入 canonical SQLite 表
+- 不直接写入 canonical PostgreSQL 表
 
 将所有返回的节点卡片汇总到 `node_cards` 数组。
 
@@ -75,8 +75,8 @@ python scripts/store_lesson_staging.py \
 ```
 
 Embedding 由 `store_lesson_staging.py` 自动生成（默认 `--embed`）。
-每个节点的 `canonical_name + definition + aliases` 会被发送到本地 embedding
-API（`text-embedding-bge-large-zh-v1.5`）。使用 `--no-embed` 跳过。
+每个节点的 `canonical_name + definition + aliases` 会被发送到 embedding
+API（`Qwen/Qwen3-Embedding-4B`，2560 维）。使用 `--no-embed` 跳过。
 
 ### 步骤四：验证 staging 完整性
 
@@ -123,8 +123,8 @@ API（`text-embedding-bge-large-zh-v1.5`）。使用 `--no-embed` 跳过。
 ## 约束
 
 - 不写入 canonical 的 `nodes`、`edges`、`profiles`、`mentions`、`evidence`、`node_cards`
-- 不运行 `normalize_sqlite.py`
-- 不运行 `strict_qa_sqlite.py`
+- 不运行 `normalize.py`
+- 不运行 `strict_qa.py`
 - 不继续处理下一个课题
 
 ## 错误处理
@@ -136,5 +136,5 @@ API（`text-embedding-bge-large-zh-v1.5`）。使用 `--no-embed` 跳过。
 
 以下情况返回 `failed`：
 - 抽取过程异常退出
-- SQLite 不可用
+- PostgreSQL 不可用
 - `store_lesson_staging.py` 执行失败

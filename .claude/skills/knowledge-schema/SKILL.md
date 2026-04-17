@@ -10,7 +10,7 @@ user-invocable: true
 
 ## 快速开始
 
-Schema 校验由流水线中的 `scripts/strict_qa_sqlite.py` 执行。
+Schema 校验由流水线中的 `scripts/strict_qa.py` 执行。
 不需要单独的校验脚本。本 skill 被其他 skill 隐式引用，
 提供 schema 定义和 ID 生成规则。
 
@@ -357,7 +357,7 @@ safe_id = node_id.replace(":", "__").replace("/", "__")
 
 ```bash
 # QA 验证（schema + 完整性 + 一致性）
-python scripts/strict_qa_sqlite.py --dataset-id main
+python scripts/strict_qa.py --dataset-id main
 
 # 图完整性检查（环路、孤立节点、连通性）
 python scripts/check_graph_integrity.py --dataset-id main

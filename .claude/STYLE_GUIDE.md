@@ -15,7 +15,7 @@
 ## Workflow
 
 ### Pre-flight
-- Check SQLite
+- Check PostgreSQL
 - Validate schema
 
 ### Main Processing

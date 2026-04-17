@@ -17,7 +17,7 @@ Turn textbook content into a stable, evidence-backed, cross-disciplinary knowled
 2. **Backbone + Support layers** - Separate core concepts from auxiliary content
 3. **Evidence-backed** - Every node and edge must have textbook provenance
 4. **Retrieval-first extraction** - Retrieve candidates before reasoning; never operate on full graph
-5. **SQLite-first** - SQLite is the primary write layer; JSON is derived export
+5. **PostgreSQL-first** - PostgreSQL is the primary write layer (via `DATABASE_URL`); JSON is derived export
 6. **Non-destructive** - Append rather than replace; explicit deletion requires user approval
 
 ## Architecture (Parallel Staging + Canonical Commit)
@@ -38,8 +38,8 @@ Turn textbook content into a stable, evidence-backed, cross-disciplinary knowled
 │                       └─ store_lesson_staging.py           │
 │  @kg-reducer        - Canonical merge worker:              │
 │                       ├─ merge_staged_lessons.py           │
-│                       ├─ normalize_sqlite.py               │
-│                       └─ strict_qa_sqlite.py               │
+│                       ├─ normalize.py                     │
+│                       └─ strict_qa.py                       │
 │  @qa-reviewer       - Quality validation (read-only)       │
 ├─────────────────────────────────────────────────────────────┤
 │  Layer 3: Skills (Implementation Logic)                      │
@@ -83,7 +83,7 @@ outline ──→ parallel lesson extract ──→ staging_* ──→ global a
 **Why this split matters**:
   - Keeps LLM contexts isolated and parallelizable.
   - Defers duplicate resolution to one canonical reducer pass.
-  - Preserves append-first SQLite semantics.
+  - Preserves append-first PostgreSQL semantics.
   - Allows global semantic alignment across many lessons before commit.
 
 1. **Outline** (`@outline-reader` + `/textbook-outline`): Create `data/outlines/{book-id}.outline.json`
@@ -97,23 +97,23 @@ outline ──→ parallel lesson extract ──→ staging_* ──→ global a
    - Remap edges, mentions, evidence, profiles, and node cards to canonical IDs.
 4. **Closeout**:
    - Run `scripts/run_parallel_lesson_pipeline.py` or equivalent reducer sequence.
-   - `normalize_sqlite.py` repairs residual duplicates and graph structure.
-   - `strict_qa_sqlite.py` blocks on schema or provenance failures.
+   - `normalize.py` repairs residual duplicates and graph structure.
+   - `strict_qa.py` blocks on schema or provenance failures.
 
 ## Output Contract
 
-Active storage: `storage/knowledge.sqlite`
+Active storage: PostgreSQL (via `DATABASE_URL`)
 
-| Artifact | SQLite Table | Notes |
-|----------|--------------|-------|
+| Artifact | PostgreSQL Table | Notes |
+|----------|------------------|-------|
 | Outline | `data/outlines/{book-id}.outline.json` | JSON (source of truth for structure) |
 | Run manifest | `{root}/runs/{book-id}.pipeline.json` | JSON (tracking only) |
-| Canonical nodes | `nodes` | SQLite PRIMARY storage |
-| Canonical edges | `edges` | SQLite PRIMARY storage |
-| Curriculum profiles | `profiles` | SQLite PRIMARY storage |
-| Mentions | `mentions` | SQLite PRIMARY storage |
-| Evidence | `evidence` | SQLite PRIMARY storage |
-| Node cards | `node_cards` | SQLite PRIMARY storage |
+| Canonical nodes | `nodes` | PostgreSQL PRIMARY storage |
+| Canonical edges | `edges` | PostgreSQL PRIMARY storage |
+| Curriculum profiles | `profiles` | PostgreSQL PRIMARY storage |
+| Mentions | `mentions` | PostgreSQL PRIMARY storage |
+| Evidence | `evidence` | PostgreSQL PRIMARY storage |
+| Node cards | `node_cards` | PostgreSQL PRIMARY storage |
 | Lesson runs | `lesson_runs` | Parallel extraction run registry |
 | Staged nodes | `staging_nodes` | Raw lesson-local node candidates |
 | Staged edges | `staging_edges` | Raw lesson-local edge candidates |
@@ -124,16 +124,16 @@ Active storage: `storage/knowledge.sqlite`
 | Merge runs | `merge_runs` | Canonical reducer run registry |
 | Canonical map | `canonical_node_map` | Raw node → canonical node mapping |
 
-**JSONL/JSON files are DERIVED EXPORTS only.** Do not treat them as primary storage. Generate them from SQLite only through the current SQLite-native export helpers when an external consumer needs them.
+**JSONL/JSON files are DERIVED EXPORTS only.** Do not treat them as primary storage. Generate them from PostgreSQL only when an external consumer needs them.
 
 ### Deprecated Components
 
 | Component | Reason | Replacement |
 |-----------|--------|-------------|
-| `scripts/apply_batch_artifacts.py` | JSON→SQLite conversion no longer needed | `store_lesson_staging.py` (staging INSERT) |
-| `scripts/import_to_sqlite.py` | JSON→SQLite conversion no longer needed | `store_lesson_staging.py` + `merge_staged_lessons.py` |
-| `data/{version}/graph/*.jsonl` | No longer generated as intermediate | Export from SQLite if needed |
-| `data/{version}/node_cards/*.json` | No longer generated as intermediate | SQLite `node_cards` table |
+| `scripts/apply_batch_artifacts.py` | JSON→PostgreSQL conversion no longer needed | `store_lesson_staging.py` (staging INSERT) |
+| `scripts/import_to_sqlite.py` | JSON→PostgreSQL conversion no longer needed | `store_lesson_staging.py` + `merge_staged_lessons.py` |
+| `data/{version}/graph/*.jsonl` | No longer generated as intermediate | Export from PostgreSQL if needed |
+| `data/{version}/node_cards/*.json` | No longer generated as intermediate | PostgreSQL `node_cards` table |
 
 ## Critical Constraints
 
@@ -301,7 +301,7 @@ After normalization, graph integrity is validated:
 
 ```bash
 # Basic QA validation (read-only verification)
-python scripts/strict_qa_sqlite.py --dataset-id main
+python scripts/strict_qa.py --dataset-id main
 
 # Detailed graph integrity check (cycles, isolated nodes, connectivity)
 # Run independently if needed for deeper analysis
@@ -346,13 +346,13 @@ See [CONVENTIONS.md](./CONVENTIONS.md) for documentation standards.
 
 | Script | Status | Reason |
 |--------|--------|--------|
-| `extract_chemistry_complete.py` | ❌ REMOVED | Directly writes JSONL, bypasses SQLite |
-| `extract_chemistry_v4.py` | ❌ REMOVED | Directly writes JSONL, bypasses SQLite |
+| `extract_chemistry_complete.py` | ❌ REMOVED | Directly writes JSONL, bypasses PostgreSQL |
+| `extract_chemistry_v4.py` | ❌ REMOVED | Directly writes JSONL, bypasses PostgreSQL |
 
 ### Why They Were Deprecated
 
-These scripts violated the **SQLite-first** or **staging-first** principle:
-- They wrote directly to JSONL or canonical SQLite tables
+These scripts violated the **PostgreSQL-first** or **staging-first** principle:
+- They wrote directly to JSONL or canonical PostgreSQL tables
 - They bypassed the staging→reducer workflow
 - This caused **data inconsistency** and duplicate nodes
 
@@ -373,7 +373,7 @@ Always verify data consistency after extraction:
 
 ```bash
 # QA validation
-python scripts/strict_qa_sqlite.py --dataset-id main
+python scripts/strict_qa.py --dataset-id main
 
 # Graph integrity check
 python scripts/check_graph_integrity.py --dataset-id main

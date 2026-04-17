@@ -22,7 +22,7 @@ user-invocable: true
 2. 读取 `../../GLOSSARY.md` 了解术语
 3. 确定 `--output-root`
 4. 验证 `--batch-anchor` 是有效的 outline ID
-5. 确认 SQLite 可访问
+5. 确认 PostgreSQL 可访问
 6. 读取必要 schema：
    - `schemas/v2/node.schema.json`
    - `schemas/v2/edge.schema.json`
@@ -299,7 +299,7 @@ user-invocable: true
 - 处理完指定的 `batch-anchor` 即停
 
 ### 存储
-- canonical SQLite 表不是本 skill 的输出目标
+- canonical PostgreSQL 表不是本 skill 的输出目标
 - 本 skill 输出的是课题内产物包
 
 ### 证据优先

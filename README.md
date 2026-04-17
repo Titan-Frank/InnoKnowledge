@@ -54,8 +54,8 @@ python scripts/run_parallel_lesson_pipeline.py \
 │
 └── @kg-reducer (Reducer - 串行 canonical commit)
     ├── scripts/merge_staged_lessons.py
-    ├── scripts/normalize_sqlite.py
-    ├── scripts/strict_qa_sqlite.py
+    ├── scripts/normalize.py
+    ├── scripts/strict_qa.py
     └── scripts/check_graph_integrity.py
 ```
 
@@ -69,16 +69,16 @@ python scripts/run_parallel_lesson_pipeline.py \
 1. **全局优先** - 知识图谱服务于跨学科知识，不是单一教材
 2. **证据支撑** - 每个节点和关系必须有教材出处
 3. **检索优先** - 先检索候选再推理，避免全图操作
-4. **SQLite 优先** - SQLite 是主存储，JSON/JSONL 是导出产物
+4. **PostgreSQL 优先** - PostgreSQL 是主存储（via `DATABASE_URL`），JSON/JSONL 是导出产物
 5. **课时隔离** - 每个课时在独立 Task 中处理，避免上下文爆炸
 6. **Staging First** - 并行 worker 只写 staging，不直接写 canonical graph
 
 ## 数据存储
 
-### 主存储 (SQLite)
+### 主存储 (PostgreSQL)
 
 ```
-storage/knowledge.sqlite
+PostgreSQL (via DATABASE_URL)
 ├── lesson_runs         # 并行课时运行登记
 ├── staging_*           # 原始课时候选层
 ├── nodes              # 知识节点
@@ -122,8 +122,8 @@ python scripts/store_lesson_staging.py --help
 # 合并 staged lessons 并跑 normalize/QA
 python scripts/run_parallel_lesson_pipeline.py --help
 
-# 直接查询 SQLite
-sqlite3 storage/knowledge.sqlite "SELECT COUNT(*) FROM nodes;"
+# 直接查询 PostgreSQL
+psql "$DATABASE_URL" -c "SELECT COUNT(*) FROM nodes;"
 ```
 
 ### 启动查看器
@@ -152,7 +152,7 @@ npm run check
 
 ```bash
 # QA 验证
-python scripts/strict_qa_sqlite.py --dataset-id main
+python scripts/strict_qa.py --dataset-id main
 
 # 图完整性检查
 python scripts/check_graph_integrity.py --dataset-id main
@@ -187,9 +187,9 @@ python scripts/check_graph_integrity.py --dataset-id main
 │   └── run_parallel_lesson_pipeline.py
 ├── packages/             # TypeScript Viewer
 │   ├── types/            #   共享 API 类型
-│   ├── server/           #   Hono + better-sqlite3 API 服务
+│   ├── server/           #   Hono + postgres API 服务
 │   └── viewer/           #   Vite + vanilla TS 前端
-├── storage/              # SQLite 数据库
+├── storage/              # 数据库数据 (pgdata)
 ├── data/                 # 数据文件
 ├── ocr/                  # 教材 Markdown
 ├── schemas/              # JSON Schema

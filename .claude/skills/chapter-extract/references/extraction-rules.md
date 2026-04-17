@@ -197,7 +197,7 @@
 ## 规范化
 
 - 优先复用已有 canonical 节点
-- 在当前 SQLite 数据集中创建或完善课程画像
+- 在当前 PostgreSQL 数据集中创建或完善课程画像
 - 同一 canonical 节点在新学段/年级出现时，添加新的课程画像，不要替换旧的
 - 新一轮抽取时不要删除之前学段的画像。初中和高中画像可以共存于同一 canonical 节点
 - `framework_refs` 主要写在 profiles 上
@@ -206,7 +206,7 @@
 - 只记录值得进入 backbone 的概念和关系，详细解释推迟到 node cards
 - 决定复用或创建关系前，先用精确名称、别名、规范术语和过滤搜索检索一小批种子候选节点
 - 种子检索后，只在最相关的候选周围检查局部子图，不要扩展到整书或整图
-- 将批量检索的输入持久化到 SQLite runtime staging
+- 将批量检索的输入持久化到 PostgreSQL runtime staging
 - 不要让抽取器一次性推理整个 canonical 图
 
 ## 关系选择
@@ -246,7 +246,7 @@
   - 先作为课题内的提议
   - 再在小范围内规范化为 canonical 边
 - 批次级的临时图可以比 canonical 图更密。临时支撑节点和未决的替代方案可以局部存在，只要有证据支撑
-- 将课题内的关系提议持久化到 SQLite runtime staging
+- 将课题内的关系提议持久化到 PostgreSQL runtime staging
 - 只有满足以下条件才将提议提升为 canonical 边：
   - 两个端点在当前候选上下文中有依据
   - 关系有明确的证据支撑

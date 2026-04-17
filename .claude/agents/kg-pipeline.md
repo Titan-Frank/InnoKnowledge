@@ -41,7 +41,7 @@ tools: Agent, Read, Bash
 3. 确定：
    - `--output-root`
    - `--book-md-path`
-   - SQLite 路径
+   - PostgreSQL 连接（DATABASE_URL）
    - 可选的课题范围
 4. 确保 `data/outlines/{book-id}.outline.json` 存在
 5. 如果 outline 缺失，spawn `@outline-reader` 并等待
@@ -114,7 +114,7 @@ reducer 负责：
 
 reducer 成功后：
 
-1. 确认 SQLite 中存在已 staging 的课题运行记录
+1. 确认 PostgreSQL 中存在已 staging 的课题运行记录
 2. 可选 spawn `@qa-reviewer`
 3. 报告汇总计数和警告
 
@@ -125,7 +125,7 @@ reducer 成功后：
 - 任何课题 Task 返回 `blocked`
 - reducer 返回 `failed`
 - reducer 返回 `blocked`
-- SQLite 不可访问
+- PostgreSQL 不可访问
 
 ## 恢复
 
@@ -136,7 +136,7 @@ reducer 成功后：
 ## 输出
 
 - 课题 worker 产生的 `lesson_runs` + `staging_*` 数据
-- reducer 合并后的 canonical SQLite 图
+- reducer 合并后的 canonical PostgreSQL 图
 - 可选的审查报告
 
 ## 核心原则

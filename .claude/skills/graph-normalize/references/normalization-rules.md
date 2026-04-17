@@ -50,7 +50,7 @@
   - keep both only if they are not actually semantically conflicting
   - resolve by explicit review or user instruction
 - Treat candidate relation acceptance as a separate decision from duplicate-edge cleanup.
-- When SQLite runtime changes the canonical graph, export the current dataset snapshot back into `<output-root>/` in the same batch instead of leaving the published file layer stale.
+- When PostgreSQL runtime changes the canonical graph, export the current dataset snapshot back into `<output-root>/` in the same batch instead of leaving the published file layer stale.
 
 ## Safety Policy
 

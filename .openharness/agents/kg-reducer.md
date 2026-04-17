@@ -1,6 +1,6 @@
 ---
 mode: subagent
-description: Merges staged lesson artifacts into canonical SQLite tables, then runs normalize and QA.
+description: Merges staged lesson artifacts into canonical PostgreSQL tables, then runs normalize and QA.
 model:
   model_ref: platform/openai-default
   temperature: 0.1
@@ -49,17 +49,17 @@ python scripts/merge_staged_lessons.py \
 2. Run:
 
 ```bash
-python scripts/normalize_sqlite.py \
+python scripts/normalize.py \
   --dataset-id <dataset-id> \
-  --db storage/knowledge.sqlite
+  
 ```
 
 3. Run:
 
 ```bash
-python scripts/strict_qa_sqlite.py \
+python scripts/strict_qa.py \
   --dataset-id <dataset-id> \
-  --db storage/knowledge.sqlite
+  
 ```
 
 4. Run:
@@ -67,7 +67,7 @@ python scripts/strict_qa_sqlite.py \
 ```bash
 python scripts/check_graph_integrity.py \
   --dataset-id <dataset-id> \
-  --db storage/knowledge.sqlite
+  
 ```
 
 ## Output Contract

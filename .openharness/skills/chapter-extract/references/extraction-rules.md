@@ -188,8 +188,8 @@ Few-shot examples:
 
 ## Canonicalization
 
-- Prefer reusing existing canonical nodes from the active SQLite dataset.
-- Create or refine curriculum profiles in the active SQLite dataset.
+- Prefer reusing existing canonical nodes from the active PostgreSQL dataset.
+- Create or refine curriculum profiles in the active PostgreSQL dataset.
 - If the same canonical node is learned in a new stage or grade, add another curriculum profile for that context instead of replacing the old one.
 - Do not delete prior stage coverage during a new extraction pass. Existing junior-secondary and senior-secondary profiles may coexist on the same canonical node.
 - Use `framework_refs` primarily on profiles.
@@ -198,7 +198,7 @@ Few-shot examples:
 - Record only backbone-worthy concepts and relations here. Detailed explanation should be deferred to node cards.
 - Before deciding reuse or relation creation, retrieve a small seed candidate node set using exact names, aliases, normalized terms, and filtered search.
 - After seed retrieval, inspect only a narrow local subgraph around the most relevant candidates conceptually. Do not widen to the whole book or whole graph.
-- Persist the batch retrieval inputs in SQLite runtime staging.
+- Persist the batch retrieval inputs in PostgreSQL runtime staging.
 - Do not ask the extractor to reason over the whole canonical graph at once.
 
 ## Relation Selection
@@ -238,7 +238,7 @@ Few-shot examples:
   - first as lesson-local proposals
   - then as small-scope normalized canonical edges
 - Keep the batch-local provisional graph denser than the canonical graph when needed for review. Temporary support nodes and unresolved alternatives may exist locally as long as they remain evidence-backed.
-- Persist lesson-local relation proposals in SQLite runtime staging.
+- Persist lesson-local relation proposals in PostgreSQL runtime staging.
 - Only promote a proposal into a canonical edge when:
   - both endpoints are justified in the current constrained candidate context
   - the relation has explicit evidence support

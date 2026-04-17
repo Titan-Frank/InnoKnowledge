@@ -22,7 +22,7 @@ Use node cards to expand one canonical node into a readable, evidence-backed exp
 
 ## Storage
 
-Node cards are stored in SQLite via the staging workflow:
+Node cards are stored in PostgreSQL via the staging workflow:
 
 1. `@node-expander` generates provisional node card payloads
 2. `@lesson-processor` passes them to `scripts/store_lesson_staging.py` → `staging_node_cards` table

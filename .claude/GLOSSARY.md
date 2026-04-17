@@ -72,7 +72,7 @@
 
 **Skill** - 技能/能力组件，实现具体业务逻辑，可被 Agent 调用。
 
-**SQLite-First** - SQLite 优先规则，SQLite 是主要存储层，JSON 是派生快照。
+**PostgreSQL-First** - PostgreSQL 优先规则，PostgreSQL 是主要存储层（via `DATABASE_URL`），JSON 是派生快照。
 
 **Support** - 支撑层，包含辅助性的实验、方法、设备等节点。
 

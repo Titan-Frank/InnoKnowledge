@@ -21,7 +21,7 @@ Before processing, ensure:
 2. Read `../../GLOSSARY.md` for terminology
 3. Resolve `--output-root`
 4. Verify `--batch-anchor` is a valid outline ID
-5. Check SQLite is accessible
+5. Check PostgreSQL is accessible
 6. Read required schemas:
    - `schemas/v2/node.schema.json`
    - `schemas/v2/edge.schema.json`
@@ -276,7 +276,7 @@ Before returning:
 - stop after the requested `batch-anchor`
 
 ### Storage
-- canonical SQLite tables are not the output of this skill
+- canonical PostgreSQL tables are not the output of this skill
 - the output of this skill is a lesson-local artifact bundle
 
 ### Evidence First

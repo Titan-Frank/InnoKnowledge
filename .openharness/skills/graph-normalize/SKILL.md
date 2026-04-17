@@ -23,14 +23,14 @@ Normalize canonical graph artifacts after extraction. This skill handles node de
 1. Read `../../AGENTS.md` for principles
 2. Read `../../GLOSSARY.md` for terminology
 3. Read `references/normalization-rules.md`
-4. Verify `--output-root` exists and contains SQLite dataset
+4. Verify `--output-root` exists and contains PostgreSQL dataset
 5. Determine scope:
    - Single batch: `--batch-anchor struct:book:lesson:X-Y-Z`
    - Batch group: `--batch-group lesson-X-Y-Z,lesson-X-Y-Z+1,`
 
 ### Phase 2: Load Current State
 
-1. Connect to SQLite dataset
+1. Connect to PostgreSQL dataset
 2. Load canonical tables:
    - `nodes`, `edges`
    - `profiles`, `mentions`, `evidence`
@@ -198,7 +198,7 @@ UPDATE mentions SET target_id = ? WHERE target_id = ?;
 
 ### Phase 9: Finalize
 
-1. Run `scripts/normalize_sqlite.py --dataset-id <id>`
+1. Run `scripts/normalize.py --dataset-id <id>`
    - Deduplicate nodes and edges
    - Resolve isolated nodes
    - Detect cycles in hierarchical edges
@@ -215,11 +215,11 @@ UPDATE mentions SET target_id = ? WHERE target_id = ?;
 
 ## Output
 
-**Primary**: SQLite canonical tables (updated)
+**Primary**: PostgreSQL canonical tables (updated)
 
 **Secondary**: Optional JSON/JSONL snapshots
 
-**State**: SQLite runtime records updated
+**State**: PostgreSQL runtime records updated
 
 ## Key Rules
 
