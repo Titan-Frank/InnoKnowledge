@@ -8,24 +8,24 @@ import { useGraphStore } from '../store/graphStore.js';
 
 // Node sizes — backbone nodes visually dominate
 const NODE_SIZE_MAP: Record<string, number> = {
-  concept: 16,
-  principle: 14,
-  process: 11,
-  substance: 9,
-  entity: 9,
-  experiment: 8,
-  activity: 8,
-  method: 7,
-  representation: 6,
-  symbol: 6,
-  skill: 6,
-  question: 5,
-  event: 5,
-  issue: 5,
-  other: 5,
+  concept: 10,
+  principle: 9,
+  process: 7,
+  substance: 6,
+  entity: 6,
+  experiment: 5,
+  activity: 5,
+  method: 4.5,
+  representation: 4,
+  symbol: 4,
+  skill: 4,
+  question: 3.5,
+  event: 3.5,
+  issue: 3.5,
+  other: 3.5,
 };
 
-const NODE_COLLISION_PADDING = 16;
+const NODE_COLLISION_PADDING = 10;
 
 // Node mass for ForceAtlas2 — moderate mass keeps clusters compact
 // without pushing everything outward into a ring
@@ -53,7 +53,7 @@ function getNodeMass(nodeType: string, nodeLayer: string | null | undefined, nod
 
 function getCollisionRadius(nodeType: string, nodeLayer: string | null | undefined): number {
   const size = NODE_SIZE_MAP[nodeType] ?? NODE_SIZE_MAP.other;
-  const layerBoost = nodeLayer === 'backbone' ? 1.8 : 1.6;
+  const layerBoost = nodeLayer === 'backbone' ? 1.6 : 1.4;
   return size * layerBoost + NODE_COLLISION_PADDING;
 }
 

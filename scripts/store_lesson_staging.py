@@ -135,7 +135,7 @@ def normalize_profiles(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     normalized: list[dict[str, Any]] = []
     for index, record in enumerate(records, start=1):
         payload = dict(record)
-        subject = str(payload.get("subject") or "chemistry")
+        subject = str(payload.get("subject") or "")
         school_stage = str(payload.get("school_stage") or "")
         grade_band = str(payload.get("grade_band") or "")
         context_key = str(

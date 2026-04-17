@@ -69,7 +69,7 @@ export function createDrawNodeHover(mode: ThemeMode) {
 
     // Glow ring around the node
     context.beginPath();
-    context.arc(x, y, size + 4, 0, Math.PI * 2);
+    context.arc(x, y, size + 2, 0, Math.PI * 2);
     context.strokeStyle = color;
     context.lineWidth = 2;
     context.globalAlpha = 0.5;

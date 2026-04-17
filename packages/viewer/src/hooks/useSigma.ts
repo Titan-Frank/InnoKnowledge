@@ -28,12 +28,12 @@ const INERTIA_STOP_SPEED = 0.01;
 type NeighborSet = Set<string>;
 
 function getVisibleNodeScale(visibleCount: number): number {
-  if (visibleCount > 120) return 0.3;
-  if (visibleCount > 80) return 0.35;
-  if (visibleCount > 50) return 0.4;
-  if (visibleCount > 30) return 0.5;
-  if (visibleCount > 16) return 0.65;
-  return 0.8;
+  if (visibleCount > 120) return 0.5;
+  if (visibleCount > 80) return 0.55;
+  if (visibleCount > 50) return 0.6;
+  if (visibleCount > 30) return 0.7;
+  if (visibleCount > 16) return 0.8;
+  return 1.0;
 }
 
 function createNodeReducer(
@@ -50,7 +50,7 @@ function createNodeReducer(
     }
 
     const baseSize = (attrs.size as number) || 8;
-    const scaledBaseSize = Math.max(4, baseSize * getVisibleNodeScale(visibleNodeIds.size));
+    const scaledBaseSize = Math.max(2, baseSize * getVisibleNodeScale(visibleNodeIds.size));
 
     if (_node === dragNodeId) {
       return {
@@ -356,7 +356,7 @@ export function useSigma() {
       labelSize: 11,
       labelWeight: '500',
       labelColor: { color: t.colorText },
-      labelRenderedSizeThreshold: 8,
+      labelRenderedSizeThreshold: 5,
       labelDensity: 0.1,
       labelGridCellSize: 70,
       defaultNodeColor: currentMode === 'light' ? '#9A9AB0' : '#6b7280',
