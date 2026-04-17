@@ -7,7 +7,15 @@ lesson1_*.txt
 .claude/node_modules/
 .claude/package.json
 .claude/bun.lock
-data/
+# Data: track small config files, ignore large generated content
+data/outlines/*.marked.md
+data/outlines/*.outline.json
+data/**/*.jsonl
+data/**/runs/
+data/main/
+!data/frameworks/
+!data/patterns/
+!data/outlines/
 ocr/
 storage/
 node_modules/

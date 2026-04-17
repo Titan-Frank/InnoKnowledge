@@ -54,7 +54,8 @@ COPY --from=builder /build/packages/server/ ./packages/server/
 COPY --from=builder /build/packages/viewer/dist/ ./packages/viewer/dist/
 COPY --from=builder /build/node_modules/ ./node_modules/
 
-# Copy data files for viewer
+# Copy data files for viewer (mkdir -p so missing dirs don't break build)
+RUN mkdir -p ./data/frameworks ./data/patterns ./data/outlines
 COPY data/frameworks/ ./data/frameworks/
 COPY data/patterns/ ./data/patterns/
 COPY data/outlines/ ./data/outlines/
