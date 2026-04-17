@@ -50,7 +50,9 @@ tools: Agent, Read, Bash
 ## 阶段二：启动课题 staging 任务
 
 **关键规则**
-- 每个课题一个 Task
+- 每个抽取单元（chunk 或 lesson）一个 Task
+- 优先使用 chunk 作为抽取单元（当 outline 中存在 kind=chunk 的项目时）
+- 如果没有 chunk，回退到 lesson 级别
 - 每个课题使用独立上下文
 - 课题 Task 不得直接写入 canonical 图表
 - 课题 Task 必须返回 `lesson_run_id`
@@ -61,30 +63,31 @@ Claude Code 的 Agent tool 会在一条消息中**并发执行**所有 tool call
 
 并行运行课题的方式：
 
-1. **在一条消息中发出所有课题的 Agent 调用**（不是一条消息一个 / 不是循环）
-2. 运行时同时启动所有课题 agent
+1. 从 outline 中确定抽取单元：先查找 `kind == "chunk"` 的项目，如果没有则使用 `kind == "lesson"` 的项目
+2. **在一条消息中发出所有单元的 Agent 调用**（不是一条消息一个 / 不是循环）
+3. 运行时同时启动所有 agent
 3. 编排器等待所有 agent 返回
 4. 检查结果，然后进入阶段三
 
 **批次大小**：每条消息发 3–5 个 Agent 调用，避免资源争抢。如果课题数超过批次大小，分多轮处理。
 
-示例 — 一条消息中并行 N 个课题 agent（用 outline 中的变量填充 `{vars}`）：
+示例 — 一条消息中并行 N 个课题/chunk agent（用 outline 中的变量填充 `{vars}`）：
 
 ```
 Agent(
-    description="stage-{lesson.id}",
+    description="stage-{unit.id}",
     subagent_type="lesson-processor",
     prompt='''
-    只处理一个课题。
-    课题锚点: {lesson.anchor}
-    课题标题: {lesson.title}
+    只处理一个抽取单元。
+    锚点: {unit.anchor}
+    标题: {unit.title}
     输出根目录: {output_root}
     教材 markdown 路径: {book_md_path}
 
-    只提取本课题的知识点。
+    只提取本单元的知识点。
     用 scripts/store_lesson_staging.py 写入 staging。
     返回 status, lesson_run_id, counts 和 issues。
-    处理完此课题即停。
+    处理完此单元即停。
     '''
 )
 

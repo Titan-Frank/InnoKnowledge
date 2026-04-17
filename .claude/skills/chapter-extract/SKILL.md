@@ -1,16 +1,26 @@
 ---
 name: chapter-extract
-description: 从单个课题或小页码范围提取课题级 staging 产物。用于教材内容知识抽取。
+description: 从单个课题或 chunk 提取课题级 staging 产物。用于教材内容知识抽取。
 user-invocable: true
 ---
 
-# 课题抽取
+# 课题/chunk 抽取
 
-## ⚠️ 关键约束：只处理一个课题
+## ⚠️ 关键约束：只处理一个抽取单元
 
-只处理**一个课题**，处理完即停。
+只处理**一个抽取单元**（课题或 chunk），处理完即停。
 
-本 skill 只返回**课题内的结构化产物**，不直接写入 canonical 图表。抽取标准与之前的 canonical 流程同样严格，只是写入目标从 canonical 表改为了 staging 表。
+`--batch-anchor` 接受两种 ID：
+- **课题 ID**：如 `struct:chem-grade8:lesson:1-2-1` — 处理整个课题
+- **Chunk ID**：如 `struct:chem-grade8:chunk:1-2-1-a` — 处理课题的一个分段
+
+当 anchor 是 chunk ID 时：
+- 使用 chunk 的 `md_start`/`md_end` 切取 markdown 内容
+- `anchor_ref`（evidence、mentions）使用 chunk ID
+- `textbook_refs`（profiles）使用 chunk 的 `parent_id`（即课题 ID），因为画像代表课程级关联
+- 如果 chunk 的 `source_ids` 包含多个原始项目（合并 chunk），注意覆盖所有来源的内容
+
+本 skill 只返回**抽取单元内的结构化产物**，不直接写入 canonical 图表。
 
 ## 工作流程
 
@@ -33,9 +43,12 @@ user-invocable: true
 
 ### 阶段二：加载与分块
 
-1. 从 `data/outlines/{book-id}.outline.json` 定位课题范围
-2. 读取目标课题的 OCR markdown
-3. 拆分为**证据单元**：
+1. 从 `data/outlines/{book-id}.outline.json` 定位抽取单元范围
+2. 根据 anchor 的 kind 决定内容范围：
+   - `kind == "lesson"` / `"activity"`：使用该 item 的 `md_start`/`md_end`
+   - `kind == "chunk"`：使用 chunk 自身的 `md_start`/`md_end`（可能只覆盖课题的一部分）
+3. 读取目标范围的 OCR markdown
+4. 拆分为**证据单元**：
    - 定义段落
    - 示例段落
    - 实验步骤块

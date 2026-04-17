@@ -73,7 +73,8 @@
               "topic",
               "lesson",
               "activity",
-              "review"
+              "review",
+              "chunk"
             ]
           },
           "label": {
@@ -91,7 +92,7 @@
           "level": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 3
+            "maximum": 4
           },
           "order_path": {
             "type": "string",
@@ -99,11 +100,28 @@
           },
           "raw_line": {
             "type": "string",
-            "minLength": 1
+            "minLength": 0
           },
           "parent_id": {
             "type": "string",
             "pattern": "^struct:[a-z0-9:-]+$"
+          },
+          "page_end": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "md_start": {
+            "type": "integer"
+          },
+          "md_end": {
+            "type": "integer"
+          },
+          "source_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^struct:[a-z0-9:-]+$"
+            }
           }
         }
       }

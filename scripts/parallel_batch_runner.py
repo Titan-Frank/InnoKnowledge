@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from knowledge_store_common import (
+    load_chunks_for_book,
     load_outline_items,
     make_lesson_run_id,
     resolve_outline_anchor,
@@ -30,6 +31,8 @@ def parse_args() -> argparse.Namespace:
         help="Deprecated compatibility flag. Must be 1 because each Task processes exactly one lesson.",
     )
     parser.add_argument("--generate-tasks", action="store_true")
+    parser.add_argument("--no-chunks", action="store_true",
+                        help="Ignore chunk items and use lesson-level extraction units.")
     return parser.parse_args()
 
 
@@ -43,16 +46,29 @@ def main() -> int:
         raise SystemExit(
             "--batch-size must be 1. The pipeline requires one isolated Task per lesson."
         )
-    lessons = [
-        item
-        for item in load_outline_items(args.book_id)
-        if item.get("kind") == "lesson"
-    ]
-    if not lessons:
-        raise SystemExit(f"No lesson anchors found for book '{args.book_id}'.")
+
+    # Prefer chunks when available (unless --no-chunks)
+    extraction_units = []
+    unit_kind = "lesson"
+    if not args.no_chunks:
+        chunks = load_chunks_for_book(args.book_id)
+        if chunks:
+            extraction_units = chunks
+            unit_kind = "chunk"
+
+    if not extraction_units:
+        extraction_units = [
+            item
+            for item in load_outline_items(args.book_id)
+            if item.get("kind") == "lesson"
+        ]
+        unit_kind = "lesson"
+
+    if not extraction_units:
+        raise SystemExit(f"No extraction units found for book '{args.book_id}'.")
 
     lesson_runs = []
-    for item in lessons:
+    for item in extraction_units:
         batch_anchor = resolve_outline_anchor(args.book_id, item["id"], strict=True)
         lesson_runs.append(
             {
@@ -61,6 +77,7 @@ def main() -> int:
                 "lesson_run_id": make_lesson_run_id(args.book_id, batch_anchor),
                 "title": item.get("title"),
                 "label": item.get("label"),
+                "unit_kind": unit_kind,
             }
         )
 
@@ -82,7 +99,8 @@ def main() -> int:
         "book_id": args.book_id,
         "parallel": args.parallel,
         "batch_size": args.batch_size,
-        "total_lessons": len(lesson_runs),
+        "total_units": len(lesson_runs),
+        "unit_kind": unit_kind,
         "workers": workers,
     }
     output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")

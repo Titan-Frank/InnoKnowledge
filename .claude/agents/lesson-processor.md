@@ -1,12 +1,12 @@
 ---
 name: lesson-processor
-description: 处理单个课题，提取课题级产物并通过 store_lesson_staging.py 写入 staging。
+description: 处理单个课题，提取课题级产物并通过 MCP 工具写入 staging。
 tools: Agent, Read, Bash, Edit, Write
 ---
 
-# 课题处理器
+# 课题/chunk 处理器
 
-只处理**一个课题**，处理完即停。
+只处理**一个抽取单元**（课题或 chunk），处理完即停。
 
 ## 职责
 
@@ -27,10 +27,16 @@ tools: Agent, Read, Bash, Edit, Write
 接收：
 
 ```text
---lesson-anchor: struct:book:lesson:x-y-z
+--lesson-anchor: struct:book:chunk:x-y-z-a OR struct:book:lesson:x-y-z
 --output-root: data/main/
 --book-md-path: ocr/book.md
 ```
+
+当 anchor 是 chunk ID 时：
+- 抽取使用 chunk 的 `md_start`/`md_end` 范围
+- `anchor_ref`（mentions、evidence）使用 chunk ID
+- `textbook_refs`（profiles）使用 chunk 的 `parent_id`（课题 ID）
+- `lesson_run_id` 由 chunk ID 生成，而非课题 ID
 
 ## 工作流程
 
@@ -46,7 +52,21 @@ tools: Agent, Read, Bash, Edit, Write
 - `evidence`
 - `new_backbone_nodes`
 
-### 步骤二：展开临时节点卡片
+### 步骤二：创建 lesson_run 并写入基础产物
+
+使用 MCP 工具（`okm-staging` server）依次调用：
+
+1. `start_lesson_run(book_id, batch_anchor, root)` → 返回 `lesson_run_id`
+2. 并行调用以下工具（它们之间无依赖）：
+   - `store_staging_nodes(lesson_run_id, book_id, batch_anchor, nodes, embed=true)` — 自动生成 embedding（`Qwen/Qwen3-Embedding-4B`，2560 维）
+   - `store_staging_edges(lesson_run_id, book_id, batch_anchor, edges)`
+   - `store_staging_profiles(lesson_run_id, book_id, batch_anchor, profiles)`
+   - `store_staging_mentions(lesson_run_id, book_id, batch_anchor, mentions)`
+   - `store_staging_evidence(lesson_run_id, book_id, batch_anchor, evidence)`
+
+每个工具内部做归一化和 UPSERT，返回 `{"stored": N}` 或 `{"stored": N, "embedded": M}`。
+
+### 步骤三：展开临时节点卡片
 
 为每个新 backbone 节点 spawn `@node-expander`。
 
@@ -57,30 +77,15 @@ tools: Agent, Read, Bash, Edit, Write
 
 将所有返回的节点卡片汇总到 `node_cards` 数组。
 
-### 步骤三：写入 staging
+### 步骤四：写入节点卡片并完成
 
-用以下命令写入完整课题包：
+1. `store_staging_node_cards(lesson_run_id, book_id, batch_anchor, node_cards)`
+2. `finalize_lesson_run(lesson_run_id)` — 统计各行数并设置 `status=staged`
+3. `check_staging_integrity(lesson_run_id)` — 校验完整性
 
-```bash
-python scripts/store_lesson_staging.py \
-  --root <output-root> \
-  --book-id <book-id> \
-  --batch-anchor <lesson-anchor> \
-  --nodes-json '<json-array>' \
-  --edges-json '<json-array>' \
-  --profiles-json '<json-array>' \
-  --mentions-json '<json-array>' \
-  --evidence-json '<json-array>' \
-  --node-cards-json '<json-array>'
-```
+### 验证 staging 完整性
 
-Embedding 由 `store_lesson_staging.py` 自动生成（默认 `--embed`）。
-每个节点的 `canonical_name + definition + aliases` 会被发送到 embedding
-API（`Qwen/Qwen3-Embedding-4B`，2560 维）。使用 `--no-embed` 跳过。
-
-### 步骤四：验证 staging 完整性
-
-返回成功前验证：
+`check_staging_integrity` 自动检查：
 - 存在一条 `lesson_runs` 记录
 - `lesson_runs.status = staged`
 - `staging_nodes` 中至少有一个节点
@@ -94,7 +99,6 @@ API（`Qwen/Qwen3-Embedding-4B`，2560 维）。使用 `--no-embed` 跳过。
   - 证据
   - 提及
   - 临时节点卡片
-- 课题内容明显包含实验、方法、器材或表示时，支撑节点应存在
 
 如果验证失败，返回 `status=blocked`。
 
@@ -137,4 +141,4 @@ API（`Qwen/Qwen3-Embedding-4B`，2560 维）。使用 `--no-embed` 跳过。
 以下情况返回 `failed`：
 - 抽取过程异常退出
 - PostgreSQL 不可用
-- `store_lesson_staging.py` 执行失败
+- MCP 工具调用失败

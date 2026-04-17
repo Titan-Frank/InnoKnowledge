@@ -447,6 +447,39 @@ def resolve_outline_anchors(
     ]
 
 
+def load_chunks_for_book(book_id: str) -> list[dict[str, Any]]:
+    """Return all chunk items from the outline for a given book."""
+    return [item for item in load_outline_items(book_id) if item.get("kind") == "chunk"]
+
+
+def resolve_chunk_or_lesson(book_id: str, anchor: str) -> list[dict[str, Any]] | dict[str, Any] | None:
+    """Resolve an anchor to chunk(s) if available, else the original item.
+
+    Returns a list of chunk dicts when the anchor's parent has been split,
+    a single item dict when no chunks exist, or None if not found.
+    """
+    items = load_outline_items(book_id)
+    by_id = {item["id"]: item for item in items if item.get("id")}
+
+    # Try resolving the anchor first
+    resolved = resolve_outline_anchor(book_id, anchor, strict=False)
+    if resolved not in by_id:
+        return None
+
+    item = by_id[resolved]
+
+    # If the item itself is a chunk, return it
+    if item.get("kind") == "chunk":
+        return item
+
+    # Check if this item has been split into chunks
+    chunks = [i for i in items if i.get("parent_id") == resolved and i.get("kind") == "chunk"]
+    if chunks:
+        return sorted(chunks, key=lambda c: c.get("order_path", ""))
+
+    return item
+
+
 def book_id_from_anchor(anchor_ref: str | None) -> str | None:
     if not anchor_ref:
         return None
