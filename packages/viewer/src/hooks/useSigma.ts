@@ -291,7 +291,7 @@ export function useSigma() {
       return;
     }
 
-    const { graph, communityCount, communities, communityMap } = buildGraphologyGraph(data, allNodeIds);
+    const { graph, communityCount, communities, communityMap, hasSemanticLayout } = buildGraphologyGraph(data, allNodeIds);
     graphRef.current = graph;
     allNodeIdsRef.current = allNodeIds;
     setCommunityInfo(communityCount, communities, communityMap);
@@ -308,7 +308,7 @@ export function useSigma() {
       const layout = startWorkerLayout(targetGraph, () => {
         setIsLayoutRunning(false);
         sigmaRef.current?.refresh();
-      });
+      }, hasSemanticLayout);
       layoutRef.current = layout;
     };
 

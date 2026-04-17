@@ -27,26 +27,27 @@ const NODE_SIZE_MAP: Record<string, number> = {
 
 const NODE_COLLISION_PADDING = 16;
 
-// Node mass for ForceAtlas2 — higher mass = more repulsion, pushes nodes apart
+// Node mass for ForceAtlas2 — moderate mass keeps clusters compact
+// without pushing everything outward into a ring
 function getNodeMass(nodeType: string, nodeLayer: string | null | undefined, nodeCount: number): number {
   const massMultiplier = nodeCount > 5000 ? 2 : nodeCount > 1000 ? 1.5 : 1;
 
   if (nodeLayer === 'backbone') {
     switch (nodeType) {
-      case 'concept': return 20 * massMultiplier;
-      case 'principle': return 15 * massMultiplier;
-      case 'process': return 10 * massMultiplier;
-      default: return 8 * massMultiplier;
+      case 'concept': return 5 * massMultiplier;
+      case 'principle': return 4 * massMultiplier;
+      case 'process': return 3 * massMultiplier;
+      default: return 2 * massMultiplier;
     }
   }
 
   switch (nodeType) {
     case 'substance':
-    case 'entity': return 4 * massMultiplier;
+    case 'entity': return 2 * massMultiplier;
     case 'experiment':
-    case 'activity': return 3 * massMultiplier;
-    case 'method': return 3 * massMultiplier;
-    default: return 2 * massMultiplier;
+    case 'activity': return 1.5 * massMultiplier;
+    case 'method': return 1.5 * massMultiplier;
+    default: return 1 * massMultiplier;
   }
 }
 
@@ -82,6 +83,7 @@ export interface BuildResult {
   communityCount: number;
   communities: CommunityInfo[];
   communityMap: Map<string, number>;
+  hasSemanticLayout: boolean;
 }
 
 function runCommunityDetection(graph: Graph): { memberships: Map<string, number>; count: number } {
@@ -244,52 +246,120 @@ export function buildGraphologyGraph(
     } catch { /* skip duplicate edges or self-loops */ }
   }
 
-  // ── Community detection + cluster positioning ──
-  const { memberships: communityMemberships, count: communityCount } = runCommunityDetection(graph);
+  // ── Community detection + positioning ──
+  // When server provides PCA coordinates + community_id (from embedding clustering),
+  // use them directly as seed positions. Otherwise fall back to Louvain + sunflower.
+  const hasServerCommunities = data.nodes.some(
+    (n) => n.community_id != null && visibleNodeIds.has(n.id),
+  );
+  const hasPcaCoords = data.nodes.some(
+    (n) => n.pca_x != null && n.pca_y != null && visibleNodeIds.has(n.id),
+  );
+
+  let communityMemberships: Map<string, number>;
+  let communityCount: number;
+
+  if (hasServerCommunities) {
+    communityMemberships = new Map<string, number>();
+    let maxCommunityId = -1;
+    for (const node of data.nodes) {
+      if (!visibleNodeIds.has(node.id)) continue;
+      if (node.community_id != null) {
+        communityMemberships.set(node.id, node.community_id);
+        maxCommunityId = Math.max(maxCommunityId, node.community_id);
+      }
+    }
+    communityCount = maxCommunityId + 1;
+  } else {
+    const result = runCommunityDetection(graph);
+    communityMemberships = result.memberships;
+    communityCount = result.count;
+  }
 
   if (communityCount > 1) {
-    // Compute cluster centers using golden-angle spiral
-    const clusterCenters = new Map<number, { x: number; y: number }>();
-    const clusterSpread = backboneSpread * 0.9;
-    const communityIds = [...new Set(communityMemberships.values())].sort((a, b) => a - b);
-    communityIds.forEach((commId, idx) => {
-      const angle = idx * GOLDEN_ANGLE;
-      const radius = clusterSpread * Math.sqrt((idx + 1) / communityCount);
-      clusterCenters.set(commId, {
-        x: radius * Math.cos(angle),
-        y: radius * Math.sin(angle),
-      });
-    });
-
-    const clusterJitter = Math.max(8, Math.sqrt(nodeCount) * 1.5);
-
-    // Apply community attributes and reposition
-    graph.forEachNode((node, attrs) => {
-      const communityIndex = communityMemberships.get(node);
-      if (communityIndex !== undefined) {
-        const communityColor = getCommunityColor(communityIndex, mode);
-        graph.setNodeAttribute(node, 'community', communityIndex);
-        graph.setNodeAttribute(node, 'communityColor', communityColor);
-        graph.setNodeAttribute(node, 'color', communityColor);
-        graph.setNodeAttribute(node, 'borderColor', lightenForBorder(communityColor));
-
-        // Reposition: blend 60% toward cluster center, keep 40% original + jitter
-        const center = clusterCenters.get(communityIndex);
-        if (center) {
-          const currentX = attrs.x as number;
-          const currentY = attrs.y as number;
-          graph.setNodeAttribute(node, 'x', center.x * 0.6 + currentX * 0.4 + (Math.random() - 0.5) * clusterJitter);
-          graph.setNodeAttribute(node, 'y', center.y * 0.6 + currentY * 0.4 + (Math.random() - 0.5) * clusterJitter);
+    if (hasPcaCoords) {
+      // Use PCA coordinates as seed positions — semantic neighbors naturally cluster
+      graph.forEachNode((node) => {
+        const communityIndex = communityMemberships.get(node);
+        if (communityIndex !== undefined) {
+          const communityColor = getCommunityColor(communityIndex, mode);
+          graph.setNodeAttribute(node, 'community', communityIndex);
+          graph.setNodeAttribute(node, 'communityColor', communityColor);
+          graph.setNodeAttribute(node, 'color', communityColor);
+          graph.setNodeAttribute(node, 'borderColor', lightenForBorder(communityColor));
+        } else {
+          graph.setNodeAttribute(node, 'community', -1);
         }
-      } else {
-        graph.setNodeAttribute(node, 'community', -1);
-      }
-    });
+        // Apply PCA coordinates as node position
+        const graphNode = data.nodeById.get(node);
+        if (graphNode && graphNode.pca_x != null && graphNode.pca_y != null) {
+          graph.setNodeAttribute(node, 'x', graphNode.pca_x);
+          graph.setNodeAttribute(node, 'y', graphNode.pca_y);
+        }
+      });
+    } else {
+      // Fallback: sunflower positioning (Louvain or no PCA)
+      const avgCollisionRadius = 35;
+      const clusterSpread = Math.sqrt(nodeCount) * avgCollisionRadius * 0.8;
+      const communityIds = [...new Set(communityMemberships.values())].sort((a, b) => a - b);
+
+      const clusterMemberCount = new Map<number, number>();
+      communityMemberships.forEach((commId) => {
+        clusterMemberCount.set(commId, (clusterMemberCount.get(commId) ?? 0) + 1);
+      });
+
+      const clusterCenters = new Map<number, { x: number; y: number }>();
+      communityIds.forEach((commId, idx) => {
+        const angle = idx * GOLDEN_ANGLE;
+        const radius = clusterSpread * Math.sqrt((idx + 1) / communityCount);
+        clusterCenters.set(commId, { x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
+      });
+
+      const clusterNodeIndex = new Map<number, number>();
+      communityIds.forEach((commId) => clusterNodeIndex.set(commId, 0));
+
+      graph.forEachNode((node) => {
+        const communityIndex = communityMemberships.get(node);
+        if (communityIndex !== undefined) {
+          const communityColor = getCommunityColor(communityIndex, mode);
+          graph.setNodeAttribute(node, 'community', communityIndex);
+          graph.setNodeAttribute(node, 'communityColor', communityColor);
+          graph.setNodeAttribute(node, 'color', communityColor);
+          graph.setNodeAttribute(node, 'borderColor', lightenForBorder(communityColor));
+
+          const center = clusterCenters.get(communityIndex);
+          if (center) {
+            const idx = clusterNodeIndex.get(communityIndex) ?? 0;
+            clusterNodeIndex.set(communityIndex, idx + 1);
+            const membersInCluster = Math.max(clusterMemberCount.get(communityIndex) ?? 5, 5);
+            const localAngle = idx * GOLDEN_ANGLE;
+            const spacing = avgCollisionRadius * 1.2;
+            const localR = Math.sqrt((idx + 1) / membersInCluster) * Math.sqrt(membersInCluster) * spacing;
+            graph.setNodeAttribute(node, 'x', center.x + Math.cos(localAngle) * localR);
+            graph.setNodeAttribute(node, 'y', center.y + Math.sin(localAngle) * localR);
+          }
+        } else {
+          graph.setNodeAttribute(node, 'community', -1);
+        }
+      });
+    }
   } else {
     // No meaningful communities — all nodes keep type-based colors
-    graph.forEachNode((node) => {
-      graph.setNodeAttribute(node, 'community', -1);
-    });
+    // But still apply PCA if available
+    if (hasPcaCoords) {
+      graph.forEachNode((node) => {
+        graph.setNodeAttribute(node, 'community', -1);
+        const graphNode = data.nodeById.get(node);
+        if (graphNode && graphNode.pca_x != null && graphNode.pca_y != null) {
+          graph.setNodeAttribute(node, 'x', graphNode.pca_x);
+          graph.setNodeAttribute(node, 'y', graphNode.pca_y);
+        }
+      });
+    } else {
+      graph.forEachNode((node) => {
+        graph.setNodeAttribute(node, 'community', -1);
+      });
+    }
   }
 
   // Build CommunityInfo for UI
@@ -320,7 +390,13 @@ export function buildGraphologyGraph(
   });
   communities.sort((a, b) => b.nodeCount - a.nodeCount);
 
-  return { graph, communityCount: communityCount > 1 ? communityCount : 0, communities, communityMap: communityMemberships };
+  return {
+    graph,
+    communityCount: communityCount > 1 ? communityCount : 0,
+    communities,
+    communityMap: communityMemberships,
+    hasSemanticLayout: hasPcaCoords,
+  };
 }
 
 /** Lighten a hex color for a visible border */

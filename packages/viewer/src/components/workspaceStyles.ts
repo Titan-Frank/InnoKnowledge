@@ -3,15 +3,14 @@ import type { TokenSet } from './aiwc/styles/tokens.js';
 
 export function createWorkspaceDockStyle(t: TokenSet): CSSProperties {
   return {
-    position: 'sticky',
-    top: 24,
-    maxHeight: 'calc(100vh - 48px)',
-    overflow: 'auto',
     border: `1px solid ${t.colorBorder}`,
     borderRadius: 26,
     background: `linear-gradient(180deg, ${t.colorSurface} 0%, ${t.colorSurfaceRaised} 100%)`,
     boxShadow: t.shadow,
     backdropFilter: 'blur(14px)',
+    height: 'calc(100vh - 112px)',
+    overflowX: 'hidden',
+    overflowY: 'auto',
   };
 }
 
@@ -19,6 +18,8 @@ export const workspacePanelContentStyle = {
   display: 'grid',
   gap: 14,
   padding: 16,
+  overflowX: 'hidden',
+  wordBreak: 'break-word',
 } satisfies CSSProperties;
 
 export function createWorkspaceSectionStyle(t: TokenSet): CSSProperties {

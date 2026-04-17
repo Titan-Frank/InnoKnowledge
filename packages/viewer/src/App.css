@@ -93,7 +93,24 @@ body {
   }
 }
 
-@keyframes pulse-dot {
+/* Dark mode scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a3a;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a4a;
+}
   0%, 100% {
     opacity: 1;
     transform: scale(1);

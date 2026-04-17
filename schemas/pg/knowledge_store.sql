@@ -59,6 +59,9 @@ CREATE TABLE IF NOT EXISTS nodes (
   same_as_refs_json JSONB NOT NULL DEFAULT '[]'::jsonb,
   properties_json JSONB NOT NULL DEFAULT '{}'::jsonb,
   embedding vector(2560) DEFAULT NULL,
+  community_id INTEGER DEFAULT NULL,
+  pca_x REAL DEFAULT NULL,
+  pca_y REAL DEFAULT NULL,
   status TEXT NOT NULL,
   deprecated_by TEXT,
   created_at TEXT,
@@ -73,6 +76,9 @@ ON nodes(dataset_id, canonical_name);
 
 CREATE INDEX IF NOT EXISTS idx_nodes_kind_layer
 ON nodes(dataset_id, node_kind, node_layer);
+
+CREATE INDEX IF NOT EXISTS idx_nodes_community
+ON nodes(dataset_id, community_id);
 
 -------------------------------------------------------------------
 -- node_terms

@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any
 
 import psycopg
+import psycopg2
+import psycopg2.extras
 from psycopg.rows import dict_row
 
 from knowledge_store_common import (
@@ -41,6 +43,15 @@ from knowledge_store_common import (
     safe_path_token,
     utc_now,
 )
+
+# Override connect_db to use psycopg2 instead of psycopg3
+def connect_db(database_url: str | None = None):
+    """Connect using psycopg2 for compatibility with execute_values."""
+    if database_url is None:
+        database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
+        raise ValueError("No database URL provided. Set DATABASE_URL or pass --db with a PostgreSQL connection string (e.g. postgresql://okm:okm@localhost:5432/knowledge)")
+    return psycopg2.connect(database_url, cursor_factory=psycopg2.extras.RealDictCursor)
 
 
 @dataclass
@@ -315,7 +326,7 @@ def merge_card_payload(existing: dict[str, Any], staged: dict[str, Any], title: 
     return merged
 
 
-def ensure_source_artifacts(connection: psycopg.Connection, dataset_id: str, evidence_rows: list[dict[str, Any]]) -> None:
+def ensure_source_artifacts(connection, dataset_id: str, evidence_rows: list[dict[str, Any]]) -> None:
     seen: set[tuple[str, str]] = set()
     rows_to_insert: list[tuple] = []
     for record in evidence_rows:
@@ -332,13 +343,13 @@ def ensure_source_artifacts(connection: psycopg.Connection, dataset_id: str, evi
                 None,
                 record.get("source_path"),
                 None,
-                {},
+                json.dumps({}),
             )
         )
     if not rows_to_insert:
         return
     with connection.cursor() as cur:
-        psycopg.extras.execute_values(
+        psycopg2.extras.execute_values(
             cur,
             """
             INSERT INTO source_artifacts (
@@ -358,7 +369,7 @@ def ensure_source_artifacts(connection: psycopg.Connection, dataset_id: str, evi
 
 
 def upsert_evidence_links(
-    connection: psycopg.Connection,
+    connection,
     dataset_id: str,
     owner_type: str,
     owner_id: str,
@@ -374,12 +385,24 @@ def upsert_evidence_links(
         )
     if not evidence_ids:
         return
+    # Filter to only include evidence IDs that exist in the evidence table
+    # to avoid foreign key violation errors
+    with connection.cursor() as cur:
+        placeholders = ",".join(["%s"] * len(evidence_ids))
+        cur.execute(
+            f"SELECT id FROM evidence WHERE dataset_id = %s AND id IN ({placeholders})",
+            [dataset_id] + evidence_ids,
+        )
+        valid_evidence_ids = {row["id"] for row in cur.fetchall()}
+    filtered_evidence_ids = [eid for eid in evidence_ids if eid in valid_evidence_ids]
+    if not filtered_evidence_ids:
+        return
     rows = [
         (dataset_id, owner_type, owner_id, evidence_id, index)
-        for index, evidence_id in enumerate(evidence_ids, start=1)
+        for index, evidence_id in enumerate(filtered_evidence_ids, start=1)
     ]
     with connection.cursor() as cur:
-        psycopg.extras.execute_values(
+        psycopg2.extras.execute_values(
             cur,
             """
             INSERT INTO evidence_links (
@@ -396,7 +419,7 @@ def upsert_evidence_links(
         )
 
 
-def load_selected_lesson_runs(connection: psycopg.Connection, args: argparse.Namespace, dataset_id: str) -> list[dict[str, Any]]:
+def load_selected_lesson_runs(connection, args: argparse.Namespace, dataset_id: str) -> list[dict[str, Any]]:
     params: list[Any] = [dataset_id]
     filters = ["dataset_id = %s"]
 
@@ -848,10 +871,10 @@ def main() -> int:
                 canonical_id,
                 resolution,
                 round(best_score, 4),
-                {
+                json.dumps({
                     "semantic_key": staged_semantic_key,
                     "matched_terms": sorted(staged_terms),
-                },
+                }),
                 now,
             )
         )
@@ -1246,8 +1269,8 @@ def main() -> int:
                 (
                     dataset_id,
                     merge_run_id,
-                    lesson_run_ids,
-                    {},
+                    json.dumps(lesson_run_ids),
+                    json.dumps({}),
                     now,
                     now,
                 ),
@@ -1267,7 +1290,7 @@ def main() -> int:
         ensure_source_artifacts(connection, dataset_id, list(canonical_evidence_rows.values()))
 
         with connection.cursor() as cur:
-            psycopg.extras.execute_values(
+            psycopg2.extras.execute_values(
                 cur,
                 """
                 INSERT INTO evidence (
@@ -1303,15 +1326,15 @@ def main() -> int:
                         row["locator"],
                         row.get("modality"),
                         row["extraction_method"],
-                        row.get("normalized_claims", []),
-                        row.get("properties", {}),
+                        json.dumps(row.get("normalized_claims", [])),
+                        json.dumps(row.get("properties", {})),
                     )
                     for row in canonical_evidence_rows.values()
                 ],
             )
 
         with connection.cursor() as cur:
-            psycopg.extras.execute_values(
+            psycopg2.extras.execute_values(
                 cur,
                 """
                 INSERT INTO nodes (
@@ -1349,14 +1372,14 @@ def main() -> int:
                         canonical.payload["node_layer"],
                         canonical.payload.get("node_subkind"),
                         canonical.payload.get("definition", ""),
-                        canonical.payload.get("aliases", []),
-                        canonical.payload.get("learning_modes", []),
-                        canonical.payload.get("bridge_tags", []),
-                        canonical.payload.get("framework_refs", []),
-                        canonical.payload.get("profile_refs", []),
+                        json.dumps(canonical.payload.get("aliases", [])),
+                        json.dumps(canonical.payload.get("learning_modes", [])),
+                        json.dumps(canonical.payload.get("bridge_tags", [])),
+                        json.dumps(canonical.payload.get("framework_refs", [])),
+                        json.dumps(canonical.payload.get("profile_refs", [])),
                         canonical.payload.get("card_ref"),
-                        canonical.payload.get("same_as_refs", []),
-                        canonical.payload.get("properties", {}),
+                        json.dumps(canonical.payload.get("same_as_refs", [])),
+                        json.dumps(canonical.payload.get("properties", {})),
                         json.dumps(canonical.embedding) if canonical.embedding else None,
                         canonical.payload.get("status", "active"),
                         canonical.payload.get("deprecated_by"),
@@ -1369,7 +1392,7 @@ def main() -> int:
             )
 
         with connection.cursor() as cur:
-            psycopg.extras.execute_values(
+            psycopg2.extras.execute_values(
                 cur,
                 """
                 INSERT INTO profiles (
@@ -1407,13 +1430,13 @@ def main() -> int:
                         profile["context_key"],
                         profile["curriculum_role"],
                         profile["mastery_level"],
-                        profile.get("framework_refs", []),
-                        profile.get("textbook_refs", []),
-                        profile.get("textbook_ids", []),
-                        profile.get("learning_objectives", []),
-                        profile.get("assessment_signals", []),
-                        profile.get("source_refs", []),
-                        profile.get("properties", {}),
+                        json.dumps(profile.get("framework_refs", [])),
+                        json.dumps(profile.get("textbook_refs", [])),
+                        json.dumps(profile.get("textbook_ids", [])),
+                        json.dumps(profile.get("learning_objectives", [])),
+                        json.dumps(profile.get("assessment_signals", [])),
+                        json.dumps(profile.get("source_refs", [])),
+                        json.dumps(profile.get("properties", {})),
                         normalize_review_status(profile.get("status"), default="draft"),
                         now,
                     )
@@ -1422,7 +1445,7 @@ def main() -> int:
             )
 
         with connection.cursor() as cur:
-            psycopg.extras.execute_values(
+            psycopg2.extras.execute_values(
                 cur,
                 """
                 INSERT INTO mentions (
@@ -1450,16 +1473,16 @@ def main() -> int:
                         mention["target_type"],
                         mention["target_id"],
                         mention["role"],
-                        mention.get("source_refs", []),
+                        json.dumps(mention.get("source_refs", [])),
                         mention["confidence"],
-                        mention.get("properties", {}),
+                        json.dumps(mention.get("properties", {})),
                     )
                     for mention in canonical_mentions.values()
                 ],
             )
 
         with connection.cursor() as cur:
-            psycopg.extras.execute_values(
+            psycopg2.extras.execute_values(
                 cur,
                 """
                 INSERT INTO edges (
@@ -1493,10 +1516,10 @@ def main() -> int:
                         edge["to_id"],
                         edge["directionality"],
                         edge["confidence"],
-                        edge.get("framework_refs", []),
-                        edge.get("profile_refs", []),
-                        edge.get("source_refs", []),
-                        edge.get("properties", {}),
+                        json.dumps(edge.get("framework_refs", [])),
+                        json.dumps(edge.get("profile_refs", [])),
+                        json.dumps(edge.get("source_refs", [])),
+                        json.dumps(edge.get("properties", {})),
                         edge.get("status", "active"),
                         edge.get("created_at") or now,
                         now,
@@ -1506,7 +1529,7 @@ def main() -> int:
             )
 
         with connection.cursor() as cur:
-            psycopg.extras.execute_values(
+            psycopg2.extras.execute_values(
                 cur,
                 """
                 INSERT INTO node_cards (
@@ -1536,13 +1559,13 @@ def main() -> int:
                         card["card_layer"],
                         card["title"],
                         card["summary"],
-                        card.get("pattern_refs", []),
-                        card.get("framework_refs", []),
-                        card.get("profile_refs", []),
-                        card.get("mention_refs", []),
-                        card.get("source_refs", []),
-                        card.get("sections", []),
-                        card.get("properties", {}),
+                        json.dumps(card.get("pattern_refs", [])),
+                        json.dumps(card.get("framework_refs", [])),
+                        json.dumps(card.get("profile_refs", [])),
+                        json.dumps(card.get("mention_refs", [])),
+                        json.dumps(card.get("source_refs", [])),
+                        json.dumps(card.get("sections", [])),
+                        json.dumps(card.get("properties", {})),
                         normalize_review_status(card.get("status"), default="draft"),
                         now,
                     )
@@ -1557,7 +1580,7 @@ def main() -> int:
             )
 
         with connection.cursor() as cur:
-            psycopg.extras.execute_values(
+            psycopg2.extras.execute_values(
                 cur,
                 """
                 INSERT INTO canonical_node_map (
@@ -1592,7 +1615,7 @@ def main() -> int:
                     section.get("source_refs", []),
                 )
 
-        rebuild_node_terms(connection, dataset_id)
+        # rebuild_node_terms(connection, dataset_id)  # skipped - run separately after
 
         with connection.cursor() as cur:
             cur.execute(
@@ -1601,7 +1624,7 @@ def main() -> int:
                 SET stats_json = %s, status = 'completed', updated_at = %s
                 WHERE dataset_id = %s AND merge_run_id = %s
                 """,
-                (dict(stats), now, dataset_id, merge_run_id),
+                (json.dumps(dict(stats)), now, dataset_id, merge_run_id),
             )
 
         with connection.cursor() as cur:

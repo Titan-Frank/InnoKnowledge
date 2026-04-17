@@ -64,6 +64,13 @@ python scripts/check_graph_integrity.py \
   --db storage/knowledge.sqlite
 ```
 
+5. Run:
+
+```bash
+python scripts/cluster_nodes.py \
+  --dataset-id <dataset-id>
+```
+
 ## Output Contract
 
 Return:

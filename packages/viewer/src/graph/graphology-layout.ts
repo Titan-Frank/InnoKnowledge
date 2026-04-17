@@ -52,37 +52,38 @@ function getResolvedNodeRadius(
 function getFA2Settings(nodeCount: number) {
   const isSmall = nodeCount < 500;
   const isMedium = nodeCount >= 500 && nodeCount < 2000;
+  const isLarge = nodeCount >= 2000 && nodeCount < 10000;
 
   return {
-    // Keep the center loose so nodes can claim their own space
-    gravity: isSmall ? 0.06 : isMedium ? 0.04 : 0.025,
+    // Moderate gravity — keeps the graph compact without collapsing
+    // isolated nodes onto the center point
+    gravity: isSmall ? 0.4 : isMedium ? 0.25 : isLarge ? 0.15 : 0.08,
 
-    // Strong repulsion prevents tight bundles from collapsing into each other
-    scalingRatio: isSmall ? 140 : isMedium ? 220 : 360,
+    // Moderate repulsion — too high pushes everything outward
+    scalingRatio: isSmall ? 15 : isMedium ? 30 : isLarge ? 60 : 100,
 
-    slowDown: isSmall ? 2 : isMedium ? 3 : 4,
+    slowDown: isSmall ? 1 : isMedium ? 2 : isLarge ? 3 : 5,
     barnesHutOptimize: nodeCount > 200,
     barnesHutTheta: nodeCount > 2000 ? 0.8 : 0.6,
 
-    // Tell FA2 to read our custom 'mass' attribute from each node
     nodeMassAttribute: 'mass',
 
     strongGravityMode: false,
     outboundAttractionDistribution: true,
 
-    // linLogMode produces tighter clusters with more space between them
-    linLogMode: true,
+    linLogMode: false,
 
     adjustSizes: true,
-    edgeWeightInfluence: 0.7,
+    edgeWeightInfluence: 1,
   };
 }
 
 function getLayoutDuration(nodeCount: number): number {
-  if (nodeCount > 10000) return 20000;
-  if (nodeCount > 2000) return 12000;
-  if (nodeCount > 500) return 8000;
-  return 5000;
+  if (nodeCount > 10000) return 45000;
+  if (nodeCount > 5000) return 35000;
+  if (nodeCount > 1000) return 25000;
+  if (nodeCount > 500) return 20000;
+  return 15000;
 }
 
 /** Synchronous layout (fallback) */
@@ -108,13 +109,25 @@ export function runLayout(graph: Graph): void {
  * Start FA2 in a Web Worker with auto-stop.
  * Stops early when layout converges (sampled node positions stop changing),
  * or when the max duration is reached.
+ *
+ * When `hasSemanticLayout` is true, nodes already have PCA-based positions,
+ * so we skip FA2 entirely and only run noverlap to resolve overlaps.
  */
 export function startWorkerLayout(
   graph: Graph,
   onStopped?: () => void,
+  hasSemanticLayout = false,
 ): { stop: () => void; kill: () => void } {
   const nodeCount = graph.order;
   if (nodeCount === 0) return { stop: () => {}, kill: () => {} };
+
+  // Semantic layout (PCA) already provides good positions — just resolve overlaps
+  if (hasSemanticLayout) {
+    runNoverlapHeavy(graph);
+    normalizePositions(graph);
+    onStopped?.();
+    return { stop: () => {}, kill: () => {} };
+  }
 
   ensureSeedPositions(graph);
   fanOutCoincidentNodes(graph);
@@ -210,6 +223,23 @@ function runNoverlap(graph: Graph): void {
       ratio: NOVERLAP_SETTINGS.ratio,
       margin: NOVERLAP_SETTINGS.margin,
       expansion: NOVERLAP_SETTINGS.expansion,
+    },
+    inputReducer: (_, attrs) => ({
+      ...attrs,
+      size: getNodeRadius(attrs as Record<string, unknown>),
+    }),
+  });
+}
+
+function runNoverlapHeavy(graph: Graph): void {
+  // Heavy pass for PCA-based layouts — more iterations and margin to spread
+  // overlapping nodes since FA2 is not running to push them apart
+  noverlap.assign(graph, {
+    maxIterations: 100,
+    settings: {
+      ratio: 1.2,
+      margin: 18,
+      expansion: 1.1,
     },
     inputReducer: (_, attrs) => ({
       ...attrs,

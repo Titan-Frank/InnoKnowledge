@@ -51,8 +51,9 @@ function createRootStyle(t: TokenSet): CSSProperties {
     alignItems: "center",
     background: t.colorSurfaceMuted,
     border: `1px solid ${t.colorBorder}`,
-    borderRadius: t.radiusPill,
+    borderRadius: 12,
     display: "inline-flex",
+    flexWrap: "wrap",
     gap: 4,
     padding: 4
   };
@@ -69,7 +70,8 @@ function createButtonStyle(t: TokenSet): CSSProperties {
     fontWeight: 700,
     minHeight: 30,
     padding: "7px 12px",
-    whiteSpace: "nowrap"
+    whiteSpace: "normal",
+    wordBreak: "break-word",
   };
 }
 

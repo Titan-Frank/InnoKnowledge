@@ -14,9 +14,13 @@ from pathlib import Path
 from typing import Any, Iterable
 
 import psycopg
+import psycopg2.extras
 from psycopg.rows import dict_row
 from psycopg import sql as pg_sql
 from psycopg.types import TypeInfo
+
+# psycopg2 backwards compat - use psycopg2.extras for execute_values
+psycopg.extras = psycopg2.extras
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -743,6 +747,24 @@ def ensure_pg_schema(connection: psycopg.Connection) -> None:
     # Execute the schema file — psycopg3 can run multi-statement SQL
     with connection.cursor() as cur:
         cur.execute(schema_sql)
+    connection.commit()
+
+
+def ensure_community_id_column(connection: psycopg.Connection) -> None:
+    """Add community_id, pca_x, pca_y columns to nodes table if they don't exist (idempotent migration)."""
+    with connection.cursor() as cur:
+        cur.execute("""
+            ALTER TABLE nodes
+            ADD COLUMN IF NOT EXISTS community_id INTEGER DEFAULT NULL
+        """)
+        cur.execute("""
+            ALTER TABLE nodes
+            ADD COLUMN IF NOT EXISTS pca_x REAL DEFAULT NULL
+        """)
+        cur.execute("""
+            ALTER TABLE nodes
+            ADD COLUMN IF NOT EXISTS pca_y REAL DEFAULT NULL
+        """)
     connection.commit()
 
 

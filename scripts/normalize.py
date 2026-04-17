@@ -931,17 +931,6 @@ def main() -> int:
 
     # Step 6: Rebuild FTS indexes (now a no-op — text search uses LIKE)
     print("\n[6/6] FTS indexes skipped (using LIKE queries)")
-    else:
-        # Count existing
-        with connection.cursor() as cur:
-            for table in [
-            ]:
-                cur.execute(
-                    f"SELECT COUNT(*) FROM {table} WHERE dataset_id = %s",
-                    (args.dataset_id,),
-                )
-                count = cur.fetchone()["count"]
-                print(f"  Current {table}: {count} entries")
 
     # Summary
     print("\n" + "=" * 50)

@@ -4,6 +4,7 @@ import { SigmaCameraControls } from './SigmaCameraControls.js';
 import { useGraphStore } from '../store/graphStore.js';
 import { getTypeColor, getTypeLabel } from '../graph/layout.js';
 import { resolveEdgeVisual } from '../graph/graphPresentation.js';
+import { getCommunityColor } from '../constants/index.js';
 import { useTokens } from '../hooks/useTokens.js';
 import type { TokenSet } from './aiwc/styles/tokens.js';
 
@@ -26,8 +27,8 @@ export function SigmaGraphPanel({
   const selectedNodeId = useGraphStore((s) => s.selectedNodeId);
   const hoverNodeId = useGraphStore((s) => s.hoverNodeId);
   const communityCount = useGraphStore((s) => s.communityCount);
-  const communities = useGraphStore((s) => s.communities);
   const communityMap = useGraphStore((s) => s.communityMap);
+  const themeMode = useGraphStore((s) => s.themeMode);
 
   const nodeCount = data?.nodes.length ?? 0;
   const edgeCount = data?.edges.length ?? 0;
@@ -39,11 +40,10 @@ export function SigmaGraphPanel({
   const isLoading = status === 'loading';
   const isError = status === 'error';
 
-  const typeSummary = data?.availableTypes.map((tp) => ({
-    type: tp,
-    label: getTypeLabel(tp),
-    color: getTypeColor(tp),
-  })) ?? [];
+  const typeSummary = data?.availableTypes.map((tp) => {
+    const count = data.nodes.filter((n) => n.node_type === tp).length;
+    return { type: tp, label: getTypeLabel(tp), color: getTypeColor(tp), count };
+  }).sort((a, b) => b.count - a.count) ?? [];
 
   const focusRelations: Array<{ label: string; otherName: string; edgeColor: string }> = [];
   if (selectedNode && data) {
@@ -120,24 +120,22 @@ export function SigmaGraphPanel({
                 <span style={dotStyle(t)}>·</span>
                 <span>{typeCount} 类型</span>
               </div>
-              {communityCount > 1 && (
-                <div style={communitySectionStyle}>
-                  <div style={communityLabelStyle(t)}>{communityCount} 语义簇</div>
-                  <div style={communityChipsStyle}>
-                    {communities.slice(0, 8).map((c) => (
-                      <span key={c.id} style={communityChipStyle(c.color)}>
-                        <span style={communityDotStyle(c.color)} />
-                        {getTypeLabel(c.dominantType)} · {c.nodeCount}
-                      </span>
-                    ))}
-                  </div>
+              {communityCount > 1 ? (
+                <div style={typeChipsStyle}>
+                  {Array.from({ length: communityCount }, (_, i) => {
+                    const count = data?.nodes.filter((n) => n.community_id === i).length ?? 0;
+                    if (count === 0) return null;
+                    const color = getCommunityColor(i, themeMode);
+                    return <span key={i} style={typeChipStyle(color)}>簇 {i + 1} · {count}</span>;
+                  })}
+                </div>
+              ) : (
+                <div style={typeChipsStyle}>
+                  {typeSummary.map((tp) => (
+                    <span key={tp.type} style={typeChipStyle(tp.color)}>{tp.label} · {tp.count}</span>
+                  ))}
                 </div>
               )}
-              <div style={typeChipsStyle}>
-                {typeSummary.map((tp) => (
-                  <span key={tp.type} style={typeChipStyle(tp.color, communityCount > 1)}>{tp.label}</span>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -323,34 +321,6 @@ function dotStyle(t: TokenSet): CSSProperties {
   return { color: t.colorBorderStrong };
 }
 
-// Community section
-const communitySectionStyle: CSSProperties = {
-  display: 'grid', gap: 6,
-};
-
-function communityLabelStyle(t: TokenSet): CSSProperties {
-  return {
-    fontSize: 11, fontWeight: 500, color: t.colorTextSubtle,
-  };
-}
-
-const communityChipsStyle: CSSProperties = {
-  display: 'flex', flexWrap: 'wrap', gap: 6,
-};
-
-function communityChipStyle(color: string): CSSProperties {
-  return {
-    display: 'inline-flex', alignItems: 'center', gap: 4,
-    background: hexToRgba(color, 0.12), border: `1px solid ${hexToRgba(color, 0.2)}`,
-    borderRadius: 999, color, fontSize: 11, fontWeight: 500, padding: '3px 8px',
-  };
-}
-
-function communityDotStyle(color: string): CSSProperties {
-  return {
-    width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0,
-  };
-}
 
 // Type chips
 const typeChipsStyle: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: 6 };

@@ -32,6 +32,9 @@ export interface ApiNode {
   created_at: string | null;
   updated_at: string | null;
   notes: string | null;
+  community_id: number | null;
+  pca_x: number | null;
+  pca_y: number | null;
 }
 
 // ── Edge ──────────────────────────────────────────────────
