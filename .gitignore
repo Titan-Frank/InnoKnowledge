@@ -13,6 +13,7 @@ data/outlines/*.outline.json
 data/**/*.jsonl
 data/**/runs/
 data/main/
+data/cs/
 !data/frameworks/
 !data/patterns/
 !data/outlines/
