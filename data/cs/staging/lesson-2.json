@@ -1,0 +1,2288 @@
+{
+  "nodes": [
+    {
+      "id": "concept:client-server-architecture",
+      "canonical_name": "客户-服务器体系结构",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["client-server architecture", "C/S架构", "客户服务器模型"],
+      "definition": "一种网络应用程序体系结构，其中有一个总是打开的服务器主机服务于来自许多客户主机的请求，客户之间不直接通信，服务器具有固定的、周知的IP地址。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["structure", "system", "interaction"],
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:p2p-architecture",
+      "canonical_name": "P2P体系结构",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["P2P architecture", "对等体系结构", "peer-to-peer architecture"],
+      "definition": "一种网络应用程序体系结构，对位于数据中心的专用服务器有最小的或没有依赖，应用程序在间断连接的主机对（对等方）之间使用直接通信，具有自扩展性。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["structure", "system", "interaction"],
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "properties": {
+        "self_scalability": "对等方既是消费者又是重新分发者",
+        "cost_efficiency": "不需要庞大的服务器基础设施和服务器带宽"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:socket",
+      "canonical_name": "套接字",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["socket", "应用程序编程接口", "API"],
+      "definition": "同一台主机内应用层与运输层之间的接口，是建立网络应用程序的可编程接口，进程通过套接字向网络发送报文和从网络接收报文。",
+      "learning_modes": ["conceptual", "procedural"],
+      "bridge_tags": ["structure", "interaction", "system"],
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:reliable-data-transfer",
+      "canonical_name": "可靠数据传输",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["reliable data transfer", "可靠数据传送"],
+      "definition": "一种运输层服务，确保由应用程序一端发送的数据正确、完全地交付给应用程序的另一端，发送进程只要将其数据传递进套接字，就可以完全相信该数据将能无差错地到达接收进程。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["system", "function", "interaction"],
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:http",
+      "canonical_name": "HTTP",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["HyperText Transfer Protocol", "超文本传输协议"],
+      "definition": "Web的应用层协议，定义了Web客户向Web服务器请求Web页面的方式以及服务器向客户传送Web页面的方式，是一个无状态协议，使用TCP作为支撑运输协议。",
+      "learning_modes": ["conceptual", "procedural", "factual"],
+      "bridge_tags": ["structure", "function", "system", "interaction"],
+      "framework_refs": ["framework:cs:topic:2-2"],
+      "properties": {
+        "default_port": 80,
+        "protocol_type": "无状态协议",
+        "transport": "TCP"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:http-persistent-connection",
+      "canonical_name": "HTTP持续连接",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["persistent connection", "持久连接", "HTTP/1.1持续连接"],
+      "definition": "HTTP连接方式之一，服务器在发送响应后保持TCP连接打开，后续的请求和响应报文能够通过相同的连接进行传送，支持流水线方式。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["structure", "function", "system"],
+      "framework_refs": ["framework:cs:topic:2-2"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:http-non-persistent-connection",
+      "canonical_name": "HTTP非持续连接",
+      "node_kind": "concept",
+      "node_layer": "support",
+      "aliases": ["non-persistent connection", "非持久连接"],
+      "definition": "HTTP连接方式之一，每个TCP连接在服务器发送一个对象后关闭，每个TCP连接只传输一个请求报文和一个响应报文。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["structure", "function"],
+      "framework_refs": ["framework:cs:topic:2-2"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:cookie",
+      "canonical_name": "Cookie",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["cookie", "HTTP cookie"],
+      "definition": "HTTP中用于在无状态的HTTP之上建立用户会话层的机制，由四个组件组成：HTTP响应报文中的cookie首部行、HTTP请求报文中的cookie首部行、用户端系统中的cookie文件、Web站点的后端数据库。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["system", "interaction", "structure"],
+      "framework_refs": ["framework:cs:topic:2-2"],
+      "properties": {
+        "components": ["Set-cookie首部行", "Cookie首部行", "cookie文件", "后端数据库"]
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:web-cache",
+      "canonical_name": "Web缓存",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Web cache", "代理服务器", "proxy server"],
+      "definition": "能够代表初始Web服务器来满足HTTP请求的网络实体，有自己的磁盘存储空间，保存最近请求过的对象的副本，可以减少响应时间和机构接入链路的通信量。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["system", "function", "structure"],
+      "framework_refs": ["framework:cs:topic:2-2"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:conditional-get",
+      "canonical_name": "条件GET方法",
+      "node_kind": "concept",
+      "node_layer": "support",
+      "aliases": ["conditional GET"],
+      "definition": "HTTP协议的一种机制，允许缓存器证实其对象是最新的，当请求报文使用GET方法且包含If-Modified-Since首部行时即为条件GET请求。",
+      "learning_modes": ["conceptual", "procedural"],
+      "bridge_tags": ["function", "system"],
+      "framework_refs": ["framework:cs:topic:2-2"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:smtp",
+      "canonical_name": "SMTP",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Simple Mail Transfer Protocol", "简单邮件传输协议"],
+      "definition": "因特网电子邮件中主要的应用层协议，使用TCP可靠数据传输服务从发送方的邮件服务器向接收方的邮件服务器发送邮件，是一个推协议，限制报文体只能采用7比特ASCII表示。",
+      "learning_modes": ["conceptual", "procedural", "factual"],
+      "bridge_tags": ["structure", "function", "system", "interaction"],
+      "framework_refs": ["framework:cs:topic:2-3"],
+      "properties": {
+        "default_port": 25,
+        "protocol_type": "推协议",
+        "transport": "TCP"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:pop3",
+      "canonical_name": "POP3",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Post Office Protocol Version 3", "邮局协议第三版"],
+      "definition": "一个简单的邮件访问协议，按照特许、事务处理和更新三个阶段工作，支持下载并删除和下载并保留两种方式。",
+      "learning_modes": ["conceptual", "procedural", "factual"],
+      "bridge_tags": ["structure", "function", "system"],
+      "framework_refs": ["framework:cs:topic:2-3"],
+      "properties": {
+        "default_port": 110,
+        "protocol_type": "拉协议",
+        "transport": "TCP"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:imap",
+      "canonical_name": "IMAP",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Internet Mail Access Protocol", "因特网邮件访问协议"],
+      "definition": "一种比POP3功能更丰富的邮件访问协议，允许用户在远程服务器上创建文件夹、移动邮件、查询邮件，服务器维护IMAP会话的用户状态信息，允许获取报文的某些部分。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["structure", "function", "system"],
+      "framework_refs": ["framework:cs:topic:2-3"],
+      "properties": {
+        "protocol_type": "拉协议",
+        "transport": "TCP"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:dns",
+      "canonical_name": "DNS",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Domain Name System", "域名系统"],
+      "definition": "因特网的目录服务，是一个由分层的DNS服务器实现的分布式数据库，也是一个使得主机能够查询分布式数据库的应用层协议，主要任务是将主机名转换为IP地址。",
+      "learning_modes": ["conceptual", "procedural", "factual"],
+      "bridge_tags": ["structure", "function", "system", "interaction", "classification"],
+      "framework_refs": ["framework:cs:topic:2-4"],
+      "properties": {
+        "default_port": 53,
+        "transport": "UDP"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:dns-resource-record",
+      "canonical_name": "DNS资源记录",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["DNS Resource Record", "RR"],
+      "definition": "DNS分布式数据库中存储的记录，是包含Name、Value、Type、TTL四个字段的四元组，主要类型包括A记录（主机名到IP地址映射）、NS记录（域到权威DNS服务器）、CNAME记录（别名到规范主机名）和MX记录（邮件服务器别名）。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["structure", "classification", "system"],
+      "framework_refs": ["framework:cs:topic:2-4"],
+      "properties": {
+        "record_types": ["A", "NS", "CNAME", "MX"]
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:bittorrent",
+      "canonical_name": "BitTorrent",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["BitTorrent", "BT"],
+      "definition": "一种流行的P2P文件分发协议，参与特定文件分发的所有对等方的集合被称为洪流，使用最稀缺优先策略选择请求的块，采用一报还一报的对换算法进行激励机制。",
+      "learning_modes": ["conceptual", "procedural", "factual"],
+      "bridge_tags": ["structure", "function", "system", "interaction"],
+      "framework_refs": ["framework:cs:topic:2-5"],
+      "properties": {
+        "chunk_size": "256KB",
+        "incentive_mechanism": "一报还一报(tit-for-tat)"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:cdn",
+      "canonical_name": "内容分发网",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["CDN", "Content Distribution Network", "内容分发网络"],
+      "definition": "管理分布在多个地理位置上的服务器的网络，在服务器中存储视频和其他Web内容的副本，将每个用户请求定向到提供最好用户体验的CDN位置，分为专用CDN和第三方CDN。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["structure", "function", "system", "scale"],
+      "framework_refs": ["framework:cs:topic:2-6"],
+      "properties": {
+        "deployment_strategies": ["深入(enter-deep)", "邀请做客(bring-home)"]
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:dash",
+      "canonical_name": "DASH",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Dynamic Adaptive Streaming over HTTP", "经HTTP的动态适应性流"],
+      "definition": "一种基于HTTP的流技术，视频编码为几个不同版本（不同比特率和质量水平），客户动态地请求来自不同版本的视频段数据块，根据可用带宽自适应选择合适的版本。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["function", "system", "interaction"],
+      "framework_refs": ["framework:cs:topic:2-6"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:tcp-service",
+      "canonical_name": "TCP服务",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["TCP", "Transmission Control Protocol", "传输控制协议"],
+      "definition": "因特网提供的面向连接的运输层协议，提供面向连接服务和可靠数据传输服务，具有拥塞控制机制，可通过SSL加强提供安全性服务。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["structure", "function", "system"],
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "properties": {
+        "connection_type": "面向连接",
+        "reliability": "可靠数据传输",
+        "congestion_control": true
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:udp-service",
+      "canonical_name": "UDP服务",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["UDP", "User Datagram Protocol", "用户数据报协议"],
+      "definition": "因特网提供的无连接运输层协议，仅提供最小服务，不提供可靠数据传输，没有拥塞控制机制，是无连接的轻量级运输协议。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["structure", "function", "system"],
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "properties": {
+        "connection_type": "无连接",
+        "reliability": "不可靠数据传输",
+        "congestion_control": false
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:application-layer-protocol",
+      "canonical_name": "应用层协议",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["application-layer protocol"],
+      "definition": "定义运行在不同端系统上的应用程序进程如何相互传递报文的协议，定义了交换的报文类型、各种报文类型的语法、字段的语义以及确定进程何时发送报文和响应的规则。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["structure", "function", "rule", "interaction"],
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:rtt",
+      "canonical_name": "往返时间",
+      "node_kind": "concept",
+      "node_layer": "support",
+      "aliases": ["Round-Trip Time", "RTT"],
+      "definition": "一个短分组从客户到服务器然后再返回客户所花费的时间，包括分组传播时延、分组在中间路由器和交换机上的排队时延以及分组处理时延。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["measurement", "system"],
+      "framework_refs": ["framework:cs:topic:2-2"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:ssl",
+      "canonical_name": "SSL",
+      "node_kind": "concept",
+      "node_layer": "support",
+      "aliases": ["Secure Sockets Layer", "安全套接字层", "TLS"],
+      "definition": "TCP的加强版本，在应用层上实现，提供了关键的进程到进程的安全性服务，包括加密、数据完整性和端点鉴别，不是与TCP和UDP在相同层次上的第三种运输协议。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["system", "interaction"],
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "activity/experiment:socket-programming",
+      "canonical_name": "套接字编程",
+      "node_kind": "activity",
+      "node_layer": "support",
+      "node_subkind": "experiment",
+      "aliases": ["socket programming"],
+      "definition": "使用套接字API编写网络应用程序的过程，包括UDP套接字编程和TCP套接字编程，涉及创建套接字、绑定端口、发送和接收数据等步骤。",
+      "learning_modes": ["procedural", "conceptual"],
+      "bridge_tags": ["function", "system", "interaction"],
+      "framework_refs": ["framework:cs:topic:2-7"],
+      "properties": {
+        "programming_language": "Python",
+        "types": ["UDP套接字编程", "TCP套接字编程"]
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:bandwidth-sensitive-application",
+      "canonical_name": "带宽敏感应用",
+      "node_kind": "concept",
+      "node_layer": "support",
+      "aliases": ["bandwidth-sensitive application"],
+      "definition": "具有特定吞吐量要求的应用程序，需要运输协议以某种特定速率提供确保的可用吞吐量才能有效工作，如因特网电话。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["classification", "system"],
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:elastic-application",
+      "canonical_name": "弹性应用",
+      "node_kind": "concept",
+      "node_layer": "support",
+      "aliases": ["elastic application"],
+      "definition": "能够根据当时可用的带宽或多或少地利用可供使用的吞吐量的应用程序，如电子邮件、文件传输和Web传送。",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["classification", "system"],
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "properties": {},
+      "status": "candidate"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:http-uses-tcp",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:http",
+      "to": "concept:tcp-service",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-2-http-tcp"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:http-instance-of-app-protocol",
+      "edge_type": "instance_of",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:http",
+      "to": "concept:application-layer-protocol",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-1-app-protocol"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:smtp-instance-of-app-protocol",
+      "edge_type": "instance_of",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:smtp",
+      "to": "concept:application-layer-protocol",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-3-smtp-protocol"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:dns-instance-of-app-protocol",
+      "edge_type": "instance_of",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:dns",
+      "to": "concept:application-layer-protocol",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-4-dns-service"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:smtp-uses-tcp",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:smtp",
+      "to": "concept:tcp-service",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-3-smtp-tcp"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:pop3-uses-tcp",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:pop3",
+      "to": "concept:tcp-service",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-3-pop3-tcp"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:imap-uses-tcp",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:imap",
+      "to": "concept:tcp-service",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-3-imap"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:tcp-provides-reliable-transfer",
+      "edge_type": "provides",
+      "from": "concept:tcp-service",
+      "to": "concept:reliable-data-transfer",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-1-tcp-reliable"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:socket-interface-to-transport",
+      "edge_type": "part_of",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:socket",
+      "to": "concept:application-layer-protocol",
+      "directionality": "directed",
+      "confidence": 0.85,
+      "source_refs": ["evidence:cs:2-1-socket-def"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:http-persistent-is-a-http",
+      "edge_type": "is_a",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:http-persistent-connection",
+      "to": "concept:http",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-2-persistent"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:http-nonpersistent-is-a-http",
+      "edge_type": "is_a",
+      "edge_layer": "support",
+      "backbone_expand": false,
+      "from": "concept:http-non-persistent-connection",
+      "to": "concept:http",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-2-nonpersistent"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:http-stateless-explains-cookie",
+      "edge_type": "explains",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:cookie",
+      "to": "concept:http",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs:2-2-cookie"],
+      "properties": {"reason": "Cookie机制弥补了HTTP无状态特性"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:web-cache-related-to-http",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:web-cache",
+      "to": "concept:http",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-2-webcache"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:conditional-get-related-to-web-cache",
+      "edge_type": "applies_to",
+      "edge_layer": "support",
+      "backbone_expand": false,
+      "from": "concept:conditional-get",
+      "to": "concept:web-cache",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-2-conditional-get"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:dns-uses-udp",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:dns",
+      "to": "concept:udp-service",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-4-dns-udp"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:cdn-uses-dns",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:cdn",
+      "to": "concept:dns",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs:2-6-cdn-dns"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:dash-uses-http",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:dash",
+      "to": "concept:http",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-6-dash"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:bittorrent-is-p2p",
+      "edge_type": "instance_of",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:bittorrent",
+      "to": "concept:p2p-architecture",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-5-bittorrent"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:pop3-is-mail-access",
+      "edge_type": "related_to",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:pop3",
+      "to": "concept:smtp",
+      "directionality": "undirected",
+      "confidence": 0.85,
+      "source_refs": ["evidence:cs:2-3-pop3-tcp"],
+      "properties": {"relation": "POP3是邮件访问协议，SMTP是邮件发送协议，两者共同完成邮件系统功能"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:imap-is-mail-access",
+      "edge_type": "related_to",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:imap",
+      "to": "concept:smtp",
+      "directionality": "undirected",
+      "confidence": 0.85,
+      "source_refs": ["evidence:cs:2-3-imap"],
+      "properties": {"relation": "IMAP是邮件访问协议，与SMTP互补"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:ssl-extends-tcp",
+      "edge_type": "extends",
+      "edge_layer": "support",
+      "backbone_expand": false,
+      "from": "concept:ssl",
+      "to": "concept:tcp-service",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-1-ssl-tcp"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:dns-resource-record-part-of-dns",
+      "edge_type": "part_of",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:dns-resource-record",
+      "to": "concept:dns",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-4-dns-rr"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:socket-programming-uses-socket",
+      "edge_type": "uses",
+      "edge_layer": "support",
+      "backbone_expand": false,
+      "from": "activity/experiment:socket-programming",
+      "to": "concept:socket",
+      "directionality": "directed",
+      "confidence": 0.99,
+      "source_refs": ["evidence:cs:2-7-socket-prog"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:rtt-related-to-http",
+      "edge_type": "measures",
+      "edge_layer": "support",
+      "backbone_expand": false,
+      "from": "concept:rtt",
+      "to": "concept:http",
+      "directionality": "directed",
+      "confidence": 0.9,
+      "source_refs": ["evidence:cs:2-2-rtt"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:client-server-prerequisite-for-app-protocol",
+      "edge_type": "prerequisite_for",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:client-server-architecture",
+      "to": "concept:application-layer-protocol",
+      "directionality": "directed",
+      "confidence": 0.9,
+      "source_refs": ["evidence:cs:2-1-app-arch"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:cdn-related-to-web-cache",
+      "edge_type": "extends",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:cdn",
+      "to": "concept:web-cache",
+      "directionality": "directed",
+      "confidence": 0.9,
+      "source_refs": ["evidence:cs:2-6-cdn"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:bandwidth-sensitive-vs-elastic",
+      "edge_type": "related_to",
+      "edge_layer": "support",
+      "backbone_expand": false,
+      "from": "concept:bandwidth-sensitive-application",
+      "to": "concept:elastic-application",
+      "directionality": "undirected",
+      "confidence": 0.9,
+      "source_refs": ["evidence:cs:2-1-throughput"],
+      "properties": {"relation": "带宽敏感应用与弹性应用是吞吐量需求的两个极端"},
+      "status": "candidate"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "profile:cs:concept:client-server-architecture",
+      "node_id": "concept:client-server-architecture",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解客户-服务器体系结构的基本特征", "区分客户与服务器的角色"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:p2p-architecture",
+      "node_id": "concept:p2p-architecture",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解P2P体系结构的自扩展性特征", "比较P2P与客户-服务器体系结构的优劣"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:socket",
+      "node_id": "concept:socket",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "introduced",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解套接字作为应用层与运输层之间接口的作用", "掌握套接字编程的基本方法"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:reliable-data-transfer",
+      "node_id": "concept:reliable-data-transfer",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解可靠数据传输的概念和意义", "区分容忍丢失应用与不可容忍丢失应用"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:http",
+      "node_id": "concept:http",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "developed",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:2-2"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["掌握HTTP协议的工作原理和报文格式", "理解HTTP无状态协议的特征", "区分持续连接与非持续连接"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:http-persistent-connection",
+      "node_id": "concept:http-persistent-connection",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "developed",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-2"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解持续连接与非持续连接的区别", "理解流水线技术对性能的影响"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:cookie",
+      "node_id": "concept:cookie",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-2"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解cookie的四个组件和工作过程", "了解cookie在无状态HTTP上建立用户会话层的作用"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:web-cache",
+      "node_id": "concept:web-cache",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "developed",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:2-2"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解Web缓存器减少响应时间和通信量的原理", "能计算使用缓存器前后的平均时延"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:smtp",
+      "node_id": "concept:smtp",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "developed",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:2-3"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["掌握SMTP协议的基本操作和命令", "理解SMTP作为推协议与HTTP作为拉协议的区别"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:pop3",
+      "node_id": "concept:pop3",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-3"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解POP3的三个工作阶段", "区分下载并删除与下载并保留两种方式"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:imap",
+      "node_id": "concept:imap",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-3"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解IMAP相比POP3的增强功能", "理解IMAP维护会话状态信息的意义"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:dns",
+      "node_id": "concept:dns",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "developed",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:2-4"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解DNS的分布式层次数据库设计", "掌握DNS查询的递归和迭代过程", "理解DNS缓存的作用"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:dns-resource-record",
+      "node_id": "concept:dns-resource-record",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "developed",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:2-4"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["掌握四种DNS资源记录类型(A, NS, CNAME, MX)的含义和用途"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:bittorrent",
+      "node_id": "concept:bittorrent",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "developed",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-5"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解BitTorrent的工作机制", "理解最稀缺优先和一报还一报策略", "理解P2P文件分发的自扩展性"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:cdn",
+      "node_id": "concept:cdn",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "developed",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-6"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解CDN的两种服务器安置原则", "理解CDN利用DNS重定向请求的机制", "了解集群选择策略"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:dash",
+      "node_id": "concept:dash",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-6"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解DASH的适应性流机制", "理解视频多版本编码和告示文件的作用"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:tcp-service",
+      "node_id": "concept:tcp-service",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解TCP面向连接和可靠数据传输两大服务", "了解TCP拥塞控制机制的作用"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:udp-service",
+      "node_id": "concept:udp-service",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解UDP无连接、不可靠的特征", "理解选择UDP而非TCP的场景"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:application-layer-protocol",
+      "node_id": "concept:application-layer-protocol",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解应用层协议定义的四个方面", "区分网络应用与应用层协议"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:ssl",
+      "node_id": "concept:ssl",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:2-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["理解SSL作为TCP加强版本的工作方式", "理解SSL在应用层实现而非运输层"],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:activity:socket-programming",
+      "node_id": "activity/experiment:socket-programming",
+      "subject": "computer_science",
+      "school_stage": "higher",
+      "grade_band": "undergraduate",
+      "curriculum_role": "developed",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:2-7"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:2"],
+      "textbook_ids": ["cs-topdown-7e"],
+      "learning_objectives": ["掌握UDP和TCP套接字编程的基本步骤", "能编写简单的客户-服务器程序"],
+      "properties": {},
+      "status": "draft"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evidence:cs:2-1-app-arch",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "在选择应用程序体系结构时，应用程序研发者很可能利用现代网络应用程序中所使用的两种主流体系结构之一：客户-服务器体系结构或对等（P2P）体系结构。",
+      "locator": "2.1.1 网络应用程序体系结构",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-1-socket-def",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "进程通过一个称为套接字（socket）的软件接口向网络发送报文和从网络接收报文。套接字是同一台主机内应用层与运输层之间的接口。由于该套接字是建立网络应用程序的可编程接口，因此套接字也称为应用程序和网络之间的应用程序编程接口（API）。",
+      "locator": "2.1.2 进程通信-进程与计算机网络之间的接口",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-1-tcp-reliable",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "TCP服务模型包括面向连接服务和可靠数据传输服务。通信进程能够依靠TCP，无差错、按适当顺序交付所有发送的数据。",
+      "locator": "2.1.4 因特网提供的运输服务-TCP服务",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-1-ssl-tcp",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "因特网界已经研制了TCP的加强版本，称为安全套接字层（SSL）。SSL不是与TCP和UDP在相同层次上的第三种因特网运输协议，而是一种对TCP的加强，这种强化是在应用层上实现的。",
+      "locator": "2.1.4 TCP安全",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-1-app-protocol",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "应用层协议定义了运行在不同端系统上的应用程序进程如何相互传递报文。特别是应用层协议定义了：交换的报文类型、各种报文类型的语法、字段的语义、确定一个进程何时以及如何发送报文对报文进行响应的规则。",
+      "locator": "2.1.5 应用层协议",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-1-throughput",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "具有吞吐量要求的应用程序被称为带宽敏感的应用。带宽敏感的应用具有特定的吞吐量要求，而弹性应用能够根据当时可用的带宽或多或少地利用可供使用的吞吐量。",
+      "locator": "2.1.3 可供应用程序使用的运输服务-吞吐量",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-2-http-tcp",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "HTTP使用TCP作为它的支撑运输协议。HTTP客户首先发起一个与服务器的TCP连接。TCP为HTTP提供可靠数据传输服务。",
+      "locator": "2.2.1 HTTP概况",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-2-persistent",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "在采用HTTP 1.1持续连接的情况下，服务器在发送响应后保持该TCP连接打开。后续的请求和响应报文能够通过相同的连接进行传送。HTTP的默认模式是使用带流水线的持续连接。",
+      "locator": "2.2.2 非持续连接和持续连接-采用持续连接的HTTP",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-2-nonpersistent",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "采用非持续连接，每个TCP连接在服务器发送一个对象后关闭，即该连接并不为其他的对象而持续下来。每个TCP连接只传输一个请求报文和一个响应报文。",
+      "locator": "2.2.2 非持续连接和持续连接-采用非持续连接的HTTP",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-2-cookie",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "HTTP使用了cookie。cookie技术有4个组件：HTTP响应报文中的cookie首部行、HTTP请求报文中的cookie首部行、用户端系统中保留的cookie文件、位于Web站点的后端数据库。cookie可以在无状态的HTTP之上建立一个用户会话层。",
+      "locator": "2.2.4 用户与服务器的交互：cookie",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-2-webcache",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "Web缓存器也叫代理服务器，它是能够代表初始Web服务器来满足HTTP请求的网络实体。Web缓存器可以大大减少对客户请求的响应时间，能够大大减少一个机构的接入链路到因特网的通信量。",
+      "locator": "2.2.5 Web缓存",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-2-conditional-get",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "HTTP协议有一种机制，允许缓存器证实它的对象是最新的。这种机制就是条件GET方法。如果请求报文使用GET方法并且请求报文中包含一个If-Modified-Since首部行，那么这个HTTP请求报文就是一个条件GET请求报文。",
+      "locator": "2.2.6 条件GET方法",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-2-rtt",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "往返时间（RTT）是指一个短分组从客户到服务器然后再返回客户所花费的时间。粗略地讲，总的响应时间就是两个RTT加上服务器传输HTML文件的时间。",
+      "locator": "2.2.2 非持续连接和持续连接",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-3-smtp-protocol",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "SMTP是因特网电子邮件中主要的应用层协议。它使用TCP可靠数据传输服务，从发送方的邮件服务器向接收方的邮件服务器发送邮件。SMTP基本上是一个推协议，即发送邮件服务器把文件推向接收邮件服务器。",
+      "locator": "2.3.1 SMTP",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-3-smtp-tcp",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "SMTP客户在25号端口建立一个到服务器SMTP的TCP连接。SMTP能依赖TCP提供的可靠数据传输无差错地将邮件投递到接收服务器。SMTP用的是持续连接。",
+      "locator": "2.3.1 SMTP",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-3-pop3-tcp",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "当用户代理打开了一个到邮件服务器端口110上的TCP连接后，POP3就开始工作了。POP3按照三个阶段进行工作：特许、事务处理以及更新。",
+      "locator": "2.3.4 邮件访问协议-POP3",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-3-imap",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "IMAP是一个邮件访问协议，它比POP3具有更多的特色。IMAP服务器把每个报文与一个文件夹联系起来，为用户提供了创建文件夹以及将邮件从一个文件夹移动到另一个文件夹的命令。IMAP服务器维护了IMAP会话的用户状态信息。",
+      "locator": "2.3.4 邮件访问协议-IMAP",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-4-dns-service",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "DNS是一个由分层的DNS服务器实现的分布式数据库；一个使得主机能够查询分布式数据库的应用层协议。DNS协议运行在UDP之上，使用53号端口。DNS的主要任务是将主机名转换为IP地址。",
+      "locator": "2.4.1 DNS提供的服务",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-4-dns-udp",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "所有的DNS请求和回答报文使用UDP数据报经端口53发送。",
+      "locator": "2.4.2 DNS工作机理概述",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-4-dns-rr",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "共同实现DNS分布式数据库的所有DNS服务器存储了资源记录（RR）。资源记录是一个包含了下列字段的4元组：(Name, Value, Type, TTL)。主要类型包括A、NS、CNAME和MX。",
+      "locator": "2.4.3 DNS记录和报文",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-5-bittorrent",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "BitTorrent是一种用于文件分发的流行P2P协议。参与一个特定文件分发的所有对等方的集合被称为一个洪流。BitTorrent使用最稀缺优先技术和一报还一报的对换算法。",
+      "locator": "2.5 P2P文件分发-BitTorrent",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-6-cdn",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "CDN管理分布在多个地理位置上的服务器，在它的服务器中存储视频和其他类型Web内容的副本，并且试图将每个用户请求定向到一个将提供最好用户体验的CDN位置。CDN通常采用两种不同的服务器安置原则：深入和邀请做客。",
+      "locator": "2.6.3 内容分发网",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-6-cdn-dns",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "大多数CDN利用DNS来截获和重定向请求。NetCinema权威DNS服务器并不返回一个IP地址，而是向LDNS返回一个KingCDN域的主机名，DNS请求进入了KingCDN专用DNS基础设施。",
+      "locator": "2.6.3 CDN操作",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-6-dash",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "在DASH中，视频编码为几个不同的版本，其中每个版本具有不同的比特率。客户动态地请求来自不同版本且长度为几秒的视频段数据块。DASH允许客户自由地在不同的质量等级之间切换。",
+      "locator": "2.6.2 HTTP流和DASH",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-7-socket-prog",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "网络应用程序有两类。一类是由协议标准中所定义的操作的实现；另一类是专用的网络应用程序。在本节中，我们考察研发一个客户-服务器应用程序中的关键问题，包括UDP套接字编程和TCP套接字编程。",
+      "locator": "2.7 套接字编程：生成网络应用",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-1-cs-arch",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "在客户-服务器体系结构中，有一个总是打开的主机称为服务器，它服务于来自许多其他称为客户的主机的请求。客户相互之间不直接通信；该服务器具有固定的、周知的地址，该地址称为IP地址。",
+      "locator": "2.1.1 网络应用程序体系结构",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-1-p2p-arch",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "在一个P2P体系结构中，对位于数据中心的专用服务器有最小的或者没有依赖。应用程序在间断连接的主机对之间使用直接通信，这些主机对被称为对等方。P2P体系结构的最引人入胜的特性之一是它们的自扩展性。",
+      "locator": "2.1.1 网络应用程序体系结构",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-1-reliable-transfer",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "如果一个协议提供了确保数据交付服务，就认为提供了可靠数据传输。运输层协议能够潜在地向应用程序提供的一个重要服务是进程到进程的可靠数据传输。",
+      "locator": "2.1.3 可供应用程序使用的运输服务-可靠数据传输",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs:2-1-udp",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "excerpt": "UDP是一种不提供不必要服务的轻量级运输协议，它仅提供最小服务。UDP是无连接的，提供一种不可靠数据传送服务。UDP没有包括拥塞控制机制。",
+      "locator": "2.1.4 UDP服务",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    }
+  ],
+  "mentions": [
+    {
+      "id": "mention:cs:client-server-arch-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:client-server-architecture",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-1-cs-arch"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:p2p-arch-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:p2p-architecture",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-1-p2p-arch"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:socket-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:socket",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-1-socket-def"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:reliable-transfer-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:reliable-data-transfer",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-1-reliable-transfer"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:http-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:http",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-2-http-tcp"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:http-persistent-focuses",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:http-persistent-connection",
+      "role": "focuses_on",
+      "source_refs": ["evidence:cs:2-2-persistent"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:http-nonpersistent-focuses",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:http-non-persistent-connection",
+      "role": "focuses_on",
+      "source_refs": ["evidence:cs:2-2-nonpersistent"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:cookie-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:cookie",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-2-cookie"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:web-cache-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:web-cache",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-2-webcache"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:conditional-get-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:conditional-get",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-2-conditional-get"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:rtt-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:rtt",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-2-rtt"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:smtp-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:smtp",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-3-smtp-protocol"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:pop3-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:pop3",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-3-pop3-tcp"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:imap-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:imap",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-3-imap"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:dns-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:dns",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-4-dns-service"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:dns-rr-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:dns-resource-record",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-4-dns-rr"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:bittorrent-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:bittorrent",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-5-bittorrent"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:cdn-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:cdn",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-6-cdn"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:dash-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:dash",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-6-dash"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:tcp-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:tcp-service",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-1-tcp-reliable"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:udp-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:udp-service",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-1-udp"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:app-protocol-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:application-layer-protocol",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-1-app-protocol"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:ssl-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:ssl",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-1-ssl-tcp"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:socket-prog-demonstrates",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "activity/experiment:socket-programming",
+      "role": "demonstrates",
+      "source_refs": ["evidence:cs:2-7-socket-prog"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:bandwidth-sensitive-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:bandwidth-sensitive-application",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-1-throughput"],
+      "confidence": 0.99,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs:elastic-app-defines",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:2",
+      "target_type": "node",
+      "target_id": "concept:elastic-application",
+      "role": "defines",
+      "source_refs": ["evidence:cs:2-1-throughput"],
+      "confidence": 0.99,
+      "properties": {}
+    }
+  ],
+  "node_cards": [
+    {
+      "id": "node-card:cs:concept:client-server-architecture",
+      "node_id": "concept:client-server-architecture",
+      "card_layer": "backbone",
+      "title": "客户-服务器体系结构",
+      "summary": "客户-服务器体系结构是网络应用程序的两种主流体系结构之一，其核心特征是有一个总是打开的服务器主机服务于来自多个客户主机的请求，客户之间不直接通信，服务器具有固定的周知IP地址。当单台服务器不足以处理所有请求时，常使用数据中心创建强大的虚拟服务器。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-1-cs-arch"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["在客户-服务器体系结构中，有一个总是打开的主机称为服务器，它服务于来自许多其他称为客户的主机的请求。客户相互之间不直接通信，服务器具有固定的、周知的IP地址。"],
+          "source_refs": ["evidence:cs:2-1-cs-arch"]
+        },
+        {
+          "id": "essence",
+          "title": "核心本质",
+          "section_type": "essence",
+          "content": ["集中式服务提供：一台或一组服务器集中处理请求，客户仅消费服务。服务器的固定地址使得客户总是能定位到服务。"],
+          "source_refs": ["evidence:cs:2-1-cs-arch"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["服务器总是打开，具有固定IP地址", "客户之间不直接通信", "数据中心用于扩展服务器处理能力", "流行的C/S应用包括Web、FTP、Telnet和电子邮件"],
+          "source_refs": ["evidence:cs:2-1-cs-arch"]
+        },
+        {
+          "id": "application",
+          "title": "应用",
+          "section_type": "application",
+          "content": ["Web应用（浏览器与Web服务器）、FTP文件传输、Telnet远程终端访问、电子邮件（用户代理与邮件服务器）"],
+          "source_refs": ["evidence:cs:2-1-cs-arch"]
+        },
+        {
+          "id": "misconception",
+          "title": "常见误解",
+          "section_type": "misconception",
+          "content": ["误解：客户-服务器意味着客户端不能发送数据。实际上，通信是双向的，但连接总是由客户发起。", "误解：只能有一台服务器。实际上大型应用使用数据中心中的大量服务器。"],
+          "source_refs": ["evidence:cs:2-1-cs-arch"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:p2p-architecture",
+      "node_id": "concept:p2p-architecture",
+      "card_layer": "backbone",
+      "title": "P2P体系结构",
+      "summary": "P2P体系结构对位于数据中心的专用服务器有最小的或没有依赖，应用程序在间断连接的对等方之间使用直接通信。其最突出的特性是自扩展性：每个对等方既是消费者又是重新分发者。P2P也具有成本效率优势，但面临安全性、性能和可靠性挑战。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-1-p2p-arch"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["对位于数据中心的专用服务器有最小的或没有依赖，应用程序在间断连接的主机对之间使用直接通信，这些主机对被称为对等方。"],
+          "source_refs": ["evidence:cs:2-1-p2p-arch"]
+        },
+        {
+          "id": "essence",
+          "title": "核心本质",
+          "section_type": "essence",
+          "content": ["去中心化自扩展：每个参与者同时充当客户和服务器，系统服务能力随用户数量增加而自动增长。"],
+          "source_refs": ["evidence:cs:2-1-p2p-arch"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["对等方直接通信，不依赖专用服务器", "自扩展性：每个对等方增加服务能力", "成本效率高，不需要庞大服务器基础设施", "面临安全性、性能和可靠性挑战", "某些应用采用混合体系结构"],
+          "source_refs": ["evidence:cs:2-1-p2p-arch"]
+        },
+        {
+          "id": "application",
+          "title": "应用",
+          "section_type": "application",
+          "content": ["BitTorrent文件共享、迅雷下载加速器、Skype因特网电话和视频会议"],
+          "source_refs": ["evidence:cs:2-1-p2p-arch"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:socket",
+      "node_id": "concept:socket",
+      "card_layer": "backbone",
+      "title": "套接字",
+      "summary": "套接字是同一台主机内应用层与运输层之间的接口，是建立网络应用程序的可编程接口(API)。进程通过套接字向网络发送和接收报文。应用程序开发者控制套接字在应用层端的一切，但对运输层端的控制仅限于选择运输层协议和设定少量运输层参数。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-1-socket-def"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["同一台主机内应用层与运输层之间的接口，进程通过套接字向网络发送报文和从网络接收报文，是应用程序和网络之间的应用程序编程接口(API)。"],
+          "source_refs": ["evidence:cs:2-1-socket-def"]
+        },
+        {
+          "id": "essence",
+          "title": "核心本质",
+          "section_type": "essence",
+          "content": ["套接字是应用程序与网络之间的\"门\"，应用层进程将报文推出这扇门，运输层负责将报文送达目的进程的门。"],
+          "source_refs": ["evidence:cs:2-1-socket-def"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["套接字是应用层与运输层之间的接口", "开发者控制套接字应用层端，对运输层端控制有限", "运输层控制仅限于：选择运输层协议、设定少量参数（如最大缓存）", "进程寻址需要：主机IP地址 + 端口号"],
+          "source_refs": ["evidence:cs:2-1-socket-def"]
+        },
+        {
+          "id": "application",
+          "title": "应用",
+          "section_type": "application",
+          "content": ["UDP套接字编程和TCP套接字编程是开发网络应用程序的基础，Python的socket模块提供了套接字API。"],
+          "source_refs": ["evidence:cs:2-7-socket-prog"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:reliable-data-transfer",
+      "node_id": "concept:reliable-data-transfer",
+      "card_layer": "backbone",
+      "title": "可靠数据传输",
+      "summary": "可靠数据传输是运输层提供的关键服务之一，确保应用程序一端发送的数据正确、完全地交付给另一端。TCP提供可靠数据传输，而UDP不提供。需要可靠传输的应用包括电子邮件、文件传输和Web文档传输；容忍丢失的应用主要是多媒体应用。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-1-reliable-transfer"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["确保由应用程序一端发送的数据正确、完全地交付给应用程序的另一端。发送进程只要将其数据传递进套接字，就可以相信数据将能无差错地到达接收进程。"],
+          "source_refs": ["evidence:cs:2-1-reliable-transfer"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["TCP提供可靠数据传输，UDP不提供", "需要可靠传输的应用：电子邮件、文件传输、Web、金融应用", "容忍丢失的应用：交谈式音频/视频等多媒体应用", "丢失的数据在多媒体中引起小干扰而非致命损伤"],
+          "source_refs": ["evidence:cs:2-1-reliable-transfer"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:http",
+      "node_id": "concept:http",
+      "card_layer": "backbone",
+      "title": "HTTP协议",
+      "summary": "HTTP是Web的应用层协议，定义了Web客户和服务器之间的报文格式和交换方式。HTTP使用TCP作为支撑运输协议，是无状态协议（服务器不保存客户状态信息）。HTTP报文分为请求报文和响应报文，请求报文包含请求行和首部行，响应报文包含状态行和首部行。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-2-http-tcp"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["Web的应用层协议，是超文本传输协议，定义了Web客户向Web服务器请求Web页面的方式以及服务器向客户传送Web页面的方式，是无状态协议，使用TCP作为支撑运输协议。"],
+          "source_refs": ["evidence:cs:2-2-http-tcp"]
+        },
+        {
+          "id": "essence",
+          "title": "核心本质",
+          "section_type": "essence",
+          "content": ["请求-响应模型：客户发起请求，服务器返回响应。无状态意味着每次请求都是独立的，服务器不记忆之前交互。"],
+          "source_refs": ["evidence:cs:2-2-http-tcp"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["HTTP使用TCP，默认端口80", "无状态协议：服务器不保存关于客户的任何信息", "请求报文格式：请求行（方法+URL+版本）+ 首部行", "响应报文格式：状态行（版本+状态码+短语）+ 首部行", "主要方法：GET、POST、HEAD、PUT、DELETE", "常见状态码：200 OK, 301 Moved Permanently, 404 Not Found"],
+          "source_refs": ["evidence:cs:2-2-http-tcp"]
+        },
+        {
+          "id": "misconception",
+          "title": "常见误解",
+          "section_type": "misconception",
+          "content": ["误解：HTTP服务器保留客户状态。实际上HTTP是无状态协议，每次请求都是独立的。Cookie机制可以在无状态HTTP上建立用户会话层。"],
+          "source_refs": ["evidence:cs:2-2-cookie"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:http-persistent-connection",
+      "node_id": "concept:http-persistent-connection",
+      "card_layer": "backbone",
+      "title": "HTTP持续连接",
+      "summary": "HTTP持续连接是HTTP 1.1的默认模式，服务器在发送响应后保持TCP连接打开，后续请求和响应可以通过相同连接传送。支持流水线方式，即可以连续发送请求而不必等待前一个请求的响应。HTTP/2进一步允许在相同连接中多个请求和回答交错。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-2-persistent"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["服务器在发送响应后保持TCP连接打开，后续请求和响应可以通过相同连接传送，支持流水线方式。"],
+          "source_refs": ["evidence:cs:2-2-persistent"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["HTTP 1.1默认使用持续连接", "完整Web页面可用单个TCP连接传送", "流水线方式允许连续发送请求", "超过超时间隔未使用则服务器关闭连接", "HTTP/2支持在相同连接中请求和回答交错"],
+          "source_refs": ["evidence:cs:2-2-persistent"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:cookie",
+      "node_id": "concept:cookie",
+      "card_layer": "backbone",
+      "title": "Cookie机制",
+      "summary": "Cookie是HTTP中用于在无状态协议上建立用户会话层的机制，由四个组件协同工作。服务器通过Set-cookie首部向浏览器发送唯一识别码，浏览器在后续请求中通过Cookie首部携带识别码，使服务器能够跟踪用户活动。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-2-cookie"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["HTTP中用于站点对用户进行跟踪的机制，由四个组件组成：HTTP响应报文中的cookie首部行、HTTP请求报文中的cookie首部行、用户端系统中的cookie文件、Web站点的后端数据库。"],
+          "source_refs": ["evidence:cs:2-2-cookie"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["四个组件协同工作实现用户识别", "服务器首次访问时通过Set-cookie首部设置识别码", "浏览器在后续请求中通过Cookie首部携带识别码", "Cookie可以在无状态HTTP之上建立用户会话层", "Cookie使用涉及隐私争议"],
+          "source_refs": ["evidence:cs:2-2-cookie"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:web-cache",
+      "node_id": "concept:web-cache",
+      "card_layer": "backbone",
+      "title": "Web缓存",
+      "summary": "Web缓存器（代理服务器）代表初始Web服务器满足HTTP请求，保存最近请求过的对象副本。它可以减少客户请求的响应时间和机构接入链路的通信量。CDN是Web缓存在因特网中发挥越来越重要作用的形式。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-2-webcache"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["能够代表初始Web服务器来满足HTTP请求的网络实体，有自己的磁盘存储空间，保存最近请求过的对象的副本。"],
+          "source_refs": ["evidence:cs:2-2-webcache"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["既是服务器又是客户", "减少响应时间（尤其当客户与缓存之间有高速连接时）", "减少机构接入链路到因特网的通信量", "典型命中率在0.2~0.7之间", "CDN是Web缓存的大规模扩展形式"],
+          "source_refs": ["evidence:cs:2-2-webcache"]
+        },
+        {
+          "id": "example",
+          "title": "计算示例",
+          "section_type": "example",
+          "content": ["当命中率0.4时：平均时延 = 0.4 * 0.01秒 + 0.6 * 2.01秒 ≈ 1.2秒，远优于无缓存的情况。"],
+          "source_refs": ["evidence:cs:2-2-webcache"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:smtp",
+      "node_id": "concept:smtp",
+      "card_layer": "backbone",
+      "title": "SMTP协议",
+      "summary": "SMTP是因特网电子邮件的核心应用层协议，使用TCP从发送方邮件服务器向接收方邮件服务器推送邮件。它是推协议，限制报文体只能采用7比特ASCII表示。SMTP使用持续连接，命令包括HELO、MAIL FROM、RCPT TO、DATA和QUIT。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-3-smtp-protocol"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["因特网电子邮件中主要的应用层协议，使用TCP可靠数据传输服务从发送方的邮件服务器向接收方的邮件服务器发送邮件，是推协议，使用端口25。"],
+          "source_refs": ["evidence:cs:2-3-smtp-protocol"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["推协议：TCP连接由发送方发起", "限制报文体为7比特ASCII，需编码/解码二进制数据", "使用持续连接发送多个报文", "主要命令：HELO、MAIL FROM、RCPT TO、DATA、QUIT", "一般不使用中间邮件服务器，直接连接", "与HTTP对比：推vs拉、ASCII限制、报文内对象封装方式不同"],
+          "source_refs": ["evidence:cs:2-3-smtp-protocol"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:dns",
+      "node_id": "concept:dns",
+      "card_layer": "backbone",
+      "title": "DNS域名系统",
+      "summary": "DNS是因特网的目录服务，是分布式层次数据库系统，主要将主机名转换为IP地址。DNS服务器分为根DNS服务器、TLD服务器、权威DNS服务器和本地DNS服务器。DNS广泛使用缓存技术来改善性能和减少流量。DNS还提供主机别名、邮件服务器别名和负载分配服务。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-4-dns-service"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["由分层的DNS服务器实现的分布式数据库，以及使得主机能够查询该数据库的应用层协议，运行在UDP之上，使用53号端口，主要任务是将主机名转换为IP地址。"],
+          "source_refs": ["evidence:cs:2-4-dns-service"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["分布式层次设计：根DNS -> TLD DNS -> 权威DNS", "本地DNS服务器作为代理转发查询", "递归查询与迭代查询两种方式", "DNS缓存显著减少查询流量和时延", "附加服务：主机别名、邮件服务器别名、负载分配", "资源记录类型：A、NS、CNAME、MX"],
+          "source_refs": ["evidence:cs:2-4-dns-service", "evidence:cs:2-4-dns-rr"]
+        },
+        {
+          "id": "misconception",
+          "title": "常见误解",
+          "section_type": "misconception",
+          "content": ["误解：DNS只是一个简单的名字查找服务。实际上DNS还提供主机别名、邮件服务器别名和负载分配等重要服务。", "误解：每次DNS查询都要从根服务器开始。实际上DNS缓存使得大多数查询绕过根服务器。"],
+          "source_refs": ["evidence:cs:2-4-dns-service"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:bittorrent",
+      "node_id": "concept:bittorrent",
+      "card_layer": "backbone",
+      "title": "BitTorrent协议",
+      "summary": "BitTorrent是流行的P2P文件分发协议，参与特定文件分发的对等方集合称为洪流。使用最稀缺优先策略选择请求的块，采用一报还一报对换算法实现激励机制。追踪器跟踪参与洪流的对等方，每个对等方与邻近对等方交换块列表和数据。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-5-bittorrent"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["一种流行的P2P文件分发协议，参与特定文件分发的所有对等方集合称为洪流，对等方彼此下载等长度的文件块。"],
+          "source_refs": ["evidence:cs:2-5-bittorrent"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["洪流中的对等方互相下载256KB的文件块", "追踪器跟踪参与洪流的对等方", "最稀缺优先：优先请求邻居中副本最少的块", "一报还一报：前4位高速上载者被疏通，每30秒随机选择一名试探对等方", "激励机制防止搭便车者"],
+          "source_refs": ["evidence:cs:2-5-bittorrent"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:cdn",
+      "node_id": "concept:cdn",
+      "card_layer": "backbone",
+      "title": "内容分发网(CDN)",
+      "summary": "CDN管理分布在多个地理位置的服务器，存储Web内容的副本，将用户请求定向到最佳CDN位置。两种部署策略：深入（将集群部署在接入ISP中）和邀请做客（在IXP部署大集群）。CDN利用DNS截获和重定向请求，使用集群选择策略确定最佳服务集群。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-6-cdn"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["管理分布在多个地理位置上的服务器，在服务器中存储Web内容的副本，将每个用户请求定向到提供最好用户体验的CDN位置。分为专用CDN和第三方CDN。"],
+          "source_refs": ["evidence:cs:2-6-cdn"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["深入策略：在接入ISP中部署集群，靠近用户", "邀请做客策略：在IXP部署大集群，维护成本低", "利用DNS截获和重定向请求", "集群选择策略：地理邻近 vs 实时测量", "专用CDN如谷歌，第三方CDN如Akamai"],
+          "source_refs": ["evidence:cs:2-6-cdn", "evidence:cs:2-6-cdn-dns"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:dash",
+      "node_id": "concept:dash",
+      "card_layer": "backbone",
+      "title": "DASH适应性流",
+      "summary": "DASH（经HTTP的动态适应性流）将视频编码为不同比特率的多个版本，客户根据当前可用带宽动态选择合适版本的视频段。使用告示文件提供各版本URL和比特率，客户通过HTTP GET请求选择不同块，实现自由的质量等级切换。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-6-dash"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["视频编码为几个不同版本，每个版本具有不同比特率和质量水平，客户动态请求来自不同版本的视频段数据块，根据可用带宽自适应选择版本。"],
+          "source_refs": ["evidence:cs:2-6-dash"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["多版本编码：不同比特率对应不同质量", "告示文件提供各版本URL和比特率信息", "客户通过HTTP GET请求一次选择一个块", "根据缓存量和测量带宽决定下个块的质量", "对移动用户尤其重要：带宽波动时自适应"],
+          "source_refs": ["evidence:cs:2-6-dash"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:tcp-service",
+      "node_id": "concept:tcp-service",
+      "card_layer": "backbone",
+      "title": "TCP服务",
+      "summary": "TCP是因特网提供的面向连接的运输层协议，提供面向连接服务和可靠数据传输服务两大核心功能。TCP还具有拥塞控制机制，可通过SSL加强提供安全性服务。TCP连接是全双工的，保证字节流无差错按序到达。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-1-tcp-reliable"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["因特网提供的面向连接的运输层协议，服务模型包括面向连接服务和可靠数据传输服务，具有拥塞控制机制，可通过SSL加强提供安全性。"],
+          "source_refs": ["evidence:cs:2-1-tcp-reliable"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["面向连接：三次握手建立TCP连接", "可靠数据传输：无差错、按序交付", "全双工连接：双方可同时收发", "拥塞控制：抑制发送方以避免网络拥塞", "SSL加强：在应用层实现加密、数据完整性、端点鉴别"],
+          "source_refs": ["evidence:cs:2-1-tcp-reliable", "evidence:cs:2-1-ssl-tcp"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:udp-service",
+      "node_id": "concept:udp-service",
+      "card_layer": "backbone",
+      "title": "UDP服务",
+      "summary": "UDP是因特网提供的无连接运输层协议，仅提供最小服务，不保证可靠数据传输，没有拥塞控制。UDP的优势在于轻量级、低延迟，适合容忍丢失但对延迟敏感的应用，如因特网电话。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-1-udp"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["不提供不必要服务的轻量级运输协议，仅提供最小服务，无连接、不可靠，没有拥塞控制机制。"],
+          "source_refs": ["evidence:cs:2-1-udp"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["无连接：通信前没有握手过程", "不可靠：不保证报文到达，可能乱序", "无拥塞控制：发送端可以用任何速率注入数据", "适合容忍丢失但对延迟敏感的应用", "因特网电话通常首选UDP，TCP作为备份"],
+          "source_refs": ["evidence:cs:2-1-udp"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:application-layer-protocol",
+      "node_id": "concept:application-layer-protocol",
+      "card_layer": "backbone",
+      "title": "应用层协议",
+      "summary": "应用层协议定义运行在不同端系统上的应用程序进程如何相互传递报文，包括报文类型、语法、语义和时序规则。应用层协议只是网络应用的一部分，需与网络应用本身区分开来。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-1-app-protocol"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["定义运行在不同端系统上的应用程序进程如何相互传递报文的协议，定义了交换的报文类型、语法、语义和时序规则。"],
+          "source_refs": ["evidence:cs:2-1-app-protocol"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["定义报文类型（如请求和响应）", "定义报文语法（字段及描述方式）", "定义字段语义（信息含义）", "定义时序规则（何时发送、如何响应）", "区分网络应用与应用层协议：协议只是应用的一部分"],
+          "source_refs": ["evidence:cs:2-1-app-protocol"]
+        },
+        {
+          "id": "misconception",
+          "title": "常见误解",
+          "section_type": "misconception",
+          "content": ["误解：应用层协议就是网络应用。实际上应用层协议只是网络应用的一部分。例如HTTP只是Web应用的一部分，Web还包括HTML、浏览器、服务器等。"],
+          "source_refs": ["evidence:cs:2-1-app-protocol"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:dns-resource-record",
+      "node_id": "concept:dns-resource-record",
+      "card_layer": "backbone",
+      "title": "DNS资源记录",
+      "summary": "DNS资源记录是DNS分布式数据库中存储的记录，是包含Name、Value、Type、TTL四字段的四元组。四种主要类型：A记录提供主机名到IP地址映射，NS记录指向权威DNS服务器，CNAME记录提供规范主机名，MX记录提供邮件服务器规范主机名。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-4-dns-rr"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["DNS分布式数据库中存储的记录，是包含(Name, Value, Type, TTL)四个字段的四元组。TTL决定记录从缓存中删除的时间。"],
+          "source_refs": ["evidence:cs:2-4-dns-rr"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["A记录：Name=主机名, Value=IP地址", "NS记录：Name=域, Value=权威DNS服务器主机名", "CNAME记录：Name=别名, Value=规范主机名", "MX记录：Name=别名, Value=邮件服务器规范主机名", "MX记录允许邮件服务器和其他服务器使用相同别名"],
+          "source_refs": ["evidence:cs:2-4-dns-rr"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:pop3",
+      "node_id": "concept:pop3",
+      "card_layer": "backbone",
+      "title": "POP3协议",
+      "summary": "POP3是一个简单的邮件访问协议，按特许、事务处理、更新三个阶段工作。支持下载并删除和下载并保留两种方式。POP3不在会话中携带状态信息，简化了实现但限制了远程邮件管理功能。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-3-pop3-tcp"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["简单的邮件访问协议，使用端口110，按特许、事务处理、更新三个阶段工作，支持下载并删除和下载并保留两种方式。"],
+          "source_refs": ["evidence:cs:2-3-pop3-tcp"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["三个阶段：特许、事务处理、更新", "下载并删除：邮件从服务器删除，无法从多台机器访问", "下载并保留：邮件保留在服务器，可从多台机器访问", "会话中不携带状态信息（简化实现）", "主要命令：user, pass, list, retr, dele, quit"],
+          "source_refs": ["evidence:cs:2-3-pop3-tcp"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:imap",
+      "node_id": "concept:imap",
+      "card_layer": "backbone",
+      "title": "IMAP协议",
+      "summary": "IMAP是比POP3功能更丰富的邮件访问协议，允许用户在远程服务器上创建文件夹、移动和查询邮件，维护会话状态信息，支持获取报文的部分内容。适合需要从多台机器管理邮件的移动用户。",
+      "pattern_refs": ["pattern:cs:concept-card"],
+      "source_refs": ["evidence:cs:2-3-imap"],
+      "sections": [
+        {
+          "id": "definition",
+          "title": "定义",
+          "section_type": "definition",
+          "content": ["比POP3功能更丰富的邮件访问协议，提供远程文件夹管理、邮件查询和部分获取功能，维护IMAP会话的用户状态信息。"],
+          "source_refs": ["evidence:cs:2-3-imap"]
+        },
+        {
+          "id": "key-points",
+          "title": "关键要点",
+          "section_type": "key_points",
+          "content": ["支持远程文件夹创建和邮件移动", "维护会话状态信息（与POP3不同）", "允许获取报文的部分内容（如仅首部）", "适合低带宽连接", "比POP3复杂但功能更强"],
+          "source_refs": ["evidence:cs:2-3-imap"]
+        }
+      ],
+      "properties": {},
+      "status": "draft"
+    }
+  ]
+}

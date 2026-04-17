@@ -287,7 +287,7 @@ user-invocable: true
 
 调用方负责：
 1. 为每个 backbone 节点生成临时节点卡片
-2. 调用 `scripts/store_lesson_staging.py` 写入 staging 表
+2. 调用方通过 MCP staging 工具写入 staging 表
 3. 验证 staging 完整性
 
 ### 阶段六：验证产物包

@@ -1,0 +1,2002 @@
+{
+  "nodes": [
+    {
+      "id": "concept:control-plane",
+      "canonical_name": "控制平面",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Control Plane", "网络控制平面"],
+      "definition": "网络范围的逻辑，控制沿着从源主机到目的主机的端到端路径间的路由器如何转发数据报，以及控制网络层组件和服务如何配置和管理",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["system", "function", "structure"],
+      "framework_refs": ["framework:cs:topic:5"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:routing-algorithm",
+      "canonical_name": "路由选择算法",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Routing Algorithm", "路由算法"],
+      "definition": "确定从发送方到接收方的一条通过路由器网络的好路径（等价于路由）的算法，通常目标是找出最低开销路径",
+      "learning_modes": ["conceptual", "procedural"],
+      "bridge_tags": ["algorithm", "system", "function"],
+      "framework_refs": ["framework:cs:topic:5-2"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:link-state-algorithm",
+      "canonical_name": "链路状态算法",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Link State Algorithm", "LS算法", "链路状态路由选择算法"],
+      "definition": "一种集中式路由选择算法，要求每个节点具有关于网络中所有链路开销的完整全局信息，使用Dijkstra算法计算从源节点到所有其他节点的最低开销路径",
+      "learning_modes": ["conceptual", "procedural"],
+      "bridge_tags": ["algorithm", "system", "structure"],
+      "framework_refs": ["framework:cs:topic:5-2-1"],
+      "properties": {
+        "complexity": "O(n^2)",
+        "requires_global_knowledge": true
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:distance-vector-algorithm",
+      "canonical_name": "距离向量算法",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Distance Vector Algorithm", "DV算法", "距离向量路由选择算法"],
+      "definition": "一种迭代的、异步的和分布式的路由选择算法，每个节点维护到网络中所有其他节点的开销估计向量，通过迭代计算和与相邻节点交换距离向量来逐渐收敛到最低开销路径",
+      "learning_modes": ["conceptual", "procedural"],
+      "bridge_tags": ["algorithm", "system", "interaction"],
+      "framework_refs": ["framework:cs:topic:5-2-2"],
+      "properties": {
+        "requires_global_knowledge": false,
+        "convergence": "异步收敛"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:bellman-ford-equation",
+      "canonical_name": "Bellman-Ford方程",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Bellman-Ford Equation"],
+      "definition": "描述最低开销路径开销之间关系的方程：d_x(y) = min_v{c(x,v) + d_v(y)}，即从节点x到节点y的最低开销路径等于遍历所有邻居v的开销加上从v到y的最低开销的最小值",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["rule", "system", "model"],
+      "framework_refs": ["framework:cs:topic:5-2-2"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:count-to-infinity",
+      "canonical_name": "无穷计数问题",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Count-to-Infinity Problem", "无穷计数"],
+      "definition": "在距离向量路由选择中，当链路开销增加时，节点间通过逐步递增的距离向量交换缓慢收敛的现象，可能需要大量迭代才能达到稳定状态",
+      "learning_modes": ["conceptual"],
+      "bridge_tags": ["system", "change", "uncertainty"],
+      "framework_refs": ["framework:cs:topic:5-2-2"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:poisoned-reverse",
+      "canonical_name": "毒性逆转",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Poisoned Reverse", "水平分裂毒性逆转"],
+      "definition": "一种解决距离向量路由选择中两个直接相连邻居节点间路由环路的技术：如果节点z通过节点y路由到目的地x，则z向y通告它到x的距离为无穷大",
+      "learning_modes": ["conceptual", "procedural"],
+      "bridge_tags": ["system", "rule", "interaction"],
+      "framework_refs": ["framework:cs:topic:5-2-2"],
+      "properties": {
+        "limitation": "不能解决涉及三个或更多节点的环路问题"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:autonomous-system",
+      "canonical_name": "自治系统",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Autonomous System", "AS", "自治域"],
+      "definition": "一组通常处在相同管理控制下的路由器组成的集合，由全局唯一的AS号（ASN）标识，是因特网路由选择的基本管理单位",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["system", "structure", "classification"],
+      "framework_refs": ["framework:cs:topic:5-3"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "entity/protocol:ospf",
+      "canonical_name": "OSPF",
+      "node_kind": "entity",
+      "node_subkind": "protocol",
+      "node_layer": "backbone",
+      "aliases": ["开放最短路径优先", "Open Shortest Path First", "OSPFv2"],
+      "definition": "一种链路状态协议，使用洪泛链路状态信息和Dijkstra最低开销路径算法，在自治系统内部进行路由选择，支持安全鉴别、多条相同开销路径、多播路由选择和层次化区域配置",
+      "learning_modes": ["conceptual", "procedural", "factual"],
+      "bridge_tags": ["system", "algorithm", "structure"],
+      "framework_refs": ["framework:cs:topic:5-3"],
+      "properties": {
+        "protocol_type": "AS内部路由选择协议",
+        "algorithm": "链路状态/Dijkstra",
+        "upper_protocol": "IP (协议号89)",
+        "broadcast_interval": "至少每30分钟",
+        "supports_security": true,
+        "supports_equal_cost_multipath": true,
+        "supports_multicast": true,
+        "supports_hierarchy": true
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "entity/protocol:bgp",
+      "canonical_name": "BGP",
+      "node_kind": "entity",
+      "node_subkind": "protocol",
+      "node_layer": "backbone",
+      "aliases": ["边界网关协议", "Border Gateway Protocol"],
+      "definition": "因特网中唯一的AS间路由选择协议，将因特网中数以千计的ISP黏合起来，是一种分布式和异步的协议，基于路径向量进行路由选择，支持基于策略的路由决策",
+      "learning_modes": ["conceptual", "procedural", "factual"],
+      "bridge_tags": ["system", "structure", "interaction"],
+      "framework_refs": ["framework:cs:topic:5-4"],
+      "properties": {
+        "protocol_type": "AS间路由选择协议",
+        "connection_port": 179,
+        "transport": "TCP",
+        "route_attributes": ["AS-PATH", "NEXT-HOP", "本地偏好"]
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:bgp-route-selection",
+      "canonical_name": "BGP路由选择算法",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["BGP Route Selection", "BGP路由器选择"],
+      "definition": "BGP路由器从多条可达路由中选择最好路由的算法，按顺序应用消除规则：1)最高本地偏好值；2)最短AS-PATH；3)热土豆路由选择(最靠近NEXT-HOP)；4)使用BGP标识符选择",
+      "learning_modes": ["conceptual", "procedural"],
+      "bridge_tags": ["algorithm", "system", "rule"],
+      "framework_refs": ["framework:cs:topic:5-4-3"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:hot-potato-routing",
+      "canonical_name": "热土豆路由选择",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Hot Potato Routing", "热土豆算法"],
+      "definition": "一种BGP路由选择策略，路由器选择到开始该路由的NEXT-HOP路由器具有最小开销的路由，即尽可能快地将分组送出其AS，而不关心AS外部到目的地的余下部分的开销",
+      "learning_modes": ["conceptual"],
+      "bridge_tags": ["algorithm", "system", "interaction"],
+      "framework_refs": ["framework:cs:topic:5-4-3"],
+      "properties": {
+        "characteristic": "自私的算法，减小自己AS中的开销"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:ip-anycast",
+      "canonical_name": "IP任播",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["IP Anycast", "任播"],
+      "definition": "一种使用BGP将用户请求路由到地理上分散的多个服务器中最近的一个的服务方式，为多台服务器指派相同的IP地址，通过BGP路由选择算法将分组路由到最近的服务器",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["system", "structure", "function"],
+      "framework_refs": ["framework:cs:topic:5-4-4"],
+      "properties": {
+        "application": "DNS根服务器",
+        "limitation": "TCP连接可能因BGP路由变化导致分组到达不同服务器实例"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:bgp-routing-policy",
+      "canonical_name": "BGP路由选择策略",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["BGP Routing Policy", "BGP策略"],
+      "definition": "通过控制BGP路由通告方式实现的基于策略的路由选择决策，包括客户/提供商关系中的路由通告控制和ISP间对等协定，确保穿越ISP主干的流量源自或目的位于其客户网络",
+      "learning_modes": ["conceptual"],
+      "bridge_tags": ["system", "rule", "interaction"],
+      "framework_refs": ["framework:cs:topic:5-4-5"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:sdn-control-plane",
+      "canonical_name": "SDN控制平面",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Software-Defined Networking Control Plane", "软件定义网络控制平面"],
+      "definition": "一种网络控制方法，将数据平面与控制平面分离，由逻辑上集中的控制器计算并分发转发表，通过可编程的网络控制应用程序定义和控制网络设备中的数据平面转发",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["system", "structure", "function"],
+      "framework_refs": ["framework:cs:topic:5-5"],
+      "properties": {
+        "key_characteristics": ["基于流的转发", "数据平面与控制平面分离", "网络控制功能位于交换机外部", "可编程网络"]
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:sdn-controller",
+      "canonical_name": "SDN控制器",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["SDN Controller", "网络操作系统"],
+      "definition": "SDN控制平面的核心组件，维护准确的网络状态信息，为网络控制应用程序提供这些信息，并通过南向接口与受控设备通信、北向接口与应用程序交互，功能分为通信层、网络范围状态管理层和应用接口层",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["system", "structure", "function"],
+      "framework_refs": ["framework:cs:topic:5-5-1"],
+      "properties": {
+        "layers": ["通信层(南向接口)", "网络范围状态管理层", "应用接口层(北向接口)"],
+        "examples": ["NOX", "OpenDaylight", "ONOS"]
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "entity/protocol:openflow",
+      "canonical_name": "OpenFlow协议",
+      "node_kind": "entity",
+      "node_subkind": "protocol",
+      "node_layer": "backbone",
+      "aliases": ["OpenFlow"],
+      "definition": "运行在SDN控制器和SDN控制的交换机之间的通信协议，运行在TCP之上（默认端口6653），支持控制器配置、修改状态、读状态、发送分组等操作，以及交换机的流删除、端口状态和分组入等事件通知",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["system", "structure", "function"],
+      "framework_refs": ["framework:cs:topic:5-5-2"],
+      "properties": {
+        "protocol_type": "SDN南向通信协议",
+        "transport": "TCP",
+        "default_port": 6653,
+        "controller_to_switch_messages": ["配置", "修改状态", "读状态", "发送分组"],
+        "switch_to_controller_messages": ["流删除", "端口状态", "分组入"]
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "entity/protocol:icmp",
+      "canonical_name": "ICMP",
+      "node_kind": "entity",
+      "node_subkind": "protocol",
+      "node_layer": "backbone",
+      "aliases": ["因特网控制报文协议", "Internet Control Message Protocol"],
+      "definition": "由主机和路由器用来彼此沟通网络层信息的协议，最典型的用途是差错报告，ICMP报文作为IP有效载荷承载，具有类型字段和编码字段，ping和Traceroute程序均基于ICMP实现",
+      "learning_modes": ["conceptual", "procedural", "factual"],
+      "bridge_tags": ["system", "function", "interaction"],
+      "framework_refs": ["framework:cs:topic:5-6"],
+      "properties": {
+        "protocol_type": "网络层控制协议",
+        "ip_protocol_number": 1,
+        "key_message_types": ["回显请求/回答(0/8)", "目的不可达(3)", "源抑制(4)", "TTL过期(11)"]
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "entity/protocol:snmp",
+      "canonical_name": "SNMP",
+      "node_kind": "entity",
+      "node_subkind": "protocol",
+      "node_layer": "backbone",
+      "aliases": ["简单网络管理协议", "Simple Network Management Protocol", "SNMPv2", "SNMPv3"],
+      "definition": "用于在管理服务器和代表管理服务器执行的代理之间传递网络管理控制和信息报文的应用层协议，支持请求-响应模式(GetRequest/SetRequest)和陷阱报文模式，使用MIB管理被管对象",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["system", "structure", "function"],
+      "framework_refs": ["framework:cs:topic:5-7"],
+      "properties": {
+        "protocol_type": "应用层网络管理协议",
+        "transport": "UDP(首选)",
+        "pdu_types": ["GetRequest", "GetNextRequest", "GetBulkRequest", "SetRequest", "Response", "Trap", "InformRequest"]
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:network-management",
+      "canonical_name": "网络管理",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Network Management"],
+      "definition": "包括硬件、软件和人类元素的设置、集成和协调，以监视、测试、轮询、配置、分析、评价和控制网络及网元资源，用合理的成本满足实时性、运营性能和服务质量的要求",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["system", "function", "interaction"],
+      "framework_refs": ["framework:cs:topic:5-7"],
+      "properties": {
+        "components": ["管理服务器", "被管设备", "MIB", "网络管理代理", "网络管理协议"]
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:routing-loop",
+      "canonical_name": "路由选择环路",
+      "node_kind": "concept",
+      "node_layer": "support",
+      "aliases": ["Routing Loop", "路由环路"],
+      "definition": "在距离向量路由选择中，到达某目的地的分组在两个或多个路由器之间不停来回转发的现象，像黑洞一样消耗网络资源",
+      "learning_modes": ["conceptual"],
+      "bridge_tags": ["system", "change", "uncertainty"],
+      "framework_refs": ["framework:cs:topic:5-2-2"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:per-router-control",
+      "canonical_name": "每路由器控制",
+      "node_kind": "concept",
+      "node_layer": "support",
+      "aliases": ["Per-Router Control"],
+      "definition": "传统控制平面方法，在每台路由器中运行路由选择算法，每台路由器的路由选择组件与其他路由器中的路由选择组件通信以计算其转发表",
+      "learning_modes": ["conceptual"],
+      "bridge_tags": ["system", "structure"],
+      "framework_refs": ["framework:cs:topic:5-1"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:logically-centralized-control",
+      "canonical_name": "逻辑集中式控制",
+      "node_kind": "concept",
+      "node_layer": "support",
+      "aliases": ["Logically Centralized Control"],
+      "definition": "一种控制平面方法，由逻辑上集中的控制器计算并分发转发表供每台路由器使用，路由器中的控制代理仅与控制器通信并按控制器命令行事，不直接相互交互",
+      "learning_modes": ["conceptual"],
+      "bridge_tags": ["system", "structure"],
+      "framework_refs": ["framework:cs:topic:5-1"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:mib",
+      "canonical_name": "管理信息库",
+      "node_kind": "concept",
+      "node_layer": "support",
+      "aliases": ["MIB", "Management Information Base"],
+      "definition": "被管设备中被管对象的信息集合，存储计数器、配置参数、状态信息等，由SMI数据描述语言定义，相关的MIB对象被收集在MIB模块中",
+      "learning_modes": ["factual"],
+      "bridge_tags": ["structure", "system"],
+      "framework_refs": ["framework:cs:topic:5-7"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "method:traceroute",
+      "canonical_name": "Traceroute",
+      "node_kind": "method",
+      "node_layer": "support",
+      "aliases": ["路由追踪", "Traceroute程序"],
+      "definition": "利用ICMP报文实现的网络诊断程序，通过发送TTL递增的IP数据报来追踪从源到目的地之间所有路由器的名字、地址和往返时延",
+      "learning_modes": ["procedural", "factual"],
+      "bridge_tags": ["measurement", "system", "function"],
+      "framework_refs": ["framework:cs:topic:5-6"],
+      "properties": {
+        "mechanism": "TTL递增的UDP数据报 + ICMP差错报文"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:dijkstra-algorithm",
+      "canonical_name": "Dijkstra算法",
+      "node_kind": "concept",
+      "node_layer": "backbone",
+      "aliases": ["Dijkstra最短路径算法", "Dijkstra's Algorithm"],
+      "definition": "一种迭代算法，经第k次迭代后可知道到k个目的节点的最低开销路径，在所有最低开销路径中这k条路径具有k个最低开销，用于链路状态路由选择中计算从源节点到所有其他节点的最低开销路径",
+      "learning_modes": ["conceptual", "procedural"],
+      "bridge_tags": ["algorithm", "system", "model"],
+      "framework_refs": ["framework:cs:topic:5-2-1"],
+      "properties": {
+        "worst_case_complexity": "O(n^2)",
+        "optimized_complexity": "O(n log n) 使用堆"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "concept:forwarding-table",
+      "canonical_name": "转发表",
+      "node_kind": "concept",
+      "node_layer": "support",
+      "aliases": ["Forwarding Table", "路由表"],
+      "definition": "定义路由器本地数据平面转发行为的表，由控制平面计算、维护和安装，是链接网络层数据平面和控制平面的首要元素",
+      "learning_modes": ["factual"],
+      "bridge_tags": ["structure", "function", "system"],
+      "framework_refs": ["framework:cs:topic:5-1"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "concept:ebgp-ibgp",
+      "canonical_name": "eBGP与iBGP",
+      "node_kind": "concept",
+      "node_layer": "support",
+      "aliases": ["外部BGP", "内部BGP", "eBGP", "iBGP"],
+      "definition": "eBGP是跨越两个AS的BGP连接，用于在不同AS的网关路由器之间交换路由信息；iBGP是同一AS内两台路由器之间的BGP会话，用于在AS内部传播从外部学到的路由信息",
+      "learning_modes": ["conceptual", "factual"],
+      "bridge_tags": ["structure", "system", "interaction"],
+      "framework_refs": ["framework:cs:topic:5-4-2"],
+      "properties": {
+        "ebgp": "跨AS的BGP连接",
+        "ibgp": "AS内部的BGP会话"
+      },
+      "status": "candidate"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:control-plane-contains-routing-algorithm",
+      "edge_type": "contains",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:control-plane",
+      "to": "concept:routing-algorithm",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-1-overview"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:routing-algorithm-is-a-link-state",
+      "edge_type": "is_a",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:link-state-algorithm",
+      "to": "concept:routing-algorithm",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-2-1-ls-definition"],
+      "properties": {"category": "集中式路由选择算法"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:routing-algorithm-is-a-dv",
+      "edge_type": "is_a",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:distance-vector-algorithm",
+      "to": "concept:routing-algorithm",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-2-2-dv-definition"],
+      "properties": {"category": "分散式路由选择算法"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:dv-uses-bellman-ford",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:distance-vector-algorithm",
+      "to": "concept:bellman-ford-equation",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-2-2-bf-equation"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:dv-has-count-to-infinity",
+      "edge_type": "has_property",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:distance-vector-algorithm",
+      "to": "concept:count-to-infinity",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-2-2-count-infinity"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:poisoned-reverse-solves-count-infinity",
+      "edge_type": "explains",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:poisoned-reverse",
+      "to": "concept:count-to-infinity",
+      "directionality": "directed",
+      "confidence": 0.9,
+      "source_refs": ["evidence:cs-ch5:5-2-2-poisoned-reverse"],
+      "properties": {"limitation": "仅解决两个直接相连邻居节点间的环路"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:dv-causes-routing-loop",
+      "edge_type": "causes",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:distance-vector-algorithm",
+      "to": "concept:routing-loop",
+      "directionality": "directed",
+      "confidence": 0.9,
+      "source_refs": ["evidence:cs-ch5:5-2-2-link-cost-change"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:ls-uses-dijkstra",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:link-state-algorithm",
+      "to": "concept:dijkstra-algorithm",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-2-1-dijkstra"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:ospf-uses-ls",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "entity/protocol:ospf",
+      "to": "concept:link-state-algorithm",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-3-ospf-definition"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:bgp-is-inter-as-routing",
+      "edge_type": "part_of",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "entity/protocol:bgp",
+      "to": "concept:autonomous-system",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-4-bgp-role"],
+      "properties": {"role": "AS间路由选择"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:bgp-uses-route-selection",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "entity/protocol:bgp",
+      "to": "concept:bgp-route-selection",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-4-3-route-selection"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:bgp-route-selection-uses-hot-potato",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:bgp-route-selection",
+      "to": "concept:hot-potato-routing",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-4-3-hot-potato"],
+      "properties": {"rule_order": "第3条规则"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:ip-anycast-uses-bgp",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:ip-anycast",
+      "to": "entity/protocol:bgp",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-4-4-anycast"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:bgp-policy-related-to-route-selection",
+      "edge_type": "affects",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:bgp-routing-policy",
+      "to": "concept:bgp-route-selection",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-4-5-policy"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:sdn-control-plane-separates-data-plane",
+      "edge_type": "explains",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:sdn-control-plane",
+      "to": "concept:control-plane",
+      "directionality": "directed",
+      "confidence": 0.9,
+      "source_refs": ["evidence:cs-ch5:5-5-sdn-architecture"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:sdn-controller-part-of-sdn",
+      "edge_type": "part_of",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:sdn-controller",
+      "to": "concept:sdn-control-plane",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-5-1-controller"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:openflow-southbound-of-controller",
+      "edge_type": "part_of",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "entity/protocol:openflow",
+      "to": "concept:sdn-controller",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-5-2-openflow"],
+      "properties": {"role": "南向接口协议"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:icmp-for-network-layer-info",
+      "edge_type": "part_of",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "entity/protocol:icmp",
+      "to": "concept:control-plane",
+      "directionality": "directed",
+      "confidence": 0.9,
+      "source_refs": ["evidence:cs-ch5:5-6-icmp"],
+      "properties": {"role": "网络层差错报告与控制"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:traceroute-uses-icmp",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "method:traceroute",
+      "to": "entity/protocol:icmp",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-6-traceroute"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:snmp-for-network-management",
+      "edge_type": "part_of",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "entity/protocol:snmp",
+      "to": "concept:network-management",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-7-snmp"],
+      "properties": {"role": "网络管理协议"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:snmp-uses-mib",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "entity/protocol:snmp",
+      "to": "concept:mib",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-7-2-snmp-pdu"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:ospf-is-intra-as",
+      "edge_type": "is_a",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "entity/protocol:ospf",
+      "to": "concept:autonomous-system",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-3-as-definition"],
+      "properties": {"role": "AS内部路由选择协议"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:bgp-uses-ebgp-ibgp",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "entity/protocol:bgp",
+      "to": "concept:ebgp-ibgp",
+      "directionality": "directed",
+      "confidence": 0.95,
+      "source_refs": ["evidence:cs-ch5:5-4-2-bgp-connections"],
+      "properties": {},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:per-router-control-vs-sdn",
+      "edge_type": "related_to",
+      "edge_layer": "support",
+      "backbone_expand": false,
+      "from": "concept:per-router-control",
+      "to": "concept:logically-centralized-control",
+      "directionality": "undirected",
+      "confidence": 0.9,
+      "source_refs": ["evidence:cs-ch5:5-1-overview"],
+      "properties": {"relationship": "两种控制平面方法的对比"},
+      "status": "candidate"
+    },
+    {
+      "id": "edge:sdn-uses-ls-algorithm",
+      "edge_type": "uses",
+      "edge_layer": "backbone",
+      "backbone_expand": true,
+      "from": "concept:sdn-control-plane",
+      "to": "concept:link-state-algorithm",
+      "directionality": "directed",
+      "confidence": 0.85,
+      "source_refs": ["evidence:cs-ch5:5-5-3-sdn-example"],
+      "properties": {"note": "SDN控制器中可实现Dijkstra算法作为网络控制应用"},
+      "status": "candidate"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "profile:cs:concept:control-plane",
+      "node_id": "concept:control-plane",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解控制平面的定义和作用", "区分每路由器控制和逻辑集中式控制"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:routing-algorithm",
+      "node_id": "concept:routing-algorithm",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:5-2"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解路由选择算法的目标和分类", "掌握集中式和分布式路由选择算法的区别"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:link-state-algorithm",
+      "node_id": "concept:link-state-algorithm",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:5-2-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解链路状态算法的原理", "能够手工执行Dijkstra算法计算最低开销路径", "理解LS算法的振荡问题"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:distance-vector-algorithm",
+      "node_id": "concept:distance-vector-algorithm",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:5-2-2"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解距离向量算法的分布式、异步特性", "能够使用Bellman-Ford方程计算距离向量", "理解无穷计数问题和毒性逆转"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:bellman-ford-equation",
+      "node_id": "concept:bellman-ford-equation",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:5-2-2"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解Bellman-Ford方程的数学表达", "能够用该方程验证最低开销路径"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:count-to-infinity",
+      "node_id": "concept:count-to-infinity",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-2-2"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解无穷计数问题的产生原因", "理解链路开销增加时DV算法的收敛过程"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:poisoned-reverse",
+      "node_id": "concept:poisoned-reverse",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-2-2"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解毒性逆转的工作原理", "认识毒性逆转的局限性"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:autonomous-system",
+      "node_id": "concept:autonomous-system",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-3"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解自治系统的概念和作用", "理解AS在解决规模和管理自治问题中的意义"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:entity/protocol:ospf",
+      "node_id": "entity/protocol:ospf",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:5-3"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解OSPF协议的工作原理", "掌握OSPF的层次化区域配置", "了解OSPF的安全鉴别和多路径支持特性"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:entity/protocol:bgp",
+      "node_id": "entity/protocol:bgp",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:5-4"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解BGP在因特网中的关键作用", "掌握BGP路由选择算法的规则", "理解eBGP和iBGP的区别", "理解BGP路由选择策略"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:bgp-route-selection",
+      "node_id": "concept:bgp-route-selection",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:5-4-3"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["掌握BGP路由选择算法的4条消除规则", "理解本地偏好、AS-PATH和热土豆路由选择的作用顺序"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:hot-potato-routing",
+      "node_id": "concept:hot-potato-routing",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-4-3"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解热土豆路由选择的自私特性", "理解热土豆路由选择的决策过程"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:ip-anycast",
+      "node_id": "concept:ip-anycast",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-4-4"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解IP任播的工作原理", "了解IP任播在DNS中的应用"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:bgp-routing-policy",
+      "node_id": "concept:bgp-routing-policy",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-4-5"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解BGP路由选择策略的基本概念", "理解客户/提供商路由选择关系的实现方式"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:sdn-control-plane",
+      "node_id": "concept:sdn-control-plane",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-5"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解SDN的4个关键特征", "理解SDN与传统每路由器控制的区别"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:sdn-controller",
+      "node_id": "concept:sdn-controller",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-5-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解SDN控制器的三层体系结构", "理解南向接口和北向接口的作用"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:entity/protocol:openflow",
+      "node_id": "entity/protocol:openflow",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-5-2"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解OpenFlow协议的作用和报文类型", "了解控制器和交换机之间的交互过程"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:entity/protocol:icmp",
+      "node_id": "entity/protocol:icmp",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:5-6"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解ICMP的报文格式和类型", "理解ping和Traceroute的工作原理"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:entity/protocol:snmp",
+      "node_id": "entity/protocol:snmp",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-7"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解SNMP的请求-响应和陷阱报文模式", "了解SNMPv2的PDU类型", "理解MIB的作用"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:network-management",
+      "node_id": "concept:network-management",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-7"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解网络管理的定义和组件", "了解管理服务器、被管设备、MIB和网络管理代理的作用"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:routing-loop",
+      "node_id": "concept:routing-loop",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-2-2"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解路由选择环路的产生原因", "理解路由选择环路的危害"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:per-router-control",
+      "node_id": "concept:per-router-control",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解每路由器控制的工作方式"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:logically-centralized-control",
+      "node_id": "concept:logically-centralized-control",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解逻辑集中式控制的工作方式", "理解控制代理(CA)的作用"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:mib",
+      "node_id": "concept:mib",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-7"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解MIB的定义和作用", "了解SMI数据描述语言"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:method:traceroute",
+      "node_id": "method:traceroute",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:5-6"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解Traceroute的工作原理", "能够解释Traceroute的ICMP交互过程"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:dijkstra-algorithm",
+      "node_id": "concept:dijkstra-algorithm",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "apply",
+      "framework_refs": ["framework:cs:topic:5-2-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["能够手工执行Dijkstra算法", "理解算法的计算复杂度"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:forwarding-table",
+      "node_id": "concept:forwarding-table",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "reinforced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-1"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["理解转发表在连接数据平面和控制平面中的作用"],
+      "status": "draft"
+    },
+    {
+      "id": "profile:cs:concept:ebgp-ibgp",
+      "node_id": "concept:ebgp-ibgp",
+      "subject": "computer-science",
+      "school_stage": "higher",
+      "grade_band": "13-16",
+      "curriculum_role": "introduced",
+      "mastery_level": "understand",
+      "framework_refs": ["framework:cs:topic:5-4-2"],
+      "textbook_refs": ["struct:cs-topdown-7e:lesson:5"],
+      "learning_objectives": ["区分eBGP和iBGP的功能", "理解BGP连接的传播过程"],
+      "status": "draft"
+    }
+  ],
+  "mentions": [
+    {
+      "id": "mention:cs-ch5:control-plane",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:control-plane",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-1-overview"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:routing-algorithm",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:routing-algorithm",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-2-routing-algorithm-def"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:link-state-algorithm",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:link-state-algorithm",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-2-1-ls-definition"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:distance-vector-algorithm",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:distance-vector-algorithm",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-2-2-dv-definition"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:bellman-ford-equation",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:bellman-ford-equation",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-2-2-bf-equation"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:count-to-infinity",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:count-to-infinity",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-2-2-count-infinity"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:poisoned-reverse",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:poisoned-reverse",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-2-2-poisoned-reverse"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:autonomous-system",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:autonomous-system",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-3-as-definition"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:ospf",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "entity/protocol:ospf",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-3-ospf-definition"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:bgp",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "entity/protocol:bgp",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-4-bgp-role"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:bgp-route-selection",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:bgp-route-selection",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-4-3-route-selection"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:hot-potato-routing",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:hot-potato-routing",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-4-3-hot-potato"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:ip-anycast",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:ip-anycast",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-4-4-anycast"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:bgp-routing-policy",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:bgp-routing-policy",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-4-5-policy"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:sdn-control-plane",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:sdn-control-plane",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-5-sdn-architecture"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:sdn-controller",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:sdn-controller",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-5-1-controller"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:openflow",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "entity/protocol:openflow",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-5-2-openflow"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:icmp",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "entity/protocol:icmp",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-6-icmp"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:traceroute",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "method:traceroute",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-6-traceroute"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:snmp",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "entity/protocol:snmp",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-7-snmp"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:network-management",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:network-management",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-7-nm-definition"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:routing-loop",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:routing-loop",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-2-2-link-cost-change"],
+      "confidence": 0.9,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:dijkstra-algorithm",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:dijkstra-algorithm",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-2-1-dijkstra"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:ebgp-ibgp",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:ebgp-ibgp",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-4-2-bgp-connections"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:per-router-control",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:per-router-control",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-1-overview"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:logically-centralized-control",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:logically-centralized-control",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-1-overview"],
+      "confidence": 0.95,
+      "properties": {}
+    },
+    {
+      "id": "mention:cs-ch5:mib",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "target_type": "node",
+      "target_id": "concept:mib",
+      "role": "defines",
+      "source_refs": ["evidence:cs-ch5:5-7-nm-definition"],
+      "confidence": 0.95,
+      "properties": {}
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evidence:cs-ch5:5-1-overview",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "控制平面作为一种网络范围的逻辑，不仅控制沿着从源主机到目的主机的端到端路径间的路由器如何转发数据报，而且控制网络层组件和服务如何配置和管理。每路由器控制：在每台路由器中运行一种路由选择算法。逻辑集中式控制：逻辑集中式控制器计算并分发转发表以供每台路由器使用。",
+      "locator": "第5章5.1节",
+      "page_start": null,
+      "page_end": null,
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-2-routing-algorithm-def",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "路由选择算法（routing algorithm），其目的是从发送方到接收方的过程中确定一条通过路由器网络的好的路径（等价于路由）。通常，一条好路径指具有最低开销的路径。",
+      "locator": "第5章5.2节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-2-1-ls-definition",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "集中式路由选择算法用完整的、全局性的网络知识计算出从源到目的地之间的最低开销路径。具有全局状态信息的算法常被称作链路状态（Link State，LS）算法，因为该算法必须知道网络中每条链路的开销。",
+      "locator": "第5章5.2.1节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-2-1-dijkstra",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "链路状态路由选择算法叫作Dijkstra算法，该算法以其发明者命名。Dijkstra算法计算从某节点（源节点）到网络中所有其他节点的最低开销路径。Dijkstra算法是迭代算法，其性质是经算法的第k次迭代后，可知道到k个目的节点的最低开销路径。前面实现的链路状态算法在最差情况下复杂性为O(n^2)。",
+      "locator": "第5章5.2.1节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-2-2-dv-definition",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "距离向量（Distance-Vector，DV）算法是一种迭代的、异步的和分布式的算法。说它是分布式的，是因为每个节点都要从一个或多个直接相连邻居接收某些信息，执行计算，然后将其计算结果分发给邻居。说它是迭代的，是因为此过程一直要持续到邻居之间无更多信息要交换为止。说它是异步的，是因为它不要求所有节点相互之间步伐一致地操作。",
+      "locator": "第5章5.2.2节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-2-2-bf-equation",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "令d_x(y)是从节点x到节点y的最低开销路径的开销。则该最低开销与著名的Bellman-Ford方程相关，即 d_x(y) = min_v{c(x,v) + d_v(y)}。Bellman-Ford方程不止是一种智力上的珍品，它实际上具有重大的实践重要性。特别是对Bellman-Ford方程的解为节点x的转发表提供了表项。",
+      "locator": "第5章5.2.2节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-2-2-link-cost-change",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "路由选择环路（routing loop），即为到达x，y通过z路由，z又通过y路由。路由选择环路就像一个黑洞，即目的地为x的分组在这两个节点之间不停地来回反复。",
+      "locator": "第5章5.2.2节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-2-2-count-infinity",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "该循环将持续44次迭代（在y与z之间交换报文），即直到z最终算出它经由y的路径开销大于50为止。如果链路开销c(y,x)从4变为10000且开销c(z,x)为9999时将发生什么样的现象呢？由于这种情况，我们所见的问题有时被称为无穷计数（count-to-infinity）问题。",
+      "locator": "第5章5.2.2节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-2-2-poisoned-reverse",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "如果z通过y路由选择到目的地x，则z将通告y，它（即z）到x的距离是无穷大，也就是z将向y通告D_z(x)=无穷大。毒性逆转解决了一般的无穷计数问题吗？没有。涉及3个或更多节点的环路将无法用毒性逆转技术检测到。",
+      "locator": "第5章5.2.2节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-3-as-definition",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "这两个问题都可以通过将路由器组织进自治系统（Autonomous System，AS）来解决，其中每个AS由一组通常处在相同管理控制下的路由器组成。一个自治系统由其全局唯一的AS号（ASN）所标识。",
+      "locator": "第5章5.3节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-3-ospf-definition",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "OSPF是一种链路状态协议，它使用洪泛链路状态信息和Dijkstra最低开销路径算法。使用OSPF，一台路由器构建了一幅关于整个自治系统的完整拓扑图。OSPF的优点包括安全、多条相同开销的路径、对单播与多播路由选择的综合支持、支持在单个AS中的层次结构。",
+      "locator": "第5章5.3节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-4-bgp-role",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "在因特网中，所有的AS运行相同的AS间路由选择协议，称为边界网关协议（Border Gateway Protocol，BGP）。BGP无疑是所有因特网协议中最为重要的，因为正是这个协议将因特网中数以千计的ISP黏合起来。BGP是一种分布式和异步的协议。",
+      "locator": "第5章5.4节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-4-2-bgp-connections",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "在BGP中，每对路由器通过使用179端口的半永久TCP连接交换路由选择信息。跨越两个AS的BGP连接称为外部BGP（eBGP）连接，而在相同AS中的两台路由器之间的BGP会话称为内部BGP（iBGP）连接。",
+      "locator": "第5章5.4.2节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-4-3-hot-potato",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "热土豆路由选择依据的思想是：对于路由器，尽可能快地将分组送出其AS，而不担心其AS外部到目的地的余下部分的开销。热土豆路由选择因而是自私的算法。",
+      "locator": "第5章5.4.3节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-4-3-route-selection",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "BGP使用了一种比热土豆路由选择更为复杂但却结合了其特点的算法。1)具有最高本地偏好值的路由将被选择。2)选择具有最短AS-PATH的路由。3)使用热土豆路由选择，即选择具有最靠近NEXT-HOP路由器的路由。4)该路由器使用BGP标识符来选择路由。",
+      "locator": "第5章5.4.3节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-4-4-anycast",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "CDN公司为它的多台服务器指派相同的IP地址，并且使用标准的BGP从这些服务器的每台来通告该IP地址。每台路由器将本地化地使用BGP路由选择算法来挑选到该IP地址的最好的路由。IP任播被DNS系统广泛用于将DNS请求指向最近的根DNS服务器。",
+      "locator": "第5章5.4.4节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-4-5-policy",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "当某路由器选择到目的地的一条路由时，AS路由选择策略能够胜过所有其他考虑。X如果通告它没有通向任何其他目的地的路径，那么它将起到一个接入ISP的作用。商业运行的ISP们都遵从的一个经验法则是：任何穿越某ISP主干网的流量必须是其源或目的位于该ISP的某个客户网络中。",
+      "locator": "第5章5.4.5节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-5-sdn-architecture",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "SDN体系结构具有4个关键特征：基于流的转发；数据平面与控制平面分离；网络控制功能位于数据平面交换机外部；可编程的网络。SDN表示了一种意义重大的网络功能的分类，即数据平面交换机、SDN控制器和网络控制应用程序是分离的实体。",
+      "locator": "第5章5.5节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-5-1-controller",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "SDN控制器维护准确的网络状态信息，为运行在控制平面中的网络控制应用程序提供这些信息，提供方法使得应用程序能够监视、编程和控制下面的网络设备。控制器的功能可大体组织为3个层次：通信层（南向接口）、网络范围状态管理层、对于网络控制应用程序层的接口（北向接口）。",
+      "locator": "第5章5.5.1节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-5-2-openflow",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "OpenFlow协议运行在SDN控制器和SDN控制的交换机之间，运行在TCP之上，使用6653的默认端口号。从控制器到受控交换机流动的重要报文有：配置、修改状态、读状态、发送分组。从受控交换机到控制器流动的重要报文有：流删除、端口状态、分组入。",
+      "locator": "第5章5.5.2节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-5-3-sdn-example",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "交换机s1经历了自己与s2之间的链路故障，使用OpenFlow端口状态报文向SDN控制器通报。控制器通告链路状态管理器更新链路状态库。链路状态路由选择应用程序计算新的最低开销路径。流表管理器使用OpenFlow协议更新受影响的交换机的流表项。",
+      "locator": "第5章5.5.3节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-6-icmp",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "由RFC792定义的因特网控制报文协议（ICMP），被主机和路由器用来彼此沟通网络层的信息。ICMP最典型的用途是差错报告。ICMP报文有一个类型字段和一个编码字段，并且包含引起该ICMP报文首次生成的IP数据报的首部和前8个字节。",
+      "locator": "第5章5.6节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-6-traceroute",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "Traceroute是用ICMP报文来实现的。源主机中的Traceroute向目的地主机发送一系列普通的IP数据报，每个携带了一个具有不可达UDP端口号的UDP报文段。第一个数据报的TTL为1，第二个的TTL为2，依次类推。当第n个数据报到达第n台路由器时，路由器丢弃该数据报并发送一个ICMP告警报文给源主机（类型11编码0）。",
+      "locator": "第5章5.6节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-7-nm-definition",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "网络管理包括了硬件、软件和人类元素的设置、集成和协调，以监视、测试、轮询、配置、分析、评价和控制网络及网元资源。网络管理的关键组件包括：管理服务器、被管设备、MIB、网络管理代理、网络管理协议。",
+      "locator": "第5章5.7.1节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-7-snmp",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "简单网络管理协议版本2（SNMPv2）是一个应用层协议，用于在管理服务器和代表管理服务器执行的代理之间传递网络管理控制和信息报文。SNMP最常使用的是请求响应模式。SNMP第二个常被使用的是代理向管理服务器发送的陷阱报文。",
+      "locator": "第5章5.7.2节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    },
+    {
+      "id": "evidence:cs-ch5:5-7-2-snmp-pdu",
+      "source_type": "textbook",
+      "source_id": "cs-topdown-7e",
+      "anchor_ref": "struct:cs-topdown-7e:lesson:5",
+      "excerpt": "SNMPv2定义的7种类型的报文：GetRequest、GetNextRequest、GetBulkRequest、InformRequest、SetRequest、Response、SNMPv2-Trap。GetRequest用于取得MIB对象实例值，SetRequest用于设置MIB对象实例的值，Trap用于通知异常事件。",
+      "locator": "第5章5.7.2节",
+      "modality": "text",
+      "extraction_method": "ocr",
+      "properties": {}
+    }
+  ],
+  "node_cards": [
+    {
+      "id": "node-card:cs:concept:control-plane",
+      "node_id": "concept:control-plane",
+      "card_layer": "backbone",
+      "title": "控制平面",
+      "summary": "控制平面是网络范围的逻辑，负责决定数据报如何转发以及网络层组件如何配置和管理。它包含两大方法：传统的每路由器控制（路由器自主运行路由选择算法）和逻辑集中式控制（SDN控制器统一计算并分发转发表）。转发表和流表是连接数据平面和控制平面的关键元素。",
+      "pattern_refs": ["pattern:concept-definition"],
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["控制平面是一种网络范围的逻辑，不仅控制沿着从源主机到目的主机的端到端路径间的路由器如何转发数据报，而且控制网络层组件和服务如何配置和管理"], "source_refs": ["evidence:cs-ch5:5-1-overview"]},
+        {"id": "essence", "title": "核心本质", "section_type": "essence", "content": ["控制平面的核心任务是计算、维护和安装转发表和流表", "两大实现方法：每路由器控制和逻辑集中式控制", "转发表/流表是连接数据平面和控制平面的桥梁"], "source_refs": ["evidence:cs-ch5:5-1-overview"]},
+        {"id": "key-points", "title": "关键要点", "section_type": "key_points", "content": ["每路由器控制：每台路由器运行路由选择算法，路由选择组件直接通信", "逻辑集中式控制：控制器计算并分发转发表，控制代理仅与控制器通信", "逻辑集中式不等于物理集中式，控制器可由多台服务器实现", "SDN是逻辑集中式控制的典型实现"], "source_refs": ["evidence:cs-ch5:5-1-overview"]},
+        {"id": "comparison", "title": "两种方法对比", "section_type": "comparison", "content": ["每路由器控制：路由器之间直接交互，OSPF和BGP基于此方法", "逻辑集中式控制：控制代理不能直接交互，仅通过控制器间接协调"], "source_refs": ["evidence:cs-ch5:5-1-overview"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:routing-algorithm",
+      "node_id": "concept:routing-algorithm",
+      "card_layer": "backbone",
+      "title": "路由选择算法",
+      "summary": "路由选择算法的目标是确定从发送方到接收方的一条通过路由器网络的好路径，通常等价于最低开销路径。路由选择算法可按三个维度分类：集中式/分散式、静态/动态、负载敏感/负载迟钝。链路状态算法和距离向量算法是两种基本且广泛部署的路由选择算法。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["路由选择算法的目的是从发送方到接收方确定一条通过路由器网络的好的路径（等价于路由），通常目标是最低开销路径"], "source_refs": ["evidence:cs-ch5:5-2-routing-algorithm-def"]},
+        {"id": "key-points", "title": "三种分类维度", "section_type": "key_points", "content": ["集中式vs分散式：是否具有全局网络知识", "静态vs动态：路由是否随时间变化", "负载敏感vs负载迟钝：链路开销是否反映拥塞水平"], "source_refs": ["evidence:cs-ch5:5-2-routing-algorithm-def"]},
+        {"id": "example", "title": "图模型", "section_type": "example", "content": ["路由选择问题可用图G=(N,E)形式化描述", "节点表示路由器，边表示链路", "每条边有开销值c(x,y)", "最低开销路径是所有边开销总和最小的路径"], "source_refs": ["evidence:cs-ch5:5-2-routing-algorithm-def"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:link-state-algorithm",
+      "node_id": "concept:link-state-algorithm",
+      "card_layer": "backbone",
+      "title": "链路状态算法",
+      "summary": "链路状态算法是一种集中式路由选择算法，要求每个节点具有网络中所有链路开销的完整信息。它使用Dijkstra算法迭代计算从源节点到所有其他节点的最低开销路径，最差情况复杂度为O(n^2)。LS算法可能遇到路由振荡问题，可通过随机化链路通告时间来避免自同步。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["链路状态算法要求具有完整的、全局性的网络知识，即所有节点间的连通性和链路开销", "通过链路状态广播使所有节点获得统一完整的网络视图"], "source_refs": ["evidence:cs-ch5:5-2-1-ls-definition"]},
+        {"id": "procedure", "title": "Dijkstra算法步骤", "section_type": "procedure", "content": ["初始化：N'={源节点u}，对u的所有邻居v设D(v)=c(u,v)，否则D(v)=无穷大", "迭代：找不在N'中D(w)最小的节点w加入N'", "更新：对w的每个不在N'中的邻居v，D(v)=min(D(v), D(w)+c(w,v))", "终止：直到N'=N"], "source_refs": ["evidence:cs-ch5:5-2-1-dijkstra"]},
+        {"id": "key-points", "title": "关键要点", "section_type": "key_points", "content": ["最差复杂度O(n^2)，使用堆可优化到O(n log n)", "可能产生拥塞敏感的路由振荡", "随机化链路通告时间可避免路由器自同步"], "source_refs": ["evidence:cs-ch5:5-2-1-dijkstra"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:distance-vector-algorithm",
+      "node_id": "concept:distance-vector-algorithm",
+      "card_layer": "backbone",
+      "title": "距离向量算法",
+      "summary": "距离向量算法是一种迭代的、异步的、分布式的路由选择算法。每个节点维护到所有其他节点的开销估计向量（距离向量），通过Bellman-Ford方程迭代更新，并与邻居交换距离向量直到收敛。DV算法面临无穷计数问题，毒性逆转可部分解决。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["DV算法是迭代的（持续到无新信息）、异步的（无需同步操作）、分布式的（仅与邻居交换信息）路由选择算法", "每个节点维护距离向量Dx=[Dx(y): y in N]"], "source_refs": ["evidence:cs-ch5:5-2-2-dv-definition"]},
+        {"id": "procedure", "title": "算法流程", "section_type": "procedure", "content": ["初始化：对每个目的地y设Dx(y)=c(x,y)", "等待链路开销变化或收到邻居的距离向量", "用Bellman-Ford方程更新：Dx(y)=min_v{c(x,v)+Dv(y)}", "如果距离向量改变则发送给所有邻居"], "source_refs": ["evidence:cs-ch5:5-2-2-bf-equation"]},
+        {"id": "misconception", "title": "常见误解", "section_type": "misconception", "content": ["误解：毒性逆转可以完全解决无穷计数问题。事实：毒性逆转仅能解决两个直接相连邻居之间的环路，三个或更多节点的环路无法检测", "误解：DV算法总是快速收敛。事实：链路开销增加时收敛很慢，存在无穷计数问题"], "source_refs": ["evidence:cs-ch5:5-2-2-count-infinity", "evidence:cs-ch5:5-2-2-poisoned-reverse"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:bellman-ford-equation",
+      "node_id": "concept:bellman-ford-equation",
+      "card_layer": "backbone",
+      "title": "Bellman-Ford方程",
+      "summary": "Bellman-Ford方程描述了最低开销路径的递归关系：d_x(y) = min_v{c(x,v) + d_v(y)}，即从节点x到y的最低开销等于遍历所有邻居v的开销加上从v到y最低开销的最小值。该方程为节点转发表提供表项，也是DV算法邻居通信形式的理论基础。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["d_x(y) = min_v{c(x,v) + d_v(y)}，其中min_v对所有邻居v取值", "取得最小值的邻居v*即为到目的地y的下一跳路由器"], "source_refs": ["evidence:cs-ch5:5-2-2-bf-equation"]},
+        {"id": "application", "title": "应用", "section_type": "application", "content": ["为节点x的转发表提供表项：下一跳为v*", "提出DV算法中邻居到邻居通信的形式", "可用于验证最低开销路径的正确性"], "source_refs": ["evidence:cs-ch5:5-2-2-bf-equation"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:count-to-infinity",
+      "node_id": "concept:count-to-infinity",
+      "card_layer": "backbone",
+      "title": "无穷计数问题",
+      "summary": "无穷计数是距离向量路由选择中的经典问题，当链路开销增加时，相关节点通过逐步递增的距离向量缓慢收敛，可能需要大量迭代才能稳定。该问题产生的根本原因是节点使用了过时的邻居信息，导致路由选择环路。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["当链路开销增加时，DV算法节点间逐步递增距离估计值缓慢收敛的现象", "极端情况下需要大量迭代才能达到稳定状态"], "source_refs": ["evidence:cs-ch5:5-2-2-count-infinity"]},
+        {"id": "example", "title": "示例", "section_type": "example", "content": ["当c(y,x)从4增到60时，y通过z路由到x，z又通过y路由到x，形成环路", "y和z之间需要44次迭代才能收敛", "如果c(y,x)变为10000且c(z,x)为9999，收敛更慢"], "source_refs": ["evidence:cs-ch5:5-2-2-count-infinity"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:poisoned-reverse",
+      "node_id": "concept:poisoned-reverse",
+      "card_layer": "backbone",
+      "title": "毒性逆转",
+      "summary": "毒性逆转是一种部分解决无穷计数问题的技术：如果节点z通过节点y路由到目的地x，则z向y通告D_z(x)=无穷大。这防止y通过z路由到x，从而避免两个直接相连邻居之间的路由环路。但涉及三个或更多节点的环路无法用此技术检测。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["如果z通过y路由到x，z向y通告D_z(x)=无穷大（善意谎言）", "只要z继续经y路由到x，就持续撒谎"], "source_refs": ["evidence:cs-ch5:5-2-2-poisoned-reverse"]},
+        {"id": "key-points", "title": "关键要点", "section_type": "key_points", "content": ["解决了两个直接相连邻居之间的路由环路", "不能解决涉及三个或更多节点的环路", "链路开销减少时好消息传播快，毒性逆转不影响好消息传播"], "source_refs": ["evidence:cs-ch5:5-2-2-poisoned-reverse"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:autonomous-system",
+      "node_id": "concept:autonomous-system",
+      "card_layer": "backbone",
+      "title": "自治系统",
+      "summary": "自治系统（AS）是因特网路由选择的基本管理单位，由一组在相同管理控制下的路由器组成，由全局唯一的AS号（ASN）标识。AS的引入解决了规模和管理自治两大问题，使得因特网可以扩展到数亿台主机的规模。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["一组通常处在相同管理控制下的路由器组成的集合", "由全局唯一的AS号（ASN）标识，由ICANN区域注册机构分配"], "source_refs": ["evidence:cs-ch5:5-3-as-definition"]},
+        {"id": "key-points", "title": "引入原因", "section_type": "key_points", "content": ["规模：路由器数量大时通信、计算和存储开销不可行", "管理自治：ISP希望按自己意愿运行路由器，对外隐藏网络内部组织"], "source_refs": ["evidence:cs-ch5:5-3-as-definition"]},
+        {"id": "application", "title": "与路由选择协议的关系", "section_type": "application", "content": ["AS内部路由选择协议（如OSPF）用于AS内部路由", "AS间路由选择协议（如BGP）用于跨AS路由", "同一个ISP可划分为多个AS"], "source_refs": ["evidence:cs-ch5:5-3-as-definition"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:entity/protocol:ospf",
+      "node_id": "entity/protocol:ospf",
+      "card_layer": "backbone",
+      "title": "OSPF协议",
+      "summary": "OSPF（开放最短路径优先）是因特网中广泛使用的AS内部路由选择协议，基于链路状态算法和Dijkstra最短路径算法。OSPF支持安全鉴别、多条相同开销路径、多播路由选择和层次化区域配置，直接由IP承载（协议号89）。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["链路状态协议，使用洪泛链路状态信息和Dijkstra算法", "每台路由器构建整个AS的完整拓扑图并本地运行最短路径算法"], "source_refs": ["evidence:cs-ch5:5-3-ospf-definition"]},
+        {"id": "key-points", "title": "关键特性", "section_type": "key_points", "content": ["安全：支持简单鉴别和MD5鉴别", "多条相同开销路径：无须仅选择单一路径", "多播支持：MOSPF扩展", "层次结构：支持区域划分，区域间通过主干路由"], "source_refs": ["evidence:cs-ch5:5-3-ospf-definition"]},
+        {"id": "procedure", "title": "工作机制", "section_type": "procedure", "content": ["链路状态变化时立即广播链路状态信息", "即使无变化也至少每30分钟广播一次", "直接由IP承载（协议号89），需自行实现可靠传输"], "source_refs": ["evidence:cs-ch5:5-3-ospf-definition"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:entity/protocol:bgp",
+      "node_id": "entity/protocol:bgp",
+      "card_layer": "backbone",
+      "title": "BGP协议",
+      "summary": "BGP（边界网关协议）是因特网中唯一的AS间路由选择协议，将因特网中数以千计的ISP黏合在一起，常被称为因特网的黏合剂。BGP是分布式和异步的协议，基于路径向量，使用TCP连接（端口179），支持基于策略的路由决策，路由选择基于AS-PATH、NEXT-HOP和本地偏好等属性。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["因特网中唯一的AS间路由选择协议，将数以千计的ISP黏合起来", "BGP是分布式和异步的协议，基于路径向量"], "source_refs": ["evidence:cs-ch5:5-4-bgp-role"]},
+        {"id": "key-points", "title": "关键属性", "section_type": "key_points", "content": ["AS-PATH：通告经过的AS列表，用于环路检测", "NEXT-HOP：AS-PATH起始路由器接口的IP地址", "本地偏好：策略决定，优先级最高的选择标准", "eBGP：跨AS的连接；iBGP：AS内部的连接"], "source_refs": ["evidence:cs-ch5:5-4-2-bgp-connections", "evidence:cs-ch5:5-4-3-route-selection"]},
+        {"id": "procedure", "title": "路由选择算法", "section_type": "procedure", "content": ["1. 选择最高本地偏好值的路由", "2. 选择最短AS-PATH的路由", "3. 使用热土豆路由选择（最靠近NEXT-HOP）", "4. 使用BGP标识符选择"], "source_refs": ["evidence:cs-ch5:5-4-3-route-selection"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:bgp-route-selection",
+      "node_id": "concept:bgp-route-selection",
+      "card_layer": "backbone",
+      "title": "BGP路由选择算法",
+      "summary": "BGP路由选择算法从多条可达路由中顺序应用消除规则选择最好路由：1)最高本地偏好值（策略优先）；2)最短AS-PATH；3)热土豆路由选择（最靠近NEXT-HOP）；4)BGP标识符。策略考虑优先于性能考虑是AS间路由选择的特点。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["BGP路由器从多条路由中选择最好路由的顺序消除算法"], "source_refs": ["evidence:cs-ch5:5-4-3-route-selection"]},
+        {"id": "procedure", "title": "消除规则顺序", "section_type": "procedure", "content": ["1. 最高本地偏好值（策略决定）", "2. 最短AS-PATH（DV思想，AS跳为距离）", "3. 热土豆路由选择（自慈善算法）", "4. BGP标识符（打破平局）"], "source_refs": ["evidence:cs-ch5:5-4-3-route-selection"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:hot-potato-routing",
+      "node_id": "concept:hot-potato-routing",
+      "card_layer": "backbone",
+      "title": "热土豆路由选择",
+      "summary": "热土豆路由选择是一种自私的BGP路由选择策略，选择到NEXT-HOP路由器具有最小AS内部开销的路由，即尽可能快地将分组送出自己的AS。同一AS中不同路由器可能对相同前缀选择不同的AS路径。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["选择到NEXT-HOP路由器具有最小开销的路由", "尽可能快地将分组送出AS，不关心AS外部端到端开销"], "source_refs": ["evidence:cs-ch5:5-4-3-hot-potato"]},
+        {"id": "key-points", "title": "关键要点", "section_type": "key_points", "content": ["自私算法：仅减小自己AS内部开销", "同一AS内不同路由器可能选择不同AS路径", "需要结合AS内部路由选择协议确定到NEXT-HOP的路径"], "source_refs": ["evidence:cs-ch5:5-4-3-hot-potato"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:ip-anycast",
+      "node_id": "concept:ip-anycast",
+      "card_layer": "backbone",
+      "title": "IP任播",
+      "summary": "IP任播使用BGP将用户请求路由到地理上分散的最近服务器，通过为多台服务器指派相同IP地址并使用BGP通告实现。广泛应用于DNS根服务器系统，但CDN通常不使用，因为BGP路由变化可能导致同一TCP连接的不同分组到达不同服务器实例。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["为多台服务器指派相同IP地址，使用BGP通告该地址", "BGP路由选择算法自动选择最近的服务器"], "source_refs": ["evidence:cs-ch5:5-4-4-anycast"]},
+        {"id": "application", "title": "应用", "section_type": "application", "content": ["DNS根服务器：13个IP地址，每个对应100多个服务器实例", "CDN通常不使用：TCP连接可能因路由变化被中断"], "source_refs": ["evidence:cs-ch5:5-4-4-anycast"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:bgp-routing-policy",
+      "node_id": "concept:bgp-routing-policy",
+      "card_layer": "backbone",
+      "title": "BGP路由选择策略",
+      "summary": "BGP路由选择策略通过控制路由通告方式实现，优先级高于最短路径等性能考虑。核心经验法则是：穿越ISP主干的流量必须源或目的位于该ISP的客户网络中。客户/提供商关系通过选择性路由通告来强制执行。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["通过控制BGP路由通告方式实现的基于策略的路由选择决策", "策略优先于最短路径或最低开销"], "source_refs": ["evidence:cs-ch5:5-4-5-policy"]},
+        {"id": "key-points", "title": "关键要点", "section_type": "key_points", "content": ["接入ISP不转发其他ISP之间的流量", "主干ISP的流量必须源或目的位于客户网络", "对等协定通常保密且通过协商确定"], "source_refs": ["evidence:cs-ch5:5-4-5-policy"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:sdn-control-plane",
+      "node_id": "concept:sdn-control-plane",
+      "card_layer": "backbone",
+      "title": "SDN控制平面",
+      "summary": "SDN控制平面将数据平面与控制平面分离，由逻辑上集中的控制器计算并分发转发表，通过可编程的网络控制应用程序定义转发行为。SDN具有四个关键特征：基于流的转发、数据平面与控制平面分离、网络控制功能位于交换机外部、可编程网络。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["将控制平面功能从数据平面分离，由集中控制器统一管理", "控制器计算、管理和安装所有交换机的流表项"], "source_refs": ["evidence:cs-ch5:5-5-sdn-architecture"]},
+        {"id": "key-points", "title": "四个关键特征", "section_type": "key_points", "content": ["基于流的转发：可根据多层首部字段匹配", "数据平面与控制平面分离：交换机执行，控制器决策", "控制功能位于交换机外部：运行在独立服务器上", "可编程网络：通过应用程序定义网络行为"], "source_refs": ["evidence:cs-ch5:5-5-sdn-architecture"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:sdn-controller",
+      "node_id": "concept:sdn-controller",
+      "card_layer": "backbone",
+      "title": "SDN控制器",
+      "summary": "SDN控制器是SDN控制平面的核心组件，维护网络状态信息并通过接口与受控设备（南向）和网络控制应用程序（北向）交互。控制器功能分为三层：通信层、网络范围状态管理层和应用接口层。典型实现包括NOX、OpenDaylight和ONOS。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["维护网络状态信息的集中服务", "为应用程序提供网络状态和方法来编程控制网络设备"], "source_refs": ["evidence:cs-ch5:5-5-1-controller"]},
+        {"id": "structure", "title": "三层体系结构", "section_type": "structure", "content": ["通信层（南向接口）：与受控设备通信，传递事件和命令", "状态管理层：维护网络范围状态信息（链路、主机、流表等）", "应用接口层（北向接口）：与应用程序交互，提供REST API"], "source_refs": ["evidence:cs-ch5:5-5-1-controller"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:entity/protocol:openflow",
+      "node_id": "entity/protocol:openflow",
+      "card_layer": "backbone",
+      "title": "OpenFlow协议",
+      "summary": "OpenFlow协议是SDN控制器和交换机之间的南向通信协议，运行在TCP上（默认端口6653）。它定义了控制器到交换机的报文（配置、修改状态、读状态、发送分组）和交换机到控制器的报文（流删除、端口状态、分组入）。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["SDN控制器与受控交换机之间的通信协议", "运行在TCP上，默认端口6653"], "source_refs": ["evidence:cs-ch5:5-5-2-openflow"]},
+        {"id": "key-points", "title": "报文类型", "section_type": "key_points", "content": ["控制器->交换机：配置、修改状态、读状态、发送分组", "交换机->控制器：流删除、端口状态、分组入", "分组入：未匹配的分组被发送给控制器处理"], "source_refs": ["evidence:cs-ch5:5-5-2-openflow"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:entity/protocol:icmp",
+      "node_id": "entity/protocol:icmp",
+      "card_layer": "backbone",
+      "title": "ICMP协议",
+      "summary": "ICMP（因特网控制报文协议）用于主机和路由器之间沟通网络层信息，最典型的用途是差错报告。ICMP报文作为IP有效载荷承载（协议号1），包含类型和编码字段。ping程序使用ICMP回显请求/回答（类型8/0），Traceroute利用TTL过期的ICMP报文（类型11编码0）追踪路由。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["主机和路由器用来沟通网络层信息的协议", "ICMP报文作为IP有效载荷承载，协议号为1"], "source_refs": ["evidence:cs-ch5:5-6-icmp"]},
+        {"id": "key-points", "title": "常见报文类型", "section_type": "key_points", "content": ["类型8编码0：回显请求（ping发送）", "类型0编码0：回显回答（ping响应）", "类型3：目的不可达（网络/主机/协议/端口）", "类型11编码0：TTL过期（Traceroute利用）", "类型4编码0：源抑制（拥塞控制，很少使用）"], "source_refs": ["evidence:cs-ch5:5-6-icmp"]},
+        {"id": "application", "title": "应用", "section_type": "application", "content": ["ping：测试主机可达性和测量RTT", "Traceroute：追踪到目的地的路由器路径和时延"], "source_refs": ["evidence:cs-ch5:5-6-traceroute"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:entity/protocol:snmp",
+      "node_id": "entity/protocol:snmp",
+      "card_layer": "backbone",
+      "title": "SNMP协议",
+      "summary": "SNMP（简单网络管理协议）是应用层网络管理协议，用于在管理服务器和代理之间传递管理控制信息。支持请求-响应模式（GetRequest/SetRequest）和陷阱报文模式。SNMPv2定义了7种PDU类型，通常通过UDP传输。SNMPv3增加了安全性和管理能力。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["应用层协议，用于管理服务器和代理之间传递网络管理控制和信息报文", "支持请求-响应模式和陷阱报文模式"], "source_refs": ["evidence:cs-ch5:5-7-snmp"]},
+        {"id": "key-points", "title": "7种PDU类型", "section_type": "key_points", "content": ["GetRequest/GetNextRequest/GetBulkRequest：查询MIB对象值", "SetRequest：设置MIB对象值", "Response：响应请求", "SNMPv2-Trap：异步通知异常事件", "InformRequest：管理者间通知"], "source_refs": ["evidence:cs-ch5:5-7-2-snmp-pdu"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:network-management",
+      "node_id": "concept:network-management",
+      "card_layer": "backbone",
+      "title": "网络管理",
+      "summary": "网络管理包括硬件、软件和人类元素的设置、集成和协调，以监视、测试、轮询、配置、分析、评价和控制网络及网元资源。网络管理框架包含管理服务器、被管设备、MIB、网络管理代理和网络管理协议五个关键组件。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["包括硬件、软件和人类元素的设置、集成和协调，以监视、测试、轮询、配置、分析、评价和控制网络及网元资源"], "source_refs": ["evidence:cs-ch5:5-7-nm-definition"]},
+        {"id": "structure", "title": "五个关键组件", "section_type": "structure", "content": ["管理服务器：执行管理活动的应用程序", "被管设备：网络装备（主机、路由器、交换机等）", "MIB：被管对象的信息集合", "网络管理代理：与服务器通信的进程", "网络管理协议：管理通信协议（如SNMP）"], "source_refs": ["evidence:cs-ch5:5-7-nm-definition"]}
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "node-card:cs:concept:dijkstra-algorithm",
+      "node_id": "concept:dijkstra-algorithm",
+      "card_layer": "backbone",
+      "title": "Dijkstra算法",
+      "summary": "Dijkstra算法是链路状态路由选择中使用的迭代算法，经第k次迭代后可知到k个目的节点的最低开销路径。最差情况复杂度为O(n^2)，使用堆数据结构可优化到O(n log n)。算法通过逐步扩展已知最低开销路径的节点集合来构建从源到所有目的地的最短路径树。",
+      "sections": [
+        {"id": "definition", "title": "定义", "section_type": "definition", "content": ["计算从源节点到所有其他节点的最低开销路径的迭代算法", "第k次迭代后可知到k个目的节点的最低开销路径"], "source_refs": ["evidence:cs-ch5:5-2-1-dijkstra"]},
+        {"id": "key-points", "title": "复杂度", "section_type": "key_points", "content": ["最差情况O(n^2)：每次迭代需搜索所有节点", "优化实现O(n log n)：使用堆数据结构"], "source_refs": ["evidence:cs-ch5:5-2-1-dijkstra"]}
+      ],
+      "status": "draft"
+    }
+  ]
+}

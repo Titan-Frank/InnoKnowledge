@@ -35,15 +35,10 @@ npm run check                # TypeScript type-check all workspaces
 ### Python Pipeline Scripts
 
 ```bash
-# Staging: write lesson extraction to staging tables (auto-embed)
-python scripts/store_lesson_staging.py \
-  --root data/main --book-id chem-grade8 \
-  --batch-anchor struct:chem-grade8:lesson:1-1-1 \
-  --nodes-json '<json>' --edges-json '<json>' --profiles-json '<json>' \
-  --mentions-json '<json>' --evidence-json '<json>' --node-cards-json '<json>'
-
-# Skip embedding (offline / no API)
-python scripts/store_lesson_staging.py ... --no-embed
+# Staging: write lesson extraction to staging tables via MCP tools (auto-embed)
+# Called by @lesson-processor agent:
+#   start_lesson_run → store_staging_nodes (embed=true) / edges / profiles / mentions / evidence
+#   → store_staging_node_cards → finalize_lesson_run → check_staging_integrity
 
 # Merge: staging → canonical (semantic alignment + dedup)
 python scripts/merge_staged_lessons.py --root data/main --book-id chem-grade8 --lesson-run-id <id>
@@ -83,7 +78,7 @@ psql "$DATABASE_URL" -c "SELECT id, canonical_name FROM nodes ORDER BY created_a
 2. 读取教材 ocr/ 目录下对应教材的 markdown 文件中课题 1-1-1 的内容
 3. 提取节点、边、profiles、mentions、evidence
 4. 为每个 backbone 节点生成 provisional node_card
-5. 使用 scripts/store_lesson_staging.py 一次性写入完整 staging bundle（自动生成 embedding）
+5. 使用 MCP staging 工具（start_lesson_run, store_staging_*, finalize_lesson_run）写入 staging 表（自动生成 embedding）
 6. 使用 scripts/merge_staged_lessons.py 合并到 canonical 表
 7. 运行 scripts/normalize.py 归一化
 ```
@@ -113,7 +108,7 @@ psql "$DATABASE_URL" -c "SELECT id, canonical_name FROM nodes ORDER BY created_a
 │   └── @lesson-processor (Worker - staging workflow)
 │       ├── /chapter-extract (extract nodes/edges/evidence)
 │       ├── @node-expander × N (parallel Tasks for node cards)
-│       └── scripts/store_lesson_staging.py (auto-embed + write staging)
+│       └── MCP staging tools (auto-embed + write staging)
 │
 ├── @kg-reducer (merge staging → canonical, serial only)
 │   ├── scripts/merge_staged_lessons.py (semantic alignment)
@@ -172,7 +167,7 @@ Nodes are automatically embedded via `scripts/embedding_client.py` during stagin
 - **Model**: `Qwen/Qwen3-Embedding-4B` (2560-dim, Chinese-optimized)
 - **Auth**: `EMBEDDING_API_KEY` environment variable (Bearer token)
 - **Storage**: `embedding vector(2560)` column via pgvector extension
-- **Auto-embed**: `store_lesson_staging.py --embed` (default on)
+- **Auto-embed**: MCP `store_staging_nodes(embed=true)` (default on)
 - **Text composition**: `canonical_name + definition + aliases`
 - **Usage in pipeline**:
   - `merge_staged_lessons.py`: pgvector `<=>` operator for semantic node alignment (`--embedding-threshold 0.92`)
@@ -193,7 +188,7 @@ If the embedding server is unreachable, the pipeline continues with NULL embeddi
 ### Always
 - Process lessons via @kg-pipeline with one isolated Task per lesson
 - Keep lesson extraction parallelism limited to staging writes
-- Write to staging via `scripts/store_lesson_staging.py`
+- Write to staging via MCP staging tools (`store_staging_*`)
 - Merge staging to canonical via `scripts/merge_staged_lessons.py`
 - Verify data in PostgreSQL (not JSONL) after operations
 

@@ -15,7 +15,7 @@ Process lesson `$ARGUMENTS[1]` from book `$ARGUMENTS[0]`.
 2. Load outline from `data/outlines/{book-id}.outline.json` to locate lesson
 3. Execute `/chapter-extract` skill for this lesson only
 4. Expand backbone nodes into provisional node cards via `@node-expander`
-5. Write the complete lesson bundle to staging via `scripts/store_lesson_staging.py` (auto-generates embeddings)
+5. Write the complete lesson bundle to staging via MCP tools (`start_lesson_run`, `store_staging_*`, `finalize_lesson_run`)
 6. Report counts and any issues
 
 **Constraints:**

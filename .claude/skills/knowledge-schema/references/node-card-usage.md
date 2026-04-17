@@ -25,7 +25,7 @@ Use node cards to expand one canonical node into a readable, evidence-backed exp
 Node cards are stored in PostgreSQL via the staging workflow:
 
 1. `@node-expander` generates provisional node card payloads
-2. `@lesson-processor` passes them to `scripts/store_lesson_staging.py` → `staging_node_cards` table
+2. `@lesson-processor` passes them to MCP `store_staging_node_cards` → `staging_node_cards` table
 3. `@kg-reducer` merges them into the canonical `node_cards` table via `scripts/merge_staged_lessons.py`
 
 Do not write node cards as individual JSON files.

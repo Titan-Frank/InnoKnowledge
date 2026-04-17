@@ -85,7 +85,7 @@ Agent(
     教材 markdown 路径: {book_md_path}
 
     只提取本单元的知识点。
-    用 scripts/store_lesson_staging.py 写入 staging。
+    用 MCP staging 工具写入 staging。
     返回 status, lesson_run_id, counts 和 issues。
     处理完此单元即停。
     '''
