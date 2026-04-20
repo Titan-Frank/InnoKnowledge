@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useAppState } from '@/hooks/useAppState';
 import { useSigma } from '@/hooks/useSigma';
 import { okmKnowledgeGraphToGraphology } from '@/lib/graph-adapter';
-import { getVisibleNodes, resolveExpandedBackboneNodeId } from '@/lib/visibility';
+import { getVisibleNodes } from '@/lib/visibility';
 import { getTypeLabel } from '@/core/graph/knowledge-data';
 import { ZoomIn, ZoomOut, Maximize2, Play, Pause, RotateCcw } from '@/lib/lucide-icons';
 
@@ -10,38 +10,40 @@ export function GraphCanvas() {
   const appState = useAppState();
   const {
     knowledgeGraph, selectedNodeId, selectedTypes, selectedBook,
-    layerMode, expandedBackboneNodeId, focusConnected, showLabels,
+    layerMode, expandedBackboneNodeId, showLabels,
     themeMode, setSelectedNodeId, setExpandedBackboneNodeId,
     setCommunityInfo,
   } = appState;
 
   const [hoveredNodeName, setHoveredNodeName] = useState<string | null>(null);
 
-  // Compute visible node IDs
-  const visibilityState = useMemo(() => ({
+  // Compute visible node IDs — only structural filters (not selection)
+  const structuralVisibility = useMemo(() => ({
     knowledgeGraph,
     selectedTypes,
     selectedBook,
     layerMode,
     expandedBackboneNodeId,
-    focusConnected,
-    selectedNodeId,
+    focusConnected: false,
+    selectedNodeId: null,
     searchTerm: '',
     serverSearchHits: new Map<string, { score: number }>(),
-  }), [knowledgeGraph, selectedTypes, selectedBook, layerMode, expandedBackboneNodeId, focusConnected, selectedNodeId]);
+  }), [knowledgeGraph, selectedTypes, selectedBook, layerMode, expandedBackboneNodeId]);
 
   const visibleNodeIds = useMemo(() => {
     if (!knowledgeGraph) return new Set<string>();
-    const nodes = getVisibleNodes(visibilityState);
+    const nodes = getVisibleNodes(structuralVisibility);
     return new Set(nodes.map((n) => n.id));
-  }, [visibilityState, knowledgeGraph]);
+  }, [structuralVisibility, knowledgeGraph]);
 
-  // Handle node click
+  // Handle node click — only updates state, no graph rebuild
   const handleNodeClick = useCallback((nodeId: string) => {
     setSelectedNodeId(nodeId);
-    const expanded = resolveExpandedBackboneNodeId(nodeId, visibilityState);
-    if (expanded) setExpandedBackboneNodeId(expanded);
-  }, [setSelectedNodeId, setExpandedBackboneNodeId, visibilityState]);
+    const node = knowledgeGraph?.nodeById.get(nodeId);
+    if (node && node.nodeLayer === 'backbone' && layerMode === 'backbone-expand') {
+      setExpandedBackboneNodeId(nodeId);
+    }
+  }, [setSelectedNodeId, setExpandedBackboneNodeId, knowledgeGraph, layerMode]);
 
   const handleNodeHover = useCallback((nodeId: string | null) => {
     if (!nodeId || !knowledgeGraph) {
@@ -69,7 +71,7 @@ export function GraphCanvas() {
     showLabels,
   });
 
-  // Build and set graph when data or structural filters change
+  // Build and set graph ONLY when data or structural filters change
   useEffect(() => {
     if (!knowledgeGraph || !containerReady) return;
     if (visibleNodeIds.size === 0) return;

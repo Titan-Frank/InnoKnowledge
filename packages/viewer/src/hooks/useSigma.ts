@@ -240,7 +240,12 @@ export function useSigma(options: UseSigmaOptions) {
     selectedNodeRef.current = options.selectedNodeId;
     visibleNodeIdsRef.current = options.visibleNodeIds;
     themeModeRef.current = options.themeMode;
-    sigmaRef.current?.refresh();
+    const sigma = sigmaRef.current;
+    if (!sigma) return;
+    sigma.refresh();
+    // Nudge camera to force edge re-render (Sigma edge caching workaround)
+    const camera = sigma.getCamera();
+    camera.animate({ ratio: camera.getBoundedRatio(camera.ratio * 1.0001) }, { duration: 50 });
   }, [options.selectedNodeId, options.visibleNodeIds, options.themeMode]);
 
   // Observe container
