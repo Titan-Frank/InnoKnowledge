@@ -586,33 +586,27 @@ export function useSigma(options: UseSigmaOptions) {
   }, [options.showLabels]);
 
   // Layout functions
-  const startLayoutWorker = useCallback((targetGraph: Graph<SigmaNodeAttributes, SigmaEdgeAttributes>, hasSemanticLayout = false) => {
+  const startLayoutWorker = useCallback((targetGraph: Graph<SigmaNodeAttributes, SigmaEdgeAttributes>) => {
     const nodeCount = targetGraph.order;
     if (nodeCount === 0) return;
 
     if (layoutRef.current) { layoutRef.current.kill(); layoutRef.current = null; }
     if (layoutTimeoutRef.current) { clearTimeout(layoutTimeoutRef.current); layoutTimeoutRef.current = null; }
 
-    if (hasSemanticLayout) {
-      fanOutCoincidentNodes(targetGraph);
-    } else {
-      ensureSeedPositions(targetGraph);
-      fanOutCoincidentNodes(targetGraph);
-    }
+    ensureSeedPositions(targetGraph);
+    fanOutCoincidentNodes(targetGraph);
 
     const inferredSettings = forceAtlas2.inferSettings(targetGraph);
     const customSettings = getFA2Settings(nodeCount);
-    const settings = hasSemanticLayout
-      ? { ...inferredSettings, ...customSettings, gravity: customSettings.gravity * 0.5, scalingRatio: customSettings.scalingRatio * 0.5, slowDown: customSettings.slowDown * 2 }
-      : { ...inferredSettings, ...customSettings };
+    const settings = { ...inferredSettings, ...customSettings };
 
     const layout = new FA2Layout(targetGraph, { settings });
     layoutRef.current = layout;
     layout.start();
 
     // Convergence detection
-    const CONVERGENCE_SAMPLE_INTERVAL = hasSemanticLayout ? 1500 : 2000;
-    const CONVERGENCE_THRESHOLD = hasSemanticLayout ? 1.0 : 0.5;
+    const CONVERGENCE_SAMPLE_INTERVAL = 2000;
+    const CONVERGENCE_THRESHOLD = 0.5;
     const CONVERGENCE_ROUNDS_NEEDED = 2;
 
     const sampleSize = Math.min(nodeCount, 50);
@@ -655,13 +649,10 @@ export function useSigma(options: UseSigmaOptions) {
       sigmaRef.current?.refresh();
     };
 
-    const maxDuration = hasSemanticLayout
-      ? Math.min(getLayoutDuration(nodeCount) * 0.5, 12000)
-      : getLayoutDuration(nodeCount);
-    layoutTimeoutRef.current = setTimeout(doStop, maxDuration);
+    layoutTimeoutRef.current = setTimeout(doStop, getLayoutDuration(nodeCount));
   }, []);
 
-  const setGraph = useCallback((newGraph: Graph<SigmaNodeAttributes, SigmaEdgeAttributes>, hasSemanticLayout = false) => {
+  const setGraph = useCallback((newGraph: Graph<SigmaNodeAttributes, SigmaEdgeAttributes>) => {
     const sigma = sigmaRef.current;
     if (!sigma) return;
 
@@ -672,7 +663,7 @@ export function useSigma(options: UseSigmaOptions) {
     sigma.setGraph(newGraph);
     sigma.refresh();
 
-    startLayoutWorker(newGraph, hasSemanticLayout);
+    startLayoutWorker(newGraph);
     sigma.getCamera().animatedReset({ duration: 600 });
   }, [startLayoutWorker]);
 

@@ -17,8 +17,6 @@ export interface OKMNode {
   mentionBookIds: Set<string>;
   scopeBookIds: Set<string>;
   communityId: number | null;
-  pcaX: number | null;
-  pcaY: number | null;
 }
 
 export interface OKMEdge {

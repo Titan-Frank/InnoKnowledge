@@ -147,8 +147,6 @@ function normalizeNode(node: ApiNode, profilesForNode: ApiProfile[]): OKMNode {
     mentionBookIds: new Set<string>(),
     scopeBookIds: new Set<string>(),
     communityId: (normalized as Record<string, unknown>).community_id as number | null ?? null,
-    pcaX: (normalized as Record<string, unknown>).pca_x as number | null ?? null,
-    pcaY: (normalized as Record<string, unknown>).pca_y as number | null ?? null,
   };
 }
 

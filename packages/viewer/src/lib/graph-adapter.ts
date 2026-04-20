@@ -42,7 +42,6 @@ export interface BuildResult {
   communityCount: number;
   communities: CommunityInfo[];
   communityMap: Map<string, number>;
-  hasSemanticLayout: boolean;
 }
 
 const NODE_SIZE_MAP: Record<string, number> = {
@@ -236,12 +235,9 @@ export function okmKnowledgeGraphToGraphology(
     } catch { /* skip duplicate edges or self-loops */ }
   }
 
-  // Community detection + positioning
+  // Community detection + coloring
   const hasServerCommunities = data.nodes.some(
     (n) => n.communityId != null && visibleNodeIds.has(n.id),
-  );
-  const hasPcaCoords = data.nodes.some(
-    (n) => n.pcaX != null && n.pcaY != null && visibleNodeIds.has(n.id),
   );
 
   let communityMemberships: Map<string, number>;
@@ -265,84 +261,53 @@ export function okmKnowledgeGraphToGraphology(
   }
 
   if (communityCount > 1) {
-    if (hasPcaCoords) {
-      graph.forEachNode((node) => {
-        const communityIndex = communityMemberships.get(node);
-        if (communityIndex !== undefined) {
-          const communityColor = getCommunityColor(communityIndex, mode);
-          graph.setNodeAttribute(node, 'community', communityIndex);
-          graph.setNodeAttribute(node, 'communityColor', communityColor);
-          graph.setNodeAttribute(node, 'color', communityColor);
-          graph.setNodeAttribute(node, 'borderColor', lightenForBorder(communityColor));
-        } else {
-          graph.setNodeAttribute(node, 'community', -1);
+    const avgCollisionRadius = 35;
+    const clusterSpread = Math.sqrt(nodeCount) * avgCollisionRadius * 0.8;
+    const communityIds = [...new Set(communityMemberships.values())].sort((a, b) => a - b);
+
+    const clusterMemberCount = new Map<number, number>();
+    communityMemberships.forEach((commId) => {
+      clusterMemberCount.set(commId, (clusterMemberCount.get(commId) ?? 0) + 1);
+    });
+
+    const clusterCenters = new Map<number, { x: number; y: number }>();
+    communityIds.forEach((commId, idx) => {
+      const angle = idx * GOLDEN_ANGLE;
+      const radius = clusterSpread * Math.sqrt((idx + 1) / communityCount);
+      clusterCenters.set(commId, { x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
+    });
+
+    const clusterNodeIndex = new Map<number, number>();
+    communityIds.forEach((commId) => clusterNodeIndex.set(commId, 0));
+
+    graph.forEachNode((node) => {
+      const communityIndex = communityMemberships.get(node);
+      if (communityIndex !== undefined) {
+        const communityColor = getCommunityColor(communityIndex, mode);
+        graph.setNodeAttribute(node, 'community', communityIndex);
+        graph.setNodeAttribute(node, 'communityColor', communityColor);
+        graph.setNodeAttribute(node, 'color', communityColor);
+        graph.setNodeAttribute(node, 'borderColor', lightenForBorder(communityColor));
+
+        const center = clusterCenters.get(communityIndex);
+        if (center) {
+          const idx = clusterNodeIndex.get(communityIndex) ?? 0;
+          clusterNodeIndex.set(communityIndex, idx + 1);
+          const membersInCluster = Math.max(clusterMemberCount.get(communityIndex) ?? 5, 5);
+          const localAngle = idx * GOLDEN_ANGLE;
+          const spacing = avgCollisionRadius * 1.2;
+          const localR = Math.sqrt((idx + 1) / membersInCluster) * Math.sqrt(membersInCluster) * spacing;
+          graph.setNodeAttribute(node, 'x', center.x + Math.cos(localAngle) * localR);
+          graph.setNodeAttribute(node, 'y', center.y + Math.sin(localAngle) * localR);
         }
-        const okmNode = data.nodeById.get(node);
-        if (okmNode && okmNode.pcaX != null && okmNode.pcaY != null) {
-          graph.setNodeAttribute(node, 'x', okmNode.pcaX);
-          graph.setNodeAttribute(node, 'y', okmNode.pcaY);
-        }
-      });
-    } else {
-      const avgCollisionRadius = 35;
-      const clusterSpread = Math.sqrt(nodeCount) * avgCollisionRadius * 0.8;
-      const communityIds = [...new Set(communityMemberships.values())].sort((a, b) => a - b);
-
-      const clusterMemberCount = new Map<number, number>();
-      communityMemberships.forEach((commId) => {
-        clusterMemberCount.set(commId, (clusterMemberCount.get(commId) ?? 0) + 1);
-      });
-
-      const clusterCenters = new Map<number, { x: number; y: number }>();
-      communityIds.forEach((commId, idx) => {
-        const angle = idx * GOLDEN_ANGLE;
-        const radius = clusterSpread * Math.sqrt((idx + 1) / communityCount);
-        clusterCenters.set(commId, { x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
-      });
-
-      const clusterNodeIndex = new Map<number, number>();
-      communityIds.forEach((commId) => clusterNodeIndex.set(commId, 0));
-
-      graph.forEachNode((node) => {
-        const communityIndex = communityMemberships.get(node);
-        if (communityIndex !== undefined) {
-          const communityColor = getCommunityColor(communityIndex, mode);
-          graph.setNodeAttribute(node, 'community', communityIndex);
-          graph.setNodeAttribute(node, 'communityColor', communityColor);
-          graph.setNodeAttribute(node, 'color', communityColor);
-          graph.setNodeAttribute(node, 'borderColor', lightenForBorder(communityColor));
-
-          const center = clusterCenters.get(communityIndex);
-          if (center) {
-            const idx = clusterNodeIndex.get(communityIndex) ?? 0;
-            clusterNodeIndex.set(communityIndex, idx + 1);
-            const membersInCluster = Math.max(clusterMemberCount.get(communityIndex) ?? 5, 5);
-            const localAngle = idx * GOLDEN_ANGLE;
-            const spacing = avgCollisionRadius * 1.2;
-            const localR = Math.sqrt((idx + 1) / membersInCluster) * Math.sqrt(membersInCluster) * spacing;
-            graph.setNodeAttribute(node, 'x', center.x + Math.cos(localAngle) * localR);
-            graph.setNodeAttribute(node, 'y', center.y + Math.sin(localAngle) * localR);
-          }
-        } else {
-          graph.setNodeAttribute(node, 'community', -1);
-        }
-      });
-    }
+      } else {
+        graph.setNodeAttribute(node, 'community', -1);
+      }
+    });
   } else {
-    if (hasPcaCoords) {
-      graph.forEachNode((node) => {
-        graph.setNodeAttribute(node, 'community', -1);
-        const okmNode = data.nodeById.get(node);
-        if (okmNode && okmNode.pcaX != null && okmNode.pcaY != null) {
-          graph.setNodeAttribute(node, 'x', okmNode.pcaX);
-          graph.setNodeAttribute(node, 'y', okmNode.pcaY);
-        }
-      });
-    } else {
-      graph.forEachNode((node) => {
-        graph.setNodeAttribute(node, 'community', -1);
-      });
-    }
+    graph.forEachNode((node) => {
+      graph.setNodeAttribute(node, 'community', -1);
+    });
   }
 
   // Build CommunityInfo
@@ -373,6 +338,5 @@ export function okmKnowledgeGraphToGraphology(
     communityCount: communityCount > 1 ? communityCount : 0,
     communities,
     communityMap: communityMemberships,
-    hasSemanticLayout: hasPcaCoords,
   };
 }

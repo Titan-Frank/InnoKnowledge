@@ -78,7 +78,7 @@ export function GraphCanvas() {
 
     const result = okmKnowledgeGraphToGraphology(knowledgeGraph, visibleNodeIds, themeMode);
     setCommunityInfo(result.communityCount, result.communities, result.communityMap);
-    setGraph(result.graph, result.hasSemanticLayout);
+    setGraph(result.graph);
   }, [knowledgeGraph, visibleNodeIds, themeMode, containerReady, setGraph, setCommunityInfo]);
 
   // Focus on selected node
