@@ -156,17 +156,6 @@ function runNoverlap(graph: Graph) {
   });
 }
 
-function runNoverlapHeavy(graph: Graph) {
-  noverlap.assign(graph, {
-    maxIterations: 100,
-    settings: { ratio: 1.2, margin: 18, expansion: 1.1 },
-    inputReducer: (_, attrs) => ({
-      ...attrs,
-      size: ((attrs as Record<string, unknown>).collisionRadius as number || ((attrs as Record<string, unknown>).size as number || 8) * 1.8 + 10) * 1.15,
-    }),
-  });
-}
-
 function normalizePositions(graph: Graph) {
   let minX = Infinity;
   let minY = Infinity;
@@ -605,26 +594,25 @@ export function useSigma(options: UseSigmaOptions) {
     if (layoutTimeoutRef.current) { clearTimeout(layoutTimeoutRef.current); layoutTimeoutRef.current = null; }
 
     if (hasSemanticLayout) {
-      runNoverlapHeavy(targetGraph);
-      normalizePositions(targetGraph);
-      sigmaRef.current?.refresh();
-      return;
+      fanOutCoincidentNodes(targetGraph);
+    } else {
+      ensureSeedPositions(targetGraph);
+      fanOutCoincidentNodes(targetGraph);
     }
-
-    ensureSeedPositions(targetGraph);
-    fanOutCoincidentNodes(targetGraph);
 
     const inferredSettings = forceAtlas2.inferSettings(targetGraph);
     const customSettings = getFA2Settings(nodeCount);
-    const settings = { ...inferredSettings, ...customSettings };
+    const settings = hasSemanticLayout
+      ? { ...inferredSettings, ...customSettings, gravity: customSettings.gravity * 0.5, scalingRatio: customSettings.scalingRatio * 0.5, slowDown: customSettings.slowDown * 2 }
+      : { ...inferredSettings, ...customSettings };
 
     const layout = new FA2Layout(targetGraph, { settings });
     layoutRef.current = layout;
     layout.start();
 
     // Convergence detection
-    const CONVERGENCE_SAMPLE_INTERVAL = 2000;
-    const CONVERGENCE_THRESHOLD = 0.5;
+    const CONVERGENCE_SAMPLE_INTERVAL = hasSemanticLayout ? 1500 : 2000;
+    const CONVERGENCE_THRESHOLD = hasSemanticLayout ? 1.0 : 0.5;
     const CONVERGENCE_ROUNDS_NEEDED = 2;
 
     const sampleSize = Math.min(nodeCount, 50);
@@ -667,7 +655,9 @@ export function useSigma(options: UseSigmaOptions) {
       sigmaRef.current?.refresh();
     };
 
-    const maxDuration = getLayoutDuration(nodeCount);
+    const maxDuration = hasSemanticLayout
+      ? Math.min(getLayoutDuration(nodeCount) * 0.5, 12000)
+      : getLayoutDuration(nodeCount);
     layoutTimeoutRef.current = setTimeout(doStop, maxDuration);
   }, []);
 
