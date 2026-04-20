@@ -1,50 +1,33 @@
-import { Component, type ReactNode } from 'react';
-import { useBootData } from './hooks/useBootData.js';
-import { AppShell } from './components/AppShell.js';
-import { useGraphStore } from './store/graphStore.js';
-import { getTokens } from './components/aiwc/styles/tokens.js';
+import { AppStateProvider } from './hooks/useAppState';
+import { useBootData } from './hooks/useBootData';
+import { Header } from './components/Header';
+import { FilterPanel } from './components/FilterPanel';
+import { GraphCanvas } from './components/GraphCanvas';
+import { DetailPanel } from './components/DetailPanel';
+import { StatusBar } from './components/StatusBar';
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-}
-
-class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { hasError: false, error: null };
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      const mode = useGraphStore.getState().themeMode;
-      const t = getTokens(mode);
-      return (
-        <div style={{ padding: 32, color: t.colorDanger, background: t.colorPage }}>
-          <h2>渲染错误</h2>
-          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 14 }}>
-            {this.state.error?.message}
-          </pre>
-          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, color: t.colorMuted }}>
-            {this.state.error?.stack}
-          </pre>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
-function AppInner() {
+function AppContent() {
   useBootData();
-  return <AppShell />;
+
+  return (
+    <div className="flex h-screen flex-col overflow-hidden bg-void text-text-primary">
+      <Header />
+      <main className="flex min-h-0 flex-1">
+        <FilterPanel />
+        <div className="relative min-w-0 flex-1">
+          <GraphCanvas />
+        </div>
+        <DetailPanel />
+      </main>
+      <StatusBar />
+    </div>
+  );
 }
 
 export function App() {
   return (
-    <ErrorBoundary>
-      <AppInner />
-    </ErrorBoundary>
+    <AppStateProvider>
+      <AppContent />
+    </AppStateProvider>
   );
 }

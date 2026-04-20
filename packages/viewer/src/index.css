@@ -1,0 +1,129 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Backgrounds */
+  --color-void: #06060a;
+  --color-deep: #0a0a10;
+  --color-surface: #101018;
+  --color-elevated: #16161f;
+  --color-hover: #1c1c28;
+
+  /* Borders */
+  --color-border-subtle: #1e1e2a;
+  --color-border-default: #2a2a3a;
+  --color-border-strong: #3a3a4a;
+
+  /* Text */
+  --color-text-primary: #e4e4ed;
+  --color-text-secondary: #8888a0;
+  --color-text-muted: #5a5a70;
+
+  /* Accent */
+  --color-accent: #7c3aed;
+  --color-accent-dim: #5b21b6;
+
+  /* OKM node type colors */
+  --color-node-concept: #555AFF;
+  --color-node-substance: #3782FF;
+  --color-node-entity: #3782FF;
+  --color-node-experiment: #1EB478;
+  --color-node-activity: #1EB478;
+  --color-node-process: #2BA876;
+  --color-node-principle: #8C55FF;
+  --color-node-method: #FFB400;
+  --color-node-skill: #A06BFF;
+  --color-node-representation: #5580CC;
+  --color-node-symbol: #5580CC;
+  --color-node-question: #F02D2D;
+  --color-node-event: #E84855;
+  --color-node-issue: #D94848;
+  --color-node-other: #9A9AB0;
+
+  /* Edge category colors */
+  --color-edge-hierarchy: #555AFF;
+  --color-edge-structure: #FFB400;
+  --color-edge-association: #8C55FF;
+  --color-edge-causal: #1EB478;
+  --color-edge-operational: #3782FF;
+
+  /* Fonts */
+  --font-sans: 'Outfit', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'PingFang SC', 'Microsoft YaHei', monospace;
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
+
+  /* Shadows */
+  --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.4);
+  --shadow-glow-soft: 0 0 40px rgba(124, 58, 237, 0.15);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Light theme overrides */
+[data-theme="light"] {
+  --color-void: #f8f8fb;
+  --color-deep: #f0f0f5;
+  --color-surface: #e8e8f0;
+  --color-elevated: #ffffff;
+  --color-hover: #d8d8e4;
+
+  --color-border-subtle: #d0d0dc;
+  --color-border-default: #b8b8c8;
+  --color-border-strong: #9090a8;
+
+  --color-text-primary: #1a1a2e;
+  --color-text-secondary: #5a5a78;
+  --color-text-muted: #8888a0;
+
+  --color-accent: #6d28d9;
+  --color-accent-dim: #5b21b6;
+
+  --shadow-glow: 0 0 20px rgba(109, 40, 217, 0.2);
+  --shadow-glow-soft: 0 0 40px rgba(109, 40, 217, 0.08);
+}
+
+/* Sigma container */
+.sigma-container {
+  position: absolute;
+  inset: 0;
+}
+
+/* Custom scrollbar */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

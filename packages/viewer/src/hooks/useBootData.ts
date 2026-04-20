@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
-import { useGraphStore, setSourceConfigs, switchSourceStart, switchSourceComplete, switchSourceFailed } from '../store/graphStore.js';
-import { loadMeta, loadBundle } from '../api/index.js';
-import { prepareGraphData } from '../graph/layout.js';
-import { API_BASE } from '../constants/index.js';
-import type { MetaResponse, BundleResponse } from '@okm/types';
-import type { SourceConfig } from '../store/types.js';
+import { useAppState } from './useAppState';
+import { loadMeta, loadBundle } from '@/services/backend-client';
+import { prepareGraphData } from '@/core/graph/knowledge-data';
+import { API_BASE } from '@/lib/constants';
+import type { MetaResponse } from '@okm/types';
+import type { SourceConfig } from '@/core/graph/types';
 
 function resolveApiSourceConfigs(meta: MetaResponse): Map<string, SourceConfig> {
   const configs = new Map<string, SourceConfig>();
@@ -34,30 +34,20 @@ function resolveInitialSourceKey(meta: MetaResponse, configs: Map<string, Source
   const params = new URLSearchParams(window.location.search);
   const requestedKey = params.get('source');
   if (requestedKey && configs.has(requestedKey)) return requestedKey;
-
-  if (meta.active_source && configs.has(meta.active_source)) {
-    return meta.active_source;
-  }
-
+  if (meta.active_source && configs.has(meta.active_source)) return meta.active_source;
   return configs.keys().next().value!;
 }
 
-function updateSourceQuery(sourceKey: string): void {
-  const url = new URL(window.location.href);
-  url.searchParams.set('source', sourceKey);
-  window.history.replaceState({}, '', url);
-}
-
-let booted = false;
-
 export function useBootData() {
-  useEffect(() => {
-    if (booted) return;
-    booted = true;
+  const { setSourceConfigs, setKnowledgeGraph, setSelectedTypes, setSelectedBook, setSelectedNodeId, setHoverNodeId, setExpandedBackboneNodeId, setSourceLoading } = useAppState();
 
+  useEffect(() => {
     let cancelled = false;
+    let done = false;
 
     async function boot() {
+      if (done) return;
+      done = true;
       const meta = await loadMeta();
       if (cancelled) return;
 
@@ -66,88 +56,61 @@ export function useBootData() {
       setSourceConfigs(configs, manifest);
 
       if (configs.size === 0) {
-        const graphData = prepareGraphData({
-          nodes: [],
-          edges: [],
-          profiles: [],
-          framework: { domains: [] },
-          patterns: { patterns: [] },
+        const kg = prepareGraphData({
+          nodes: [], edges: [], profiles: [],
+          framework: { domains: [] }, patterns: { patterns: [] },
           books: [],
           loadWarnings: ['当前 PostgreSQL 中还没有可用数据集，请先初始化 schema 并导入数据。'],
           source: { key: 'empty', label: 'EMPTY', description: 'No dataset loaded', hasProfiles: false, isActive: false, rootPath: '', nodeCardPath: '' },
           manifest,
         });
-
-        switchSourceComplete(graphData);
+        setKnowledgeGraph(kg);
+        setSelectedTypes(new Set(kg.availableTypes));
+        setSelectedBook('all');
         return;
       }
 
       const initialKey = resolveInitialSourceKey(meta, configs);
-      switchSourceStart(initialKey);
+      const config = configs.get(initialKey);
+      if (!config) return;
+
+      setSelectedNodeId(null);
+      setHoverNodeId(null);
+      setExpandedBackboneNodeId(null);
+      setSourceLoading(true);
 
       let data;
       try {
         data = await loadBundle(initialKey);
-      } catch (error) {
-        if (cancelled) return;
+      } catch {
         data = {
           nodes: [], edges: [], profiles: [],
           framework: { domains: [] }, patterns: { patterns: [] },
-          books: [], loadWarnings: [(error as Error)?.message || '数据源读取失败'],
-          source: {} as BundleResponse['source'],
-        } as BundleResponse;
+          books: [], loadWarnings: ['数据源读取失败'],
+          source: {} as Record<string, unknown>,
+        };
       }
 
-      if (cancelled) return;
-
-      const graphData = prepareGraphData({
+      const kg = prepareGraphData({
         ...data,
         manifest,
-        source: { ...configs.get(initialKey)!, ...(data.source || {}) } as Record<string, unknown> & { nodeCardPath?: string },
+        source: { ...config, ...(data.source || {}) } as Record<string, unknown> & { nodeCardPath?: string },
       });
 
-      switchSourceComplete(graphData);
-      updateSourceQuery(initialKey);
+      setKnowledgeGraph(kg);
+      setSelectedBook('all');
+      setSelectedTypes(new Set(kg.availableTypes));
+      setSourceLoading(false);
+
+      const url = new URL(window.location.href);
+      url.searchParams.set('source', initialKey);
+      window.history.replaceState({}, '', url);
     }
 
     boot().catch((error) => {
-      if (!cancelled) {
-        switchSourceFailed();
-        console.error('Boot failed:', error);
-      }
+      if (!cancelled) console.error('Boot failed:', error);
     });
 
     return () => { cancelled = true; };
-  }, []);
-}
-
-export function useSwitchSource() {
-  return async (sourceKey: string) => {
-    const state = useGraphStore.getState();
-    const source = state.sourceConfigs.get(sourceKey);
-    if (!source) return;
-
-    switchSourceStart(sourceKey);
-
-    let data;
-    try {
-      data = await loadBundle(sourceKey);
-    } catch (error) {
-      data = {
-        nodes: [], edges: [], profiles: [],
-        framework: { domains: [] }, patterns: { patterns: [] },
-        books: [], loadWarnings: [(error as Error)?.message || '数据源读取失败'],
-        source: {} as BundleResponse['source'],
-      } as BundleResponse;
-    }
-
-    const graphData = prepareGraphData({
-      ...data,
-      manifest: state.manifest,
-      source: { ...source, ...(data.source || {}) } as Record<string, unknown> & { nodeCardPath?: string },
-    });
-
-    switchSourceComplete(graphData);
-    updateSourceQuery(sourceKey);
-  };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 }

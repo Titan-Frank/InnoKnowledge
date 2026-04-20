@@ -9,7 +9,11 @@
     "rootDir": "src",
     "noEmit": true,
     "useDefineForClassFields": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src"]
 }
