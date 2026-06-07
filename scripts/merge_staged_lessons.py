@@ -1,75 +1,48 @@
 #!/usr/bin/env python3
-"""Merge staged lesson artifacts into the canonical PostgreSQL knowledge graph."""
+"""Merge world_staging_* lesson artifacts into canonical world_* tables."""
 
 from __future__ import annotations
 
 import argparse
 import json
 import os
-import re
-from collections import Counter, defaultdict
 from dataclasses import dataclass
 from difflib import SequenceMatcher
-from pathlib import Path
 from typing import Any
 
-import psycopg
-import psycopg2
-import psycopg2.extras
 from psycopg.rows import dict_row
 
 from knowledge_store_common import (
     connect_db,
     cosine_similarity,
-    dump_json_text,
     ensure_dataset,
     ensure_pg_schema,
-    load_json_text,
     make_canonical_node_id,
     make_edge_id,
     make_evidence_id,
     make_lesson_run_id,
     make_merge_run_id,
     make_mention_id,
-    make_profile_id,
     merge_json_objects,
     merge_text_blocks,
     merge_unique_strings,
     normalize_term,
     rebuild_node_terms,
     resolve_dataset_id,
-    resolve_outline_anchor,
-    require_dataset_row,
-    safe_path_token,
     utc_now,
 )
-
-# Override connect_db to use psycopg2 instead of psycopg3
-def connect_db(database_url: str | None = None):
-    """Connect using psycopg2 for compatibility with execute_values."""
-    if database_url is None:
-        database_url = os.environ.get("DATABASE_URL")
-    if not database_url:
-        raise ValueError("No database URL provided. Set DATABASE_URL or pass --db with a PostgreSQL connection string (e.g. postgresql://okm:okm@localhost:5432/knowledge)")
-    return psycopg2.connect(database_url, cursor_factory=psycopg2.extras.RealDictCursor)
 
 
 @dataclass
 class CanonicalNode:
     payload: dict[str, Any]
-    name_terms: set[str]
+    terms: set[str]
     semantic_key: str | None
     embedding: list[float]
 
 
-VALID_CARD_STATUSES = {"draft", "reviewed", "validated"}
-VALID_PROFILE_STATUSES = {"draft", "reviewed", "validated"}
-
-
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Merge staged lesson artifacts into canonical nodes, edges, profiles, evidence, mentions, and node cards."
-    )
+    parser = argparse.ArgumentParser(description="Merge world staging lesson artifacts.")
     parser.add_argument("--root", required=True)
     parser.add_argument("--db", default=os.environ.get("DATABASE_URL"))
     parser.add_argument("--dataset-id")
@@ -83,81 +56,19 @@ def parse_args() -> argparse.Namespace:
 
 
 def parse_embedding(value: Any) -> list[float]:
-    """Parse embedding from JSONB (already a Python list) or raw JSON text."""
     if isinstance(value, list):
-        result: list[float] = []
-        for item in value:
-            try:
-                result.append(float(item))
-            except (TypeError, ValueError):
-                return []
-        return result
-    if value is None or value == "":
-        return []
-    payload = load_json_text(value, [])
-    if not isinstance(payload, list):
-        return []
-    result_list: list[float] = []
-    for item in payload:
         try:
-            result_list.append(float(item))
+            return [float(item) for item in value]
         except (TypeError, ValueError):
             return []
-    return result_list
+    return []
 
 
-def parse_rows(rows: list[dict[str, Any]], json_fields: dict[str, str]) -> list[dict[str, Any]]:
-    """Parse rows from PostgreSQL. JSONB columns are already native Python objects."""
-    parsed: list[dict[str, Any]] = []
-    for row in rows:
-        item = dict(row)
-        for source_field, target_field in json_fields.items():
-            value = item.get(source_field)
-            # JSONB columns come back as native Python objects from psycopg3
-            if isinstance(value, (dict, list)):
-                item[target_field] = value
-            elif value is None or value == "":
-                default_value: Any = {} if source_field == "properties_json" else []
-                item[target_field] = default_value
-            else:
-                # Fallback for text-encoded JSON (shouldn't happen with JSONB)
-                default_value = {} if source_field == "properties_json" else []
-                item[target_field] = load_json_text(value, default_value)
-        parsed.append(item)
-    return parsed
-
-
-def normalized_name_terms(payload: dict[str, Any]) -> set[str]:
-    terms = {
-        normalize_term(payload.get("canonical_name", "")),
-        *(
-            normalize_term(alias)
-            for alias in payload.get("aliases", [])
-            if isinstance(alias, str)
-        ),
-    }
+def normalized_terms(payload: dict[str, Any]) -> set[str]:
+    aliases = payload.get("aliases_json", [])
+    terms = {normalize_term(payload.get("name", ""))}
+    terms.update(normalize_term(alias) for alias in aliases if isinstance(alias, str))
     return {term for term in terms if term}
-
-
-def pick_primary_name(current: str, candidate: str) -> str:
-    """Pick the preferred canonical name. Prefer shorter, more precise names.
-
-    Only replace current with candidate when the candidate is a true substring
-    of current — this avoids replacing a precise child term with a vague parent
-    (e.g., won't replace "氧化铜" with "铜"). But will replace "化学键能及其应用"
-    with "化学键" since the shorter name is a substring of the longer one.
-    """
-    current_clean = current.strip()
-    candidate_clean = candidate.strip()
-    if not current_clean:
-        return candidate_clean
-    if not candidate_clean:
-        return current_clean
-    # Replace only if candidate is a true substring of current — meaning
-    # current is a qualified/extended form of the same concept.
-    if candidate_clean in current_clean and len(candidate_clean) < len(current_clean):
-        return candidate_clean
-    return current_clean
 
 
 def lexical_similarity(left_terms: set[str], right_terms: set[str]) -> float:
@@ -174,1482 +85,532 @@ def lexical_similarity(left_terms: set[str], right_terms: set[str]) -> float:
     return best
 
 
-def score_node_match(
-    staged: dict[str, Any],
-    staged_terms: set[str],
-    staged_semantic_key: str | None,
-    staged_embedding: list[float],
-    candidate: CanonicalNode,
-) -> float:
+def score_node_match(staged: dict[str, Any], candidate: CanonicalNode) -> float:
     payload = candidate.payload
-    if payload["node_kind"] != staged["node_kind"]:
+    if payload["kind"] != staged["kind"]:
         return 0.0
-    if payload.get("node_subkind") and staged.get("node_subkind"):
-        if payload["node_subkind"] != staged["node_subkind"]:
-            return 0.0
-
-    lexical = lexical_similarity(staged_terms, candidate.name_terms)
-    semantic = 1.0 if staged_semantic_key and staged_semantic_key == candidate.semantic_key else 0.0
+    if payload.get("subkind") and staged.get("subkind") and payload["subkind"] != staged["subkind"]:
+        return 0.0
+    lexical = lexical_similarity(normalized_terms(staged), candidate.terms)
+    semantic = 1.0 if staged.get("semantic_key") and staged.get("semantic_key") == candidate.semantic_key else 0.0
     embedding = 0.0
-    if staged_embedding and candidate.embedding:
-        embedding = cosine_similarity(staged_embedding, candidate.embedding)
-
-    score = max(lexical, semantic, embedding)
-    if payload.get("node_layer") == staged.get("node_layer"):
-        score += 0.02
-    if staged.get("definition") and payload.get("definition"):
-        definition_overlap = SequenceMatcher(
-            a=normalize_term(staged["definition"]),
-            b=normalize_term(payload["definition"]),
-        ).ratio()
-        score = max(score, min(0.9, definition_overlap))
-    return min(score, 1.0)
+    if staged.get("embedding") and candidate.embedding:
+        embedding = cosine_similarity(staged["embedding"], candidate.embedding)
+    return min(max(lexical, semantic, embedding), 1.0)
 
 
-def merge_node_payload(existing: dict[str, Any], staged: dict[str, Any]) -> dict[str, Any]:
-    merged = dict(existing)
-    merged["canonical_name"] = pick_primary_name(
-        existing.get("canonical_name", ""), staged.get("canonical_name", "")
-    )
-    merged["definition"] = merge_text_blocks(
-        existing.get("definition", ""), staged.get("definition", "")
-    )
-    merged["aliases"] = merge_unique_strings(
-        existing.get("aliases", []),
-        staged.get("aliases", []),
-        [existing.get("canonical_name", ""), staged.get("canonical_name", "")],
-    )
-    merged["learning_modes"] = merge_unique_strings(
-        existing.get("learning_modes", []), staged.get("learning_modes", [])
-    )
-    merged["bridge_tags"] = merge_unique_strings(
-        existing.get("bridge_tags", []), staged.get("bridge_tags", [])
-    )
-    merged["framework_refs"] = merge_unique_strings(
-        existing.get("framework_refs", []), staged.get("framework_refs", [])
-    )
-    merged["profile_refs"] = merge_unique_strings(
-        existing.get("profile_refs", []), staged.get("profile_refs", [])
-    )
-    merged["same_as_refs"] = merge_unique_strings(
-        existing.get("same_as_refs", []),
-        staged.get("same_as_refs", []),
-        [staged.get("raw_node_ref", "")],
-    )
-    merged["properties"] = merge_json_objects(
-        existing.get("properties", {}), staged.get("properties", {})
-    )
-    if staged.get("semantic_key"):
-        merged["properties"]["semantic_key"] = staged["semantic_key"]
-    merged["notes"] = merge_text_blocks(existing.get("notes", ""), staged.get("notes", ""))
-    merged["status"] = existing.get("status") or staged.get("status") or "active"
-    return merged
-
-
-def normalize_review_status(value: Any, *, default: str = "draft") -> str:
-    status = str(value or "").strip()
-    if status in VALID_CARD_STATUSES:
-        return status
-    if status in {"candidate", "active", "merged"}:
-        return default
-    return default
-
-
-def merge_profile_payload(existing: dict[str, Any], staged: dict[str, Any]) -> dict[str, Any]:
-    merged = dict(existing)
-    merged["framework_refs"] = merge_unique_strings(existing.get("framework_refs", []), staged.get("framework_refs", []))
-    merged["textbook_refs"] = merge_unique_strings(existing.get("textbook_refs", []), staged.get("textbook_refs", []))
-    merged["textbook_ids"] = merge_unique_strings(existing.get("textbook_ids", []), staged.get("textbook_ids", []))
-    merged["learning_objectives"] = merge_unique_strings(existing.get("learning_objectives", []), staged.get("learning_objectives", []))
-    merged["assessment_signals"] = merge_unique_strings(existing.get("assessment_signals", []), staged.get("assessment_signals", []))
-    merged["source_refs"] = merge_unique_strings(existing.get("source_refs", []), staged.get("source_refs", []))
-    merged["properties"] = merge_json_objects(existing.get("properties", {}), staged.get("properties", {}))
-    merged["status"] = normalize_review_status(
-        existing.get("status") or staged.get("status"), default="draft"
-    )
-    return merged
-
-
-def card_content_items(value: Any) -> list[str]:
-    if isinstance(value, list):
-        return [str(item).strip() for item in value if str(item).strip()]
-    if value is None:
-        return []
-    text = str(value).strip()
-    return [text] if text else []
-
-
-def merge_card_content(*values: Any) -> list[str]:
-    return merge_unique_strings(*(card_content_items(value) for value in values))
-
-
-def normalize_section_id(value: Any, fallback: str = "section") -> str:
-    token = str(value or fallback).strip().lower().replace("_", "-")
-    token = re.sub(r"[^a-z0-9-]+", "-", token)
-    token = "-".join(part for part in token.split("-") if part)
-    return token or fallback
-
-
-def merge_card_payload(existing: dict[str, Any], staged: dict[str, Any], title: str) -> dict[str, Any]:
-    merged = dict(existing)
-    merged["title"] = title
-    merged["summary"] = merge_text_blocks(existing.get("summary", ""), staged.get("summary", ""))
-    merged["pattern_refs"] = merge_unique_strings(existing.get("pattern_refs", []), staged.get("pattern_refs", []))
-    merged["framework_refs"] = merge_unique_strings(existing.get("framework_refs", []), staged.get("framework_refs", []))
-    merged["profile_refs"] = merge_unique_strings(existing.get("profile_refs", []), staged.get("profile_refs", []))
-    merged["mention_refs"] = merge_unique_strings(existing.get("mention_refs", []), staged.get("mention_refs", []))
-    merged["source_refs"] = merge_unique_strings(existing.get("source_refs", []), staged.get("source_refs", []))
-    merged["properties"] = merge_json_objects(existing.get("properties", {}), staged.get("properties", {}))
-    sections_by_key: dict[str, dict[str, Any]] = {}
-    for section in existing.get("sections", []) + staged.get("sections", []):
-        if not isinstance(section, dict):
-            continue
-        key = str(section.get("section_type") or section.get("id") or "other")
-        current = sections_by_key.setdefault(
-            key,
-            {
-                "id": normalize_section_id(section.get("id"), key),
-                "title": str(section.get("title") or key),
-                "section_type": key,
-                "content": [],
-                "source_refs": [],
-            },
-        )
-        current["content"] = merge_card_content(
-            current.get("content", []), section.get("content")
-        )
-        current["source_refs"] = merge_unique_strings(current.get("source_refs", []), section.get("source_refs", []))
-    merged["sections"] = list(sections_by_key.values())
-    merged["status"] = normalize_review_status(
-        existing.get("status") or staged.get("status"), default="draft"
-    )
-    return merged
-
-
-def ensure_source_artifacts(connection, dataset_id: str, evidence_rows: list[dict[str, Any]]) -> None:
-    seen: set[tuple[str, str]] = set()
-    rows_to_insert: list[tuple] = []
-    for record in evidence_rows:
-        key = (record["source_type"], record["source_id"])
-        if key in seen:
-            continue
-        seen.add(key)
-        rows_to_insert.append(
-            (
-                dataset_id,
-                record["source_id"],
-                record["source_type"],
-                record["source_id"] if record["source_type"] == "textbook" else None,
-                None,
-                record.get("source_path"),
-                None,
-                json.dumps({}),
-            )
-        )
-    if not rows_to_insert:
-        return
-    with connection.cursor() as cur:
-        psycopg2.extras.execute_values(
-            cur,
-            """
-            INSERT INTO source_artifacts (
-              dataset_id,
-              source_id,
-              source_type,
-              book_id,
-              title,
-              file_path,
-              outline_path,
-              properties_json
-            ) VALUES %s
-            ON CONFLICT DO NOTHING
-            """,
-            rows_to_insert,
-        )
-
-
-def upsert_evidence_links(
-    connection,
-    dataset_id: str,
-    owner_type: str,
-    owner_id: str,
-    evidence_ids: list[str],
-) -> None:
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            DELETE FROM evidence_links
-            WHERE dataset_id = %s AND owner_type = %s AND owner_id = %s
-            """,
-            (dataset_id, owner_type, owner_id),
-        )
-    if not evidence_ids:
-        return
-    # Filter to only include evidence IDs that exist in the evidence table
-    # to avoid foreign key violation errors
-    with connection.cursor() as cur:
-        placeholders = ",".join(["%s"] * len(evidence_ids))
-        cur.execute(
-            f"SELECT id FROM evidence WHERE dataset_id = %s AND id IN ({placeholders})",
-            [dataset_id] + evidence_ids,
-        )
-        valid_evidence_ids = {row["id"] for row in cur.fetchall()}
-    filtered_evidence_ids = [eid for eid in evidence_ids if eid in valid_evidence_ids]
-    if not filtered_evidence_ids:
-        return
-    rows = [
-        (dataset_id, owner_type, owner_id, evidence_id, index)
-        for index, evidence_id in enumerate(filtered_evidence_ids, start=1)
-    ]
-    with connection.cursor() as cur:
-        psycopg2.extras.execute_values(
-            cur,
-            """
-            INSERT INTO evidence_links (
-              dataset_id,
-              owner_type,
-              owner_id,
-              evidence_id,
-              ordinal
-            ) VALUES %s
-            ON CONFLICT (dataset_id, owner_type, owner_id, evidence_id) DO UPDATE SET
-              ordinal = EXCLUDED.ordinal
-            """,
-            rows,
-        )
-
-
-def load_selected_lesson_runs(connection, args: argparse.Namespace, dataset_id: str) -> list[dict[str, Any]]:
+def load_lesson_runs(connection, dataset_id: str, args: argparse.Namespace) -> list[dict[str, Any]]:
+    clauses = ["dataset_id = %s", "status IN ('staged', 'merging')"]
     params: list[Any] = [dataset_id]
-    filters = ["dataset_id = %s"]
-
-    explicit_run_ids = args.lesson_run_ids or []
-    explicit_anchors = [
-        resolve_outline_anchor(args.book_id, anchor, strict=False)
-        if args.book_id
-        else anchor
-        for anchor in (args.batch_anchors or [])
-    ]
-
-    if explicit_run_ids:
-        placeholders = ",".join(["%s"] * len(explicit_run_ids))
-        filters.append(f"lesson_run_id IN ({placeholders})")
-        params.extend(explicit_run_ids)
     if args.book_id:
-        filters.append("book_id = %s")
+        clauses.append("book_id = %s")
         params.append(args.book_id)
-    if explicit_anchors:
-        placeholders = ",".join(["%s"] * len(explicit_anchors))
-        filters.append(f"batch_anchor IN ({placeholders})")
-        params.extend(explicit_anchors)
-    if not explicit_run_ids and not explicit_anchors:
-        filters.append("status = 'staged'")
-
-    sql = f"""
-        SELECT *
-        FROM lesson_runs
-        WHERE {' AND '.join(filters)}
-        ORDER BY book_id, batch_anchor, lesson_run_id
-    """
-    with connection.cursor() as cur:
-        cur.execute(sql, params)
+    if args.lesson_run_ids:
+        clauses.append("lesson_run_id = ANY(%s)")
+        params.append(args.lesson_run_ids)
+    if args.batch_anchors:
+        clauses.append("batch_anchor = ANY(%s)")
+        params.append(args.batch_anchors)
+    with connection.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            f"SELECT * FROM world_lesson_runs WHERE {' AND '.join(clauses)} ORDER BY created_at, lesson_run_id",
+            params,
+        )
         return cur.fetchall()
 
 
-def main() -> int:
-    args = parse_args()
-    root = Path(args.root).expanduser().resolve()
-    connection = connect_db(args.db)
-    ensure_pg_schema(connection)
-    dataset_id = resolve_dataset_id(connection, args.dataset_id, root)
-    ensure_dataset(connection, dataset_id, root)
-    require_dataset_row(connection, dataset_id)
-
-    selected_runs = load_selected_lesson_runs(connection, args, dataset_id)
-    if not selected_runs:
-        raise SystemExit("No staged lesson runs matched the selection.")
-
-    lesson_run_ids = [row["lesson_run_id"] for row in selected_runs]
-    merge_run_id = make_merge_run_id(dataset_id, lesson_run_ids)
-    now = utc_now()
-
-    placeholders = ",".join(["%s"] * len(lesson_run_ids))
-    lesson_params = [dataset_id, *lesson_run_ids]
-
-    with connection.cursor() as cur:
-        cur.execute(
-            f"""
-            SELECT *
-            FROM staging_nodes
-            WHERE dataset_id = %s AND lesson_run_id IN ({placeholders})
-            ORDER BY lesson_run_id, raw_node_id
-            """,
-            lesson_params,
-        )
-        staging_node_rows = cur.fetchall()
-
-    staging_nodes = parse_rows(
-        staging_node_rows,
-        {
-            "aliases_json": "aliases",
-            "learning_modes_json": "learning_modes",
-            "bridge_tags_json": "bridge_tags",
-            "framework_refs_json": "framework_refs",
-            "profile_refs_json": "profile_refs",
-            "same_as_refs_json": "same_as_refs",
-            "properties_json": "properties",
-            "source_refs_json": "source_refs",
-        },
-    )
-    # pgvector column 'embedding' is returned as str by psycopg3 — parse to list
-    for node in staging_nodes:
-        emb = node.get("embedding")
-        if isinstance(emb, str):
-            try:
-                node["embedding"] = json.loads(emb)
-            except (json.JSONDecodeError, ValueError):
-                node["embedding"] = []
-        elif emb is None:
-            node["embedding"] = []
-
-    with connection.cursor() as cur:
-        cur.execute(
-            f"""
-            SELECT *
-            FROM staging_edges
-            WHERE dataset_id = %s AND lesson_run_id IN ({placeholders})
-            ORDER BY lesson_run_id, raw_edge_id
-            """,
-            lesson_params,
-        )
-        staging_edge_rows = cur.fetchall()
-
-    staging_edges = parse_rows(
-        staging_edge_rows,
-        {
-            "framework_refs_json": "framework_refs",
-            "profile_refs_json": "profile_refs",
-            "source_refs_json": "source_refs",
-            "properties_json": "properties",
-        },
-    )
-
-    with connection.cursor() as cur:
-        cur.execute(
-            f"""
-            SELECT *
-            FROM staging_profiles
-            WHERE dataset_id = %s AND lesson_run_id IN ({placeholders})
-            ORDER BY lesson_run_id, raw_profile_id
-            """,
-            lesson_params,
-        )
-        staging_profile_rows = cur.fetchall()
-
-    staging_profiles = parse_rows(
-        staging_profile_rows,
-        {
-            "framework_refs_json": "framework_refs",
-            "textbook_refs_json": "textbook_refs",
-            "textbook_ids_json": "textbook_ids",
-            "learning_objectives_json": "learning_objectives",
-            "assessment_signals_json": "assessment_signals",
-            "source_refs_json": "source_refs",
-            "properties_json": "properties",
-        },
-    )
-
-    with connection.cursor() as cur:
-        cur.execute(
-            f"""
-            SELECT *
-            FROM staging_mentions
-            WHERE dataset_id = %s AND lesson_run_id IN ({placeholders})
-            ORDER BY lesson_run_id, raw_mention_id
-            """,
-            lesson_params,
-        )
-        staging_mention_rows = cur.fetchall()
-
-    staging_mentions = parse_rows(
-        staging_mention_rows,
-        {
-            "source_refs_json": "source_refs",
-            "properties_json": "properties",
-        },
-    )
-
-    with connection.cursor() as cur:
-        cur.execute(
-            f"""
-            SELECT *
-            FROM staging_evidence
-            WHERE dataset_id = %s AND lesson_run_id IN ({placeholders})
-            ORDER BY lesson_run_id, raw_evidence_id
-            """,
-            lesson_params,
-        )
-        staging_evidence_rows = cur.fetchall()
-
-    staging_evidence = parse_rows(
-        staging_evidence_rows,
-        {
-            "normalized_claims_json": "normalized_claims",
-            "properties_json": "properties",
-        },
-    )
-
-    with connection.cursor() as cur:
-        cur.execute(
-            f"""
-            SELECT *
-            FROM staging_node_cards
-            WHERE dataset_id = %s AND lesson_run_id IN ({placeholders})
-            ORDER BY lesson_run_id, raw_card_id
-            """,
-            lesson_params,
-        )
-        staging_card_rows = cur.fetchall()
-
-    staging_cards = parse_rows(
-        staging_card_rows,
-        {
-            "pattern_refs_json": "pattern_refs",
-            "framework_refs_json": "framework_refs",
-            "profile_refs_json": "profile_refs",
-            "mention_refs_json": "mention_refs",
-            "source_refs_json": "source_refs",
-            "sections_json": "sections",
-            "properties_json": "properties",
-        },
-    )
-
-    existing_nodes: dict[str, CanonicalNode] = {}
-    exact_term_index: defaultdict[str, set[str]] = defaultdict(set)
-    semantic_key_index: defaultdict[str, set[str]] = defaultdict(set)
-
-    with connection.cursor() as cur:
+def load_canonical_nodes(connection, dataset_id: str) -> list[CanonicalNode]:
+    with connection.cursor(row_factory=dict_row) as cur:
         cur.execute(
             """
             SELECT *
-            FROM nodes
+            FROM world_nodes
             WHERE dataset_id = %s AND status != 'deprecated'
             ORDER BY id
             """,
             (dataset_id,),
         )
-        existing_node_rows = cur.fetchall()
-
-    for row in parse_rows(
-        existing_node_rows,
-        {
-            "aliases_json": "aliases",
-            "learning_modes_json": "learning_modes",
-            "bridge_tags_json": "bridge_tags",
-            "framework_refs_json": "framework_refs",
-            "profile_refs_json": "profile_refs",
-            "same_as_refs_json": "same_as_refs",
-            "properties_json": "properties",
-        },
-    ):
-        # pgvector column 'embedding' is returned as str by psycopg3 — parse to list
-        raw_emb = row.get("embedding")
-        if isinstance(raw_emb, str):
-            try:
-                embedding = json.loads(raw_emb)
-            except (json.JSONDecodeError, ValueError):
-                embedding = []
-        elif isinstance(raw_emb, list):
-            embedding = raw_emb
-        else:
-            embedding = []
-        semantic_key = row.get("properties", {}).get("semantic_key")
-        canonical = CanonicalNode(
-            payload=row,
-            name_terms=normalized_name_terms(row),
-            semantic_key=semantic_key,
-            embedding=embedding if isinstance(embedding, list) else [],
+        rows = cur.fetchall()
+    result = []
+    for row in rows:
+        result.append(
+            CanonicalNode(
+                payload=dict(row),
+                terms=normalized_terms(row),
+                semantic_key=row.get("properties_json", {}).get("semantic_key"),
+                embedding=parse_embedding(row.get("embedding")),
+            )
         )
-        existing_nodes[row["id"]] = canonical
-        for term in canonical.name_terms:
-            exact_term_index[term].add(row["id"])
-        if semantic_key:
-            semantic_key_index[str(semantic_key)].add(row["id"])
+    return result
 
+
+def fetch_staged_rows(connection, table: str, dataset_id: str, lesson_run_id: str) -> list[dict[str, Any]]:
+    with connection.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            f"SELECT * FROM {table} WHERE dataset_id = %s AND lesson_run_id = %s ORDER BY created_at",
+            (dataset_id, lesson_run_id),
+        )
+        return cur.fetchall()
+
+
+def upsert_node(connection, dataset_id: str, payload: dict[str, Any]) -> None:
     with connection.cursor() as cur:
         cur.execute(
             """
-            SELECT *
-            FROM edges
-            WHERE dataset_id = %s AND status != 'deprecated'
+            INSERT INTO world_nodes (
+              dataset_id, id, name, kind, subkind, definition, aliases_json, domains_json,
+              knowledge_form_json, learning_mode_json, scope, properties_json,
+              external_ids_json, tags_json, embedding, status, deprecated_by,
+              created_at, updated_at, notes
+            ) VALUES (
+              %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb,
+              %s, %s::jsonb, %s::jsonb, %s::jsonb, %s, %s, NULL, %s, %s, %s
+            )
+            ON CONFLICT (dataset_id, id) DO UPDATE SET
+              name = EXCLUDED.name,
+              definition = EXCLUDED.definition,
+              aliases_json = EXCLUDED.aliases_json,
+              domains_json = EXCLUDED.domains_json,
+              knowledge_form_json = EXCLUDED.knowledge_form_json,
+              learning_mode_json = EXCLUDED.learning_mode_json,
+              scope = EXCLUDED.scope,
+              properties_json = EXCLUDED.properties_json,
+              external_ids_json = EXCLUDED.external_ids_json,
+              tags_json = EXCLUDED.tags_json,
+              embedding = COALESCE(EXCLUDED.embedding, world_nodes.embedding),
+              status = EXCLUDED.status,
+              updated_at = EXCLUDED.updated_at,
+              notes = EXCLUDED.notes
             """,
-            (dataset_id,),
-        )
-        edge_rows = cur.fetchall()
-
-    existing_edges = {
-        (row["from_id"], row["edge_type"], row["to_id"]): dict(row)
-        for row in edge_rows
-    }
-
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            SELECT *
-            FROM profiles
-            WHERE dataset_id = %s AND status != 'deprecated'
-            """,
-            (dataset_id,),
-        )
-        profile_rows = cur.fetchall()
-
-    existing_profiles = {
-        (row["node_id"], row["context_key"]): dict(row)
-        for row in profile_rows
-    }
-
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            SELECT *
-            FROM node_cards
-            WHERE dataset_id = %s
-            """,
-            (dataset_id,),
-        )
-        card_rows = cur.fetchall()
-
-    existing_cards = {
-        row["node_id"]: dict(row)
-        for row in card_rows
-    }
-
-    stats = Counter(
-        {
-            "lesson_runs": len(lesson_run_ids),
-            "staged_nodes": len(staging_nodes),
-            "staged_edges": len(staging_edges),
-            "staged_profiles": len(staging_profiles),
-            "staged_mentions": len(staging_mentions),
-            "staged_evidence": len(staging_evidence),
-            "staged_cards": len(staging_cards),
-        }
-    )
-
-    node_map: dict[tuple[str, str], str] = {}
-    canonical_map_rows: list[tuple[str, str, str, str, str, str, float, dict, str]] = []
-
-    for staged in staging_nodes:
-        staged["raw_node_ref"] = f"{staged['lesson_run_id']}:{staged['raw_node_id']}"
-        staged_terms = normalized_name_terms(staged)
-        staged_semantic_key = staged.get("semantic_key")
-        staged_embedding = staged.get("embedding") if isinstance(staged.get("embedding"), list) else []
-        candidate_ids = set()
-        for term in staged_terms:
-            candidate_ids.update(exact_term_index.get(term, set()))
-        if staged_semantic_key:
-            candidate_ids.update(semantic_key_index.get(str(staged_semantic_key), set()))
-        if not candidate_ids:
-            # Fallback: scan all nodes of the same kind.
-            # If the staged node has an embedding, pre-filter by cosine
-            # similarity to avoid O(N*M) full scoring against every node.
-            same_kind_ids = [
-                node_id
-                for node_id, candidate in existing_nodes.items()
-                if candidate.payload["node_kind"] == staged["node_kind"]
-            ]
-            if staged_embedding and len(same_kind_ids) > 20:
-                # Compute similarity to each same-kind node and keep top-K
-                scored: list[tuple[float, str]] = []
-                for nid in same_kind_ids:
-                    cand_emb = existing_nodes[nid].embedding
-                    if cand_emb:
-                        sim = cosine_similarity(staged_embedding, cand_emb)
-                    else:
-                        sim = 0.0
-                    scored.append((sim, nid))
-                scored.sort(reverse=True)
-                candidate_ids = {nid for _, nid in scored[:15]}
-            else:
-                candidate_ids = set(same_kind_ids)
-
-        best_id: str | None = None
-        best_score = 0.0
-        for candidate_id in candidate_ids:
-            score = score_node_match(
-                staged,
-                staged_terms,
-                staged_semantic_key,
-                staged_embedding,
-                existing_nodes[candidate_id],
-            )
-            if score > best_score:
-                best_score = score
-                best_id = candidate_id
-
-        if best_id and (
-            best_score >= args.similarity_threshold
-            or best_score >= args.embedding_threshold
-        ):
-            canonical_id = best_id
-            resolution = "matched"
-            stats["matched_nodes"] += 1
-            existing_nodes[canonical_id].payload = merge_node_payload(
-                existing_nodes[canonical_id].payload,
-                staged,
-            )
-            existing_nodes[canonical_id].name_terms = normalized_name_terms(
-                existing_nodes[canonical_id].payload
-            )
-            existing_nodes[canonical_id].semantic_key = (
-                existing_nodes[canonical_id].payload.get("properties", {}).get("semantic_key")
-            )
-            # Keep the best available embedding: prefer existing, fall back to staged
-            existing_emb = existing_nodes[canonical_id].embedding
-            if not existing_emb and staged_embedding:
-                existing_nodes[canonical_id].embedding = staged_embedding
-        else:
-            canonical_id = make_canonical_node_id(
-                staged["node_kind"], staged["canonical_name"], staged.get("node_subkind")
-            )
-            resolution = "created"
-            stats["created_nodes"] += 1
-            if canonical_id in existing_nodes:
-                existing_nodes[canonical_id].payload = merge_node_payload(
-                    existing_nodes[canonical_id].payload,
-                    staged,
-                )
-            else:
-                payload = {
-                    "dataset_id": dataset_id,
-                    "id": canonical_id,
-                    "canonical_name": staged["canonical_name"],
-                    "node_kind": staged["node_kind"],
-                    "node_layer": staged["node_layer"],
-                    "node_subkind": staged.get("node_subkind"),
-                    "definition": staged.get("definition", ""),
-                    "aliases": staged.get("aliases", []),
-                    "learning_modes": staged.get("learning_modes", []),
-                    "bridge_tags": staged.get("bridge_tags", []),
-                    "framework_refs": staged.get("framework_refs", []),
-                    "profile_refs": staged.get("profile_refs", []),
-                    "card_ref": f"node-card:{canonical_id}",
-                    "same_as_refs": merge_unique_strings(
-                        staged.get("same_as_refs", []), [staged["raw_node_ref"]]
-                    ),
-                    "properties": merge_json_objects(
-                        dict(staged.get("properties", {})),
-                        {
-                            "semantic_key": staged_semantic_key,
-                        },
-                    ),
-                    "status": "active",
-                    "deprecated_by": None,
-                    "created_at": now,
-                    "updated_at": now,
-                    "notes": staged.get("notes") or "",
-                }
-                existing_nodes[canonical_id] = CanonicalNode(
-                    payload=payload,
-                    name_terms=staged_terms,
-                    semantic_key=staged_semantic_key,
-                    embedding=staged_embedding,
-                )
-
-        for term in existing_nodes[canonical_id].name_terms:
-            exact_term_index[term].add(canonical_id)
-        if existing_nodes[canonical_id].semantic_key:
-            semantic_key_index[str(existing_nodes[canonical_id].semantic_key)].add(canonical_id)
-
-        node_map[(staged["lesson_run_id"], staged["raw_node_id"])] = canonical_id
-        canonical_map_rows.append(
             (
                 dataset_id,
-                merge_run_id,
-                staged["lesson_run_id"],
-                staged["raw_node_id"],
-                canonical_id,
-                resolution,
-                round(best_score, 4),
-                json.dumps({
-                    "semantic_key": staged_semantic_key,
-                    "matched_terms": sorted(staged_terms),
-                }),
-                now,
-            )
-        )
-
-    evidence_id_map: dict[tuple[str, str], str] = {}
-    canonical_evidence_rows: dict[str, dict[str, Any]] = {}
-    for record in staging_evidence:
-        evidence_id = make_evidence_id(
-            record["lesson_run_id"],
-            record["raw_evidence_id"],
-            record["anchor_ref"],
-            record["excerpt"],
-        )
-        evidence_id_map[(record["lesson_run_id"], record["raw_evidence_id"])] = evidence_id
-        canonical_evidence_rows[evidence_id] = {
-            "dataset_id": dataset_id,
-            "id": evidence_id,
-            "source_type": record["source_type"],
-            "source_id": record["source_id"],
-            "anchor_ref": record["anchor_ref"],
-            "source_path": record.get("source_path"),
-            "page_start": record.get("page_start"),
-            "page_end": record.get("page_end"),
-            "excerpt": record["excerpt"],
-            "locator": record["locator"],
-            "modality": record.get("modality"),
-            "extraction_method": record["extraction_method"],
-            "normalized_claims": record.get("normalized_claims", []),
-            "properties": merge_json_objects(
-                record.get("properties", {}),
-                {
-                    "lesson_run_id": record["lesson_run_id"],
-                    "raw_evidence_id": record["raw_evidence_id"],
-                },
+                payload["id"],
+                payload["name"],
+                payload["kind"],
+                payload.get("subkind"),
+                payload["definition"],
+                json.dumps(payload.get("aliases", []), ensure_ascii=False),
+                json.dumps(payload.get("domains", []), ensure_ascii=False),
+                json.dumps(payload.get("knowledge_form", []), ensure_ascii=False),
+                json.dumps(payload.get("learning_mode", []), ensure_ascii=False),
+                payload.get("scope"),
+                json.dumps(payload.get("properties", {}), ensure_ascii=False),
+                json.dumps(payload.get("external_ids", {}), ensure_ascii=False),
+                json.dumps(payload.get("tags", []), ensure_ascii=False),
+                payload.get("embedding"),
+                payload.get("status", "active"),
+                payload["created_at"],
+                payload["updated_at"],
+                payload.get("notes", ""),
             ),
-        }
+        )
 
-    profile_refs_by_node: defaultdict[str, set[str]] = defaultdict(set)
-    mention_refs_by_node: defaultdict[str, set[str]] = defaultdict(set)
-    source_refs_by_node: defaultdict[str, set[str]] = defaultdict(set)
 
-    canonical_profiles: dict[tuple[str, str], dict[str, Any]] = {}
-    for key, row in existing_profiles.items():
-        profile = dict(row)
-        # JSONB columns are already native Python objects from psycopg3
-        profile["framework_refs"] = profile.pop("framework_refs_json", [])
-        if not isinstance(profile["framework_refs"], list):
-            profile["framework_refs"] = load_json_text(profile["framework_refs"], [])
-        profile["textbook_refs"] = profile.pop("textbook_refs_json", [])
-        if not isinstance(profile["textbook_refs"], list):
-            profile["textbook_refs"] = load_json_text(profile["textbook_refs"], [])
-        profile["textbook_ids"] = profile.pop("textbook_ids_json", [])
-        if not isinstance(profile["textbook_ids"], list):
-            profile["textbook_ids"] = load_json_text(profile["textbook_ids"], [])
-        profile["learning_objectives"] = profile.pop("learning_objectives_json", [])
-        if not isinstance(profile["learning_objectives"], list):
-            profile["learning_objectives"] = load_json_text(profile["learning_objectives"], [])
-        profile["assessment_signals"] = profile.pop("assessment_signals_json", [])
-        if not isinstance(profile["assessment_signals"], list):
-            profile["assessment_signals"] = load_json_text(profile["assessment_signals"], [])
-        profile["source_refs"] = profile.pop("source_refs_json", [])
-        if not isinstance(profile["source_refs"], list):
-            profile["source_refs"] = load_json_text(profile["source_refs"], [])
-        profile["properties"] = profile.pop("properties_json", {})
-        if not isinstance(profile["properties"], dict):
-            profile["properties"] = load_json_text(profile["properties"], {})
-        canonical_profiles[key] = profile
+def merge_node_payload(existing: dict[str, Any], staged: dict[str, Any]) -> dict[str, Any]:
+    properties = merge_json_objects(existing.get("properties", {}), staged.get("properties", {}))
+    if staged.get("semantic_key"):
+        properties["semantic_key"] = staged["semantic_key"]
+    return {
+        "id": existing["id"],
+        "name": existing["name"] if len(existing["name"]) <= len(staged["name"]) else staged["name"],
+        "kind": existing["kind"],
+        "subkind": existing.get("subkind") or staged.get("subkind"),
+        "definition": merge_text_blocks(existing.get("definition", ""), staged.get("definition", "")),
+        "aliases": merge_unique_strings(existing.get("aliases", []), staged.get("aliases", []), [existing.get("name", ""), staged.get("name", "")]),
+        "domains": merge_unique_strings(existing.get("domains", []), staged.get("domains", [])),
+        "knowledge_form": merge_unique_strings(existing.get("knowledge_form", []), staged.get("knowledge_form", [])),
+        "learning_mode": merge_unique_strings(existing.get("learning_mode", []), staged.get("learning_mode", [])),
+        "scope": existing.get("scope") or staged.get("scope") or "domain-specific",
+        "properties": properties,
+        "external_ids": merge_json_objects(existing.get("external_ids", {}), staged.get("external_ids", {})),
+        "tags": merge_unique_strings(existing.get("tags", []), staged.get("tags", [])),
+        "embedding": existing.get("embedding") or staged.get("embedding"),
+        "status": "active",
+        "created_at": existing.get("created_at") or staged["created_at"],
+        "updated_at": staged["updated_at"],
+        "notes": merge_text_blocks(existing.get("notes", ""), staged.get("notes", "")),
+    }
 
-    for profile in staging_profiles:
-        canonical_node_id = node_map.get((profile["lesson_run_id"], profile["raw_node_id"]))
-        if not canonical_node_id:
-            stats["skipped_profiles"] += 1
-            continue
-        remapped_source_refs = merge_unique_strings(
-            [
-                evidence_id_map.get((profile["lesson_run_id"], source_ref), source_ref)
-                for source_ref in profile.get("source_refs", [])
-            ]
-        )
-        key = (canonical_node_id, profile["context_key"])
-        payload = canonical_profiles.get(
-            key,
-            {
-                "dataset_id": dataset_id,
-                "id": make_profile_id(canonical_node_id, profile["context_key"]),
-                "node_id": canonical_node_id,
-                "subject": profile["subject"],
-                "school_stage": profile["school_stage"],
-                "grade_band": profile["grade_band"],
-                "context_key": profile["context_key"],
-                "curriculum_role": profile["curriculum_role"],
-                "mastery_level": profile["mastery_level"],
-                "framework_refs": [],
-                "textbook_refs": [],
-                "textbook_ids": [],
-                "learning_objectives": [],
-                "assessment_signals": [],
-                "source_refs": [],
-                "properties": {},
-                "status": "draft",
-                "updated_at": now,
-            },
-        )
-        payload = merge_profile_payload(
-            payload,
-            {
-                **profile,
-                "source_refs": remapped_source_refs,
-            },
-        )
-        canonical_profiles[key] = payload
-        profile_refs_by_node[canonical_node_id].add(payload["id"])
 
-    canonical_mentions: dict[str, dict[str, Any]] = {}
-    for mention in staging_mentions:
-        if mention["target_type"] == "node":
-            target_id = node_map.get((mention["lesson_run_id"], mention["target_raw_id"]))
-            if not target_id:
-                stats["skipped_mentions"] += 1
-                continue
-        else:
-            target_id = mention["target_raw_id"]
-        mention_id = make_mention_id(
-            mention["lesson_run_id"],
-            mention["raw_mention_id"],
-            mention["target_type"],
-            target_id,
+def load_existing_by_id(connection, dataset_id: str, table: str, item_id: str, key: str = "id") -> dict[str, Any] | None:
+    with connection.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            f"SELECT * FROM {table} WHERE dataset_id = %s AND {key} = %s",
+            (dataset_id, item_id),
         )
-        remapped_source_refs = merge_unique_strings(
-            [
-                evidence_id_map.get((mention["lesson_run_id"], source_ref), source_ref)
-                for source_ref in mention.get("source_refs", [])
-            ]
-        )
-        canonical_mentions[mention_id] = {
-            "dataset_id": dataset_id,
-            "id": mention_id,
-            "source_type": mention["source_type"],
-            "source_id": mention["source_id"],
-            "anchor_ref": mention["anchor_ref"],
-            "target_type": mention["target_type"],
-            "target_id": target_id,
-            "role": mention["role"],
-            "source_refs": remapped_source_refs,
-            "confidence": mention["confidence"],
-            "properties": merge_json_objects(
-                mention.get("properties", {}),
-                {
-                    "lesson_run_id": mention["lesson_run_id"],
-                    "raw_mention_id": mention["raw_mention_id"],
-                },
-            ),
-        }
-        if mention["target_type"] == "node":
-            mention_refs_by_node[target_id].add(mention_id)
-            source_refs_by_node[target_id].update(remapped_source_refs)
+        row = cur.fetchone()
+    return dict(row) if row else None
 
-    canonical_cards: dict[str, dict[str, Any]] = {}
-    for node_id, row in existing_cards.items():
-        canonical_cards[node_id] = {
-            "dataset_id": dataset_id,
-            "node_id": node_id,
-            "id": row.get("id") or f"node-card:{node_id}",
-            "card_layer": row["card_layer"],
-            "title": row["title"],
-            "summary": row["summary"],
-            "pattern_refs": row.get("pattern_refs_json") if isinstance(row.get("pattern_refs_json"), list) else load_json_text(row.get("pattern_refs_json"), []),
-            "framework_refs": row.get("framework_refs_json") if isinstance(row.get("framework_refs_json"), list) else load_json_text(row.get("framework_refs_json"), []),
-            "profile_refs": row.get("profile_refs_json") if isinstance(row.get("profile_refs_json"), list) else load_json_text(row.get("profile_refs_json"), []),
-            "mention_refs": row.get("mention_refs_json") if isinstance(row.get("mention_refs_json"), list) else load_json_text(row.get("mention_refs_json"), []),
-            "source_refs": row.get("source_refs_json") if isinstance(row.get("source_refs_json"), list) else load_json_text(row.get("source_refs_json"), []),
-            "sections": row.get("sections_json") if isinstance(row.get("sections_json"), list) else load_json_text(row.get("sections_json"), []),
-            "properties": row.get("properties_json") if isinstance(row.get("properties_json"), dict) else load_json_text(row.get("properties_json"), {}),
-            "status": row["status"],
-            "updated_at": row.get("updated_at") or now,
-        }
 
-    for card in staging_cards:
-        canonical_node_id = node_map.get((card["lesson_run_id"], card["raw_node_id"]))
-        if not canonical_node_id:
-            stats["skipped_cards"] += 1
-            continue
-        remapped_source_refs = merge_unique_strings(
-            [
-                evidence_id_map.get((card["lesson_run_id"], source_ref), source_ref)
-                for source_ref in card.get("source_refs", [])
-            ]
-        )
-        remapped_sections = []
-        for section in card.get("sections", []):
-            if not isinstance(section, dict):
-                continue
-            remapped_sections.append(
-                {
-                    "id": normalize_section_id(section.get("id"), "section"),
-                    "title": str(section.get("title") or section.get("section_type") or "Section"),
-                    "section_type": str(section.get("section_type") or section.get("id") or "other"),
-                    "content": card_content_items(section.get("content")),
-                    "source_refs": merge_unique_strings(
-                        [
-                            evidence_id_map.get((card["lesson_run_id"], source_ref), source_ref)
-                            for source_ref in section.get("source_refs", [])
-                        ]
-                    ),
-                }
-            )
-        payload = canonical_cards.get(
-            canonical_node_id,
-            {
-                "dataset_id": dataset_id,
-                "node_id": canonical_node_id,
-                "id": f"node-card:{canonical_node_id}",
-                "card_layer": card["card_layer"],
-                "title": existing_nodes[canonical_node_id].payload["canonical_name"],
-                "summary": "",
-                "pattern_refs": [],
-                "framework_refs": [],
-                "profile_refs": [],
-                "mention_refs": [],
-                "source_refs": [],
-                "sections": [],
-                "properties": {},
-                "status": "draft",
-                "updated_at": now,
-            },
-        )
-        payload = merge_card_payload(
-            payload,
-            {
-                **card,
-                "source_refs": remapped_source_refs,
-                "sections": remapped_sections,
-            },
-            existing_nodes[canonical_node_id].payload["canonical_name"],
-        )
-        payload["profile_refs"] = merge_unique_strings(
-            payload.get("profile_refs", []), sorted(profile_refs_by_node[canonical_node_id])
-        )
-        payload["mention_refs"] = merge_unique_strings(
-            payload.get("mention_refs", []), sorted(mention_refs_by_node[canonical_node_id])
-        )
-        payload["source_refs"] = merge_unique_strings(
-            payload.get("source_refs", []), sorted(source_refs_by_node[canonical_node_id])
-        )
-        canonical_cards[canonical_node_id] = payload
+def main() -> int:
+    args = parse_args()
+    connection = connect_db(args.db)
+    ensure_pg_schema(connection)
+    dataset_id = resolve_dataset_id(connection, args.dataset_id, args.root)
+    ensure_dataset(connection, dataset_id, args.root)
 
-    for node_id, canonical in existing_nodes.items():
-        payload = canonical.payload
-        if payload.get("node_layer") != "backbone" or node_id in canonical_cards:
-            continue
-        fallback_source_refs = sorted(source_refs_by_node[node_id])
-        canonical_cards[node_id] = {
-            "dataset_id": dataset_id,
-            "node_id": node_id,
-            "id": f"node-card:{node_id}",
-            "card_layer": "backbone",
-            "title": payload["canonical_name"],
-            "summary": payload.get("definition", ""),
-            "pattern_refs": [],
-            "framework_refs": payload.get("framework_refs", []),
-            "profile_refs": sorted(profile_refs_by_node[node_id]),
-            "mention_refs": sorted(mention_refs_by_node[node_id]),
-            "source_refs": fallback_source_refs,
-            "sections": [
-                {
-                    "id": "definition",
-                    "title": "定义",
-                    "section_type": "definition",
-                    "content": card_content_items(payload.get("definition", "")),
-                    "source_refs": fallback_source_refs,
-                }
-            ],
-            "properties": {"generated_by": "merge_staged_lessons"},
-            "status": "draft",
-            "updated_at": now,
-        }
-        stats["generated_fallback_cards"] += 1
-
-    canonical_edges: dict[tuple[str, str, str], dict[str, Any]] = {}
-    for key, row in existing_edges.items():
-        edge = dict(row)
-        # JSONB columns are already native Python objects from psycopg3
-        edge["framework_refs"] = edge.pop("framework_refs_json", [])
-        if not isinstance(edge["framework_refs"], list):
-            edge["framework_refs"] = load_json_text(edge["framework_refs"], [])
-        edge["profile_refs"] = edge.pop("profile_refs_json", [])
-        if not isinstance(edge["profile_refs"], list):
-            edge["profile_refs"] = load_json_text(edge["profile_refs"], [])
-        edge["source_refs"] = edge.pop("source_refs_json", [])
-        if not isinstance(edge["source_refs"], list):
-            edge["source_refs"] = load_json_text(edge["source_refs"], [])
-        edge["properties"] = edge.pop("properties_json", {})
-        if not isinstance(edge["properties"], dict):
-            edge["properties"] = load_json_text(edge["properties"], {})
-        canonical_edges[key] = edge
-
-    for edge in staging_edges:
-        from_id = node_map.get((edge["lesson_run_id"], edge["from_raw_node_id"]))
-        to_id = node_map.get((edge["lesson_run_id"], edge["to_raw_node_id"]))
-        if not from_id or not to_id:
-            stats["skipped_edges"] += 1
-            continue
-        remapped_source_refs = merge_unique_strings(
-            [
-                evidence_id_map.get((edge["lesson_run_id"], source_ref), source_ref)
-                for source_ref in edge.get("source_refs", [])
-            ]
-        )
-        key = (from_id, edge["edge_type"], to_id)
-        current = canonical_edges.get(
-            key,
-            {
-                "dataset_id": dataset_id,
-                "id": make_edge_id(from_id, edge["edge_type"], to_id),
-                "edge_type": edge["edge_type"],
-                "edge_layer": edge["edge_layer"],
-                "backbone_expand": edge["backbone_expand"],
-                "from_id": from_id,
-                "to_id": to_id,
-                "directionality": edge["directionality"],
-                "confidence": edge["confidence"],
-                "framework_refs": [],
-                "profile_refs": [],
-                "source_refs": [],
-                "properties": {"support_count": 0, "lesson_run_ids": []},
-                "status": "active",
-                "created_at": now,
-                "updated_at": now,
-            },
-        )
-        current["confidence"] = max(float(current.get("confidence") or 0.0), float(edge["confidence"]))
-        current["framework_refs"] = merge_unique_strings(current.get("framework_refs", []), edge.get("framework_refs", []))
-        current["profile_refs"] = merge_unique_strings(current.get("profile_refs", []), edge.get("profile_refs", []))
-        current["source_refs"] = merge_unique_strings(current.get("source_refs", []), remapped_source_refs)
-        properties = dict(current.get("properties", {}))
-        properties["support_count"] = int(properties.get("support_count") or 0) + 1
-        properties["lesson_run_ids"] = merge_unique_strings(
-            properties.get("lesson_run_ids", []), [edge["lesson_run_id"]]
-        )
-        current["properties"] = merge_json_objects(properties, edge.get("properties", {}))
-        current["updated_at"] = now
-        canonical_edges[key] = current
-
-    for node_id, canonical in existing_nodes.items():
-        canonical.payload["profile_refs"] = merge_unique_strings(
-            canonical.payload.get("profile_refs", []), sorted(profile_refs_by_node[node_id])
-        )
-        canonical.payload["card_ref"] = f"node-card:{node_id}"
-        if node_id in canonical_cards:
-            canonical_cards[node_id]["profile_refs"] = merge_unique_strings(
-                canonical_cards[node_id].get("profile_refs", []), sorted(profile_refs_by_node[node_id])
-            )
-            canonical_cards[node_id]["mention_refs"] = merge_unique_strings(
-                canonical_cards[node_id].get("mention_refs", []), sorted(mention_refs_by_node[node_id])
-            )
-            canonical_cards[node_id]["source_refs"] = merge_unique_strings(
-                canonical_cards[node_id].get("source_refs", []), sorted(source_refs_by_node[node_id])
-            )
-
-    if args.dry_run:
-        print(
-            dump_json_text(
-                {
-                    "merge_run_id": merge_run_id,
-                    "dataset_id": dataset_id,
-                    "lesson_run_ids": lesson_run_ids,
-                    "stats": dict(stats),
-                }
-            )
-        )
+    lesson_runs = load_lesson_runs(connection, dataset_id, args)
+    if not lesson_runs:
+        print(json.dumps({"status": "success", "merged": 0, "issues": []}, ensure_ascii=False))
         return 0
 
-    with connection:
+    merge_run_id = make_merge_run_id(dataset_id, [row["lesson_run_id"] for row in lesson_runs])
+    now = utc_now()
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO world_merge_runs (
+              dataset_id, merge_run_id, selection_json, stats_json, status, created_at, updated_at
+            ) VALUES (%s, %s, %s::jsonb, '{}'::jsonb, 'in_progress', %s, %s)
+            ON CONFLICT (dataset_id, merge_run_id) DO UPDATE SET
+              selection_json = EXCLUDED.selection_json,
+              status = 'in_progress',
+              updated_at = EXCLUDED.updated_at
+            """,
+            (dataset_id, merge_run_id, json.dumps([row["lesson_run_id"] for row in lesson_runs], ensure_ascii=False), now, now),
+        )
+
+    canonical_nodes = load_canonical_nodes(connection, dataset_id)
+    stats = {"nodes_created": 0, "nodes_matched": 0, "edges_upserted": 0, "domain_profiles_upserted": 0, "mentions_upserted": 0, "evidence_upserted": 0, "node_cards_upserted": 0}
+
+    for lesson_run in lesson_runs:
+        lesson_run_id = lesson_run["lesson_run_id"]
         with connection.cursor() as cur:
             cur.execute(
-                """
-                INSERT INTO merge_runs (
-                  dataset_id,
-                  merge_run_id,
-                  selection_json,
-                  stats_json,
-                  status,
-                  created_at,
-                  updated_at
-                ) VALUES (%s, %s, %s, %s, 'in_progress', %s, %s)
-                ON CONFLICT (dataset_id, merge_run_id) DO UPDATE SET
-                  selection_json = EXCLUDED.selection_json,
-                  stats_json = EXCLUDED.stats_json,
-                  status = EXCLUDED.status,
-                  updated_at = EXCLUDED.updated_at
-                """,
-                (
-                    dataset_id,
-                    merge_run_id,
-                    json.dumps(lesson_run_ids),
-                    json.dumps({}),
-                    now,
-                    now,
-                ),
+                "UPDATE world_lesson_runs SET status = 'merging', updated_at = %s WHERE dataset_id = %s AND lesson_run_id = %s",
+                (utc_now(), dataset_id, lesson_run_id),
             )
 
-        with connection.cursor() as cur:
-            for lesson_run_id in lesson_run_ids:
+        staged_nodes = fetch_staged_rows(connection, "world_staging_nodes", dataset_id, lesson_run_id)
+        node_map: dict[str, str] = {}
+        for row in staged_nodes:
+            staged_payload = {
+                "id": row["raw_node_id"],
+                "name": row["name"],
+                "kind": row["kind"],
+                "subkind": row["subkind"],
+                "definition": row["definition"],
+                "aliases": row["aliases_json"] or [],
+                "domains": row["domains_json"] or [],
+                "knowledge_form": row["knowledge_form_json"] or [],
+                "learning_mode": row["learning_mode_json"] or [],
+                "scope": row["scope"],
+                "properties": row["properties_json"] or {},
+                "external_ids": row["external_ids_json"] or {},
+                "tags": row["tags_json"] or [],
+                "semantic_key": row["semantic_key"],
+                "embedding": parse_embedding(row.get("embedding")),
+                "status": "active",
+                "created_at": row["created_at"],
+                "updated_at": now,
+                "notes": row.get("notes") or "",
+            }
+
+            best_match = None
+            best_score = 0.0
+            for candidate in canonical_nodes:
+                score = score_node_match(
+                    {
+                        "kind": staged_payload["kind"],
+                        "subkind": staged_payload["subkind"],
+                        "name": staged_payload["name"],
+                        "aliases": staged_payload["aliases"],
+                        "semantic_key": staged_payload["semantic_key"],
+                        "embedding": staged_payload["embedding"],
+                    },
+                    candidate,
+                )
+                if score > best_score:
+                    best_score = score
+                    best_match = candidate
+
+            if best_match and best_score >= args.similarity_threshold:
+                canonical_id = best_match.payload["id"]
+                merged = merge_node_payload(
+                    {
+                        "id": best_match.payload["id"],
+                        "name": best_match.payload["name"],
+                        "kind": best_match.payload["kind"],
+                        "subkind": best_match.payload.get("subkind"),
+                        "definition": best_match.payload["definition"],
+                        "aliases": best_match.payload.get("aliases_json", []),
+                        "domains": best_match.payload.get("domains_json", []),
+                        "knowledge_form": best_match.payload.get("knowledge_form_json", []),
+                        "learning_mode": best_match.payload.get("learning_mode_json", []),
+                        "scope": best_match.payload.get("scope"),
+                        "properties": best_match.payload.get("properties_json", {}),
+                        "external_ids": best_match.payload.get("external_ids_json", {}),
+                        "tags": best_match.payload.get("tags_json", []),
+                        "embedding": parse_embedding(best_match.payload.get("embedding")),
+                        "created_at": best_match.payload.get("created_at", now),
+                        "notes": best_match.payload.get("notes", ""),
+                    },
+                    staged_payload,
+                )
+                upsert_node(connection, dataset_id, merged)
+                stats["nodes_matched"] += 1
+                resolution = "matched"
+            else:
+                canonical_id = make_canonical_node_id(staged_payload["kind"], staged_payload["name"], staged_payload["subkind"])
+                staged_payload["id"] = canonical_id
+                upsert_node(connection, dataset_id, staged_payload)
+                canonical_nodes.append(
+                    CanonicalNode(
+                        payload={
+                            "id": canonical_id,
+                            "name": staged_payload["name"],
+                            "kind": staged_payload["kind"],
+                            "subkind": staged_payload["subkind"],
+                            "definition": staged_payload["definition"],
+                            "aliases_json": staged_payload["aliases"],
+                            "domains_json": staged_payload["domains"],
+                            "knowledge_form_json": staged_payload["knowledge_form"],
+                            "learning_mode_json": staged_payload["learning_mode"],
+                            "scope": staged_payload["scope"],
+                            "properties_json": staged_payload["properties"],
+                            "external_ids_json": staged_payload["external_ids"],
+                            "tags_json": staged_payload["tags"],
+                            "embedding": staged_payload["embedding"],
+                            "created_at": staged_payload["created_at"],
+                            "notes": staged_payload["notes"],
+                        },
+                        terms=normalized_terms({"name": staged_payload["name"], "aliases_json": staged_payload["aliases"]}),
+                        semantic_key=staged_payload["semantic_key"],
+                        embedding=staged_payload["embedding"],
+                    )
+                )
+                stats["nodes_created"] += 1
+                resolution = "created"
+
+            node_map[row["raw_node_id"]] = canonical_id
+            with connection.cursor() as cur:
                 cur.execute(
                     """
-                    UPDATE lesson_runs
-                    SET status = 'merging', updated_at = %s
-                    WHERE dataset_id = %s AND lesson_run_id = %s
+                    INSERT INTO world_canonical_node_map (
+                      dataset_id, merge_run_id, lesson_run_id, raw_node_id,
+                      canonical_node_id, resolution, similarity, rationale_json, created_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s)
+                    ON CONFLICT (dataset_id, merge_run_id, lesson_run_id, raw_node_id)
+                    DO UPDATE SET
+                      canonical_node_id = EXCLUDED.canonical_node_id,
+                      resolution = EXCLUDED.resolution,
+                      similarity = EXCLUDED.similarity,
+                      rationale_json = EXCLUDED.rationale_json
                     """,
-                    (now, dataset_id, lesson_run_id),
+                    (dataset_id, merge_run_id, lesson_run_id, row["raw_node_id"], canonical_id, resolution, best_score, json.dumps({}), now),
                 )
 
-        ensure_source_artifacts(connection, dataset_id, list(canonical_evidence_rows.values()))
-
-        with connection.cursor() as cur:
-            psycopg2.extras.execute_values(
-                cur,
-                """
-                INSERT INTO evidence (
-                  dataset_id, id, source_type, source_id, anchor_ref, source_path, page_start,
-                  page_end, excerpt, locator, modality, extraction_method, normalized_claims_json,
-                  properties_json
-                ) VALUES %s
-                ON CONFLICT (dataset_id, id) DO UPDATE SET
-                  source_type = EXCLUDED.source_type,
-                  source_id = EXCLUDED.source_id,
-                  anchor_ref = EXCLUDED.anchor_ref,
-                  source_path = EXCLUDED.source_path,
-                  page_start = EXCLUDED.page_start,
-                  page_end = EXCLUDED.page_end,
-                  excerpt = EXCLUDED.excerpt,
-                  locator = EXCLUDED.locator,
-                  modality = EXCLUDED.modality,
-                  extraction_method = EXCLUDED.extraction_method,
-                  normalized_claims_json = EXCLUDED.normalized_claims_json,
-                  properties_json = EXCLUDED.properties_json
-                """,
-                [
+        for row in fetch_staged_rows(connection, "world_staging_evidence", dataset_id, lesson_run_id):
+            evidence_id = make_evidence_id(lesson_run_id, row["raw_evidence_id"], row["anchor_ref"], row["excerpt"])
+            with connection.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO world_evidence (
+                      dataset_id, id, source_type, source_id, anchor_ref, source_path, page_start,
+                      page_end, excerpt, locator, modality, extraction_method,
+                      normalized_claims_json, properties_json, created_at, updated_at
+                    ) VALUES (
+                      %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                      %s::jsonb, %s::jsonb, %s, %s
+                    )
+                    ON CONFLICT (dataset_id, id) DO NOTHING
+                    """,
                     (
-                        row["dataset_id"],
-                        row["id"],
+                        dataset_id,
+                        evidence_id,
                         row["source_type"],
                         row["source_id"],
                         row["anchor_ref"],
-                        row.get("source_path"),
-                        row.get("page_start"),
-                        row.get("page_end"),
+                        row["source_path"],
+                        row["page_start"],
+                        row["page_end"],
                         row["excerpt"],
                         row["locator"],
-                        row.get("modality"),
+                        row["modality"],
                         row["extraction_method"],
-                        json.dumps(row.get("normalized_claims", [])),
-                        json.dumps(row.get("properties", {})),
-                    )
-                    for row in canonical_evidence_rows.values()
-                ],
-            )
-
-        with connection.cursor() as cur:
-            psycopg2.extras.execute_values(
-                cur,
-                """
-                INSERT INTO nodes (
-                  dataset_id, id, canonical_name, node_kind, node_layer, node_subkind,
-                  definition, aliases_json, learning_modes_json, bridge_tags_json,
-                  framework_refs_json, profile_refs_json, card_ref, same_as_refs_json,
-                  properties_json, embedding, status, deprecated_by, created_at, updated_at, notes
-                ) VALUES %s
-                ON CONFLICT(dataset_id, id) DO UPDATE SET
-                  canonical_name=excluded.canonical_name,
-                  node_kind=excluded.node_kind,
-                  node_layer=excluded.node_layer,
-                  node_subkind=excluded.node_subkind,
-                  definition=excluded.definition,
-                  aliases_json=excluded.aliases_json,
-                  learning_modes_json=excluded.learning_modes_json,
-                  bridge_tags_json=excluded.bridge_tags_json,
-                  framework_refs_json=excluded.framework_refs_json,
-                  profile_refs_json=excluded.profile_refs_json,
-                  card_ref=excluded.card_ref,
-                  same_as_refs_json=excluded.same_as_refs_json,
-                  properties_json=excluded.properties_json,
-                  embedding=excluded.embedding,
-                  status=excluded.status,
-                  deprecated_by=excluded.deprecated_by,
-                  updated_at=excluded.updated_at,
-                  notes=excluded.notes
-                """,
-                [
-                    (
-                        dataset_id,
-                        node_id,
-                        canonical.payload["canonical_name"],
-                        canonical.payload["node_kind"],
-                        canonical.payload["node_layer"],
-                        canonical.payload.get("node_subkind"),
-                        canonical.payload.get("definition", ""),
-                        json.dumps(canonical.payload.get("aliases", [])),
-                        json.dumps(canonical.payload.get("learning_modes", [])),
-                        json.dumps(canonical.payload.get("bridge_tags", [])),
-                        json.dumps(canonical.payload.get("framework_refs", [])),
-                        json.dumps(canonical.payload.get("profile_refs", [])),
-                        canonical.payload.get("card_ref"),
-                        json.dumps(canonical.payload.get("same_as_refs", [])),
-                        json.dumps(canonical.payload.get("properties", {})),
-                        json.dumps(canonical.embedding) if canonical.embedding else None,
-                        canonical.payload.get("status", "active"),
-                        canonical.payload.get("deprecated_by"),
-                        canonical.payload.get("created_at") or now,
+                        json.dumps(row["normalized_claims_json"] or [], ensure_ascii=False),
+                        json.dumps(row["properties_json"] or {}, ensure_ascii=False),
+                        row["created_at"],
                         now,
-                        canonical.payload.get("notes", ""),
-                    )
-                    for node_id, canonical in existing_nodes.items()
-                ],
-            )
-
-        with connection.cursor() as cur:
-            psycopg2.extras.execute_values(
-                cur,
-                """
-                INSERT INTO profiles (
-                  dataset_id, id, node_id, subject, school_stage, grade_band, context_key,
-                  curriculum_role, mastery_level, framework_refs_json, textbook_refs_json,
-                  textbook_ids_json, learning_objectives_json, assessment_signals_json,
-                  source_refs_json, properties_json, status, updated_at
-                ) VALUES %s
-                ON CONFLICT(dataset_id, id) DO UPDATE SET
-                  node_id=excluded.node_id,
-                  subject=excluded.subject,
-                  school_stage=excluded.school_stage,
-                  grade_band=excluded.grade_band,
-                  context_key=excluded.context_key,
-                  curriculum_role=excluded.curriculum_role,
-                  mastery_level=excluded.mastery_level,
-                  framework_refs_json=excluded.framework_refs_json,
-                  textbook_refs_json=excluded.textbook_refs_json,
-                  textbook_ids_json=excluded.textbook_ids_json,
-                  learning_objectives_json=excluded.learning_objectives_json,
-                  assessment_signals_json=excluded.assessment_signals_json,
-                  source_refs_json=excluded.source_refs_json,
-                  properties_json=excluded.properties_json,
-                  status=excluded.status,
-                  updated_at=excluded.updated_at
-                """,
-                [
-                    (
-                        dataset_id,
-                        profile["id"],
-                        profile["node_id"],
-                        profile["subject"],
-                        profile["school_stage"],
-                        profile["grade_band"],
-                        profile["context_key"],
-                        profile["curriculum_role"],
-                        profile["mastery_level"],
-                        json.dumps(profile.get("framework_refs", [])),
-                        json.dumps(profile.get("textbook_refs", [])),
-                        json.dumps(profile.get("textbook_ids", [])),
-                        json.dumps(profile.get("learning_objectives", [])),
-                        json.dumps(profile.get("assessment_signals", [])),
-                        json.dumps(profile.get("source_refs", [])),
-                        json.dumps(profile.get("properties", {})),
-                        normalize_review_status(profile.get("status"), default="draft"),
-                        now,
-                    )
-                    for profile in canonical_profiles.values()
-                ],
-            )
-
-        with connection.cursor() as cur:
-            psycopg2.extras.execute_values(
-                cur,
-                """
-                INSERT INTO mentions (
-                  dataset_id, id, source_type, source_id, anchor_ref, target_type, target_id,
-                  role, source_refs_json, confidence, properties_json
-                ) VALUES %s
-                ON CONFLICT(dataset_id, id) DO UPDATE SET
-                  source_type=excluded.source_type,
-                  source_id=excluded.source_id,
-                  anchor_ref=excluded.anchor_ref,
-                  target_type=excluded.target_type,
-                  target_id=excluded.target_id,
-                  role=excluded.role,
-                  source_refs_json=excluded.source_refs_json,
-                  confidence=excluded.confidence,
-                  properties_json=excluded.properties_json
-                """,
-                [
-                    (
-                        dataset_id,
-                        mention["id"],
-                        mention["source_type"],
-                        mention["source_id"],
-                        mention["anchor_ref"],
-                        mention["target_type"],
-                        mention["target_id"],
-                        mention["role"],
-                        json.dumps(mention.get("source_refs", [])),
-                        mention["confidence"],
-                        json.dumps(mention.get("properties", {})),
-                    )
-                    for mention in canonical_mentions.values()
-                ],
-            )
-
-        with connection.cursor() as cur:
-            psycopg2.extras.execute_values(
-                cur,
-                """
-                INSERT INTO edges (
-                  dataset_id, id, edge_type, edge_layer, backbone_expand, from_id, to_id,
-                  directionality, confidence, framework_refs_json, profile_refs_json,
-                  source_refs_json, properties_json, status, created_at, updated_at
-                ) VALUES %s
-                ON CONFLICT(dataset_id, id) DO UPDATE SET
-                  edge_type=excluded.edge_type,
-                  edge_layer=excluded.edge_layer,
-                  backbone_expand=excluded.backbone_expand,
-                  from_id=excluded.from_id,
-                  to_id=excluded.to_id,
-                  directionality=excluded.directionality,
-                  confidence=excluded.confidence,
-                  framework_refs_json=excluded.framework_refs_json,
-                  profile_refs_json=excluded.profile_refs_json,
-                  source_refs_json=excluded.source_refs_json,
-                  properties_json=excluded.properties_json,
-                  status=excluded.status,
-                  updated_at=excluded.updated_at
-                """,
-                [
-                    (
-                        dataset_id,
-                        edge["id"],
-                        edge["edge_type"],
-                        edge["edge_layer"],
-                        edge["backbone_expand"],
-                        edge["from_id"],
-                        edge["to_id"],
-                        edge["directionality"],
-                        edge["confidence"],
-                        json.dumps(edge.get("framework_refs", [])),
-                        json.dumps(edge.get("profile_refs", [])),
-                        json.dumps(edge.get("source_refs", [])),
-                        json.dumps(edge.get("properties", {})),
-                        edge.get("status", "active"),
-                        edge.get("created_at") or now,
-                        now,
-                    )
-                    for edge in canonical_edges.values()
-                ],
-            )
-
-        with connection.cursor() as cur:
-            psycopg2.extras.execute_values(
-                cur,
-                """
-                INSERT INTO node_cards (
-                  dataset_id, node_id, id, card_layer, title, summary, pattern_refs_json,
-                  framework_refs_json, profile_refs_json, mention_refs_json, source_refs_json,
-                  sections_json, properties_json, status, updated_at
-                ) VALUES %s
-                ON CONFLICT(dataset_id, node_id) DO UPDATE SET
-                  card_layer=excluded.card_layer,
-                  title=excluded.title,
-                  summary=excluded.summary,
-                  pattern_refs_json=excluded.pattern_refs_json,
-                  framework_refs_json=excluded.framework_refs_json,
-                  profile_refs_json=excluded.profile_refs_json,
-                  mention_refs_json=excluded.mention_refs_json,
-                  source_refs_json=excluded.source_refs_json,
-                  sections_json=excluded.sections_json,
-                  properties_json=excluded.properties_json,
-                  status=excluded.status,
-                  updated_at=excluded.updated_at
-                """,
-                [
-                    (
-                        dataset_id,
-                        node_id,
-                        card["id"],
-                        card["card_layer"],
-                        card["title"],
-                        card["summary"],
-                        json.dumps(card.get("pattern_refs", [])),
-                        json.dumps(card.get("framework_refs", [])),
-                        json.dumps(card.get("profile_refs", [])),
-                        json.dumps(card.get("mention_refs", [])),
-                        json.dumps(card.get("source_refs", [])),
-                        json.dumps(card.get("sections", [])),
-                        json.dumps(card.get("properties", {})),
-                        normalize_review_status(card.get("status"), default="draft"),
-                        now,
-                    )
-                    for node_id, card in canonical_cards.items()
-                ],
-            )
-
-        with connection.cursor() as cur:
-            cur.execute(
-                "DELETE FROM canonical_node_map WHERE dataset_id = %s AND merge_run_id = %s",
-                (dataset_id, merge_run_id),
-            )
-
-        with connection.cursor() as cur:
-            psycopg2.extras.execute_values(
-                cur,
-                """
-                INSERT INTO canonical_node_map (
-                  dataset_id, merge_run_id, lesson_run_id, raw_node_id, canonical_node_id,
-                  resolution, similarity, rationale_json, created_at
-                ) VALUES %s
-                ON CONFLICT (dataset_id, merge_run_id, lesson_run_id, raw_node_id) DO UPDATE SET
-                  canonical_node_id = EXCLUDED.canonical_node_id,
-                  resolution = EXCLUDED.resolution,
-                  similarity = EXCLUDED.similarity,
-                  rationale_json = EXCLUDED.rationale_json,
-                  created_at = EXCLUDED.created_at
-                """,
-                canonical_map_rows,
-            )
-
-        for edge in canonical_edges.values():
-            upsert_evidence_links(connection, dataset_id, "edge", edge["id"], edge.get("source_refs", []))
-        for profile in canonical_profiles.values():
-            upsert_evidence_links(connection, dataset_id, "profile", profile["id"], profile.get("source_refs", []))
-        for mention in canonical_mentions.values():
-            upsert_evidence_links(connection, dataset_id, "mention", mention["id"], mention.get("source_refs", []))
-        for node_id, card in canonical_cards.items():
-            upsert_evidence_links(connection, dataset_id, "card", card["id"], card.get("source_refs", []))
-            for section in card.get("sections", []):
-                section_owner = f"{card['id']}#{section['id']}"
-                upsert_evidence_links(
-                    connection,
-                    dataset_id,
-                    "card_section",
-                    section_owner,
-                    section.get("source_refs", []),
+                    ),
                 )
+            stats["evidence_upserted"] += 1
 
-        # rebuild_node_terms(connection, dataset_id)  # skipped - run separately after
-
-        with connection.cursor() as cur:
-            cur.execute(
-                """
-                UPDATE merge_runs
-                SET stats_json = %s, status = 'completed', updated_at = %s
-                WHERE dataset_id = %s AND merge_run_id = %s
-                """,
-                (json.dumps(dict(stats)), now, dataset_id, merge_run_id),
-            )
-
-        with connection.cursor() as cur:
-            for lesson_run_id in lesson_run_ids:
+        for row in fetch_staged_rows(connection, "world_staging_edges", dataset_id, lesson_run_id):
+            from_id = node_map.get(row["from_raw_node_id"])
+            to_id = node_map.get(row["to_raw_node_id"])
+            if not from_id or not to_id:
+                continue
+            edge_id = make_edge_id(from_id, row["type"], to_id)
+            with connection.cursor() as cur:
                 cur.execute(
                     """
-                    UPDATE lesson_runs
-                    SET status = 'merged', updated_at = %s
-                    WHERE dataset_id = %s AND lesson_run_id = %s
+                    INSERT INTO world_edges (
+                      dataset_id, id, type, from_id, to_id, directionality, confidence,
+                      source_refs_json, properties_json, status, created_at, updated_at, notes
+                    ) VALUES (
+                      %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, 'active', %s, %s, %s
+                    )
+                    ON CONFLICT (dataset_id, id) DO UPDATE SET
+                      source_refs_json = EXCLUDED.source_refs_json,
+                      properties_json = EXCLUDED.properties_json,
+                      confidence = GREATEST(world_edges.confidence, EXCLUDED.confidence),
+                      updated_at = EXCLUDED.updated_at,
+                      notes = EXCLUDED.notes
                     """,
-                    (now, dataset_id, lesson_run_id),
+                    (
+                        dataset_id,
+                        edge_id,
+                        row["type"],
+                        from_id,
+                        to_id,
+                        row["directionality"],
+                        row["confidence"],
+                        json.dumps(row["source_refs_json"] or [], ensure_ascii=False),
+                        json.dumps(row["properties_json"] or {}, ensure_ascii=False),
+                        row["created_at"],
+                        now,
+                        row.get("notes") or "",
+                    ),
                 )
+            stats["edges_upserted"] += 1
 
-    connection.commit()
+        for row in fetch_staged_rows(connection, "world_staging_domain_profiles", dataset_id, lesson_run_id):
+            node_id = node_map.get(row["raw_node_id"])
+            if not node_id:
+                continue
+            with connection.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO world_domain_profiles (
+                      dataset_id, id, node_id, domain, school_stages_json, curriculum_roles_json,
+                      source_refs_json, properties_json, status, created_at, updated_at, notes
+                    ) VALUES (
+                      %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb,
+                      'active', %s, %s, %s
+                    )
+                    ON CONFLICT (dataset_id, id) DO UPDATE SET
+                      school_stages_json = EXCLUDED.school_stages_json,
+                      curriculum_roles_json = EXCLUDED.curriculum_roles_json,
+                      source_refs_json = EXCLUDED.source_refs_json,
+                      properties_json = EXCLUDED.properties_json,
+                      updated_at = EXCLUDED.updated_at,
+                      notes = EXCLUDED.notes
+                    """,
+                    (
+                        dataset_id,
+                        row["raw_profile_id"],
+                        node_id,
+                        row["domain"],
+                        json.dumps(row["school_stages_json"] or [], ensure_ascii=False),
+                        json.dumps(row["curriculum_roles_json"] or [], ensure_ascii=False),
+                        json.dumps(row["source_refs_json"] or [], ensure_ascii=False),
+                        json.dumps(row["properties_json"] or {}, ensure_ascii=False),
+                        row["created_at"],
+                        now,
+                        row.get("notes") or "",
+                    ),
+                )
+            stats["domain_profiles_upserted"] += 1
 
-    print(
-        dump_json_text(
-            {
-                "merge_run_id": merge_run_id,
-                "dataset_id": dataset_id,
-                "lesson_run_ids": lesson_run_ids,
-                "stats": dict(stats),
-            }
+        for row in fetch_staged_rows(connection, "world_staging_mentions", dataset_id, lesson_run_id):
+            target_id = node_map.get(row["target_raw_id"], row["target_raw_id"])
+            mention_id = make_mention_id(lesson_run_id, row["raw_mention_id"], row["target_type"], target_id)
+            with connection.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO world_mentions (
+                      dataset_id, id, source_type, source_id, anchor_ref, target_type, target_id,
+                      role, source_refs_json, confidence, properties_json, created_at, updated_at
+                    ) VALUES (
+                      %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s::jsonb, %s, %s
+                    )
+                    ON CONFLICT (dataset_id, id) DO UPDATE SET
+                      source_refs_json = EXCLUDED.source_refs_json,
+                      confidence = EXCLUDED.confidence,
+                      properties_json = EXCLUDED.properties_json,
+                      updated_at = EXCLUDED.updated_at
+                    """,
+                    (
+                        dataset_id,
+                        mention_id,
+                        row["source_type"],
+                        row["source_id"],
+                        row["anchor_ref"],
+                        row["target_type"],
+                        target_id,
+                        row["role"],
+                        json.dumps(row["source_refs_json"] or [], ensure_ascii=False),
+                        row["confidence"],
+                        json.dumps(row["properties_json"] or {}, ensure_ascii=False),
+                        row["created_at"],
+                        now,
+                    ),
+                )
+            stats["mentions_upserted"] += 1
+
+        for row in fetch_staged_rows(connection, "world_staging_node_cards", dataset_id, lesson_run_id):
+            node_id = node_map.get(row["raw_node_id"])
+            if not node_id:
+                continue
+            with connection.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO world_node_cards (
+                      dataset_id, node_id, id, title, summary, source_refs_json,
+                      sections_json, properties_json, status, created_at, updated_at
+                    ) VALUES (
+                      %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb, 'active', %s, %s
+                    )
+                    ON CONFLICT (dataset_id, node_id) DO UPDATE SET
+                      title = EXCLUDED.title,
+                      summary = EXCLUDED.summary,
+                      source_refs_json = EXCLUDED.source_refs_json,
+                      sections_json = EXCLUDED.sections_json,
+                      properties_json = EXCLUDED.properties_json,
+                      updated_at = EXCLUDED.updated_at
+                    """,
+                    (
+                        dataset_id,
+                        node_id,
+                        row["raw_card_id"],
+                        row["title"],
+                        row["summary"],
+                        json.dumps(row["source_refs_json"] or [], ensure_ascii=False),
+                        json.dumps(row["sections_json"] or [], ensure_ascii=False),
+                        json.dumps(row["properties_json"] or {}, ensure_ascii=False),
+                        row["created_at"],
+                        now,
+                    ),
+                )
+            stats["node_cards_upserted"] += 1
+
+        with connection.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE world_lesson_runs
+                SET status = 'merged', updated_at = %s
+                WHERE dataset_id = %s AND lesson_run_id = %s
+                """,
+                (utc_now(), dataset_id, lesson_run_id),
+            )
+
+    rebuild_node_terms(connection, dataset_id)
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE world_merge_runs
+            SET stats_json = %s::jsonb, status = 'completed', updated_at = %s
+            WHERE dataset_id = %s AND merge_run_id = %s
+            """,
+            (json.dumps(stats, ensure_ascii=False), utc_now(), dataset_id, merge_run_id),
         )
-    )
+    if not args.dry_run:
+        connection.commit()
+    else:
+        connection.rollback()
+
+    print(json.dumps({"status": "success", "merge_run_id": merge_run_id, "stats": stats}, ensure_ascii=False))
     return 0
 
 

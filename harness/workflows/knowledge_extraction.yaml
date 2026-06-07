@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "workflow_id": "okm.parallel_textbook_extraction",
+  "description": "Project-local extraction harness for textbook knowledge mapping. Critical stage order is fixed here; only the lesson executor remains pluggable.",
+  "defaults": {
+    "output_root": "data/main",
+    "outline_path": "{repo_root}/data/outlines/{book_id}.outline.json",
+    "parallelism": 4,
+    "similarity_threshold": 0.9,
+    "embedding_threshold": 0.92,
+    "lesson_backend_kind": "local_rule_based",
+    "lesson_subject": "computer-science",
+    "lesson_school_stage": "higher",
+    "lesson_grade_band": "university",
+    "lesson_framework_ref": "",
+    "lesson_textbook_id": "{book_id}"
+  },
+  "stages": [
+    {
+      "id": "check_postgres",
+      "kind": "command",
+      "required": true,
+      "config": {
+        "command": "python3 {repo_root}/scripts/check_postgres_ready.py",
+        "cwd": "{repo_root}"
+      }
+    },
+    {
+      "id": "ensure_outline",
+      "kind": "ensure_outline",
+      "required": true,
+      "config": {
+        "book_id": "{book_id}",
+        "outline_path": "{outline_path}",
+        "pdf_path": "{pdf_path}",
+        "title": "{book_title}",
+        "start_page": "{outline_start_page}",
+        "end_page": "{outline_end_page}"
+      }
+    },
+    {
+      "id": "lesson_plan",
+      "kind": "plan_lessons",
+      "required": true,
+      "config": {
+        "book_id": "{book_id}",
+        "output_root": "{output_root}",
+        "parallel": "{parallelism}",
+        "no_chunks": "{no_chunks}"
+      }
+    },
+    {
+      "id": "lesson_staging",
+      "kind": "parallel_lessons",
+      "required": true,
+      "config": {
+        "plan_stage": "lesson_plan",
+        "max_parallel": "{parallelism}",
+        "executor": {
+          "kind": "{lesson_backend_kind}",
+          "subject": "{lesson_subject}",
+          "school_stage": "{lesson_school_stage}",
+          "grade_band": "{lesson_grade_band}",
+          "framework_ref": "{lesson_framework_ref}",
+          "textbook-id": "{lesson_textbook_id}",
+          "api_key_env": "OPENAI_API_KEY",
+          "reasoning_effort": "medium",
+          "write_staging": true
+        }
+      }
+    },
+    {
+      "id": "canonical_commit",
+      "kind": "run_reducer",
+      "required": true,
+      "config": {
+        "output_root": "{output_root}",
+        "dataset_id": "{dataset_id}",
+        "book_id": "{book_id}",
+        "lesson_stage": "lesson_staging",
+        "similarity_threshold": "{similarity_threshold}",
+        "embedding_threshold": "{embedding_threshold}",
+        "normalize_auto_merge": "{normalize_auto_merge}",
+        "skip_normalize": "{skip_normalize}",
+        "skip_qa": "{skip_qa}",
+        "skip_integrity": "{skip_integrity}"
+      }
+    }
+  ]
+}

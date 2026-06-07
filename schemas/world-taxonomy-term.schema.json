@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "World Taxonomy Term Schema V1.2",
+  "description": "Controlled taxonomy term schema for world knowledge classification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "scheme",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scheme": {
+      "type": "string",
+      "enum": [
+        "domain",
+        "knowledge-form",
+        "learning-mode",
+        "scope",
+        "school-stage",
+        "discipline-tree"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "aliases": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "deprecated"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

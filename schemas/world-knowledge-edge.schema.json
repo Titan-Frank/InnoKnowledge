@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "World Knowledge Edge Schema V1.2",
+  "description": "Minimal unified relation schema for world knowledge, aligned with the four-layer world knowledge architecture.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "from",
+    "to",
+    "directionality",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^edge:[a-z0-9:-]+$"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "is_a",
+        "instance_of",
+        "part_of",
+        "contains",
+        "has_property",
+        "uses",
+        "produces",
+        "depends_on",
+        "prerequisite_for",
+        "causes",
+        "affects",
+        "represents",
+        "about",
+        "same_as",
+        "related_to"
+      ]
+    },
+    "from": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$"
+    },
+    "to": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$"
+    },
+    "directionality": {
+      "type": "string",
+      "enum": [
+        "directed",
+        "undirected"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "deprecated"
+      ]
+    },
+    "properties": {
+      "type": "object"
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

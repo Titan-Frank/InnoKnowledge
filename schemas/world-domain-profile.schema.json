@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "World Domain Profile Schema V1.2",
+  "description": "Domain-specific extension profile for a world knowledge node, used to project the same node into school stages and curriculum roles.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "node_id",
+    "domain",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$"
+    },
+    "node_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$"
+    },
+    "domain": {
+      "type": "string",
+      "enum": [
+        "mathematics",
+        "physics",
+        "chemistry",
+        "biology",
+        "earth-science",
+        "astronomy",
+        "computer-science",
+        "engineering",
+        "language-arts",
+        "linguistics",
+        "literature",
+        "history",
+        "geography",
+        "civics",
+        "economics",
+        "law",
+        "education",
+        "arts",
+        "music",
+        "health",
+        "sports",
+        "philosophy",
+        "general"
+      ]
+    },
+    "school_stages": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "primary",
+          "junior-secondary",
+          "senior-secondary",
+          "higher"
+        ]
+      }
+    },
+    "curriculum_roles": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "core",
+          "support",
+          "assessment",
+          "practice",
+          "literacy"
+        ]
+      }
+    },
+    "properties": {
+      "type": "object"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "deprecated"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

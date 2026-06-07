@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the parallel lesson staging pipeline end to end."""
+"""Run the world-knowledge lesson staging pipeline end to end."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Merge staged lesson runs, normalize the canonical graph, and run QA."
+        description="Merge staged lesson runs, normalize the canonical world graph, and run QA."
     )
     parser.add_argument("--root", required=True)
     parser.add_argument("--db", default=None, help="PostgreSQL URL (default: $DATABASE_URL)")
@@ -58,7 +58,7 @@ def mark_qa_passed(
         psycopg.extras.execute_values(
             cur,
             """
-            UPDATE lesson_runs
+            UPDATE world_lesson_runs
             SET status = 'qa_passed', updated_at = %s
             WHERE dataset_id = %s AND lesson_run_id = %s
             """,
@@ -152,7 +152,7 @@ def main() -> int:
             cur.execute(
                 f"""
                 SELECT lesson_run_id
-                FROM lesson_runs
+                FROM world_lesson_runs
                 WHERE {' AND '.join(filters)}
                 ORDER BY lesson_run_id
                 """,
