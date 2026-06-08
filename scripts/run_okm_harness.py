@@ -53,6 +53,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest-path", help="Optional explicit manifest output path.")
     parser.add_argument("--book-id", required=True)
     parser.add_argument("--pdf-path", help="PDF used for outline creation when outline is missing.")
+    parser.add_argument("--source-markdown-path", default="", help="Existing OCR Markdown to use instead of running MinerU.")
+    parser.add_argument("--mineru-file-url", default="", help="Remote PDF/document URL to submit to MinerU.")
+    parser.add_argument("--mineru-api-key-env", default="MINERU_API_KEY")
+    parser.add_argument("--mineru-base-url", default="https://mineru.net")
+    parser.add_argument("--mineru-model-version", default="vlm")
+    parser.add_argument("--mineru-language", default="ch")
+    parser.add_argument("--mineru-page-ranges", default="")
+    parser.add_argument("--mineru-timeout", type=float, default=1800.0)
+    parser.add_argument("--mineru-force", action="store_true")
     parser.add_argument("--book-title", default="")
     parser.add_argument("--dataset-id", default="")
     parser.add_argument("--output-root", default="data/main")
@@ -82,6 +91,15 @@ def main() -> int:
     context = {
         "book_id": args.book_id,
         "pdf_path": args.pdf_path or "",
+        "source_markdown_path": args.source_markdown_path,
+        "mineru_file_url": args.mineru_file_url,
+        "mineru_api_key_env": args.mineru_api_key_env,
+        "mineru_base_url": args.mineru_base_url,
+        "mineru_model_version": args.mineru_model_version,
+        "mineru_language": args.mineru_language,
+        "mineru_page_ranges": args.mineru_page_ranges,
+        "mineru_timeout": args.mineru_timeout,
+        "mineru_force": args.mineru_force,
         "book_title": args.book_title,
         "dataset_id": args.dataset_id,
         "output_root": args.output_root,

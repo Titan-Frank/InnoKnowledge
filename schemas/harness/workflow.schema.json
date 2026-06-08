@@ -33,9 +33,11 @@
             "type": "string",
             "enum": [
               "command",
+              "ensure_source_markdown",
               "ensure_outline",
               "plan_lessons",
               "parallel_lessons",
+              "check_lesson_quality",
               "run_reducer"
             ]
           },

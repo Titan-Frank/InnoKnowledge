@@ -5,20 +5,27 @@ import { FilterPanel } from './components/FilterPanel';
 import { GraphCanvas } from './components/GraphCanvas';
 import { DetailPanel } from './components/DetailPanel';
 import { StatusBar } from './components/StatusBar';
+import { PipelineDebugPage } from './components/PipelineDebugPage';
+import { useAppState } from './hooks/useAppState';
 
 function AppContent() {
   useBootData();
+  const { workspace } = useAppState();
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-void text-text-primary">
       <Header />
-      <main className="flex min-h-0 flex-1">
-        <FilterPanel />
-        <div className="relative min-w-0 flex-1">
-          <GraphCanvas />
-        </div>
-        <DetailPanel />
-      </main>
+      {workspace === 'pipeline' ? (
+        <PipelineDebugPage />
+      ) : (
+        <main className="flex min-h-0 flex-1">
+          <FilterPanel />
+          <div className="relative min-w-0 flex-1">
+            <GraphCanvas />
+          </div>
+          <DetailPanel />
+        </main>
+      )}
       <StatusBar />
     </div>
   );

@@ -94,6 +94,24 @@ def make_excerpt(lines: list[str], limit: int = 280) -> str:
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
 
 
+def extract_image_hints(lines: list[str]) -> list[dict[str, str]]:
+    hints: list[dict[str, str]] = []
+    for line_number, raw_line in enumerate(lines, start=1):
+        for match in re.finditer(r"!\[([^\]]*)\]\(([^)]+)\)", raw_line):
+            image_path = match.group(2).strip()
+            if not image_path:
+                continue
+            hints.append(
+                {
+                    "caption": match.group(1).strip(),
+                    "path": image_path,
+                    "locator": f"line:{line_number}",
+                    "excerpt": match.group(0),
+                }
+            )
+    return hints[:30]
+
+
 def top_aliases(lines: list[str], title: str) -> list[str]:
     tokens: list[str] = []
     for line in lines[:12]:
@@ -312,6 +330,30 @@ def build_artifacts(args: argparse.Namespace) -> dict[str, Any]:
                 "properties": {},
                 "status": "draft",
                 "notes": "",
+            }
+        )
+
+    for image_index, hint in enumerate(extract_image_hints(lines), start=1):
+        image_path = hint["path"]
+        evidence_id = f"evidence:{safe_path_token(args.book_id)}:image:{image_index}"
+        evidence.append(
+            {
+                "id": evidence_id,
+                "source_type": "textbook",
+                "source_id": source_id,
+                "anchor_ref": anchor_ref,
+                "source_path": source_path,
+                "page_start": item.get("page_start"),
+                "page_end": item.get("page_end"),
+                "excerpt": hint["excerpt"],
+                "locator": hint["locator"],
+                "modality": "image",
+                "extraction_method": "ocr_image",
+                "normalized_claims": [hint["caption"] or image_path],
+                "properties": {
+                    "caption": hint["caption"],
+                    "path": image_path,
+                },
             }
         )
 

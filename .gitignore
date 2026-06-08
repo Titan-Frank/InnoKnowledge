@@ -12,6 +12,7 @@ data/outlines/*.marked.md
 data/outlines/*.outline.json
 data/**/*.jsonl
 data/**/runs/
+data/mineru/
 data/main/
 data/cs/
 !data/frameworks/

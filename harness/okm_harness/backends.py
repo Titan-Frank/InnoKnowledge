@@ -105,9 +105,10 @@ class LocalRuleBasedBackend:
 
 
 class OpenAIResponsesBackend:
-    def __init__(self, runtime: Any, executor: dict[str, Any]) -> None:
+    def __init__(self, runtime: Any, executor: dict[str, Any], api_mode: str = "responses") -> None:
         self.runtime = runtime
         self.executor = executor
+        self.api_mode = api_mode
 
     def build_launch_spec(self, job: LessonJob) -> BackendLaunchSpec:
         prompt = self.executor.get("prompt", "")
@@ -141,10 +142,15 @@ class OpenAIResponsesBackend:
             command_parts.extend(["--base-url", str(self.executor["base_url"])])
         if self.executor.get("api_key_env"):
             command_parts.extend(["--api-key-env", str(self.executor["api_key_env"])])
+        command_parts.extend(["--api-mode", self.api_mode])
         if self.executor.get("timeout"):
             command_parts.extend(["--timeout", str(self.executor["timeout"])])
         if self.executor.get("reasoning_effort"):
             command_parts.extend(["--reasoning-effort", str(self.executor["reasoning_effort"])])
+        if str(self.executor.get("retrieval_context", "")).lower() in {"1", "true", "yes", "on"}:
+            command_parts.append("--retrieval-context")
+        if self.executor.get("retrieval_limit"):
+            command_parts.extend(["--retrieval-limit", str(self.executor["retrieval_limit"])])
         if self.executor.get("fallback_local_on_error", False):
             command_parts.append("--fallback-local-on-error")
         if self.executor.get("write_staging", True):
@@ -163,5 +169,7 @@ def build_backend(runtime: Any, executor: dict[str, Any]) -> LessonBackend:
     if kind == "local_rule_based":
         return LocalRuleBasedBackend(runtime, executor)
     if kind == "openai_responses":
-        return OpenAIResponsesBackend(runtime, executor)
+        return OpenAIResponsesBackend(runtime, executor, api_mode="responses")
+    if kind == "openai_chat_completions":
+        return OpenAIResponsesBackend(runtime, executor, api_mode="chat_completions")
     raise ValueError(f"Unsupported lesson backend kind: {kind}")

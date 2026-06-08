@@ -86,6 +86,90 @@ export interface SearchResponse {
   mode: 'full' | 'text_only';
 }
 
+// ── GET /api/source/:key/pipeline ────────────────────────
+
+export interface PipelineLessonRun {
+  lesson_run_id: string;
+  book_id: string;
+  batch_anchor: string;
+  status: string;
+  counts: Record<string, unknown>;
+  quality_issues: string[];
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface PipelineMergeRun {
+  merge_run_id: string;
+  status: string;
+  selection: string[];
+  stats: Record<string, unknown>;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface PipelineReviewItem {
+  merge_run_id: string;
+  lesson_run_id: string;
+  raw_node_id: string;
+  canonical_node_id: string;
+  similarity: number;
+  rationale: Record<string, unknown>;
+  created_at: string | null;
+}
+
+export interface PipelineResponse {
+  dataset_id: string;
+  summary: {
+    lesson_runs: number;
+    staged: number;
+    merging: number;
+    merged: number;
+    qa_passed: number;
+    blocked: number;
+    review_items: number;
+  };
+  lesson_runs: PipelineLessonRun[];
+  merge_runs: PipelineMergeRun[];
+  review_items: PipelineReviewItem[];
+}
+
+export interface PipelineStartRequest {
+  book_id: string;
+  pdf_path?: string;
+  dataset_id?: string;
+  output_root?: string;
+  parallelism?: number;
+  lesson_backend_kind?: string;
+  lesson_subject?: string;
+  lesson_school_stage?: string;
+  lesson_grade_band?: string;
+  openai_base_url?: string;
+  openai_model?: string;
+}
+
+export interface PipelineStartResponse {
+  job_id: string;
+  status: 'started';
+  command: string[];
+  log_path: string;
+}
+
+export interface TextbookMetadataRequest {
+  book_id: string;
+  pdf_path?: string;
+}
+
+export interface TextbookMetadataResponse {
+  book_id: string;
+  title: string;
+  lesson_subject: string;
+  lesson_school_stage: string;
+  lesson_grade_band: string;
+  confidence: number;
+  signals: string[];
+}
+
 // ── Error ─────────────────────────────────────────────────
 
 export interface ApiErrorResponse {

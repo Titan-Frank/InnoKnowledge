@@ -1,7 +1,11 @@
 import type { Sql } from './connection.js';
 import type {
-  ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard,
+  ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit, ApiUnitMedia,
+  PipelineResponse,
 } from '@okm/types';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { REPO_ROOT } from '../utils/paths.js';
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -38,6 +42,25 @@ export async function resolveDatasetRow(
   sql: Sql,
   key: string,
 ): Promise<DatasetRow | undefined> {
+  const worldTableCheck = await sql<{ regclass: string | null }[]>`
+    SELECT to_regclass('world_datasets') AS regclass
+  `;
+  if (worldTableCheck[0]?.regclass) {
+    const worldRows = await sql<DatasetRow[]>`
+      SELECT dataset_id, dataset_name AS version_key, COALESCE(root_path, '') AS root_path, is_active
+      FROM world_datasets
+      WHERE dataset_id = ${key} OR dataset_name = ${key}
+      ORDER BY is_active DESC, dataset_id ASC
+      LIMIT 1
+    `;
+    if (worldRows[0]) return worldRows[0];
+  }
+
+  const legacyTableCheck = await sql<{ regclass: string | null }[]>`
+    SELECT to_regclass('datasets') AS regclass
+  `;
+  if (!legacyTableCheck[0]?.regclass) return undefined;
+
   const rows = await sql<DatasetRow[]>`
     SELECT dataset_id, version_key, root_path, is_active
     FROM datasets
@@ -147,9 +170,295 @@ export async function loadNodeCard(
   ]) as unknown as ApiNodeCard;
 }
 
+function worldJsonRow(
+  row: Record<string, unknown>,
+  fields: string[],
+): Record<string, unknown> {
+  const parsed = stripJsonSuffix(row, fields);
+  delete parsed.embedding;
+  return parsed;
+}
+
+function renderCardBody(card: ApiNodeCard | null): ApiUnit['body'] {
+  if (!card || !Array.isArray(card.sections)) return null;
+  const lines: string[] = [];
+  if (card.summary) {
+    lines.push(card.summary);
+    lines.push('');
+  }
+  for (const section of card.sections) {
+    if (!section || typeof section !== 'object') continue;
+    if (section.title) {
+      lines.push(`## ${section.title}`);
+      lines.push('');
+    }
+    const content = Array.isArray(section.content)
+      ? section.content.map((item) => String(item)).filter(Boolean)
+      : [String(section.content ?? '')].filter(Boolean);
+    for (const item of content) {
+      lines.push(item);
+      lines.push('');
+    }
+  }
+  return {
+    format: 'markdown',
+    content: lines.join('\n').trim(),
+    media_refs: [],
+    source_refs: card.source_refs || [],
+    generated_from: 'node_card',
+  };
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function textValue(value: unknown): string {
+  return value == null ? '' : String(value).trim();
+}
+
+function firstImagePath(row: Record<string, unknown>): string {
+  const properties = asRecord(row.properties);
+  const candidates = [
+    properties.path,
+    properties.image_path,
+    properties.src,
+    row.locator,
+    row.excerpt,
+  ];
+  for (const candidate of candidates) {
+    const text = textValue(candidate);
+    if (!text) continue;
+    const markdown = text.match(/!\[[^\]]*\]\(([^)]+)\)/);
+    const value = markdown ? markdown[1] : text;
+    if (/\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(value)) return value;
+  }
+  return '';
+}
+
+function resolveImagePath(row: Record<string, unknown>): string {
+  const imagePath = firstImagePath(row);
+  if (!imagePath || /^https?:\/\//i.test(imagePath)) return imagePath;
+  const candidates: string[] = [];
+  if (path.isAbsolute(imagePath)) candidates.push(imagePath);
+  candidates.push(path.resolve(REPO_ROOT, imagePath));
+
+  const sourcePath = textValue(row.source_path);
+  if (sourcePath) {
+    const resolvedSource = path.isAbsolute(sourcePath)
+      ? sourcePath
+      : path.resolve(REPO_ROOT, sourcePath);
+    candidates.push(path.resolve(path.dirname(resolvedSource), imagePath));
+  }
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return candidate;
+  }
+  return candidates[candidates.length - 1] || imagePath;
+}
+
+function mediaFromEvidence(rows: Record<string, unknown>[], sourceKey: string): ApiUnitMedia[] {
+  const seen = new Set<string>();
+  const media: ApiUnitMedia[] = [];
+  for (const row of rows) {
+    if (String(row.modality || '').toLowerCase() !== 'image') continue;
+    const resolvedPath = resolveImagePath(row);
+    if (!resolvedPath) continue;
+    const key = `${row.id}:${resolvedPath}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const properties = asRecord(row.properties);
+    const caption = textValue(properties.caption) || textValue(row.locator) || textValue(row.excerpt);
+    const url = /^https?:\/\//i.test(resolvedPath)
+      ? resolvedPath
+      : `/api/source/${encodeURIComponent(sourceKey)}/assets/${encodeURIComponent(resolvedPath)}`;
+    media.push({
+      id: `${row.id}:image:${media.length + 1}`,
+      kind: 'image',
+      url,
+      path: resolvedPath,
+      caption,
+      evidence_id: textValue(row.id),
+      source_id: textValue(row.source_id),
+      anchor_ref: textValue(row.anchor_ref),
+      page_start: row.page_start == null ? null : Number(row.page_start),
+      page_end: row.page_end == null ? null : Number(row.page_end),
+    });
+  }
+  return media;
+}
+
+export async function loadUnit(
+  sql: Sql,
+  datasetId: string,
+  nodeId: string,
+  sourceKey = datasetId,
+): Promise<ApiUnit | null> {
+  const nodeRows = await sql`
+    SELECT * FROM world_nodes
+    WHERE dataset_id = ${datasetId} AND id = ${nodeId}
+    LIMIT 1
+  `;
+  if (!nodeRows.length) return null;
+
+  const outgoingRows = await sql`
+    SELECT * FROM world_edges
+    WHERE dataset_id = ${datasetId} AND from_id = ${nodeId} AND status != 'deprecated'
+    ORDER BY type, to_id
+  `;
+  const incomingRows = await sql`
+    SELECT * FROM world_edges
+    WHERE dataset_id = ${datasetId} AND to_id = ${nodeId} AND status != 'deprecated'
+    ORDER BY type, from_id
+  `;
+  const profileRows = await sql`
+    SELECT * FROM world_domain_profiles
+    WHERE dataset_id = ${datasetId} AND node_id = ${nodeId} AND status != 'deprecated'
+    ORDER BY domain, id
+  `;
+  const mentionRows = await sql`
+    SELECT * FROM world_mentions
+    WHERE dataset_id = ${datasetId} AND target_type = 'node' AND target_id = ${nodeId}
+    ORDER BY source_id, anchor_ref
+  `;
+  const evidenceRows = await sql`
+    SELECT DISTINCT e.*
+    FROM world_evidence e
+    JOIN world_mentions m ON m.dataset_id = e.dataset_id
+    WHERE m.dataset_id = ${datasetId}
+      AND m.target_type = 'node'
+      AND m.target_id = ${nodeId}
+      AND (
+        EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements_text(m.source_refs_json) AS ref(value)
+          WHERE ref.value = e.id
+        )
+        OR (
+          COALESCE(e.modality, '') = 'image'
+          AND e.source_id = m.source_id
+          AND e.anchor_ref = m.anchor_ref
+        )
+      )
+    ORDER BY e.source_id, e.anchor_ref, e.id
+  `;
+
+  const card = await loadNodeCard(sql, datasetId, nodeId);
+  const evidence = evidenceRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence);
+  return {
+    node: worldJsonRow(nodeRows[0] as Record<string, unknown>, [
+      'aliases', 'domains', 'knowledge_form', 'learning_mode', 'properties', 'external_ids', 'tags',
+    ]),
+    relations: {
+      outgoing: outgoingRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['source_refs', 'properties'])),
+      incoming: incomingRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['source_refs', 'properties'])),
+    },
+    domain_profiles: profileRows.map((row: Record<string, unknown>) => worldJsonRow(row, [
+      'school_stages', 'curriculum_roles', 'source_refs', 'properties',
+    ])),
+    mentions: mentionRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['source_refs', 'properties']) as unknown as ApiMention),
+    evidence,
+    media: mediaFromEvidence(evidence as unknown as Record<string, unknown>[], sourceKey),
+    card,
+    body: renderCardBody(card),
+  };
+}
+
+export async function loadPipelinePayload(
+  sql: Sql,
+  datasetId: string,
+): Promise<PipelineResponse> {
+  const lessonRows = await sql`
+    SELECT lesson_run_id, book_id, batch_anchor, status, counts_json, properties_json, created_at, updated_at
+    FROM world_lesson_runs
+    WHERE dataset_id = ${datasetId}
+    ORDER BY updated_at DESC, created_at DESC
+    LIMIT 200
+  `.catch(() => []);
+
+  const mergeRows = await sql`
+    SELECT merge_run_id, selection_json, stats_json, status, created_at, updated_at
+    FROM world_merge_runs
+    WHERE dataset_id = ${datasetId}
+    ORDER BY updated_at DESC, created_at DESC
+    LIMIT 30
+  `.catch(() => []);
+
+  const reviewRows = await sql`
+    SELECT merge_run_id, lesson_run_id, raw_node_id, canonical_node_id, similarity, rationale_json, created_at
+    FROM world_canonical_node_map
+    WHERE dataset_id = ${datasetId} AND resolution = 'review'
+    ORDER BY created_at DESC
+    LIMIT 100
+  `.catch(() => []);
+
+  const lesson_runs = lessonRows.map((row: Record<string, unknown>) => {
+    const counts = row.counts_json as Record<string, unknown> | undefined;
+    const props = row.properties_json as Record<string, unknown> | undefined;
+    return {
+      lesson_run_id: String(row.lesson_run_id),
+      book_id: String(row.book_id),
+      batch_anchor: String(row.batch_anchor),
+      status: String(row.status),
+      counts: counts || {},
+      quality_issues: Array.isArray(props?.quality_issues) ? props.quality_issues.map(String) : [],
+      created_at: (row.created_at as string | null) ?? null,
+      updated_at: (row.updated_at as string | null) ?? null,
+    };
+  });
+
+  const summary = {
+    lesson_runs: lesson_runs.length,
+    staged: lesson_runs.filter((row) => row.status === 'staged').length,
+    merging: lesson_runs.filter((row) => row.status === 'merging').length,
+    merged: lesson_runs.filter((row) => row.status === 'merged').length,
+    qa_passed: lesson_runs.filter((row) => row.status === 'qa_passed').length,
+    blocked: lesson_runs.filter((row) => row.status === 'blocked').length,
+    review_items: reviewRows.length,
+  };
+
+  return {
+    dataset_id: datasetId,
+    summary,
+    lesson_runs,
+    merge_runs: mergeRows.map((row: Record<string, unknown>) => ({
+      merge_run_id: String(row.merge_run_id),
+      status: String(row.status),
+      selection: Array.isArray(row.selection_json) ? row.selection_json.map(String) : [],
+      stats: (row.stats_json as Record<string, unknown>) || {},
+      created_at: (row.created_at as string | null) ?? null,
+      updated_at: (row.updated_at as string | null) ?? null,
+    })),
+    review_items: reviewRows.map((row: Record<string, unknown>) => ({
+      merge_run_id: String(row.merge_run_id),
+      lesson_run_id: String(row.lesson_run_id),
+      raw_node_id: String(row.raw_node_id),
+      canonical_node_id: String(row.canonical_node_id),
+      similarity: Number(row.similarity ?? 0),
+      rationale: (row.rationale_json as Record<string, unknown>) || {},
+      created_at: (row.created_at as string | null) ?? null,
+    })),
+  };
+}
+
 // ── Book IDs ──────────────────────────────────────────────
 
 export async function loadBookIds(sql: Sql, datasetId: string): Promise<string[]> {
+  const worldTableCheck = await sql<{ regclass: string | null }[]>`
+    SELECT to_regclass('world_evidence') AS regclass
+  `;
+  if (worldTableCheck[0]?.regclass) {
+    const rows = await sql<{ source_id: string }[]>`
+      SELECT DISTINCT source_id FROM world_evidence
+      WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
+      UNION
+      SELECT DISTINCT source_id FROM world_mentions
+      WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
+      ORDER BY source_id
+    `.catch(() => [] as { source_id: string }[]);
+    return rows.map((r) => r.source_id);
+  }
+
   const rows = await sql<{ source_id: string }[]>`
     SELECT DISTINCT source_id FROM evidence
     WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
@@ -179,14 +488,84 @@ export interface SourcesPayload {
 }
 
 export async function buildSourcesPayload(sql: Sql): Promise<SourcesPayload> {
+  const worldTableCheck = await sql<{ regclass: string | null }[]>`
+    SELECT to_regclass('world_datasets') AS regclass
+  `;
+
+  if (worldTableCheck[0]?.regclass) {
+    const datasets = await sql<DatasetRow[]>`
+      SELECT dataset_id, dataset_name AS version_key, COALESCE(root_path, '') AS root_path, is_active
+      FROM world_datasets
+      ORDER BY is_active DESC, dataset_id ASC
+    `;
+
+    if (datasets.length > 0) {
+      let activeSource: string | null = null;
+      const sources = await Promise.all(
+        datasets.map(async (row) => {
+          const bookIds = await loadBookIds(sql, row.dataset_id);
+          const profileRows = await sql<{ count: number }[]>`
+            SELECT COUNT(*) AS count FROM world_domain_profiles WHERE dataset_id = ${row.dataset_id}
+          `.catch(() => [{ count: 0 }]);
+          const profileCount = Number(profileRows[0]?.count ?? 0);
+
+          if (row.is_active) activeSource = row.dataset_id;
+
+          return {
+            key: row.dataset_id,
+            label: row.version_key.toUpperCase(),
+            description: `World knowledge dataset ${row.dataset_id}`,
+            has_profiles: profileCount > 0,
+            book_count: bookIds.length,
+            books: bookIds.map((bookId) => ({ book_id: bookId })),
+            is_active: Boolean(row.is_active),
+            root_path: row.root_path,
+          };
+        }),
+      );
+
+      return {
+        active_source: activeSource || (sources[0]?.key ?? null),
+        sources,
+      };
+    }
+
+    return {
+      active_source: 'main',
+      sources: [
+        {
+          key: 'main',
+          label: 'MAIN',
+          description: 'Default world knowledge dataset',
+          has_profiles: false,
+          book_count: 0,
+          books: [],
+          is_active: false,
+          root_path: 'data/main',
+        },
+      ],
+    };
+  }
+
   const tableCheck = await sql<{ regclass: string | null }[]>`
     SELECT to_regclass('datasets') AS regclass
   `;
 
   if (!tableCheck[0]?.regclass) {
     return {
-      active_source: null,
-      sources: [],
+      active_source: 'main',
+      sources: [
+        {
+          key: 'main',
+          label: 'MAIN',
+          description: 'Default world knowledge dataset',
+          has_profiles: false,
+          book_count: 0,
+          books: [],
+          is_active: false,
+          root_path: 'data/main',
+        },
+      ],
     };
   }
 

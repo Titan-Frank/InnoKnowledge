@@ -29,10 +29,29 @@
 ```bash
 docker compose up -d
 export DATABASE_URL=postgresql://okm:okm@localhost:5432/knowledge
+export MINERU_API_KEY=你的_MinerU_API_令牌
 
 python3 scripts/run_okm_harness.py \
   --book-id chem-grade8 \
   --pdf-path /abs/path/to/book.pdf
+```
+
+传入 `--pdf-path` 时，流程会先调用 MinerU，把 PDF 转成
+`data/mineru/<book-id>/full.md`，再生成或对齐大纲，最后按课时进入
+`world_staging_*` 抽取。也可以跳过 MinerU，直接传已经存在的 Markdown：
+
+```bash
+python3 scripts/run_okm_harness.py \
+  --book-id chem-grade8 \
+  --source-markdown-path /abs/path/to/full.md
+```
+
+如果 PDF 已经有公网 URL，也可以让 MinerU 直接抓取：
+
+```bash
+python3 scripts/run_okm_harness.py \
+  --book-id chem-grade8 \
+  --mineru-file-url https://example.com/textbook.pdf
 ```
 
 切到 OpenAI Responses 课时抽取：

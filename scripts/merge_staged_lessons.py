@@ -41,6 +41,15 @@ class CanonicalNode:
     embedding: list[float]
 
 
+@dataclass
+class NodeMatchScore:
+    score: float
+    lexical: float
+    semantic: float
+    embedding: float
+    rationale: dict[str, Any]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Merge world staging lesson artifacts.")
     parser.add_argument("--root", required=True)
@@ -51,6 +60,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lesson-run-id", action="append", dest="lesson_run_ids")
     parser.add_argument("--similarity-threshold", type=float, default=0.9)
     parser.add_argument("--embedding-threshold", type=float, default=0.92)
+    parser.add_argument("--review-threshold", type=float, default=0.72)
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
@@ -85,18 +95,35 @@ def lexical_similarity(left_terms: set[str], right_terms: set[str]) -> float:
     return best
 
 
-def score_node_match(staged: dict[str, Any], candidate: CanonicalNode) -> float:
+def score_node_match(staged: dict[str, Any], candidate: CanonicalNode, *, embedding_threshold: float = 0.92) -> NodeMatchScore:
     payload = candidate.payload
     if payload["kind"] != staged["kind"]:
-        return 0.0
+        return NodeMatchScore(0.0, 0.0, 0.0, 0.0, {"reason": "kind_mismatch"})
     if payload.get("subkind") and staged.get("subkind") and payload["subkind"] != staged["subkind"]:
-        return 0.0
+        return NodeMatchScore(0.0, 0.0, 0.0, 0.0, {"reason": "subkind_mismatch"})
     lexical = lexical_similarity(normalized_terms(staged), candidate.terms)
     semantic = 1.0 if staged.get("semantic_key") and staged.get("semantic_key") == candidate.semantic_key else 0.0
     embedding = 0.0
     if staged.get("embedding") and candidate.embedding:
         embedding = cosine_similarity(staged["embedding"], candidate.embedding)
-    return min(max(lexical, semantic, embedding), 1.0)
+    weighted = (lexical * 0.45) + (semantic * 0.35) + (embedding * 0.20)
+    if lexical >= 0.98 or semantic >= 1.0:
+        weighted = max(weighted, 0.94)
+    if embedding >= embedding_threshold and lexical >= 0.65:
+        weighted = max(weighted, 0.9)
+    return NodeMatchScore(
+        score=min(weighted, 1.0),
+        lexical=lexical,
+        semantic=semantic,
+        embedding=embedding,
+        rationale={
+            "lexical": lexical,
+            "semantic_key": semantic,
+            "embedding": embedding,
+            "embedding_threshold": embedding_threshold,
+            "candidate_id": payload["id"],
+        },
+    )
 
 
 def load_lesson_runs(connection, dataset_id: str, args: argparse.Namespace) -> list[dict[str, Any]]:
@@ -271,7 +298,7 @@ def main() -> int:
         )
 
     canonical_nodes = load_canonical_nodes(connection, dataset_id)
-    stats = {"nodes_created": 0, "nodes_matched": 0, "edges_upserted": 0, "domain_profiles_upserted": 0, "mentions_upserted": 0, "evidence_upserted": 0, "node_cards_upserted": 0}
+    stats = {"nodes_created": 0, "nodes_matched": 0, "nodes_review": 0, "edges_upserted": 0, "domain_profiles_upserted": 0, "mentions_upserted": 0, "evidence_upserted": 0, "node_cards_upserted": 0}
 
     for lesson_run in lesson_runs:
         lesson_run_id = lesson_run["lesson_run_id"]
@@ -307,7 +334,7 @@ def main() -> int:
             }
 
             best_match = None
-            best_score = 0.0
+            best_score = NodeMatchScore(0.0, 0.0, 0.0, 0.0, {})
             for candidate in canonical_nodes:
                 score = score_node_match(
                     {
@@ -319,12 +346,13 @@ def main() -> int:
                         "embedding": staged_payload["embedding"],
                     },
                     candidate,
+                    embedding_threshold=args.embedding_threshold,
                 )
-                if score > best_score:
+                if score.score > best_score.score:
                     best_score = score
                     best_match = candidate
 
-            if best_match and best_score >= args.similarity_threshold:
+            if best_match and best_score.score >= args.similarity_threshold:
                 canonical_id = best_match.payload["id"]
                 merged = merge_node_payload(
                     {
@@ -380,7 +408,9 @@ def main() -> int:
                     )
                 )
                 stats["nodes_created"] += 1
-                resolution = "created"
+                resolution = "review" if best_match and best_score.score >= args.review_threshold else "created"
+                if resolution == "review":
+                    stats["nodes_review"] += 1
 
             node_map[row["raw_node_id"]] = canonical_id
             with connection.cursor() as cur:
@@ -397,7 +427,7 @@ def main() -> int:
                       similarity = EXCLUDED.similarity,
                       rationale_json = EXCLUDED.rationale_json
                     """,
-                    (dataset_id, merge_run_id, lesson_run_id, row["raw_node_id"], canonical_id, resolution, best_score, json.dumps({}), now),
+                    (dataset_id, merge_run_id, lesson_run_id, row["raw_node_id"], canonical_id, resolution, best_score.score, json.dumps(best_score.rationale, ensure_ascii=False), now),
                 )
 
         for row in fetch_staged_rows(connection, "world_staging_evidence", dataset_id, lesson_run_id):

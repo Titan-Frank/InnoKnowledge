@@ -3,12 +3,16 @@ export type {
   ApiNode, ApiEdge, EdgeType, EdgeLayer,
   ApiProfile, ApiMention, ApiEvidence,
   NodeCardSection, ApiNodeCard,
+  ApiUnitBody, ApiUnitMedia, ApiUnit,
 } from './models.js';
 
 export type {
   HealthResponse, SourceSummary, MetaResponse,
   BundleSourceInfo, ApiBookBundle, BundleResponse,
   NodeCardResponse, SearchHit, SearchResponse, ApiErrorResponse,
+  PipelineLessonRun, PipelineMergeRun, PipelineReviewItem, PipelineResponse,
+  PipelineStartRequest, PipelineStartResponse,
+  TextbookMetadataRequest, TextbookMetadataResponse,
 } from './api.js';
 
 export type {

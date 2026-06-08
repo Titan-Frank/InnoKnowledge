@@ -1,4 +1,8 @@
-import type { ApiNodeCard, MetaResponse, BundleResponse, SearchResponse } from '@okm/types';
+import type {
+  ApiNodeCard, ApiUnit, MetaResponse, BundleResponse, SearchResponse,
+  PipelineResponse, PipelineStartRequest, PipelineStartResponse,
+  TextbookMetadataRequest, TextbookMetadataResponse,
+} from '@okm/types';
 
 export class BackendError extends Error {
   status: number;
@@ -25,6 +29,18 @@ export async function fetchOptionalJson<T = unknown>(path: string): Promise<T | 
   return response.json() as Promise<T>;
 }
 
+export async function postJson<T = unknown>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new BackendError(`Failed to post ${path}`, response.status, 'server');
+  }
+  return response.json() as Promise<T>;
+}
+
 export async function loadMeta(): Promise<MetaResponse> {
   return fetchJson<MetaResponse>('/api/meta');
 }
@@ -42,6 +58,15 @@ export async function loadNodeCard(
   );
 }
 
+export async function loadUnit(
+  sourceKey: string,
+  nodeId: string,
+): Promise<ApiUnit | null> {
+  return fetchOptionalJson<ApiUnit>(
+    `/api/source/${encodeURIComponent(sourceKey)}/unit/${encodeURIComponent(nodeId)}`,
+  );
+}
+
 export async function searchNodes(
   sourceKey: string,
   query: string,
@@ -56,4 +81,30 @@ export async function searchNodes(
   } catch {
     return null;
   }
+}
+
+export async function loadPipeline(sourceKey: string): Promise<PipelineResponse | null> {
+  return fetchOptionalJson<PipelineResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline`,
+  );
+}
+
+export async function startPipeline(
+  sourceKey: string,
+  payload: PipelineStartRequest,
+): Promise<PipelineStartResponse> {
+  return postJson<PipelineStartResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/start`,
+    payload,
+  );
+}
+
+export async function inferTextbookMetadata(
+  sourceKey: string,
+  payload: TextbookMetadataRequest,
+): Promise<TextbookMetadataResponse> {
+  return postJson<TextbookMetadataResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/infer-textbook`,
+    payload,
+  );
 }

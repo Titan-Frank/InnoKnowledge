@@ -5,9 +5,11 @@
 ## 固定阶段
 
 - `check_postgres`
+- `source_markdown`
 - `ensure_outline`
 - `plan_lessons`
 - `lesson_staging`
+- `lesson_quality`
 - `canonical_commit`
 
 这些阶段由 workflow YAML 固定下来，不能被课时抽取 backend 绕开。
@@ -15,9 +17,20 @@
 ## 运行
 
 ```bash
+export MINERU_API_KEY=你的_MinerU_API_令牌
+
 python3 scripts/run_okm_harness.py \
   --book-id chem-grade8 \
   --pdf-path /abs/path/to/book.pdf
+```
+
+`source_markdown` 阶段会调用 MinerU，把 PDF 转成 `data/mineru/<book-id>/full.md`。
+如果已经有 OCR Markdown，可以改用：
+
+```bash
+python3 scripts/run_okm_harness.py \
+  --book-id chem-grade8 \
+  --source-markdown-path /abs/path/to/full.md
 ```
 
 ## lesson backend

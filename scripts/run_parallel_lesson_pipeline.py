@@ -35,6 +35,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lesson-run-id", action="append", dest="lesson_run_ids")
     parser.add_argument("--similarity-threshold", type=float, default=0.9)
     parser.add_argument("--embedding-threshold", type=float, default=0.92)
+    parser.add_argument("--review-threshold", type=float, default=0.72)
     parser.add_argument("--normalize-auto-merge", action="store_true")
     parser.add_argument("--skip-normalize", action="store_true")
     parser.add_argument("--skip-qa", action="store_true")
@@ -90,6 +91,8 @@ def main() -> int:
         str(args.similarity_threshold),
         "--embedding-threshold",
         str(args.embedding_threshold),
+        "--review-threshold",
+        str(args.review_threshold),
     ]
     if args.book_id:
         merge_cmd.extend(["--book-id", args.book_id])

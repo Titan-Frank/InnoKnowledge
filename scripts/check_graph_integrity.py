@@ -8,7 +8,10 @@ import json
 from collections import defaultdict, deque
 from typing import Any
 
-from knowledge_store_common import HIERARCHICAL_EDGE_TYPES, connect_db, ensure_pg_schema
+from knowledge_store_common import HIERARCHICAL_EDGE_TYPES, VALID_EDGE_TYPES, connect_db, ensure_pg_schema
+
+
+WARN_ONLY_DIRECTED_EDGE_TYPES = VALID_EDGE_TYPES - {"related_to", "same_as"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -23,9 +26,9 @@ class GraphIntegrityChecker:
     def __init__(self, connection, dataset_id: str):
         self.connection = connection
         self.dataset_id = dataset_id
-        self.issues: dict[str, list[dict[str, Any]]] = {"cycles": [], "isolated_nodes": [], "weakly_connected": []}
+        self.issues: dict[str, list[dict[str, Any]]] = {"cycles": [], "directed_cycle_warnings": [], "isolated_nodes": [], "weakly_connected": []}
 
-    def check_cycles(self) -> int:
+    def _find_cycles_for_types(self, edge_types: set[str]) -> list[dict[str, Any]]:
         with self.connection.cursor() as cur:
             cur.execute(
                 """
@@ -33,17 +36,16 @@ class GraphIntegrityChecker:
                 FROM world_edges
                 WHERE dataset_id = %s AND type = ANY(%s) AND status != 'deprecated'
                 """,
-                (self.dataset_id, list(HIERARCHICAL_EDGE_TYPES)),
+                (self.dataset_id, list(edge_types)),
             )
             rows = cur.fetchall()
         graph = defaultdict(list)
-        edge_map = {}
         for row in rows:
             graph[row["from_id"]].append(row["to_id"])
-            edge_map[(row["from_id"], row["to_id"])] = row["id"]
         visited: set[str] = set()
         stack: set[str] = set()
         path: list[str] = []
+        cycles: list[dict[str, Any]] = []
 
         def dfs(node: str) -> None:
             visited.add(node)
@@ -55,14 +57,27 @@ class GraphIntegrityChecker:
                 elif neighbor in stack:
                     start = path.index(neighbor)
                     cycle_nodes = path[start:] + [neighbor]
-                    self.issues["cycles"].append({"nodes": cycle_nodes})
+                    cycles.append({"nodes": cycle_nodes})
             path.pop()
             stack.discard(node)
 
         for node in list(graph):
             if node not in visited:
                 dfs(node)
+        return cycles
+
+    def check_cycles(self) -> int:
+        self.issues["cycles"] = self._find_cycles_for_types(HIERARCHICAL_EDGE_TYPES)
         return len(self.issues["cycles"])
+
+    def check_directed_cycle_warnings(self) -> int:
+        hard_cycle_keys = {tuple(item["nodes"]) for item in self.issues["cycles"]}
+        warnings = [
+            item for item in self._find_cycles_for_types(WARN_ONLY_DIRECTED_EDGE_TYPES)
+            if tuple(item["nodes"]) not in hard_cycle_keys
+        ]
+        self.issues["directed_cycle_warnings"] = warnings
+        return len(warnings)
 
     def check_isolated_nodes(self) -> int:
         with self.connection.cursor() as cur:
@@ -121,6 +136,7 @@ def main() -> int:
     ensure_pg_schema(connection)
     checker = GraphIntegrityChecker(connection, args.dataset_id)
     cycle_count = checker.check_cycles()
+    directed_cycle_warnings = checker.check_directed_cycle_warnings()
     isolated_count = checker.check_isolated_nodes()
     weak_count = checker.check_weakly_connected()
     status = "blocked" if (args.fail_on_cycles and cycle_count > 0) else "success"
@@ -129,6 +145,7 @@ def main() -> int:
             {
                 "status": status,
                 "cycles": cycle_count,
+                "directed_cycle_warnings": directed_cycle_warnings,
                 "isolated_nodes": isolated_count,
                 "disconnected_components": weak_count,
                 "issues": checker.issues,

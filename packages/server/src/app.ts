@@ -6,6 +6,8 @@ import { registerMetaRoutes } from './routes/meta.js';
 import { registerBundleRoutes } from './routes/bundle.js';
 import { registerNodeCardRoutes } from './routes/node-card.js';
 import { registerSearchRoutes } from './routes/search.js';
+import { registerUnitRoutes } from './routes/unit.js';
+import { registerPipelineRoutes } from './routes/pipeline.js';
 import { VIEWER_DIST_DIR } from './utils/paths.js';
 import { existsSync } from 'node:fs';
 
@@ -20,6 +22,8 @@ export function createApp(sql: Sql, dbUrl: string): Hono {
   registerMetaRoutes(app, sql);
   registerBundleRoutes(app, sql);
   registerNodeCardRoutes(app, sql);
+  registerUnitRoutes(app, sql);
+  registerPipelineRoutes(app, sql);
   registerSearchRoutes(app, sql);
 
   // Serve built viewer assets (production mode)

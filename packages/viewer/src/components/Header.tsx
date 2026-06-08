@@ -1,6 +1,6 @@
 import { useAppState } from '@/hooks/useAppState';
 import type { SearchHitMeta } from '@/core/graph/types';
-import { Sun, Moon, Search, Network } from '@/lib/lucide-icons';
+import { Sun, Moon, Search, Network, BarChart3 } from '@/lib/lucide-icons';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { searchNodes } from '@/services/backend-client';
 
@@ -10,6 +10,7 @@ export function Header() {
     searchTerm, setSearchTerm,
     sourceConfigs, selectedSourceKey, switchSource,
     knowledgeGraph,
+    workspace, setWorkspace,
     serverSearchLoading,
     setServerSearchHits, setServerSearchLoading, setServerSearchError,
   } = useAppState();
@@ -78,6 +79,27 @@ export function Header() {
           ))}
         </select>
       )}
+
+      <div className="flex border border-border-subtle bg-elevated">
+        <button
+          onClick={() => setWorkspace('graph')}
+          className={`flex items-center gap-1 px-2.5 py-1 text-xs transition-colors ${
+            workspace === 'graph' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'
+          }`}
+        >
+          <Network className="h-3.5 w-3.5" />
+          展示
+        </button>
+        <button
+          onClick={() => setWorkspace('pipeline')}
+          className={`flex items-center gap-1 px-2.5 py-1 text-xs transition-colors ${
+            workspace === 'pipeline' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'
+          }`}
+        >
+          <BarChart3 className="h-3.5 w-3.5" />
+          调试
+        </button>
+      </div>
 
       <div className="flex-1" />
 

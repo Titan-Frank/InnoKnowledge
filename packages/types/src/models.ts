@@ -156,3 +156,40 @@ export interface ApiNodeCard {
   id?: string;
   updated_at?: string | null;
 }
+
+// ── Unit View ────────────────────────────────────────────
+
+export interface ApiUnitBody {
+  format: 'markdown';
+  content: string;
+  media_refs: Array<Record<string, unknown>>;
+  source_refs: string[];
+  generated_from: string;
+}
+
+export interface ApiUnitMedia {
+  id: string;
+  kind: 'image';
+  url: string;
+  path: string;
+  caption: string;
+  evidence_id: string;
+  source_id: string;
+  anchor_ref: string;
+  page_start: number | null;
+  page_end: number | null;
+}
+
+export interface ApiUnit {
+  node: Record<string, unknown>;
+  relations: {
+    outgoing: Record<string, unknown>[];
+    incoming: Record<string, unknown>[];
+  };
+  domain_profiles: Record<string, unknown>[];
+  mentions: ApiMention[];
+  evidence: ApiEvidence[];
+  media: ApiUnitMedia[];
+  card: ApiNodeCard | null;
+  body: ApiUnitBody | null;
+}

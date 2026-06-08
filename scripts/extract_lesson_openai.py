@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import textwrap
@@ -71,7 +72,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT)
     parser.add_argument("--base-url", default=DEFAULT_OPENAI_BASE_URL)
     parser.add_argument("--api-key-env", default="OPENAI_API_KEY")
+    parser.add_argument("--api-mode", choices=["responses", "chat_completions"], default="responses")
     parser.add_argument("--reasoning-effort", default="")
+    parser.add_argument("--retrieval-context", action="store_true")
+    parser.add_argument("--retrieval-limit", type=int, default=8)
     parser.add_argument("--fallback-local-on-error", action="store_true")
     parser.add_argument("--pretty", action="store_true")
     return parser.parse_args()
@@ -106,8 +110,170 @@ def slice_markdown(book_id: str, anchor: str) -> tuple[dict[str, Any], list[str]
 
 def make_excerpt(lines: list[str], limit: int = 1200) -> str:
     text = " ".join(line.strip() for line in lines if line.strip())
-    text = __import__("re").sub(r"\s+", " ", text)
+    text = re.sub(r"\s+", " ", text)
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
+
+
+def extract_markdown_evidence_hints(lines: list[str]) -> list[dict[str, Any]]:
+    hints: list[dict[str, Any]] = []
+    in_equation = False
+    equation_lines: list[str] = []
+    table_lines: list[str] = []
+
+    def flush_table() -> None:
+        nonlocal table_lines
+        if len(table_lines) >= 2:
+            hints.append(
+                {
+                    "modality": "table",
+                    "locator": f"markdown-table-{len(hints) + 1}",
+                    "excerpt": "\n".join(table_lines[:12]),
+                }
+            )
+        table_lines = []
+
+    for line_number, raw_line in enumerate(lines, start=1):
+        line = raw_line.strip()
+        if not line:
+            flush_table()
+            continue
+
+        if line.startswith("$$"):
+            if in_equation:
+                equation_lines.append(line)
+                hints.append(
+                    {
+                        "modality": "equation",
+                        "locator": f"line:{line_number}",
+                        "excerpt": "\n".join(equation_lines),
+                    }
+                )
+                equation_lines = []
+                in_equation = False
+            else:
+                flush_table()
+                equation_lines = [line]
+                in_equation = not line.endswith("$$") or len(line) <= 2
+                if not in_equation:
+                    hints.append(
+                        {
+                            "modality": "equation",
+                            "locator": f"line:{line_number}",
+                            "excerpt": line,
+                        }
+                    )
+                    equation_lines = []
+            continue
+
+        if in_equation:
+            equation_lines.append(line)
+            continue
+
+        if re.search(r"(?<!\$)\$[^$]+\$(?!\$)", line):
+            flush_table()
+            hints.append(
+                {
+                    "modality": "equation",
+                    "locator": f"line:{line_number}",
+                    "excerpt": line,
+                }
+            )
+            continue
+
+        image_match = re.search(r"!\[([^\]]*)\]\(([^)]+)\)", line)
+        if image_match:
+            flush_table()
+            hints.append(
+                {
+                    "modality": "image",
+                    "locator": f"line:{line_number}",
+                    "excerpt": line,
+                    "caption": image_match.group(1).strip(),
+                    "path": image_match.group(2).strip(),
+                }
+            )
+            continue
+
+        if line.startswith("|") and line.endswith("|"):
+            table_lines.append(line)
+            continue
+
+        flush_table()
+
+    flush_table()
+    if in_equation and equation_lines:
+        hints.append(
+            {
+                "modality": "equation",
+                "locator": "markdown-equation-unclosed",
+                "excerpt": "\n".join(equation_lines),
+            }
+        )
+    return hints[:20]
+
+
+def build_retrieval_queries(item: dict[str, Any], lines: list[str], limit: int = 6) -> list[str]:
+    queries: list[str] = []
+    title = str(item.get("title") or "").strip()
+    if title:
+        queries.append(title)
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("!") or stripped.startswith("|"):
+            continue
+        if stripped.startswith("#"):
+            queries.append(stripped.lstrip("#").strip())
+        elif len(stripped) <= 40 and not re.search(r"[。.!?？]$", stripped):
+            queries.append(stripped)
+        if len(queries) >= limit:
+            break
+    return list(dict.fromkeys(query for query in queries if query))[:limit]
+
+
+def load_retrieval_candidates(args: argparse.Namespace, item: dict[str, Any], lines: list[str]) -> list[dict[str, Any]]:
+    if not args.retrieval_context or not args.dataset_id:
+        return []
+    queries = build_retrieval_queries(item, lines)
+    if not queries:
+        return []
+    command = [
+        sys.executable,
+        str(REPO_ROOT / "scripts" / "retrieve_candidates.py"),
+        "--dataset-id",
+        args.dataset_id,
+        "--output-root",
+        args.output_root,
+        "--batch-anchor",
+        args.batch_anchor,
+        "--domain",
+        args.subject,
+        "--school-stage",
+        args.school_stage,
+        "--mode",
+        "hybrid",
+        "--limit",
+        str(args.retrieval_limit),
+        *queries,
+    ]
+    result = subprocess.run(command, cwd=REPO_ROOT, text=True, capture_output=True, env=os.environ.copy())
+    if result.returncode != 0:
+        return []
+    candidates: dict[str, dict[str, Any]] = {}
+    for line in result.stdout.splitlines():
+        if not line.strip().startswith("{"):
+            continue
+        try:
+            payload = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        for candidate in payload.get("candidates", []):
+            node_id = str(candidate.get("node_id") or "").strip()
+            if not node_id:
+                continue
+            existing = candidates.get(node_id)
+            if existing is None or float(candidate.get("score") or 0) > float(existing.get("score") or 0):
+                candidates[node_id] = candidate
+    return sorted(candidates.values(), key=lambda row: -float(row.get("score") or 0))[: args.retrieval_limit]
 
 
 def _response_schema() -> dict[str, Any]:
@@ -219,6 +385,33 @@ def _system_instructions(args: argparse.Namespace) -> str:
     5. tag 只是辅助检索，不承担主分类；主分类靠 kind、domain、relation。
     6. 关系只允许使用 schema 合法 type，证据不足就不要编造。
     7. 输出必须严格符合 JSON schema。
+
+    主类判断：
+    - entity：具体对象、物质、人物、地点、设备、样本。
+    - concept：抽象概念、理论对象、学科核心术语。
+    - property：性质、属性、状态量、可观测特征。
+    - process：连续过程、机制、变化过程。
+    - event：具有时间边界的事件或历史事实。
+    - method：步骤、算法、实验方法、操作技能。
+    - rule：定律、规则、公式、原则、约束。
+    - representation：图、表、模型、符号、方程、示意图。
+    - resource：资料、文本、工具、数据集、媒介资源。
+
+    关系判断：
+    - is_a 用于类属关系；instance_of 用于具体实例属于某类。
+    - part_of/contains 用于组成和包含。
+    - has_property 用于对象具有属性。
+    - uses/produces 用于方法或过程使用、产出某对象。
+    - depends_on/prerequisite_for 用于依赖和先修。
+    - causes/affects 用于因果和影响。
+    - represents/about 用于表示对象和论述主题。
+    - same_as 只用于高度确定的同一对象；不确定时用 related_to。
+
+    学习维度判断：
+    - factual：事实、名称、符号、具体信息。
+    - conceptual：概念、分类、原理、结构关系。
+    - procedural：步骤、算法、实验操作、解题方法。
+    - metacognitive：策略选择、反思、认知监控。
     """
     if extra_prompt:
         base += f"\n补充项目提示：\n{extra_prompt}\n"
@@ -228,6 +421,7 @@ def _system_instructions(args: argparse.Namespace) -> str:
 def _build_user_payload(args: argparse.Namespace) -> str:
     item, lines, outline = slice_markdown(args.book_id, args.batch_anchor)
     anchor_ref = resolve_outline_anchor(args.book_id, args.batch_anchor, strict=True)
+    retrieval_candidates = load_retrieval_candidates(args, item, lines)
     lesson_context = {
         "book_id": args.book_id,
         "textbook_id": args.textbook_id or args.book_id,
@@ -241,6 +435,8 @@ def _build_user_payload(args: argparse.Namespace) -> str:
         "page_end": item.get("page_end"),
         "source_path": outline.get("source_path", ""),
         "markdown_excerpt_preview": make_excerpt(lines),
+        "retrieval_candidates": retrieval_candidates,
+        "markdown_evidence_hints": extract_markdown_evidence_hints(lines),
     }
     return json.dumps({"lesson_context": lesson_context, "markdown_lines": lines}, ensure_ascii=False, indent=2)
 
@@ -265,7 +461,39 @@ def _call_openai_responses(*, base_url: str, api_key: str, model: str, timeout: 
         return json.loads(response.read().decode("utf-8"))
 
 
+def _call_openai_chat_completions(*, base_url: str, api_key: str, model: str, timeout: float, instructions: str, user_payload: str, reasoning_effort: str) -> dict[str, Any]:
+    body: dict[str, Any] = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": instructions},
+            {"role": "user", "content": user_payload},
+        ],
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": _response_schema(),
+        },
+    }
+    if reasoning_effort:
+        body["reasoning_effort"] = reasoning_effort
+    payload = json.dumps(body, ensure_ascii=False).encode("utf-8")
+    request = urllib.request.Request(
+        f"{base_url.rstrip('/')}/chat/completions",
+        data=payload,
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
 def _extract_text_output(body: dict[str, Any]) -> str:
+    choices = body.get("choices")
+    if isinstance(choices, list) and choices:
+        message = choices[0].get("message") if isinstance(choices[0], dict) else None
+        if isinstance(message, dict):
+            content = message.get("content")
+            if isinstance(content, str) and content.strip():
+                return content
     for message in body.get("output", []):
         if not isinstance(message, dict):
             continue
@@ -277,7 +505,7 @@ def _extract_text_output(body: dict[str, Any]) -> str:
 
 def _build_payload_from_model(args: argparse.Namespace, body: dict[str, Any]) -> dict[str, Any]:
     bundle = json.loads(_extract_text_output(body))
-    item, _, outline = slice_markdown(args.book_id, args.batch_anchor)
+    item, markdown_lines, outline = slice_markdown(args.book_id, args.batch_anchor)
     anchor_ref = resolve_outline_anchor(args.book_id, args.batch_anchor, strict=True)
     source_id = args.textbook_id or args.book_id
     source_path = outline.get("source_path", "")
@@ -336,6 +564,29 @@ def _build_payload_from_model(args: argparse.Namespace, body: dict[str, Any]) ->
             }
         )
 
+    for hint_index, hint in enumerate(extract_markdown_evidence_hints(markdown_lines), start=len(evidence) + 1):
+        excerpt = str(hint.get("excerpt") or "").strip()
+        if not excerpt:
+            continue
+        evidence_id = f"evidence:{safe_path_token(args.book_id)}:hint:{hint_index}"
+        evidence.append(
+            {
+                "id": evidence_id,
+                "source_type": "textbook",
+                "source_id": source_id,
+                "anchor_ref": anchor_ref,
+                "source_path": source_path,
+                "page_start": item.get("page_start"),
+                "page_end": item.get("page_end"),
+                "excerpt": excerpt,
+                "locator": str(hint.get("locator") or "").strip(),
+                "modality": str(hint.get("modality") or "text"),
+                "extraction_method": "markdown_hint",
+                "normalized_claims": [excerpt[:120]],
+                "properties": {key: value for key, value in hint.items() if key not in {"excerpt", "locator", "modality"}},
+            }
+        )
+
     mentions = []
     for index, raw in enumerate(bundle.get("evidence_units", []), start=1):
         evidence_id = evidence_by_anchor.get(str(raw.get("anchor") or "").strip())
@@ -361,11 +612,23 @@ def _build_payload_from_model(args: argparse.Namespace, body: dict[str, Any]) ->
             )
 
     edges = []
+    dropped_edges = 0
+    node_lookup: dict[str, str] = {}
+    for node in nodes:
+        node_lookup[node["id"]] = node["id"]
+        node_lookup[node["name"]] = node["id"]
+        node_lookup[normalize_term(node["name"])] = node["id"]
+        for alias in node.get("aliases", []):
+            node_lookup[alias] = node["id"]
+            node_lookup[normalize_term(alias)] = node["id"]
     for raw in bundle.get("edges", []):
-        from_id = str(raw.get("from") or "").strip()
-        to_id = str(raw.get("to") or "").strip()
+        raw_from = str(raw.get("from") or "").strip()
+        raw_to = str(raw.get("to") or "").strip()
+        from_id = node_lookup.get(raw_from) or node_lookup.get(normalize_term(raw_from)) or raw_from
+        to_id = node_lookup.get(raw_to) or node_lookup.get(normalize_term(raw_to)) or raw_to
         edge_type = str(raw.get("type") or "").strip()
         if from_id not in node_ids or to_id not in node_ids or edge_type not in VALID_EDGE_TYPES:
+            dropped_edges += 1
             continue
         evidence_id = evidence_by_anchor.get(str(raw.get("evidence_anchor") or "").strip(), evidence[0]["id"] if evidence else "")
         edges.append(
@@ -450,7 +713,8 @@ def _build_payload_from_model(args: argparse.Namespace, body: dict[str, Any]) ->
             "evidence": len(evidence),
             "node_cards": len(node_cards),
         },
-        "issues": [str(item).strip() for item in bundle.get("issues", []) if str(item).strip()],
+        "issues": [str(item).strip() for item in bundle.get("issues", []) if str(item).strip()]
+        + ([f"Dropped {dropped_edges} edges that could not be resolved to valid node ids or relation types."] if dropped_edges else []),
     }
 
 
@@ -516,6 +780,14 @@ def main() -> int:
         if not api_key:
             raise RuntimeError(f"Missing API key in environment variable {args.api_key_env}.")
         response_body = _call_openai_responses(
+            base_url=args.base_url,
+            api_key=api_key,
+            model=args.model,
+            timeout=args.timeout,
+            instructions=_system_instructions(args),
+            user_payload=_build_user_payload(args),
+            reasoning_effort=args.reasoning_effort,
+        ) if args.api_mode == "responses" else _call_openai_chat_completions(
             base_url=args.base_url,
             api_key=api_key,
             model=args.model,

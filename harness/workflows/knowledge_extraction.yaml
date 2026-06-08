@@ -13,7 +13,20 @@
     "lesson_school_stage": "higher",
     "lesson_grade_band": "university",
     "lesson_framework_ref": "",
-    "lesson_textbook_id": "{book_id}"
+    "lesson_textbook_id": "{book_id}",
+    "lesson_openai_model": "",
+    "lesson_openai_base_url": "",
+    "lesson_retrieval_context": true,
+    "lesson_retrieval_limit": 8,
+    "source_markdown_path": "",
+    "mineru_file_url": "",
+    "mineru_api_key_env": "MINERU_API_KEY",
+    "mineru_base_url": "https://mineru.net",
+    "mineru_model_version": "vlm",
+    "mineru_language": "ch",
+    "mineru_page_ranges": "",
+    "mineru_timeout": 1800,
+    "mineru_force": false
   },
   "stages": [
     {
@@ -26,6 +39,28 @@
       }
     },
     {
+      "id": "source_markdown",
+      "kind": "ensure_source_markdown",
+      "required": true,
+      "config": {
+        "book_id": "{book_id}",
+        "pdf_path": "{pdf_path}",
+        "file_url": "{mineru_file_url}",
+        "source_markdown_path": "{source_markdown_path}",
+        "output_dir": "{repo_root}/data/mineru/{book_id}",
+        "api_key_env": "{mineru_api_key_env}",
+        "base_url": "{mineru_base_url}",
+        "model_version": "{mineru_model_version}",
+        "language": "{mineru_language}",
+        "page_ranges": "{mineru_page_ranges}",
+        "timeout": "{mineru_timeout}",
+        "force": "{mineru_force}",
+        "is_ocr": true,
+        "enable_formula": true,
+        "enable_table": true
+      }
+    },
+    {
       "id": "ensure_outline",
       "kind": "ensure_outline",
       "required": true,
@@ -33,6 +68,7 @@
         "book_id": "{book_id}",
         "outline_path": "{outline_path}",
         "pdf_path": "{pdf_path}",
+        "source_markdown_path": "{source_markdown_path}",
         "title": "{book_title}",
         "start_page": "{outline_start_page}",
         "end_page": "{outline_end_page}"
@@ -63,10 +99,26 @@
           "grade_band": "{lesson_grade_band}",
           "framework_ref": "{lesson_framework_ref}",
           "textbook-id": "{lesson_textbook_id}",
+          "model": "{lesson_openai_model}",
           "api_key_env": "OPENAI_API_KEY",
+          "base_url": "{lesson_openai_base_url}",
           "reasoning_effort": "medium",
+          "retrieval_context": "{lesson_retrieval_context}",
+          "retrieval_limit": "{lesson_retrieval_limit}",
           "write_staging": true
         }
+      }
+    },
+    {
+      "id": "lesson_quality",
+      "kind": "check_lesson_quality",
+      "required": true,
+      "config": {
+        "output_root": "{output_root}",
+        "dataset_id": "{dataset_id}",
+        "book_id": "{book_id}",
+        "lesson_stage": "lesson_staging",
+        "warn_only": false
       }
     },
     {
