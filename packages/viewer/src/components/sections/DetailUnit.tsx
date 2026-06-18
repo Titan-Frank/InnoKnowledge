@@ -4,6 +4,7 @@ import { useUnitLoader } from '@/hooks/useUnitLoader';
 import { Loader2 } from '@/lib/lucide-icons';
 import { resolveEdgeVisual } from '@/lib/edge-styles';
 import { SCHOOL_STAGE_LABELS, CURRICULUM_ROLE_LABELS } from '@/lib/constants';
+import { MarkdownView } from '@/components/MarkdownView';
 
 type Row = Record<string, unknown>;
 
@@ -19,20 +20,97 @@ function text(value: unknown): string {
   return value == null ? '' : String(value);
 }
 
-function bodyPreview(markdown: string): string {
-  return markdown
-    .replace(/^#+\s+/gm, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
 function evidenceTitle(ev: Row): string {
   const parts = [text(ev.source_id), ev.page_start != null ? `p.${text(ev.page_start)}` : ''].filter(Boolean);
   return parts.join(' · ');
 }
 
+function fragmentTitle(fragment: Row): string {
+  const parts = [
+    text(fragment.source_id),
+    fragment.page_start != null ? `p.${text(fragment.page_start)}` : '',
+    text(fragment.anchor_ref),
+  ].filter(Boolean);
+  return parts.join(' · ');
+}
+
 function relationLabel(type: string): string {
   return type.replaceAll('_', ' ');
+}
+
+function normalizeAssetRef(value: string): string {
+  const clean = value.trim().split(/[?#]/, 1)[0] ?? '';
+  try {
+    return decodeURIComponent(clean).replace(/\\/g, '/').toLowerCase();
+  } catch {
+    return clean.replace(/\\/g, '/').toLowerCase();
+  }
+}
+
+function basename(value: string): string {
+  const normalized = normalizeAssetRef(value);
+  return normalized.split('/').filter(Boolean).pop() ?? normalized;
+}
+
+function imageSrcFromMarkdown(value: string): string {
+  const match = value.match(/!\[[^\]]*\]\(([^)\n]+)\)/);
+  return match ? match[1].trim() : '';
+}
+
+function imageSrcFromRow(row: Row): string {
+  const properties = row.properties && typeof row.properties === 'object' && !Array.isArray(row.properties)
+    ? row.properties as Row
+    : {};
+  const candidates = [
+    properties.path,
+    properties.image_path,
+    properties.src,
+    row.locator,
+    row.excerpt,
+  ];
+  for (const candidate of candidates) {
+    const value = text(candidate).trim();
+    if (!value) continue;
+    const markdownSrc = imageSrcFromMarkdown(value);
+    const src = markdownSrc || value;
+    if (/\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(src) || src.includes('/images/')) return src;
+  }
+  return '';
+}
+
+function markdownImageRefs(markdown: string): string[] {
+  return Array.from(markdown.matchAll(/!\[[^\]]*\]\(([^)\n]+)\)/g)).map((match) => match[1].trim());
+}
+
+function sameImageRef(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  const aName = basename(a).replace(/…$/, '');
+  const bName = basename(b).replace(/…$/, '');
+  if (aName === bName) return true;
+  return aName.length >= 8 && bName.startsWith(aName);
+}
+
+function sourceFragmentMarkdown(excerpts: Row[]): string {
+  const lines: string[] = [];
+  const seenImages: string[] = [];
+
+  for (const item of excerpts) {
+    const excerpt = text(item.excerpt).trim();
+    const modality = text(item.modality).toLowerCase();
+    if (modality === 'image') {
+      const imageSrc = imageSrcFromRow(item);
+      if (!imageSrc || seenImages.some((seen) => sameImageRef(seen, imageSrc))) continue;
+      seenImages.push(imageSrc);
+      lines.push(`![](${imageSrc})`);
+      continue;
+    }
+
+    if (!excerpt) continue;
+    lines.push(excerpt);
+    seenImages.push(...markdownImageRefs(excerpt));
+  }
+
+  return lines.join('\n\n').trim() || '这个分块主要是图片证据。';
 }
 
 export function DetailUnit({ node }: { node: OKMNode }) {
@@ -62,9 +140,27 @@ export function DetailUnit({ node }: { node: OKMNode }) {
   const profiles = asRows(unit.domain_profiles);
   const evidence = asRows(unit.evidence);
   const media = asRows(unit.media);
+  const sourceFragments = asRows(unit.source_fragments);
   const cardSections = Array.isArray(unit.card?.sections) ? unit.card.sections : [];
-  const body = unit.body?.content ? bodyPreview(unit.body.content) : node.description;
+  const body = unit.body?.content?.trim() || node.description;
   const related = [...outgoing, ...incoming].slice(0, 12);
+  const resolveMarkdownImage = (src: string): string | undefined => {
+    if (/^(https?:|data:|blob:)/i.test(src)) return src;
+    const normalized = normalizeAssetRef(src);
+    const fileName = basename(src);
+    const filePrefix = fileName.replace(/…$/, '');
+    const match = media.find((item) => {
+      const itemPath = normalizeAssetRef(text(item.path));
+      const itemName = basename(itemPath);
+      return (
+        itemPath === normalized ||
+        itemPath.endsWith(`/${normalized}`) ||
+        itemName === fileName ||
+        (filePrefix.length >= 8 && itemName.startsWith(filePrefix))
+      );
+    });
+    return match ? text(match.url) : undefined;
+  };
 
   return (
     <div className="space-y-5">
@@ -89,43 +185,39 @@ export function DetailUnit({ node }: { node: OKMNode }) {
         </div>
         {body && (
           <>
-            <div className="mb-1 text-xs font-medium text-text-muted">正文</div>
+            <div className="mb-1 text-xs font-medium text-text-muted">节点说明</div>
             <div className="max-h-72 overflow-y-auto whitespace-pre-wrap border-l border-border-subtle pl-3 text-sm leading-relaxed text-text-secondary scrollbar-thin">
-              {body}
+              <MarkdownView content={body} resolveImageUrl={resolveMarkdownImage} />
             </div>
           </>
         )}
       </section>
 
-      {media.length > 0 && (
+      {sourceFragments.length > 0 && (
         <section>
           <div className="mb-2 flex items-center justify-between gap-2">
-            <div className="text-xs font-medium text-text-muted">图片</div>
-            <div className="text-[10px] text-text-muted">{media.length}</div>
+            <div className="text-xs font-medium text-text-muted">课本原文</div>
+            <div className="text-[10px] text-text-muted">{sourceFragments.length} 个分块</div>
           </div>
           <div className="space-y-3">
-            {media.slice(0, 8).map((item) => (
-              <figure key={text(item.id)} className="overflow-hidden border border-border-subtle bg-elevated">
-                <img
-                  src={text(item.url)}
-                  alt={text(item.caption) || '教材图片'}
-                  className="max-h-64 w-full bg-surface object-contain"
-                  loading="lazy"
-                />
-                <figcaption className="space-y-1 border-t border-border-subtle px-2.5 py-2">
-                  {text(item.caption) && (
-                    <div className="line-clamp-2 text-xs leading-relaxed text-text-secondary">
-                      {text(item.caption)}
-                    </div>
-                  )}
-                  <div className="truncate text-[10px] text-text-muted">
-                    {text(item.source_id)}
-                    {item.page_start != null ? ` · p.${text(item.page_start)}` : ''}
-                    {text(item.evidence_id) ? ` · ${text(item.evidence_id)}` : ''}
+            {sourceFragments.slice(0, 4).map((fragment, index) => {
+              const excerpts = asRows(fragment.excerpts);
+              const modalities = sourceRefs(fragment.modalities);
+              const markdown = sourceFragmentMarkdown(excerpts);
+              return (
+                <div key={`${text(fragment.anchor_ref)}:${index}`} className="border border-border-subtle bg-elevated p-2.5">
+                  <div className="mb-1 flex flex-wrap items-center gap-2 text-[10px] text-text-muted">
+                    <span>{fragmentTitle(fragment)}</span>
+                    {modalities.map((item) => (
+                      <span key={item} className="bg-surface px-1 py-0.5">{item}</span>
+                    ))}
                   </div>
-                </figcaption>
-              </figure>
-            ))}
+                  <div className="max-h-72 overflow-y-auto text-xs leading-relaxed text-text-secondary scrollbar-thin">
+                    <MarkdownView content={markdown} resolveImageUrl={resolveMarkdownImage} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
@@ -143,9 +235,9 @@ export function DetailUnit({ node }: { node: OKMNode }) {
                   {section.title && (
                     <div className="mb-1 text-xs font-medium text-text-secondary">{section.title}</div>
                   )}
-                  <div className="space-y-1 text-sm leading-relaxed text-text-secondary">
+                  <div className="space-y-3 text-sm leading-relaxed text-text-secondary">
                     {content.map((item, itemIndex) => (
-                      <p key={itemIndex}>{item}</p>
+                      <MarkdownView key={itemIndex} content={item} resolveImageUrl={resolveMarkdownImage} />
                     ))}
                   </div>
                 </div>
@@ -157,17 +249,19 @@ export function DetailUnit({ node }: { node: OKMNode }) {
 
       {evidence.length > 0 && (
         <section>
-          <div className="mb-2 text-xs font-medium text-text-muted">证据</div>
+          <div className="mb-2 text-xs font-medium text-text-muted">证据明细</div>
           <div className="space-y-2">
-            {evidence.slice(0, 6).map((ev) => (
+            {evidence.slice(0, 12).map((ev) => (
               <div key={text(ev.id)} className="border border-border-subtle bg-elevated p-2.5">
                 <div className="mb-1 flex items-center gap-2 text-[10px] text-text-muted">
                   <span>{evidenceTitle(ev)}</span>
                   {text(ev.modality) && <span>{text(ev.modality)}</span>}
                 </div>
-                <p className="line-clamp-4 text-xs leading-relaxed text-text-secondary">
-                  {text(ev.excerpt || ev.snippet)}
-                </p>
+                <MarkdownView
+                  content={text(ev.excerpt || ev.snippet)}
+                  className="line-clamp-4 text-xs leading-relaxed text-text-secondary"
+                  resolveImageUrl={resolveMarkdownImage}
+                />
               </div>
             ))}
           </div>

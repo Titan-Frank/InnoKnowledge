@@ -6,6 +6,7 @@ import { GraphCanvas } from './components/GraphCanvas';
 import { DetailPanel } from './components/DetailPanel';
 import { StatusBar } from './components/StatusBar';
 import { PipelineDebugPage } from './components/PipelineDebugPage';
+import { TextbookTreePage } from './components/TextbookTreePage';
 import { useAppState } from './hooks/useAppState';
 
 function AppContent() {
@@ -17,6 +18,8 @@ function AppContent() {
       <Header />
       {workspace === 'pipeline' ? (
         <PipelineDebugPage />
+      ) : workspace === 'textbook' ? (
+        <TextbookTreePage />
       ) : (
         <main className="flex min-h-0 flex-1">
           <FilterPanel />

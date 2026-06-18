@@ -1,6 +1,6 @@
 import { useAppState } from '@/hooks/useAppState';
 import type { SearchHitMeta } from '@/core/graph/types';
-import { Sun, Moon, Search, Network, BarChart3 } from '@/lib/lucide-icons';
+import { Sun, Moon, Search, Network, BarChart3, BookOpen } from '@/lib/lucide-icons';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { searchNodes } from '@/services/backend-client';
 
@@ -89,6 +89,15 @@ export function Header() {
         >
           <Network className="h-3.5 w-3.5" />
           展示
+        </button>
+        <button
+          onClick={() => setWorkspace('textbook')}
+          className={`flex items-center gap-1 px-2.5 py-1 text-xs transition-colors ${
+            workspace === 'textbook' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'
+          }`}
+        >
+          <BookOpen className="h-3.5 w-3.5" />
+          教材
         </button>
         <button
           onClick={() => setWorkspace('pipeline')}

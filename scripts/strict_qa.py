@@ -32,12 +32,35 @@ class StrictQA:
         self.dataset_id = dataset_id
         self.errors: list[dict[str, Any]] = []
         self.warnings: list[dict[str, Any]] = []
+        self._evidence_exists_cache: dict[str, bool] = {}
 
     def error(self, category: str, item_id: str, message: str) -> None:
         self.errors.append({"category": category, "id": item_id, "message": message})
 
     def warn(self, category: str, item_id: str, message: str) -> None:
         self.warnings.append({"category": category, "id": item_id, "message": message})
+
+    def evidence_exists(self, evidence_id: str) -> bool:
+        if evidence_id not in self._evidence_exists_cache:
+            with self.connection.cursor() as cur:
+                cur.execute(
+                    "SELECT 1 FROM world_evidence WHERE dataset_id = %s AND id = %s",
+                    (self.dataset_id, evidence_id),
+                )
+                self._evidence_exists_cache[evidence_id] = cur.fetchone() is not None
+        return self._evidence_exists_cache[evidence_id]
+
+    def validate_source_refs(self, category: str, item_id: str, source_refs: Any, *, required: bool = True) -> None:
+        refs = source_refs if isinstance(source_refs, list) else []
+        if required and not refs:
+            self.error(category, item_id, "Missing evidence source references")
+            return
+        for evidence_id in refs:
+            if not isinstance(evidence_id, str) or not evidence_id.strip():
+                self.error(category, item_id, "Invalid empty evidence reference")
+                continue
+            if not self.evidence_exists(evidence_id):
+                self.error(category, item_id, f"Missing evidence {evidence_id}")
 
     def validate_nodes(self) -> None:
         with self.connection.cursor() as cur:
@@ -80,6 +103,7 @@ class StrictQA:
                 self.error("edge", row["id"], f"Invalid edge type: {row['type']}")
             if row["directionality"] not in {"directed", "undirected"}:
                 self.error("edge", row["id"], f"Invalid directionality: {row['directionality']}")
+            self.validate_source_refs("edge", row["id"], row["source_refs_json"])
             with self.connection.cursor() as cur:
                 cur.execute("SELECT 1 FROM world_nodes WHERE dataset_id = %s AND id = %s", (self.dataset_id, row["from_id"]))
                 if cur.fetchone() is None:
@@ -101,20 +125,14 @@ class StrictQA:
             invalid_roles = [item for item in (row["curriculum_roles_json"] or []) if item not in VALID_CURRICULUM_ROLES]
             if invalid_roles:
                 self.error("domain_profile", row["id"], f"Invalid curriculum roles: {invalid_roles}")
+            self.validate_source_refs("domain_profile", row["id"], row["source_refs_json"])
 
     def validate_mentions_and_evidence(self) -> None:
         with self.connection.cursor() as cur:
             cur.execute("SELECT * FROM world_mentions WHERE dataset_id = %s", (self.dataset_id,))
             mentions = cur.fetchall()
         for row in mentions:
-            if not row["source_refs_json"]:
-                self.error("mention", row["id"], "Mention missing source_refs_json")
-            else:
-                for evidence_id in row["source_refs_json"]:
-                    with self.connection.cursor() as cur:
-                        cur.execute("SELECT 1 FROM world_evidence WHERE dataset_id = %s AND id = %s", (self.dataset_id, evidence_id))
-                        if cur.fetchone() is None:
-                            self.error("mention", row["id"], f"Missing evidence {evidence_id}")
+            self.validate_source_refs("mention", row["id"], row["source_refs_json"])
 
     def validate_node_cards(self) -> None:
         with self.connection.cursor() as cur:
@@ -124,11 +142,21 @@ class StrictQA:
         for row in cards:
             if not row["summary"]:
                 self.error("node_card", row["node_id"], "Missing summary")
+            self.validate_source_refs("node_card", row["node_id"], row["source_refs_json"])
             sections = row["sections_json"] if isinstance(row["sections_json"], list) else []
             section_types = {section.get("section_type") for section in sections if isinstance(section, dict)}
             missing = sorted(required_sections - section_types)
             if missing:
                 self.error("node_card", row["node_id"], f"Missing required sections: {missing}")
+            for section in sections:
+                if not isinstance(section, dict):
+                    continue
+                section_id = str(section.get("id") or section.get("section_type") or "section")
+                self.validate_source_refs(
+                    "node_card_section",
+                    f"{row['node_id']}:{section_id}",
+                    section.get("source_refs"),
+                )
 
     def run(self) -> dict[str, Any]:
         self.validate_nodes()

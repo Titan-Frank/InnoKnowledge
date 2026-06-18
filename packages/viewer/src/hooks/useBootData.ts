@@ -39,7 +39,7 @@ function resolveInitialSourceKey(meta: MetaResponse, configs: Map<string, Source
 }
 
 export function useBootData() {
-  const { setSourceConfigs, setKnowledgeGraph, setSelectedTypes, setSelectedBook, setSelectedNodeId, setHoverNodeId, setExpandedBackboneNodeId, setSourceLoading } = useAppState();
+  const { setSourceConfigs, setKnowledgeGraph, setSelectedTypes, setSelectedBook, setSelectedNodeId, setHoverNodeId, setExpandedBackboneNodeId, setSourceLoading, setSelectedSourceKey } = useAppState();
 
   useEffect(() => {
     let cancelled = false;
@@ -74,6 +74,7 @@ export function useBootData() {
       const config = configs.get(initialKey);
       if (!config) return;
 
+      setSelectedSourceKey(initialKey);
       setSelectedNodeId(null);
       setHoverNodeId(null);
       setExpandedBackboneNodeId(null);

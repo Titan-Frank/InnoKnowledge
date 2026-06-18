@@ -360,6 +360,14 @@ def load_outline_items(book_id: str) -> list[dict[str, Any]]:
     return list(iter_outline_items(items))
 
 
+def load_chunks_for_book(book_id: str) -> list[dict[str, Any]]:
+    return [
+        item
+        for item in load_outline_items(book_id)
+        if item.get("kind") == "chunk"
+    ]
+
+
 def anchor_token_variants(anchor_id: str, book_id: str | None = None) -> list[str]:
     variants = [anchor_id]
     match = ANCHOR_ID_PATTERN.match(anchor_id)

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import shutil
@@ -14,6 +15,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -92,19 +94,20 @@ def request_json(
 
 
 def put_file(upload_url: str, path: Path, *, timeout: float = 300.0) -> None:
-    request = urllib.request.Request(
-        upload_url,
-        data=path.read_bytes(),
-        headers={},
-        method="PUT",
-    )
+    parsed = urlsplit(upload_url)
+    target = parsed.path or "/"
+    if parsed.query:
+        target = f"{target}?{parsed.query}"
+    conn_cls = http.client.HTTPSConnection if parsed.scheme == "https" else http.client.HTTPConnection
+    conn = conn_cls(parsed.netloc, timeout=timeout)
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            if response.status < 200 or response.status >= 300:
-                raise RuntimeError(f"Upload failed with status {response.status}.")
-    except urllib.error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"MinerU upload failed with HTTP {exc.code}: {detail}") from exc
+        conn.request("PUT", target, body=path.read_bytes(), headers={})
+        response = conn.getresponse()
+        detail = response.read().decode("utf-8", errors="replace")
+        if response.status < 200 or response.status >= 300:
+            raise RuntimeError(f"MinerU upload failed with HTTP {response.status}: {detail}")
+    finally:
+        conn.close()
 
 
 def common_task_payload(args: argparse.Namespace, file_payload: dict[str, Any]) -> dict[str, Any]:

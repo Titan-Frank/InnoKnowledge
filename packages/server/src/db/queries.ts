@@ -75,10 +75,42 @@ export async function resolveDatasetRow(
 
 export async function loadNodes(sql: Sql, datasetId: string): Promise<ApiNode[]> {
   const rows = await sql`
+    SELECT * FROM world_nodes WHERE dataset_id = ${datasetId} ORDER BY id
+  `.catch(() => sql`
     SELECT * FROM nodes WHERE dataset_id = ${datasetId} ORDER BY id
-  `;
+  `);
 
   return rows.map((row: Record<string, unknown>) => {
+    if ('name' in row || 'kind' in row) {
+      const parsed = worldJsonRow(row, [
+        'aliases', 'domains', 'knowledge_form', 'learning_mode',
+        'properties', 'external_ids', 'tags',
+      ]);
+      const properties = asRecord(parsed.properties);
+      return {
+        ...parsed,
+        canonical_name: textValue(parsed.name) || textValue(parsed.id),
+        node_kind: textValue(parsed.kind) || 'concept',
+        node_subkind: textValue(parsed.subkind) || null,
+        node_layer: textValue(properties.node_layer || properties.layer) || undefined,
+        learning_modes: Array.isArray(parsed.learning_mode) ? parsed.learning_mode : [],
+        bridge_tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+        framework_refs: [],
+        profile_refs: [],
+        same_as_refs: [],
+        properties: {
+          ...properties,
+          domains: parsed.domains || [],
+          knowledge_form: parsed.knowledge_form || [],
+          scope: parsed.scope || '',
+          tags: parsed.tags || [],
+        },
+        community_id: null,
+        pca_x: null,
+        pca_y: null,
+      } as unknown as ApiNode;
+    }
+
     const parsed = stripJsonSuffix(row, [
       'aliases', 'learning_modes', 'bridge_tags', 'framework_refs',
       'profile_refs', 'same_as_refs', 'properties',
@@ -92,10 +124,27 @@ export async function loadNodes(sql: Sql, datasetId: string): Promise<ApiNode[]>
 
 export async function loadEdges(sql: Sql, datasetId: string): Promise<ApiEdge[]> {
   const rows = await sql`
+    SELECT * FROM world_edges WHERE dataset_id = ${datasetId} ORDER BY id
+  `.catch(() => sql`
     SELECT * FROM edges WHERE dataset_id = ${datasetId} ORDER BY id
-  `;
+  `);
 
   return rows.map((row: Record<string, unknown>) => {
+    if ('type' in row && !('edge_type' in row)) {
+      const parsed = worldJsonRow(row, ['source_refs', 'properties']);
+      const properties = asRecord(parsed.properties);
+      return {
+        ...parsed,
+        edge_type: textValue(parsed.type) || 'related_to',
+        edge_layer: textValue(properties.edge_layer || properties.layer) || undefined,
+        from: parsed.from_id,
+        to: parsed.to_id,
+        backbone_expand: typeof properties.backbone_expand === 'boolean'
+          ? properties.backbone_expand
+          : undefined,
+      } as unknown as ApiEdge;
+    }
+
     const parsed = stripJsonSuffix(row, [
       'framework_refs', 'profile_refs', 'source_refs', 'properties',
     ]);
@@ -114,10 +163,37 @@ export async function loadEdges(sql: Sql, datasetId: string): Promise<ApiEdge[]>
 
 export async function loadProfiles(sql: Sql, datasetId: string): Promise<ApiProfile[]> {
   const rows = await sql`
+    SELECT * FROM world_domain_profiles WHERE dataset_id = ${datasetId} ORDER BY id
+  `.catch(() => sql`
     SELECT * FROM profiles WHERE dataset_id = ${datasetId} ORDER BY id
-  `;
+  `);
 
   return rows.map((row: Record<string, unknown>) => {
+    if ('domain' in row || 'school_stages_json' in row || 'curriculum_roles_json' in row) {
+      const parsed = worldJsonRow(row, [
+        'school_stages', 'curriculum_roles', 'source_refs', 'properties',
+      ]);
+      const properties = asRecord(parsed.properties);
+      const schoolStages = Array.isArray(parsed.school_stages) ? parsed.school_stages.map(String) : [];
+      const curriculumRoles = Array.isArray(parsed.curriculum_roles) ? parsed.curriculum_roles.map(String) : [];
+      const sourceRefs = Array.isArray(parsed.source_refs) ? parsed.source_refs.map(String) : [];
+      return {
+        ...parsed,
+        subject: textValue(properties.subject) || textValue(parsed.domain),
+        school_stage: schoolStages[0] || textValue(properties.school_stage),
+        grade_band: textValue(properties.grade_band) || schoolStages[0] || '',
+        context_key: textValue(properties.context_key) || `${parsed.domain || 'domain'}:${schoolStages[0] || 'unknown'}`,
+        curriculum_role: curriculumRoles[0] || textValue(properties.curriculum_role),
+        mastery_level: textValue(properties.mastery_level),
+        learning_objectives: Array.isArray(properties.learning_objectives) ? properties.learning_objectives : [],
+        framework_refs: Array.isArray(properties.framework_refs) ? properties.framework_refs : [],
+        textbook_refs: sourceRefs,
+        textbook_ids: Array.isArray(properties.textbook_ids) ? properties.textbook_ids : [],
+        assessment_signals: Array.isArray(properties.assessment_signals) ? properties.assessment_signals : [],
+        source_refs: sourceRefs,
+      } as unknown as ApiProfile;
+    }
+
     return stripJsonSuffix(row, [
       'learning_objectives', 'framework_refs', 'textbook_refs',
       'textbook_ids', 'assessment_signals', 'source_refs', 'properties',
@@ -129,8 +205,10 @@ export async function loadProfiles(sql: Sql, datasetId: string): Promise<ApiProf
 
 export async function loadMentions(sql: Sql, datasetId: string): Promise<ApiMention[]> {
   const rows = await sql`
+    SELECT * FROM world_mentions WHERE dataset_id = ${datasetId}
+  `.catch(() => sql`
     SELECT * FROM mentions WHERE dataset_id = ${datasetId}
-  `;
+  `);
 
   return rows.map((row: Record<string, unknown>) => {
     return stripJsonSuffix(row, ['source_refs', 'confidence_map', 'properties']) as unknown as ApiMention;
@@ -141,8 +219,10 @@ export async function loadMentions(sql: Sql, datasetId: string): Promise<ApiMent
 
 export async function loadEvidence(sql: Sql, datasetId: string): Promise<ApiEvidence[]> {
   const rows = await sql`
+    SELECT * FROM world_evidence WHERE dataset_id = ${datasetId}
+  `.catch(() => sql`
     SELECT * FROM evidence WHERE dataset_id = ${datasetId}
-  `;
+  `);
 
   return rows.map((row: Record<string, unknown>) => {
     return stripJsonSuffix(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence;
@@ -157,17 +237,32 @@ export async function loadNodeCard(
   nodeId: string,
 ): Promise<ApiNodeCard | null> {
   const rows = await sql`
+    SELECT * FROM world_node_cards
+    WHERE dataset_id = ${datasetId} AND node_id = ${nodeId}
+    LIMIT 1
+  `.catch(() => sql`
     SELECT * FROM node_cards
     WHERE dataset_id = ${datasetId} AND node_id = ${nodeId}
     LIMIT 1
-  `;
+  `);
 
   if (!rows.length) return null;
 
-  return stripJsonSuffix(rows[0] as Record<string, unknown>, [
+  const parsed = stripJsonSuffix(rows[0] as Record<string, unknown>, [
     'sections', 'pattern_refs', 'framework_refs', 'profile_refs',
     'mention_refs', 'source_refs', 'properties',
-  ]) as unknown as ApiNodeCard;
+  ]);
+
+  return {
+    pattern_refs: [],
+    framework_refs: [],
+    profile_refs: [],
+    mention_refs: [],
+    source_refs: [],
+    sections: [],
+    properties: {},
+    ...parsed,
+  } as unknown as ApiNodeCard;
 }
 
 function worldJsonRow(
@@ -288,6 +383,49 @@ function mediaFromEvidence(rows: Record<string, unknown>[], sourceKey: string): 
   return media;
 }
 
+function sourceFragmentsFromEvidence(rows: Record<string, unknown>[]): Array<Record<string, unknown>> {
+  const byAnchor = new Map<string, Record<string, unknown>[]>();
+  for (const row of rows) {
+    const key = `${textValue(row.source_id)}:${textValue(row.anchor_ref)}`;
+    if (!byAnchor.has(key)) byAnchor.set(key, []);
+    byAnchor.get(key)!.push(row);
+  }
+
+  return Array.from(byAnchor.values()).map((items) => {
+    const first = items[0] || {};
+    const sorted = items.slice().sort((a, b) => {
+      const aLocator = textValue(a.locator);
+      const bLocator = textValue(b.locator);
+      return aLocator.localeCompare(bLocator, 'zh-CN', { numeric: true });
+    });
+    const excerpts = sorted
+      .map((item) => ({
+        id: textValue(item.id),
+        modality: textValue(item.modality) || 'text',
+        locator: textValue(item.locator),
+        excerpt: textValue(item.excerpt),
+        page_start: item.page_start == null ? null : Number(item.page_start),
+        page_end: item.page_end == null ? null : Number(item.page_end),
+        properties: asRecord(item.properties),
+      }))
+      .filter((item) => item.excerpt);
+
+    return {
+      source_id: textValue(first.source_id),
+      anchor_ref: textValue(first.anchor_ref),
+      source_path: textValue(first.source_path),
+      page_start: first.page_start == null ? null : Number(first.page_start),
+      page_end: first.page_end == null ? null : Number(first.page_end),
+      excerpts,
+      text: excerpts
+        .filter((item) => item.modality !== 'image')
+        .map((item) => item.excerpt)
+        .join('\n\n'),
+      modalities: [...new Set(excerpts.map((item) => item.modality))],
+    };
+  });
+}
+
 export async function loadUnit(
   sql: Sql,
   datasetId: string,
@@ -334,17 +472,14 @@ export async function loadUnit(
           FROM jsonb_array_elements_text(m.source_refs_json) AS ref(value)
           WHERE ref.value = e.id
         )
-        OR (
-          COALESCE(e.modality, '') = 'image'
-          AND e.source_id = m.source_id
-          AND e.anchor_ref = m.anchor_ref
-        )
+        OR (e.source_id = m.source_id AND e.anchor_ref = m.anchor_ref)
       )
     ORDER BY e.source_id, e.anchor_ref, e.id
   `;
 
   const card = await loadNodeCard(sql, datasetId, nodeId);
   const evidence = evidenceRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence);
+  const evidenceRecords = evidence as unknown as Record<string, unknown>[];
   return {
     node: worldJsonRow(nodeRows[0] as Record<string, unknown>, [
       'aliases', 'domains', 'knowledge_form', 'learning_mode', 'properties', 'external_ids', 'tags',
@@ -358,7 +493,8 @@ export async function loadUnit(
     ])),
     mentions: mentionRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['source_refs', 'properties']) as unknown as ApiMention),
     evidence,
-    media: mediaFromEvidence(evidence as unknown as Record<string, unknown>[], sourceKey),
+    media: mediaFromEvidence(evidenceRecords, sourceKey),
+    source_fragments: sourceFragmentsFromEvidence(evidenceRecords),
     card,
     body: renderCardBody(card),
   };
@@ -580,8 +716,10 @@ export async function buildSourcesPayload(sql: Sql): Promise<SourcesPayload> {
     datasets.map(async (row) => {
       const bookIds = await loadBookIds(sql, row.dataset_id);
       const profileRows = await sql<{ count: number }[]>`
+        SELECT COUNT(*) AS count FROM world_domain_profiles WHERE dataset_id = ${row.dataset_id}
+      `.catch(() => sql<{ count: number }[]>`
         SELECT COUNT(*) AS count FROM profiles WHERE dataset_id = ${row.dataset_id}
-      `;
+      `);
       const profileCount = profileRows[0].count;
 
       if (row.is_active) activeSource = row.dataset_id;
@@ -640,8 +778,10 @@ export async function buildBundlePayload(
   if (!datasetRow) throw new Error(`Unknown dataset: ${datasetId}`);
 
   const profileRows = await sql<{ count: number }[]>`
+    SELECT COUNT(*) AS count FROM world_domain_profiles WHERE dataset_id = ${datasetRow.dataset_id}
+  `.catch(() => sql<{ count: number }[]>`
     SELECT COUNT(*) AS count FROM profiles WHERE dataset_id = ${datasetRow.dataset_id}
-  `;
+  `);
   const profileCount = profileRows[0].count;
 
   const allMentions = await loadMentions(sql, datasetRow.dataset_id);

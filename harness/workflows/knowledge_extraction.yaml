@@ -16,6 +16,8 @@
     "lesson_textbook_id": "{book_id}",
     "lesson_openai_model": "",
     "lesson_openai_base_url": "",
+    "lesson_openai_timeout": 600,
+    "lesson_fallback_local_on_error": false,
     "lesson_retrieval_context": true,
     "lesson_retrieval_limit": 8,
     "source_markdown_path": "",
@@ -102,9 +104,11 @@
           "model": "{lesson_openai_model}",
           "api_key_env": "OPENAI_API_KEY",
           "base_url": "{lesson_openai_base_url}",
+          "timeout": "{lesson_openai_timeout}",
           "reasoning_effort": "medium",
           "retrieval_context": "{lesson_retrieval_context}",
           "retrieval_limit": "{lesson_retrieval_limit}",
+          "fallback_local_on_error": "{lesson_fallback_local_on_error}",
           "write_staging": true
         }
       }

@@ -480,6 +480,8 @@ export function useSigma(options: UseSigmaOptions) {
 
     sigma.on('downNode', (e) => {
       stopInertiaAnimation();
+      const activeGraph = graphRef.current;
+      if (!activeGraph || !activeGraph.hasNode(e.node)) return;
       suppressStageClickUntilRef.current = performance.now() + 300;
       dragNodeId = e.node;
       const orig = e.event.original;
@@ -487,7 +489,7 @@ export function useSigma(options: UseSigmaOptions) {
         dragStartX = orig.clientX;
         dragStartY = orig.clientY;
       }
-      const attrs = graph.getNodeAttributes(e.node);
+      const attrs = activeGraph.getNodeAttributes(e.node);
       dragTargetRef.current = { x: attrs.x as number, y: attrs.y as number };
       dragVelocityRef.current = null;
       dragMoved = false;

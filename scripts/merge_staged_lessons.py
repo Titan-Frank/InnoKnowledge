@@ -18,6 +18,7 @@ from knowledge_store_common import (
     ensure_dataset,
     ensure_pg_schema,
     make_canonical_node_id,
+    make_domain_profile_id,
     make_edge_id,
     make_evidence_id,
     make_lesson_run_id,
@@ -72,6 +73,13 @@ def parse_embedding(value: Any) -> list[float]:
         except (TypeError, ValueError):
             return []
     return []
+
+
+def format_pgvector(value: Any) -> str | None:
+    embedding = parse_embedding(value)
+    if not embedding:
+        return None
+    return "[" + ",".join(str(item) for item in embedding) + "]"
 
 
 def normalized_terms(payload: dict[str, Any]) -> set[str]:
@@ -224,7 +232,7 @@ def upsert_node(connection, dataset_id: str, payload: dict[str, Any]) -> None:
                 json.dumps(payload.get("properties", {}), ensure_ascii=False),
                 json.dumps(payload.get("external_ids", {}), ensure_ascii=False),
                 json.dumps(payload.get("tags", []), ensure_ascii=False),
-                payload.get("embedding"),
+                format_pgvector(payload.get("embedding")),
                 payload.get("status", "active"),
                 payload["created_at"],
                 payload["updated_at"],
@@ -269,6 +277,85 @@ def load_existing_by_id(connection, dataset_id: str, table: str, item_id: str, k
     return dict(row) if row else None
 
 
+def remap_source_refs(source_refs: Any, evidence_id_by_raw: dict[str, str]) -> list[str]:
+    if not isinstance(source_refs, list):
+        return []
+    result: list[str] = []
+    seen: set[str] = set()
+    for raw_ref in source_refs:
+        if raw_ref is None:
+            continue
+        ref = str(raw_ref).strip()
+        if not ref:
+            continue
+        mapped = evidence_id_by_raw.get(ref, ref)
+        if mapped in seen:
+            continue
+        seen.add(mapped)
+        result.append(mapped)
+    return result
+
+
+def remap_card_sections(sections: Any, evidence_id_by_raw: dict[str, str]) -> list[dict[str, Any]]:
+    if not isinstance(sections, list):
+        return []
+    remapped: list[dict[str, Any]] = []
+    for section in sections:
+        if not isinstance(section, dict):
+            continue
+        next_section = dict(section)
+        next_section["source_refs"] = remap_source_refs(section.get("source_refs"), evidence_id_by_raw)
+        remapped.append(next_section)
+    return remapped
+
+
+def replace_evidence_links(
+    connection,
+    dataset_id: str,
+    owner_type: str,
+    owner_id: str,
+    evidence_ids: list[str],
+) -> int:
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            DELETE FROM world_evidence_links
+            WHERE dataset_id = %s AND owner_type = %s AND owner_id = %s
+            """,
+            (dataset_id, owner_type, owner_id),
+        )
+        inserted = 0
+        for ordinal, evidence_id in enumerate(evidence_ids, start=1):
+            cur.execute(
+                """
+                INSERT INTO world_evidence_links (
+                  dataset_id, owner_type, owner_id, evidence_id, ordinal
+                ) VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (dataset_id, owner_type, owner_id, evidence_id)
+                DO UPDATE SET ordinal = EXCLUDED.ordinal
+                """,
+                (dataset_id, owner_type, owner_id, evidence_id, ordinal),
+            )
+            inserted += 1
+    return inserted
+
+
+def filter_existing_evidence_ids(connection, dataset_id: str, evidence_ids: list[str]) -> list[str]:
+    if not evidence_ids:
+        return []
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id
+            FROM world_evidence
+            WHERE dataset_id = %s AND id = ANY(%s)
+            """,
+            (dataset_id, evidence_ids),
+        )
+        existing = {row["id"] for row in cur.fetchall()}
+    return [evidence_id for evidence_id in evidence_ids if evidence_id in existing]
+
+
 def main() -> int:
     args = parse_args()
     connection = connect_db(args.db)
@@ -298,7 +385,17 @@ def main() -> int:
         )
 
     canonical_nodes = load_canonical_nodes(connection, dataset_id)
-    stats = {"nodes_created": 0, "nodes_matched": 0, "nodes_review": 0, "edges_upserted": 0, "domain_profiles_upserted": 0, "mentions_upserted": 0, "evidence_upserted": 0, "node_cards_upserted": 0}
+    stats = {
+        "nodes_created": 0,
+        "nodes_matched": 0,
+        "nodes_review": 0,
+        "edges_upserted": 0,
+        "domain_profiles_upserted": 0,
+        "mentions_upserted": 0,
+        "evidence_upserted": 0,
+        "evidence_links_upserted": 0,
+        "node_cards_upserted": 0,
+    }
 
     for lesson_run in lesson_runs:
         lesson_run_id = lesson_run["lesson_run_id"]
@@ -430,8 +527,10 @@ def main() -> int:
                     (dataset_id, merge_run_id, lesson_run_id, row["raw_node_id"], canonical_id, resolution, best_score.score, json.dumps(best_score.rationale, ensure_ascii=False), now),
                 )
 
+        evidence_id_by_raw: dict[str, str] = {}
         for row in fetch_staged_rows(connection, "world_staging_evidence", dataset_id, lesson_run_id):
             evidence_id = make_evidence_id(lesson_run_id, row["raw_evidence_id"], row["anchor_ref"], row["excerpt"])
+            evidence_id_by_raw[row["raw_evidence_id"]] = evidence_id
             with connection.cursor() as cur:
                 cur.execute(
                     """
@@ -472,6 +571,7 @@ def main() -> int:
             if not from_id or not to_id:
                 continue
             edge_id = make_edge_id(from_id, row["type"], to_id)
+            source_refs = remap_source_refs(row["source_refs_json"], evidence_id_by_raw)
             with connection.cursor() as cur:
                 cur.execute(
                     """
@@ -496,19 +596,51 @@ def main() -> int:
                         to_id,
                         row["directionality"],
                         row["confidence"],
-                        json.dumps(row["source_refs_json"] or [], ensure_ascii=False),
+                        json.dumps(source_refs, ensure_ascii=False),
                         json.dumps(row["properties_json"] or {}, ensure_ascii=False),
                         row["created_at"],
                         now,
                         row.get("notes") or "",
                     ),
                 )
+            stats["evidence_links_upserted"] += replace_evidence_links(
+                connection,
+                dataset_id,
+                "edge",
+                edge_id,
+                source_refs,
+            )
             stats["edges_upserted"] += 1
 
         for row in fetch_staged_rows(connection, "world_staging_domain_profiles", dataset_id, lesson_run_id):
             node_id = node_map.get(row["raw_node_id"])
             if not node_id:
                 continue
+            profile_id = make_domain_profile_id(node_id, row["domain"])
+            source_refs = remap_source_refs(row["source_refs_json"], evidence_id_by_raw)
+            existing_profile = load_existing_by_id(connection, dataset_id, "world_domain_profiles", profile_id)
+            school_stages = merge_unique_strings(
+                existing_profile.get("school_stages_json", []) if existing_profile else [],
+                row["school_stages_json"] or [],
+            )
+            curriculum_roles = merge_unique_strings(
+                existing_profile.get("curriculum_roles_json", []) if existing_profile else [],
+                row["curriculum_roles_json"] or [],
+            )
+            source_refs = merge_unique_strings(
+                existing_profile.get("source_refs_json", []) if existing_profile else [],
+                source_refs,
+            )
+            source_refs = filter_existing_evidence_ids(connection, dataset_id, source_refs)
+            properties = merge_json_objects(
+                existing_profile.get("properties_json", {}) if existing_profile else {},
+                row["properties_json"] or {},
+            )
+            notes = merge_text_blocks(
+                existing_profile.get("notes", "") if existing_profile else "",
+                row.get("notes") or "",
+            )
+            created_at = existing_profile.get("created_at", row["created_at"]) if existing_profile else row["created_at"]
             with connection.cursor() as cur:
                 cur.execute(
                     """
@@ -529,23 +661,31 @@ def main() -> int:
                     """,
                     (
                         dataset_id,
-                        row["raw_profile_id"],
+                        profile_id,
                         node_id,
                         row["domain"],
-                        json.dumps(row["school_stages_json"] or [], ensure_ascii=False),
-                        json.dumps(row["curriculum_roles_json"] or [], ensure_ascii=False),
-                        json.dumps(row["source_refs_json"] or [], ensure_ascii=False),
-                        json.dumps(row["properties_json"] or {}, ensure_ascii=False),
-                        row["created_at"],
+                        json.dumps(school_stages, ensure_ascii=False),
+                        json.dumps(curriculum_roles, ensure_ascii=False),
+                        json.dumps(source_refs, ensure_ascii=False),
+                        json.dumps(properties, ensure_ascii=False),
+                        created_at,
                         now,
-                        row.get("notes") or "",
+                        notes,
                     ),
                 )
+            stats["evidence_links_upserted"] += replace_evidence_links(
+                connection,
+                dataset_id,
+                "domain_profile",
+                profile_id,
+                source_refs,
+            )
             stats["domain_profiles_upserted"] += 1
 
         for row in fetch_staged_rows(connection, "world_staging_mentions", dataset_id, lesson_run_id):
             target_id = node_map.get(row["target_raw_id"], row["target_raw_id"])
             mention_id = make_mention_id(lesson_run_id, row["raw_mention_id"], row["target_type"], target_id)
+            source_refs = remap_source_refs(row["source_refs_json"], evidence_id_by_raw)
             with connection.cursor() as cur:
                 cur.execute(
                     """
@@ -570,19 +710,28 @@ def main() -> int:
                         row["target_type"],
                         target_id,
                         row["role"],
-                        json.dumps(row["source_refs_json"] or [], ensure_ascii=False),
+                        json.dumps(source_refs, ensure_ascii=False),
                         row["confidence"],
                         json.dumps(row["properties_json"] or {}, ensure_ascii=False),
                         row["created_at"],
                         now,
                     ),
                 )
+            stats["evidence_links_upserted"] += replace_evidence_links(
+                connection,
+                dataset_id,
+                "mention",
+                mention_id,
+                source_refs,
+            )
             stats["mentions_upserted"] += 1
 
         for row in fetch_staged_rows(connection, "world_staging_node_cards", dataset_id, lesson_run_id):
             node_id = node_map.get(row["raw_node_id"])
             if not node_id:
                 continue
+            source_refs = remap_source_refs(row["source_refs_json"], evidence_id_by_raw)
+            sections = remap_card_sections(row["sections_json"], evidence_id_by_raw)
             with connection.cursor() as cur:
                 cur.execute(
                     """
@@ -606,12 +755,28 @@ def main() -> int:
                         row["raw_card_id"],
                         row["title"],
                         row["summary"],
-                        json.dumps(row["source_refs_json"] or [], ensure_ascii=False),
-                        json.dumps(row["sections_json"] or [], ensure_ascii=False),
+                        json.dumps(source_refs, ensure_ascii=False),
+                        json.dumps(sections, ensure_ascii=False),
                         json.dumps(row["properties_json"] or {}, ensure_ascii=False),
                         row["created_at"],
                         now,
                     ),
+                )
+            stats["evidence_links_upserted"] += replace_evidence_links(
+                connection,
+                dataset_id,
+                "node_card",
+                row["raw_card_id"],
+                source_refs,
+            )
+            for section_index, section in enumerate(sections):
+                section_id = str(section.get("id") or f"section-{section_index}").strip()
+                stats["evidence_links_upserted"] += replace_evidence_links(
+                    connection,
+                    dataset_id,
+                    "node_card_section",
+                    f"{row['raw_card_id']}:{section_id}",
+                    remap_source_refs(section.get("source_refs"), evidence_id_by_raw),
                 )
             stats["node_cards_upserted"] += 1
 

@@ -508,6 +508,11 @@ class HarnessRuntime:
         last_line = 0
         for item in sorted(items, key=_order_key):
             item_id = str(item.get("id") or "")
+            if item.get("md_start") and item.get("md_end"):
+                line_number = int(item["md_start"])
+                last_line = max(last_line, line_number)
+                matched.append((item, line_number))
+                continue
             if item_id in marker_lines:
                 line_number = marker_lines[item_id]
                 item["md_start"] = line_number

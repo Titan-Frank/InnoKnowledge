@@ -587,6 +587,26 @@ def _build_payload_from_model(args: argparse.Namespace, body: dict[str, Any]) ->
             }
         )
 
+    if nodes and not evidence:
+        fallback_excerpt = make_excerpt(markdown_lines, limit=600)
+        evidence.append(
+            {
+                "id": f"evidence:{safe_path_token(args.book_id)}:fallback:1",
+                "source_type": "textbook",
+                "source_id": source_id,
+                "anchor_ref": anchor_ref,
+                "source_path": source_path,
+                "page_start": item.get("page_start"),
+                "page_end": item.get("page_end"),
+                "excerpt": fallback_excerpt or str(item.get("title") or anchor_ref),
+                "locator": "lesson-chunk",
+                "modality": "text",
+                "extraction_method": "fallback_excerpt",
+                "normalized_claims": [(fallback_excerpt or str(item.get("title") or anchor_ref))[:120]],
+                "properties": {},
+            }
+        )
+
     mentions = []
     for index, raw in enumerate(bundle.get("evidence_units", []), start=1):
         evidence_id = evidence_by_anchor.get(str(raw.get("anchor") or "").strip())
@@ -610,6 +630,26 @@ def _build_payload_from_model(args: argparse.Namespace, body: dict[str, Any]) ->
                     "properties": {},
                 }
             )
+
+    fallback_evidence_id = evidence[0]["id"] if evidence else ""
+    mentioned_node_ids = {mention["target_id"] for mention in mentions}
+    for node in nodes:
+        if node["id"] in mentioned_node_ids or not fallback_evidence_id:
+            continue
+        mentions.append(
+            {
+                "id": f"mention:{safe_path_token(args.book_id)}:{safe_path_token(node['id'])}:fallback",
+                "source_type": "textbook",
+                "source_id": source_id,
+                "anchor_ref": anchor_ref,
+                "target_type": "node",
+                "target_id": node["id"],
+                "role": "mentions",
+                "source_refs": [fallback_evidence_id],
+                "confidence": 0.72,
+                "properties": {"fallback": True},
+            }
+        )
 
     edges = []
     dropped_edges = 0
@@ -667,6 +707,27 @@ def _build_payload_from_model(args: argparse.Namespace, body: dict[str, Any]) ->
             }
         )
 
+    profiled_node_ids = {profile["node_id"] for profile in domain_profiles}
+    default_domain = args.subject if args.subject in VALID_DOMAINS else "general"
+    for node in nodes:
+        if node["id"] in profiled_node_ids:
+            continue
+        node_domains = [domain for domain in node.get("domains", []) if domain in VALID_DOMAINS]
+        domain = default_domain if default_domain in node_domains or not node_domains else node_domains[0]
+        domain_profiles.append(
+            {
+                "id": make_domain_profile_id(node["id"], domain),
+                "node_id": node["id"],
+                "domain": domain,
+                "school_stages": [args.school_stage],
+                "curriculum_roles": ["core"],
+                "source_refs": [fallback_evidence_id] if fallback_evidence_id else [],
+                "properties": {"subject": args.subject, "grade_band": args.grade_band, "fallback": True},
+                "status": "draft",
+                "notes": "Backfilled because the model omitted a domain profile.",
+            }
+        )
+
     evidence_text = {item["id"]: item["excerpt"] for item in evidence}
     node_cards = []
     for raw in bundle.get("node_cards", []):
@@ -690,6 +751,37 @@ def _build_payload_from_model(args: argparse.Namespace, body: dict[str, Any]) ->
                 ],
                 "source_refs": [evidence_id] if evidence_id else [],
                 "properties": {},
+                "status": "draft",
+            }
+        )
+
+    node_by_id = {node["id"]: node for node in nodes}
+    card_node_ids = {card["node_id"] for card in node_cards}
+    for card in node_cards:
+        if not card.get("summary"):
+            node = node_by_id.get(card["node_id"], {})
+            card["summary"] = str(node.get("definition") or node.get("name") or card["node_id"])
+    for node in nodes:
+        if node["id"] in card_node_ids:
+            continue
+        evidence_id = fallback_evidence_id
+        definition = str(node.get("definition") or node.get("name") or "").strip()
+        node_cards.append(
+            {
+                "id": make_node_card_id(node["id"]),
+                "node_id": node["id"],
+                "title": node["name"],
+                "summary": definition,
+                "sections": [
+                    {"id": "definition", "title": "定义", "section_type": "definition", "content": [definition], "source_refs": [evidence_id] if evidence_id else [], "properties": {"fallback": True}},
+                    {"id": "essence", "title": "核心本质", "section_type": "essence", "content": [definition], "source_refs": [evidence_id] if evidence_id else [], "properties": {"fallback": True}},
+                    {"id": "key-points", "title": "关键要点", "section_type": "key_points", "content": [definition], "source_refs": [evidence_id] if evidence_id else [], "properties": {"fallback": True}},
+                    {"id": "example", "title": "示例", "section_type": "example", "content": [node["name"]], "source_refs": [evidence_id] if evidence_id else [], "properties": {"fallback": True}},
+                    {"id": "application", "title": "应用", "section_type": "application", "content": [str(item.get("title") or "")], "source_refs": [evidence_id] if evidence_id else [], "properties": {"fallback": True}},
+                    {"id": "misconception", "title": "常见误解", "section_type": "misconception", "content": ["需结合证据原文确认适用范围。"], "source_refs": [evidence_id] if evidence_id else [], "properties": {"fallback": True}},
+                ],
+                "source_refs": [evidence_id] if evidence_id else [],
+                "properties": {"fallback": True},
                 "status": "draft",
             }
         )
@@ -797,6 +889,8 @@ def main() -> int:
             reasoning_effort=args.reasoning_effort,
         )
         payload = _build_payload_from_model(args, response_body)
+        if args.fallback_local_on_error and payload.get("status") == "success" and not payload.get("nodes"):
+            payload = _run_local_fallback(args, "OpenAI extraction produced no nodes.")
     except (RuntimeError, ValueError, urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError) as exc:
         issue = f"OpenAI Responses extraction failed: {exc}"
         payload = _run_local_fallback(args, issue) if args.fallback_local_on_error else {"status": "blocked", "issues": [issue]}

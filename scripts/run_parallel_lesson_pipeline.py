@@ -56,8 +56,7 @@ def mark_qa_passed(
         return
     now = utc_now()
     with connection.cursor() as cur:
-        psycopg.extras.execute_values(
-            cur,
+        cur.executemany(
             """
             UPDATE world_lesson_runs
             SET status = 'qa_passed', updated_at = %s

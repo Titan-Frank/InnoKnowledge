@@ -190,6 +190,7 @@ export interface ApiUnit {
   mentions: ApiMention[];
   evidence: ApiEvidence[];
   media: ApiUnitMedia[];
+  source_fragments?: Array<Record<string, unknown>>;
   card: ApiNodeCard | null;
   body: ApiUnitBody | null;
 }
