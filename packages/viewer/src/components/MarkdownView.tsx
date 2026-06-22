@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 type MarkdownViewProps = {
   content: string;
@@ -7,6 +7,57 @@ type MarkdownViewProps = {
 };
 
 const IMAGE_RE = /!\[([^\]]*)\]\(([^)]+)\)/g;
+const MIN_USEFUL_IMAGE_SIDE = 64;
+const MIN_USEFUL_IMAGE_AREA = 5000;
+
+function isDecorativeImage(width: number, height: number): boolean {
+  if (!width || !height) return false;
+  const smallerSide = Math.min(width, height);
+  const largerSide = Math.max(width, height);
+  const area = width * height;
+  return smallerSide < MIN_USEFUL_IMAGE_SIDE || area < MIN_USEFUL_IMAGE_AREA || (largerSide / smallerSide > 8 && smallerSide < 120);
+}
+
+function MarkdownImage({
+  src,
+  alt,
+  className,
+  framed = false,
+}: {
+  src: string;
+  alt: string;
+  className: string;
+  framed?: boolean;
+}) {
+  const [hidden, setHidden] = useState(false);
+  if (hidden) return null;
+
+  const image = (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      loading="lazy"
+      onLoad={(event) => {
+        const imageEl = event.currentTarget;
+        if (isDecorativeImage(imageEl.naturalWidth, imageEl.naturalHeight)) setHidden(true);
+      }}
+    />
+  );
+
+  if (!framed) return image;
+
+  return (
+    <figure className="overflow-hidden border border-border-subtle bg-elevated">
+      {image}
+      {alt === '教材图片' ? null : (
+        <figcaption className="border-t border-border-subtle px-2 py-1 text-[10px] text-text-muted">
+          {alt}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
 
 function trimTableCell(value: string): string {
   return value.trim().replace(/^\\\|/, '|').replace(/\\\|$/, '|');
@@ -205,12 +256,11 @@ function renderInline(text: string, keyPrefix: string, resolveImageUrl?: (src: s
       const resolved = resolveImageUrl?.(src);
       if (resolved) {
         nodes.push(
-          <img
+          <MarkdownImage
             key={`${keyPrefix}:img:${index}`}
             src={resolved}
             alt={alt}
             className="my-2 max-h-72 w-full border border-border-subtle bg-surface object-contain"
-            loading="lazy"
           />,
         );
       } else if (!src.includes('…')) {
@@ -254,14 +304,13 @@ function renderImageLine(line: string, key: string, resolveImageUrl?: (src: stri
         const src = image[2].trim();
         const resolved = resolveImageUrl?.(src) ?? src;
         return (
-          <figure key={`${key}:figure:${index}`} className="overflow-hidden border border-border-subtle bg-elevated">
-            <img src={resolved} alt={alt} className="max-h-80 w-full bg-surface object-contain" loading="lazy" />
-            {alt === '教材图片' ? null : (
-              <figcaption className="border-t border-border-subtle px-2 py-1 text-[10px] text-text-muted">
-                {alt}
-              </figcaption>
-            )}
-          </figure>
+          <MarkdownImage
+            key={`${key}:figure:${index}`}
+            src={resolved}
+            alt={alt}
+            className="max-h-80 w-full bg-surface object-contain"
+            framed
+          />
         );
       })}
     </div>

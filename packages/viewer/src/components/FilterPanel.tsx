@@ -4,13 +4,112 @@ import { TYPE_META, LAYER_MODE_OPTIONS } from '@/lib/constants';
 import { BookOpen, Layers, Eye, EyeOff, ChevronDown, ChevronRight } from '@/lib/lucide-icons';
 import { useMemo, useState, useCallback } from 'react';
 
+type TypeFilterGroup = {
+  id: string;
+  label: string;
+  description: string;
+  types: string[];
+};
+
+const TOP_OBJECT_TYPES = new Set([
+  'concept', 'entity', 'process', 'event', 'method', 'principle', 'representation',
+  'resource', 'substance', 'experiment', 'activity', 'skill', 'symbol', 'question',
+  'issue', 'simulation_tool', '仿真工具',
+]);
+
+const TYPE_SORT_ORDER = new Map<string, number>([
+  ['concept', 10],
+  ['entity', 20],
+  ['process', 30],
+  ['event', 40],
+  ['principle', 50],
+  ['method', 60],
+  ['representation', 70],
+  ['simulation_tool', 80],
+  ['仿真工具', 80],
+]);
+
+const CHEM_DOMAIN_TYPES = new Set([
+  '化学键结构参量',
+  '结构性质',
+  '晶体宏观形态性质',
+  '晶体结构几何属性',
+  '晶体物理性质',
+  '热学性质',
+  'molecular-geometry',
+  'orbital geometry',
+]);
+
+const PROPERTY_RULE_TYPES = new Set([
+  'bond-angle',
+  'bond count',
+  'bond length',
+  'bond property',
+  'bonding rule',
+  'chemical stability',
+  'chemical_structure_prediction_rule',
+  'electron-pair-property',
+  'electronic-repulsion-rule',
+  'geometry-rule',
+  'molecular_mass_property',
+  'molecular_property',
+  'principle_group',
+  'property',
+  'rule',
+  'system energy',
+  'thermophysical_property',
+  'thermophysical_trend_rule',
+]);
+
+function typeLabel(type: string): string {
+  return TYPE_META[type]?.label ?? type
+    .replaceAll('_', ' ')
+    .replaceAll('-', ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function groupType(type: string): Omit<TypeFilterGroup, 'types'> {
+  if (TOP_OBJECT_TYPES.has(type)) {
+    return {
+      id: 'object',
+      label: '知识对象类型',
+      description: '统一知识标准中的顶层对象类型',
+    };
+  }
+  if (CHEM_DOMAIN_TYPES.has(type)) {
+    return {
+      id: 'chem',
+      label: '化学领域分类',
+      description: '教材抽取出的化学主题和对象分类',
+    };
+  }
+  if (PROPERTY_RULE_TYPES.has(type)) {
+    return {
+      id: 'rules',
+      label: '性质、规则与参量',
+      description: '性质、规则、结构参量和趋势类细分标签',
+    };
+  }
+  return {
+    id: 'other',
+    label: '其他类型',
+    description: '暂未归入固定分组的类型',
+  };
+}
+
+function compareTypes(a: string, b: string): number {
+  const orderDiff = (TYPE_SORT_ORDER.get(a) ?? 1000) - (TYPE_SORT_ORDER.get(b) ?? 1000);
+  if (orderDiff !== 0) return orderDiff;
+  return typeLabel(a).localeCompare(typeLabel(b), 'zh-CN');
+}
+
 export function FilterPanel() {
   const appState = useAppState();
   const {
     knowledgeGraph, selectedNodeId, selectedTypes, selectedBook,
     layerMode, focusConnected, showLabels,
     setSelectedNodeId, setExpandedBackboneNodeId,
-    toggleType, resetTypes,
+    toggleType, resetTypes, setSelectedTypes,
     setSelectedBook, setLayerMode, setFocusConnected,
     setShowLabels, sourceConfigs, switchSource,
     searchTerm,
@@ -39,6 +138,33 @@ export function FilterPanel() {
     if (!knowledgeGraph) return [];
     return Array.from(knowledgeGraph.booksById.keys());
   }, [knowledgeGraph]);
+
+  const typeGroups = useMemo(() => {
+    if (!knowledgeGraph) return [];
+    const byId = new Map<string, TypeFilterGroup>();
+    for (const type of knowledgeGraph.availableTypes) {
+      const group = groupType(type);
+      if (!byId.has(group.id)) byId.set(group.id, { ...group, types: [] });
+      byId.get(group.id)!.types.push(type);
+    }
+    const order = ['object', 'chem', 'rules', 'other'];
+    return Array.from(byId.values())
+      .map((group) => ({
+        ...group,
+        types: group.types.slice().sort(compareTypes),
+      }))
+      .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  }, [knowledgeGraph]);
+
+  const toggleTypeGroup = useCallback((types: string[]) => {
+    const allSelected = types.every((type) => selectedTypes.has(type));
+    const next = new Set(selectedTypes);
+    for (const type of types) {
+      if (allSelected) next.delete(type);
+      else next.add(type);
+    }
+    setSelectedTypes(next);
+  }, [selectedTypes, setSelectedTypes]);
 
   const handleSelectNode = useCallback((nodeId: string) => {
     setSelectedNodeId(nodeId);
@@ -178,27 +304,55 @@ export function FilterPanel() {
             {typeSectionOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
           </button>
           {typeSectionOpen && (
-            <div className="flex flex-wrap gap-1">
-              <button
-                onClick={resetTypes}
-                className="rounded-md px-2 py-1 text-xs text-text-muted hover:bg-hover transition-colors"
-              >
-                全选
-              </button>
-              {knowledgeGraph.availableTypes.map((type) => (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[11px] text-text-muted">按知识层级和化学细类分组</div>
                 <button
-                  key={type}
-                  onClick={() => toggleType(type)}
-                  className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
-                    selectedTypes.has(type)
-                      ? 'bg-elevated text-text-primary'
-                      : 'bg-elevated/40 text-text-muted line-through'
-                  }`}
+                  onClick={resetTypes}
+                  className="shrink-0 rounded-md px-2 py-1 text-xs text-text-muted transition-colors hover:bg-hover"
                 >
-                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: TYPE_META[type]?.color ?? '#9A9AB0' }} />
-                  {TYPE_META[type]?.label ?? type}
+                  全选
                 </button>
-              ))}
+              </div>
+              {typeGroups.map((group) => {
+                const selectedCount = group.types.filter((type) => selectedTypes.has(type)).length;
+                const allSelected = selectedCount === group.types.length;
+                return (
+                  <div key={group.id} className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <div className="text-[11px] font-medium text-text-secondary">
+                          {group.label} ({selectedCount}/{group.types.length})
+                        </div>
+                        <div className="text-[10px] leading-snug text-text-muted">{group.description}</div>
+                      </div>
+                      <button
+                        onClick={() => toggleTypeGroup(group.types)}
+                        className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] text-text-muted transition-colors hover:bg-hover"
+                      >
+                        {allSelected ? '清空' : '全选'}
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {group.types.map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => toggleType(type)}
+                          title={type}
+                          className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
+                            selectedTypes.has(type)
+                              ? 'bg-elevated text-text-primary'
+                              : 'bg-elevated/40 text-text-muted line-through'
+                          }`}
+                        >
+                          <div className="h-2 w-2 rounded-full" style={{ backgroundColor: TYPE_META[type]?.color ?? '#9A9AB0' }} />
+                          {typeLabel(type)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
