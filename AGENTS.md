@@ -1,132 +1,77 @@
-# Knowledge Map Extraction Project
+# Repository Guidelines
 
-Turn textbook content into a stable, evidence-backed, cross-disciplinary world knowledge map.
+## Project Structure & Module Organization
 
-## Core Principles
+This repository combines a TypeScript web workspace with Python knowledge extraction scripts. The main packages are:
 
-1. Global-first, not textbook-first
-2. Evidence-backed
-3. Retrieval-first extraction
-4. PostgreSQL-first
-5. Lesson staging first, canonical commit second
-6. Non-destructive by default
+- `packages/types`: shared TypeScript models and API types.
+- `packages/server`: Hono-based API server and PostgreSQL query layer.
+- `packages/viewer`: React/Vite graph viewer UI.
+- `scripts`: extraction, staging, merge, normalization, QA, and integrity tools.
+- `schemas`: JSON Schemas, PostgreSQL schema files, and the world knowledge standard docs.
+- `harness`: workflow runtime configuration and harness backend code.
+- `data`, `runs`, `storage`, `tmp`: generated or local runtime artifacts; do not treat these as canonical source.
 
-## Unified Standard
+## Build, Test, and Development Commands
 
-Current runtime uses the unified world knowledge standard only.
+Install dependencies with:
 
-Current version: `V1.2`
-
-### Four Layers
-
-1. Top ontology
-   `entity`, `concept`, `property`, `process`, `event`, `method`, `rule`, `representation`, `resource`
-2. Taxonomy table
-   Controlled classification terms
-3. Fact relation layer
-   Stable object relations
-4. Domain extension layer
-   K12 and domain-specific teaching extensions
-5. Evidence and provenance plane
-   Cross-layer evidence constraints via mentions, evidence, and node cards
-
-### `schema` vs `tag`
-
-- `schema` defines formal structure, allowed node classes, relations, taxonomy, and domain extensions.
-- `tag` is retrieval-only and must not be used as the primary classification mechanism.
-
-### Research Grounding
-
-- BFO / OWL support the top ontology and formal constraints.
-- SKOS supports controlled taxonomy instead of free tags as primary classification.
-- W3C PROV supports evidence and provenance design.
-- UNESCO / ISCED support separating domain-stage projection from object ontology.
-- Ryle / Polanyi support distinguishing propositional and practical knowledge.
-- Anderson & Krathwohl support `learning_mode` as `factual / conceptual / procedural / metacognitive`.
-
-## Runtime Architecture
-
-```
-outline -> parallel lesson staging -> canonical merge -> normalize -> qa -> integrity
+```bash
+npm install
 ```
 
-### Roles
+Run the full local app stack:
 
-- Manager: orchestrates only
-- Lesson worker: extracts one lesson and writes only `world_staging_*`
-- Reducer: merges staged data into canonical `world_*`
+```bash
+npm run dev
+```
 
-## Storage
+Build server and viewer:
 
-Canonical tables:
+```bash
+npm run build
+```
 
-- `world_nodes`
-- `world_edges`
-- `world_taxonomy_terms`
-- `world_taxonomy_edges`
-- `world_domain_profiles`
-- `world_mentions`
-- `world_evidence`
-- `world_node_cards`
+Run TypeScript checks across workspaces:
 
-Operational tables:
+```bash
+npm run check
+```
 
-- `world_lesson_runs`
-- `world_staging_nodes`
-- `world_staging_edges`
-- `world_staging_domain_profiles`
-- `world_staging_mentions`
-- `world_staging_evidence`
-- `world_staging_node_cards`
-- `world_merge_runs`
-- `world_canonical_node_map`
-- `retrieval_candidates`
+Start PostgreSQL and related services before pipeline work:
 
-## Required Constraints
+```bash
+docker compose up -d
+export DATABASE_URL=postgresql://okm:okm@localhost:5432/knowledge
+```
 
-### Whole-book rule
+Run the main extraction harness:
 
-Never process a whole textbook in one extraction context unless explicitly requested.
+```bash
+python3 scripts/run_okm_harness.py --book-id chem-grade8 --pdf-path /abs/path/to/book.pdf
+```
 
-### Staging rule
+## Coding Style & Naming Conventions
 
-Lesson workers may write only:
+Use TypeScript for `packages/*` and Python for pipeline scripts. Follow existing style: two-space indentation in TypeScript/React, descriptive camelCase identifiers, PascalCase React components, and snake_case Python functions and filenames. Keep shared contracts in `packages/types` and schema constraints in `schemas`; avoid duplicating type definitions across packages.
 
-- `world_lesson_runs`
-- `world_staging_*`
+## Testing Guidelines
 
-They must never write canonical `world_*` tables directly.
+There is no dedicated test runner configured yet. Before submitting changes, run `npm run check` and, for UI/server changes, `npm run build`. For pipeline or schema changes, run the relevant QA tools:
 
-### Reducer rule
+```bash
+python3 scripts/strict_qa.py --dataset-id main
+python3 scripts/check_graph_integrity.py --dataset-id main
+```
 
-Only reducer steps may:
+When adding tests later, use colocated `*.test.ts` files for TypeScript and `tests/test_*.py` for Python.
 
-- create canonical nodes
-- merge duplicates
-- remap edges, mentions, evidence, node cards
-- finalize QA status
+## Commit & Pull Request Guidelines
 
-## Required Schemas
+Recent commits use short, imperative summaries such as `Fix node click triggering full graph rebuild` or `Migrate to world knowledge standard V1.2`. Keep commits focused on one logical change.
 
-- `schemas/framework.schema.json`
-- `schemas/outline.schema.json`
-- `schemas/world-knowledge.schema.json`
-- `schemas/world-knowledge-edge.schema.json`
-- `schemas/world-taxonomy-term.schema.json`
-- `schemas/world-domain-profile.schema.json`
+Pull requests should include a concise description, affected packages or scripts, verification commands run, and screenshots for viewer changes. Link related issues or runs when available.
 
-## Review Checklist
+## Architecture & Data Rules
 
-- Each lesson is processed independently
-- Lesson workers write only `world_staging_*`
-- Canonical merge happens after staging
-- Every node has a valid top ontology class
-- Every edge uses a valid relation type
-- Every mention links to evidence
-- Every node has a domain profile
-- Every node has a node card
-- Hierarchical edges must be acyclic
-
-## Deprecated
-
-The old `v2` schema and runtime are retired. Do not use `schemas/v2/*` or old `nodes/edges/profiles` table assumptions.
+The active standard is unified world knowledge `V1.2`; do not use retired `schemas/v2/*` assumptions. Process textbooks by lesson unless explicitly asked to process a whole book in one extraction context. Lesson workers may write only `world_lesson_runs` and `world_staging_*`. Canonical `world_*` writes, duplicate merges, remapping, and final QA status belong only in reducer steps.

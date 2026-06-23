@@ -10,17 +10,11 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
+    "@antv/g6": "^5.1.1",
     "@okm/types": "*",
-    "@sigma/edge-curve": "^3.1.0",
-    "@sigma/node-border": "^3.0.0",
-    "graphology": "^0.26.0",
-    "graphology-communities-louvain": "^2.0.2",
-    "graphology-layout-forceatlas2": "^0.10.1",
-    "graphology-layout-noverlap": "^0.4.2",
     "lucide-react": "^0.475.0",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "sigma": "^3.0.2"
+    "react-dom": "^19.2.5"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.0",

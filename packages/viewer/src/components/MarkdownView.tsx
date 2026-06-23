@@ -72,6 +72,10 @@ function isTableDivider(line: string): boolean {
   return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
 }
 
+function isHtmlTableStart(line: string): boolean {
+  return /<table\b/i.test(line);
+}
+
 function isImageOnly(line: string): boolean {
   const withoutImages = line.replace(IMAGE_RE, '').trim();
   IMAGE_RE.lastIndex = 0;
@@ -86,6 +90,7 @@ function isBlockStart(lines: string[], index: number): boolean {
     /^\s*[-*+]\s+/.test(line) ||
     /^\s*\d+[.)]\s+/.test(line) ||
     isImageOnly(line) ||
+    isHtmlTableStart(line) ||
     (line.includes('|') && isTableDivider(next))
   );
 }
@@ -240,6 +245,125 @@ function renderDisplayMath(value: string, key: string): ReactNode {
   );
 }
 
+function decodeHtmlEntities(value: string): string {
+  const namedEntities: Record<string, string> = {
+    amp: '&',
+    lt: '<',
+    gt: '>',
+    quot: '"',
+    apos: "'",
+    nbsp: ' ',
+    deg: '°',
+    alpha: 'α',
+    beta: 'β',
+    gamma: 'γ',
+    delta: 'δ',
+    Delta: 'Δ',
+    mu: 'μ',
+    pi: 'π',
+    sigma: 'σ',
+    times: '×',
+    middot: '·',
+  };
+
+  return value.replace(/&(#x[\da-f]+|#\d+|[a-zA-Z]+);/g, (match, entity: string) => {
+    if (entity.startsWith('#x')) {
+      const codePoint = Number.parseInt(entity.slice(2), 16);
+      return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : match;
+    }
+    if (entity.startsWith('#')) {
+      const codePoint = Number.parseInt(entity.slice(1), 10);
+      return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : match;
+    }
+    return namedEntities[entity] ?? match;
+  });
+}
+
+function cleanHtmlTableCell(value: string): string {
+  const cleaned = decodeHtmlEntities(
+    value
+      .replace(/<sub\b[^>]*>([\s\S]*?)<\/sub>/gi, '_{$1}')
+      .replace(/<sup\b[^>]*>([\s\S]*?)<\/sup>/gi, '^{$1}')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>\s*<p\b[^>]*>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/[ \t]+/g, ' ')
+      .trim(),
+  );
+  if (/^[A-Za-z][A-Za-z0-9_{}^+\-()[\]\\]+$/.test(cleaned) && /[_^]/.test(cleaned)) {
+    return `$${cleaned}$`;
+  }
+  return cleaned;
+}
+
+function parseHtmlTable(markup: string): string[][] {
+  const rows: string[][] = [];
+  const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+  let rowMatch: RegExpExecArray | null;
+
+  while ((rowMatch = rowRe.exec(markup)) !== null) {
+    const row: string[] = [];
+    const cellRe = /<t[hd]\b[^>]*>([\s\S]*?)<\/t[hd]>/gi;
+    let cellMatch: RegExpExecArray | null;
+
+    while ((cellMatch = cellRe.exec(rowMatch[1])) !== null) {
+      row.push(cleanHtmlTableCell(cellMatch[1]));
+    }
+
+    if (row.length > 0) rows.push(row);
+  }
+
+  return rows;
+}
+
+function renderTableBlock(
+  header: string[],
+  rows: string[][],
+  key: string,
+  resolveImageUrl?: (src: string) => string | undefined,
+): ReactNode {
+  return (
+    <div key={key} className="overflow-x-auto">
+      <table className="min-w-full border-collapse text-left text-xs">
+        <thead>
+          <tr>
+            {header.map((cell, index) => (
+              <th key={index} className="border border-border-subtle bg-surface px-2 py-1 font-medium text-text-primary">
+                {renderInline(cell, `${key}:th:${index}`, resolveImageUrl)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, rowIndex) => (
+            <tr key={rowIndex}>
+              {row.map((cell, cellIndex) => (
+                <td key={cellIndex} className="border border-border-subtle px-2 py-1 align-top text-text-secondary">
+                  {renderInline(cell, `${key}:td:${rowIndex}:${cellIndex}`, resolveImageUrl)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function renderHtmlTable(markup: string, key: string, resolveImageUrl?: (src: string) => string | undefined): ReactNode {
+  const rows = parseHtmlTable(markup);
+  if (rows.length === 0) {
+    return (
+      <p key={key} className="whitespace-pre-line">
+        {renderInline(cleanHtmlTableCell(markup), `${key}:fallback`, resolveImageUrl)}
+      </p>
+    );
+  }
+
+  const [header, ...bodyRows] = rows;
+  return renderTableBlock(header, bodyRows, key, resolveImageUrl);
+}
+
 function renderInline(text: string, keyPrefix: string, resolveImageUrl?: (src: string) => string | undefined): ReactNode[] {
   const nodes: ReactNode[] = [];
   const tokenRe = /!\[([^\]]*)\]\(([^)\n]+)\)|!\[([^\]]*)\]\(([^)\s]+…)|\$\$\s*([^$]+?)\s*\$\$|\$([^$\n]+)\$|`([^`]+)`|\*\*([^*]+)\*\*/g;
@@ -368,6 +492,17 @@ export function MarkdownView({ content, className = '', resolveImageUrl }: Markd
       continue;
     }
 
+    if (isHtmlTableStart(line)) {
+      const tableLines = [line];
+      i += 1;
+      while (i < lines.length && !/<\/table>/i.test(tableLines.join('\n'))) {
+        tableLines.push(lines[i]);
+        i += 1;
+      }
+      blocks.push(renderHtmlTable(tableLines.join('\n'), `html-table:${i}`, resolveImageUrl));
+      continue;
+    }
+
     if (line.includes('|') && isTableDivider(lines[i + 1] ?? '')) {
       const header = splitTableRow(line);
       const rows: string[][] = [];
@@ -376,32 +511,7 @@ export function MarkdownView({ content, className = '', resolveImageUrl }: Markd
         rows.push(splitTableRow(lines[i]));
         i += 1;
       }
-      blocks.push(
-        <div key={`table:${i}`} className="overflow-x-auto">
-          <table className="min-w-full border-collapse text-left text-xs">
-            <thead>
-              <tr>
-                {header.map((cell, index) => (
-                  <th key={index} className="border border-border-subtle bg-surface px-2 py-1 font-medium text-text-primary">
-                    {renderInline(cell, `th:${i}:${index}`, resolveImageUrl)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, rowIndex) => (
-                <tr key={rowIndex}>
-                  {row.map((cell, cellIndex) => (
-                    <td key={cellIndex} className="border border-border-subtle px-2 py-1 align-top text-text-secondary">
-                      {renderInline(cell, `td:${i}:${rowIndex}:${cellIndex}`, resolveImageUrl)}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>,
-      );
+      blocks.push(renderTableBlock(header, rows, `table:${i}`, resolveImageUrl));
       continue;
     }
 

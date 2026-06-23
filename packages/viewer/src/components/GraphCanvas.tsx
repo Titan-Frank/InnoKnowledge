@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useAppState } from '@/hooks/useAppState';
-import { useSigma } from '@/hooks/useSigma';
-import { okmKnowledgeGraphToGraphology } from '@/lib/graph-adapter';
+import { useG6 } from '@/hooks/useG6';
+import { okmKnowledgeGraphToG6 } from '@/lib/graph-adapter';
 import { getVisibleNodes } from '@/lib/visibility';
 import { getTypeLabel } from '@/core/graph/knowledge-data';
 import { ZoomIn, ZoomOut, Maximize2, Play, Pause, RotateCcw } from '@/lib/lucide-icons';
@@ -12,7 +12,7 @@ export function GraphCanvas() {
     knowledgeGraph, selectedNodeId, selectedTypes, selectedBook,
     layerMode, expandedBackboneNodeId, showLabels,
     themeMode, setSelectedNodeId, setExpandedBackboneNodeId,
-    setCommunityInfo,
+    setCommunityInfo, setIsLayoutRunning,
   } = appState;
 
   const [hoveredNodeName, setHoveredNodeName] = useState<string | null>(null);
@@ -61,12 +61,12 @@ export function GraphCanvas() {
   const {
     containerRef, setGraph, zoomIn, zoomOut, fitToScreen,
     focusNode, startLayout, stopLayout, containerReady,
-  } = useSigma({
+  } = useG6({
     onNodeClick: handleNodeClick,
     onNodeHover: handleNodeHover,
     onStageClick: handleStageClick,
+    onLayoutRunningChange: setIsLayoutRunning,
     selectedNodeId,
-    visibleNodeIds,
     themeMode,
     showLabels,
   });
@@ -76,9 +76,13 @@ export function GraphCanvas() {
     if (!knowledgeGraph || !containerReady) return;
     if (visibleNodeIds.size === 0) return;
 
-    const result = okmKnowledgeGraphToGraphology(knowledgeGraph, visibleNodeIds, themeMode);
+    const result = okmKnowledgeGraphToG6(knowledgeGraph, visibleNodeIds, themeMode);
     setCommunityInfo(result.communityCount, result.communities, result.communityMap);
-    setGraph(result.graph);
+    void setGraph({
+      data: result.data,
+      nodeIds: result.nodeIds,
+      edgePairs: result.edgePairs,
+    });
   }, [knowledgeGraph, visibleNodeIds, themeMode, containerReady, setGraph, setCommunityInfo]);
 
   // Focus on selected node
@@ -109,10 +113,10 @@ export function GraphCanvas() {
         />
       </div>
 
-      {/* Sigma container */}
+      {/* G6 container */}
       <div
         ref={containerRef}
-        className="sigma-container h-full w-full cursor-grab active:cursor-grabbing"
+        className="g6-container h-full w-full cursor-grab active:cursor-grabbing"
       />
 
       {/* Hovered node tooltip */}

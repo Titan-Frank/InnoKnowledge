@@ -98,8 +98,8 @@
   --shadow-glow-soft: 0 0 40px rgba(109, 40, 217, 0.08);
 }
 
-/* Sigma container */
-.sigma-container {
+/* Graph canvas */
+.g6-container {
   position: absolute;
   inset: 0;
 }
