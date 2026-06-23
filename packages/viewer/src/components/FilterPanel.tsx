@@ -1,7 +1,7 @@
 import { useAppState } from '@/hooks/useAppState';
 import { getSearchMatches } from '@/lib/visibility';
 import { TYPE_META, LAYER_MODE_OPTIONS } from '@/lib/constants';
-import { BookOpen, Layers, Eye, EyeOff, ChevronDown, ChevronRight } from '@/lib/lucide-icons';
+import { BookOpen, Layers, Eye, EyeOff, ChevronDown, ChevronRight, Search, X } from '@/lib/lucide-icons';
 import { useMemo, useState, useCallback } from 'react';
 
 type TypeFilterGroup = {
@@ -116,6 +116,8 @@ export function FilterPanel() {
   } = appState;
 
   const [typeSectionOpen, setTypeSectionOpen] = useState(true);
+  const [typeQuery, setTypeQuery] = useState('');
+  const [openTypeGroupIds, setOpenTypeGroupIds] = useState<Set<string>>(() => new Set(['object']));
 
   const visibilityState = useMemo(() => ({
     knowledgeGraph,
@@ -156,6 +158,20 @@ export function FilterPanel() {
       .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   }, [knowledgeGraph]);
 
+  const visibleTypeGroups = useMemo(() => {
+    const query = typeQuery.trim().toLowerCase();
+    if (!query) return typeGroups;
+    return typeGroups
+      .map((group) => ({
+        ...group,
+        types: group.types.filter((type) => (
+          type.toLowerCase().includes(query) ||
+          typeLabel(type).toLowerCase().includes(query)
+        )),
+      }))
+      .filter((group) => group.types.length > 0);
+  }, [typeGroups, typeQuery]);
+
   const toggleTypeGroup = useCallback((types: string[]) => {
     const allSelected = types.every((type) => selectedTypes.has(type));
     const next = new Set(selectedTypes);
@@ -165,6 +181,15 @@ export function FilterPanel() {
     }
     setSelectedTypes(next);
   }, [selectedTypes, setSelectedTypes]);
+
+  const toggleTypeGroupOpen = useCallback((groupId: string) => {
+    setOpenTypeGroupIds((current) => {
+      const next = new Set(current);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  }, []);
 
   const handleSelectNode = useCallback((nodeId: string) => {
     setSelectedNodeId(nodeId);
@@ -177,7 +202,7 @@ export function FilterPanel() {
   if (!knowledgeGraph) return null;
 
   return (
-    <aside className="flex w-72 flex-col border-r border-border-subtle bg-surface overflow-hidden">
+    <aside className="order-2 flex max-h-[38vh] w-full shrink-0 flex-col overflow-hidden border-t border-border-subtle bg-surface lg:order-none lg:max-h-none lg:w-72 lg:border-r lg:border-t-0">
       <div className="flex-1 overflow-y-auto scrollbar-thin p-3 space-y-4">
         {/* Source selector */}
         {sourceConfigs.size > 1 && (
@@ -185,6 +210,7 @@ export function FilterPanel() {
             <select
               value={appState.selectedSourceKey || ''}
               onChange={(e) => switchSource(e.target.value)}
+              aria-label="选择数据源"
               className="w-full rounded-md border border-border-subtle bg-elevated px-2 py-1.5 text-xs text-text-secondary outline-none focus:border-accent"
             >
               {Array.from(sourceConfigs.entries()).map(([key, config]) => (
@@ -203,6 +229,7 @@ export function FilterPanel() {
                 <button
                   key={node.id}
                   onClick={() => handleSelectNode(node.id)}
+                  aria-pressed={selectedNodeId === node.id}
                   className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors ${
                     selectedNodeId === node.id
                       ? 'bg-accent/20 text-text-primary'
@@ -230,6 +257,7 @@ export function FilterPanel() {
             <div className="flex flex-wrap gap-1">
               <button
                 onClick={() => setSelectedBook('all')}
+                aria-pressed={selectedBook === 'all'}
                 className={`rounded-md px-2 py-1 text-xs transition-colors ${
                   selectedBook === 'all' ? 'bg-accent/20 text-accent' : 'bg-elevated text-text-secondary hover:bg-hover'
                 }`}
@@ -240,6 +268,7 @@ export function FilterPanel() {
                 <button
                   key={bookId}
                   onClick={() => setSelectedBook(bookId)}
+                  aria-pressed={selectedBook === bookId}
                   className={`rounded-md px-2 py-1 text-xs transition-colors ${
                     selectedBook === bookId ? 'bg-accent/20 text-accent' : 'bg-elevated text-text-secondary hover:bg-hover'
                   }`}
@@ -262,6 +291,7 @@ export function FilterPanel() {
               <button
                 key={option.id}
                 onClick={() => setLayerMode(option.id)}
+                aria-pressed={layerMode === option.id}
                 className={`flex-1 rounded-md px-2 py-1.5 text-xs transition-colors ${
                   layerMode === option.id ? 'bg-accent/20 text-accent' : 'bg-elevated text-text-secondary hover:bg-hover'
                 }`}
@@ -275,6 +305,7 @@ export function FilterPanel() {
           <div className="mt-2 flex items-center gap-2">
             <button
               onClick={() => setFocusConnected(!focusConnected)}
+              aria-pressed={focusConnected}
               className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
                 focusConnected ? 'bg-accent/20 text-accent' : 'bg-elevated text-text-secondary hover:bg-hover'
               }`}
@@ -284,6 +315,7 @@ export function FilterPanel() {
             </button>
             <button
               onClick={() => setShowLabels(!showLabels)}
+              aria-pressed={showLabels}
               className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
                 showLabels ? 'bg-accent/20 text-accent' : 'bg-elevated text-text-secondary hover:bg-hover'
               }`}
@@ -306,7 +338,7 @@ export function FilterPanel() {
           {typeSectionOpen && (
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <div className="text-[11px] text-text-muted">按知识层级和化学细类分组</div>
+                <div className="text-xs text-text-muted">按知识层级和化学细类分组</div>
                 <button
                   onClick={resetTypes}
                   className="shrink-0 rounded-md px-2 py-1 text-xs text-text-muted transition-colors hover:bg-hover"
@@ -314,42 +346,79 @@ export function FilterPanel() {
                   全选
                 </button>
               </div>
-              {typeGroups.map((group) => {
+              <label className="flex items-center gap-2 rounded-md border border-border-subtle bg-elevated px-2 py-1.5">
+                <Search className="h-3.5 w-3.5 shrink-0 text-text-muted" />
+                <input
+                  value={typeQuery}
+                  onChange={(event) => setTypeQuery(event.target.value)}
+                  aria-label="筛选类型"
+                  placeholder="筛选类型"
+                  className="min-w-0 flex-1 bg-transparent text-xs text-text-primary outline-none placeholder:text-text-muted"
+                />
+                {typeQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setTypeQuery('')}
+                    aria-label="清空类型筛选"
+                    className="rounded p-0.5 text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </label>
+              {visibleTypeGroups.length === 0 && (
+                <div className="rounded-md border border-border-subtle bg-elevated px-3 py-2 text-xs text-text-muted">
+                  没有匹配的类型
+                </div>
+              )}
+              {visibleTypeGroups.map((group) => {
                 const selectedCount = group.types.filter((type) => selectedTypes.has(type)).length;
                 const allSelected = selectedCount === group.types.length;
+                const expanded = typeQuery.trim() ? true : openTypeGroupIds.has(group.id);
                 return (
-                  <div key={group.id} className="space-y-1.5">
+                  <div key={group.id} className="rounded-md border border-border-subtle bg-elevated/45">
                     <div className="flex items-center justify-between gap-2">
-                      <div>
-                        <div className="text-[11px] font-medium text-text-secondary">
-                          {group.label} ({selectedCount}/{group.types.length})
-                        </div>
-                        <div className="text-[10px] leading-snug text-text-muted">{group.description}</div>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleTypeGroupOpen(group.id)}
+                        aria-expanded={expanded}
+                        className="flex min-w-0 flex-1 items-start gap-1.5 rounded-md px-2 py-2 text-left transition-colors hover:bg-hover"
+                      >
+                        {expanded ? <ChevronDown className="mt-0.5 h-3.5 w-3.5 shrink-0 text-text-muted" /> : <ChevronRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-text-muted" />}
+                        <span className="min-w-0">
+                          <span className="block text-xs font-medium text-text-secondary">
+                            {group.label} ({selectedCount}/{group.types.length})
+                          </span>
+                          <span className="mt-0.5 block text-[11px] leading-snug text-text-muted">{group.description}</span>
+                        </span>
+                      </button>
                       <button
                         onClick={() => toggleTypeGroup(group.types)}
-                        className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] text-text-muted transition-colors hover:bg-hover"
+                        className="mr-2 shrink-0 rounded-md px-2 py-1 text-xs text-text-muted transition-colors hover:bg-hover"
                       >
                         {allSelected ? '清空' : '全选'}
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-1">
-                      {group.types.map((type) => (
-                        <button
-                          key={type}
-                          onClick={() => toggleType(type)}
-                          title={type}
-                          className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
-                            selectedTypes.has(type)
-                              ? 'bg-elevated text-text-primary'
-                              : 'bg-elevated/40 text-text-muted line-through'
-                          }`}
-                        >
-                          <div className="h-2 w-2 rounded-full" style={{ backgroundColor: TYPE_META[type]?.color ?? '#9A9AB0' }} />
-                          {typeLabel(type)}
-                        </button>
-                      ))}
-                    </div>
+                    {expanded && (
+                      <div className="flex flex-wrap gap-1 border-t border-border-subtle p-2">
+                        {group.types.map((type) => (
+                          <button
+                            key={type}
+                            onClick={() => toggleType(type)}
+                            title={type}
+                            aria-pressed={selectedTypes.has(type)}
+                            className={`flex max-w-full items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
+                              selectedTypes.has(type)
+                                ? 'bg-surface text-text-primary'
+                                : 'bg-surface/50 text-text-muted line-through'
+                            }`}
+                          >
+                            <div className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: TYPE_META[type]?.color ?? '#9A9AB0' }} />
+                            <span className="max-w-[13rem] truncate">{typeLabel(type)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}

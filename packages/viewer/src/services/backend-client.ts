@@ -4,6 +4,52 @@ import type {
   TextbookMetadataRequest, TextbookMetadataResponse,
 } from '@okm/types';
 
+export interface EnrichBookSummary {
+  path: string;
+  filename: string;
+  title: string;
+  subject?: string;
+  stage?: string;
+  grade?: string;
+  course?: string;
+  publisher?: string;
+  volume?: string;
+  root_count?: number;
+  node_count?: number;
+  max_depth?: number;
+}
+
+export interface EnrichIndexResponse {
+  generated_at?: string;
+  book_count: number;
+  subject_count: number;
+  node_count: number;
+  books: EnrichBookSummary[];
+}
+
+export interface EnrichNode {
+  id: string;
+  title?: string;
+  depth: number;
+  order_path: string;
+  title_path: string[];
+  child_count: number;
+  enrichment?: {
+    definition?: string;
+    content?: string;
+    academic_requirements?: string;
+    academic_quality?: string;
+    [key: string]: unknown;
+  };
+  child_nodes: EnrichNode[];
+  [key: string]: unknown;
+}
+
+export interface EnrichBookResponse {
+  book: EnrichBookSummary;
+  tree: EnrichNode[];
+}
+
 export class BackendError extends Error {
   status: number;
   code: string;
@@ -47,6 +93,15 @@ export async function loadMeta(): Promise<MetaResponse> {
 
 export async function loadBundle(sourceKey: string): Promise<BundleResponse> {
   return fetchJson<BundleResponse>(`/api/source/${encodeURIComponent(sourceKey)}/bundle`);
+}
+
+export async function loadEnrichBooks(): Promise<EnrichIndexResponse> {
+  return fetchJson<EnrichIndexResponse>('/api/enrich/books');
+}
+
+export async function loadEnrichBook(path: string): Promise<EnrichBookResponse> {
+  const params = new URLSearchParams({ path });
+  return fetchJson<EnrichBookResponse>(`/api/enrich/book?${params}`);
 }
 
 export async function loadNodeCard(

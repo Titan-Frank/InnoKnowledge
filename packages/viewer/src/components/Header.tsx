@@ -62,17 +62,18 @@ export function Header() {
   }, []);
 
   return (
-    <header className="flex h-12 items-center gap-3 border-b border-border-subtle bg-surface px-4">
-      <div className="flex items-center gap-2">
+    <header className="flex min-h-12 flex-wrap items-center gap-2 border-b border-border-subtle bg-surface px-3 py-2 sm:flex-nowrap sm:gap-3 sm:px-4 sm:py-0">
+      <div className="flex min-w-0 items-center gap-2">
         <Network className="h-5 w-5 text-accent" />
-        <span className="text-sm font-semibold tracking-tight">知识地图</span>
+        <span className="truncate text-sm font-semibold tracking-tight">知识地图</span>
       </div>
 
       {sourceConfigs.size > 1 && (
         <select
           value={selectedSourceKey || ''}
           onChange={(e) => switchSource(e.target.value)}
-          className="rounded-md border border-border-subtle bg-elevated px-2 py-1 text-xs text-text-secondary outline-none focus:border-accent"
+          aria-label="选择数据源"
+          className="max-w-36 rounded-md border border-border-subtle bg-elevated px-2 py-1 text-xs text-text-secondary outline-none focus:border-accent sm:max-w-56"
         >
           {Array.from(sourceConfigs.entries()).map(([key, config]) => (
             <option key={key} value={key}>{config.label}</option>
@@ -83,6 +84,7 @@ export function Header() {
       <div className="flex border border-border-subtle bg-elevated">
         <button
           onClick={() => setWorkspace('graph')}
+          aria-pressed={workspace === 'graph'}
           className={`flex items-center gap-1 px-2.5 py-1 text-xs transition-colors ${
             workspace === 'graph' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'
           }`}
@@ -92,6 +94,7 @@ export function Header() {
         </button>
         <button
           onClick={() => setWorkspace('textbook')}
+          aria-pressed={workspace === 'textbook'}
           className={`flex items-center gap-1 px-2.5 py-1 text-xs transition-colors ${
             workspace === 'textbook' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'
           }`}
@@ -101,6 +104,7 @@ export function Header() {
         </button>
         <button
           onClick={() => setWorkspace('pipeline')}
+          aria-pressed={workspace === 'pipeline'}
           className={`flex items-center gap-1 px-2.5 py-1 text-xs transition-colors ${
             workspace === 'pipeline' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'
           }`}
@@ -110,9 +114,9 @@ export function Header() {
         </button>
       </div>
 
-      <div className="flex-1" />
+      <div className="hidden flex-1 sm:block" />
 
-      <div className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 transition-colors ${
+      <label className={`order-3 flex w-full min-w-0 items-center gap-2 rounded-lg border px-3 py-1.5 transition-colors sm:order-none sm:w-auto ${
         searchFocused ? 'border-accent bg-elevated' : 'border-border-subtle bg-surface'
       }`}>
         <Search className="h-3.5 w-3.5 text-text-muted" />
@@ -124,22 +128,24 @@ export function Header() {
           onFocus={() => setSearchFocused(true)}
           onBlur={() => setSearchFocused(false)}
           placeholder="搜索节点…"
-          className="w-48 bg-transparent text-xs text-text-primary placeholder:text-text-muted outline-none"
+          aria-label="搜索节点"
+          className="min-w-0 flex-1 bg-transparent text-xs text-text-primary placeholder:text-text-muted outline-none sm:w-48 sm:flex-none"
         />
         {serverSearchLoading && (
           <div className="h-3 w-3 animate-spin rounded-full border-2 border-accent border-t-transparent" />
         )}
         <kbd className="hidden rounded border border-border-subtle px-1 text-[10px] text-text-muted sm:inline">⌘K</kbd>
-      </div>
+      </label>
 
       {knowledgeGraph && (
-        <span className="text-xs text-text-muted">
+        <span className="hidden text-xs text-text-muted md:inline">
           {knowledgeGraph.nodeCount} 节点 · {knowledgeGraph.edgeCount} 边
         </span>
       )}
 
       <button
         onClick={handleThemeToggle}
+        aria-label={themeMode === 'dark' ? '切换到亮色' : '切换到暗色'}
         className="flex h-8 w-8 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
         title={themeMode === 'dark' ? '切换到亮色' : '切换到暗色'}
       >

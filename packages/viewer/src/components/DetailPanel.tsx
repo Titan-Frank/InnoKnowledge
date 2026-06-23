@@ -8,7 +8,7 @@ import { DetailProperties } from './sections/DetailProperties';
 import { DetailSupportNodes } from './sections/DetailSupportNodes';
 import { DetailUnit } from './sections/DetailUnit';
 import { DetailMentions } from './sections/DetailMentions';
-import { DetailEmpty } from './sections/DetailEmpty';
+import { Network } from '@/lib/lucide-icons';
 
 const DETAIL_PANEL_WIDTH_KEY = 'okm-detail-panel-width';
 const DEFAULT_DETAIL_PANEL_WIDTH = 384;
@@ -30,6 +30,9 @@ export function DetailPanel() {
   const { knowledgeGraph, selectedNodeId, selectedBook } = useAppState();
   const [width, setWidth] = useState(readPanelWidth);
   const [isResizing, setIsResizing] = useState(false);
+  const [isCompact, setIsCompact] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
+  ));
 
   useEffect(() => {
     window.localStorage.setItem(DETAIL_PANEL_WIDTH_KEY, String(width));
@@ -39,6 +42,14 @@ export function DetailPanel() {
     const handleResize = () => setWidth((current) => clampPanelWidth(current));
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 1023px)');
+    const handleChange = () => setIsCompact(query.matches);
+    handleChange();
+    query.addEventListener('change', handleChange);
+    return () => query.removeEventListener('change', handleChange);
   }, []);
 
   const startResize = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
@@ -70,7 +81,7 @@ export function DetailPanel() {
     setWidth((current) => clampPanelWidth(current + delta));
   }, []);
 
-  const panelClass = 'relative flex shrink-0 flex-col border-l border-border-subtle bg-surface overflow-hidden';
+  const panelClass = 'relative order-3 flex max-h-[45vh] w-full shrink-0 flex-col overflow-hidden border-t border-border-subtle bg-surface lg:order-none lg:max-h-none lg:w-auto lg:border-l lg:border-t-0';
   const resizeHandle = (
     <div
       role="separator"
@@ -96,28 +107,31 @@ export function DetailPanel() {
     </div>
   );
 
-  if (!knowledgeGraph || !selectedNodeId) {
-    return (
-      <aside className={panelClass} style={{ width }}>
-        {resizeHandle}
-        <DetailEmpty />
-      </aside>
-    );
+  const node = knowledgeGraph && selectedNodeId ? knowledgeGraph.nodeById.get(selectedNodeId) : null;
+
+  if (isCompact && !node) {
+    return null;
   }
 
-  const node = knowledgeGraph.nodeById.get(selectedNodeId);
+  const panelStyle = isCompact ? undefined : { width };
+  const maybeResizeHandle = isCompact ? null : resizeHandle;
+
   if (!node) {
     return (
-      <aside className={panelClass} style={{ width }}>
-        {resizeHandle}
-        <DetailEmpty />
+      <aside
+        className="relative order-3 hidden shrink-0 flex-col items-center justify-center border-l border-border-subtle bg-surface text-text-muted lg:flex"
+        style={{ width: 64 }}
+        title="选择节点查看详情"
+      >
+        <Network className="h-5 w-5" />
+        <span className="mt-2 text-xs [writing-mode:vertical-rl]">节点详情</span>
       </aside>
     );
   }
 
   return (
-    <aside className={panelClass} style={{ width }}>
-      {resizeHandle}
+    <aside className={panelClass} style={panelStyle}>
+      {maybeResizeHandle}
       <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-4">
         <DetailHeader node={node} />
         <DetailUnit node={node} />

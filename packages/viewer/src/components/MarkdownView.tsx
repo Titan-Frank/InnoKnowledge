@@ -4,6 +4,7 @@ type MarkdownViewProps = {
   content: string;
   className?: string;
   resolveImageUrl?: (src: string) => string | undefined;
+  hideDecorativeImages?: boolean;
 };
 
 const IMAGE_RE = /!\[([^\]]*)\]\(([^)]+)\)/g;
@@ -23,11 +24,13 @@ function MarkdownImage({
   alt,
   className,
   framed = false,
+  hideDecorative = true,
 }: {
   src: string;
   alt: string;
   className: string;
   framed?: boolean;
+  hideDecorative?: boolean;
 }) {
   const [hidden, setHidden] = useState(false);
   if (hidden) return null;
@@ -40,7 +43,7 @@ function MarkdownImage({
       loading="lazy"
       onLoad={(event) => {
         const imageEl = event.currentTarget;
-        if (isDecorativeImage(imageEl.naturalWidth, imageEl.naturalHeight)) setHidden(true);
+        if (hideDecorative && isDecorativeImage(imageEl.naturalWidth, imageEl.naturalHeight)) setHidden(true);
       }}
     />
   );
@@ -76,6 +79,10 @@ function isHtmlTableStart(line: string): boolean {
   return /<table\b/i.test(line);
 }
 
+function isHtmlDetailsStart(line: string): boolean {
+  return /<details\b/i.test(line);
+}
+
 function isImageOnly(line: string): boolean {
   const withoutImages = line.replace(IMAGE_RE, '').trim();
   IMAGE_RE.lastIndex = 0;
@@ -91,6 +98,7 @@ function isBlockStart(lines: string[], index: number): boolean {
     /^\s*\d+[.)]\s+/.test(line) ||
     isImageOnly(line) ||
     isHtmlTableStart(line) ||
+    isHtmlDetailsStart(line) ||
     (line.includes('|') && isTableDivider(next))
   );
 }
@@ -364,6 +372,38 @@ function renderHtmlTable(markup: string, key: string, resolveImageUrl?: (src: st
   return renderTableBlock(header, bodyRows, key, resolveImageUrl);
 }
 
+function renderHtmlDetails(
+  markup: string,
+  key: string,
+  resolveImageUrl?: (src: string) => string | undefined,
+  hideDecorativeImages = true,
+): ReactNode {
+  const summaryMatch = markup.match(/<summary\b[^>]*>([\s\S]*?)<\/summary>/i);
+  const summary = summaryMatch ? cleanHtmlTableCell(summaryMatch[1]) : '详情';
+  const body = markup
+    .replace(/<details\b[^>]*>/i, '')
+    .replace(/<summary\b[^>]*>[\s\S]*?<\/summary>/i, '')
+    .replace(/<\/details>/i, '')
+    .trim();
+
+  return (
+    <details key={key} className="border border-border-subtle bg-surface">
+      <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-text-primary">
+        {renderInline(summary, `${key}:summary`, resolveImageUrl)}
+      </summary>
+      {body ? (
+        <div className="border-t border-border-subtle px-3 py-2">
+          <MarkdownView
+            content={body}
+            resolveImageUrl={resolveImageUrl}
+            hideDecorativeImages={hideDecorativeImages}
+          />
+        </div>
+      ) : null}
+    </details>
+  );
+}
+
 function renderInline(text: string, keyPrefix: string, resolveImageUrl?: (src: string) => string | undefined): ReactNode[] {
   const nodes: ReactNode[] = [];
   const tokenRe = /!\[([^\]]*)\]\(([^)\n]+)\)|!\[([^\]]*)\]\(([^)\s]+…)|\$\$\s*([^$]+?)\s*\$\$|\$([^$\n]+)\$|`([^`]+)`|\*\*([^*]+)\*\*/g;
@@ -418,7 +458,12 @@ function renderInline(text: string, keyPrefix: string, resolveImageUrl?: (src: s
   return nodes;
 }
 
-function renderImageLine(line: string, key: string, resolveImageUrl?: (src: string) => string | undefined): ReactNode {
+function renderImageLine(
+  line: string,
+  key: string,
+  resolveImageUrl?: (src: string) => string | undefined,
+  hideDecorativeImages = true,
+): ReactNode {
   const images = Array.from(line.matchAll(IMAGE_RE));
   IMAGE_RE.lastIndex = 0;
   return (
@@ -434,6 +479,7 @@ function renderImageLine(line: string, key: string, resolveImageUrl?: (src: stri
             alt={alt}
             className="max-h-80 w-full bg-surface object-contain"
             framed
+            hideDecorative={hideDecorativeImages}
           />
         );
       })}
@@ -441,7 +487,12 @@ function renderImageLine(line: string, key: string, resolveImageUrl?: (src: stri
   );
 }
 
-export function MarkdownView({ content, className = '', resolveImageUrl }: MarkdownViewProps) {
+export function MarkdownView({
+  content,
+  className = '',
+  resolveImageUrl,
+  hideDecorativeImages = true,
+}: MarkdownViewProps) {
   const lines = content.replace(/\r\n/g, '\n').split('\n');
   const blocks: ReactNode[] = [];
   let i = 0;
@@ -499,7 +550,26 @@ export function MarkdownView({ content, className = '', resolveImageUrl }: Markd
         tableLines.push(lines[i]);
         i += 1;
       }
+      if (i < lines.length && /<\/table>/i.test(lines[i])) {
+        tableLines.push(lines[i]);
+        i += 1;
+      }
       blocks.push(renderHtmlTable(tableLines.join('\n'), `html-table:${i}`, resolveImageUrl));
+      continue;
+    }
+
+    if (isHtmlDetailsStart(line)) {
+      const detailsLines = [line];
+      i += 1;
+      while (i < lines.length && !/<\/details>/i.test(detailsLines.join('\n'))) {
+        detailsLines.push(lines[i]);
+        i += 1;
+      }
+      if (i < lines.length && /<\/details>/i.test(lines[i])) {
+        detailsLines.push(lines[i]);
+        i += 1;
+      }
+      blocks.push(renderHtmlDetails(detailsLines.join('\n'), `html-details:${i}`, resolveImageUrl, hideDecorativeImages));
       continue;
     }
 
@@ -548,7 +618,7 @@ export function MarkdownView({ content, className = '', resolveImageUrl }: Markd
     }
 
     if (isImageOnly(line)) {
-      blocks.push(renderImageLine(line, `img:${i}`, resolveImageUrl));
+      blocks.push(renderImageLine(line, `img:${i}`, resolveImageUrl, hideDecorativeImages));
       i += 1;
       continue;
     }

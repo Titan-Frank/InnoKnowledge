@@ -21,9 +21,9 @@ function AppContent() {
       ) : workspace === 'textbook' ? (
         <TextbookTreePage />
       ) : (
-        <main className="flex min-h-0 flex-1">
+        <main className="flex min-h-0 flex-1 flex-col lg:flex-row">
           <FilterPanel />
-          <div className="relative min-w-0 flex-1">
+          <div className="relative order-1 min-h-[360px] min-w-0 flex-1 lg:order-none lg:min-h-0">
             <GraphCanvas />
           </div>
           <DetailPanel />

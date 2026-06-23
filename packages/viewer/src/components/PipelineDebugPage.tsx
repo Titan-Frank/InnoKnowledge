@@ -173,7 +173,7 @@ export function PipelineDebugPage() {
 
   return (
     <main className="flex min-h-0 flex-1 flex-col bg-void">
-      <div className="border-b border-border-subtle bg-surface px-5 py-4">
+      <div className="border-b border-border-subtle bg-surface px-3 py-3 sm:px-5 sm:py-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold text-text-primary">抽取调试</div>
@@ -189,7 +189,7 @@ export function PipelineDebugPage() {
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-5 scrollbar-thin">
+      <div className="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-thin sm:p-5">
         {error && (
           <div className="mb-4 flex items-center gap-2 border border-node-event/40 bg-node-event/10 p-3 text-sm text-node-event">
             <AlertCircle className="h-4 w-4" />
@@ -205,7 +205,7 @@ export function PipelineDebugPage() {
         )}
 
         <div className="space-y-5">
-            <section className="border border-border-subtle bg-elevated p-4">
+            <section className="border border-border-subtle bg-elevated p-3 sm:p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="text-sm font-medium text-text-primary">启动抽取</div>
@@ -217,7 +217,7 @@ export function PipelineDebugPage() {
               </div>
               <form onSubmit={submitStart} className="grid gap-3 lg:grid-cols-[1fr_1.5fr_120px_120px_120px_120px_auto]">
                 <label className="block">
-                  <span className="mb-1 block text-[10px] text-text-muted">book_id</span>
+                  <span className="mb-1 block text-xs text-text-muted">book_id</span>
                   <input
                     value={form.book_id}
                     onChange={(e) => updateForm('book_id', e.target.value)}
@@ -226,7 +226,7 @@ export function PipelineDebugPage() {
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-[10px] text-text-muted">PDF 路径</span>
+                  <span className="mb-1 block text-xs text-text-muted">PDF 路径</span>
                   <input
                     value={form.pdf_path}
                     onChange={(e) => updateForm('pdf_path', e.target.value)}
@@ -235,7 +235,7 @@ export function PipelineDebugPage() {
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-[10px] text-text-muted">学科</span>
+                  <span className="mb-1 block text-xs text-text-muted">学科</span>
                   <input
                     value={form.lesson_subject}
                     onChange={(e) => updateForm('lesson_subject', e.target.value)}
@@ -244,7 +244,7 @@ export function PipelineDebugPage() {
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-[10px] text-text-muted">学段</span>
+                  <span className="mb-1 block text-xs text-text-muted">学段</span>
                   <select
                     value={form.lesson_school_stage}
                     onChange={(e) => updateForm('lesson_school_stage', e.target.value)}
@@ -258,7 +258,7 @@ export function PipelineDebugPage() {
                   </select>
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-[10px] text-text-muted">年级</span>
+                  <span className="mb-1 block text-xs text-text-muted">年级</span>
                   <input
                     value={form.lesson_grade_band}
                     onChange={(e) => updateForm('lesson_grade_band', e.target.value)}
@@ -267,7 +267,7 @@ export function PipelineDebugPage() {
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-[10px] text-text-muted">并行</span>
+                  <span className="mb-1 block text-xs text-text-muted">并行</span>
                   <input
                     value={form.parallelism}
                     onChange={(e) => updateForm('parallelism', e.target.value)}
@@ -279,7 +279,7 @@ export function PipelineDebugPage() {
                   <button
                     type="submit"
                     disabled={starting || !form.book_id.trim()}
-                    className="flex h-[31px] items-center gap-2 border border-accent bg-accent px-3 text-xs text-white disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-surface disabled:text-text-muted"
+                    className="flex h-[31px] w-full items-center justify-center gap-2 border border-accent bg-accent px-3 text-xs text-white disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-surface disabled:text-text-muted sm:w-auto"
                   >
                     {starting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                     启动
@@ -288,7 +288,7 @@ export function PipelineDebugPage() {
               </form>
               <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_1fr_180px_180px_auto]">
                 <label className="block">
-                  <span className="mb-1 block text-[10px] text-text-muted">输出目录</span>
+                  <span className="mb-1 block text-xs text-text-muted">输出目录</span>
                   <input
                     value={form.output_root}
                     onChange={(e) => updateForm('output_root', e.target.value)}
@@ -296,7 +296,7 @@ export function PipelineDebugPage() {
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-[10px] text-text-muted">OpenAI Base URL</span>
+                  <span className="mb-1 block text-xs text-text-muted">OpenAI Base URL</span>
                   <input
                     value={form.openai_base_url}
                     onChange={(e) => updateForm('openai_base_url', e.target.value)}
@@ -305,7 +305,7 @@ export function PipelineDebugPage() {
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-[10px] text-text-muted">模型</span>
+                  <span className="mb-1 block text-xs text-text-muted">模型</span>
                   <input
                     value={form.openai_model}
                     onChange={(e) => updateForm('openai_model', e.target.value)}
@@ -314,7 +314,7 @@ export function PipelineDebugPage() {
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-[10px] text-text-muted">后端</span>
+                  <span className="mb-1 block text-xs text-text-muted">后端</span>
                   <select
                     value={form.lesson_backend_kind}
                     onChange={(e) => updateForm('lesson_backend_kind', e.target.value)}
@@ -330,7 +330,7 @@ export function PipelineDebugPage() {
                     type="button"
                     onClick={() => void submitInfer()}
                     disabled={inferring || !form.book_id.trim()}
-                    className="flex h-[31px] items-center gap-2 border border-border-subtle bg-surface px-3 text-xs text-text-secondary hover:bg-hover disabled:cursor-not-allowed disabled:text-text-muted"
+                    className="flex h-[31px] w-full items-center justify-center gap-2 border border-border-subtle bg-surface px-3 text-xs text-text-secondary hover:bg-hover disabled:cursor-not-allowed disabled:text-text-muted sm:w-auto"
                   >
                     {inferring && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                     识别教材信息
@@ -376,7 +376,7 @@ export function PipelineDebugPage() {
                   <BarChart3 className="h-4 w-4 text-accent" />
                   <div className="text-sm font-medium text-text-primary">课时运行</div>
                 </div>
-                <div className="max-h-[520px] overflow-y-auto scrollbar-thin">
+                <div className="max-h-[520px] overflow-auto scrollbar-thin">
                   <table className="w-full text-left text-xs">
                     <thead className="sticky top-0 bg-elevated text-text-muted">
                       <tr>

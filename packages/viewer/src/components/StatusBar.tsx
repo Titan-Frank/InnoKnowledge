@@ -7,7 +7,7 @@ export function StatusBar() {
   const sourceLabel = selectedSourceKey ? sourceConfigs.get(selectedSourceKey)?.label : null;
 
   return (
-    <footer className="flex h-7 items-center gap-4 border-t border-border-subtle bg-surface px-4 text-[11px] text-text-muted">
+    <footer className="flex h-7 items-center gap-4 border-t border-border-subtle bg-surface px-4 text-[11px] text-text-muted" aria-live="polite">
       <BarChart3 className="h-3 w-3" />
       {sourceLabel && <span>{sourceLabel}</span>}
       {knowledgeGraph && (
@@ -19,7 +19,7 @@ export function StatusBar() {
         </>
       )}
       {isLayoutRunning && (
-        <span className="text-emerald-400">布局优化中…</span>
+        <span role="status" className="text-emerald-400">布局优化中…</span>
       )}
     </footer>
   );
