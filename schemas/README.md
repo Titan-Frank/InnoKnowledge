@@ -14,8 +14,6 @@ schemas/
 ├── world-domain-profile.schema.json
 ├── world-knowledge-standard.md
 ├── world-knowledge-architecture.md
-├── harness/
-│   └── workflow.schema.json
 └── pg/
     ├── knowledge_store.sql
     ├── world_knowledge.sql

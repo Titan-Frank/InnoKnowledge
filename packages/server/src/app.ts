@@ -8,6 +8,7 @@ import { registerNodeCardRoutes } from './routes/node-card.js';
 import { registerSearchRoutes } from './routes/search.js';
 import { registerUnitRoutes } from './routes/unit.js';
 import { registerPipelineRoutes } from './routes/pipeline.js';
+import { registerEnrichRoutes } from './routes/enrich.js';
 import { VIEWER_DIST_DIR } from './utils/paths.js';
 import { existsSync } from 'node:fs';
 
@@ -25,6 +26,7 @@ export function createApp(sql: Sql, dbUrl: string): Hono {
   registerUnitRoutes(app, sql);
   registerPipelineRoutes(app, sql);
   registerSearchRoutes(app, sql);
+  registerEnrichRoutes(app);
 
   // Serve built viewer assets (production mode)
   if (existsSync(VIEWER_DIST_DIR)) {

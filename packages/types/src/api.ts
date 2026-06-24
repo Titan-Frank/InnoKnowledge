@@ -134,13 +134,25 @@ export interface PipelineResponse {
   review_items: PipelineReviewItem[];
 }
 
+export type PipelineLessonBackendKind = 'openai_responses' | 'openai_chat_completions';
+
 export interface PipelineStartRequest {
   book_id: string;
   pdf_path?: string;
+  source_markdown_path?: string;
+  book_title?: string;
+  outline_start_page?: number;
+  outline_end_page?: number;
+  mineru_file_url?: string;
+  mineru_base_url?: string;
+  mineru_model_version?: string;
+  mineru_language?: string;
+  mineru_page_ranges?: string;
+  mineru_force?: boolean;
   dataset_id?: string;
   output_root?: string;
   parallelism?: number;
-  lesson_backend_kind?: string;
+  lesson_backend_kind?: PipelineLessonBackendKind;
   lesson_subject?: string;
   lesson_school_stage?: string;
   lesson_grade_band?: string;

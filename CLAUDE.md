@@ -28,12 +28,10 @@ Research grounding:
 ```bash
 docker compose up -d
 export DATABASE_URL=postgresql://okm:okm@localhost:5432/knowledge
+export OPENAI_API_KEY=your_api_key
 
-python3 scripts/run_okm_harness.py --book-id chem-grade8 --pdf-path /abs/path/to/book.pdf
-python3 scripts/merge_staged_lessons.py --root data/main --book-id chem-grade8
-python3 scripts/normalize.py --dataset-id main
-python3 scripts/strict_qa.py --dataset-id main
-python3 scripts/check_graph_integrity.py --dataset-id main
+npm run server-pipeline-run -w packages/pipeline -- --book-id chem-grade8 --pdf-path /abs/path/to/book.pdf --db "$DATABASE_URL"
+npm run parallel-lesson-pipeline -w packages/pipeline -- --root data/main --dataset-id main --book-id chem-grade8 --db "$DATABASE_URL"
 ```
 
 ## Extraction Rules
@@ -44,16 +42,14 @@ python3 scripts/check_graph_integrity.py --dataset-id main
 - Every node and edge must be evidence-backed.
 - `schema` is the source of classification truth; `tag` is retrieval-only.
 
-## Main Scripts
+## Main TypeScript Commands
 
-- `scripts/extract_lesson_local.py`
-- `scripts/extract_lesson_openai.py`
-- `scripts/store_lesson_staging.py`
-- `scripts/merge_staged_lessons.py`
-- `scripts/normalize.py`
-- `scripts/strict_qa.py`
-- `scripts/check_graph_integrity.py`
-- `scripts/retrieve_candidates.py`
+- `npm run server-pipeline-run -w packages/pipeline`
+- `npm run extract-lesson-openai -w packages/pipeline`
+- `npm run store-staging -w packages/pipeline`
+- `npm run staging-quality -w packages/pipeline`
+- `npm run parallel-lesson-pipeline -w packages/pipeline`
+- `npm run retrieve-candidates -w packages/pipeline`
 
 ## Schema Reference
 

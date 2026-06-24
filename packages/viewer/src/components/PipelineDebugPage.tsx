@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import type { PipelineResponse, PipelineReviewItem, PipelineStartResponse, TextbookMetadataResponse } from '@okm/types';
+import type { PipelineLessonBackendKind, PipelineResponse, PipelineReviewItem, PipelineStartResponse, TextbookMetadataResponse } from '@okm/types';
 import { inferTextbookMetadata, loadPipeline, startPipeline } from '@/services/backend-client';
 import { useAppState } from '@/hooks/useAppState';
 import { AlertCircle, BarChart3, Check, Loader2, RotateCcw } from '@/lib/lucide-icons';
@@ -81,9 +81,22 @@ export function PipelineDebugPage() {
   const [startResult, setStartResult] = useState<PipelineStartResponse | null>(null);
   const [metadata, setMetadata] = useState<TextbookMetadataResponse | null>(null);
   const [inferring, setInferring] = useState(false);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    book_id: string;
+    pdf_path: string;
+    source_markdown_path: string;
+    output_root: string;
+    parallelism: string;
+    lesson_subject: string;
+    lesson_school_stage: string;
+    lesson_grade_band: string;
+    lesson_backend_kind: PipelineLessonBackendKind;
+    openai_base_url: string;
+    openai_model: string;
+  }>({
     book_id: '',
     pdf_path: '',
+    source_markdown_path: '',
     output_root: 'data/main',
     parallelism: '4',
     lesson_subject: '',
@@ -106,7 +119,7 @@ export function PipelineDebugPage() {
     }
   };
 
-  const updateForm = (key: keyof typeof form, value: string) => {
+  const updateForm = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
   };
 
@@ -120,6 +133,7 @@ export function PipelineDebugPage() {
       const result = await startPipeline(activeSourceKey, {
         book_id: form.book_id.trim(),
         pdf_path: form.pdf_path.trim() || undefined,
+        source_markdown_path: form.source_markdown_path.trim() || undefined,
         dataset_id: activeSourceKey,
         output_root: form.output_root.trim() || 'data/main',
         parallelism: Number(form.parallelism) || 4,
@@ -209,7 +223,7 @@ export function PipelineDebugPage() {
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="text-sm font-medium text-text-primary">启动抽取</div>
-                  <div className="text-xs text-text-muted">提交后在后端后台运行现有 harness</div>
+                  <div className="text-xs text-text-muted">提交后在后端后台运行 TS 流程</div>
                 </div>
                 {startResult && (
                   <div className="truncate text-xs text-node-process">已启动 {startResult.job_id}</div>
@@ -232,6 +246,15 @@ export function PipelineDebugPage() {
                     onChange={(e) => updateForm('pdf_path', e.target.value)}
                     className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
                     placeholder="/abs/path/to/book.pdf"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs text-text-muted">Markdown 路径</span>
+                  <input
+                    value={form.source_markdown_path}
+                    onChange={(e) => updateForm('source_markdown_path', e.target.value)}
+                    className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
+                    placeholder="/abs/path/to/full.md"
                   />
                 </label>
                 <label className="block">
@@ -317,12 +340,11 @@ export function PipelineDebugPage() {
                   <span className="mb-1 block text-xs text-text-muted">后端</span>
                   <select
                     value={form.lesson_backend_kind}
-                    onChange={(e) => updateForm('lesson_backend_kind', e.target.value)}
+                    onChange={(e) => updateForm('lesson_backend_kind', e.target.value as PipelineLessonBackendKind)}
                     className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
                   >
                     <option value="openai_responses">openai_responses</option>
                     <option value="openai_chat_completions">openai_chat_completions</option>
-                    <option value="local_rule_based">local_rule_based</option>
                   </select>
                 </label>
                 <div className="flex items-end">

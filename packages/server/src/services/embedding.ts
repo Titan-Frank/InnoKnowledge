@@ -1,9 +1,8 @@
 /**
  * TypeScript embedding client for the Qwen3-Embedding-4B API.
  *
- * Mirrors the Python `scripts/embedding_client.py` defaults but uses
- * Node.js built-in `fetch`. Returns `null` on any failure so the
- * caller can fall back to text-only search.
+ * Uses the same embedding defaults as the TypeScript pipeline commands.
+ * Returns `null` on any failure so the caller can fall back to text-only search.
  */
 
 const DEFAULT_EMBEDDING_URL =

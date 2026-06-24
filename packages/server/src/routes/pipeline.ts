@@ -24,6 +24,16 @@ function asInt(value: unknown, fallback: number): number {
   return Math.max(1, Math.min(16, Math.floor(parsed)));
 }
 
+function parseLessonBackendKind(value: unknown): 'openai_responses' | 'openai_chat_completions' {
+  const raw = asString(value, 'openai_responses');
+  if (raw === 'openai_responses' || raw === 'openai_chat_completions') return raw;
+  throw new Error(`Unsupported lesson backend '${raw}'. Use openai_responses or openai_chat_completions.`);
+}
+
+function toPipelineApiMode(kind: 'openai_responses' | 'openai_chat_completions'): 'openai_responses' | 'chat_completions' {
+  return kind === 'openai_chat_completions' ? 'chat_completions' : 'openai_responses';
+}
+
 function inferTextbookMetadata(input: TextbookMetadataRequest): TextbookMetadataResponse {
   const bookId = asString(input.book_id);
   if (!bookId) throw new Error('book_id is required.');
@@ -122,16 +132,21 @@ function inferTextbookMetadata(input: TextbookMetadataRequest): TextbookMetadata
   };
 }
 
-function buildHarnessCommand(body: PipelineStartRequest): string[] {
+function buildPipelineCommand(body: PipelineStartRequest): string[] {
   const bookId = asString(body.book_id);
   if (!bookId) throw new Error('book_id is required.');
   const inferred = inferTextbookMetadata({ book_id: bookId, pdf_path: body.pdf_path });
 
   const outputRoot = asString(body.output_root, 'data/main');
   const datasetId = asString(body.dataset_id, outputRoot.split('/').filter(Boolean).at(-1) || 'main');
+  const lessonBackendKind = parseLessonBackendKind(body.lesson_backend_kind);
   const command = [
-    'python3',
-    'scripts/run_okm_harness.py',
+    'npm',
+    'run',
+    'server-pipeline-run',
+    '-w',
+    'packages/pipeline',
+    '--',
     '--book-id',
     bookId,
     '--dataset-id',
@@ -140,25 +155,43 @@ function buildHarnessCommand(body: PipelineStartRequest): string[] {
     outputRoot,
     '--parallelism',
     String(asInt(body.parallelism, 4)),
-    '--set',
-    `lesson_backend_kind=${asString(body.lesson_backend_kind, 'openai_responses')}`,
-    '--set',
-    `lesson_subject=${asString(body.lesson_subject, inferred.lesson_subject)}`,
-    '--set',
-    `lesson_school_stage=${asString(body.lesson_school_stage, inferred.lesson_school_stage)}`,
-    '--set',
-    `lesson_grade_band=${asString(body.lesson_grade_band, inferred.lesson_grade_band)}`,
+    '--db',
+    process.env.DATABASE_URL || DEFAULT_DATABASE_URL,
+    '--api-mode',
+    toPipelineApiMode(lessonBackendKind),
+    '--subject',
+    asString(body.lesson_subject, inferred.lesson_subject),
+    '--school-stage',
+    asString(body.lesson_school_stage, inferred.lesson_school_stage),
+    '--grade-band',
+    asString(body.lesson_grade_band, inferred.lesson_grade_band),
   ];
   const openaiBaseUrl = asString(body.openai_base_url);
   if (openaiBaseUrl) {
-    command.push('--set', `lesson_openai_base_url=${openaiBaseUrl}`);
+    command.push('--base-url', openaiBaseUrl);
   }
   const openaiModel = asString(body.openai_model);
   if (openaiModel) {
-    command.push('--set', `lesson_openai_model=${openaiModel}`);
+    command.push('--model', openaiModel);
   }
   const pdfPath = asString(body.pdf_path);
   if (pdfPath) command.push('--pdf-path', pdfPath);
+  const sourceMarkdownPath = asString(body.source_markdown_path);
+  if (sourceMarkdownPath) command.push('--source-markdown-path', sourceMarkdownPath);
+  command.push('--book-title', asString(body.book_title, inferred.title));
+  if (body.outline_start_page) command.push('--outline-start-page', String(asInt(body.outline_start_page, 1)));
+  if (body.outline_end_page) command.push('--outline-end-page', String(asInt(body.outline_end_page, 20)));
+  const mineruFileUrl = asString(body.mineru_file_url);
+  if (mineruFileUrl) command.push('--mineru-file-url', mineruFileUrl);
+  const mineruBaseUrl = asString(body.mineru_base_url);
+  if (mineruBaseUrl) command.push('--mineru-base-url', mineruBaseUrl);
+  const mineruModelVersion = asString(body.mineru_model_version);
+  if (mineruModelVersion) command.push('--mineru-model-version', mineruModelVersion);
+  const mineruLanguage = asString(body.mineru_language);
+  if (mineruLanguage) command.push('--mineru-language', mineruLanguage);
+  const mineruPageRanges = asString(body.mineru_page_ranges);
+  if (mineruPageRanges) command.push('--mineru-page-ranges', mineruPageRanges);
+  if (body.mineru_force === true) command.push('--mineru-force');
   return command;
 }
 
@@ -191,7 +224,7 @@ export function registerPipelineRoutes(app: Hono, sql: Sql) {
 
     let command: string[];
     try {
-      command = buildHarnessCommand(body);
+      command = buildPipelineCommand(body);
     } catch (error) {
       return c.json({ error: (error as Error).message }, 400);
     }

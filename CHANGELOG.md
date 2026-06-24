@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Removed - 2026-06-23
+
+#### TypeScript Pipeline Migration
+- Removed the legacy Python staging writer `scripts/store_lesson_staging.py`; use `npm run store-staging -w packages/pipeline`.
+- Removed the unused psycopg compatibility shim `scripts/psycopg_extras_shim.py`.
+- Removed legacy Python stage scripts now covered by `packages/pipeline`: PostgreSQL check, MinerU Markdown preparation, outline chunking, batch planning, batch reducer, staging quality, retrieval, merge, normalize, strict QA, graph integrity, embeddings backfill, and clustering.
+- Removed unused Python helper modules `scripts/knowledge_store_common.py`, `scripts/embedding_client.py`, and `scripts/okm_pathing.py`.
+- Removed the legacy Python harness wrapper under `harness/`, `scripts/run_okm_harness.py`, and the retired harness workflow schema.
+- Removed the old OpenHarness upload utility `oah_upload.py`.
+
 ### Added - 2026-04-08
 
 #### Parallel Staging Pipeline

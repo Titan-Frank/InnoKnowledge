@@ -11,7 +11,7 @@ export type {
   BundleSourceInfo, ApiBookBundle, BundleResponse,
   NodeCardResponse, SearchHit, SearchResponse, ApiErrorResponse,
   PipelineLessonRun, PipelineMergeRun, PipelineReviewItem, PipelineResponse,
-  PipelineStartRequest, PipelineStartResponse,
+  PipelineLessonBackendKind, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
 } from './api.js';
 

@@ -1,0 +1,389 @@
+import { VALID_EDGE_TYPES, VALID_NODE_KINDS } from "../shared/knowledge.js";
+import type { SqlStatement } from "./staging-sql.js";
+import type {
+  LessonRunRow,
+  StagingDomainProfileRow,
+  StagingEdgeRow,
+  StagingEvidenceRow,
+  StagingMentionRow,
+  StagingNodeCardRow,
+  StagingNodeRow,
+  StagingTableRows,
+} from "./staging-rows.js";
+
+type RawRecord = Record<string, unknown>;
+
+export const REQUIRED_CARD_SECTIONS = new Set(["definition", "essence", "key_points", "example", "application", "misconception"]);
+
+export type LessonStagingQualityResult = {
+  lesson_run_id: string;
+  status: "success" | "blocked";
+  errors: string[];
+  warnings: string[];
+  counts: {
+    nodes: number;
+    edges: number;
+    domain_profiles: number;
+    mentions: number;
+    evidence: number;
+    node_cards: number;
+  };
+};
+
+export function checkLessonStagingQuality(rows: StagingTableRows): LessonStagingQualityResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const nodeIds = new Set(rows.nodes.map((row) => row.raw_node_id));
+  const evidenceIds = new Set(rows.evidence.map((row) => row.raw_evidence_id));
+  const profileNodeIds = new Set(rows.domain_profiles.map((row) => row.raw_node_id));
+  const cardByNode = new Map(rows.node_cards.map((row) => [row.raw_node_id, row]));
+  const mentionByTarget = new Map<string, typeof rows.mentions>();
+
+  for (const mention of rows.mentions) {
+    const mentions = mentionByTarget.get(mention.target_raw_id) ?? [];
+    mentions.push(mention);
+    mentionByTarget.set(mention.target_raw_id, mentions);
+  }
+
+  if (rows.nodes.length === 0) {
+    errors.push("Lesson produced no staged nodes.");
+  }
+  if (rows.evidence.length === 0) {
+    errors.push("Lesson produced no staged evidence.");
+  }
+
+  for (const node of rows.nodes) {
+    const nodeId = node.raw_node_id;
+    if (!VALID_NODE_KINDS.has(node.kind)) {
+      errors.push(`Node ${nodeId} has invalid kind ${node.kind}.`);
+    }
+    if (!node.definition) {
+      errors.push(`Node ${nodeId} is missing definition.`);
+    }
+    if (!profileNodeIds.has(nodeId)) {
+      errors.push(`Node ${nodeId} is missing a domain profile.`);
+    }
+    if (!cardByNode.has(nodeId)) {
+      errors.push(`Node ${nodeId} is missing a node card.`);
+    }
+    if (!mentionByTarget.has(nodeId)) {
+      errors.push(`Node ${nodeId} is missing a mention.`);
+    }
+
+    const mentionRefs = (mentionByTarget.get(nodeId) ?? []).flatMap((mention) => mention.source_refs_json ?? []);
+    if (node.source_refs_json.length === 0 && mentionRefs.length === 0) {
+      errors.push(`Node ${nodeId} has no evidence-backed source reference.`);
+    }
+  }
+
+  for (const edge of rows.edges) {
+    if (!VALID_EDGE_TYPES.has(edge.type)) {
+      errors.push(`Edge ${edge.raw_edge_id} has invalid type ${edge.type}.`);
+    }
+    if (!nodeIds.has(edge.from_raw_node_id) || !nodeIds.has(edge.to_raw_node_id)) {
+      errors.push(`Edge ${edge.raw_edge_id} references missing node endpoint.`);
+    }
+    if (edge.source_refs_json.length === 0) {
+      errors.push(`Edge ${edge.raw_edge_id} has no evidence source_refs.`);
+    }
+  }
+
+  for (const profile of rows.domain_profiles) {
+    if (!nodeIds.has(profile.raw_node_id)) {
+      errors.push(`Domain profile ${profile.raw_profile_id} references missing node.`);
+    }
+    if (profile.source_refs_json.length === 0) {
+      warnings.push(`Domain profile ${profile.raw_profile_id} has no source_refs.`);
+    }
+  }
+
+  for (const mention of rows.mentions) {
+    if (mention.target_type === "node" && !nodeIds.has(mention.target_raw_id)) {
+      errors.push(`Mention ${mention.raw_mention_id} references missing node.`);
+    }
+    for (const ref of mention.source_refs_json) {
+      if (!evidenceIds.has(ref)) {
+        errors.push(`Mention ${mention.raw_mention_id} references missing evidence ${ref}.`);
+      }
+    }
+  }
+
+  for (const card of rows.node_cards) {
+    if (!nodeIds.has(card.raw_node_id)) {
+      errors.push(`Node card ${card.raw_card_id} references missing node.`);
+    }
+    if (!card.summary) {
+      errors.push(`Node card ${card.raw_card_id} is missing summary.`);
+    }
+    const sectionTypes = new Set(card.sections_json.map((section) => section.section_type));
+    const missing = [...REQUIRED_CARD_SECTIONS].filter((section) => !sectionTypes.has(section)).sort();
+    if (missing.length > 0) {
+      errors.push(`Node card ${card.raw_card_id} missing sections: ${formatPythonStringList(missing)}.`);
+    }
+    for (const section of card.sections_json) {
+      if (section.source_refs.length === 0) {
+        errors.push(`Node card ${card.raw_card_id} section ${section.id} has no evidence source_refs.`);
+      }
+    }
+  }
+
+  return {
+    lesson_run_id: rows.lesson_run.lesson_run_id,
+    status: errors.length > 0 ? "blocked" : "success",
+    errors,
+    warnings,
+    counts: rows.lesson_run.counts_json,
+  };
+}
+
+function formatPythonStringList(values: string[]): string {
+  return `[${values.map((value) => `'${value}'`).join(", ")}]`;
+}
+
+export type StagingQualityQueryExecutor = (statement: SqlStatement) => Promise<RawRecord[]> | RawRecord[];
+export type StagingQualityExecutor = (statement: SqlStatement) => Promise<void> | void;
+
+export type StagingQualityFilter = {
+  bookId?: string | null;
+  lessonRunIds?: string[];
+  batchAnchors?: string[];
+};
+
+export type StagingQualityDatabaseOutput = {
+  status: "success" | "blocked";
+  dataset_id: string;
+  checked: number;
+  blocked: number;
+  results: LessonStagingQualityResult[];
+  read_statements: string[];
+  statements: string[];
+  executedStatements: string[];
+};
+
+export async function runStagingQualityFromDatabase(input: {
+  datasetId: string;
+  filter?: StagingQualityFilter;
+  warnOnly?: boolean;
+  now?: string | null;
+  query: StagingQualityQueryExecutor;
+  executeStatement?: StagingQualityExecutor;
+}): Promise<StagingQualityDatabaseOutput> {
+  const readStatements: string[] = [];
+  const query = async (statement: SqlStatement): Promise<RawRecord[]> => {
+    readStatements.push(statement.name);
+    const rows = await input.query(statement);
+    assertRecordRows(statement.name, rows);
+    return rows;
+  };
+
+  const lessonRuns = await query(buildSelectStagedLessonRunsQuery(input.datasetId, input.filter ?? {}));
+  const results: LessonStagingQualityResult[] = [];
+  for (const lessonRun of lessonRuns) {
+    const lessonRunId = requiredString(lessonRun.lesson_run_id, "lesson_run_id");
+    const rows = await fetchStagingRowsForLesson({ datasetId: input.datasetId, lessonRun, lessonRunId, query });
+    results.push(checkLessonStagingQuality(rows));
+  }
+
+  const blockedResults = results.filter((result) => result.status === "blocked");
+  const statements = !input.warnOnly && blockedResults.length > 0 ? buildMarkBlockedStatements(input.datasetId, blockedResults, input.now ?? defaultNow()) : [];
+  const executedStatements: string[] = [];
+  if (statements.length > 0) {
+    if (!input.executeStatement) throw new Error("Executing staging quality updates requires an executeStatement executor.");
+    for (const statement of statements) {
+      await input.executeStatement(statement);
+      executedStatements.push(statement.name);
+    }
+  }
+
+  return {
+    status: blockedResults.length > 0 && !input.warnOnly ? "blocked" : "success",
+    dataset_id: input.datasetId,
+    checked: results.length,
+    blocked: blockedResults.length,
+    results,
+    read_statements: readStatements,
+    statements: statements.map((statement) => statement.name),
+    executedStatements,
+  };
+}
+
+export function buildSelectStagedLessonRunsQuery(datasetId: string, filter: StagingQualityFilter): SqlStatement {
+  const params: unknown[] = [datasetId];
+  const clauses = ["dataset_id = $1", "status = 'staged'"];
+  if (filter.bookId) {
+    params.push(filter.bookId);
+    clauses.push(`book_id = $${params.length}`);
+  }
+  if (filter.lessonRunIds && filter.lessonRunIds.length > 0) {
+    params.push(filter.lessonRunIds);
+    clauses.push(`lesson_run_id = ANY($${params.length})`);
+  }
+  if (filter.batchAnchors && filter.batchAnchors.length > 0) {
+    params.push(filter.batchAnchors);
+    clauses.push(`batch_anchor = ANY($${params.length})`);
+  }
+  return {
+    name: "select-staging-quality-lesson-runs",
+    sql: `SELECT * FROM world_lesson_runs WHERE ${clauses.join(" AND ")} ORDER BY created_at, lesson_run_id`,
+    params,
+  };
+}
+
+export function buildSelectStagingRowsQuery(input: { table: StagingQualityTable; datasetId: string; lessonRunId: string }): SqlStatement {
+  return {
+    name: `select-staging-quality-${input.table}`,
+    sql: `SELECT * FROM ${input.table} WHERE dataset_id = $1 AND lesson_run_id = $2 ORDER BY created_at`,
+    params: [input.datasetId, input.lessonRunId],
+  };
+}
+
+export function buildMarkBlockedStatements(datasetId: string, results: LessonStagingQualityResult[], now: string): SqlStatement[] {
+  return results.map((result) => ({
+    name: `mark-staging-quality-blocked-${result.lesson_run_id}`,
+    sql: [
+      "UPDATE world_lesson_runs",
+      "SET status = 'blocked',",
+      "properties_json = jsonb_set(COALESCE(properties_json, '{}'::jsonb), '{quality_issues}', $1::jsonb, true),",
+      "updated_at = $2",
+      "WHERE dataset_id = $3 AND lesson_run_id = $4",
+    ].join("\n"),
+    params: [result.errors, now, datasetId, result.lesson_run_id],
+  }));
+}
+
+type StagingQualityTable =
+  | "world_staging_nodes"
+  | "world_staging_edges"
+  | "world_staging_domain_profiles"
+  | "world_staging_mentions"
+  | "world_staging_evidence"
+  | "world_staging_node_cards";
+
+async function fetchStagingRowsForLesson(input: {
+  datasetId: string;
+  lessonRun: RawRecord;
+  lessonRunId: string;
+  query: (statement: SqlStatement) => Promise<RawRecord[]>;
+}): Promise<StagingTableRows> {
+  const nodes = (await input.query(buildSelectStagingRowsQuery({ table: "world_staging_nodes", datasetId: input.datasetId, lessonRunId: input.lessonRunId }))).map(toStagingNodeRow);
+  const edges = (await input.query(buildSelectStagingRowsQuery({ table: "world_staging_edges", datasetId: input.datasetId, lessonRunId: input.lessonRunId }))).map(toStagingEdgeRow);
+  const domainProfiles = (
+    await input.query(buildSelectStagingRowsQuery({ table: "world_staging_domain_profiles", datasetId: input.datasetId, lessonRunId: input.lessonRunId }))
+  ).map(toStagingDomainProfileRow);
+  const mentions = (await input.query(buildSelectStagingRowsQuery({ table: "world_staging_mentions", datasetId: input.datasetId, lessonRunId: input.lessonRunId }))).map(toStagingMentionRow);
+  const evidence = (await input.query(buildSelectStagingRowsQuery({ table: "world_staging_evidence", datasetId: input.datasetId, lessonRunId: input.lessonRunId }))).map(toStagingEvidenceRow);
+  const nodeCards = (await input.query(buildSelectStagingRowsQuery({ table: "world_staging_node_cards", datasetId: input.datasetId, lessonRunId: input.lessonRunId }))).map(toStagingNodeCardRow);
+  return {
+    lesson_run: toLessonRunRow(input.lessonRun, {
+      nodes: nodes.length,
+      edges: edges.length,
+      domain_profiles: domainProfiles.length,
+      mentions: mentions.length,
+      evidence: evidence.length,
+      node_cards: nodeCards.length,
+    }),
+    nodes,
+    edges,
+    domain_profiles: domainProfiles,
+    mentions,
+    evidence,
+    node_cards: nodeCards,
+  };
+}
+
+function toLessonRunRow(row: RawRecord, counts: LessonRunRow["counts_json"]): LessonRunRow {
+  return {
+    dataset_id: requiredString(row.dataset_id, "dataset_id"),
+    lesson_run_id: requiredString(row.lesson_run_id, "lesson_run_id"),
+    book_id: requiredString(row.book_id, "book_id"),
+    batch_anchor: requiredString(row.batch_anchor, "batch_anchor"),
+    status: "staged",
+    counts_json: counts,
+    properties_json: {},
+    created_at: optionalString(row.created_at),
+    updated_at: optionalString(row.updated_at),
+  };
+}
+
+function toStagingNodeRow(row: RawRecord): StagingNodeRow {
+  return {
+    ...(row as StagingNodeRow),
+    raw_node_id: requiredString(row.raw_node_id, "raw_node_id"),
+    kind: requiredString(row.kind, "kind"),
+    definition: optionalString(row.definition),
+    source_refs_json: stringArray(row.source_refs_json),
+  };
+}
+
+function toStagingEdgeRow(row: RawRecord): StagingEdgeRow {
+  return {
+    ...(row as StagingEdgeRow),
+    raw_edge_id: requiredString(row.raw_edge_id, "raw_edge_id"),
+    type: requiredString(row.type, "type"),
+    from_raw_node_id: requiredString(row.from_raw_node_id, "from_raw_node_id"),
+    to_raw_node_id: requiredString(row.to_raw_node_id, "to_raw_node_id"),
+    source_refs_json: stringArray(row.source_refs_json),
+  };
+}
+
+function toStagingDomainProfileRow(row: RawRecord): StagingDomainProfileRow {
+  return {
+    ...(row as StagingDomainProfileRow),
+    raw_profile_id: requiredString(row.raw_profile_id, "raw_profile_id"),
+    raw_node_id: requiredString(row.raw_node_id, "raw_node_id"),
+    source_refs_json: stringArray(row.source_refs_json),
+  };
+}
+
+function toStagingMentionRow(row: RawRecord): StagingMentionRow {
+  return {
+    ...(row as StagingMentionRow),
+    raw_mention_id: requiredString(row.raw_mention_id, "raw_mention_id"),
+    target_type: requiredString(row.target_type, "target_type"),
+    target_raw_id: requiredString(row.target_raw_id, "target_raw_id"),
+    source_refs_json: stringArray(row.source_refs_json),
+  };
+}
+
+function toStagingEvidenceRow(row: RawRecord): StagingEvidenceRow {
+  return {
+    ...(row as StagingEvidenceRow),
+    raw_evidence_id: requiredString(row.raw_evidence_id, "raw_evidence_id"),
+  };
+}
+
+function toStagingNodeCardRow(row: RawRecord): StagingNodeCardRow {
+  return {
+    ...(row as StagingNodeCardRow),
+    raw_card_id: requiredString(row.raw_card_id, "raw_card_id"),
+    raw_node_id: requiredString(row.raw_node_id, "raw_node_id"),
+    summary: optionalString(row.summary),
+    sections_json: Array.isArray(row.sections_json) ? (row.sections_json as StagingNodeCardRow["sections_json"]) : [],
+    source_refs_json: stringArray(row.source_refs_json),
+  };
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function requiredString(value: unknown, name: string): string {
+  if (typeof value !== "string" || value.length === 0) throw new Error(`Missing required field '${name}'.`);
+  return value;
+}
+
+function optionalString(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function assertRecordRows(name: string, rows: unknown): asserts rows is RawRecord[] {
+  if (!Array.isArray(rows) || !rows.every(isRecord)) throw new Error(`${name} returned invalid rows.`);
+}
+
+function isRecord(value: unknown): value is RawRecord {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function defaultNow(): string {
+  return new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00");
+}

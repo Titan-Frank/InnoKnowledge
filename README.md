@@ -30,10 +30,12 @@
 docker compose up -d
 export DATABASE_URL=postgresql://okm:okm@localhost:5432/knowledge
 export MINERU_API_KEY=你的_MinerU_API_令牌
+export OPENAI_API_KEY=你的_OpenAI_API_令牌
 
-python3 scripts/run_okm_harness.py \
+npm run server-pipeline-run -w packages/pipeline -- \
   --book-id chem-grade8 \
-  --pdf-path /abs/path/to/book.pdf
+  --pdf-path /abs/path/to/book.pdf \
+  --db "$DATABASE_URL"
 ```
 
 传入 `--pdf-path` 时，流程会先调用 MinerU，把 PDF 转成
@@ -41,32 +43,36 @@ python3 scripts/run_okm_harness.py \
 `world_staging_*` 抽取。也可以跳过 MinerU，直接传已经存在的 Markdown：
 
 ```bash
-python3 scripts/run_okm_harness.py \
+npm run server-pipeline-run -w packages/pipeline -- \
   --book-id chem-grade8 \
-  --source-markdown-path /abs/path/to/full.md
+  --source-markdown-path /abs/path/to/full.md \
+  --db "$DATABASE_URL"
 ```
 
 如果 PDF 已经有公网 URL，也可以让 MinerU 直接抓取：
 
 ```bash
-python3 scripts/run_okm_harness.py \
+npm run server-pipeline-run -w packages/pipeline -- \
   --book-id chem-grade8 \
-  --mineru-file-url https://example.com/textbook.pdf
+  --mineru-file-url https://example.com/textbook.pdf \
+  --db "$DATABASE_URL"
 ```
 
-切到 OpenAI Responses 课时抽取：
+课时知识抽取默认走模型抽取。可以显式指定模型：
 
 ```bash
-python3 scripts/run_okm_harness.py \
+npm run server-pipeline-run -w packages/pipeline -- \
   --book-id chem-grade8 \
   --pdf-path /abs/path/to/book.pdf \
-  --set lesson_backend_kind=openai_responses
+  --model gpt-4.1 \
+  --db "$DATABASE_URL"
 ```
 
 ## 主链路
 
 ```bash
-python3 scripts/store_lesson_staging.py \
+npm run store-staging -w packages/pipeline -- \
+  --db "$DATABASE_URL" \
   --root data/main \
   --book-id chem-grade8 \
   --batch-anchor struct:chem-grade8:lesson:1-1-1 \
@@ -77,10 +83,11 @@ python3 scripts/store_lesson_staging.py \
   --evidence-json '<json>' \
   --node-cards-json '<json>'
 
-python3 scripts/merge_staged_lessons.py --root data/main --book-id chem-grade8
-python3 scripts/normalize.py --dataset-id main
-python3 scripts/strict_qa.py --dataset-id main
-python3 scripts/check_graph_integrity.py --dataset-id main
+npm run parallel-lesson-pipeline -w packages/pipeline -- \
+  --root data/main \
+  --dataset-id main \
+  --book-id chem-grade8 \
+  --db "$DATABASE_URL"
 ```
 
 ## 存储
@@ -114,16 +121,14 @@ python3 scripts/check_graph_integrity.py --dataset-id main
 
 数据库 schema：`schemas/pg/knowledge_store.sql`
 
-## 主要脚本
+## 主要 TypeScript 命令行入口
 
-- `scripts/extract_lesson_local.py`
-- `scripts/extract_lesson_openai.py`
-- `scripts/store_lesson_staging.py`
-- `scripts/merge_staged_lessons.py`
-- `scripts/normalize.py`
-- `scripts/strict_qa.py`
-- `scripts/check_graph_integrity.py`
-- `scripts/retrieve_candidates.py`
+- `npm run server-pipeline-run -w packages/pipeline`
+- `npm run extract-lesson-openai -w packages/pipeline`
+- `npm run store-staging -w packages/pipeline`
+- `npm run staging-quality -w packages/pipeline`
+- `npm run parallel-lesson-pipeline -w packages/pipeline`
+- `npm run retrieve-candidates -w packages/pipeline`
 
 ## 相关文档
 
