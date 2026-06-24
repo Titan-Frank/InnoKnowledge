@@ -1,0 +1,153 @@
+export const TYPE_META: Record<string, { label: string; color: string }> = {
+  concept: { label: '概念', color: '#555AFF' },
+  substance: { label: '物质', color: '#3782FF' },
+  entity: { label: '实体', color: '#3782FF' },
+  experiment: { label: '实验', color: '#1EB478' },
+  activity: { label: '活动', color: '#1EB478' },
+  process: { label: '过程', color: '#2BA876' },
+  principle: { label: '原理', color: '#8C55FF' },
+  method: { label: '方法', color: '#FFB400' },
+  skill: { label: '技能', color: '#A06BFF' },
+  symbol: { label: '符号', color: '#5580CC' },
+  representation: { label: '表征', color: '#5580CC' },
+  resource: { label: '资源', color: '#14B8A6' },
+  question: { label: '问题', color: '#F02D2D' },
+  event: { label: '事件', color: '#E84855' },
+  issue: { label: '议题', color: '#D94848' },
+  simulation_tool: { label: '仿真工具', color: '#9A9AB0' },
+  仿真工具: { label: '仿真工具', color: '#9A9AB0' },
+  'bond-angle': { label: '键角', color: '#9A9AB0' },
+  'bond count': { label: '成键数', color: '#9A9AB0' },
+  'bond length': { label: '键长', color: '#9A9AB0' },
+  'bond property': { label: '化学键性质', color: '#9A9AB0' },
+  'bonding rule': { label: '成键规则', color: '#9A9AB0' },
+  'chemical stability': { label: '化学稳定性', color: '#9A9AB0' },
+  chemical_structure_prediction_rule: { label: '结构预测规则', color: '#9A9AB0' },
+  'electron-pair-property': { label: '电子对性质', color: '#9A9AB0' },
+  'electronic-repulsion-rule': { label: '电子排斥规则', color: '#9A9AB0' },
+  'geometry-rule': { label: '几何规则', color: '#9A9AB0' },
+  'molecular-geometry': { label: '分子几何构型', color: '#9A9AB0' },
+  molecular_mass_property: { label: '相对分子质量性质', color: '#9A9AB0' },
+  molecular_property: { label: '分子性质', color: '#9A9AB0' },
+  'orbital geometry': { label: '轨道几何', color: '#9A9AB0' },
+  principle_group: { label: '原理组', color: '#9A9AB0' },
+  property: { label: '性质', color: '#9A9AB0' },
+  rule: { label: '规则', color: '#9A9AB0' },
+  'system energy': { label: '体系能量', color: '#9A9AB0' },
+  thermophysical_property: { label: '热物理性质', color: '#9A9AB0' },
+  thermophysical_trend_rule: { label: '热物性趋势规则', color: '#9A9AB0' },
+  化学键结构参量: { label: '化学键结构参量', color: '#9A9AB0' },
+  结构性质: { label: '结构性质', color: '#9A9AB0' },
+  晶体宏观形态性质: { label: '晶体宏观形态性质', color: '#9A9AB0' },
+  晶体结构几何属性: { label: '晶体结构几何属性', color: '#9A9AB0' },
+  晶体物理性质: { label: '晶体物理性质', color: '#9A9AB0' },
+  热学性质: { label: '热学性质', color: '#9A9AB0' },
+  other: { label: '其他', color: '#9A9AB0' },
+};
+
+export const LEARNING_MODE_LABELS: Record<string, string> = {
+  factual: '事实性',
+  conceptual: '概念性',
+  procedural: '程序性',
+  metacognitive: '元认知',
+};
+
+export const BRIDGE_TAG_LABELS: Record<string, string> = {
+  system: '系统',
+  structure: '结构',
+  function: '功能',
+  change: '变化',
+  interaction: '相互作用',
+  energy: '能量',
+  matter: '物质',
+  evidence: '证据',
+  model: '模型',
+  representation: '表征',
+  measurement: '测量',
+  classification: '分类',
+  rule: '规则',
+  scale: '尺度',
+  causality: '因果',
+  uncertainty: '不确定性',
+};
+
+export const SCHOOL_STAGE_LABELS: Record<string, string> = {
+  primary: '小学',
+  junior_secondary: '初中',
+  senior_secondary: '高中',
+  higher: '高等教育',
+  cross_stage: '跨学段',
+};
+
+export const CURRICULUM_ROLE_LABELS: Record<string, string> = {
+  introduced: '首次引入',
+  reinforced: '巩固强化',
+  developed: '深入发展',
+  integrated: '综合整合',
+  transferred: '迁移应用',
+  assessed: '评价考查',
+};
+
+export const MASTERY_LEVEL_LABELS: Record<string, string> = {
+  aware: '感知',
+  identify: '识别',
+  understand: '理解',
+  apply: '应用',
+  analyze: '分析',
+  model: '建模',
+  transfer: '迁移',
+  evaluate: '评价',
+  create: '创造',
+};
+
+export const NODE_LAYER_LABELS: Record<string, string> = {
+  backbone: '主干',
+  support: '支撑',
+};
+
+export const EDGE_LAYER_LABELS: Record<string, string> = {
+  backbone: '主干关系',
+  support: '支撑关系',
+};
+
+export const LAYER_MODE_OPTIONS = [
+  {
+    id: 'backbone-expand' as const,
+    label: '主干展开',
+    description: '默认只显示主干，选中主干节点时展开它的支撑节点。',
+  },
+  {
+    id: 'all' as const,
+    label: '全部节点',
+    description: '同时显示主干和支撑节点。',
+  },
+];
+
+export type LayerMode = (typeof LAYER_MODE_OPTIONS)[number]['id'];
+
+export const API_BASE = '/api';
+export const META_PATH = `${API_BASE}/meta`;
+
+export const COMMUNITY_COLORS = [
+  '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6',
+  '#8b5cf6', '#d946ef', '#ec4899', '#f43f5e', '#14b8a6', '#a3e635',
+];
+
+export const COMMUNITY_COLORS_LIGHT = [
+  '#dc2626', '#ea580c', '#ca8a04', '#16a34a', '#0891b2', '#2563eb',
+  '#7c3aed', '#c026d3', '#db2777', '#e11d48', '#0d9488', '#65a30d',
+];
+
+import type { ThemeMode } from '@/core/graph/types';
+
+export function getCommunityColor(index: number, mode: ThemeMode = 'dark'): string {
+  const palette = mode === 'light' ? COMMUNITY_COLORS_LIGHT : COMMUNITY_COLORS;
+  return palette[index % palette.length];
+}
+
+export const COMMUNITY_EDGE_TYPES = new Set([
+  'related_to', 'analogous_to', 'same_as',
+  'explains', 'causes', 'affects',
+  'uses', 'measures', 'produces', 'consumes',
+  'applies_to', 'represented_by', 'symbolizes', 'has_property',
+]);

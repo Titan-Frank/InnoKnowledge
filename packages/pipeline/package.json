@@ -1,0 +1,38 @@
+{
+  "name": "@okm/pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc",
+    "backfill-embeddings": "npm run build && node dist/cli/backfill-embeddings.js",
+    "check": "tsc --noEmit",
+    "check-postgres": "npm run build && node dist/cli/check-postgres.js",
+    "chunk-outline": "npm run build && node dist/cli/chunk-outline.js",
+    "cluster-nodes": "npm run build && node dist/cli/cluster-nodes.js",
+    "extract-pdf-outline": "npm run build && node dist/cli/extract-pdf-outline.js",
+    "extract-lesson-openai": "npm run build && node dist/cli/extract-lesson-openai.js",
+    "graph-integrity": "npm run build && node dist/cli/graph-integrity.js",
+    "merge-staged-lessons": "npm run build && node dist/cli/merge-staged-lessons.js",
+    "mineru-source-markdown": "npm run build && node dist/cli/mineru-source-markdown.js",
+    "normalize": "npm run build && node dist/cli/normalize.js",
+    "parallel-batch": "npm run build && node dist/cli/parallel-batch.js",
+    "parallel-lesson-pipeline": "npm run build && node dist/cli/parallel-lesson-pipeline.js",
+    "retrieve-candidates": "npm run build && node dist/cli/retrieve-candidates.js",
+    "server-pipeline-run": "npm run build && node dist/cli/server-pipeline-run.js",
+    "staging-quality": "npm run build && node dist/cli/staging-quality.js",
+    "store-staging": "npm run build && node dist/cli/store-staging.js",
+    "strict-qa": "npm run build && node dist/cli/strict-qa.js",
+    "test": "npm run build && node --test \"dist/**/*.test.js\""
+  },
+  "dependencies": {
+    "postgres": "^3.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "typescript": "^5.7.3"
+  }
+}

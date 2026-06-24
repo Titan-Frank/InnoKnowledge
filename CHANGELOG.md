@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Removed - 2026-06-23
+
+#### TypeScript Pipeline Migration
+- Removed the legacy Python staging writer `scripts/store_lesson_staging.py`; use `npm run store-staging -w packages/pipeline`.
+- Removed the unused psycopg compatibility shim `scripts/psycopg_extras_shim.py`.
+- Removed legacy Python stage scripts now covered by `packages/pipeline`: PostgreSQL check, MinerU Markdown preparation, outline chunking, batch planning, batch reducer, staging quality, retrieval, merge, normalize, strict QA, graph integrity, embeddings backfill, and clustering.
+- Removed unused Python helper modules `scripts/knowledge_store_common.py`, `scripts/embedding_client.py`, and `scripts/okm_pathing.py`.
+- Removed the legacy Python harness wrapper under `harness/`, `scripts/run_okm_harness.py`, and the retired harness workflow schema.
+- Removed the old OpenHarness upload utility `oah_upload.py`.
+
+### Added - 2026-04-08
+
+#### Parallel Staging Pipeline
+- **`scripts/store_lesson_staging.py`** - Writes lesson-local extraction artifacts into explicit `staging_*` tables
+- **`scripts/merge_staged_lessons.py`** - Aligns staged lesson nodes into canonical nodes and remaps edges, mentions, evidence, profiles, and node cards
+- **`scripts/run_parallel_lesson_pipeline.py`** - Runs merge → normalize → QA for staged lesson batches
+- **`scripts/parallel_batch_runner.py`** - Generates parallel lesson extraction plans from textbook outlines
+
+#### SQLite Schema
+- Added `lesson_runs`, `staging_nodes`, `staging_edges`, `staging_profiles`, `staging_mentions`, `staging_evidence`, `staging_node_cards`
+- Added `merge_runs` and `canonical_node_map` for reducer bookkeeping and raw→canonical traceability
+
+### Changed - 2026-04-08
+
+#### Workflow Rewrite
+- Replaced direct lesson-to-canonical commit as the primary workflow with `parallel lesson staging -> global canonical merge -> normalize -> QA`
+- Updated `normalize_sqlite.py` to rebuild `node_terms` and populate alias text into `node_search`
+- Updated top-level docs to describe the new reducer-based architecture
+
 ### Added - 2026-04-02
 
 #### New Documentation

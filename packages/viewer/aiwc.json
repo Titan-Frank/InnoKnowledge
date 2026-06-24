@@ -1,0 +1,11 @@
+{
+  "componentsDir": "src/components/aiwc",
+  "installed": [
+    "action-button",
+    "knowledge-graph-panel",
+    "segmented-control",
+    "session-list-panel",
+    "tone-badge"
+  ],
+  "schemaVersion": 1
+}

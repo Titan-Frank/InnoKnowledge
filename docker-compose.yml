@@ -1,0 +1,39 @@
+services:
+  # ── Local development: PostgreSQL only ──
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile.pg
+    environment:
+      POSTGRES_DB: knowledge
+      POSTGRES_USER: okm
+      POSTGRES_PASSWORD: okm
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./storage/pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U okm -d knowledge"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── One-click demo: PostgreSQL + Viewer in a single container ──
+  demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8765:8765"
+    volumes:
+      - okm-pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: knowledge
+      POSTGRES_USER: okm
+      POSTGRES_PASSWORD: okm
+      OKM_DATA_DIR: /app/data
+      OKM_VIEWER_DIST: /app/packages/viewer/dist
+      SERVER_PORT: "8765"
+
+volumes:
+  okm-pgdata:

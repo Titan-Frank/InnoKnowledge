@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "World Knowledge Schema V1.2",
+  "description": "Minimal unified node schema for world knowledge, designed to stay simple while covering K12 as the near-term validation target. Version 1.2 aligns learning_mode with the revised Bloom knowledge dimensions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "kind",
+    "definition",
+    "domains",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "entity",
+        "concept",
+        "property",
+        "process",
+        "event",
+        "method",
+        "rule",
+        "representation",
+        "resource"
+      ]
+    },
+    "subkind": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "definition": {
+      "type": "string",
+      "minLength": 1
+    },
+    "aliases": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "domains": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "mathematics",
+          "physics",
+          "chemistry",
+          "biology",
+          "earth-science",
+          "astronomy",
+          "computer-science",
+          "engineering",
+          "language-arts",
+          "linguistics",
+          "literature",
+          "history",
+          "geography",
+          "civics",
+          "economics",
+          "law",
+          "education",
+          "arts",
+          "music",
+          "health",
+          "sports",
+          "philosophy",
+          "general"
+        ]
+      }
+    },
+    "knowledge_form": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "propositional",
+          "practical"
+        ]
+      }
+    },
+    "learning_mode": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "factual",
+          "conceptual",
+          "procedural",
+          "metacognitive"
+        ]
+      }
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "universal",
+        "domain-specific",
+        "culture-specific"
+      ]
+    },
+    "properties": {
+      "type": "object"
+    },
+    "external_ids": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "deprecated"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

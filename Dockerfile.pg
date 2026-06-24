@@ -1,0 +1,6 @@
+FROM pgvector/pgvector:pg16
+
+# Use China mirrors for faster builds (only Debian, keep original PostgreSQL repo)
+RUN sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.list 2>/dev/null; \
+    sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list 2>/dev/null; \
+    true
