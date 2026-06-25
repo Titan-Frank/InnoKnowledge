@@ -53,6 +53,10 @@
   /* Animations */
   --animate-fade-in: fade-in 0.3s ease-out;
   --animate-slide-up: slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-detail-panel-in: detail-panel-in 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-detail-panel-up: detail-panel-up 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-detail-panel-out: detail-panel-out 0.28s cubic-bezier(0.7, 0, 0.84, 0);
+  --animate-detail-panel-down: detail-panel-down 0.28s cubic-bezier(0.7, 0, 0.84, 0);
   --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
 
   /* Shadows */
@@ -68,6 +72,26 @@
 @keyframes slide-up {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes detail-panel-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes detail-panel-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes detail-panel-out {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(24px); }
+}
+
+@keyframes detail-panel-down {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(18px); }
 }
 
 @keyframes pulse-glow {

@@ -8,12 +8,14 @@ import { DetailProperties } from './sections/DetailProperties';
 import { DetailSupportNodes } from './sections/DetailSupportNodes';
 import { DetailUnit } from './sections/DetailUnit';
 import { DetailMentions } from './sections/DetailMentions';
-import { Network } from '@/lib/lucide-icons';
+import { Maximize2, Network, X } from '@/lib/lucide-icons';
+import type { OKMNode } from '@/core/graph/types';
 
 const DETAIL_PANEL_WIDTH_KEY = 'okm-detail-panel-width';
 const DEFAULT_DETAIL_PANEL_WIDTH = 384;
 const MIN_DETAIL_PANEL_WIDTH = 320;
 const MAX_DETAIL_PANEL_WIDTH = 760;
+const DETAIL_PANEL_EXIT_MS = 280;
 
 function clampPanelWidth(value: number): number {
   const viewportLimit = typeof window === 'undefined' ? MAX_DETAIL_PANEL_WIDTH : Math.floor(window.innerWidth * 0.65);
@@ -26,10 +28,28 @@ function readPanelWidth(): number {
   return clampPanelWidth(Number.isFinite(stored) && stored > 0 ? stored : DEFAULT_DETAIL_PANEL_WIDTH);
 }
 
+function NodeDetailContent({ node, selectedBook }: { node: OKMNode; selectedBook: string }) {
+  return (
+    <>
+      <DetailHeader node={node} />
+      <DetailUnit node={node} />
+      {!node.description ? null : <DetailDescription node={node} />}
+      <DetailKnowledgeAxes node={node} />
+      <DetailAliases node={node} />
+      <DetailProperties node={node} />
+      <DetailSupportNodes node={node} />
+      <DetailMentions node={node} selectedBook={selectedBook} />
+    </>
+  );
+}
+
 export function DetailPanel() {
   const { knowledgeGraph, selectedNodeId, selectedBook } = useAppState();
   const [width, setWidth] = useState(readPanelWidth);
   const [isResizing, setIsResizing] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [visibleNode, setVisibleNode] = useState<OKMNode | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
   const [isCompact, setIsCompact] = useState(() => (
     typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
   ));
@@ -81,7 +101,10 @@ export function DetailPanel() {
     setWidth((current) => clampPanelWidth(current + delta));
   }, []);
 
-  const panelClass = 'relative order-3 flex max-h-[45vh] w-full shrink-0 flex-col overflow-hidden border-t border-border-subtle bg-surface lg:order-none lg:max-h-none lg:w-auto lg:border-l lg:border-t-0';
+  const panelMotionClass = isClosing
+    ? 'pointer-events-none animate-detail-panel-down lg:animate-detail-panel-out'
+    : 'animate-detail-panel-up lg:animate-detail-panel-in';
+  const panelClass = `relative order-3 flex max-h-[45vh] w-full shrink-0 flex-col overflow-hidden border-t border-border-subtle bg-surface ${panelMotionClass} lg:order-none lg:max-h-none lg:w-auto lg:border-l lg:border-t-0`;
   const resizeHandle = (
     <div
       role="separator"
@@ -109,14 +132,45 @@ export function DetailPanel() {
 
   const node = knowledgeGraph && selectedNodeId ? knowledgeGraph.nodeById.get(selectedNodeId) : null;
 
-  if (isCompact && !node) {
+  useEffect(() => {
+    if (node) {
+      setVisibleNode(node);
+      setIsClosing(false);
+      return;
+    }
+    if (!visibleNode) return;
+
+    setIsClosing(true);
+    const timer = window.setTimeout(() => {
+      setVisibleNode(null);
+      setIsClosing(false);
+    }, DETAIL_PANEL_EXIT_MS);
+    return () => window.clearTimeout(timer);
+  }, [node, visibleNode]);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setExpanded(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [expanded]);
+
+  useEffect(() => {
+    if (!node) setExpanded(false);
+  }, [node]);
+
+  const detailNode = node ?? visibleNode;
+
+  if (isCompact && !detailNode) {
     return null;
   }
 
   const panelStyle = isCompact ? undefined : { width };
   const maybeResizeHandle = isCompact ? null : resizeHandle;
 
-  if (!node) {
+  if (!detailNode) {
     return (
       <aside
         className="relative order-3 hidden shrink-0 flex-col items-center justify-center border-l border-border-subtle bg-surface text-text-muted lg:flex"
@@ -130,18 +184,64 @@ export function DetailPanel() {
   }
 
   return (
-    <aside className={panelClass} style={panelStyle}>
-      {maybeResizeHandle}
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-4">
-        <DetailHeader node={node} />
-        <DetailUnit node={node} />
-        {!node.description ? null : <DetailDescription node={node} />}
-        <DetailKnowledgeAxes node={node} />
-        <DetailAliases node={node} />
-        <DetailProperties node={node} />
-        <DetailSupportNodes node={node} />
-        <DetailMentions node={node} selectedBook={selectedBook} />
-      </div>
-    </aside>
+    <>
+      <aside
+        className={panelClass}
+        style={panelStyle}
+        aria-hidden={expanded || isClosing}
+      >
+        {maybeResizeHandle}
+        <div className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3">
+          <div className="text-base font-semibold text-text-primary">节点详情</div>
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            className="flex h-8 items-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-2.5 text-sm text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+            aria-label="放大查看节点详情"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+            放大
+          </button>
+        </div>
+        <div className="flex-1 space-y-4 overflow-y-auto p-4 scrollbar-thin">
+          <NodeDetailContent node={detailNode} selectedBook={selectedBook} />
+        </div>
+      </aside>
+
+      {expanded && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-void/80 p-4 backdrop-blur-sm animate-fade-in">
+          <button
+            type="button"
+            className="absolute inset-0 cursor-default"
+            aria-label="关闭放大详情"
+            onClick={() => setExpanded(false)}
+          />
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="expanded-node-detail-title"
+            className="relative flex max-h-[88vh] w-full max-w-5xl animate-slide-up flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-border-subtle bg-elevated px-5 py-4">
+              <div>
+                <div id="expanded-node-detail-title" className="text-base font-semibold text-text-primary">节点详情</div>
+                <div className="mt-0.5 text-sm text-text-muted">放大查看内容、证据和关系</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setExpanded(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-border-subtle bg-surface text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+                aria-label="关闭放大详情"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5 scrollbar-thin">
+              <NodeDetailContent node={detailNode} selectedBook={selectedBook} />
+            </div>
+          </section>
+        </div>
+      )}
+    </>
   );
 }

@@ -40,8 +40,10 @@ npm run check
 Start PostgreSQL before pipeline work:
 
 ```bash
-docker compose up -d
+# 只用 Docker 启动本地 PostgreSQL
+docker compose up -d postgres
 export DATABASE_URL=postgresql://okm:okm@localhost:5432/knowledge
+docker compose exec -T postgres psql -U okm -d knowledge < schemas/pg/knowledge_store.sql
 ```
 
 Run the TypeScript extraction pipeline:

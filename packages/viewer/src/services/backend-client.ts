@@ -61,10 +61,23 @@ export class BackendError extends Error {
   }
 }
 
+async function backendErrorMessage(response: Response, fallback: string): Promise<string> {
+  const text = await response.text().catch(() => '');
+  if (!text) return fallback;
+  try {
+    const payload = JSON.parse(text) as Record<string, unknown>;
+    if (typeof payload.error === 'string' && payload.error.trim()) return payload.error;
+    if (typeof payload.message === 'string' && payload.message.trim()) return payload.message;
+  } catch {
+    return text;
+  }
+  return fallback;
+}
+
 export async function fetchJson<T = unknown>(path: string): Promise<T> {
   const response = await fetch(path);
   if (!response.ok) {
-    throw new BackendError(`Failed to load ${path}`, response.status, 'server');
+    throw new BackendError(await backendErrorMessage(response, `Failed to load ${path}`), response.status, 'server');
   }
   return response.json() as Promise<T>;
 }
@@ -82,7 +95,7 @@ export async function postJson<T = unknown>(path: string, body: unknown): Promis
     body: JSON.stringify(body),
   });
   if (!response.ok) {
-    throw new BackendError(`Failed to post ${path}`, response.status, 'server');
+    throw new BackendError(await backendErrorMessage(response, `Failed to post ${path}`), response.status, 'server');
   }
   return response.json() as Promise<T>;
 }

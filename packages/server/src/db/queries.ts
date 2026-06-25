@@ -1,11 +1,11 @@
 import type { Sql } from './connection.js';
 import type {
   ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit, ApiUnitMedia,
-  PipelineResponse,
+  OutlineData, OutlineItem, PipelineResponse,
 } from '@okm/types';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { REPO_ROOT } from '../utils/paths.js';
+import { OUTLINES_DIR, REPO_ROOT } from '../utils/paths.js';
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -383,7 +383,271 @@ function mediaFromEvidence(rows: Record<string, unknown>[], sourceKey: string): 
   return media;
 }
 
-function sourceFragmentsFromEvidence(rows: Record<string, unknown>[]): Array<Record<string, unknown>> {
+const outlineCache = new Map<string, OutlineData | null>();
+const markdownCache = new Map<string, string[] | null>();
+
+function loadOutlineByBookId(bookId: string): OutlineData | null {
+  if (!bookId) return null;
+  const cached = outlineCache.get(bookId);
+  if (cached !== undefined) return cached;
+
+  const outlinePath = path.resolve(OUTLINES_DIR, `${bookId}.outline.json`);
+  if (!existsSync(outlinePath)) {
+    outlineCache.set(bookId, null);
+    return null;
+  }
+
+  try {
+    const data = JSON.parse(readFileSync(outlinePath, 'utf-8')) as OutlineData;
+    outlineCache.set(bookId, data);
+    return data;
+  } catch {
+    outlineCache.set(bookId, null);
+    return null;
+  }
+}
+
+function loadMarkdownLines(markdownPath: string): string[] | null {
+  if (!markdownPath) return null;
+  const cached = markdownCache.get(markdownPath);
+  if (cached !== undefined) return cached;
+
+  if (!existsSync(markdownPath)) {
+    markdownCache.set(markdownPath, null);
+    return null;
+  }
+
+  try {
+    const lines = readFileSync(markdownPath, 'utf-8').split(/\r?\n/);
+    markdownCache.set(markdownPath, lines);
+    return lines;
+  } catch {
+    markdownCache.set(markdownPath, null);
+    return null;
+  }
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
+
+function dashedSourceId(value: string): string {
+  return value.replace(/_/g, '-');
+}
+
+function sourceIdFromAnchor(anchorRef: string): string {
+  const match = anchorRef.match(/^struct:([^:]+):/);
+  return match?.[1] || '';
+}
+
+function sourceIdFromPath(sourcePath: string): string {
+  if (!sourcePath) return '';
+  const normalized = sourcePath.replace(/\\/g, '/');
+  const parts = normalized.split('/').filter(Boolean);
+  const fullIndex = parts.lastIndexOf('full.md');
+  if (fullIndex > 0) return parts[fullIndex - 1] || '';
+  return path.basename(path.dirname(normalized));
+}
+
+function outlineCandidatesForRow(row: Record<string, unknown>): string[] {
+  const sourceId = textValue(row.source_id);
+  const anchorSourceId = sourceIdFromAnchor(textValue(row.anchor_ref));
+  const pathSourceId = sourceIdFromPath(textValue(row.source_path));
+  return uniqueStrings([
+    sourceId,
+    dashedSourceId(sourceId),
+    anchorSourceId,
+    dashedSourceId(anchorSourceId),
+    pathSourceId,
+    dashedSourceId(pathSourceId),
+  ]);
+}
+
+function resolveRepoPath(value: string): string {
+  return path.isAbsolute(value) ? path.resolve(value) : path.resolve(REPO_ROOT, value);
+}
+
+function markdownPathCandidates(
+  row: Record<string, unknown>,
+  outline: OutlineData,
+  bookId: string,
+): string[] {
+  return uniqueStrings([
+    textValue(row.source_path),
+    textValue(outline.source_path),
+    `data/mineru/${bookId}/full.md`,
+  ]).map(resolveRepoPath);
+}
+
+function findOutlineMatch(row: Record<string, unknown>): { bookId: string; outline: OutlineData; item: OutlineItem } | null {
+  const anchorRef = textValue(row.anchor_ref);
+  if (!anchorRef) return null;
+
+  for (const bookId of outlineCandidatesForRow(row)) {
+    const outline = loadOutlineByBookId(bookId);
+    const item = outline?.items?.find((candidate) => candidate.id === anchorRef);
+    if (outline && item) return { bookId, outline, item };
+  }
+
+  return null;
+}
+
+function assetUrlForPath(sourceKey: string, resolvedPath: string): string {
+  return `/api/source/${encodeURIComponent(sourceKey)}/assets/${encodeURIComponent(resolvedPath)}`;
+}
+
+function resolveMarkdownAssetPath(markdownPath: string, assetRef: string): string | null {
+  const cleanRef = assetRef.trim();
+  if (!cleanRef || /^(https?:|data:|blob:|\/api\/)/i.test(cleanRef) || cleanRef.startsWith('#')) {
+    return null;
+  }
+
+  const withoutQuery = cleanRef.split(/[?#]/, 1)[0] || cleanRef;
+  const candidates = path.isAbsolute(withoutQuery)
+    ? [path.resolve(withoutQuery)]
+    : [
+      path.resolve(path.dirname(markdownPath), withoutQuery),
+      path.resolve(REPO_ROOT, withoutQuery),
+    ];
+
+  return candidates.find((candidate) => existsSync(candidate)) || null;
+}
+
+function rewriteMarkdownImageUrls(markdown: string, markdownPath: string, sourceKey: string): string {
+  return markdown.replace(/!\[([^\]]*)\]\(([^)\n]+)\)/g, (match, alt: string, src: string) => {
+    const resolvedPath = resolveMarkdownAssetPath(markdownPath, src);
+    if (!resolvedPath) return match;
+    return `![${alt}](${assetUrlForPath(sourceKey, resolvedPath)})`;
+  });
+}
+
+function normalizeDetailsSummaries(markdown: string): string {
+  const labels: Record<string, string> = {
+    chemical: '化学图示',
+    equation: '公式说明',
+    flowchart: '流程图',
+    image: '图片说明',
+    natural_image: '实物图片',
+    table: '表格说明',
+    text: '文字说明',
+    text_image: '图片文字',
+  };
+
+  return markdown.replace(
+    /<summary>([^<]+)<\/summary>/g,
+    (_match, label: string) => `<summary>${labels[label.trim()] || label}</summary>`,
+  );
+}
+
+function modalitiesFromMarkdown(markdown: string, fallback: string[]): string[] {
+  const modalities = new Set(fallback.map((value) => value.trim()).filter(Boolean));
+  if (markdown.includes('![](') || /!\[[^\]]*\]\(/.test(markdown)) modalities.add('image');
+  if (/<table\b/i.test(markdown) || /\|.+\|/.test(markdown)) modalities.add('table');
+  if (/\$[^$\n]+\$/.test(markdown) || /\$\$[\s\S]+?\$\$/.test(markdown)) modalities.add('equation');
+  modalities.add('text');
+  return [...modalities];
+}
+
+function markdownFragmentFromOutline(
+  items: Record<string, unknown>[],
+  sourceKey: string,
+): Record<string, unknown> | null {
+  const first = items[0] || {};
+  const match = findOutlineMatch(first);
+  if (!match) return null;
+
+  const { bookId, outline, item } = match;
+  const mdStart = Number(item.md_start);
+  const mdEnd = Number(item.md_end);
+  if (!Number.isFinite(mdStart) || !Number.isFinite(mdEnd) || mdStart <= 0 || mdEnd < mdStart) {
+    return null;
+  }
+
+  for (const markdownPath of markdownPathCandidates(first, outline, bookId)) {
+    const lines = loadMarkdownLines(markdownPath);
+    if (!lines) continue;
+
+    const markdown = lines.slice(mdStart - 1, Math.min(mdEnd, lines.length)).join('\n').trim();
+    if (!markdown) continue;
+
+    const normalizedMarkdown = normalizeDetailsSummaries(
+      rewriteMarkdownImageUrls(markdown, markdownPath, sourceKey),
+    );
+    const fallbackModalities = uniqueStrings(items.map((row) => textValue(row.modality) || 'text'));
+    const pageStart = item.page_start ?? first.page_start;
+    const pageEnd = item.page_end ?? first.page_end ?? pageStart;
+
+    return {
+      source_id: textValue(first.source_id),
+      anchor_ref: textValue(first.anchor_ref),
+      source_path: markdownPath,
+      page_start: pageStart == null ? null : Number(pageStart),
+      page_end: pageEnd == null ? null : Number(pageEnd),
+      title: item.title || item.label || textValue(first.anchor_ref),
+      source_kind: 'outline_markdown',
+      is_full_source: true,
+      md_start: mdStart,
+      md_end: mdEnd,
+      excerpts: [{
+        id: `${textValue(first.source_id)}:${textValue(first.anchor_ref)}:source-markdown`,
+        modality: 'text',
+        locator: item.title || item.label || textValue(first.locator),
+        excerpt: normalizedMarkdown,
+        page_start: pageStart == null ? null : Number(pageStart),
+        page_end: pageEnd == null ? null : Number(pageEnd),
+        properties: {
+          source: 'outline_markdown',
+          outline_id: item.id,
+          outline_title: item.title,
+          md_start: mdStart,
+          md_end: mdEnd,
+        },
+      }],
+      text: normalizedMarkdown,
+      modalities: modalitiesFromMarkdown(normalizedMarkdown, fallbackModalities),
+    };
+  }
+
+  return null;
+}
+
+function evidenceFragment(items: Record<string, unknown>[]): Record<string, unknown> {
+  const first = items[0] || {};
+  const sorted = items.slice().sort((a, b) => {
+    const aLocator = textValue(a.locator);
+    const bLocator = textValue(b.locator);
+    return aLocator.localeCompare(bLocator, 'zh-CN', { numeric: true });
+  });
+  const excerpts = sorted
+    .map((item) => ({
+      id: textValue(item.id),
+      modality: textValue(item.modality) || 'text',
+      locator: textValue(item.locator),
+      excerpt: textValue(item.excerpt),
+      page_start: item.page_start == null ? null : Number(item.page_start),
+      page_end: item.page_end == null ? null : Number(item.page_end),
+      properties: asRecord(item.properties),
+    }))
+    .filter((item) => item.excerpt);
+
+  return {
+    source_id: textValue(first.source_id),
+    anchor_ref: textValue(first.anchor_ref),
+    source_path: textValue(first.source_path),
+    page_start: first.page_start == null ? null : Number(first.page_start),
+    page_end: first.page_end == null ? null : Number(first.page_end),
+    source_kind: 'evidence_excerpt',
+    is_full_source: false,
+    excerpts,
+    text: excerpts
+      .filter((item) => item.modality !== 'image')
+      .map((item) => item.excerpt)
+      .join('\n\n'),
+    modalities: [...new Set(excerpts.map((item) => item.modality))],
+  };
+}
+
+function sourceFragmentsFromEvidence(rows: Record<string, unknown>[], sourceKey: string): Array<Record<string, unknown>> {
   const byAnchor = new Map<string, Record<string, unknown>[]>();
   for (const row of rows) {
     const key = `${textValue(row.source_id)}:${textValue(row.anchor_ref)}`;
@@ -392,37 +656,7 @@ function sourceFragmentsFromEvidence(rows: Record<string, unknown>[]): Array<Rec
   }
 
   return Array.from(byAnchor.values()).map((items) => {
-    const first = items[0] || {};
-    const sorted = items.slice().sort((a, b) => {
-      const aLocator = textValue(a.locator);
-      const bLocator = textValue(b.locator);
-      return aLocator.localeCompare(bLocator, 'zh-CN', { numeric: true });
-    });
-    const excerpts = sorted
-      .map((item) => ({
-        id: textValue(item.id),
-        modality: textValue(item.modality) || 'text',
-        locator: textValue(item.locator),
-        excerpt: textValue(item.excerpt),
-        page_start: item.page_start == null ? null : Number(item.page_start),
-        page_end: item.page_end == null ? null : Number(item.page_end),
-        properties: asRecord(item.properties),
-      }))
-      .filter((item) => item.excerpt);
-
-    return {
-      source_id: textValue(first.source_id),
-      anchor_ref: textValue(first.anchor_ref),
-      source_path: textValue(first.source_path),
-      page_start: first.page_start == null ? null : Number(first.page_start),
-      page_end: first.page_end == null ? null : Number(first.page_end),
-      excerpts,
-      text: excerpts
-        .filter((item) => item.modality !== 'image')
-        .map((item) => item.excerpt)
-        .join('\n\n'),
-      modalities: [...new Set(excerpts.map((item) => item.modality))],
-    };
+    return markdownFragmentFromOutline(items, sourceKey) || evidenceFragment(items);
   });
 }
 
@@ -494,7 +728,7 @@ export async function loadUnit(
     mentions: mentionRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['source_refs', 'properties']) as unknown as ApiMention),
     evidence,
     media: mediaFromEvidence(evidenceRecords, sourceKey),
-    source_fragments: sourceFragmentsFromEvidence(evidenceRecords),
+    source_fragments: sourceFragmentsFromEvidence(evidenceRecords, sourceKey),
     card,
     body: renderCardBody(card),
   };

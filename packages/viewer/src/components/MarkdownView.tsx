@@ -5,6 +5,7 @@ type MarkdownViewProps = {
   className?: string;
   resolveImageUrl?: (src: string) => string | undefined;
   hideDecorativeImages?: boolean;
+  imageLayout?: 'inline' | 'preview' | 'reader';
 };
 
 const IMAGE_RE = /!\[([^\]]*)\]\(([^)]+)\)/g;
@@ -23,12 +24,14 @@ function MarkdownImage({
   src,
   alt,
   className,
+  figureClassName = '',
   framed = false,
   hideDecorative = true,
 }: {
   src: string;
   alt: string;
   className: string;
+  figureClassName?: string;
   framed?: boolean;
   hideDecorative?: boolean;
 }) {
@@ -51,7 +54,7 @@ function MarkdownImage({
   if (!framed) return image;
 
   return (
-    <figure className="overflow-hidden border border-border-subtle bg-elevated">
+    <figure className={`overflow-hidden border border-border-subtle bg-elevated ${figureClassName}`.trim()}>
       {image}
       {alt === '教材图片' ? null : (
         <figcaption className="border-t border-border-subtle px-2 py-1 text-[10px] text-text-muted">
@@ -377,6 +380,7 @@ function renderHtmlDetails(
   key: string,
   resolveImageUrl?: (src: string) => string | undefined,
   hideDecorativeImages = true,
+  imageLayout: MarkdownViewProps['imageLayout'] = 'inline',
 ): ReactNode {
   const summaryMatch = markup.match(/<summary\b[^>]*>([\s\S]*?)<\/summary>/i);
   const summary = summaryMatch ? cleanHtmlTableCell(summaryMatch[1]) : '详情';
@@ -397,6 +401,7 @@ function renderHtmlDetails(
             content={body}
             resolveImageUrl={resolveImageUrl}
             hideDecorativeImages={hideDecorativeImages}
+            imageLayout={imageLayout}
           />
         </div>
       ) : null}
@@ -404,7 +409,30 @@ function renderHtmlDetails(
   );
 }
 
-function renderInline(text: string, keyPrefix: string, resolveImageUrl?: (src: string) => string | undefined): ReactNode[] {
+function inlineImageClass(imageLayout: MarkdownViewProps['imageLayout']): string {
+  if (imageLayout === 'reader') return 'my-4 max-h-[60vh] w-full rounded-md border border-border-subtle bg-elevated object-contain';
+  if (imageLayout === 'preview') return 'my-3 mx-auto max-h-56 w-auto max-w-full rounded-md border border-border-subtle bg-elevated object-contain';
+  return 'my-2 max-h-72 w-full border border-border-subtle bg-surface object-contain';
+}
+
+function blockImageClass(imageLayout: MarkdownViewProps['imageLayout']): string {
+  if (imageLayout === 'reader') return 'max-h-[68vh] w-full bg-elevated object-contain';
+  if (imageLayout === 'preview') return 'mx-auto max-h-56 w-auto max-w-full bg-elevated object-contain';
+  return 'max-h-80 w-full bg-surface object-contain';
+}
+
+function blockFigureClass(imageLayout: MarkdownViewProps['imageLayout']): string {
+  if (imageLayout === 'reader') return 'rounded-lg bg-elevated p-3';
+  if (imageLayout === 'preview') return 'rounded-md bg-elevated p-2';
+  return '';
+}
+
+function renderInline(
+  text: string,
+  keyPrefix: string,
+  resolveImageUrl?: (src: string) => string | undefined,
+  imageLayout: MarkdownViewProps['imageLayout'] = 'inline',
+): ReactNode[] {
   const nodes: ReactNode[] = [];
   const tokenRe = /!\[([^\]]*)\]\(([^)\n]+)\)|!\[([^\]]*)\]\(([^)\s]+…)|\$\$\s*([^$]+?)\s*\$\$|\$([^$\n]+)\$|`([^`]+)`|\*\*([^*]+)\*\*/g;
   let lastIndex = 0;
@@ -424,7 +452,7 @@ function renderInline(text: string, keyPrefix: string, resolveImageUrl?: (src: s
             key={`${keyPrefix}:img:${index}`}
             src={resolved}
             alt={alt}
-            className="my-2 max-h-72 w-full border border-border-subtle bg-surface object-contain"
+            className={inlineImageClass(imageLayout)}
           />,
         );
       } else if (!src.includes('…')) {
@@ -463,6 +491,7 @@ function renderImageLine(
   key: string,
   resolveImageUrl?: (src: string) => string | undefined,
   hideDecorativeImages = true,
+  imageLayout: MarkdownViewProps['imageLayout'] = 'inline',
 ): ReactNode {
   const images = Array.from(line.matchAll(IMAGE_RE));
   IMAGE_RE.lastIndex = 0;
@@ -477,7 +506,8 @@ function renderImageLine(
             key={`${key}:figure:${index}`}
             src={resolved}
             alt={alt}
-            className="max-h-80 w-full bg-surface object-contain"
+            className={blockImageClass(imageLayout)}
+            figureClassName={blockFigureClass(imageLayout)}
             framed
             hideDecorative={hideDecorativeImages}
           />
@@ -492,6 +522,7 @@ export function MarkdownView({
   className = '',
   resolveImageUrl,
   hideDecorativeImages = true,
+  imageLayout = 'inline',
 }: MarkdownViewProps) {
   const lines = content.replace(/\r\n/g, '\n').split('\n');
   const blocks: ReactNode[] = [];
@@ -569,7 +600,7 @@ export function MarkdownView({
         detailsLines.push(lines[i]);
         i += 1;
       }
-      blocks.push(renderHtmlDetails(detailsLines.join('\n'), `html-details:${i}`, resolveImageUrl, hideDecorativeImages));
+      blocks.push(renderHtmlDetails(detailsLines.join('\n'), `html-details:${i}`, resolveImageUrl, hideDecorativeImages, imageLayout));
       continue;
     }
 
@@ -594,7 +625,7 @@ export function MarkdownView({
       blocks.push(
         <ul key={`ul:${i}`} className="list-disc space-y-1 pl-5">
           {items.map((item, index) => (
-            <li key={index}>{renderInline(item, `ul:${i}:${index}`, resolveImageUrl)}</li>
+            <li key={index}>{renderInline(item, `ul:${i}:${index}`, resolveImageUrl, imageLayout)}</li>
           ))}
         </ul>,
       );
@@ -610,7 +641,7 @@ export function MarkdownView({
       blocks.push(
         <ol key={`ol:${i}`} className="list-decimal space-y-1 pl-5">
           {items.map((item, index) => (
-            <li key={index}>{renderInline(item, `ol:${i}:${index}`, resolveImageUrl)}</li>
+            <li key={index}>{renderInline(item, `ol:${i}:${index}`, resolveImageUrl, imageLayout)}</li>
           ))}
         </ol>,
       );
@@ -618,7 +649,7 @@ export function MarkdownView({
     }
 
     if (isImageOnly(line)) {
-      blocks.push(renderImageLine(line, `img:${i}`, resolveImageUrl, hideDecorativeImages));
+      blocks.push(renderImageLine(line, `img:${i}`, resolveImageUrl, hideDecorativeImages, imageLayout));
       i += 1;
       continue;
     }
@@ -630,7 +661,7 @@ export function MarkdownView({
     }
     blocks.push(
       <p key={`p:${i}`} className="whitespace-pre-line">
-        {renderInline(paragraph.join('\n'), `p:${i}`, resolveImageUrl)}
+        {renderInline(paragraph.join('\n'), `p:${i}`, resolveImageUrl, imageLayout)}
       </p>,
     );
   }

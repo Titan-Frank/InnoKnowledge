@@ -27,8 +27,10 @@
 ## 运行方式
 
 ```bash
-docker compose up -d
+# 只用 Docker 启动本地 PostgreSQL
+docker compose up -d postgres
 export DATABASE_URL=postgresql://okm:okm@localhost:5432/knowledge
+docker compose exec -T postgres psql -U okm -d knowledge < schemas/pg/knowledge_store.sql
 export MINERU_API_KEY=你的_MinerU_API_令牌
 export OPENAI_API_KEY=你的_OpenAI_API_令牌
 
@@ -37,6 +39,8 @@ npm run server-pipeline-run -w packages/pipeline -- \
   --pdf-path /abs/path/to/book.pdf \
   --db "$DATABASE_URL"
 ```
+
+如果只是启动前端和接口服务，不走抽取流程，也建议先完成上面的 schema 初始化。
 
 传入 `--pdf-path` 时，流程会先调用 MinerU，把 PDF 转成
 `data/mineru/<book-id>/full.md`，再生成或对齐大纲，最后按课时进入

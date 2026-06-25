@@ -2,35 +2,192 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import type { PipelineLessonBackendKind, PipelineResponse, PipelineReviewItem, PipelineStartResponse, TextbookMetadataResponse } from '@okm/types';
 import { inferTextbookMetadata, loadPipeline, startPipeline } from '@/services/backend-client';
 import { useAppState } from '@/hooks/useAppState';
-import { AlertCircle, BarChart3, Check, Loader2, RotateCcw } from '@/lib/lucide-icons';
+import {
+  AlertCircle,
+  BarChart3,
+  Check,
+  ChevronRight,
+  GitBranch,
+  Info,
+  Loader2,
+  Play,
+  RotateCcw,
+  Search,
+} from '@/lib/lucide-icons';
+
+type IntakeMode = 'pdf' | 'markdown' | 'mineru';
+
+type PipelineForm = {
+  book_id: string;
+  book_title: string;
+  pdf_path: string;
+  source_markdown_path: string;
+  mineru_file_url: string;
+  mineru_base_url: string;
+  mineru_model_version: string;
+  mineru_language: string;
+  mineru_page_ranges: string;
+  mineru_force: boolean;
+  outline_start_page: string;
+  outline_end_page: string;
+  output_root: string;
+  parallelism: string;
+  lesson_subject: string;
+  lesson_school_stage: string;
+  lesson_grade_band: string;
+  lesson_backend_kind: PipelineLessonBackendKind;
+  openai_base_url: string;
+  openai_model: string;
+};
+
+const initialForm: PipelineForm = {
+  book_id: '',
+  book_title: '',
+  pdf_path: '',
+  source_markdown_path: '',
+  mineru_file_url: '',
+  mineru_base_url: 'https://mineru.net',
+  mineru_model_version: 'vlm',
+  mineru_language: 'ch',
+  mineru_page_ranges: '',
+  mineru_force: false,
+  outline_start_page: '1',
+  outline_end_page: '20',
+  output_root: 'data/main',
+  parallelism: '4',
+  lesson_subject: '',
+  lesson_school_stage: '',
+  lesson_grade_band: '',
+  lesson_backend_kind: 'openai_responses',
+  openai_base_url: '',
+  openai_model: '',
+};
 
 function numberValue(value: unknown): number {
   return typeof value === 'number' ? value : Number(value ?? 0) || 0;
 }
 
 function timeText(value: string | null): string {
-  if (!value) return '';
+  if (!value) return '未记录';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleString();
 }
 
-function StatusPill({ status }: { status: string }) {
-  const style =
-    status === 'qa_passed' || status === 'completed' || status === 'success'
-      ? 'border-node-process/40 bg-node-process/10 text-node-process'
-      : status === 'blocked' || status === 'failed'
-        ? 'border-node-event/40 bg-node-event/10 text-node-event'
-        : 'border-accent/40 bg-accent/10 text-accent';
-  return <span className={`border px-1.5 py-0.5 text-[10px] ${style}`}>{status}</span>;
+function percentValue(value: number): string {
+  return `${Math.round(value * 100)}%`;
 }
 
-function Metric({ label, value, tone = 'normal' }: { label: string; value: number; tone?: 'normal' | 'warn' | 'ok' }) {
-  const color = tone === 'warn' ? 'text-node-event' : tone === 'ok' ? 'text-node-process' : 'text-text-primary';
+function statusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    qa_passed: '已通过',
+    completed: '已完成',
+    success: '成功',
+    blocked: '阻断',
+    failed: '失败',
+    merging: '合并中',
+    merged: '已合并',
+    staged: '已暂存',
+    running: '运行中',
+    started: '已启动',
+  };
+  return labels[status] || status || '未知';
+}
+
+function statusTone(status: string): 'ok' | 'warn' | 'active' | 'neutral' {
+  if (status === 'qa_passed' || status === 'completed' || status === 'success' || status === 'merged') return 'ok';
+  if (status === 'blocked' || status === 'failed') return 'warn';
+  if (status === 'running' || status === 'started' || status === 'merging' || status === 'staged') return 'active';
+  return 'neutral';
+}
+
+function StatusPill({ status }: { status: string }) {
+  const tone = statusTone(status);
+  const style =
+    tone === 'ok'
+      ? 'border-node-process/40 bg-node-process/10 text-node-process'
+      : tone === 'warn'
+        ? 'border-node-event/40 bg-node-event/10 text-node-event'
+        : tone === 'active'
+          ? 'border-accent/40 bg-accent/10 text-accent'
+          : 'border-border-default bg-surface text-text-secondary';
+  return <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${style}`}>{statusLabel(status)}</span>;
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = 'text',
+  inputMode,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  type?: string;
+  inputMode?: 'numeric' | 'text';
+}) {
   return (
-    <div className="border border-border-subtle bg-surface px-3 py-2">
-      <div className={`text-lg font-semibold ${color}`}>{value}</div>
-      <div className="text-xs text-text-muted">{label}</div>
+    <label className="block">
+      <span className="mb-1.5 block text-[11px] font-medium text-text-muted">{label}</span>
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        inputMode={inputMode}
+        placeholder={placeholder}
+        className="h-9 w-full rounded-md border border-border-subtle bg-surface px-3 text-xs text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent"
+      />
+    </label>
+  );
+}
+
+function SelectField<T extends string>({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: T;
+  onChange: (value: T) => void;
+  options: Array<{ value: T; label: string }>;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-[11px] font-medium text-text-muted">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value as T)}
+        className="h-9 w-full rounded-md border border-border-subtle bg-surface px-3 text-xs text-text-primary outline-none transition-colors focus:border-accent"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  detail,
+  tone = 'neutral',
+}: {
+  label: string;
+  value: number | string;
+  detail?: string;
+  tone?: 'neutral' | 'ok' | 'warn' | 'active';
+}) {
+  const color = tone === 'ok' ? 'text-node-process' : tone === 'warn' ? 'text-node-event' : tone === 'active' ? 'text-accent' : 'text-text-primary';
+  return (
+    <div className="rounded-lg border border-border-subtle bg-elevated p-3">
+      <div className={`text-xl font-semibold tabular-nums ${color}`}>{value}</div>
+      <div className="mt-1 text-[11px] font-medium text-text-secondary">{label}</div>
+      {detail && <div className="mt-1 truncate text-[10px] text-text-muted">{detail}</div>}
     </div>
   );
 }
@@ -38,25 +195,25 @@ function Metric({ label, value, tone = 'normal' }: { label: string; value: numbe
 function ReviewList({ items }: { items: PipelineReviewItem[] }) {
   if (items.length === 0) {
     return (
-      <div className="flex items-center gap-2 border border-border-subtle bg-surface p-3 text-sm text-text-secondary">
-        <Check className="h-4 w-4 text-node-process" />
-        暂无待复核合并项
+      <div className="flex items-start gap-2 rounded-lg border border-border-subtle bg-surface p-3 text-xs text-text-secondary">
+        <Check className="mt-0.5 h-4 w-4 shrink-0 text-node-process" />
+        <span>当前没有待复核合并项。</span>
       </div>
     );
   }
 
   return (
     <div className="space-y-2">
-      {items.slice(0, 12).map((item) => (
-        <div key={`${item.merge_run_id}:${item.lesson_run_id}:${item.raw_node_id}`} className="border border-border-subtle bg-surface p-3">
-          <div className="flex items-center justify-between gap-2">
+      {items.slice(0, 8).map((item) => (
+        <div key={`${item.merge_run_id}:${item.lesson_run_id}:${item.raw_node_id}`} className="rounded-lg border border-border-subtle bg-surface p-3">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="truncate text-sm font-medium text-text-primary">{item.raw_node_id}</div>
-              <div className="truncate text-xs text-text-muted">候选：{item.canonical_node_id}</div>
+              <div className="truncate text-xs font-semibold text-text-primary">{item.raw_node_id}</div>
+              <div className="mt-1 truncate text-[11px] text-text-muted">候选节点：{item.canonical_node_id}</div>
             </div>
-            <div className="text-sm font-semibold text-accent">{item.similarity.toFixed(2)}</div>
+            <div className="text-sm font-semibold tabular-nums text-accent">{item.similarity.toFixed(2)}</div>
           </div>
-          <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-text-muted">
+          <div className="mt-2 grid grid-cols-3 gap-2 text-[10px] text-text-muted">
             <span>词面 {numberValue(item.rationale.lexical).toFixed(2)}</span>
             <span>语义键 {numberValue(item.rationale.semantic_key).toFixed(2)}</span>
             <span>向量 {numberValue(item.rationale.embedding).toFixed(2)}</span>
@@ -67,73 +224,75 @@ function ReviewList({ items }: { items: PipelineReviewItem[] }) {
   );
 }
 
+function sourceReadyLabel(mode: IntakeMode, form: PipelineForm): string {
+  if (mode === 'pdf') return form.pdf_path.trim() ? 'PDF 路径已填写' : '需要本机 PDF 绝对路径';
+  if (mode === 'markdown') return form.source_markdown_path.trim() ? 'Markdown 路径已填写' : '需要 full.md 或等价源文件';
+  return form.mineru_file_url.trim() || form.pdf_path.trim() ? 'MinerU 输入已填写' : '需要 PDF 路径或文件 URL';
+}
+
+function sourceReady(mode: IntakeMode, form: PipelineForm): boolean {
+  if (mode === 'pdf') return Boolean(form.pdf_path.trim());
+  if (mode === 'markdown') return Boolean(form.source_markdown_path.trim());
+  return Boolean(form.mineru_file_url.trim() || form.pdf_path.trim());
+}
+
 export function PipelineDebugPage() {
   const { selectedSourceKey } = useAppState();
   const activeSourceKey =
     selectedSourceKey ||
     new URLSearchParams(window.location.search).get('source') ||
     'main';
+
   const [payload, setPayload] = useState<PipelineResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState('');
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
   const [startResult, setStartResult] = useState<PipelineStartResponse | null>(null);
   const [metadata, setMetadata] = useState<TextbookMetadataResponse | null>(null);
   const [inferring, setInferring] = useState(false);
-  const [form, setForm] = useState<{
-    book_id: string;
-    pdf_path: string;
-    source_markdown_path: string;
-    output_root: string;
-    parallelism: string;
-    lesson_subject: string;
-    lesson_school_stage: string;
-    lesson_grade_band: string;
-    lesson_backend_kind: PipelineLessonBackendKind;
-    openai_base_url: string;
-    openai_model: string;
-  }>({
-    book_id: '',
-    pdf_path: '',
-    source_markdown_path: '',
-    output_root: 'data/main',
-    parallelism: '4',
-    lesson_subject: '',
-    lesson_school_stage: '',
-    lesson_grade_band: '',
-    lesson_backend_kind: 'openai_responses',
-    openai_base_url: '',
-    openai_model: '',
-  });
+  const [intakeMode, setIntakeMode] = useState<IntakeMode>('pdf');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [form, setForm] = useState<PipelineForm>(initialForm);
 
   const refresh = async () => {
     setLoading(true);
-    setError(false);
+    setError('');
     try {
       setPayload(await loadPipeline(activeSourceKey));
-    } catch {
-      setError(true);
+    } catch (err) {
+      setError((err as Error).message || '读取管线状态失败');
     } finally {
       setLoading(false);
     }
   };
 
-  const updateForm = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
+  const updateForm = <K extends keyof PipelineForm>(key: K, value: PipelineForm[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
   };
 
+  const canStart = form.book_id.trim().length > 0 && sourceReady(intakeMode, form) && !starting;
+
   const submitStart = async (event: FormEvent) => {
     event.preventDefault();
-    if (!form.book_id.trim()) return;
+    if (!canStart) return;
     setStarting(true);
     setStartError('');
     setStartResult(null);
     try {
       const result = await startPipeline(activeSourceKey, {
         book_id: form.book_id.trim(),
+        book_title: form.book_title.trim() || undefined,
         pdf_path: form.pdf_path.trim() || undefined,
-        source_markdown_path: form.source_markdown_path.trim() || undefined,
+        source_markdown_path: intakeMode === 'markdown' ? form.source_markdown_path.trim() || undefined : undefined,
+        mineru_file_url: intakeMode === 'mineru' ? form.mineru_file_url.trim() || undefined : undefined,
+        mineru_base_url: intakeMode === 'mineru' ? form.mineru_base_url.trim() || undefined : undefined,
+        mineru_model_version: intakeMode === 'mineru' ? form.mineru_model_version.trim() || undefined : undefined,
+        mineru_language: intakeMode === 'mineru' ? form.mineru_language.trim() || undefined : undefined,
+        mineru_page_ranges: intakeMode === 'mineru' ? form.mineru_page_ranges.trim() || undefined : undefined,
+        mineru_force: intakeMode === 'mineru' ? form.mineru_force : undefined,
+        outline_start_page: Number(form.outline_start_page) || undefined,
+        outline_end_page: Number(form.outline_end_page) || undefined,
         dataset_id: activeSourceKey,
         output_root: form.output_root.trim() || 'data/main',
         parallelism: Number(form.parallelism) || 4,
@@ -165,12 +324,13 @@ export function PipelineDebugPage() {
       setMetadata(result);
       setForm((current) => ({
         ...current,
+        book_title: current.book_title || result.title,
         lesson_subject: result.lesson_subject,
         lesson_school_stage: result.lesson_school_stage,
         lesson_grade_band: result.lesson_grade_band,
       }));
     } catch (err) {
-      setStartError((err as Error).message || '识别失败');
+      setStartError((err as Error).message || '识别教材信息失败');
     } finally {
       setInferring(false);
     }
@@ -185,291 +345,350 @@ export function PipelineDebugPage() {
     [payload],
   );
 
+  const latestLesson = recentLessons[0] ?? null;
+  const latestMerge = payload?.merge_runs[0] ?? null;
+  const successRate = payload?.summary.lesson_runs
+    ? payload.summary.qa_passed / Math.max(payload.summary.lesson_runs, 1)
+    : 0;
+
   return (
     <main className="flex min-h-0 flex-1 flex-col bg-void">
-      <div className="border-b border-border-subtle bg-surface px-3 py-3 sm:px-5 sm:py-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold text-text-primary">抽取调试</div>
-            <div className="text-xs text-text-muted">数据源 {activeSourceKey}</div>
+      <div className="border-b border-border-subtle bg-surface px-4 py-4 sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent">抽取控制台</span>
+              <span className="text-xs text-text-muted">数据源：{activeSourceKey}</span>
+            </div>
+            <h1 className="text-xl font-semibold tracking-tight text-text-primary">教材知识抽取与合并运行台</h1>
+            <p className="mt-1 text-sm text-text-secondary">从 PDF、源 Markdown 或 MinerU 任务入口启动抽取，并跟踪课时运行、合并复核和质量状态。</p>
           </div>
           <button
+            type="button"
             onClick={() => void refresh()}
-            className="flex items-center gap-2 border border-border-subtle bg-elevated px-3 py-1.5 text-xs text-text-secondary hover:bg-hover"
+            className="flex h-9 items-center gap-2 rounded-md border border-border-subtle bg-elevated px-3 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           >
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
-            刷新
+            刷新状态
           </button>
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-thin sm:p-5">
+      <div className="min-h-0 flex-1 overflow-y-auto p-4 scrollbar-thin sm:p-6">
         {error && (
-          <div className="mb-4 flex items-center gap-2 border border-node-event/40 bg-node-event/10 p-3 text-sm text-node-event">
-            <AlertCircle className="h-4 w-4" />
-            读取管线状态失败
+          <div className="mb-4 flex items-start gap-2 rounded-lg border border-node-event/40 bg-node-event/10 p-3 text-sm text-node-event">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
-        {!payload && loading && (
-          <div className="flex items-center gap-2 text-sm text-text-muted">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            加载管线状态…
-          </div>
-        )}
-
-        <div className="space-y-5">
-            <section className="border border-border-subtle bg-elevated p-3 sm:p-4">
-              <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="grid gap-5 xl:grid-cols-[420px_minmax(0,1fr)_340px]">
+          <section className="min-w-0 overflow-hidden rounded-lg border border-border-subtle bg-elevated">
+            <div className="border-b border-border-subtle p-4">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-sm font-medium text-text-primary">启动抽取</div>
-                  <div className="text-xs text-text-muted">提交后在后端后台运行 TS 流程</div>
+                  <div className="text-sm font-semibold text-text-primary">启动抽取</div>
+                  <div className="mt-1 text-xs text-text-muted">后端会创建后台任务并返回日志路径。</div>
                 </div>
-                {startResult && (
-                  <div className="truncate text-xs text-node-process">已启动 {startResult.job_id}</div>
-                )}
+                <StatusPill status={starting ? 'running' : startResult?.status || 'ready'} />
               </div>
-              <form onSubmit={submitStart} className="grid gap-3 lg:grid-cols-[1fr_1.5fr_120px_120px_120px_120px_auto]">
-                <label className="block">
-                  <span className="mb-1 block text-xs text-text-muted">book_id</span>
-                  <input
-                    value={form.book_id}
-                    onChange={(e) => updateForm('book_id', e.target.value)}
-                    className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
-                    placeholder="chem-grade8"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-xs text-text-muted">PDF 路径</span>
-                  <input
-                    value={form.pdf_path}
-                    onChange={(e) => updateForm('pdf_path', e.target.value)}
-                    className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
-                    placeholder="/abs/path/to/book.pdf"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-xs text-text-muted">Markdown 路径</span>
-                  <input
-                    value={form.source_markdown_path}
-                    onChange={(e) => updateForm('source_markdown_path', e.target.value)}
-                    className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
-                    placeholder="/abs/path/to/full.md"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-xs text-text-muted">学科</span>
-                  <input
-                    value={form.lesson_subject}
-                    onChange={(e) => updateForm('lesson_subject', e.target.value)}
-                    className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
-                    placeholder="自动识别"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-xs text-text-muted">学段</span>
-                  <select
-                    value={form.lesson_school_stage}
-                    onChange={(e) => updateForm('lesson_school_stage', e.target.value)}
-                    className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
-                  >
-                    <option value="">自动识别</option>
-                    <option value="primary">primary</option>
-                    <option value="junior-secondary">junior-secondary</option>
-                    <option value="senior-secondary">senior-secondary</option>
-                    <option value="higher">higher</option>
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-xs text-text-muted">年级</span>
-                  <input
-                    value={form.lesson_grade_band}
-                    onChange={(e) => updateForm('lesson_grade_band', e.target.value)}
-                    className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
-                    placeholder="自动识别"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-xs text-text-muted">并行</span>
-                  <input
-                    value={form.parallelism}
-                    onChange={(e) => updateForm('parallelism', e.target.value)}
-                    className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
-                    inputMode="numeric"
-                  />
-                </label>
-                <div className="flex items-end">
+            </div>
+
+            <form onSubmit={submitStart} className="space-y-4 p-4">
+              <div className="grid grid-cols-3 overflow-hidden rounded-md border border-border-subtle bg-surface text-xs">
+                {([
+                  ['pdf', 'PDF'],
+                  ['markdown', 'Markdown'],
+                  ['mineru', 'MinerU'],
+                ] as Array<[IntakeMode, string]>).map(([mode, label]) => (
                   <button
-                    type="submit"
-                    disabled={starting || !form.book_id.trim()}
-                    className="flex h-[31px] w-full items-center justify-center gap-2 border border-accent bg-accent px-3 text-xs text-white disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-surface disabled:text-text-muted sm:w-auto"
+                    key={mode}
+                    type="button"
+                    onClick={() => setIntakeMode(mode)}
+                    aria-pressed={intakeMode === mode}
+                    className={`px-3 py-2 font-medium transition-colors ${
+                      intakeMode === mode ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'
+                    }`}
                   >
-                    {starting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                    启动
+                    {label}
                   </button>
+                ))}
+              </div>
+
+              <div className="grid gap-3">
+                <Field label="教材编号" value={form.book_id} onChange={(value) => updateForm('book_id', value)} placeholder="chem-hukj-xb2-structure" />
+                <Field label="教材标题" value={form.book_title} onChange={(value) => updateForm('book_title', value)} placeholder="自动识别或手动填写" />
+
+                {intakeMode === 'pdf' && (
+                  <Field label="PDF 绝对路径" value={form.pdf_path} onChange={(value) => updateForm('pdf_path', value)} placeholder="/Users/.../book.pdf" />
+                )}
+
+                {intakeMode === 'markdown' && (
+                  <Field label="源 Markdown 路径" value={form.source_markdown_path} onChange={(value) => updateForm('source_markdown_path', value)} placeholder="/Users/.../full.md" />
+                )}
+
+                {intakeMode === 'mineru' && (
+                  <>
+                    <Field label="PDF 绝对路径" value={form.pdf_path} onChange={(value) => updateForm('pdf_path', value)} placeholder="本地上传 MinerU 时使用" />
+                    <Field label="MinerU 文件 URL" value={form.mineru_file_url} onChange={(value) => updateForm('mineru_file_url', value)} placeholder="已有公网文件地址时填写" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="页码范围" value={form.mineru_page_ranges} onChange={(value) => updateForm('mineru_page_ranges', value)} placeholder="1-80" />
+                      <SelectField
+                        label="语言"
+                        value={form.mineru_language}
+                        onChange={(value) => updateForm('mineru_language', value)}
+                        options={[
+                          { value: 'ch', label: '中文' },
+                          { value: 'en', label: '英文' },
+                        ]}
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="目录起始页" value={form.outline_start_page} onChange={(value) => updateForm('outline_start_page', value)} inputMode="numeric" />
+                  <Field label="目录结束页" value={form.outline_end_page} onChange={(value) => updateForm('outline_end_page', value)} inputMode="numeric" />
                 </div>
-              </form>
-              <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_1fr_180px_180px_auto]">
-                <label className="block">
-                  <span className="mb-1 block text-xs text-text-muted">输出目录</span>
-                  <input
-                    value={form.output_root}
-                    onChange={(e) => updateForm('output_root', e.target.value)}
-                    className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-xs text-text-muted">OpenAI Base URL</span>
-                  <input
-                    value={form.openai_base_url}
-                    onChange={(e) => updateForm('openai_base_url', e.target.value)}
-                    className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
-                    placeholder="默认 https://api.openai.com/v1"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-xs text-text-muted">模型</span>
-                  <input
-                    value={form.openai_model}
-                    onChange={(e) => updateForm('openai_model', e.target.value)}
-                    className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
-                    placeholder="默认 gpt-4.1"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-xs text-text-muted">后端</span>
-                  <select
-                    value={form.lesson_backend_kind}
-                    onChange={(e) => updateForm('lesson_backend_kind', e.target.value as PipelineLessonBackendKind)}
-                    className="w-full border border-border-subtle bg-surface px-2 py-1.5 text-xs text-text-primary outline-none focus:border-accent"
-                  >
-                    <option value="openai_responses">openai_responses</option>
-                    <option value="openai_chat_completions">openai_chat_completions</option>
-                  </select>
-                </label>
-                <div className="flex items-end">
+              </div>
+
+              <div className="rounded-lg border border-border-subtle bg-surface p-3">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="text-xs font-medium text-text-primary">教材信息</div>
                   <button
                     type="button"
                     onClick={() => void submitInfer()}
                     disabled={inferring || !form.book_id.trim()}
-                    className="flex h-[31px] w-full items-center justify-center gap-2 border border-border-subtle bg-surface px-3 text-xs text-text-secondary hover:bg-hover disabled:cursor-not-allowed disabled:text-text-muted sm:w-auto"
+                    className="flex h-7 items-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-2 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {inferring && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                    识别教材信息
+                    {inferring ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
+                    自动识别
                   </button>
                 </div>
-              </div>
-              {metadata && (
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-text-muted">
-                  <span>识别：{metadata.lesson_subject}</span>
-                  <span>{metadata.lesson_school_stage}</span>
-                  <span>{metadata.lesson_grade_band}</span>
-                  <span>置信度 {Math.round(metadata.confidence * 100)}%</span>
-                  {metadata.signals.slice(0, 5).map((signal) => (
-                    <span key={signal} className="bg-surface px-1.5 py-0.5">{signal}</span>
-                  ))}
+                <div className="grid grid-cols-3 gap-2">
+                  <Field label="学科" value={form.lesson_subject} onChange={(value) => updateForm('lesson_subject', value)} placeholder="chemistry" />
+                  <SelectField
+                    label="学段"
+                    value={form.lesson_school_stage}
+                    onChange={(value) => updateForm('lesson_school_stage', value)}
+                    options={[
+                      { value: '', label: '自动' },
+                      { value: 'primary', label: '小学' },
+                      { value: 'junior-secondary', label: '初中' },
+                      { value: 'senior-secondary', label: '高中' },
+                      { value: 'higher', label: '高等教育' },
+                    ]}
+                  />
+                  <Field label="年级" value={form.lesson_grade_band} onChange={(value) => updateForm('lesson_grade_band', value)} placeholder="grade11" />
                 </div>
-              )}
-              {startError && (
-                <div className="mt-3 text-xs text-node-event">{startError}</div>
-              )}
-              {startResult && (
-                <div className="mt-3 truncate text-xs text-text-muted">
-                  日志：{startResult.log_path}
-                </div>
-              )}
-            </section>
-
-          {payload ? (
-            <>
-            <section className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
-              <Metric label="课时运行" value={payload.summary.lesson_runs} />
-              <Metric label="已暂存" value={payload.summary.staged} />
-              <Metric label="已合并" value={payload.summary.merged} />
-              <Metric label="已通过 QA" value={payload.summary.qa_passed} tone="ok" />
-              <Metric label="阻断" value={payload.summary.blocked} tone={payload.summary.blocked ? 'warn' : 'normal'} />
-              <Metric label="待复核" value={payload.summary.review_items} tone={payload.summary.review_items ? 'warn' : 'normal'} />
-              <Metric label="合并运行" value={payload.merge_runs.length} />
-            </section>
-
-            <section className="grid gap-5 lg:grid-cols-[1fr_360px]">
-              <div className="border border-border-subtle bg-elevated">
-                <div className="flex items-center gap-2 border-b border-border-subtle px-4 py-3">
-                  <BarChart3 className="h-4 w-4 text-accent" />
-                  <div className="text-sm font-medium text-text-primary">课时运行</div>
-                </div>
-                <div className="max-h-[520px] overflow-auto scrollbar-thin">
-                  <table className="w-full text-left text-xs">
-                    <thead className="sticky top-0 bg-elevated text-text-muted">
-                      <tr>
-                        <th className="px-3 py-2 font-medium">状态</th>
-                        <th className="px-3 py-2 font-medium">课时</th>
-                        <th className="px-3 py-2 font-medium">节点</th>
-                        <th className="px-3 py-2 font-medium">边</th>
-                        <th className="px-3 py-2 font-medium">证据</th>
-                        <th className="px-3 py-2 font-medium">更新时间</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentLessons.map((row) => (
-                        <tr key={row.lesson_run_id} className="border-t border-border-subtle">
-                          <td className="px-3 py-2"><StatusPill status={row.status} /></td>
-                          <td className="max-w-[260px] truncate px-3 py-2 text-text-secondary" title={row.batch_anchor}>
-                            {row.batch_anchor}
-                            {row.quality_issues.length > 0 && (
-                              <div className="mt-1 truncate text-[10px] text-node-event">{row.quality_issues[0]}</div>
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-text-secondary">{numberValue(row.counts.nodes)}</td>
-                          <td className="px-3 py-2 text-text-secondary">{numberValue(row.counts.edges)}</td>
-                          <td className="px-3 py-2 text-text-secondary">{numberValue(row.counts.evidence)}</td>
-                          <td className="px-3 py-2 text-text-muted">{timeText(row.updated_at)}</td>
-                        </tr>
-                      ))}
-                      {recentLessons.length === 0 && (
-                        <tr>
-                          <td colSpan={6} className="px-3 py-8 text-center text-text-muted">还没有课时运行记录</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="space-y-5">
-                <section>
-                  <div className="mb-2 text-sm font-medium text-text-primary">待复核合并</div>
-                  <ReviewList items={payload.review_items} />
-                </section>
-
-                <section>
-                  <div className="mb-2 text-sm font-medium text-text-primary">最近合并</div>
-                  <div className="space-y-2">
-                    {payload.merge_runs.slice(0, 5).map((run) => (
-                      <div key={run.merge_run_id} className="border border-border-subtle bg-surface p-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="truncate text-xs font-medium text-text-primary">{run.merge_run_id}</div>
-                          <StatusPill status={run.status} />
-                        </div>
-                        <div className="mt-2 grid grid-cols-3 gap-2 text-[10px] text-text-muted">
-                          <span>新建 {numberValue(run.stats.nodes_created)}</span>
-                          <span>匹配 {numberValue(run.stats.nodes_matched)}</span>
-                          <span>复核 {numberValue(run.stats.nodes_review)}</span>
-                        </div>
-                      </div>
+                {metadata && (
+                  <div className="mt-3 flex flex-wrap gap-1.5 text-[10px] text-text-muted">
+                    <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">置信度 {percentValue(metadata.confidence)}</span>
+                    {metadata.signals.slice(0, 5).map((signal) => (
+                      <span key={signal} className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{signal}</span>
                     ))}
                   </div>
-                </section>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAdvanced((value) => !value)}
+                className="flex w-full items-center justify-between rounded-md border border-border-subtle bg-surface px-3 py-2 text-left text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+                aria-expanded={showAdvanced}
+              >
+                高级参数
+                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
+              </button>
+
+              {showAdvanced && (
+                <div className="grid gap-3 rounded-lg border border-border-subtle bg-surface p-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="输出目录" value={form.output_root} onChange={(value) => updateForm('output_root', value)} />
+                    <Field label="并行数" value={form.parallelism} onChange={(value) => updateForm('parallelism', value)} inputMode="numeric" />
+                  </div>
+                  <SelectField<PipelineLessonBackendKind>
+                    label="模型接口"
+                    value={form.lesson_backend_kind}
+                    onChange={(value) => updateForm('lesson_backend_kind', value)}
+                    options={[
+                      { value: 'openai_responses', label: 'OpenAI Responses' },
+                      { value: 'openai_chat_completions', label: 'Chat Completions' },
+                    ]}
+                  />
+                  <Field label="OpenAI Base URL" value={form.openai_base_url} onChange={(value) => updateForm('openai_base_url', value)} placeholder="默认使用环境配置" />
+                  <Field label="模型名称" value={form.openai_model} onChange={(value) => updateForm('openai_model', value)} placeholder="默认由后端决定" />
+                  {intakeMode === 'mineru' && (
+                    <>
+                      <Field label="MinerU Base URL" value={form.mineru_base_url} onChange={(value) => updateForm('mineru_base_url', value)} />
+                      <Field label="MinerU 模型版本" value={form.mineru_model_version} onChange={(value) => updateForm('mineru_model_version', value)} />
+                      <label className="flex items-center gap-2 text-xs text-text-secondary">
+                        <input
+                          type="checkbox"
+                          checked={form.mineru_force}
+                          onChange={(event) => updateForm('mineru_force', event.target.checked)}
+                          className="h-4 w-4 accent-[var(--color-accent)]"
+                        />
+                        强制重新生成 MinerU 源 Markdown
+                      </label>
+                    </>
+                  )}
+                </div>
+              )}
+
+              <div className="grid gap-3 rounded-lg border border-border-subtle bg-surface p-3 text-xs text-text-secondary">
+                <div className="flex items-center justify-between gap-3">
+                  <span>入口状态</span>
+                  <span className={sourceReady(intakeMode, form) ? 'text-node-process' : 'text-node-event'}>{sourceReadyLabel(intakeMode, form)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span>目标数据集</span>
+                  <span className="truncate text-text-primary">{activeSourceKey}</span>
+                </div>
+              </div>
+
+              {startError && (
+                <div className="flex items-start gap-2 rounded-lg border border-node-event/40 bg-node-event/10 p-3 text-xs text-node-event">
+                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span>{startError}</span>
+                </div>
+              )}
+
+              {startResult && (
+                <div className="rounded-lg border border-node-process/40 bg-node-process/10 p-3 text-xs text-text-secondary">
+                  <div className="font-medium text-node-process">任务已启动：{startResult.job_id}</div>
+                  <div className="mt-1 truncate">日志：{startResult.log_path}</div>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={!canStart}
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-dim disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted"
+              >
+                {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                启动抽取任务
+              </button>
+            </form>
+          </section>
+
+          <section className="min-w-0 space-y-5">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <MetricCard label="课时运行" value={payload?.summary.lesson_runs ?? 0} detail={latestLesson ? `最近：${timeText(latestLesson.updated_at)}` : '暂无运行'} />
+              <MetricCard label="已暂存" value={payload?.summary.staged ?? 0} tone="active" detail="等待合并或质检" />
+              <MetricCard label="已通过 QA" value={payload?.summary.qa_passed ?? 0} tone="ok" detail={`通过率 ${percentValue(successRate)}`} />
+              <MetricCard label="阻断项" value={payload?.summary.blocked ?? 0} tone={(payload?.summary.blocked ?? 0) > 0 ? 'warn' : 'neutral'} detail="需要人工处理" />
+            </div>
+
+            <div className="overflow-hidden rounded-lg border border-border-subtle bg-elevated">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-accent" />
+                  <div>
+                    <div className="text-sm font-semibold text-text-primary">课时运行记录</div>
+                    <div className="text-[11px] text-text-muted">按更新时间倒序展示最近任务。</div>
+                  </div>
+                </div>
+                {loading && <Loader2 className="h-4 w-4 animate-spin text-accent" />}
+              </div>
+              <div className="max-h-[560px] overflow-auto scrollbar-thin">
+                <table className="w-full min-w-[760px] text-left text-xs">
+                  <thead className="sticky top-0 z-10 bg-elevated text-text-muted">
+                    <tr>
+                      <th className="px-3 py-2 font-medium">状态</th>
+                      <th className="px-3 py-2 font-medium">课时锚点</th>
+                      <th className="px-3 py-2 font-medium">节点</th>
+                      <th className="px-3 py-2 font-medium">边</th>
+                      <th className="px-3 py-2 font-medium">证据</th>
+                      <th className="px-3 py-2 font-medium">更新时间</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentLessons.map((row) => (
+                      <tr key={row.lesson_run_id} className="border-t border-border-subtle transition-colors hover:bg-hover">
+                        <td className="px-3 py-2"><StatusPill status={row.status} /></td>
+                        <td className="max-w-[320px] px-3 py-2">
+                          <div className="truncate font-medium text-text-primary" title={row.batch_anchor}>{row.batch_anchor}</div>
+                          {row.quality_issues.length > 0 && (
+                            <div className="mt-1 truncate text-[10px] text-node-event">{row.quality_issues[0]}</div>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 tabular-nums text-text-secondary">{numberValue(row.counts.nodes)}</td>
+                        <td className="px-3 py-2 tabular-nums text-text-secondary">{numberValue(row.counts.edges)}</td>
+                        <td className="px-3 py-2 tabular-nums text-text-secondary">{numberValue(row.counts.evidence)}</td>
+                        <td className="px-3 py-2 text-text-muted">{timeText(row.updated_at)}</td>
+                      </tr>
+                    ))}
+                    {!loading && recentLessons.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="px-3 py-12 text-center text-text-muted">暂无课时运行记录。可以从左侧启动第一轮抽取。</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <aside className="min-w-0 space-y-5">
+            <section className="rounded-lg border border-border-subtle bg-elevated p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <Info className="h-4 w-4 text-accent" />
+                <div className="text-sm font-semibold text-text-primary">连接状态</div>
+              </div>
+              <div className="space-y-3 text-xs">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-text-muted">状态接口</span>
+                  <span className={payload ? 'text-node-process' : error ? 'text-node-event' : 'text-text-secondary'}>
+                    {payload ? '已连接' : error ? '异常' : '等待中'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-text-muted">启动接口</span>
+                  <span className="text-node-process">已接入</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-text-muted">合并运行</span>
+                  <span className="text-text-primary">{payload?.merge_runs.length ?? 0}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-text-muted">最近更新时间</span>
+                  <span className="truncate text-text-primary">{latestLesson ? timeText(latestLesson.updated_at) : '暂无'}</span>
+                </div>
               </div>
             </section>
-            </>
-          ) : (
-            !loading && (
-              <div className="border border-border-subtle bg-elevated p-6 text-sm text-text-muted">
-                还没有读取到管线状态。可以先启动抽取，或确认后端 API 正在运行。
+
+            <section className="rounded-lg border border-border-subtle bg-elevated p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <GitBranch className="h-4 w-4 text-accent" />
+                <div className="text-sm font-semibold text-text-primary">最近合并</div>
               </div>
-            )
-          )}
+              {latestMerge ? (
+                <div className="rounded-lg border border-border-subtle bg-surface p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="truncate text-xs font-medium text-text-primary">{latestMerge.merge_run_id}</div>
+                    <StatusPill status={latestMerge.status} />
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-[10px] text-text-muted">
+                    <span>新建 {numberValue(latestMerge.stats.nodes_created)}</span>
+                    <span>匹配 {numberValue(latestMerge.stats.nodes_matched)}</span>
+                    <span>复核 {numberValue(latestMerge.stats.nodes_review)}</span>
+                  </div>
+                  <div className="mt-2 text-[10px] text-text-muted">{timeText(latestMerge.updated_at)}</div>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-border-subtle bg-surface p-3 text-xs text-text-muted">暂无合并运行记录。</div>
+              )}
+            </section>
+
+            <section className="rounded-lg border border-border-subtle bg-elevated p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold text-text-primary">待复核合并</div>
+                <span className="text-xs text-text-muted">{payload?.review_items.length ?? 0}</span>
+              </div>
+              <ReviewList items={payload?.review_items ?? []} />
+            </section>
+          </aside>
         </div>
       </div>
     </main>

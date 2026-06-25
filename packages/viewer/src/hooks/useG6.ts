@@ -32,8 +32,20 @@ const VIEWPORT_ANIMATION = { duration: 360, easing: 'ease-in-out' as const };
 const DEFAULT_LAYOUT: LayoutOptions = { type: 'force' };
 const DEFAULT_NODE_Z_INDEX = 0;
 const DEFAULT_EDGE_Z_INDEX = 0;
+const CLICK_MOVE_THRESHOLD_PX = 6;
+const POST_DRAG_STAGE_SUPPRESS_MS = 220;
+const STAGE_CLEAR_DEDUPE_MS = 180;
 
 type ElementStyle = Record<string, unknown>;
+
+interface PointerGesture {
+  startedOnNode: boolean;
+  startedAt: number;
+  startX: number;
+  startY: number;
+  moved: boolean;
+  endedAt: number;
+}
 
 interface GraphStyleSnapshot {
   nodeStyles: Map<string, ElementStyle>;
@@ -106,7 +118,23 @@ export function useG6(options: UseG6Options) {
   });
   const selectedNodeRef = useRef<string | null>(options.selectedNodeId);
   const suppressStageClickUntilRef = useRef(0);
-  const lastNodePointerAtRef = useRef(0);
+  const nodePointerDownAtRef = useRef(0);
+  const pointerGestureRef = useRef<PointerGesture>({
+    startedOnNode: false,
+    startedAt: 0,
+    startX: 0,
+    startY: 0,
+    moved: false,
+    endedAt: 0,
+  });
+  const lastPointerGestureRef = useRef<PointerGesture>({
+    startedOnNode: false,
+    startedAt: 0,
+    startX: 0,
+    startY: 0,
+    moved: false,
+    endedAt: 0,
+  });
   const selectionVersionRef = useRef(0);
   const styleQueueRef = useRef<Promise<void>>(Promise.resolve());
   const renderTokenRef = useRef(0);
@@ -115,7 +143,19 @@ export function useG6(options: UseG6Options) {
   const [containerReady, setContainerReady] = useState(false);
 
   const clearSelectionFromStage = useCallback(() => {
-    if (performance.now() < suppressStageClickUntilRef.current) return;
+    const now = performance.now();
+    if (now < suppressStageClickUntilRef.current) return;
+    if (!selectedNodeRef.current) return;
+
+    const lastGesture = lastPointerGestureRef.current;
+    const isRecentDragGesture = (
+      now - lastGesture.endedAt < POST_DRAG_STAGE_SUPPRESS_MS &&
+      (lastGesture.startedOnNode || lastGesture.moved)
+    );
+    if (isRecentDragGesture) return;
+
+    suppressStageClickUntilRef.current = now + STAGE_CLEAR_DEDUPE_MS;
+    selectedNodeRef.current = null;
     callbacksRef.current.onStageClick?.();
   }, []);
 
@@ -290,8 +330,10 @@ export function useG6(options: UseG6Options) {
     graphRef.current = graph;
 
     graph.on(NodeEvent.POINTER_DOWN, () => {
-      lastNodePointerAtRef.current = performance.now();
-      suppressStageClickUntilRef.current = performance.now() + 260;
+      const now = performance.now();
+      nodePointerDownAtRef.current = now;
+      pointerGestureRef.current.startedOnNode = true;
+      suppressStageClickUntilRef.current = now + 260;
     });
     graph.on(NodeEvent.CLICK, (event) => {
       const nodeId = getElementId(event);
@@ -310,15 +352,56 @@ export function useG6(options: UseG6Options) {
       if (containerRef.current) containerRef.current.style.cursor = 'grab';
     });
     graph.on(CanvasEvent.CLICK, clearSelectionFromStage);
-    graph.on(CanvasEvent.POINTER_UP, clearSelectionFromStage);
     graph.on(CommonEvent.CLICK, (event) => {
       if ((event as { targetType?: string }).targetType === 'canvas') clearSelectionFromStage();
     });
 
-    const onContainerPointerUp = () => {
-      if (performance.now() - lastNodePointerAtRef.current < 320) return;
-      window.setTimeout(clearSelectionFromStage, 80);
+    const onContainerPointerDown = (event: PointerEvent) => {
+      const now = performance.now();
+      const startedOnNode = now - nodePointerDownAtRef.current < 80;
+      pointerGestureRef.current = {
+        startedOnNode,
+        startedAt: now,
+        startX: event.clientX,
+        startY: event.clientY,
+        moved: false,
+        endedAt: 0,
+      };
     };
+    const onContainerPointerMove = (event: PointerEvent) => {
+      const gesture = pointerGestureRef.current;
+      const dx = event.clientX - gesture.startX;
+      const dy = event.clientY - gesture.startY;
+      if (Math.hypot(dx, dy) > CLICK_MOVE_THRESHOLD_PX) {
+        gesture.moved = true;
+      }
+    };
+    const onContainerPointerUp = () => {
+      const now = performance.now();
+      const gesture = pointerGestureRef.current;
+      const nodePointerBelongsToGesture = (
+        nodePointerDownAtRef.current >= gesture.startedAt - 80 &&
+        nodePointerDownAtRef.current <= now
+      );
+      const endedGesture = {
+        ...gesture,
+        startedOnNode: gesture.startedOnNode || nodePointerBelongsToGesture,
+        endedAt: now,
+      };
+      lastPointerGestureRef.current = endedGesture;
+
+      if (endedGesture.startedOnNode || endedGesture.moved) {
+        suppressStageClickUntilRef.current = Math.max(
+          suppressStageClickUntilRef.current,
+          endedGesture.endedAt + POST_DRAG_STAGE_SUPPRESS_MS,
+        );
+        return;
+      }
+
+      window.setTimeout(clearSelectionFromStage, 0);
+    };
+    container.addEventListener('pointerdown', onContainerPointerDown);
+    container.addEventListener('pointermove', onContainerPointerMove);
     container.addEventListener('pointerup', onContainerPointerUp);
     graph.on(GraphEvent.BEFORE_LAYOUT, () => {
       callbacksRef.current.onLayoutRunningChange?.(true);
@@ -329,6 +412,8 @@ export function useG6(options: UseG6Options) {
 
     return () => {
       callbacksRef.current.onLayoutRunningChange?.(false);
+      container.removeEventListener('pointerdown', onContainerPointerDown);
+      container.removeEventListener('pointermove', onContainerPointerMove);
       container.removeEventListener('pointerup', onContainerPointerUp);
       graph.destroy();
       graphRef.current = null;
