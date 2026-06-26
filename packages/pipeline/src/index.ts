@@ -54,6 +54,7 @@ export * from "./extraction/parallel-lesson-pipeline.js";
 export * from "./shared/pathing.js";
 export * from "./shared/postgres-executor.js";
 export * from "./shared/postgres-readiness.js";
+export * from "./unit-bodies/generate-node-bodies.js";
 export * from "./retrieval/retrieve-candidates-query.js";
 export * from "./retrieval/retrieve-candidates-sql.js";
 export * from "./retrieval/retrieve-candidates-store.js";

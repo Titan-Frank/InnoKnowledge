@@ -40,6 +40,7 @@ export async function runStrictQaFromDatabase(input: { datasetId: string; query:
     mentions: (await query(buildSelectQaMentionsQuery(input.datasetId))).map(toStrictQaMention),
     evidence: (await query(buildSelectQaEvidenceQuery(input.datasetId))).map(toStrictQaEvidence),
     node_cards: (await query(buildSelectQaNodeCardsQuery(input.datasetId))).map(toStrictQaNodeCard),
+    node_bodies: (await query(buildSelectQaNodeBodiesQuery(input.datasetId))).map(toStrictQaNodeBody),
   };
   return {
     dataset_id: input.datasetId,
@@ -140,6 +141,14 @@ export function buildSelectQaNodeCardsQuery(datasetId: string): SqlStatement {
   };
 }
 
+export function buildSelectQaNodeBodiesQuery(datasetId: string): SqlStatement {
+  return {
+    name: "select-strict-qa-node-bodies",
+    sql: "SELECT node_id, format, content, media_refs_json, source_refs_json, generated_from, status FROM world_node_bodies WHERE dataset_id = $1 ORDER BY node_id",
+    params: [datasetId],
+  };
+}
+
 export function buildSelectGraphNodesQuery(datasetId: string): SqlStatement {
   return {
     name: "select-graph-integrity-nodes",
@@ -236,6 +245,18 @@ function toStrictQaNodeCard(row: RawRecord): StrictQaRows["node_cards"][number] 
     summary: optionalString(row.summary),
     source_refs_json: row.source_refs_json,
     sections_json: row.sections_json,
+  };
+}
+
+function toStrictQaNodeBody(row: RawRecord): NonNullable<StrictQaRows["node_bodies"]>[number] {
+  return {
+    node_id: requiredString(row.node_id, "node_id"),
+    format: requiredString(row.format, "format"),
+    content: optionalString(row.content),
+    media_refs_json: row.media_refs_json,
+    source_refs_json: row.source_refs_json,
+    generated_from: optionalString(row.generated_from),
+    status: optionalString(row.status),
   };
 }
 

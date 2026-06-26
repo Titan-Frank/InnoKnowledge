@@ -61,6 +61,11 @@ type RunnerOptions = {
   baseUrl: string;
   timeoutSeconds: number;
   reasoningEffort: string;
+  vlmApiUrl?: string;
+  vlmApiKeyEnv?: string;
+  vlmCacheDir?: string;
+  vlmConcurrency?: number;
+  vlmModel?: string;
   retrievalContext: boolean;
   retrievalLimit: number;
   manifestPath?: string;
@@ -226,6 +231,11 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
     baseUrl: options.baseUrl,
     reasoningEffort: options.reasoningEffort,
     timeoutSeconds: options.timeoutSeconds,
+    vlmApiUrl: options.vlmApiUrl,
+    vlmApiKeyEnv: options.vlmApiUrl ? options.vlmApiKeyEnv : undefined,
+    vlmCacheDir: options.vlmApiUrl ? options.vlmCacheDir : undefined,
+    vlmConcurrency: options.vlmApiUrl ? options.vlmConcurrency : undefined,
+    vlmModel: options.vlmApiUrl ? options.vlmModel : undefined,
   }).map((item) => ({
     ...item,
     command: addExtractionExecutionFlags(item.command, options),
@@ -464,6 +474,9 @@ function createManifest(options: RunnerOptions): ServerPipelineManifest {
       subject: options.subject,
       school_stage: options.schoolStage,
       grade_band: options.gradeBand,
+      vlm_api_url_configured: Boolean(options.vlmApiUrl),
+      vlm_concurrency: options.vlmConcurrency,
+      vlm_cache_dir: options.vlmCacheDir,
     },
     stages: [],
   };
@@ -517,6 +530,11 @@ function parseOptions(argv: string[]): RunnerOptions {
     baseUrl: flags.get("base-url") ?? "",
     timeoutSeconds: parseInteger(flags.get("timeout"), 600),
     reasoningEffort: flags.get("reasoning-effort") ?? "medium",
+    vlmApiUrl: flags.get("vlm-api-url") ?? process.env.VLM_API_URL ?? "",
+    vlmApiKeyEnv: flags.get("vlm-api-key-env") ?? "VLM_API_KEY",
+    vlmCacheDir: flags.get("vlm-cache-dir") ?? process.env.VLM_CACHE_DIR ?? resolve(REPO_ROOT, outputRoot, ".cache", "image-relevance"),
+    vlmConcurrency: parseInteger(flags.get("vlm-concurrency") ?? process.env.VLM_CONCURRENCY, 3),
+    vlmModel: flags.get("vlm-model") ?? process.env.VLM_MODEL ?? "",
     retrievalContext: parseBoolean(flags.get("retrieval-context"), true),
     retrievalLimit: parseInteger(flags.get("retrieval-limit"), 8),
     manifestPath: flags.get("manifest-path"),

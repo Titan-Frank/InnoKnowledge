@@ -13,6 +13,9 @@ export type {
   PipelineLessonRun, PipelineMergeRun, PipelineReviewItem, PipelineResponse,
   PipelineLessonBackendKind, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
+  ImageReviewRelevance, ImageReviewStatus, ImageReviewAction,
+  ImageReviewDecision, ImageReviewItem, ImageReviewResponse,
+  ImageReviewUpdateRequest, ImageReviewUpdateResponse,
 } from './api.js';
 
 export type {

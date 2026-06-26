@@ -15,6 +15,7 @@
     "cluster-nodes": "npm run build && node dist/cli/cluster-nodes.js",
     "extract-pdf-outline": "npm run build && node dist/cli/extract-pdf-outline.js",
     "extract-lesson-openai": "npm run build && node dist/cli/extract-lesson-openai.js",
+    "generate-node-bodies": "npm run build && node dist/cli/generate-node-bodies.js",
     "graph-integrity": "npm run build && node dist/cli/graph-integrity.js",
     "merge-staged-lessons": "npm run build && node dist/cli/merge-staged-lessons.js",
     "mineru-source-markdown": "npm run build && node dist/cli/mineru-source-markdown.js",

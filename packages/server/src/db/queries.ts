@@ -1,6 +1,6 @@
 import type { Sql } from './connection.js';
 import type {
-  ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit, ApiUnitMedia,
+  ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit, ApiUnitBody, ApiUnitMedia,
   OutlineData, OutlineItem, PipelineResponse,
 } from '@okm/types';
 import { existsSync, readFileSync } from 'node:fs';
@@ -224,9 +224,9 @@ export async function loadEvidence(sql: Sql, datasetId: string): Promise<ApiEvid
     SELECT * FROM evidence WHERE dataset_id = ${datasetId}
   `);
 
-  return rows.map((row: Record<string, unknown>) => {
-    return stripJsonSuffix(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence;
-  });
+  return rows
+    .map((row: Record<string, unknown>) => stripJsonSuffix(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence)
+    .filter((row) => !isHiddenImageEvidence(row as unknown as Record<string, unknown>));
 }
 
 // ── Node Card ─────────────────────────────────────────────
@@ -274,6 +274,58 @@ function worldJsonRow(
   return parsed;
 }
 
+function uniqueTextValues(values: unknown[]): string[] {
+  return [...new Set(values.map((value) => textValue(value)).filter(Boolean))];
+}
+
+function collectCardSourceRefs(card: ApiNodeCard): string[] {
+  const refs: unknown[] = Array.isArray(card.source_refs) ? [...card.source_refs] : [];
+  for (const section of card.sections || []) {
+    if (!section || typeof section !== 'object') continue;
+    if (Array.isArray(section.source_refs)) refs.push(...section.source_refs);
+  }
+  return uniqueTextValues(refs);
+}
+
+async function loadNodeBody(
+  sql: Sql,
+  datasetId: string,
+  nodeId: string,
+): Promise<ApiUnitBody | null> {
+  const rows = await sql`
+    SELECT *
+    FROM world_node_bodies
+    WHERE dataset_id = ${datasetId}
+      AND node_id = ${nodeId}
+      AND status != 'deprecated'
+    LIMIT 1
+  `.catch(() => []);
+  if (!rows.length) return null;
+
+  const parsed = worldJsonRow(rows[0] as Record<string, unknown>, [
+    'media_refs', 'source_refs', 'properties',
+  ]);
+  const content = textValue(parsed.content);
+  if (!content) return null;
+  return {
+    node_id: textValue(parsed.node_id),
+    format: 'markdown',
+    content,
+    media_refs: Array.isArray(parsed.media_refs) ? parsed.media_refs as Array<Record<string, unknown>> : [],
+    source_refs: Array.isArray(parsed.source_refs) ? parsed.source_refs.map(String).filter(Boolean) : [],
+    generated_from: (
+      parsed.generated_from === 'manual' ||
+      parsed.generated_from === 'card_expansion' ||
+      parsed.generated_from === 'imported_unit' ||
+      parsed.generated_from === 'node_card_fallback'
+    ) ? parsed.generated_from : 'manual',
+    properties: asRecord(parsed.properties),
+    status: textValue(parsed.status) || 'active',
+    created_at: textValue(parsed.created_at) || null,
+    updated_at: textValue(parsed.updated_at) || null,
+  };
+}
+
 function renderCardBody(card: ApiNodeCard | null): ApiUnit['body'] {
   if (!card || !Array.isArray(card.sections)) return null;
   const lines: string[] = [];
@@ -299,8 +351,11 @@ function renderCardBody(card: ApiNodeCard | null): ApiUnit['body'] {
     format: 'markdown',
     content: lines.join('\n').trim(),
     media_refs: [],
-    source_refs: card.source_refs || [],
-    generated_from: 'node_card',
+    source_refs: collectCardSourceRefs(card),
+    generated_from: 'node_card_fallback',
+    properties: {},
+    status: 'active',
+    updated_at: card.updated_at ?? null,
   };
 }
 
@@ -357,6 +412,7 @@ function mediaFromEvidence(rows: Record<string, unknown>[], sourceKey: string): 
   const media: ApiUnitMedia[] = [];
   for (const row of rows) {
     if (String(row.modality || '').toLowerCase() !== 'image') continue;
+    if (isHiddenImageEvidence(row)) continue;
     const resolvedPath = resolveImagePath(row);
     if (!resolvedPath) continue;
     const key = `${row.id}:${resolvedPath}`;
@@ -381,6 +437,15 @@ function mediaFromEvidence(rows: Record<string, unknown>[], sourceKey: string): 
     });
   }
   return media;
+}
+
+function isHiddenImageEvidence(row: Record<string, unknown>): boolean {
+  if (String(row.modality || '').toLowerCase() !== 'image') return false;
+  const properties = Object.keys(asRecord(row.properties)).length > 0 ? asRecord(row.properties) : asRecord(row.properties_json);
+  const relevance = asRecord(properties.image_relevance);
+  const status = textValue(relevance.review_status);
+  const label = textValue(relevance.relevance);
+  return relevance.keep === false || status === 'rejected' || status === 'pending' || (!status && label === 'uncertain');
 }
 
 const outlineCache = new Map<string, OutlineData | null>();
@@ -712,7 +777,10 @@ export async function loadUnit(
   `;
 
   const card = await loadNodeCard(sql, datasetId, nodeId);
-  const evidence = evidenceRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence);
+  const body = await loadNodeBody(sql, datasetId, nodeId);
+  const evidence = evidenceRows
+    .map((row: Record<string, unknown>) => worldJsonRow(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence)
+    .filter((row) => !isHiddenImageEvidence(row as unknown as Record<string, unknown>));
   const evidenceRecords = evidence as unknown as Record<string, unknown>[];
   return {
     node: worldJsonRow(nodeRows[0] as Record<string, unknown>, [
@@ -730,7 +798,7 @@ export async function loadUnit(
     media: mediaFromEvidence(evidenceRecords, sourceKey),
     source_fragments: sourceFragmentsFromEvidence(evidenceRecords, sourceKey),
     card,
-    body: renderCardBody(card),
+    body: body || renderCardBody(card),
   };
 }
 

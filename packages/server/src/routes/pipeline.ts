@@ -174,6 +174,14 @@ function buildPipelineCommand(body: PipelineStartRequest): string[] {
   if (openaiModel) {
     command.push('--model', openaiModel);
   }
+  const vlmApiUrl = asString(body.vlm_api_url);
+  if (vlmApiUrl) {
+    command.push('--vlm-api-url', vlmApiUrl);
+  }
+  const vlmModel = asString(body.vlm_model);
+  if (vlmModel) {
+    command.push('--vlm-model', vlmModel);
+  }
   const pdfPath = asString(body.pdf_path);
   if (pdfPath) command.push('--pdf-path', pdfPath);
   const sourceMarkdownPath = asString(body.source_markdown_path);
@@ -235,12 +243,14 @@ export function registerPipelineRoutes(app: Hono, sql: Sql) {
     const logPath = join(jobDir, `${jobId}.log`);
     const logStream = createWriteStream(logPath, { flags: 'a' });
     logStream.write(`$ ${command.join(' ')}\n\n`);
+    const vlmApiKey = asString(body.vlm_api_key);
 
     const child = spawn(command[0], command.slice(1), {
       cwd: REPO_ROOT,
       env: {
         ...process.env,
         DATABASE_URL: process.env.DATABASE_URL || DEFAULT_DATABASE_URL,
+        ...(vlmApiKey ? { VLM_API_KEY: vlmApiKey } : {}),
       },
       stdio: ['ignore', 'pipe', 'pipe'],
       detached: true,

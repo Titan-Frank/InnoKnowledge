@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useAppState } from '@/hooks/useAppState';
 import { DetailHeader } from './sections/DetailHeader';
 import { DetailDescription } from './sections/DetailDescription';
@@ -8,7 +8,7 @@ import { DetailProperties } from './sections/DetailProperties';
 import { DetailSupportNodes } from './sections/DetailSupportNodes';
 import { DetailUnit } from './sections/DetailUnit';
 import { DetailMentions } from './sections/DetailMentions';
-import { Maximize2, Network, X } from '@/lib/lucide-icons';
+import { Maximize2, X } from '@/lib/lucide-icons';
 import type { OKMNode } from '@/core/graph/types';
 
 const DETAIL_PANEL_WIDTH_KEY = 'okm-detail-panel-width';
@@ -28,10 +28,9 @@ function readPanelWidth(): number {
   return clampPanelWidth(Number.isFinite(stored) && stored > 0 ? stored : DEFAULT_DETAIL_PANEL_WIDTH);
 }
 
-function NodeDetailContent({ node, selectedBook }: { node: OKMNode; selectedBook: string }) {
+const NodeDetailBody = memo(function NodeDetailBody({ node, selectedBook }: { node: OKMNode; selectedBook: string }) {
   return (
     <>
-      <DetailHeader node={node} />
       <DetailUnit node={node} />
       {!node.description ? null : <DetailDescription node={node} />}
       <DetailKnowledgeAxes node={node} />
@@ -41,6 +40,16 @@ function NodeDetailContent({ node, selectedBook }: { node: OKMNode; selectedBook
       <DetailMentions node={node} selectedBook={selectedBook} />
     </>
   );
+});
+
+function DetailContentSkeleton() {
+  return (
+    <div className="space-y-3" aria-hidden="true">
+      <div className="h-24 animate-pulse rounded-lg border border-border-subtle bg-elevated" />
+      <div className="h-32 animate-pulse rounded-lg border border-border-subtle bg-elevated" />
+      <div className="h-20 animate-pulse rounded-lg border border-border-subtle bg-elevated" />
+    </div>
+  );
 }
 
 export function DetailPanel() {
@@ -48,8 +57,10 @@ export function DetailPanel() {
   const [width, setWidth] = useState(readPanelWidth);
   const [isResizing, setIsResizing] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [visibleNode, setVisibleNode] = useState<OKMNode | null>(null);
   const [isClosing, setIsClosing] = useState(false);
+  const [contentReady, setContentReady] = useState(false);
+  const visibleNodeRef = useRef<OKMNode | null>(null);
+  const closeTimerRef = useRef<number | null>(null);
   const [isCompact, setIsCompact] = useState(() => (
     typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
   ));
@@ -104,7 +115,7 @@ export function DetailPanel() {
   const panelMotionClass = isClosing
     ? 'pointer-events-none animate-detail-panel-down lg:animate-detail-panel-out'
     : 'animate-detail-panel-up lg:animate-detail-panel-in';
-  const panelClass = `relative order-3 flex max-h-[45vh] w-full shrink-0 flex-col overflow-hidden border-t border-border-subtle bg-surface ${panelMotionClass} lg:order-none lg:max-h-none lg:w-auto lg:border-l lg:border-t-0`;
+  const panelClass = `relative z-30 order-3 flex max-h-[45vh] w-full shrink-0 flex-col overflow-hidden border-t border-border-subtle bg-surface shadow-2xl ${panelMotionClass} lg:absolute lg:bottom-0 lg:right-0 lg:top-0 lg:order-none lg:max-h-none lg:w-auto lg:border-l lg:border-t-0`;
   const resizeHandle = (
     <div
       role="separator"
@@ -131,22 +142,35 @@ export function DetailPanel() {
   );
 
   const node = knowledgeGraph && selectedNodeId ? knowledgeGraph.nodeById.get(selectedNodeId) : null;
+  if (node) visibleNodeRef.current = node;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+
     if (node) {
-      setVisibleNode(node);
+      visibleNodeRef.current = node;
       setIsClosing(false);
       return;
     }
-    if (!visibleNode) return;
+
+    if (!visibleNodeRef.current) return;
 
     setIsClosing(true);
-    const timer = window.setTimeout(() => {
-      setVisibleNode(null);
+    closeTimerRef.current = window.setTimeout(() => {
+      visibleNodeRef.current = null;
       setIsClosing(false);
+      closeTimerRef.current = null;
     }, DETAIL_PANEL_EXIT_MS);
-    return () => window.clearTimeout(timer);
-  }, [node, visibleNode]);
+  }, [node]);
+
+  useEffect(() => () => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+    }
+  }, []);
 
   useEffect(() => {
     if (!expanded) return;
@@ -161,7 +185,16 @@ export function DetailPanel() {
     if (!node) setExpanded(false);
   }, [node]);
 
-  const detailNode = node ?? visibleNode;
+  useEffect(() => {
+    const nextNodeId = (node ?? visibleNodeRef.current)?.id;
+    if (!nextNodeId || isClosing) return;
+
+    setContentReady(false);
+    const timer = window.setTimeout(() => setContentReady(true), 120);
+    return () => window.clearTimeout(timer);
+  }, [node, isClosing]);
+
+  const detailNode = node ?? visibleNodeRef.current;
 
   if (isCompact && !detailNode) {
     return null;
@@ -170,18 +203,7 @@ export function DetailPanel() {
   const panelStyle = isCompact ? undefined : { width };
   const maybeResizeHandle = isCompact ? null : resizeHandle;
 
-  if (!detailNode) {
-    return (
-      <aside
-        className="relative order-3 hidden shrink-0 flex-col items-center justify-center border-l border-border-subtle bg-surface text-text-muted lg:flex"
-        style={{ width: 64 }}
-        title="选择节点查看详情"
-      >
-        <Network className="h-5 w-5" />
-        <span className="mt-2 text-xs [writing-mode:vertical-rl]">节点详情</span>
-      </aside>
-    );
-  }
+  if (!detailNode) return null;
 
   return (
     <>
@@ -204,7 +226,12 @@ export function DetailPanel() {
           </button>
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto p-4 scrollbar-thin">
-          <NodeDetailContent node={detailNode} selectedBook={selectedBook} />
+          <DetailHeader node={detailNode} />
+          {contentReady || isClosing ? (
+            <NodeDetailBody node={detailNode} selectedBook={selectedBook} />
+          ) : (
+            <DetailContentSkeleton />
+          )}
         </div>
       </aside>
 
@@ -237,7 +264,8 @@ export function DetailPanel() {
               </button>
             </div>
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5 scrollbar-thin">
-              <NodeDetailContent node={detailNode} selectedBook={selectedBook} />
+              <DetailHeader node={detailNode} />
+              <NodeDetailBody node={detailNode} selectedBook={selectedBook} />
             </div>
           </section>
         </div>

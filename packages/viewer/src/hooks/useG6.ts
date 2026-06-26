@@ -106,6 +106,12 @@ function getBaseEdgeStyle(snapshot: GraphStyleSnapshot | null, edgeId: string): 
   };
 }
 
+function waitForNextFrame(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => resolve());
+  });
+}
+
 export function useG6(options: UseG6Options) {
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<G6Graph | null>(null);
@@ -202,6 +208,9 @@ export function useG6(options: UseG6Options) {
       const graph = graphRef.current;
       const payload = dataRef.current;
       if (!graph || !payload) return;
+
+      await waitForNextFrame();
+      if (version !== selectionVersionRef.current) return;
 
       const snapshot = styleSnapshotRef.current;
       const nodeUpdates: Array<{ id: string; style: ElementStyle }> = [];

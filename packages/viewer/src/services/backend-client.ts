@@ -2,6 +2,7 @@ import type {
   ApiNodeCard, ApiUnit, MetaResponse, BundleResponse, SearchResponse,
   PipelineResponse, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
+  ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
 } from '@okm/types';
 
 export interface EnrichBookSummary {
@@ -173,6 +174,23 @@ export async function inferTextbookMetadata(
 ): Promise<TextbookMetadataResponse> {
   return postJson<TextbookMetadataResponse>(
     `/api/source/${encodeURIComponent(sourceKey)}/pipeline/infer-textbook`,
+    payload,
+  );
+}
+
+export async function loadImageReviews(sourceKey: string): Promise<ImageReviewResponse> {
+  return fetchJson<ImageReviewResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/image-reviews`,
+  );
+}
+
+export async function updateImageReview(
+  sourceKey: string,
+  evidenceId: string,
+  payload: ImageReviewUpdateRequest,
+): Promise<ImageReviewUpdateResponse> {
+  return postJson<ImageReviewUpdateResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/image-reviews/${encodeURIComponent(evidenceId)}`,
     payload,
   );
 }

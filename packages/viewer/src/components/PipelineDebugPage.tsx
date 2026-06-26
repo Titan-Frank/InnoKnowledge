@@ -1,6 +1,21 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import type { PipelineLessonBackendKind, PipelineResponse, PipelineReviewItem, PipelineStartResponse, TextbookMetadataResponse } from '@okm/types';
-import { inferTextbookMetadata, loadPipeline, startPipeline } from '@/services/backend-client';
+import type {
+  ImageReviewAction,
+  ImageReviewItem,
+  ImageReviewResponse,
+  PipelineLessonBackendKind,
+  PipelineResponse,
+  PipelineReviewItem,
+  PipelineStartResponse,
+  TextbookMetadataResponse,
+} from '@okm/types';
+import {
+  inferTextbookMetadata,
+  loadImageReviews,
+  loadPipeline,
+  startPipeline,
+  updateImageReview,
+} from '@/services/backend-client';
 import { useAppState } from '@/hooks/useAppState';
 import {
   AlertCircle,
@@ -38,6 +53,9 @@ type PipelineForm = {
   lesson_backend_kind: PipelineLessonBackendKind;
   openai_base_url: string;
   openai_model: string;
+  vlm_api_url: string;
+  vlm_api_key: string;
+  vlm_model: string;
 };
 
 const initialForm: PipelineForm = {
@@ -61,6 +79,9 @@ const initialForm: PipelineForm = {
   lesson_backend_kind: 'openai_responses',
   openai_base_url: '',
   openai_model: '',
+  vlm_api_url: '',
+  vlm_api_key: '',
+  vlm_model: '',
 };
 
 function numberValue(value: unknown): number {
@@ -224,6 +245,155 @@ function ReviewList({ items }: { items: PipelineReviewItem[] }) {
   );
 }
 
+function imageReviewRelevanceLabel(value: string): string {
+  const labels: Record<string, string> = {
+    core_content: '核心内容',
+    supporting: '辅助内容',
+    decorative: '装饰图片',
+    mismatch: '内容不匹配',
+    uncertain: '无法判断',
+  };
+  return labels[value] || value || '未知';
+}
+
+function imageReviewConfidenceText(value: number | undefined): string {
+  if (value === undefined || Number.isNaN(value)) return '置信度未知';
+  const normalized = value <= 1 ? value * 100 : value;
+  return `置信度 ${Math.round(normalized)}%`;
+}
+
+function imageReviewLocation(item: ImageReviewItem): string {
+  const page = item.page_start ? `第 ${item.page_start} 页` : '';
+  const locator = item.locator || item.anchor_ref || item.source_id;
+  return [page, locator].filter(Boolean).join(' · ') || '位置未知';
+}
+
+function ImageReviewPanel({
+  reviews,
+  loading,
+  error,
+  updatingId,
+  onRefresh,
+  onAction,
+}: {
+  reviews: ImageReviewResponse | null;
+  loading: boolean;
+  error: string;
+  updatingId: string;
+  onRefresh: () => void;
+  onAction: (item: ImageReviewItem, action: ImageReviewAction) => void;
+}) {
+  const items = reviews?.items ?? [];
+  const disabled = Boolean(updatingId);
+
+  return (
+    <section className="rounded-lg border border-border-subtle bg-elevated p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold text-text-primary">待确认图片</div>
+          <div className="mt-0.5 text-[11px] text-text-muted">{reviews ? `${reviews.pending} 张` : '等待读取'}</div>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={loading}
+          className="flex h-7 items-center gap-1.5 rounded-md border border-border-subtle bg-surface px-2 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
+          刷新
+        </button>
+      </div>
+
+      {error && (
+        <div className="mb-3 flex items-start gap-2 rounded-lg border border-node-event/40 bg-node-event/10 p-3 text-xs text-node-event">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {!loading && items.length === 0 && !error && (
+        <div className="flex items-start gap-2 rounded-lg border border-border-subtle bg-surface p-3 text-xs text-text-secondary">
+          <Check className="mt-0.5 h-4 w-4 shrink-0 text-node-process" />
+          <span>当前没有待确认图片。</span>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {items.slice(0, 8).map((item) => {
+          const isUpdating = updatingId === item.evidence_id;
+          return (
+            <div key={item.evidence_id} className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
+              <div className="flex h-36 items-center justify-center bg-void">
+                {item.image_url ? (
+                  <img
+                    src={item.image_url}
+                    alt="待确认教材图片"
+                    className="max-h-full max-w-full object-contain"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span className="text-xs text-text-muted">图片路径缺失</span>
+                )}
+              </div>
+              <div className="space-y-2 p-3">
+                <div>
+                  <div className="truncate text-xs font-semibold text-text-primary" title={item.evidence_id}>{item.evidence_id}</div>
+                  <div className="mt-1 truncate text-[11px] text-text-muted" title={imageReviewLocation(item)}>{imageReviewLocation(item)}</div>
+                </div>
+                <div className="flex flex-wrap gap-1.5 text-[10px] text-text-muted">
+                  <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{imageReviewRelevanceLabel(item.decision.relevance)}</span>
+                  <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{imageReviewConfidenceText(item.decision.confidence)}</span>
+                </div>
+                <div className="max-h-10 overflow-hidden text-[11px] leading-5 text-text-secondary">
+                  {item.decision.reason || item.excerpt || '缺少判断说明。'}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onAction(item, 'core_content')}
+                    disabled={disabled}
+                    className="flex h-8 items-center justify-center gap-1.5 rounded-md border border-node-process/40 bg-node-process/10 px-2 text-[11px] font-medium text-node-process transition-colors hover:bg-node-process/15 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                    核心图
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onAction(item, 'supporting')}
+                    disabled={disabled}
+                    className="flex h-8 items-center justify-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2 text-[11px] font-medium text-accent transition-colors hover:bg-accent/15 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                    辅助图
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onAction(item, 'keep')}
+                    disabled={disabled}
+                    className="flex h-8 items-center justify-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-2 text-[11px] font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                    保留
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onAction(item, 'drop')}
+                    disabled={disabled}
+                    className="flex h-8 items-center justify-center gap-1.5 rounded-md border border-node-event/40 bg-node-event/10 px-2 text-[11px] font-medium text-node-event transition-colors hover:bg-node-event/15 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertCircle className="h-3 w-3" />}
+                    删除
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function sourceReadyLabel(mode: IntakeMode, form: PipelineForm): string {
   if (mode === 'pdf') return form.pdf_path.trim() ? 'PDF 路径已填写' : '需要本机 PDF 绝对路径';
   if (mode === 'markdown') return form.source_markdown_path.trim() ? 'Markdown 路径已填写' : '需要 full.md 或等价源文件';
@@ -254,6 +424,10 @@ export function PipelineDebugPage() {
   const [intakeMode, setIntakeMode] = useState<IntakeMode>('pdf');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [form, setForm] = useState<PipelineForm>(initialForm);
+  const [imageReviews, setImageReviews] = useState<ImageReviewResponse | null>(null);
+  const [imageReviewLoading, setImageReviewLoading] = useState(false);
+  const [imageReviewError, setImageReviewError] = useState('');
+  const [imageReviewUpdating, setImageReviewUpdating] = useState('');
 
   const refresh = async () => {
     setLoading(true);
@@ -264,6 +438,18 @@ export function PipelineDebugPage() {
       setError((err as Error).message || '读取管线状态失败');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshImageReviews = async () => {
+    setImageReviewLoading(true);
+    setImageReviewError('');
+    try {
+      setImageReviews(await loadImageReviews(activeSourceKey));
+    } catch (err) {
+      setImageReviewError((err as Error).message || '读取待确认图片失败');
+    } finally {
+      setImageReviewLoading(false);
     }
   };
 
@@ -302,9 +488,15 @@ export function PipelineDebugPage() {
         lesson_grade_band: form.lesson_grade_band.trim() || undefined,
         openai_base_url: form.openai_base_url.trim() || undefined,
         openai_model: form.openai_model.trim() || undefined,
+        vlm_api_url: form.vlm_api_url.trim() || undefined,
+        vlm_api_key: form.vlm_api_key.trim() || undefined,
+        vlm_model: form.vlm_model.trim() || undefined,
       });
       setStartResult(result);
-      window.setTimeout(() => void refresh(), 1200);
+      window.setTimeout(() => {
+        void refresh();
+        void refreshImageReviews();
+      }, 1200);
     } catch (err) {
       setStartError((err as Error).message || '启动失败');
     } finally {
@@ -338,7 +530,22 @@ export function PipelineDebugPage() {
 
   useEffect(() => {
     void refresh();
+    void refreshImageReviews();
   }, [activeSourceKey]);
+
+  const submitImageReview = async (item: ImageReviewItem, action: ImageReviewAction) => {
+    setImageReviewUpdating(item.evidence_id);
+    setImageReviewError('');
+    try {
+      await updateImageReview(activeSourceKey, item.evidence_id, { action });
+      await refreshImageReviews();
+      void refresh();
+    } catch (err) {
+      setImageReviewError((err as Error).message || '提交图片确认失败');
+    } finally {
+      setImageReviewUpdating('');
+    }
+  };
 
   const recentLessons = useMemo(
     () => [...(payload?.lesson_runs ?? [])].sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || '')),
@@ -365,7 +572,10 @@ export function PipelineDebugPage() {
           </div>
           <button
             type="button"
-            onClick={() => void refresh()}
+            onClick={() => {
+              void refresh();
+              void refreshImageReviews();
+            }}
             className="flex h-9 items-center gap-2 rounded-md border border-border-subtle bg-elevated px-3 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           >
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
@@ -518,6 +728,9 @@ export function PipelineDebugPage() {
                   />
                   <Field label="OpenAI Base URL" value={form.openai_base_url} onChange={(value) => updateForm('openai_base_url', value)} placeholder="默认使用环境配置" />
                   <Field label="模型名称" value={form.openai_model} onChange={(value) => updateForm('openai_model', value)} placeholder="默认由后端决定" />
+                  <Field label="VLM API URL" value={form.vlm_api_url} onChange={(value) => updateForm('vlm_api_url', value)} placeholder="例如 http://localhost:8000/v1/chat/completions" />
+                  <Field label="VLM API Key" value={form.vlm_api_key} onChange={(value) => updateForm('vlm_api_key', value)} placeholder="留空则使用后端环境变量" type="password" />
+                  <Field label="VLM 模型名称" value={form.vlm_model} onChange={(value) => updateForm('vlm_model', value)} placeholder="例如 gpt-4.1-mini 或 qwen-vl-max" />
                   {intakeMode === 'mineru' && (
                     <>
                       <Field label="MinerU Base URL" value={form.mineru_base_url} onChange={(value) => updateForm('mineru_base_url', value)} />
@@ -657,6 +870,15 @@ export function PipelineDebugPage() {
                 </div>
               </div>
             </section>
+
+            <ImageReviewPanel
+              reviews={imageReviews}
+              loading={imageReviewLoading}
+              error={imageReviewError}
+              updatingId={imageReviewUpdating}
+              onRefresh={() => void refreshImageReviews()}
+              onAction={(item, action) => void submitImageReview(item, action)}
+            />
 
             <section className="rounded-lg border border-border-subtle bg-elevated p-4">
               <div className="mb-3 flex items-center gap-2">

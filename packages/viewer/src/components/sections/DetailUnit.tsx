@@ -281,7 +281,7 @@ export function DetailUnit({ node }: { node: OKMNode }) {
         </div>
         {body && (
           <div className="rounded-lg border border-border-subtle bg-elevated p-4">
-            <SectionTitle title="节点说明" />
+            <SectionTitle title="知识正文" />
             <div className="max-h-[360px] overflow-y-auto rounded-md border border-border-subtle bg-surface px-3 py-3 scrollbar-thin">
               <MarkdownView content={body} className={detailMarkdownClass} resolveImageUrl={resolveMarkdownImage} />
             </div>
@@ -335,8 +335,11 @@ export function DetailUnit({ node }: { node: OKMNode }) {
       {expandedFragment && (
         (() => {
           const { textMarkdown, images } = splitFragmentMarkdown(expandedFragment.markdown);
+          const resolvedImages = images
+            .map((image) => ({ ...image, resolved: resolveMarkdownImage(image.src) }))
+            .filter((image) => Boolean(image.resolved));
           const hasText = textMarkdown.length > 0;
-          const hasImages = images.length > 0;
+          const hasImages = resolvedImages.length > 0;
           return (
             <div className="fixed inset-0 z-[60] flex items-center justify-center bg-void/85 p-4 backdrop-blur-sm animate-fade-in">
               <button
@@ -387,24 +390,21 @@ export function DetailUnit({ node }: { node: OKMNode }) {
                     )}
                     {hasImages && (
                       <div className={hasText ? 'min-w-0 space-y-3 lg:sticky lg:top-0 lg:self-start' : 'min-w-0 space-y-3'}>
-                        {images.map((image, index) => {
-                          const resolved = resolveMarkdownImage(image.src) ?? image.src;
-                          return (
-                            <figure key={`${image.src}:${index}`} className="overflow-hidden rounded-lg border border-border-subtle bg-elevated p-3">
-                              <div className="flex min-h-64 items-center justify-center rounded-md bg-surface">
-                                <img
-                                  src={resolved}
-                                  alt={image.alt}
-                                  className="max-h-[68vh] w-full max-w-full rounded-md object-contain"
-                                  loading="lazy"
-                                />
-                              </div>
-                              {image.alt === '教材图片' ? null : (
-                                <figcaption className="mt-2 text-xs text-text-muted">{image.alt}</figcaption>
-                              )}
-                            </figure>
-                          );
-                        })}
+                        {resolvedImages.map((image, index) => (
+                          <figure key={`${image.src}:${index}`} className="overflow-hidden rounded-lg border border-border-subtle bg-elevated p-3">
+                            <div className="flex min-h-64 items-center justify-center rounded-md bg-surface">
+                              <img
+                                src={image.resolved}
+                                alt={image.alt}
+                                className="max-h-[68vh] w-full max-w-full rounded-md object-contain"
+                                loading="lazy"
+                              />
+                            </div>
+                            {image.alt === '教材图片' ? null : (
+                              <figcaption className="mt-2 text-xs text-text-muted">{image.alt}</figcaption>
+                            )}
+                          </figure>
+                        ))}
                       </div>
                     )}
                   </div>

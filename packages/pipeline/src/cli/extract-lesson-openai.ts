@@ -15,6 +15,7 @@ import {
   callModelExtractionRequest,
   type ModelApiMode,
 } from "../extraction/model-lesson-extraction.js";
+import { filterImageEvidencePayload } from "../extraction/image-relevance.js";
 import {
   loadRetrievalCandidatesForQueries,
   type RetrievalCandidateQueryExecutor,
@@ -108,6 +109,19 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
     try {
       const responseBody = await callModelExtractionRequest(request, apiKey, deps.fetchImpl ?? fetch);
       let payload: RawRecord = buildExtractionPayloadFromModelResponse(requestInput, responseBody);
+      if (!flags.has("no-image-filter")) {
+        const vlmConcurrency = parsePositiveInteger(flags.get("vlm-concurrency") ?? env.VLM_CONCURRENCY, "vlm-concurrency") ?? 3;
+        const imageFilterResult = await filterImageEvidencePayload(payload, {
+          repoRoot,
+          vlmApiUrl: flags.get("vlm-api-url") ?? env.VLM_API_URL,
+          vlmApiKey: env[flags.get("vlm-api-key-env") ?? "VLM_API_KEY"] ?? "",
+          vlmModel: flags.get("vlm-model") ?? env.VLM_MODEL,
+          vlmConcurrency,
+          vlmCacheDir: flags.get("vlm-cache-dir") ?? env.VLM_CACHE_DIR ?? resolve(repoRoot, outputRoot, ".cache", "image-relevance"),
+          fetchImpl: deps.fetchImpl ?? fetch,
+        });
+        payload = imageFilterResult.payload;
+      }
       if (flags.has("write-staging")) {
         payload = await writeStagingPayload({
           payload,
@@ -177,7 +191,13 @@ const EXTRACT_LESSON_OPENAI_FLAGS = new Set([
   "textbook-id",
   "timeout",
   "vector-min-similarity",
+  "vlm-api-key-env",
+  "vlm-api-url",
+  "vlm-cache-dir",
+  "vlm-concurrency",
+  "vlm-model",
   "write-staging",
+  "no-image-filter",
 ]);
 
 function assertKnownFlags(flags: Map<string, string>, allowed: Set<string>): void {

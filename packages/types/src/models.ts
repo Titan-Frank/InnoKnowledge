@@ -160,11 +160,16 @@ export interface ApiNodeCard {
 // ── Unit View ────────────────────────────────────────────
 
 export interface ApiUnitBody {
+  node_id?: string;
   format: 'markdown';
   content: string;
   media_refs: Array<Record<string, unknown>>;
   source_refs: string[];
-  generated_from: string;
+  generated_from: 'manual' | 'card_expansion' | 'imported_unit' | 'node_card_fallback';
+  properties: Record<string, unknown>;
+  status: string;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface ApiUnitMedia {

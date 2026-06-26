@@ -158,6 +158,9 @@ export interface PipelineStartRequest {
   lesson_grade_band?: string;
   openai_base_url?: string;
   openai_model?: string;
+  vlm_api_url?: string;
+  vlm_api_key?: string;
+  vlm_model?: string;
 }
 
 export interface PipelineStartResponse {
@@ -180,6 +183,58 @@ export interface TextbookMetadataResponse {
   lesson_grade_band: string;
   confidence: number;
   signals: string[];
+}
+
+// ── Image Review ─────────────────────────────────────────
+
+export type ImageReviewRelevance = 'core_content' | 'supporting' | 'decorative' | 'mismatch' | 'uncertain';
+export type ImageReviewStatus = 'auto' | 'pending' | 'confirmed' | 'rejected';
+export type ImageReviewAction = 'keep' | 'drop' | 'core_content' | 'supporting' | 'uncertain';
+
+export interface ImageReviewDecision {
+  keep: boolean;
+  relevance: ImageReviewRelevance;
+  reason: string;
+  source: 'vlm' | 'fallback' | 'manual';
+  confidence?: number;
+  path?: string;
+  width?: number;
+  height?: number;
+  review_status?: ImageReviewStatus;
+  reviewed_at?: string;
+  reviewed_by?: string;
+  manual_action?: ImageReviewAction;
+}
+
+export interface ImageReviewItem {
+  evidence_id: string;
+  source_id: string;
+  anchor_ref: string;
+  source_path: string;
+  locator: string;
+  excerpt: string;
+  page_start: number | null;
+  page_end: number | null;
+  image_url: string;
+  image_path: string;
+  decision: ImageReviewDecision;
+  updated_at: string | null;
+}
+
+export interface ImageReviewResponse {
+  dataset_id: string;
+  pending: number;
+  items: ImageReviewItem[];
+}
+
+export interface ImageReviewUpdateRequest {
+  action: ImageReviewAction;
+  reason?: string;
+}
+
+export interface ImageReviewUpdateResponse {
+  status: 'success';
+  item: ImageReviewItem | null;
 }
 
 // ── Error ─────────────────────────────────────────────────

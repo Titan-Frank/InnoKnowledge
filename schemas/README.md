@@ -10,6 +10,7 @@ schemas/
 ├── outline.schema.json
 ├── world-knowledge.schema.json
 ├── world-knowledge-edge.schema.json
+├── world-node-body.schema.json
 ├── world-taxonomy-term.schema.json
 ├── world-domain-profile.schema.json
 ├── world-knowledge-standard.md
@@ -26,6 +27,8 @@ schemas/
   统一节点 schema，定义 9 类主类与最小字段。
 - `world-knowledge-edge.schema.json`
   统一关系 schema，定义稳定关系类型。
+- `world-node-body.schema.json`
+  知识单元正文 schema，定义 Markdown 正文、媒体引用和证据引用。
 - `world-taxonomy-term.schema.json`
   受控分类词表 schema。
 - `world-domain-profile.schema.json`

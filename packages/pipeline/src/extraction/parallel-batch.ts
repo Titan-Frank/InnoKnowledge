@@ -54,6 +54,11 @@ export type TsModelExtractionCommandOptions = {
   apiKeyEnv?: string;
   reasoningEffort?: string;
   timeoutSeconds?: number;
+  vlmApiUrl?: string;
+  vlmApiKeyEnv?: string;
+  vlmCacheDir?: string;
+  vlmConcurrency?: number;
+  vlmModel?: string;
 };
 
 export function chunked<T>(items: T[], size: number): T[][] {
@@ -182,6 +187,11 @@ function buildTsModelExtractionCommand(item: ParallelLessonRun, options: TsModel
   pushOptional(command, "--api-key-env", options.apiKeyEnv);
   pushOptional(command, "--reasoning-effort", options.reasoningEffort);
   if (options.timeoutSeconds !== undefined) pushOptional(command, "--timeout", String(options.timeoutSeconds));
+  pushOptional(command, "--vlm-api-url", options.vlmApiUrl);
+  pushOptional(command, "--vlm-api-key-env", options.vlmApiKeyEnv);
+  pushOptional(command, "--vlm-cache-dir", options.vlmCacheDir);
+  if (options.vlmConcurrency !== undefined) pushOptional(command, "--vlm-concurrency", String(options.vlmConcurrency));
+  pushOptional(command, "--vlm-model", options.vlmModel);
   return command;
 }
 

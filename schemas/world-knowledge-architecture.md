@@ -124,6 +124,7 @@
 - `world_mentions`
 - `world_evidence`
 - `world_node_cards`
+- `world_node_bodies`
 
 理论上它更接近一个横跨四层的 provenance 平面，而不是第五个分类层。
 

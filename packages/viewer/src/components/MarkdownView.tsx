@@ -500,7 +500,14 @@ function renderImageLine(
       {images.map((image, index) => {
         const alt = image[1] || '教材图片';
         const src = image[2].trim();
-        const resolved = resolveImageUrl?.(src) ?? src;
+        const resolved = resolveImageUrl ? resolveImageUrl(src) : src;
+        if (!resolved) {
+          return src.includes('…') ? null : (
+            <span key={`${key}:missing-img:${index}`} className="text-sm text-text-muted">
+              [图片未找到]
+            </span>
+          );
+        }
         return (
           <MarkdownImage
             key={`${key}:figure:${index}`}
