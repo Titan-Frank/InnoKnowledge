@@ -141,6 +141,163 @@ test("uses VLM for uncertain images and prunes dropped references", async () => 
   }
 });
 
+test("includes source markdown context in VLM prompt", async () => {
+  const repo = makeImageFixture();
+  let prompt = "";
+  try {
+    writeFileSync(join(repo.root, "data", "mineru", "book", "full.md"), [
+      "# 第一章 电场",
+      "",
+      "电场线可以表示电场方向。",
+      "![电场线示意图](images/unknown.png)",
+      "箭头方向表示正电荷受力方向。",
+    ].join("\n"));
+
+    const result = await filterImageEvidencePayload(
+      {
+        evidence: [imageEvidence("ev-context", "![电场线示意图](images/unknown.png)", "line:999", "images/unknown.png")],
+        mentions: [],
+        edges: [],
+        domain_profiles: [],
+        node_cards: [],
+        counts: { evidence: 1, mentions: 0, edges: 0, domain_profiles: 0, node_cards: 0 },
+        issues: [],
+      },
+      {
+        repoRoot: repo.root,
+        vlmApiUrl: "http://localhost:8000/v1",
+        fetchImpl: async (_url, init) => {
+          const body = JSON.parse(String(init?.body)) as { messages?: Array<{ content?: Array<{ type?: string; text?: string }> }> };
+          prompt = body.messages?.[0]?.content?.find((part) => part.type === "text")?.text ?? "";
+          return new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  message: {
+                    content: JSON.stringify({
+                      keep: true,
+                      relevance: "core_content",
+                      reason: "图片内容和电场线上下文一致。",
+                      confidence: 0.92,
+                    }),
+                  },
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          );
+        },
+      },
+    );
+
+    assert.equal(result.decisions["ev-context"]?.relevance, "core_content");
+    assert.match(prompt, /标题路径：第一章 电场/);
+    assert.match(prompt, /源文件行：4/);
+    assert.match(prompt, /前文：电场线可以表示电场方向。/);
+    assert.match(prompt, /图片行：\[图片：电场线示意图\]/);
+    assert.match(prompt, /后文：箭头方向表示正电荷受力方向。/);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("repairs node evidence refs with remaining text evidence after image pruning", async () => {
+  const repo = makeImageFixture();
+  try {
+    const result = await filterImageEvidencePayload(
+      {
+        evidence: [textEvidence("ev-text", "电场强度描述电场性质。"), imageEvidence("ev-icon", "![想一想](images/think.png)", "line:3", "images/think.png")],
+        nodes: [{ id: "n-field", source_refs: ["ev-icon"] }],
+        mentions: [{ id: "m1", target_id: "n-field", source_refs: ["ev-icon"] }],
+        domain_profiles: [{ id: "p1", node_id: "n-field", source_refs: ["ev-icon"] }],
+        node_cards: [{ id: "c1", node_id: "n-field", source_refs: ["ev-icon"], sections: [{ id: "definition", source_refs: ["ev-icon"] }] }],
+        counts: { evidence: 2, mentions: 1, edges: 0, domain_profiles: 1, node_cards: 1 },
+        issues: [],
+      },
+      {
+        repoRoot: repo.root,
+        vlmApiUrl: "http://localhost:8000/v1",
+        fetchImpl: async (_url, init) => {
+          const body = JSON.parse(String(init?.body)) as { messages?: Array<{ content?: unknown }> };
+          const serialized = JSON.stringify(body);
+          const keep = serialized.includes("ev-text");
+          return new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  message: {
+                    content: JSON.stringify({
+                      keep,
+                      relevance: keep ? "core_content" : "decorative",
+                      reason: keep ? "文字证据保留。" : "只是栏目装饰。",
+                      confidence: 0.93,
+                    }),
+                  },
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          );
+        },
+      },
+    );
+
+    assert.deepEqual(result.dropped_evidence_ids, ["ev-icon"]);
+    assert.deepEqual((result.payload.nodes as Array<Record<string, unknown>>)[0]?.source_refs, ["ev-text"]);
+    assert.deepEqual((result.payload.mentions as Array<Record<string, unknown>>)[0]?.source_refs, ["ev-text"]);
+    assert.deepEqual((result.payload.domain_profiles as Array<Record<string, unknown>>)[0]?.source_refs, ["ev-text"]);
+    assert.deepEqual((result.payload.node_cards as Array<Record<string, unknown>>)[0]?.source_refs, ["ev-text"]);
+    assert.deepEqual(((result.payload.node_cards as Array<Record<string, unknown>>)[0]?.sections as Array<Record<string, unknown>>)[0]?.source_refs, ["ev-text"]);
+    assert.equal((result.payload.counts as Record<string, unknown>).mentions, 1);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("parses VLM JSON when providers wrap it in a Markdown code fence", async () => {
+  const repo = makeImageFixture();
+  try {
+    const result = await filterImageEvidencePayload(
+      {
+        evidence: [imageEvidence("ev-code-fence", "![教材图片](images/unknown.png)", "line:3", "images/unknown.png")],
+        mentions: [],
+        edges: [],
+        domain_profiles: [],
+        node_cards: [],
+        counts: { evidence: 1, mentions: 0, edges: 0, domain_profiles: 0, node_cards: 0 },
+        issues: [],
+      },
+      {
+        repoRoot: repo.root,
+        vlmApiUrl: "http://localhost:8000/v1",
+        fetchImpl: async () =>
+          new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  message: {
+                    content: [
+                      "```json",
+                      JSON.stringify({ keep: true, relevance: "supporting", reason: "支持正文说明。", confidence: 0.8 }, null, 2),
+                      "```",
+                    ].join("\n"),
+                  },
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          ),
+      },
+    );
+
+    assert.equal(result.decisions["ev-code-fence"]?.source, "vlm");
+    assert.equal(result.decisions["ev-code-fence"]?.relevance, "supporting");
+    assert.equal((result.payload.evidence as unknown[]).length, 1);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
 test("does not keep core-looking image labels without VLM review", async () => {
   const repo = makeImageFixture();
   let called = false;
@@ -316,6 +473,22 @@ function imageEvidence(id: string, excerpt: string, locator: string, path: strin
     extraction_method: "markdown_hint",
     normalized_claims: [excerpt],
     properties: path ? { path, caption: excerpt.replace(/!\[([^\]]*)\].*/, "$1") } : {},
+  };
+}
+
+function textEvidence(id: string, excerpt: string): Record<string, unknown> {
+  return {
+    id,
+    source_type: "textbook",
+    source_id: "book",
+    anchor_ref: "lesson",
+    source_path: "data/mineru/book/full.md",
+    excerpt,
+    locator: "line:1",
+    modality: "text",
+    extraction_method: "openai_responses",
+    normalized_claims: [excerpt],
+    properties: {},
   };
 }
 

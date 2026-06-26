@@ -206,6 +206,15 @@ export interface ImageReviewDecision {
   manual_action?: ImageReviewAction;
 }
 
+export interface ImageReviewContext {
+  source_path: string;
+  source_line: number | null;
+  heading_path: string[];
+  before: string[];
+  image_line: string;
+  after: string[];
+}
+
 export interface ImageReviewItem {
   evidence_id: string;
   source_id: string;
@@ -217,6 +226,7 @@ export interface ImageReviewItem {
   page_end: number | null;
   image_url: string;
   image_path: string;
+  context: ImageReviewContext;
   decision: ImageReviewDecision;
   updated_at: string | null;
 }

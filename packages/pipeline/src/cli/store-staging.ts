@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { runStoreStaging, type StoreStagingInput } from "../staging/staging-store.js";
-import { preparePostgresParams } from "../shared/postgres-executor.js";
+import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
 const REQUIRED_FLAGS = [
@@ -63,7 +63,7 @@ async function createExecuteStatement(dbUrl: string | undefined): Promise<{ exec
   return {
     execute: async (statement: SqlStatement): Promise<void> => {
       assertAllowedStoreStagingStatement(statement);
-      await sql.unsafe(statement.sql, preparePostgresParams(statement.params) as never[]);
+      await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
     },
     close: () => sql.end(),
   };

@@ -36,11 +36,22 @@ export type ImageEvidenceFilterResult = {
   issues: string[];
 };
 
+type SourceLineCache = Map<string, string[] | null>;
+type ImageEvidenceFilterRuntimeOptions = ImageEvidenceFilterOptions & { sourceLineCache?: SourceLineCache };
+type ImagePromptContext = {
+  sourcePath: string;
+  sourceLine: number | null;
+  headingPath: string[];
+  before: string[];
+  imageLine: string;
+  after: string[];
+};
+
 const DEFAULT_VLM_MODEL = "gpt-4.1-mini";
 const DEFAULT_VLM_TIMEOUT_MS = 60_000;
 const DEFAULT_VLM_CONCURRENCY = 8;
 const CACHE_VERSION = 1;
-const PROMPT_VERSION = "textbook-image-relevance-v2";
+const PROMPT_VERSION = "textbook-image-relevance-v3-context";
 
 export async function filterImageEvidencePayload(
   payload: RawRecord,
@@ -51,6 +62,7 @@ export async function filterImageEvidencePayload(
   const dropped = new Set<string>();
   const issues: string[] = [];
   const nextEvidence: RawRecord[] = [];
+  const sourceLineCache: SourceLineCache = new Map();
 
   const imageJobs = evidence
     .map((item, index) => ({ item, index }))
@@ -60,7 +72,7 @@ export async function filterImageEvidencePayload(
     normalizedConcurrency(options.vlmConcurrency),
     async ({ item, index }) => ({
       index,
-      decision: await classifyImageEvidence(item, options).catch((error) => ({
+      decision: await classifyImageEvidence(item, { ...options, sourceLineCache }).catch((error) => ({
         keep: true,
         relevance: "uncertain" as const,
         reason: `图片相关性判断失败，默认保留：${(error as Error).message}`,
@@ -114,7 +126,7 @@ export async function filterImageEvidencePayload(
     };
   }
 
-  const pruned = pruneDroppedEvidenceRefs({ ...payload, evidence: nextEvidence }, dropped);
+  const pruned = repairPrunedEvidenceReferences(pruneDroppedEvidenceRefs({ ...payload, evidence: nextEvidence }, dropped));
   const counts = recordValue(payload.counts);
   return {
     payload: {
@@ -145,7 +157,7 @@ function imageRelevanceForStorage(decision: ImageRelevanceDecision): ImageReleva
 
 export async function classifyImageEvidence(
   evidence: RawRecord,
-  options: ImageEvidenceFilterOptions,
+  options: ImageEvidenceFilterRuntimeOptions,
 ): Promise<ImageRelevanceDecision> {
   const imagePath = resolveEvidenceImagePath(evidence, options.repoRoot);
   const metadata = imagePath ? readImageMetadata(imagePath) : null;
@@ -173,11 +185,11 @@ async function callVlmForImageRelevance(
   evidence: RawRecord,
   imagePath: string,
   metadata: ImageMetadata | null,
-  options: ImageEvidenceFilterOptions & { vlmApiUrl: string },
+  options: ImageEvidenceFilterRuntimeOptions & { vlmApiUrl: string },
 ): Promise<ImageRelevanceDecision> {
   const endpoint = normalizeVlmEndpoint(options.vlmApiUrl);
   const mime = mimeTypeForPath(imagePath);
-  const prompt = buildVlmPrompt(evidence, metadata);
+  const prompt = buildVlmPrompt(evidence, metadata, imagePromptContext(evidence, imagePath, options.repoRoot, options.sourceLineCache));
   const imageBytes = readFileSync(imagePath);
   const imageHash = sha256(imageBytes);
   const promptHash = sha256(prompt);
@@ -260,15 +272,26 @@ function normalizedConcurrency(value: number | undefined): number {
   return Math.max(1, Math.min(8, Math.floor(value)));
 }
 
-function buildVlmPrompt(evidence: RawRecord, metadata: ImageMetadata | null): string {
+function buildVlmPrompt(evidence: RawRecord, metadata: ImageMetadata | null, context: ImagePromptContext): string {
   const properties = recordValue(evidence.properties);
   return [
-    "判断这张教材图片是否应该作为知识证据保留。",
+    "判断这张教材图片是否应该作为知识证据保留。请同时依据图片内容和图片在教材中的上下文判断。",
     "保留：直接表达概念、结构、实验、数据、流程、地图、模型、例题或其他核心知识内容。",
     "过滤：栏目图标、提示语、页眉页脚、二维码、标志、装饰图，或者图片内容和当前标题/上下文明显不匹配。",
+    "如果图片本身有知识内容，但和标题、前后文或当前课时明显不相关，返回 keep=false、relevance=\"mismatch\"。",
+    "如果图片只是装饰或栏目提示，即使附近正文有知识内容，也返回 keep=false、relevance=\"decorative\"。",
     "无法判断时不要猜，返回 keep=true、relevance=\"uncertain\"，交给人工复核。",
     "只返回 JSON：keep、relevance、reason、confidence。",
     "",
+    "教材上下文：",
+    `标题路径：${context.headingPath.length > 0 ? context.headingPath.join(" / ") : stringValue(evidence.anchor_ref) || "未知"}`,
+    `源文件：${context.sourcePath || "未知"}`,
+    `源文件行：${context.sourceLine ?? "未知"}`,
+    context.before.length > 0 ? `前文：${context.before.join(" / ").slice(0, 900)}` : "前文：无",
+    `图片行：${(context.imageLine || stringValue(evidence.excerpt) || "无").slice(0, 500)}`,
+    context.after.length > 0 ? `后文：${context.after.join(" / ").slice(0, 900)}` : "后文：无",
+    "",
+    "证据元数据：",
     `图片说明：${stringValue(properties.caption) || "无"}`,
     `图片路径：${stringValue(properties.path) || "无"}`,
     `证据原文：${stringValue(evidence.excerpt).slice(0, 500)}`,
@@ -370,9 +393,35 @@ function extractModelText(body: unknown): string {
 
 function parseJsonObject(text: string): RawRecord {
   const trimmed = text.trim();
-  const direct = JSON.parse(trimmed) as unknown;
-  if (isRecord(direct)) return direct;
-  throw new Error("VLM JSON output must be an object.");
+  const candidates = [trimmed];
+  const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
+  if (fenced) candidates.push(fenced[1]!.trim());
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace >= 0 && lastBrace > firstBrace) candidates.push(trimmed.slice(firstBrace, lastBrace + 1));
+
+  const errors: string[] = [];
+  for (const candidate of uniqueStable(candidates.filter(Boolean))) {
+    try {
+      const parsed = JSON.parse(candidate) as unknown;
+      if (isRecord(parsed)) return parsed;
+      errors.push("parsed JSON was not an object");
+    } catch (error) {
+      errors.push((error as Error).message);
+    }
+  }
+  throw new Error(`VLM JSON output must be an object: ${errors[0] ?? "empty output"}`);
+}
+
+function uniqueStable(values: Iterable<string>): string[] {
+  const result: string[] = [];
+  const seen = new Set<string>();
+  for (const value of values) {
+    if (seen.has(value)) continue;
+    seen.add(value);
+    result.push(value);
+  }
+  return result;
 }
 
 function parseRelevanceLabel(value: unknown): ImageRelevanceLabel {
@@ -456,11 +505,89 @@ function sha256(value: string | Buffer): string {
 function pruneDroppedEvidenceRefs(payload: RawRecord, dropped: Set<string>): RawRecord {
   return {
     ...payload,
+    nodes: pruneNodeRefs(recordArray(payload.nodes), dropped),
     edges: pruneRecords(recordArray(payload.edges), dropped, { dropWhenEmptyAfterPrune: true }),
     mentions: pruneRecords(recordArray(payload.mentions), dropped, { dropWhenEmptyAfterPrune: true }),
     domain_profiles: pruneRecords(recordArray(payload.domain_profiles), dropped, { dropWhenEmptyAfterPrune: false }),
     node_cards: pruneNodeCards(recordArray(payload.node_cards), dropped),
   };
+}
+
+function repairPrunedEvidenceReferences(payload: RawRecord): RawRecord {
+  const nodes = recordArray(payload.nodes);
+  const evidence = recordArray(payload.evidence);
+  if (nodes.length === 0 || evidence.length === 0) return payload;
+
+  const fallbackEvidenceId = firstFallbackEvidenceId(evidence);
+  if (!fallbackEvidenceId) return payload;
+
+  const nodeIds = new Set(nodes.map((node) => stringValue(node.id)).filter(Boolean));
+  const repairedNodes = nodes.map((node) => (trimmedStrings(node.source_refs).length > 0 ? node : { ...node, source_refs: [fallbackEvidenceId] }));
+  const mentions = recordArray(payload.mentions);
+  const mentionedNodeIds = new Set(
+    mentions
+      .filter((mention) => trimmedStrings(mention.source_refs).length > 0)
+      .map((mention) => stringValue(mention.target_id))
+      .filter(Boolean),
+  );
+  const repairedMentions = [...mentions];
+  for (const nodeId of nodeIds) {
+    if (mentionedNodeIds.has(nodeId)) continue;
+    repairedMentions.push({
+      id: `mention:image-filter-backfill:${safeToken(nodeId)}`,
+      source_type: stringValue(evidence[0]?.source_type || "textbook"),
+      source_id: stringValue(evidence[0]?.source_id || payload.book_id || ""),
+      anchor_ref: stringValue(evidence[0]?.anchor_ref || payload.batch_anchor || ""),
+      target_type: "node",
+      target_id: nodeId,
+      role: "mentions",
+      source_refs: [fallbackEvidenceId],
+      confidence: 0.68,
+      properties: { backfilled_after_image_filter: true },
+    });
+  }
+
+  return {
+    ...payload,
+    nodes: repairedNodes,
+    edges: repairRecordRefs(recordArray(payload.edges), fallbackEvidenceId),
+    mentions: repairedMentions,
+    domain_profiles: repairRecordRefs(recordArray(payload.domain_profiles), fallbackEvidenceId),
+    node_cards: repairNodeCardRefs(recordArray(payload.node_cards), fallbackEvidenceId),
+  };
+}
+
+function firstFallbackEvidenceId(evidence: RawRecord[]): string {
+  const preferred = evidence.find((item) => stringValue(item.modality).toLowerCase() !== "image");
+  return stringValue(preferred?.id || preferred?.raw_evidence_id || evidence[0]?.id || evidence[0]?.raw_evidence_id);
+}
+
+function pruneNodeRefs(nodes: RawRecord[], dropped: Set<string>): RawRecord[] {
+  return nodes.map((node) => ({ ...node, source_refs: trimmedStrings(node.source_refs).filter((ref) => !dropped.has(ref)) }));
+}
+
+function repairRecordRefs(records: RawRecord[], fallbackEvidenceId: string): RawRecord[] {
+  return records.map((record) => (trimmedStrings(record.source_refs).length > 0 ? record : { ...record, source_refs: [fallbackEvidenceId] }));
+}
+
+function repairNodeCardRefs(cards: RawRecord[], fallbackEvidenceId: string): RawRecord[] {
+  return cards.map((card) => {
+    const sections = Array.isArray(card.sections)
+      ? card.sections.map((section) => {
+          if (!isRecord(section) || trimmedStrings(section.source_refs).length > 0) return section;
+          return { ...section, source_refs: [fallbackEvidenceId] };
+        })
+      : card.sections;
+    return {
+      ...card,
+      source_refs: trimmedStrings(card.source_refs).length > 0 ? trimmedStrings(card.source_refs) : [fallbackEvidenceId],
+      sections,
+    };
+  });
+}
+
+function safeToken(value: string): string {
+  return value.replace(/[^A-Za-z0-9_.:-]+/g, "-").slice(0, 96) || "node";
 }
 
 function pruneRecords(records: RawRecord[], dropped: Set<string>, options: { dropWhenEmptyAfterPrune: boolean }): RawRecord[] {
@@ -491,6 +618,146 @@ function pruneNodeCards(cards: RawRecord[], dropped: Set<string>): RawRecord[] {
       sections,
     };
   });
+}
+
+function imagePromptContext(evidence: RawRecord, imagePath: string, repoRoot: string, sourceLineCache: SourceLineCache | undefined): ImagePromptContext {
+  const properties = recordValue(evidence.properties);
+  const sourcePath = stringValue(evidence.source_path || properties.source_path).trim();
+  const fallbackLine = cleanContextLine(stringValue(evidence.excerpt));
+  const fallback: ImagePromptContext = {
+    sourcePath,
+    sourceLine: null,
+    headingPath: [],
+    before: [],
+    imageLine: fallbackLine,
+    after: [],
+  };
+
+  const resolvedSourcePath = resolveSourcePath(sourcePath, repoRoot);
+  if (!resolvedSourcePath) return fallback;
+
+  const lines = readSourceLines(resolvedSourcePath, sourceLineCache);
+  if (!lines) return fallback;
+
+  const sourceLine =
+    findImageSourceLine(lines, rawImagePathFromEvidence(evidence), imagePath, stringValue(evidence.excerpt)) ||
+    lineNumberFromLocator(stringValue(evidence.locator));
+  if (!sourceLine || sourceLine < 1 || sourceLine > lines.length) return fallback;
+
+  const lineIndex = sourceLine - 1;
+  return {
+    sourcePath,
+    sourceLine,
+    headingPath: headingPathForLine(lines, lineIndex),
+    before: nearbyContextLines(lines, lineIndex, -1),
+    imageLine: cleanContextLine(lines[lineIndex] ?? "") || fallbackLine,
+    after: nearbyContextLines(lines, lineIndex, 1),
+  };
+}
+
+function resolveSourcePath(sourcePath: string, repoRoot: string): string {
+  if (!sourcePath || /^https?:\/\//i.test(sourcePath)) return "";
+  return isAbsolute(sourcePath) ? sourcePath : resolve(repoRoot, sourcePath);
+}
+
+function readSourceLines(sourcePath: string, sourceLineCache: SourceLineCache | undefined): string[] | null {
+  if (sourceLineCache?.has(sourcePath)) return sourceLineCache.get(sourcePath) ?? null;
+  let lines: string[] | null = null;
+  try {
+    if (existsSync(sourcePath)) lines = readFileSync(sourcePath, "utf8").split(/\r?\n/);
+  } catch {
+    lines = null;
+  }
+  sourceLineCache?.set(sourcePath, lines);
+  return lines;
+}
+
+function rawImagePathFromEvidence(evidence: RawRecord): string {
+  const properties = recordValue(evidence.properties);
+  return stringValue(properties.path || properties.image_path || evidence.path).trim() || imagePathFromMarkdown(stringValue(evidence.excerpt));
+}
+
+function lineNumberFromLocator(locator: string): number | null {
+  const match = /line:(\d+)/i.exec(locator);
+  if (!match) return null;
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function findImageSourceLine(lines: string[], rawImagePath: string, imagePath: string, excerpt: string): number | null {
+  const candidates = imagePathCandidates(rawImagePath, imagePath, imagePathFromMarkdown(excerpt));
+  for (let index = 0; index < lines.length; index += 1) {
+    if (candidates.some((candidate) => lines[index]?.includes(candidate))) return index + 1;
+  }
+
+  const normalizedExcerpt = cleanContextLine(excerpt);
+  if (normalizedExcerpt.length < 8) return null;
+  for (let index = 0; index < lines.length; index += 1) {
+    if (cleanContextLine(lines[index] ?? "").includes(normalizedExcerpt)) return index + 1;
+  }
+  return null;
+}
+
+function imagePathCandidates(...values: string[]): string[] {
+  const candidates = new Set<string>();
+  for (const value of values) {
+    const trimmed = value.trim();
+    if (!trimmed) continue;
+    candidates.add(trimmed);
+    candidates.add(safeDecodeURIComponent(trimmed));
+    const base = basenameFromPath(trimmed);
+    if (base) candidates.add(base);
+  }
+  return [...candidates].filter((candidate) => candidate.length > 0);
+}
+
+function basenameFromPath(value: string): string {
+  return value.replace(/\\/g, "/").split("/").filter(Boolean).at(-1) ?? "";
+}
+
+function safeDecodeURIComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function headingPathForLine(lines: string[], lineIndex: number): string[] {
+  const headings: string[] = [];
+  for (let index = 0; index <= lineIndex; index += 1) {
+    const match = /^(#{1,6})\s+(.+)$/.exec(lines[index]?.trim() ?? "");
+    if (!match) continue;
+    const level = match[1].length;
+    headings[level - 1] = cleanContextLine(match[2]);
+    headings.length = level;
+  }
+  return headings.filter(Boolean);
+}
+
+function nearbyContextLines(lines: string[], lineIndex: number, direction: -1 | 1): string[] {
+  const output: string[] = [];
+  for (let index = lineIndex + direction; index >= 0 && index < lines.length; index += direction) {
+    if (/^#{1,6}\s+/.test(lines[index]?.trim() ?? "")) continue;
+    const line = cleanContextLine(lines[index] ?? "");
+    if (line && line !== "[图片]") {
+      if (direction === -1) output.unshift(line);
+      else output.push(line);
+    }
+    if (output.length >= 4) break;
+  }
+  return output;
+}
+
+function cleanContextLine(line: string): string {
+  return line
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match: string, alt: string, src: string) => {
+      const label = alt.trim() || basenameFromPath(src.trim()) || "图片";
+      return `[图片：${label}]`;
+    })
+    .replace(/^#{1,6}\s+/, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function resolveEvidenceImagePath(evidence: RawRecord, repoRoot: string): string | undefined {

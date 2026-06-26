@@ -11,6 +11,7 @@ import {
   buildRetrievalQueries,
   buildResponseSchema,
   extractMarkdownEvidenceHints,
+  parseModelBundleFromResponse,
 } from "./model-lesson-extraction.js";
 
 const bookId = "model-book";
@@ -92,6 +93,26 @@ test("builds OpenAI Responses and Chat Completions requests with the same schema
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }
+});
+
+test("parses model JSON when providers wrap it in a Markdown code fence", () => {
+  const bundle = parseModelBundleFromResponse({
+    choices: [
+      {
+        message: {
+          content: [
+            "",
+            "```json",
+            JSON.stringify({ nodes: [], edges: [], evidence_units: [], domain_profiles: [], node_cards: [], issues: [] }, null, 2),
+            "```",
+          ].join("\n"),
+        },
+      },
+    ],
+  });
+
+  assert.deepEqual(bundle.nodes, []);
+  assert.deepEqual(bundle.issues, []);
 });
 
 test("converts a model bundle into Python-compatible staging artifacts", () => {
@@ -181,6 +202,89 @@ test("converts a model bundle into Python-compatible staging artifacts", () => {
     assert.equal(payload.domain_profiles[1]?.notes, "Backfilled because the model omitted a domain profile.");
     assert.equal(payload.node_cards[0]?.summary, "以节点和关系表示知识。");
     assert.match(payload.issues.at(-1) ?? "", /Dropped 1 edges/);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("backfills missing model node names and empty definitions", () => {
+  const repo = makeFixtureRepo();
+  try {
+    const payload = buildExtractionPayloadFromModelBundle(
+      {
+        bookId,
+        batchAnchor: canonicalAnchor,
+        repoRoot: repo.root,
+        subject: "chemistry",
+        schoolStage: "senior-secondary",
+        gradeBand: "grade-11",
+      },
+      {
+        nodes: [
+          {
+            id: "node:bad",
+            name: "",
+            kind: "concept",
+            subkind: null,
+            definition: "没有名称的节点应被丢弃。",
+            aliases: [],
+            domains: ["chemistry"],
+            knowledge_form: ["propositional"],
+            learning_mode: ["conceptual"],
+            scope: "domain-specific",
+            properties: {},
+            external_ids: {},
+            tags: [],
+            notes: "",
+          },
+          {
+            id: "",
+            name: "",
+            kind: "concept",
+            subkind: null,
+            definition: "",
+            aliases: [],
+            domains: ["chemistry"],
+            knowledge_form: ["propositional"],
+            learning_mode: ["conceptual"],
+            scope: "domain-specific",
+            properties: {},
+            external_ids: {},
+            tags: [],
+            notes: "",
+          },
+          {
+            id: "node:energy",
+            name: "能量",
+            kind: "concept",
+            subkind: null,
+            definition: "",
+            aliases: [],
+            domains: ["chemistry"],
+            knowledge_form: ["propositional"],
+            learning_mode: ["conceptual"],
+            scope: "domain-specific",
+            properties: {},
+            external_ids: {},
+            tags: [],
+            notes: "",
+          },
+        ],
+        edges: [{ from: "node:bad", to: "node:energy", type: "related_to", directionality: "directed", confidence: 0.8, evidence_anchor: "ev1", notes: "" }],
+        evidence_units: [{ anchor: "ev1", excerpt: "能量是重要概念。", locator: "line:1", modality: "text", node_ids: ["node:bad", "node:energy"] }],
+        domain_profiles: [],
+        node_cards: [],
+        issues: [],
+      },
+    );
+
+    assert.deepEqual(payload.nodes.map((node) => node.id), ["node:bad", "node:energy"]);
+    assert.equal(payload.nodes[0]?.name, "没有名称的节点应被丢弃");
+    assert.equal(payload.nodes[1]?.definition, "能量");
+    assert.equal(payload.edges.length, 1);
+    assert.ok(payload.issues.some((issue) => issue.includes("Dropped model node")));
+    assert.ok(payload.issues.some((issue) => issue.includes("Backfilled missing name")));
+    assert.ok(payload.issues.some((issue) => issue.includes("Backfilled empty definition")));
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }

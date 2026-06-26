@@ -21,7 +21,7 @@ import {
   type RetrievalCandidateQueryExecutor,
 } from "../retrieval/retrieve-candidates-query.js";
 import type { RetrievalMode } from "../retrieval/retrieve-candidates.js";
-import { preparePostgresParams } from "../shared/postgres-executor.js";
+import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import { REPO_ROOT } from "../shared/pathing.js";
 import { buildStagingTableRows } from "../staging/staging-rows.js";
 import { storeStagingRows, type SqlExecutor } from "../staging/staging-store.js";
@@ -295,7 +295,7 @@ async function createExplicitPostgresRetrievalExecutor(dbUrl: string | undefined
       if (!/^\s*SELECT\b/i.test(statement.sql)) {
         throw new Error(`Retrieval context executor refuses non-SELECT statement '${statement.name}'.`);
       }
-      const rows = await sql.unsafe(statement.sql, preparePostgresParams(statement.params) as never[]);
+      const rows = await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
       return Array.isArray(rows) ? rows.filter(isRecord) : [];
     },
     close: () => sql.end(),
@@ -373,7 +373,7 @@ async function createExplicitPostgresStagingExecutor(dbUrl: string | undefined):
   return {
     executor: async (statement) => {
       assertAllowedStagingStatement(statement.sql, statement.name);
-      await sql.unsafe(statement.sql, preparePostgresParams(statement.params) as never[]);
+      await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
     },
     close: () => sql.end(),
   };

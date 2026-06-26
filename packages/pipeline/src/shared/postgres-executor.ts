@@ -15,6 +15,10 @@ export function preparePostgresParams(params: readonly unknown[]): unknown[] {
   });
 }
 
+export function preparePostgresJsParams(params: readonly unknown[]): unknown[] {
+  return params.map((param) => (param === undefined ? null : param));
+}
+
 export function createPostgresStatementExecutor(query: QueryExecutor) {
   return async (statement: SqlStatement): Promise<void> => {
     await query(statement.sql, preparePostgresParams(statement.params));
@@ -22,7 +26,9 @@ export function createPostgresStatementExecutor(query: QueryExecutor) {
 }
 
 export function createPostgresJsStatementExecutor(client: PostgresJsUnsafeClient) {
-  return createPostgresStatementExecutor((sql, params) => client.unsafe(sql, params));
+  return async (statement: SqlStatement): Promise<void> => {
+    await client.unsafe(statement.sql, preparePostgresJsParams(statement.params));
+  };
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

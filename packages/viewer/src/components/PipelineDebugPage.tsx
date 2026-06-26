@@ -268,6 +268,18 @@ function imageReviewLocation(item: ImageReviewItem): string {
   return [page, locator].filter(Boolean).join(' · ') || '位置未知';
 }
 
+function imageReviewSizeText(item: ImageReviewItem): string {
+  const { width, height } = item.decision;
+  if (!width || !height) return '';
+  return `${Math.round(width)} x ${Math.round(height)}`;
+}
+
+function compactPath(value: string): string {
+  const normalized = value.replace(/\\/g, '/');
+  const parts = normalized.split('/').filter(Boolean);
+  return parts.length > 3 ? `.../${parts.slice(-3).join('/')}` : normalized;
+}
+
 function ImageReviewPanel({
   reviews,
   loading,
@@ -285,19 +297,51 @@ function ImageReviewPanel({
 }) {
   const items = reviews?.items ?? [];
   const disabled = Boolean(updatingId);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeIndexSafe = items.length === 0 ? 0 : Math.min(activeIndex, items.length - 1);
+  const activeItem = items[activeIndexSafe] ?? null;
+  const activeSizeText = activeItem ? imageReviewSizeText(activeItem) : '';
+  const activeHeading = activeItem?.context?.heading_path.join(' / ') || activeItem?.anchor_ref || '';
+  const activeSourcePath = activeItem?.context?.source_path || activeItem?.source_path || '';
+  const activeContextLines = activeItem ? [
+    ...(activeItem.context?.before ?? []).map((line) => ({ label: '前文', line, active: false })),
+    { label: '图片', line: activeItem.context?.image_line || activeItem.excerpt || '图片所在行', active: true },
+    ...(activeItem.context?.after ?? []).map((line) => ({ label: '后文', line, active: false })),
+  ].filter((entry) => entry.line.trim().length > 0) : [];
+  const pendingCount = reviews?.pending ?? items.length;
+  const canSwitch = items.length > 1;
+
+  useEffect(() => {
+    setActiveIndex((index) => {
+      if (items.length === 0) return 0;
+      return Math.min(index, items.length - 1);
+    });
+  }, [items.length]);
+
+  const showPrevious = () => {
+    if (!canSwitch) return;
+    setActiveIndex((index) => (index + items.length - 1) % items.length);
+  };
+
+  const showNext = () => {
+    if (!canSwitch) return;
+    setActiveIndex((index) => (index + 1) % items.length);
+  };
 
   return (
-    <section className="rounded-lg border border-border-subtle bg-elevated p-4">
+    <section className="rounded-lg border border-border-subtle bg-elevated p-4" aria-busy={loading}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-text-primary">待确认图片</div>
-          <div className="mt-0.5 text-[11px] text-text-muted">{reviews ? `${reviews.pending} 张` : '等待读取'}</div>
+          <div className="mt-0.5 text-[11px] text-text-muted">
+            {reviews ? `${pendingCount} 张待确认，已载入 ${items.length} 张` : '等待读取'}
+          </div>
         </div>
         <button
           type="button"
           onClick={onRefresh}
           disabled={loading}
-          className="flex h-7 items-center gap-1.5 rounded-md border border-border-subtle bg-surface px-2 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border-subtle bg-surface px-2 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
           刷新
@@ -305,7 +349,7 @@ function ImageReviewPanel({
       </div>
 
       {error && (
-        <div className="mb-3 flex items-start gap-2 rounded-lg border border-node-event/40 bg-node-event/10 p-3 text-xs text-node-event">
+        <div className="mb-3 flex items-start gap-2 rounded-lg border border-node-event/40 bg-node-event/10 p-3 text-xs text-node-event" role="alert">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>{error}</span>
         </div>
@@ -318,78 +362,168 @@ function ImageReviewPanel({
         </div>
       )}
 
-      <div className="space-y-3">
-        {items.slice(0, 8).map((item) => {
-          const isUpdating = updatingId === item.evidence_id;
-          return (
-            <div key={item.evidence_id} className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
-              <div className="flex h-36 items-center justify-center bg-void">
-                {item.image_url ? (
-                  <img
-                    src={item.image_url}
-                    alt="待确认教材图片"
-                    className="max-h-full max-w-full object-contain"
-                    loading="lazy"
-                  />
-                ) : (
-                  <span className="text-xs text-text-muted">图片路径缺失</span>
+      {activeItem && (
+        <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-3 py-2">
+            <div className="min-w-0">
+              <div className="truncate text-xs font-semibold text-text-primary" title={activeItem.evidence_id}>{activeItem.evidence_id}</div>
+              <div className="mt-0.5 truncate text-[11px] text-text-muted" title={imageReviewLocation(activeItem)}>{imageReviewLocation(activeItem)}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="min-w-[76px] text-center text-[11px] text-text-muted" aria-live="polite">
+                {activeIndexSafe + 1} / {items.length}
+              </span>
+              <button
+                type="button"
+                onClick={showPrevious}
+                disabled={!canSwitch}
+                aria-label="上一张待确认图片"
+                className="flex h-8 cursor-pointer items-center gap-1 rounded-md border border-border-subtle bg-elevated px-2 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <ChevronRight className="h-3.5 w-3.5 rotate-180" />
+                上一张
+              </button>
+              <button
+                type="button"
+                onClick={showNext}
+                disabled={!canSwitch}
+                aria-label="下一张待确认图片"
+                className="flex h-8 cursor-pointer items-center gap-1 rounded-md border border-border-subtle bg-elevated px-2 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                下一张
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="relative flex h-56 items-center justify-center bg-void p-2 sm:h-64 xl:h-72">
+              <button
+                type="button"
+                onClick={showPrevious}
+                disabled={!canSwitch}
+                aria-label="上一张待确认图片"
+                className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-elevated/90 text-text-secondary shadow-sm transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronRight className="h-4 w-4 rotate-180" />
+              </button>
+              {activeItem.image_url ? (
+                <img
+                  src={activeItem.image_url}
+                  alt="待确认教材图片"
+                  className="max-h-full max-w-full rounded-sm object-contain"
+                  loading="lazy"
+                />
+              ) : (
+                <span className="text-xs text-text-muted">图片路径缺失</span>
+              )}
+              <button
+                type="button"
+                onClick={showNext}
+                disabled={!canSwitch}
+                aria-label="下一张待确认图片"
+                className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-elevated/90 text-text-secondary shadow-sm transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="min-w-0 space-y-2">
+              <div className="flex flex-wrap gap-1.5 text-[10px] text-text-muted">
+                <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{imageReviewRelevanceLabel(activeItem.decision.relevance)}</span>
+                <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{imageReviewConfidenceText(activeItem.decision.confidence)}</span>
+                {activeSizeText && (
+                  <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{activeSizeText}</span>
                 )}
               </div>
-              <div className="space-y-2 p-3">
-                <div>
-                  <div className="truncate text-xs font-semibold text-text-primary" title={item.evidence_id}>{item.evidence_id}</div>
-                  <div className="mt-1 truncate text-[11px] text-text-muted" title={imageReviewLocation(item)}>{imageReviewLocation(item)}</div>
-                </div>
-                <div className="flex flex-wrap gap-1.5 text-[10px] text-text-muted">
-                  <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{imageReviewRelevanceLabel(item.decision.relevance)}</span>
-                  <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{imageReviewConfidenceText(item.decision.confidence)}</span>
-                </div>
-                <div className="max-h-10 overflow-hidden text-[11px] leading-5 text-text-secondary">
-                  {item.decision.reason || item.excerpt || '缺少判断说明。'}
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onAction(item, 'core_content')}
-                    disabled={disabled}
-                    className="flex h-8 items-center justify-center gap-1.5 rounded-md border border-node-process/40 bg-node-process/10 px-2 text-[11px] font-medium text-node-process transition-colors hover:bg-node-process/15 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
-                    核心图
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onAction(item, 'supporting')}
-                    disabled={disabled}
-                    className="flex h-8 items-center justify-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2 text-[11px] font-medium text-accent transition-colors hover:bg-accent/15 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
-                    辅助图
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onAction(item, 'keep')}
-                    disabled={disabled}
-                    className="flex h-8 items-center justify-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-2 text-[11px] font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
-                    保留
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onAction(item, 'drop')}
-                    disabled={disabled}
-                    className="flex h-8 items-center justify-center gap-1.5 rounded-md border border-node-event/40 bg-node-event/10 px-2 text-[11px] font-medium text-node-event transition-colors hover:bg-node-event/15 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertCircle className="h-3 w-3" />}
-                    删除
-                  </button>
+              <div className="rounded-md border border-border-subtle bg-elevated p-2">
+                <div className="mb-1 text-[10px] font-medium text-text-muted">出现位置</div>
+                <div className="space-y-1 text-[11px] leading-5 text-text-secondary">
+                  {activeHeading && (
+                    <div className="truncate" title={activeHeading}>
+                      <span className="text-text-muted">标题：</span>{activeHeading}
+                    </div>
+                  )}
+                  <div className="truncate" title={imageReviewLocation(activeItem)}>
+                    <span className="text-text-muted">页码：</span>{imageReviewLocation(activeItem)}
+                    {activeItem.context?.source_line ? ` · 第 ${activeItem.context.source_line} 行` : ''}
+                  </div>
+                  {activeSourcePath && (
+                    <div className="truncate" title={activeSourcePath}>
+                      <span className="text-text-muted">源文件：</span>{compactPath(activeSourcePath)}
+                    </div>
+                  )}
                 </div>
               </div>
+              {activeContextLines.length > 0 && (
+                <div className="rounded-md border border-border-subtle bg-elevated p-2">
+                  <div className="mb-1 text-[10px] font-medium text-text-muted">上下文</div>
+                  <div className="max-h-32 space-y-1 overflow-auto text-[11px] leading-5 scrollbar-thin">
+                    {activeContextLines.map((entry, index) => (
+                      <div key={`${entry.label}:${index}`} className={entry.active ? 'text-accent' : 'text-text-secondary'}>
+                        <span className="mr-1 text-text-muted">{entry.label}</span>
+                        <span>{entry.line}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="rounded-md border border-border-subtle bg-elevated p-2">
+                <div className="mb-1 text-[10px] font-medium text-text-muted">判断说明</div>
+                <div className="max-h-20 overflow-auto text-[11px] leading-5 text-text-secondary scrollbar-thin">
+                  {activeItem.decision.reason || '缺少判断说明。'}
+                </div>
+              </div>
+              {activeItem.excerpt && (
+                <div className="rounded-md border border-border-subtle bg-elevated p-2">
+                  <div className="mb-1 text-[10px] font-medium text-text-muted">证据摘录</div>
+                  <div className="max-h-20 overflow-auto text-[11px] leading-5 text-text-secondary scrollbar-thin">
+                    {activeItem.excerpt}
+                  </div>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => onAction(activeItem, 'core_content')}
+                  disabled={disabled}
+                  className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-node-process/40 bg-node-process/10 px-2 text-[11px] font-medium text-node-process transition-colors hover:bg-node-process/15 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {updatingId === activeItem.evidence_id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                  核心图
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onAction(activeItem, 'supporting')}
+                  disabled={disabled}
+                  className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2 text-[11px] font-medium text-accent transition-colors hover:bg-accent/15 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {updatingId === activeItem.evidence_id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                  辅助图
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onAction(activeItem, 'keep')}
+                  disabled={disabled}
+                  className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-2 text-[11px] font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {updatingId === activeItem.evidence_id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                  保留
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onAction(activeItem, 'drop')}
+                  disabled={disabled}
+                  className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-node-event/40 bg-node-event/10 px-2 text-[11px] font-medium text-node-event transition-colors hover:bg-node-event/15 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {updatingId === activeItem.evidence_id ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertCircle className="h-3 w-3" />}
+                  删除
+                </button>
+              </div>
             </div>
-          );
-        })}
-      </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -793,6 +927,15 @@ export function PipelineDebugPage() {
               <MetricCard label="阻断项" value={payload?.summary.blocked ?? 0} tone={(payload?.summary.blocked ?? 0) > 0 ? 'warn' : 'neutral'} detail="需要人工处理" />
             </div>
 
+            <ImageReviewPanel
+              reviews={imageReviews}
+              loading={imageReviewLoading}
+              error={imageReviewError}
+              updatingId={imageReviewUpdating}
+              onRefresh={() => void refreshImageReviews()}
+              onAction={(item, action) => void submitImageReview(item, action)}
+            />
+
             <div className="overflow-hidden rounded-lg border border-border-subtle bg-elevated">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
                 <div className="flex items-center gap-2">
@@ -870,15 +1013,6 @@ export function PipelineDebugPage() {
                 </div>
               </div>
             </section>
-
-            <ImageReviewPanel
-              reviews={imageReviews}
-              loading={imageReviewLoading}
-              error={imageReviewError}
-              updatingId={imageReviewUpdating}
-              onRefresh={() => void refreshImageReviews()}
-              onAction={(item, action) => void submitImageReview(item, action)}
-            />
 
             <section className="rounded-lg border border-border-subtle bg-elevated p-4">
               <div className="mb-3 flex items-center gap-2">

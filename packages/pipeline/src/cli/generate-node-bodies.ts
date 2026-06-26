@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { runGenerateNodeBodiesFromDatabase } from "../unit-bodies/generate-node-bodies.js";
-import { preparePostgresParams } from "../shared/postgres-executor.js";
+import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
 async function main(argv: string[]): Promise<number> {
@@ -29,12 +29,12 @@ async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promi
       overwriteExisting: flags.has("overwrite-existing"),
       query: async (statement) => {
         assertSelectStatement(statement);
-        const rows = await sql.unsafe(statement.sql, preparePostgresParams(statement.params) as never[]);
+        const rows = await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
         return Array.isArray(rows) ? rows.filter(isRecord) : [];
       },
       executeStatement: async (statement) => {
         assertAllowedNodeBodyWriteStatement(statement);
-        await sql.unsafe(statement.sql, preparePostgresParams(statement.params) as never[]);
+        await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
       },
     });
   } finally {

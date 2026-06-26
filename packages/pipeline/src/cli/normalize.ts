@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { runNormalizeFromDatabase } from "../normalize/normalize-store.js";
-import { preparePostgresParams } from "../shared/postgres-executor.js";
+import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
 async function main(argv: string[]): Promise<number> {
@@ -69,11 +69,7 @@ function required(flags: Map<string, string>, name: string): string {
 }
 
 function preparePostgresParamsForStatement(statement: SqlStatement): unknown[] {
-  return statement.params.map((param, index) => (placeholderCastsToJsonb(statement.sql, index + 1) ? preparePostgresParams([param])[0] : param));
-}
-
-function placeholderCastsToJsonb(sql: string, index: number): boolean {
-  return new RegExp(`\\$${index}\\s*::\\s*jsonb`, "i").test(sql);
+  return preparePostgresJsParams(statement.params);
 }
 
 function assertSelectStatement(statement: SqlStatement): void {

@@ -172,6 +172,8 @@ test("builds quality blocked update statements", () => {
   assert.deepEqual(statements.map((statement) => statement.name), ["mark-staging-quality-blocked-lesson-run:1"]);
   assert.match(statements[0]!.sql, /UPDATE world_lesson_runs/);
   assert.match(statements[0]!.sql, /quality_issues/);
+  assert.match(statements[0]!.sql, /jsonb_typeof/);
+  assert.match(statements[0]!.sql, /ELSE '\{\}'::jsonb/);
   assert.deepEqual(statements[0]!.params, [["bad"], context.now, "main", "lesson-run:1"]);
 });
 

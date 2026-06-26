@@ -137,7 +137,9 @@ async function extractTextWithPdfToText(pdfPath: string, startPage: number, endP
 function parseTocLine(rawLine: string, currentThemeOrder: string): TocEntry | null {
   const line = rawLine.trim();
   if (!line || /^(目\s*录|contents)$/i.test(line) || /^\d+$/.test(line)) return null;
-  const match = /^(.*?)\s*(?:[.·•…．。]{2,}|[─—-]{2,}|…\s+…)\s*(\d+)\s*$/.exec(line) ?? /^(第\s*\S+\s*章\s+\S.*?)\s+(\d+)\s*$/.exec(line);
+  const match =
+    /^(.*?)\s*(?:[.·•…．。]{2,}|[─—-]{2,}|…\s+…|\/)\s*(\d+)\s*$/.exec(line) ??
+    /^(第\s*\S+\s*章\s+\S.*?)\s+(\d+)\s*$/.exec(line);
   if (!match) return null;
   const heading = normalizeTocHeading(match[1]!);
   const pageStart = Number.parseInt(match[2]!, 10);
@@ -156,6 +158,24 @@ function parseTocLine(rawLine: string, currentThemeOrder: string): TocEntry | nu
       level: 1,
       rawLine: `第 ${themeNumber} 章 ${title}`,
       themeOrder: String(themeNumber),
+      include: true,
+    };
+  }
+
+  const chineseLesson = /^第\s*([0-9一二三四五六七八九十百千万]+)\s*节\s*(.+)$/.exec(heading);
+  if (chineseLesson) {
+    const lessonNumber = normalizeNumberToken(chineseLesson[1]!);
+    const orderPath = currentThemeOrder ? `${currentThemeOrder}.${lessonNumber}` : String(lessonNumber);
+    const title = chineseLesson[2]!.trim();
+    return {
+      kind: "lesson",
+      label: `第${lessonNumber}节`,
+      title,
+      pageStart,
+      orderPath,
+      level: 3,
+      rawLine: `第${lessonNumber}节 ${title}`,
+      themeOrder: currentThemeOrder || String(lessonNumber).split(".")[0],
       include: true,
     };
   }
@@ -241,6 +261,7 @@ function pageEndFor(entry: TocEntry, entries: TocEntry[]): number | undefined {
 function normalizeTocHeading(value: string): string {
   return value
     .replace(/[.·•…．。]{2,}/g, " ")
+    .replace(/[·•]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }

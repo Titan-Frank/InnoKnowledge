@@ -180,7 +180,7 @@ export async function inferTextbookMetadata(
 
 export async function loadImageReviews(sourceKey: string): Promise<ImageReviewResponse> {
   return fetchJson<ImageReviewResponse>(
-    `/api/source/${encodeURIComponent(sourceKey)}/image-reviews`,
+    `/api/source/${encodeURIComponent(sourceKey)}/image-reviews?limit=200`,
   );
 }
 

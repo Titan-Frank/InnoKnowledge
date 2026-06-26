@@ -369,9 +369,42 @@ export function extractTextOutput(body: RawRecord): string {
 }
 
 export function parseModelBundleFromResponse(body: RawRecord): ModelBundle {
-  const parsed = JSON.parse(extractTextOutput(body)) as unknown;
+  const parsed = parseJsonObjectFromText(extractTextOutput(body));
   if (!isRecord(parsed)) throw new Error("Model output must be a JSON object.");
   return parsed as ModelBundle;
+}
+
+function parseJsonObjectFromText(text: string): RawRecord {
+  const trimmed = text.trim();
+  const candidates = [trimmed];
+  const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
+  if (fenced) candidates.push(fenced[1]!.trim());
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace >= 0 && lastBrace > firstBrace) candidates.push(trimmed.slice(firstBrace, lastBrace + 1));
+
+  const errors: string[] = [];
+  for (const candidate of uniqueStable(candidates.filter(Boolean))) {
+    try {
+      const parsed = JSON.parse(candidate) as unknown;
+      if (isRecord(parsed)) return parsed;
+      errors.push("parsed JSON was not an object");
+    } catch (error) {
+      errors.push((error as Error).message);
+    }
+  }
+  throw new Error(`Model output must be a JSON object: ${errors[0] ?? "empty output"}`);
+}
+
+function uniqueStable(values: Iterable<string>): string[] {
+  const result: string[] = [];
+  const seen = new Set<string>();
+  for (const value of values) {
+    if (seen.has(value)) continue;
+    seen.add(value);
+    result.push(value);
+  }
+  return result;
 }
 
 export function buildExtractionPayloadFromModelResponse(input: BuildModelLessonPayloadInput, body: RawRecord): ExtractionPayload {
@@ -389,13 +422,22 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
 
   const nodes: RawRecord[] = [];
   const nodeIds = new Set<string>();
+  const normalizationIssues: string[] = [];
   for (const raw of asRecords(bundle.nodes)) {
+    const rawId = stringValue(raw.id).trim();
+    const rawName = stringValue(raw.name).trim();
+    const rawDefinition = stringValue(raw.definition).trim();
+    const inferredName = inferNodeName(rawId, rawName, rawDefinition, raw);
+    if (!rawId || !inferredName) {
+      normalizationIssues.push(`Dropped model node with missing id/name: ${JSON.stringify({ id: rawId, name: rawName })}`);
+      continue;
+    }
     const node = {
-      id: stringValue(raw.id).trim(),
-      name: stringValue(raw.name).trim(),
+      id: rawId,
+      name: inferredName,
       kind: stringValue(raw.kind).trim(),
       subkind: raw.subkind ?? null,
-      definition: stringValue(raw.definition).trim(),
+      definition: rawDefinition || inferredName,
       aliases: trimmedStrings(raw.aliases),
       domains: trimmedStrings(raw.domains).length > 0 ? trimmedStrings(raw.domains) : ["general"],
       knowledge_form: trimmedStrings(raw.knowledge_form).length > 0 ? trimmedStrings(raw.knowledge_form) : ["propositional"],
@@ -408,7 +450,9 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       status: "draft",
       source_refs: [],
     };
-    if (!node.id || nodeIds.has(node.id)) continue;
+    if (!rawName) normalizationIssues.push(`Backfilled missing name for model node ${rawId}.`);
+    if (!rawDefinition) normalizationIssues.push(`Backfilled empty definition for model node ${rawId}.`);
+    if (nodeIds.has(node.id)) continue;
     nodeIds.add(node.id);
     nodes.push(node);
   }
@@ -680,6 +724,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       node_cards: nodeCards.length,
     },
     issues: trimmedStrings(bundle.issues).concat(
+      normalizationIssues,
       droppedEdges > 0 ? [`Dropped ${droppedEdges} edges that could not be resolved to valid node ids or relation types.`] : [],
     ),
   };
@@ -905,6 +950,24 @@ function asRecords(value: unknown): RawRecord[] {
 
 function recordValue(value: unknown): RawRecord {
   return isRecord(value) ? value : {};
+}
+
+function inferNodeName(rawId: string, rawName: string, rawDefinition: string, raw: RawRecord): string {
+  if (rawName) return rawName;
+  const explicit = stringValue(raw.title || raw.label || raw.term).trim();
+  if (explicit) return explicit;
+  const alias = trimmedStrings(raw.aliases)[0];
+  if (alias) return alias;
+  const fromDefinition = rawDefinition.split(/[。；;，,：:\n]/)[0]?.trim();
+  if (fromDefinition) return fromDefinition.length > 32 ? fromDefinition.slice(0, 32).trim() : fromDefinition;
+  return humanizeNodeId(rawId);
+}
+
+function humanizeNodeId(rawId: string): string {
+  return rawId
+    .replace(/^(node|n|concept|entity|property|prop|rule|method|representation|event|e|m|p)[:_-]+/i, "")
+    .replace(/[_-]+/g, " ")
+    .trim();
 }
 
 function trimmedStrings(value: unknown): string[] {
