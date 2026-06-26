@@ -90,6 +90,45 @@ test("calls the model with retrieval context loaded from a read-only executor", 
   }
 });
 
+test("uses OpenAI model and base URL from environment when flags are omitted", async () => {
+  const repo = makeFixtureRepo();
+  const stdout: string[] = [];
+  let requestUrl = "";
+  let requestBody: Record<string, unknown> = {};
+  try {
+    const code = await runExtractLessonOpenAiCli(
+      ["--book-id", bookId, "--batch-anchor", canonicalAnchor, "--output-root", "/tmp/output", "--repo-root", repo.root],
+      {
+        stdout: (text) => stdout.push(text),
+        stderr: () => undefined,
+        env: {
+          OPENAI_API_KEY: "test-key",
+          OPENAI_BASE_URL: "https://llm.example.test/v1",
+          OPENAI_MODEL: "test-llm-model",
+        },
+        fetchImpl: async (url, init) => {
+          requestUrl = String(url);
+          requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+          return new Response(
+            JSON.stringify({
+              output: [{ content: [{ type: "output_text", text: JSON.stringify({ nodes: [], edges: [], evidence_units: [], domain_profiles: [], node_cards: [], issues: [] }) }] }],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          );
+        },
+      },
+    );
+
+    assert.equal(code, 0);
+    assert.equal(requestUrl, "https://llm.example.test/v1/responses");
+    assert.equal(requestBody.model, "test-llm-model");
+    const payload = JSON.parse(stdout.join("")) as { status: string };
+    assert.equal(payload.status, "success");
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
 test("writes successful model output into staging through an injected executor", async () => {
   const repo = makeFixtureRepo();
   const stdout: string[] = [];

@@ -396,22 +396,22 @@ function ImageReviewPanel({
             </div>
           </div>
 
-          <div className="grid gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_340px]">
-            <div className="relative flex h-56 items-center justify-center bg-void p-2 sm:h-64 xl:h-72">
+          <div className="grid overflow-hidden lg:h-[520px] lg:grid-cols-[minmax(0,1fr)_390px] xl:grid-cols-[minmax(0,1fr)_420px]">
+            <div className="relative flex min-h-[320px] items-center justify-center bg-void p-3 sm:min-h-[380px] lg:min-h-0">
               <button
                 type="button"
                 onClick={showPrevious}
                 disabled={!canSwitch}
                 aria-label="上一张待确认图片"
-                className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-elevated/90 text-text-secondary shadow-sm transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-elevated/90 text-text-secondary shadow-sm transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronRight className="h-4 w-4 rotate-180" />
               </button>
               {activeItem.image_url ? (
                 <img
                   src={activeItem.image_url}
-                  alt="待确认教材图片"
-                  className="max-h-full max-w-full rounded-sm object-contain"
+                  alt={activeHeading ? `待确认教材图片：${activeHeading}` : '待确认教材图片'}
+                  className="h-full w-full rounded-sm object-contain"
                   loading="lazy"
                 />
               ) : (
@@ -422,67 +422,88 @@ function ImageReviewPanel({
                 onClick={showNext}
                 disabled={!canSwitch}
                 aria-label="下一张待确认图片"
-                className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-elevated/90 text-text-secondary shadow-sm transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-elevated/90 text-text-secondary shadow-sm transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="min-w-0 space-y-2">
-              <div className="flex flex-wrap gap-1.5 text-[10px] text-text-muted">
-                <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{imageReviewRelevanceLabel(activeItem.decision.relevance)}</span>
-                <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{imageReviewConfidenceText(activeItem.decision.confidence)}</span>
+            <aside className="flex min-h-0 flex-col border-t border-border-subtle bg-elevated/40 lg:border-l lg:border-t-0">
+              <div className="flex flex-wrap gap-1.5 border-b border-border-subtle p-3 text-[10px] text-text-muted">
+                <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5">{imageReviewRelevanceLabel(activeItem.decision.relevance)}</span>
+                <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5">{imageReviewConfidenceText(activeItem.decision.confidence)}</span>
                 {activeSizeText && (
-                  <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{activeSizeText}</span>
+                  <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5">{activeSizeText}</span>
                 )}
               </div>
-              <div className="rounded-md border border-border-subtle bg-elevated p-2">
-                <div className="mb-1 text-[10px] font-medium text-text-muted">出现位置</div>
-                <div className="space-y-1 text-[11px] leading-5 text-text-secondary">
-                  {activeHeading && (
-                    <div className="truncate" title={activeHeading}>
-                      <span className="text-text-muted">标题：</span>{activeHeading}
-                    </div>
-                  )}
-                  <div className="truncate" title={imageReviewLocation(activeItem)}>
-                    <span className="text-text-muted">页码：</span>{imageReviewLocation(activeItem)}
-                    {activeItem.context?.source_line ? ` · 第 ${activeItem.context.source_line} 行` : ''}
-                  </div>
-                  {activeSourcePath && (
-                    <div className="truncate" title={activeSourcePath}>
-                      <span className="text-text-muted">源文件：</span>{compactPath(activeSourcePath)}
-                    </div>
-                  )}
-                </div>
-              </div>
-              {activeContextLines.length > 0 && (
-                <div className="rounded-md border border-border-subtle bg-elevated p-2">
-                  <div className="mb-1 text-[10px] font-medium text-text-muted">上下文</div>
-                  <div className="max-h-32 space-y-1 overflow-auto text-[11px] leading-5 scrollbar-thin">
-                    {activeContextLines.map((entry, index) => (
-                      <div key={`${entry.label}:${index}`} className={entry.active ? 'text-accent' : 'text-text-secondary'}>
-                        <span className="mr-1 text-text-muted">{entry.label}</span>
-                        <span>{entry.line}</span>
+
+              <div className="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-thin">
+                <div className="space-y-4">
+                  <section className="border-b border-border-subtle pb-3">
+                    <div className="mb-2 text-[10px] font-medium text-text-muted">出现位置</div>
+                    <dl className="space-y-1.5 text-[11px] leading-5 text-text-secondary">
+                      {activeHeading && (
+                        <div className="grid grid-cols-[42px_minmax(0,1fr)] gap-2">
+                          <dt className="text-text-muted">标题</dt>
+                          <dd className="min-w-0 break-words" title={activeHeading}>{activeHeading}</dd>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-[42px_minmax(0,1fr)] gap-2">
+                        <dt className="text-text-muted">位置</dt>
+                        <dd className="min-w-0 break-words" title={imageReviewLocation(activeItem)}>
+                          {imageReviewLocation(activeItem)}
+                          {activeItem.context?.source_line ? ` · 第 ${activeItem.context.source_line} 行` : ''}
+                        </dd>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <div className="rounded-md border border-border-subtle bg-elevated p-2">
-                <div className="mb-1 text-[10px] font-medium text-text-muted">判断说明</div>
-                <div className="max-h-20 overflow-auto text-[11px] leading-5 text-text-secondary scrollbar-thin">
-                  {activeItem.decision.reason || '缺少判断说明。'}
+                      {activeSourcePath && (
+                        <div className="grid grid-cols-[42px_minmax(0,1fr)] gap-2">
+                          <dt className="text-text-muted">源文件</dt>
+                          <dd className="min-w-0 break-all" title={activeSourcePath}>{compactPath(activeSourcePath)}</dd>
+                        </div>
+                      )}
+                    </dl>
+                  </section>
+
+                  {activeContextLines.length > 0 && (
+                    <section className="border-b border-border-subtle pb-3">
+                      <div className="mb-2 text-[10px] font-medium text-text-muted">上下文</div>
+                      <div className="space-y-1.5 text-[11px] leading-5">
+                        {activeContextLines.map((entry, index) => (
+                          <div
+                            key={`${entry.label}:${index}`}
+                            className={`grid grid-cols-[34px_minmax(0,1fr)] gap-2 rounded-md px-2 py-1 ${
+                              entry.active
+                                ? 'border border-accent/40 bg-accent/10 text-text-primary'
+                                : 'text-text-secondary'
+                            }`}
+                          >
+                            <span className={entry.active ? 'font-medium text-accent' : 'text-text-muted'}>{entry.label}</span>
+                            <span className="min-w-0 break-words">{entry.line}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  <section className="border-b border-border-subtle pb-3">
+                    <div className="mb-2 text-[10px] font-medium text-text-muted">判断说明</div>
+                    <div className="whitespace-pre-wrap break-words text-[11px] leading-5 text-text-secondary">
+                      {activeItem.decision.reason || '缺少判断说明。'}
+                    </div>
+                  </section>
+
+                  {activeItem.excerpt && (
+                    <section>
+                      <div className="mb-2 text-[10px] font-medium text-text-muted">证据摘录</div>
+                      <div className="whitespace-pre-wrap break-words text-[11px] leading-5 text-text-secondary">
+                        {activeItem.excerpt}
+                      </div>
+                    </section>
+                  )}
                 </div>
               </div>
-              {activeItem.excerpt && (
-                <div className="rounded-md border border-border-subtle bg-elevated p-2">
-                  <div className="mb-1 text-[10px] font-medium text-text-muted">证据摘录</div>
-                  <div className="max-h-20 overflow-auto text-[11px] leading-5 text-text-secondary scrollbar-thin">
-                    {activeItem.excerpt}
-                  </div>
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-2">
+
+              <div className="grid grid-cols-2 gap-2 border-t border-border-subtle p-3">
                 <button
                   type="button"
                   onClick={() => onAction(activeItem, 'core_content')}
@@ -520,7 +541,7 @@ function ImageReviewPanel({
                   删除
                 </button>
               </div>
-            </div>
+            </aside>
           </div>
         </div>
       )}

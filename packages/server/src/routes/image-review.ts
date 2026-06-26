@@ -16,6 +16,7 @@ import { REPO_ROOT } from '../utils/paths.js';
 
 type Row = Record<string, unknown>;
 type SourceLineCache = Map<string, string[] | null>;
+type JsonValue = Parameters<Sql['json']>[0];
 
 const VALID_ACTIONS = new Set<ImageReviewAction>(['keep', 'drop', 'core_content', 'supporting', 'uncertain']);
 
@@ -93,7 +94,7 @@ export function registerImageReviewRoutes(app: Hono, sql: Sql) {
 
     await sql`
       UPDATE world_evidence
-      SET properties_json = ${JSON.stringify(nextProperties)}::jsonb,
+      SET properties_json = ${sql.json(nextProperties as unknown as JsonValue)}::jsonb,
           updated_at = ${now}
       WHERE dataset_id = ${datasetRow.dataset_id}
         AND id = ${evidenceId}

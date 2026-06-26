@@ -51,7 +51,7 @@ const DEFAULT_VLM_MODEL = "gpt-4.1-mini";
 const DEFAULT_VLM_TIMEOUT_MS = 60_000;
 const DEFAULT_VLM_CONCURRENCY = 8;
 const CACHE_VERSION = 1;
-const PROMPT_VERSION = "textbook-image-relevance-v3-context";
+const PROMPT_VERSION = "textbook-image-relevance-v4-related-context";
 
 export async function filterImageEvidencePayload(
   payload: RawRecord,
@@ -276,11 +276,13 @@ function buildVlmPrompt(evidence: RawRecord, metadata: ImageMetadata | null, con
   const properties = recordValue(evidence.properties);
   return [
     "判断这张教材图片是否应该作为知识证据保留。请同时依据图片内容和图片在教材中的上下文判断。",
-    "保留：直接表达概念、结构、实验、数据、流程、地图、模型、例题或其他核心知识内容。",
-    "过滤：栏目图标、提示语、页眉页脚、二维码、标志、装饰图，或者图片内容和当前标题/上下文明显不匹配。",
-    "如果图片本身有知识内容，但和标题、前后文或当前课时明显不相关，返回 keep=false、relevance=\"mismatch\"。",
-    "如果图片只是装饰或栏目提示，即使附近正文有知识内容，也返回 keep=false、relevance=\"decorative\"。",
-    "无法判断时不要猜，返回 keep=true、relevance=\"uncertain\"，交给人工复核。",
+    "核心规则：只要图片内容能和标题、前文、图片行、后文中的任一处形成合理对应，就保留，返回 keep=true。",
+    "保留为 core_content：图片直接表达概念、结构、实验、数据、流程、地图、模型、例题或主要结论。",
+    "保留为 supporting：图片与上下文有关，但只是辅助说明、局部截图、照片、器材、场景、过程片段、例题配图或补充材料。",
+    "不要因为图片不是最核心、信息量一般、只起辅助作用就返回 uncertain；这类情况应当返回 keep=true、relevance=\"supporting\"。",
+    "过滤为 decorative：栏目图标、提示语、页眉页脚、二维码、标志、纯装饰图，且图片本身没有可用的学科知识内容。",
+    "过滤为 mismatch：图片本身有知识内容，但和当前标题、前后文或课时明显不相关。",
+    "只有图片看不清、上下文缺失且图片内容也无法辨认，或确实无法判断图片是否相关时，才返回 keep=true、relevance=\"uncertain\"。",
     "只返回 JSON：keep、relevance、reason、confidence。",
     "",
     "教材上下文：",
@@ -358,11 +360,17 @@ function parseVlmDecision(body: unknown): Omit<ImageRelevanceDecision, "source" 
   const parsed = direct ?? parseJsonObject(extractModelText(body));
   const relevance = parseRelevanceLabel(parsed.relevance);
   return {
-    keep: typeof parsed.keep === "boolean" ? parsed.keep : relevance !== "decorative" && relevance !== "mismatch",
+    keep: keepForRelevance(relevance, parsed.keep),
     relevance,
     reason: stringValue(parsed.reason).trim() || "VLM 未给出原因。",
     confidence: numberOrUndefined(parsed.confidence),
   };
+}
+
+function keepForRelevance(relevance: ImageRelevanceLabel, rawKeep: unknown): boolean {
+  if (relevance === "decorative" || relevance === "mismatch") return false;
+  if (relevance === "core_content" || relevance === "supporting") return true;
+  return typeof rawKeep === "boolean" ? rawKeep : true;
 }
 
 function extractModelText(body: unknown): string {
@@ -459,7 +467,7 @@ function readCachedDecision(cacheDir: string | undefined, key: string): ImageRel
     const rawDecision = recordValue(parsed.decision);
     const relevance = parseRelevanceLabel(rawDecision.relevance);
     return {
-      keep: typeof rawDecision.keep === "boolean" ? rawDecision.keep : relevance !== "decorative" && relevance !== "mismatch",
+      keep: keepForRelevance(relevance, rawDecision.keep),
       relevance,
       reason: stringValue(rawDecision.reason).trim() || "缓存的 VLM 判断未给出原因。",
       confidence: numberOrUndefined(rawDecision.confidence),

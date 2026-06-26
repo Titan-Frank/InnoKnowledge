@@ -191,11 +191,59 @@ test("includes source markdown context in VLM prompt", async () => {
     );
 
     assert.equal(result.decisions["ev-context"]?.relevance, "core_content");
+    assert.match(prompt, /只要图片内容能和标题、前文、图片行、后文中的任一处形成合理对应，就保留/);
+    assert.match(prompt, /不是最核心、信息量一般、只起辅助作用/);
+    assert.match(prompt, /relevance="supporting"/);
     assert.match(prompt, /标题路径：第一章 电场/);
     assert.match(prompt, /源文件行：4/);
     assert.match(prompt, /前文：电场线可以表示电场方向。/);
     assert.match(prompt, /图片行：\[图片：电场线示意图\]/);
     assert.match(prompt, /后文：箭头方向表示正电荷受力方向。/);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("forces mismatch and decorative VLM labels to drop even when keep is inconsistent", async () => {
+  const repo = makeImageFixture();
+  try {
+    const result = await filterImageEvidencePayload(
+      {
+        evidence: [imageEvidence("ev-mismatch", "![无关图片](images/unknown.png)", "line:3", "images/unknown.png")],
+        mentions: [{ id: "m1", source_refs: ["ev-mismatch"] }],
+        edges: [{ id: "e1", source_refs: ["ev-mismatch"] }],
+        domain_profiles: [],
+        node_cards: [],
+        counts: { evidence: 1, mentions: 1, edges: 1, domain_profiles: 0, node_cards: 0 },
+        issues: [],
+      },
+      {
+        repoRoot: repo.root,
+        vlmApiUrl: "http://localhost:8000/v1",
+        fetchImpl: async () =>
+          new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  message: {
+                    content: JSON.stringify({
+                      keep: true,
+                      relevance: "mismatch",
+                      reason: "图片内容和上下文不匹配。",
+                      confidence: 0.9,
+                    }),
+                  },
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          ),
+      },
+    );
+
+    assert.equal(result.decisions["ev-mismatch"]?.keep, false);
+    assert.deepEqual(result.dropped_evidence_ids, ["ev-mismatch"]);
+    assert.equal((result.payload.evidence as unknown[]).length, 0);
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }
