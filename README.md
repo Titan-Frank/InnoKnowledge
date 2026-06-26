@@ -33,6 +33,10 @@ export DATABASE_URL=postgresql://okm:okm@localhost:5432/knowledge
 docker compose exec -T postgres psql -U okm -d knowledge < schemas/pg/knowledge_store.sql
 export MINERU_API_KEY=你的_MinerU_API_令牌
 export OPENAI_API_KEY=你的_OpenAI_API_令牌
+# 可选：用于判断教材图片是否真正承载知识内容
+export VLM_API_URL=http://localhost:8000/v1/chat/completions
+export VLM_API_KEY=你的_视觉模型_API_令牌
+export VLM_MODEL=gpt-4.1-mini
 
 npm run server-pipeline-run -w packages/pipeline -- \
   --book-id chem-grade8 \
@@ -72,6 +76,23 @@ npm run server-pipeline-run -w packages/pipeline -- \
   --db "$DATABASE_URL"
 ```
 
+如果教材里有大量图片，建议配置视觉模型。流程会把图片证据交给视觉模型判断：
+
+- 核心图、辅助图会保留，并写入 `world_evidence.properties_json.image_relevance`
+- 装饰图或不匹配图片会从当次抽取结果中删除
+- 无法判断的图片会默认保留，并在前端调试页进入待复核列表
+
+也可以在命令行里直接指定视觉模型参数：
+
+```bash
+npm run server-pipeline-run -w packages/pipeline -- \
+  --book-id chem-grade8 \
+  --pdf-path /abs/path/to/book.pdf \
+  --vlm-api-url http://localhost:8000/v1/chat/completions \
+  --vlm-model gpt-4.1-mini \
+  --db "$DATABASE_URL"
+```
+
 ## 主链路
 
 ```bash
@@ -94,6 +115,19 @@ npm run parallel-lesson-pipeline -w packages/pipeline -- \
   --db "$DATABASE_URL"
 ```
 
+课时抽取、入库、合并和质量检查完成后，可以从节点卡片生成更适合前端 Unit 视图展示的 Markdown 正文：
+
+```bash
+npm run generate-node-bodies -w packages/pipeline -- \
+  --dataset-id main \
+  --db "$DATABASE_URL" \
+  --pretty
+```
+
+默认不会覆盖人工维护的节点正文。需要重新生成由节点卡片展开的正文时，可以追加 `--overwrite-existing`。
+
+前端调试页会读取流水线运行结果、质量检查结果和待复核图片。通过 `npm run dev` 启动后，在 viewer 的调试入口里可以查看待复核图片，并把图片标为核心图、辅助图、保留或删除。
+
 ## 存储
 
 唯一主存储是 PostgreSQL。
@@ -109,6 +143,7 @@ npm run parallel-lesson-pipeline -w packages/pipeline -- \
 - `world_mentions`
 - `world_evidence`
 - `world_node_cards`
+- `world_node_bodies`
 
 运行表：
 
@@ -129,10 +164,15 @@ npm run parallel-lesson-pipeline -w packages/pipeline -- \
 
 - `npm run server-pipeline-run -w packages/pipeline`
 - `npm run extract-lesson-openai -w packages/pipeline`
+- `npm run generate-node-bodies -w packages/pipeline`
 - `npm run store-staging -w packages/pipeline`
 - `npm run staging-quality -w packages/pipeline`
+- `npm run strict-qa -w packages/pipeline`
+- `npm run graph-integrity -w packages/pipeline`
 - `npm run parallel-lesson-pipeline -w packages/pipeline`
 - `npm run retrieve-candidates -w packages/pipeline`
+- `npm run merge-staged-lessons -w packages/pipeline`
+- `npm run normalize -w packages/pipeline`
 
 ## 相关文档
 
@@ -142,3 +182,4 @@ npm run parallel-lesson-pipeline -w packages/pipeline -- \
 - `schemas/world-knowledge-edge.schema.json`
 - `schemas/world-taxonomy-term.schema.json`
 - `schemas/world-domain-profile.schema.json`
+- `schemas/world-node-body.schema.json`
