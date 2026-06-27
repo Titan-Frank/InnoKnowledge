@@ -430,11 +430,12 @@ export function parseModelBundleFromResponse(body: RawRecord): ModelBundle {
 function parseJsonObjectFromText(text: string): RawRecord {
   const trimmed = text.trim();
   const candidates = [trimmed];
-  const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
-  if (fenced) candidates.push(fenced[1]!.trim());
-  const firstBrace = trimmed.indexOf("{");
-  const lastBrace = trimmed.lastIndexOf("}");
-  if (firstBrace >= 0 && lastBrace > firstBrace) candidates.push(trimmed.slice(firstBrace, lastBrace + 1));
+  for (const block of extractFencedBlocks(trimmed)) {
+    candidates.push(block);
+  }
+  for (const objectText of extractBalancedJsonObjects(trimmed)) {
+    candidates.push(objectText);
+  }
 
   const errors: string[] = [];
   for (const candidate of uniqueStable(candidates.filter(Boolean))) {
@@ -447,6 +448,53 @@ function parseJsonObjectFromText(text: string): RawRecord {
     }
   }
   throw new Error(`Model output must be a JSON object: ${errors[0] ?? "empty output"}`);
+}
+
+function extractFencedBlocks(text: string): string[] {
+  const blocks: string[] = [];
+  const pattern = /```[ \t]*(?:json)?[^\n\r`]*[\r\n]+([\s\S]*?)```/gi;
+  for (const match of text.matchAll(pattern)) {
+    const block = match[1]?.trim();
+    if (block) blocks.push(block);
+  }
+  return blocks;
+}
+
+function extractBalancedJsonObjects(text: string): string[] {
+  const objects: string[] = [];
+  for (let start = text.indexOf("{"); start >= 0; start = text.indexOf("{", start + 1)) {
+    const end = findBalancedJsonObjectEnd(text, start);
+    if (end >= 0) objects.push(text.slice(start, end + 1).trim());
+  }
+  return objects;
+}
+
+function findBalancedJsonObjectEnd(text: string, start: number): number {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === "\"") {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === "\"") {
+      inString = true;
+    } else if (char === "{") {
+      depth += 1;
+    } else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  return -1;
 }
 
 function uniqueStable(values: Iterable<string>): string[] {

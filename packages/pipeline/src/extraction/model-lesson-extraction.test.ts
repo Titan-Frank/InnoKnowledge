@@ -115,6 +115,26 @@ test("parses model JSON when providers wrap it in a Markdown code fence", () => 
   assert.deepEqual(bundle.issues, []);
 });
 
+test("parses model JSON from a fenced block with surrounding provider text", () => {
+  const bundle = parseModelBundleFromResponse({
+    choices: [
+      {
+        message: {
+          content: [
+            "下面是抽取结果：",
+            "```json",
+            JSON.stringify({ nodes: [], edges: [], evidence_units: [], domain_profiles: [], node_cards: [], issues: ["ok"] }, null, 2),
+            "```",
+            "请查收。",
+          ].join("\n"),
+        },
+      },
+    ],
+  });
+
+  assert.deepEqual(bundle.issues, ["ok"]);
+});
+
 test("converts a model bundle into Python-compatible staging artifacts", () => {
   const repo = makeFixtureRepo();
   try {

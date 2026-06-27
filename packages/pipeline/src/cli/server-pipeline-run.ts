@@ -5,6 +5,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import postgres from "postgres";
+
 import { planParallelBatches, planTsModelExtractionCommands, type ParallelExtractionCommand } from "../extraction/parallel-batch.js";
 import { extractPdfOutline } from "../outline/pdf-outline.js";
 import { runMineruSourceMarkdown } from "../outline/mineru-source.js";
@@ -41,6 +43,13 @@ type ServerPipelineResult = {
 type CommandOutput = { exitCode: number; stdout: string; stderr: string };
 type CommandRunner = (command: string[]) => Promise<CommandOutput>;
 type PostgresChecker = (databaseUrl: string) => Promise<PostgresReadinessResult>;
+type DatasetInitializer = (input: { dbUrl: string; datasetId: string; outputRoot: string }) => Promise<void>;
+type StagingQualityOutput = {
+  status?: unknown;
+  checked?: unknown;
+  blocked?: unknown;
+  results?: unknown;
+};
 
 type RunnerOptions = {
   jobId?: string;
@@ -79,10 +88,12 @@ type RunnerOptions = {
   vlmModel?: string;
   retrievalContext: boolean;
   retrievalLimit: number;
+  qualityRetryCount: number;
   progressStore?: PipelineProgressStore;
   assetStore?: PipelineAssetStore;
   commandRunner?: CommandRunner;
   postgresChecker?: PostgresChecker;
+  datasetInitializer?: DatasetInitializer;
 };
 
 type RawRecord = Record<string, unknown>;
@@ -111,6 +122,12 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
     result.stages.push(stage);
     return result;
   }
+
+  await (options.datasetInitializer ?? defaultDatasetInitializer)({
+    dbUrl: options.dbUrl,
+    datasetId: options.datasetId,
+    outputRoot: options.outputRoot,
+  });
 
   const progressStore = options.progressStore ?? createPostgresPipelineProgressStore(options.dbUrl);
   const assetStore = options.assetStore ?? createPostgresPipelineAssetStore(options.dbUrl);
@@ -313,14 +330,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
     }
     await recordStage(result, progressStore, lessonStage);
 
-    const stagingQualityOk = await runPipelineCommandStage(
-      result,
-      progressStore,
-      options,
-      "staging_quality",
-      buildStagingQualityCommand(options),
-      "Staging quality command failed.",
-    );
+    const stagingQualityOk = await runStagingQualityWithRetries(result, progressStore, options, commands);
     if (!stagingQualityOk) return result;
 
     const canonicalCommand = buildCanonicalMergeCommand(options);
@@ -407,6 +417,194 @@ function buildCanonicalMergeCommand(options: RunnerOptions): string[] {
 
 function buildStagingQualityCommand(options: RunnerOptions): string[] {
   return ["node", resolve(CLI_DIR, "staging-quality.js"), "--dataset-id", options.datasetId, "--db", options.dbUrl, "--book-id", options.bookId];
+}
+
+async function runStagingQualityWithRetries(
+  result: ServerPipelineResult,
+  progressStore: PipelineProgressStore,
+  options: RunnerOptions,
+  commands: ParallelExtractionCommand[],
+): Promise<boolean> {
+  const attempts: Record<string, unknown>[] = [];
+  for (let retryIndex = 0; retryIndex <= options.qualityRetryCount; retryIndex += 1) {
+    const attempt = await runStagingQualityAttempt(result, progressStore, options, attempts);
+    if (attempt.ok) return true;
+
+    const retryCommands = retryCommandsForBlockedLessons(commands, attempt.parsed, retryIndex + 1);
+    const canRetry = retryIndex < options.qualityRetryCount && retryCommands.length > 0;
+    if (!canRetry) {
+      const error = "Staging quality command failed.";
+      const stage: ServerPipelineStage = {
+        id: "staging_quality",
+        status: "blocked",
+        error,
+        output: { ...attempt.stageOutput, attempts },
+      };
+      await recordStage(result, progressStore, stage);
+      await progressStore.updateJob({
+        datasetId: options.datasetId,
+        jobId: result.job_id,
+        status: "blocked",
+        currentStageId: stage.id,
+        progress: sanitizeStageOutput(stage),
+        error,
+        completed: true,
+      });
+      result.status = "blocked";
+      return false;
+    }
+
+    attempts.push({
+      retry: retryIndex + 1,
+      blocked_lesson_runs: retryCommands.map((command) => command.lesson_run_id),
+      blocked_batch_anchors: retryCommands.map((command) => command.batch_anchor),
+    });
+    await recordStage(result, progressStore, {
+      id: "staging_quality",
+      status: "completed",
+      output: { ...attempt.stageOutput, retrying: true, attempts },
+    });
+
+    const retryStage: ServerPipelineStage = {
+      id: `lesson_staging_retry_${retryIndex + 1}`,
+      status: "running",
+      output: lessonProgress(retryCommands.length, 0, 0, [], []),
+    };
+    await recordStage(result, progressStore, retryStage);
+    const retryResults = await runExtractionCommands(retryCommands, options.parallelism, {
+      commandRunner: options.commandRunner,
+      progressStore,
+      result,
+      stage: retryStage,
+    });
+    const failed = retryResults.filter((lessonResult) => lessonResult.exit_code !== 0);
+    retryStage.status = failed.length > 0 ? "blocked" : "completed";
+    retryStage.output = {
+      ...lessonProgress(retryCommands.length, retryResults.length - failed.length, failed.length, [], compactLessonResults(retryResults).slice(-12)),
+      results: compactLessonResults(retryResults),
+    };
+    if (failed.length > 0) {
+      retryStage.error = `${failed.length} retry extraction command(s) failed.`;
+      await recordStage(result, progressStore, retryStage);
+      await progressStore.updateJob({
+        datasetId: options.datasetId,
+        jobId: result.job_id,
+        status: "blocked",
+        currentStageId: retryStage.id,
+        progress: sanitizeStageOutput(retryStage),
+        error: retryStage.error,
+        completed: true,
+      });
+      result.status = "blocked";
+      return false;
+    }
+    await recordStage(result, progressStore, retryStage);
+  }
+  return false;
+}
+
+async function runStagingQualityAttempt(
+  result: ServerPipelineResult,
+  progressStore: PipelineProgressStore,
+  options: RunnerOptions,
+  previousAttempts: Record<string, unknown>[],
+): Promise<{
+  ok: boolean;
+  parsed: StagingQualityOutput | null;
+  stageOutput: Record<string, unknown>;
+}> {
+  const command = buildStagingQualityCommand(options);
+  const runningStage: ServerPipelineStage = {
+    id: "staging_quality",
+    status: "running",
+    output: { command, attempts: previousAttempts },
+  };
+  await recordStage(result, progressStore, runningStage);
+  const commandResult = await runCommand(command, options.commandRunner);
+  const parsed = parseStagingQualityOutput(commandResult.stdout);
+  const blockedLessonIds = extractBlockedLessonRunIds(parsed);
+  const stageOutput = {
+    command,
+    exit_code: commandResult.exitCode,
+    stdout_tail: tail(commandResult.stdout),
+    stderr_tail: tail(commandResult.stderr),
+    checked: numberValue(parsed?.checked),
+    blocked: numberValue(parsed?.blocked) ?? blockedLessonIds.length,
+    blocked_lesson_run_ids: blockedLessonIds,
+  };
+  if (commandResult.exitCode === 0) {
+    await recordStage(result, progressStore, {
+      id: "staging_quality",
+      status: "completed",
+      output: { ...stageOutput, attempts: previousAttempts },
+    });
+    return { ok: true, parsed, stageOutput };
+  }
+  return { ok: false, parsed, stageOutput };
+}
+
+function retryCommandsForBlockedLessons(
+  commands: ParallelExtractionCommand[],
+  parsed: StagingQualityOutput | null,
+  retryNumber: number,
+): ParallelExtractionCommand[] {
+  const byLessonRunId = new Map(commands.map((command) => [command.lesson_run_id, command]));
+  return extractBlockedLessonResults(parsed)
+    .map((qualityResult, index) => {
+      const lessonRunId = stringValue(qualityResult.lesson_run_id);
+      const command = byLessonRunId.get(lessonRunId);
+      if (!command) return null;
+      return {
+        ...command,
+        worker_slot: index,
+        command: appendRetryPrompt(command.command, buildStagingQualityRetryPrompt(qualityResult, retryNumber)),
+      };
+    })
+    .filter((command): command is ParallelExtractionCommand => command !== null);
+}
+
+function appendRetryPrompt(command: string[], prompt: string): string[] {
+  return [...command, "--prompt", prompt];
+}
+
+function buildStagingQualityRetryPrompt(result: RawRecord, retryNumber: number): string {
+  const errors = Array.isArray(result.errors) ? result.errors.map(stringValue).filter(Boolean) : [];
+  const issueText = errors.length > 0 ? errors.slice(0, 8).join("；") : "质量检查未通过。";
+  return [
+    `这是第 ${retryNumber} 次质量失败后的自动重抽。`,
+    `上一轮问题：${issueText}`,
+    "请不要只返回证据。必须从当前 chunk 抽取高中物理核心知识对象，并为每个节点补齐 definition、domain_profile、mention、node_card 和 evidence source_refs。",
+    "即使当前文本以习题、探究、小结或图示为主，也要从题干、公式、图、表和说明中抽取概念、物理量、方法、定律、表示或实验装置。",
+    "节点、提及、卡片和领域画像不能为空；证据不足的关系可以少，但不要让节点数为 0。",
+  ].join("\n");
+}
+
+function parseStagingQualityOutput(stdout: string): StagingQualityOutput | null {
+  const trimmed = stdout.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    const firstBrace = trimmed.indexOf("{");
+    const lastBrace = trimmed.lastIndexOf("}");
+    if (firstBrace < 0 || lastBrace <= firstBrace) return null;
+    try {
+      const parsed = JSON.parse(trimmed.slice(firstBrace, lastBrace + 1)) as unknown;
+      return isRecord(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+}
+
+function extractBlockedLessonRunIds(output: StagingQualityOutput | null): string[] {
+  return extractBlockedLessonResults(output).map((result) => stringValue(result.lesson_run_id)).filter(Boolean);
+}
+
+function extractBlockedLessonResults(output: StagingQualityOutput | null): RawRecord[] {
+  const results = Array.isArray(output?.results) ? output.results : [];
+  return results.filter((result): result is RawRecord => isRecord(result) && result.status === "blocked" && Boolean(stringValue(result.lesson_run_id)));
 }
 
 function buildNormalizeCommand(options: RunnerOptions): string[] {
@@ -513,7 +711,7 @@ async function runExtractionCommands(
             jobId: input.result.job_id,
             worker: {
               workerSlot: current.worker_slot,
-              stageId: "lesson_staging",
+              stageId: input.stage.id,
               status: "running",
               lessonRunId: current.lesson_run_id,
               batchAnchor: current.batch_anchor,
@@ -523,7 +721,7 @@ async function runExtractionCommands(
             datasetId,
             jobId: input.result.job_id,
             event: {
-              stageId: "lesson_staging",
+              stageId: input.stage.id,
               eventType: "lesson_started",
               status: "running",
               workerSlot: current.worker_slot,
@@ -545,7 +743,7 @@ async function runExtractionCommands(
             jobId: input.result.job_id,
             worker: {
               workerSlot: current.worker_slot,
-              stageId: "lesson_staging",
+              stageId: input.stage.id,
               status: result.exit_code === 0 ? "completed" : "failed",
               lessonRunId: current.lesson_run_id,
               batchAnchor: current.batch_anchor,
@@ -557,7 +755,7 @@ async function runExtractionCommands(
             datasetId,
             jobId: input.result.job_id,
             event: {
-              stageId: "lesson_staging",
+              stageId: input.stage.id,
               eventType: result.exit_code === 0 ? "lesson_completed" : "lesson_failed",
               status: result.exit_code === 0 ? "completed" : "failed",
               workerSlot: current.worker_slot,
@@ -595,6 +793,35 @@ function runCommand(command: string[], commandRunner?: CommandRunner): Promise<C
 
 function defaultPostgresChecker(databaseUrl: string): Promise<PostgresReadinessResult> {
   return checkPostgresReady({ databaseUrl, timeoutMs: 2000, requireQuery: true });
+}
+
+async function defaultDatasetInitializer(input: { dbUrl: string; datasetId: string; outputRoot: string }): Promise<void> {
+  const sql = postgres(input.dbUrl, { max: 1 });
+  const now = new Date().toISOString();
+  const rootPath = relativeRepoPath(resolve(REPO_ROOT, input.outputRoot)) ?? null;
+  try {
+    await sql`
+      INSERT INTO world_datasets (
+        dataset_id, dataset_name, schema_version, status, is_active, root_path, created_at, updated_at, notes
+      )
+      VALUES (
+        ${input.datasetId},
+        ${input.datasetId},
+        'world-v1.2',
+        'active',
+        0,
+        ${rootPath},
+        ${now},
+        ${now},
+        NULL
+      )
+      ON CONFLICT (dataset_id) DO UPDATE SET
+        root_path = COALESCE(world_datasets.root_path, EXCLUDED.root_path),
+        updated_at = EXCLUDED.updated_at
+    `;
+  } finally {
+    await sql.end({ timeout: 1 });
+  }
 }
 
 async function syncOutlineFromFile(
@@ -645,6 +872,15 @@ function stringValue(value: unknown): string {
   return value == null ? "" : String(value).trim();
 }
 
+function numberValue(value: unknown): number | undefined {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function isRecord(value: unknown): value is RawRecord {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 function runChildCommand(command: string[]): Promise<CommandOutput> {
   return new Promise((resolvePromise) => {
     const child = spawn(command[0]!, command.slice(1), {
@@ -685,6 +921,7 @@ function createRunResult(options: RunnerOptions): ServerPipelineResult {
       vlm_api_url_configured: Boolean(options.vlmApiUrl),
       vlm_concurrency: options.vlmConcurrency,
       vlm_cache_dir: options.vlmCacheDir,
+      quality_retry_count: options.qualityRetryCount,
     },
     stages: [],
   };
@@ -743,6 +980,7 @@ function toProgressStageStatus(status: StageStatus): PipelineStageStatus {
 }
 
 function stageSortOrder(stageId: string, fallback: number): number {
+  if (stageId.startsWith("lesson_staging_retry_")) return 9;
   const index = [
     "check_postgres",
     "mineru_source_markdown",
@@ -762,6 +1000,10 @@ function stageSortOrder(stageId: string, fallback: number): number {
 }
 
 function stageLabel(stageId: string): string {
+  if (stageId.startsWith("lesson_staging_retry_")) {
+    const retry = stageId.replace("lesson_staging_retry_", "");
+    return `重抽失败课时 ${retry}`;
+  }
   const labels: Record<string, string> = {
     check_postgres: "检查数据库",
     mineru_source_markdown: "MinerU 解析 PDF",
@@ -878,6 +1120,7 @@ function parseOptions(argv: string[]): RunnerOptions {
     vlmModel: flags.get("vlm-model") ?? process.env.VLM_MODEL ?? "",
     retrievalContext: parseBoolean(flags.get("retrieval-context"), true),
     retrievalLimit: parseInteger(flags.get("retrieval-limit"), 8),
+    qualityRetryCount: parseNonNegativeInteger(flags.get("quality-retry-count") ?? flags.get("quality-retries"), 1),
   };
 }
 
@@ -913,6 +1156,13 @@ function parseInteger(value: string | undefined, fallback: number): number {
   if (value === undefined || value === "") return fallback;
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed < 1) throw new Error(`Invalid positive integer: ${value}`);
+  return parsed;
+}
+
+function parseNonNegativeInteger(value: string | undefined, fallback: number): number {
+  if (value === undefined || value === "") return fallback;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) throw new Error(`Invalid non-negative integer: ${value}`);
   return parsed;
 }
 

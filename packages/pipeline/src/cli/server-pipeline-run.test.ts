@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createNoopPipelineAssetStore } from "../shared/pg-assets.js";
+import { makeLessonRunId } from "../shared/pathing.js";
 import { createNoopPipelineProgressStore } from "../shared/pipeline-progress.js";
 import { runServerPipeline } from "./server-pipeline-run.js";
 
@@ -29,9 +30,11 @@ test("server pipeline runner plans TypeScript lesson extraction commands", async
     vlmApiUrl: "http://localhost:8000/v1",
     retrievalContext: true,
     retrievalLimit: 8,
+    qualityRetryCount: 1,
     progressStore: createNoopPipelineProgressStore(),
     assetStore: createNoopPipelineAssetStore(),
     postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
     commandRunner: async (command) => {
       executed.push(command);
       return { exitCode: 0, stdout: "{}", stderr: "" };
@@ -73,9 +76,11 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
     reasoningEffort: "medium",
     retrievalContext: true,
     retrievalLimit: 8,
+    qualityRetryCount: 1,
     progressStore: createNoopPipelineProgressStore(),
     assetStore: createNoopPipelineAssetStore(),
     postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
     commandRunner: async (command) => {
       commands.push(command);
       return { exitCode: 0, stdout: "{}", stderr: "" };
@@ -110,6 +115,78 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.ok(commands.slice(0, -5).every((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))));
 });
 
+test("server pipeline retries chunks that fail staging quality", async () => {
+  const commands: string[][] = [];
+  const failedAnchor = "struct:chem-hukj-xb2-structure:chunk:1-1-a";
+  const failedLessonRunId = makeLessonRunId(bookId, failedAnchor);
+  let qualityCalls = 0;
+  const result = await runServerPipeline({
+    bookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-a",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 8,
+    noChunks: false,
+    pdfPath: "",
+    subject: "computer-science",
+    schoolStage: "higher",
+    gradeBand: "university",
+    textbookId: bookId,
+    apiMode: "responses",
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: createNoopPipelineAssetStore(),
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async (command) => {
+      commands.push(command);
+      if (isStagingQualityCommand(command)) {
+        qualityCalls += 1;
+        if (qualityCalls === 1) {
+          return {
+            exitCode: 2,
+            stdout: JSON.stringify({
+              status: "blocked",
+              checked: 37,
+              blocked: 1,
+              results: [
+                {
+                  lesson_run_id: failedLessonRunId,
+                  status: "blocked",
+                  errors: ["Lesson produced no staged nodes."],
+                  counts: { nodes: 0, evidence: 1 },
+                },
+              ],
+            }),
+            stderr: "",
+          };
+        }
+        return { exitCode: 0, stdout: JSON.stringify({ status: "success", checked: 37, blocked: 0, results: [] }), stderr: "" };
+      }
+      return { exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  });
+
+  assert.equal(result.status, "completed");
+  assert.equal(qualityCalls, 2);
+  const firstQualityIndex = commands.findIndex(isStagingQualityCommand);
+  const secondQualityIndex = commands.findIndex((command, index) => index > firstQualityIndex && isStagingQualityCommand(command));
+  const retryExtractionCommands = commands.slice(firstQualityIndex + 1, secondQualityIndex).filter(isExtractionCommand);
+  assert.equal(retryExtractionCommands.length, 1);
+  assert.ok(retryExtractionCommands[0]?.includes(failedAnchor));
+  assert.ok(retryExtractionCommands[0]?.includes("--prompt"));
+  assert.match(retryExtractionCommands[0]?.at(-1) ?? "", /质量失败后的自动重抽/);
+  assert.equal(commands.filter(isExtractionCommand).length, 38);
+  assert.equal(result.stages.find((stage) => stage.id === "lesson_staging_retry_1")?.status, "completed");
+  assert.equal(result.stages.find((stage) => stage.id === "staging_quality")?.status, "completed");
+});
+
 async function fakePostgresChecker() {
   return {
     status: "success" as const,
@@ -119,4 +196,14 @@ async function fakePostgresChecker() {
     host: "localhost",
     port: 5432,
   };
+}
+
+async function fakeDatasetInitializer() {}
+
+function isExtractionCommand(command: string[]): boolean {
+  return command.some((part) => part.endsWith("extract-lesson-openai.js"));
+}
+
+function isStagingQualityCommand(command: string[]): boolean {
+  return command.some((part) => part.endsWith("staging-quality.js"));
 }
