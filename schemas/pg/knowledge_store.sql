@@ -40,6 +40,87 @@ CREATE TABLE IF NOT EXISTS world_source_artifacts (
 );
 
 -------------------------------------------------------------------
+-- textbook source structures imported from local generated files
+-------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS world_textbook_outlines (
+  dataset_id TEXT NOT NULL,
+  book_id TEXT NOT NULL,
+  title TEXT,
+  source_path TEXT,
+  outline_path TEXT,
+  outline_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  item_count INTEGER NOT NULL DEFAULT 0,
+  chunk_count INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, book_id),
+  FOREIGN KEY (dataset_id) REFERENCES world_datasets(dataset_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_world_textbook_outlines_updated
+ON world_textbook_outlines(dataset_id, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS world_enrich_library (
+  dataset_id TEXT PRIMARY KEY,
+  generated_at TEXT,
+  book_count INTEGER NOT NULL DEFAULT 0,
+  subject_count INTEGER NOT NULL DEFAULT 0,
+  node_count INTEGER NOT NULL DEFAULT 0,
+  properties_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (dataset_id) REFERENCES world_datasets(dataset_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS world_enrich_books (
+  dataset_id TEXT NOT NULL,
+  path TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  title TEXT NOT NULL,
+  subject TEXT,
+  stage TEXT,
+  grade TEXT,
+  course TEXT,
+  publisher TEXT,
+  volume TEXT,
+  root_count INTEGER NOT NULL DEFAULT 0,
+  node_count INTEGER NOT NULL DEFAULT 0,
+  max_depth INTEGER NOT NULL DEFAULT 0,
+  metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  tree_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, path),
+  FOREIGN KEY (dataset_id) REFERENCES world_datasets(dataset_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_world_enrich_books_subject
+ON world_enrich_books(dataset_id, subject, stage, grade);
+
+CREATE TABLE IF NOT EXISTS world_mineru_sources (
+  dataset_id TEXT NOT NULL,
+  book_id TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('unknown', 'success', 'blocked')),
+  source_markdown_path TEXT,
+  batch_id TEXT,
+  zip_url TEXT,
+  zip_path TEXT,
+  extract_dir TEXT,
+  raw_markdown_path TEXT,
+  created_by_mineru SMALLINT NOT NULL DEFAULT 0 CHECK (created_by_mineru IN (0, 1)),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, book_id),
+  FOREIGN KEY (dataset_id) REFERENCES world_datasets(dataset_id) ON DELETE CASCADE
+);
+
+ALTER TABLE world_mineru_sources
+  DROP COLUMN IF EXISTS manifest_path,
+  DROP COLUMN IF EXISTS manifest_json;
+
+CREATE INDEX IF NOT EXISTS idx_world_mineru_sources_updated
+ON world_mineru_sources(dataset_id, updated_at DESC);
+
+-------------------------------------------------------------------
 -- world_nodes
 -------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS world_nodes (
@@ -340,7 +421,7 @@ CREATE TABLE IF NOT EXISTS world_node_bodies (
   media_refs_json JSONB NOT NULL DEFAULT '[]'::jsonb,
   source_refs_json JSONB NOT NULL DEFAULT '[]'::jsonb,
   generated_from TEXT NOT NULL CHECK (
-    generated_from IN ('manual', 'card_expansion', 'imported_unit', 'node_card_fallback')
+    generated_from IN ('manual', 'card_expansion', 'imported_unit', 'model_generation')
   ),
   properties_json JSONB NOT NULL DEFAULT '{}'::jsonb,
   status TEXT NOT NULL CHECK (status IN ('draft', 'active', 'deprecated')),
@@ -391,6 +472,86 @@ CREATE TABLE IF NOT EXISTS world_lesson_runs (
 
 CREATE INDEX IF NOT EXISTS idx_world_lesson_runs_status
 ON world_lesson_runs(dataset_id, status, book_id);
+
+-------------------------------------------------------------------
+-- pipeline runtime status
+-------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS world_pipeline_jobs (
+  dataset_id TEXT NOT NULL,
+  job_id TEXT NOT NULL,
+  book_id TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('running', 'completed', 'blocked')),
+  current_stage_id TEXT,
+  progress_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  log_path TEXT,
+  command_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  context_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  completed_at TEXT,
+  error TEXT,
+  PRIMARY KEY (dataset_id, job_id),
+  FOREIGN KEY (dataset_id) REFERENCES world_datasets(dataset_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_world_pipeline_jobs_updated
+ON world_pipeline_jobs(dataset_id, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS world_pipeline_job_stages (
+  dataset_id TEXT NOT NULL,
+  job_id TEXT NOT NULL,
+  stage_id TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'completed', 'blocked', 'skipped')),
+  sort_order INTEGER NOT NULL,
+  label TEXT NOT NULL,
+  progress_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  error TEXT,
+  started_at TEXT,
+  completed_at TEXT,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, job_id, stage_id),
+  FOREIGN KEY (dataset_id, job_id) REFERENCES world_pipeline_jobs(dataset_id, job_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_world_pipeline_job_stages_order
+ON world_pipeline_job_stages(dataset_id, job_id, sort_order);
+
+CREATE TABLE IF NOT EXISTS world_pipeline_job_events (
+  dataset_id TEXT NOT NULL,
+  job_id TEXT NOT NULL,
+  event_id TEXT NOT NULL,
+  stage_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  status TEXT,
+  worker_slot INTEGER,
+  lesson_run_id TEXT,
+  batch_anchor TEXT,
+  detail TEXT,
+  data_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, job_id, event_id),
+  FOREIGN KEY (dataset_id, job_id) REFERENCES world_pipeline_jobs(dataset_id, job_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_world_pipeline_job_events_recent
+ON world_pipeline_job_events(dataset_id, job_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS world_pipeline_worker_states (
+  dataset_id TEXT NOT NULL,
+  job_id TEXT NOT NULL,
+  worker_slot INTEGER NOT NULL,
+  stage_id TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('idle', 'running', 'completed', 'failed')),
+  lesson_run_id TEXT,
+  batch_anchor TEXT,
+  error TEXT,
+  data_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  started_at TEXT,
+  completed_at TEXT,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, job_id, worker_slot),
+  FOREIGN KEY (dataset_id, job_id) REFERENCES world_pipeline_jobs(dataset_id, job_id) ON DELETE CASCADE
+);
 
 -------------------------------------------------------------------
 -- staging tables

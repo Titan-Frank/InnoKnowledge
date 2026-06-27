@@ -15,7 +15,7 @@
 MinerU 已生成并缓存结果，本轮最终重跑时直接使用：
 
 - Markdown：`data/mineru/physics-hukj-compulsory-3/full.md`
-- MinerU 结果：`data/mineru/physics-hukj-compulsory-3/mineru-result.json`
+- MinerU 来源状态：`world_mineru_sources`
 - 图片目录：`data/mineru/physics-hukj-compulsory-3/images`
 
 ## 最终结果
@@ -79,7 +79,7 @@ MinerU 已生成并缓存结果，本轮最终重跑时直接使用：
 
 ## 中间问题
 
-- 首轮整书 pipeline 在 `staging_quality` 阶段停止，manifest 文件 `runs/pipeline/physics-hukj-compulsory-3.okm.ts_server_pipeline.json` 仍记录为 blocked。后续是手动按阶段继续完成：重跑失败 chunk、`staging_quality`、merge、normalize、strict QA、graph integrity。
+- 首轮整书 pipeline 在 `staging_quality` 阶段停止。当时的 JSON 运行状态文件仍记录为 blocked；后续是手动按阶段继续完成：重跑失败 chunk、`staging_quality`、merge、normalize、strict QA、graph integrity。现在运行状态已改为写入 `world_pipeline_*` 数据库表。
 - 第一次 merge 因 `undefined` 参数失败，在 `world_merge_runs` 留下一条 `merge:5d1a551c9ef3`，已标记为 `blocked`，并在 `stats_json` 里注明已由 `merge:73b3e9ab80f8` 取代。
 - `chunk:11-4-a`（电磁场与电磁波）第一次返回 0 节点，单独加明确提示重跑后成功抽出 14 个节点和 13 条边。
 - `chunk:9-7-a` 曾在写 mentions 时遇到重复主键并留下半写入状态，重跑后恢复正常。这暴露出 staging 写入需要事务保护。
@@ -94,9 +94,9 @@ MinerU 已生成并缓存结果，本轮最终重跑时直接使用：
 
    如果某个 chunk 出现 `nodes=0`、`mentions=0`、`staging_quality` blocked 或模型返回空 name 过多，可以自动用更强提示重跑该 chunk，而不是停掉整本书。
 
-3. 让 manifest 支持续跑结果
+3. 让数据库运行状态支持手动续跑
 
-   当前 server pipeline manifest 只记录第一次停止点，手动续跑后的成功结果不会回写。建议增加 resume manifest 或 downstream summary，避免最终数据库已成功但 manifest 仍显示 blocked。
+   服务端启动的 pipeline 已把任务、阶段、事件和课时处理状态写入 PostgreSQL。后续如果仍需要手动续跑，应让手动续跑命令也带上同一个 `job_id` 并回写 `world_pipeline_jobs`、`world_pipeline_job_stages` 和 `world_pipeline_job_events`，避免最终图谱已成功但运行台仍显示旧状态。
 
 4. 数据集初始化内置化
 

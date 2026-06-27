@@ -1,13 +1,13 @@
 import type { Hono } from 'hono';
 import { spawn } from 'node:child_process';
-import { createWriteStream, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { createWriteStream, mkdirSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import type {
   PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
 } from '@okm/types';
 import type { Sql } from '../db/connection.js';
-import { resolveDatasetRow, loadPipelinePayload } from '../db/queries.js';
+import { resolveDatasetRow, loadPipelinePayload, loadPipelineJobStatusPayload, loadTextbookOutlinePayload } from '../db/queries.js';
 import { DEFAULT_DATABASE_URL, REPO_ROOT } from '../utils/paths.js';
 
 function safeToken(value: string): string {
@@ -34,23 +34,20 @@ function toPipelineApiMode(kind: 'openai_responses' | 'openai_chat_completions')
   return kind === 'openai_chat_completions' ? 'chat_completions' : 'openai_responses';
 }
 
-function inferTextbookMetadata(input: TextbookMetadataRequest): TextbookMetadataResponse {
+function inferTextbookMetadata(
+  input: TextbookMetadataRequest,
+  outline: Record<string, unknown> | null = null,
+): TextbookMetadataResponse {
   const bookId = asString(input.book_id);
   if (!bookId) throw new Error('book_id is required.');
   const pdfName = input.pdf_path ? basename(input.pdf_path) : '';
-  const outlinePath = join(REPO_ROOT, 'data', 'outlines', `${bookId}.outline.json`);
   let outlineText = '';
-  if (existsSync(outlinePath)) {
-    try {
-      const outline = JSON.parse(readFileSync(outlinePath, 'utf8')) as Record<string, unknown>;
-      outlineText = JSON.stringify({
-        title: outline.title,
-        book_title: outline.book_title,
-        structure: Array.isArray(outline.structure) ? outline.structure.slice(0, 12) : outline.items,
-      });
-    } catch {
-      outlineText = '';
-    }
+  if (outline) {
+    outlineText = JSON.stringify({
+      title: outline.title,
+      book_title: outline.book_title,
+      structure: Array.isArray(outline.structure) ? outline.structure.slice(0, 12) : outline.items,
+    });
   }
 
   const haystack = `${bookId} ${pdfName} ${outlineText}`.toLowerCase();
@@ -132,10 +129,15 @@ function inferTextbookMetadata(input: TextbookMetadataRequest): TextbookMetadata
   };
 }
 
-function buildPipelineCommand(body: PipelineStartRequest): string[] {
+function buildPipelineCommand(
+  body: PipelineStartRequest,
+  jobId: string,
+  logPath: string,
+  outline: Record<string, unknown> | null = null,
+): string[] {
   const bookId = asString(body.book_id);
   if (!bookId) throw new Error('book_id is required.');
-  const inferred = inferTextbookMetadata({ book_id: bookId, pdf_path: body.pdf_path });
+  const inferred = inferTextbookMetadata({ book_id: bookId, pdf_path: body.pdf_path }, outline);
 
   const outputRoot = asString(body.output_root, 'data/main');
   const datasetId = asString(body.dataset_id, outputRoot.split('/').filter(Boolean).at(-1) || 'main');
@@ -157,6 +159,10 @@ function buildPipelineCommand(body: PipelineStartRequest): string[] {
     String(asInt(body.parallelism, 4)),
     '--db',
     process.env.DATABASE_URL || DEFAULT_DATABASE_URL,
+    '--job-id',
+    jobId,
+    '--log-path',
+    logPath,
     '--api-mode',
     toPipelineApiMode(lessonBackendKind),
     '--subject',
@@ -184,8 +190,6 @@ function buildPipelineCommand(body: PipelineStartRequest): string[] {
   }
   const pdfPath = asString(body.pdf_path);
   if (pdfPath) command.push('--pdf-path', pdfPath);
-  const sourceMarkdownPath = asString(body.source_markdown_path);
-  if (sourceMarkdownPath) command.push('--source-markdown-path', sourceMarkdownPath);
   command.push('--book-title', asString(body.book_title, inferred.title));
   if (body.outline_start_page) command.push('--outline-start-page', String(asInt(body.outline_start_page, 1)));
   if (body.outline_end_page) command.push('--outline-end-page', String(asInt(body.outline_end_page, 20)));
@@ -217,30 +221,53 @@ export function registerPipelineRoutes(app: Hono, sql: Sql) {
   });
 
   app.post('/api/source/:key/pipeline/infer-textbook', async (c) => {
+    const key = c.req.param('key');
     const body = await c.req.json<TextbookMetadataRequest>().catch(() => null);
     if (!body) return c.json({ error: 'Invalid JSON body.' }, 400);
     try {
-      return c.json(inferTextbookMetadata(body));
+      const datasetRow = await resolveDatasetRow(sql, key);
+      const outline = datasetRow && body.book_id
+        ? await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, body.book_id)
+        : null;
+      return c.json(inferTextbookMetadata(body, outline));
     } catch (error) {
       return c.json({ error: (error as Error).message }, 400);
     }
   });
 
+  app.get('/api/source/:key/pipeline/jobs/:job_id', async (c) => {
+    const key = c.req.param('key');
+    const datasetRow = await resolveDatasetRow(sql, key);
+    if (!datasetRow) {
+      return c.json({ error: `Unknown source '${key}'` }, 404);
+    }
+    return c.json(await loadPipelineJobStatusPayload(sql, datasetRow.dataset_id, c.req.param('job_id')));
+  });
+
   app.post('/api/source/:key/pipeline/start', async (c) => {
+    const key = c.req.param('key');
     const body = await c.req.json<PipelineStartRequest>().catch(() => null);
     if (!body) return c.json({ error: 'Invalid JSON body.' }, 400);
 
+    const bookId = asString(body.book_id);
+    if (!bookId) return c.json({ error: 'book_id is required.' }, 400);
+
+    const jobId = `${safeToken(bookId)}.${Date.now()}`;
+    const jobDir = join(REPO_ROOT, 'runs', 'server-jobs');
+    mkdirSync(jobDir, { recursive: true });
+    const logPath = join(jobDir, `${jobId}.log`);
+
     let command: string[];
     try {
-      command = buildPipelineCommand(body);
+      const outputRoot = asString(body.output_root, 'data/main');
+      const datasetKey = asString(body.dataset_id, outputRoot.split('/').filter(Boolean).at(-1) || key || 'main');
+      const datasetRow = await resolveDatasetRow(sql, datasetKey);
+      const outline = datasetRow ? await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId) : null;
+      command = buildPipelineCommand(body, jobId, logPath, outline);
     } catch (error) {
       return c.json({ error: (error as Error).message }, 400);
     }
 
-    const jobId = `${safeToken(body.book_id)}.${Date.now()}`;
-    const jobDir = join(REPO_ROOT, 'runs', 'server-jobs');
-    mkdirSync(jobDir, { recursive: true });
-    const logPath = join(jobDir, `${jobId}.log`);
     const logStream = createWriteStream(logPath, { flags: 'a' });
     logStream.write(`$ ${command.join(' ')}\n\n`);
     const vlmApiKey = asString(body.vlm_api_key);

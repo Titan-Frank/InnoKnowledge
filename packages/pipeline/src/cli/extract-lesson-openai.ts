@@ -78,7 +78,7 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
     const apiMode = parseApiMode(flags.get("api-mode"));
     const timeoutMs = parseTimeoutMs(flags.get("timeout"));
     const outputRoot = required(flags, "output-root");
-    const requestBase = {
+    const requestBase: ExtractLessonRequestBase = {
       bookId: required(flags, "book-id"),
       batchAnchor: required(flags, "batch-anchor"),
       repoRoot,
@@ -95,6 +95,12 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
       reasoningEffort: flags.get("reasoning-effort") ?? "",
       timeoutMs,
     };
+    const pgOutline = await loadPostgresOutline({
+      dbUrl: flags.get("db"),
+      datasetId: requestBase.datasetId,
+      bookId: requestBase.bookId,
+    });
+    if (pgOutline) requestBase.outline = pgOutline;
     const retrievalCandidates = await resolveRetrievalCandidates(flags, requestBase, env, deps);
     const requestInput = { ...requestBase, retrievalCandidates };
     const request = buildModelExtractionRequest(requestInput);
@@ -219,6 +225,30 @@ function loadEnvironment(repoRoot: string, source: CliEnv): CliEnv {
     env[name] = rest.join("=").trim();
   }
   return env;
+}
+
+async function loadPostgresOutline(input: {
+  dbUrl?: string;
+  datasetId?: string;
+  bookId: string;
+}): Promise<RawRecord | undefined> {
+  if (!input.dbUrl || !input.datasetId) return undefined;
+  const postgres = (await import("postgres")).default;
+  const sql = postgres(input.dbUrl, { max: 1 });
+  try {
+    const rows = await sql<{ outline_json: unknown }[]>`
+      SELECT outline_json
+      FROM world_textbook_outlines
+      WHERE dataset_id = ${input.datasetId}
+        AND book_id = ${input.bookId}
+      LIMIT 1
+    `;
+    const outline = rows[0]?.outline_json;
+    if (isRecord(outline)) return outline;
+    throw new Error(`Outline for book '${input.bookId}' was not found in PostgreSQL dataset '${input.datasetId}'.`);
+  } finally {
+    await sql.end({ timeout: 1 });
+  }
 }
 
 function parseApiMode(value: string | undefined): ModelApiMode {

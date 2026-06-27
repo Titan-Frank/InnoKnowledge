@@ -1,5 +1,5 @@
 import type {
-  ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard,
+  ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit,
 } from './models.js';
 import type { Framework } from './framework.js';
 import type { PatternLibrary } from './patterns.js';
@@ -65,6 +65,10 @@ export interface BundleResponse {
 // ── GET /api/source/:key/node-card/:node_id ───────────────
 
 export type NodeCardResponse = ApiNodeCard;
+
+// ── GET /api/source/:key/unit/:node_id ──────────────────────
+
+export type UnitResponse = ApiUnit;
 
 // ── GET /api/source/:key/search ───────────────────────────
 
@@ -139,7 +143,6 @@ export type PipelineLessonBackendKind = 'openai_responses' | 'openai_chat_comple
 export interface PipelineStartRequest {
   book_id: string;
   pdf_path?: string;
-  source_markdown_path?: string;
   book_title?: string;
   outline_start_page?: number;
   outline_end_page?: number;
@@ -168,6 +171,58 @@ export interface PipelineStartResponse {
   status: 'started';
   command: string[];
   log_path: string;
+}
+
+export interface PipelineJobStage {
+  id: string;
+  status: string;
+  label: string;
+  progress: Record<string, unknown>;
+  error?: string;
+  started_at: string | null;
+  completed_at: string | null;
+  updated_at: string | null;
+}
+
+export interface PipelineWorkerState {
+  worker_slot: number;
+  stage_id: string;
+  status: string;
+  lesson_run_id: string | null;
+  batch_anchor: string | null;
+  error: string | null;
+  data: Record<string, unknown>;
+  started_at: string | null;
+  completed_at: string | null;
+  updated_at: string | null;
+}
+
+export interface PipelineJobEvent {
+  event_id: string;
+  stage_id: string;
+  event_type: string;
+  status: string | null;
+  worker_slot: number | null;
+  lesson_run_id: string | null;
+  batch_anchor: string | null;
+  detail: string | null;
+  data: Record<string, unknown>;
+  created_at: string | null;
+}
+
+export interface PipelineJobStatusResponse {
+  job_id: string;
+  book_id: string;
+  status: 'unknown' | 'running' | 'completed' | 'blocked';
+  log_path: string;
+  progress: Record<string, unknown>;
+  stages: PipelineJobStage[];
+  current_stage: PipelineJobStage | null;
+  worker_states: PipelineWorkerState[];
+  recent_events: PipelineJobEvent[];
+  updated_at: string | null;
+  completed_at: string | null;
+  error: string | null;
 }
 
 export interface TextbookMetadataRequest {

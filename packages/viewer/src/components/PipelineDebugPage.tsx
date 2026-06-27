@@ -3,6 +3,7 @@ import type {
   ImageReviewAction,
   ImageReviewItem,
   ImageReviewResponse,
+  PipelineJobStatusResponse,
   PipelineLessonBackendKind,
   PipelineResponse,
   PipelineReviewItem,
@@ -11,6 +12,7 @@ import type {
 } from '@okm/types';
 import {
   inferTextbookMetadata,
+  loadPipelineJobStatus,
   loadImageReviews,
   loadPipeline,
   startPipeline,
@@ -30,13 +32,10 @@ import {
   Search,
 } from '@/lib/lucide-icons';
 
-type IntakeMode = 'pdf' | 'markdown' | 'mineru';
-
 type PipelineForm = {
   book_id: string;
   book_title: string;
   pdf_path: string;
-  source_markdown_path: string;
   mineru_file_url: string;
   mineru_base_url: string;
   mineru_model_version: string;
@@ -58,11 +57,19 @@ type PipelineForm = {
   vlm_model: string;
 };
 
+type PipelineStepStatus = 'complete' | 'active' | 'blocked' | 'pending';
+
+type PipelineStep = {
+  id: string;
+  label: string;
+  detail: string;
+  status: PipelineStepStatus;
+};
+
 const initialForm: PipelineForm = {
   book_id: '',
   book_title: '',
   pdf_path: '',
-  source_markdown_path: '',
   mineru_file_url: '',
   mineru_base_url: 'https://mineru.net',
   mineru_model_version: 'vlm',
@@ -111,6 +118,8 @@ function statusLabel(status: string): string {
     staged: '已暂存',
     running: '运行中',
     started: '已启动',
+    ready: '就绪',
+    unknown: '未知',
   };
   return labels[status] || status || '未知';
 }
@@ -120,6 +129,20 @@ function statusTone(status: string): 'ok' | 'warn' | 'active' | 'neutral' {
   if (status === 'blocked' || status === 'failed') return 'warn';
   if (status === 'running' || status === 'started' || status === 'merging' || status === 'staged') return 'active';
   return 'neutral';
+}
+
+function stepTone(status: PipelineStepStatus): string {
+  if (status === 'complete') return 'border-node-process/40 bg-node-process/10 text-node-process';
+  if (status === 'blocked') return 'border-node-event/40 bg-node-event/10 text-node-event';
+  if (status === 'active') return 'border-accent/50 bg-accent/10 text-accent';
+  return 'border-border-subtle bg-surface text-text-muted';
+}
+
+function stepDotTone(status: PipelineStepStatus): string {
+  if (status === 'complete') return 'border-node-process bg-node-process text-white';
+  if (status === 'blocked') return 'border-node-event bg-node-event text-white';
+  if (status === 'active') return 'border-accent bg-accent text-white';
+  return 'border-border-subtle bg-elevated text-text-muted';
 }
 
 function StatusPill({ status }: { status: string }) {
@@ -549,16 +572,395 @@ function ImageReviewPanel({
   );
 }
 
-function sourceReadyLabel(mode: IntakeMode, form: PipelineForm): string {
-  if (mode === 'pdf') return form.pdf_path.trim() ? 'PDF 路径已填写' : '需要本机 PDF 绝对路径';
-  if (mode === 'markdown') return form.source_markdown_path.trim() ? 'Markdown 路径已填写' : '需要 full.md 或等价源文件';
-  return form.mineru_file_url.trim() || form.pdf_path.trim() ? 'MinerU 输入已填写' : '需要 PDF 路径或文件 URL';
+function sourceReadyLabel(form: PipelineForm): string {
+  if (form.pdf_path.trim()) return 'PDF 已填写，将经 MinerU 解析';
+  if (form.mineru_file_url.trim()) return 'MinerU 文件 URL 已填写';
+  return '需要 PDF 绝对路径或 MinerU 文件 URL';
 }
 
-function sourceReady(mode: IntakeMode, form: PipelineForm): boolean {
-  if (mode === 'pdf') return Boolean(form.pdf_path.trim());
-  if (mode === 'markdown') return Boolean(form.source_markdown_path.trim());
-  return Boolean(form.mineru_file_url.trim() || form.pdf_path.trim());
+function sourceReady(form: PipelineForm): boolean {
+  return Boolean(form.pdf_path.trim() || form.mineru_file_url.trim());
+}
+
+function latestUpdatedAt(payload: PipelineResponse | null): string | null {
+  const times = [
+    ...(payload?.lesson_runs ?? []).map((row) => row.updated_at),
+    ...(payload?.merge_runs ?? []).map((row) => row.updated_at),
+  ].filter(Boolean) as string[];
+  return times.sort().at(-1) ?? null;
+}
+
+function hasRunningPipeline(payload: PipelineResponse | null): boolean {
+  if (!payload) return false;
+  return (
+    payload.summary.staged > 0 ||
+    payload.summary.merging > 0 ||
+    payload.merge_runs.some((row) => row.status === 'in_progress')
+  );
+}
+
+function pipelineBlocked(payload: PipelineResponse | null): boolean {
+  if (!payload) return false;
+  const latestMerge = payload.merge_runs[0] ?? null;
+  return payload.summary.blocked > 0 || latestMerge?.status === 'blocked';
+}
+
+function pipelineComplete(payload: PipelineResponse | null): boolean {
+  if (!payload || payload.summary.lesson_runs === 0) return false;
+  const latestMerge = payload.merge_runs[0] ?? null;
+  return payload.summary.blocked === 0 && (payload.summary.qa_passed > 0 || latestMerge?.status === 'completed');
+}
+
+function reviewCount(payload: PipelineResponse | null, imageReviews: ImageReviewResponse | null): number {
+  return (payload?.review_items.length ?? 0) + (imageReviews?.pending ?? 0);
+}
+
+const stageLabels: Record<string, string> = {
+  check_postgres: '检查数据库',
+  mineru_source_markdown: 'MinerU 解析 PDF',
+  extract_pdf_outline: '读取 PDF 目录',
+  prepare_source_markdown: '准备解析文本',
+  ensure_outline: '生成教材目录',
+  prepare_outline_chunks: '切分课时',
+  lesson_plan: '生成抽取任务',
+  lesson_staging: '模型抽取课时',
+  staging_quality: '检查暂存质量',
+  canonical_commit: '合并入正式图谱',
+  normalize: '归一化知识对象',
+  strict_qa: '严格质检',
+  graph_integrity: '图谱完整性检查',
+};
+
+const sourceStageIds = ['check_postgres', 'mineru_source_markdown', 'prepare_source_markdown'];
+const outlineStageIds = ['extract_pdf_outline', 'ensure_outline', 'prepare_outline_chunks', 'lesson_plan'];
+const lessonStageIds = ['lesson_staging'];
+const mergeStageIds = ['staging_quality', 'canonical_commit', 'normalize', 'strict_qa', 'graph_integrity'];
+
+function stageLabel(stageId: string | undefined): string {
+  if (!stageId) return '';
+  return stageLabels[stageId] || stageId;
+}
+
+function stageIn(stage: PipelineJobStatusResponse['current_stage'], ids: string[]): boolean {
+  return Boolean(stage?.id && ids.includes(stage.id));
+}
+
+function hasStageStatus(jobStatus: PipelineJobStatusResponse | null, ids: string[], status: string): boolean {
+  return Boolean(jobStatus?.stages.some((stage) => ids.includes(stage.id) && stage.status === status));
+}
+
+function buildPipelineSteps(input: {
+  payload: PipelineResponse | null;
+  imageReviews: ImageReviewResponse | null;
+  jobStatus: PipelineJobStatusResponse | null;
+  starting: boolean;
+  startResult: PipelineStartResponse | null;
+}): PipelineStep[] {
+  const { payload, imageReviews, jobStatus, starting, startResult } = input;
+  const launched = starting || Boolean(startResult);
+  const lessonCount = payload?.summary.lesson_runs ?? 0;
+  const qaPassed = payload?.summary.qa_passed ?? 0;
+  const latestMerge = payload?.merge_runs[0] ?? null;
+  const blocked = pipelineBlocked(payload);
+  const complete = pipelineComplete(payload);
+  const reviews = reviewCount(payload, imageReviews);
+  const currentStage = jobStatus?.current_stage ?? null;
+  const currentStageText = currentStage ? `正在${stageLabel(currentStage.id)}` : '';
+  const jobBlocked = jobStatus?.status === 'blocked';
+  const sourceBlocked = hasStageStatus(jobStatus, sourceStageIds, 'blocked');
+  const outlineBlocked = hasStageStatus(jobStatus, outlineStageIds, 'blocked');
+  const lessonBlocked = hasStageStatus(jobStatus, lessonStageIds, 'blocked');
+  const mergeBlocked = hasStageStatus(jobStatus, mergeStageIds, 'blocked');
+  const lessonStage = findJobStage(jobStatus, lessonStageIds);
+  const lessonRuntimeDetail = lessonStage ? lessonProgressText(lessonStage, jobStatus) : '';
+  const sourceComplete = hasStageStatus(jobStatus, sourceStageIds, 'completed') || lessonCount > 0;
+  const outlineComplete = hasStageStatus(jobStatus, ['lesson_plan'], 'completed') || lessonCount > 0;
+  const lessonComplete = hasStageStatus(jobStatus, lessonStageIds, 'completed') || qaPassed > 0;
+  const mergeComplete = hasStageStatus(jobStatus, ['graph_integrity'], 'completed') || complete;
+
+  return [
+    {
+      id: 'source',
+      label: 'PDF 与 MinerU',
+      detail: stageIn(currentStage, sourceStageIds) ? currentStageText : sourceComplete ? '源文件已经准备完成' : '等待填写 PDF 或 MinerU 文件 URL',
+      status: sourceBlocked || (jobBlocked && stageIn(currentStage, sourceStageIds))
+        ? 'blocked'
+        : stageIn(currentStage, sourceStageIds)
+          ? 'active'
+          : sourceComplete
+            ? 'complete'
+            : launched
+              ? 'active'
+              : 'pending',
+    },
+    {
+      id: 'outline',
+      label: '目录与切分',
+      detail: stageIn(currentStage, outlineStageIds) ? currentStageText : outlineComplete ? '课时任务已经生成' : '等待目录和切分',
+      status: outlineBlocked || (jobBlocked && stageIn(currentStage, outlineStageIds))
+        ? 'blocked'
+        : stageIn(currentStage, outlineStageIds)
+          ? 'active'
+          : outlineComplete
+            ? 'complete'
+            : 'pending',
+    },
+    {
+      id: 'lesson',
+      label: '模型抽取',
+      detail: stageIn(currentStage, lessonStageIds) && lessonRuntimeDetail
+        ? lessonRuntimeDetail
+        : lessonCount > 0
+          ? `${lessonCount} 个课时任务，${qaPassed} 个已通过 QA`
+          : '等待课时抽取写入结果',
+      status: lessonBlocked || (blocked && lessonCount > 0)
+        ? 'blocked'
+        : stageIn(currentStage, lessonStageIds) || (lessonCount > 0 && qaPassed < lessonCount)
+          ? 'active'
+          : lessonComplete
+            ? 'complete'
+            : 'pending',
+    },
+    {
+      id: 'merge',
+      label: '合并与质检',
+      detail: stageIn(currentStage, mergeStageIds) ? currentStageText : latestMerge ? `最近合并：${statusLabel(latestMerge.status)}` : '等待暂存结果合并',
+      status: mergeBlocked || (blocked && !lessonBlocked)
+        ? 'blocked'
+        : stageIn(currentStage, mergeStageIds) || hasRunningPipeline(payload)
+          ? 'active'
+          : mergeComplete
+            ? 'complete'
+            : 'pending',
+    },
+    {
+      id: 'review',
+      label: '人工确认',
+      detail: reviews > 0 ? `${reviews} 项需要确认` : complete ? '暂无待确认项' : '抽取完成后显示待确认项',
+      status: reviews > 0 ? 'active' : complete ? 'complete' : 'pending',
+    },
+  ];
+}
+
+function findJobStage(jobStatus: PipelineJobStatusResponse | null, ids: string[]): PipelineJobStatusResponse['stages'][number] | null {
+  return jobStatus?.stages.find((stage) => ids.includes(stage.id)) ?? null;
+}
+
+function progressNumber(stage: PipelineJobStatusResponse['stages'][number] | null | undefined, key: string): number {
+  const value = stage?.progress?.[key];
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function progressPercent(stage: PipelineJobStatusResponse['stages'][number] | null | undefined): number {
+  const explicit = Number(stage?.progress?.percent);
+  if (Number.isFinite(explicit)) return Math.max(0, Math.min(1, explicit));
+  const total = progressNumber(stage, 'total_units');
+  if (total <= 0) return 0;
+  return Math.max(0, Math.min(1, (progressNumber(stage, 'completed') + progressNumber(stage, 'failed')) / total));
+}
+
+function runningLessonWorkers(jobStatus: PipelineJobStatusResponse | null): PipelineJobStatusResponse['worker_states'] {
+  return (jobStatus?.worker_states ?? []).filter((worker) => worker.stage_id === 'lesson_staging' && worker.status === 'running');
+}
+
+function lessonProgressText(
+  stage: PipelineJobStatusResponse['stages'][number],
+  jobStatus: PipelineJobStatusResponse | null,
+): string {
+  const total = progressNumber(stage, 'total_units');
+  const completed = progressNumber(stage, 'completed');
+  const failed = progressNumber(stage, 'failed');
+  const percent = Math.round(progressPercent(stage) * 100);
+  const running = runningLessonWorkers(jobStatus);
+  const current = running.map((worker) => worker.batch_anchor).filter(Boolean).slice(0, 2).join('、');
+  const base = total > 0 ? `${completed + failed}/${total}，${percent}%` : stageLabel(stage.id);
+  if (current) return `${base}，正在处理：${current}`;
+  if (failed > 0) return `${base}，${failed} 个失败`;
+  return base;
+}
+
+function lessonEventLabel(eventType: string): string {
+  const labels: Record<string, string> = {
+    lesson_started: '开始处理',
+    lesson_completed: '处理完成',
+    lesson_failed: '处理失败',
+  };
+  return labels[eventType] || eventType;
+}
+
+function currentStepText(steps: PipelineStep[]): string {
+  const blocked = steps.find((step) => step.status === 'blocked');
+  if (blocked) return `当前阻断在：${blocked.label}`;
+  const active = steps.find((step) => step.status === 'active');
+  if (active) return `当前步骤：${active.label}`;
+  if (steps.every((step) => step.status === 'complete')) return '当前步骤：已完成';
+  return '当前步骤：等待启动';
+}
+
+function PipelineStepIcon({ status }: { status: PipelineStepStatus }) {
+  if (status === 'complete') return <Check className="h-3.5 w-3.5" />;
+  if (status === 'blocked') return <AlertCircle className="h-3.5 w-3.5" />;
+  if (status === 'active') return <Loader2 className="h-3.5 w-3.5 animate-spin" />;
+  return <span className="h-1.5 w-1.5 rounded-full bg-current" />;
+}
+
+function PipelineProgressPanel({
+  steps,
+  jobStatus,
+  autoRefreshing,
+  lastUpdatedAt,
+}: {
+  steps: PipelineStep[];
+  jobStatus: PipelineJobStatusResponse | null;
+  autoRefreshing: boolean;
+  lastUpdatedAt: string | null;
+}) {
+  const lessonStage = findJobStage(jobStatus, lessonStageIds);
+  const lessonPercent = progressPercent(lessonStage);
+  const lessonTotal = progressNumber(lessonStage, 'total_units');
+  const lessonCompleted = progressNumber(lessonStage, 'completed');
+  const lessonFailed = progressNumber(lessonStage, 'failed');
+  const runningWorkers = runningLessonWorkers(jobStatus);
+  const recentLessonEvents = (jobStatus?.recent_events ?? [])
+    .filter((event) => event.stage_id === 'lesson_staging')
+    .slice(0, 5);
+
+  return (
+    <section className="rounded-lg border border-border-subtle bg-elevated p-4" aria-live="polite">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold text-text-primary">抽取步骤</div>
+          <div className="mt-1 text-xs text-text-muted">{currentStepText(steps)}</div>
+        </div>
+        <div className="flex items-center gap-2 rounded-full border border-border-subtle bg-surface px-2.5 py-1 text-[11px] text-text-muted">
+          {autoRefreshing ? <Loader2 className="h-3 w-3 animate-spin text-accent" /> : <Check className="h-3 w-3 text-node-process" />}
+          {autoRefreshing ? '实时刷新中' : lastUpdatedAt ? `最近更新 ${timeText(lastUpdatedAt)}` : '等待数据'}
+        </div>
+      </div>
+      <div className="grid gap-2 md:grid-cols-5">
+        {steps.map((step, index) => (
+          <div key={step.id} className={`min-h-[116px] rounded-lg border p-3 transition-colors ${stepTone(step.status)}`}>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <div className={`flex h-7 w-7 items-center justify-center rounded-full border ${stepDotTone(step.status)}`}>
+                <PipelineStepIcon status={step.status} />
+              </div>
+              <span className="text-[10px] font-medium text-text-muted">{String(index + 1).padStart(2, '0')}</span>
+            </div>
+            <div className="text-xs font-semibold text-text-primary">{step.label}</div>
+            <div className="mt-1.5 text-[11px] leading-5 text-text-secondary">{step.detail}</div>
+          </div>
+        ))}
+      </div>
+      {lessonStage && (
+        <div className="mt-4 rounded-lg border border-border-subtle bg-surface p-3">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold text-text-primary">课时抽取细节</div>
+              <div className="mt-1 text-[11px] text-text-muted">{lessonProgressText(lessonStage, jobStatus)}</div>
+            </div>
+            <StatusPill status={lessonStage.status} />
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-elevated">
+            <div
+              className={`h-full rounded-full bg-accent transition-all duration-500 ${lessonStage.status === 'running' ? 'animate-pulse' : ''}`}
+              style={{ width: `${Math.round(lessonPercent * 100)}%` }}
+            />
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] sm:grid-cols-4">
+            <div className="rounded-md border border-border-subtle bg-elevated px-2 py-1.5">
+              <div className="text-text-muted">总课时</div>
+              <div className="mt-0.5 font-semibold tabular-nums text-text-primary">{lessonTotal}</div>
+            </div>
+            <div className="rounded-md border border-border-subtle bg-elevated px-2 py-1.5">
+              <div className="text-text-muted">已完成</div>
+              <div className="mt-0.5 font-semibold tabular-nums text-node-process">{lessonCompleted}</div>
+            </div>
+            <div className="rounded-md border border-border-subtle bg-elevated px-2 py-1.5">
+              <div className="text-text-muted">失败</div>
+              <div className="mt-0.5 font-semibold tabular-nums text-node-event">{lessonFailed}</div>
+            </div>
+            <div className="rounded-md border border-border-subtle bg-elevated px-2 py-1.5">
+              <div className="text-text-muted">进度</div>
+              <div className="mt-0.5 font-semibold tabular-nums text-accent">{Math.round(lessonPercent * 100)}%</div>
+            </div>
+          </div>
+          {(runningWorkers.length > 0 || recentLessonEvents.length > 0) && (
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              <div>
+                <div className="mb-1.5 text-[10px] font-medium text-text-muted">正在处理</div>
+                <div className="space-y-1.5">
+                  {runningWorkers.length > 0 ? runningWorkers.slice(0, 6).map((worker) => (
+                    <div key={worker.worker_slot} className="flex min-w-0 items-center gap-2 rounded-md border border-accent/30 bg-accent/10 px-2 py-1.5 text-[11px] text-text-secondary">
+                      <Loader2 className="h-3 w-3 shrink-0 animate-spin text-accent" />
+                      <span className="shrink-0 tabular-nums text-accent">任务 {worker.worker_slot}</span>
+                      <span className="min-w-0 truncate text-text-primary" title={worker.batch_anchor ?? ''}>{worker.batch_anchor || '课时未知'}</span>
+                    </div>
+                  )) : (
+                    <div className="rounded-md border border-border-subtle bg-elevated px-2 py-1.5 text-[11px] text-text-muted">暂无正在处理的课时。</div>
+                  )}
+                </div>
+              </div>
+              <div>
+                <div className="mb-1.5 text-[10px] font-medium text-text-muted">最近事件</div>
+                <div className="space-y-1.5">
+                  {recentLessonEvents.length > 0 ? recentLessonEvents.map((event) => (
+                    <div key={event.event_id} className="grid grid-cols-[56px_minmax(0,1fr)] gap-2 rounded-md border border-border-subtle bg-elevated px-2 py-1.5 text-[11px]">
+                      <span className="text-text-muted">{lessonEventLabel(event.event_type)}</span>
+                      <span className="min-w-0 truncate text-text-primary" title={event.batch_anchor ?? ''}>{event.batch_anchor || event.lesson_run_id || '课时未知'}</span>
+                    </div>
+                  )) : (
+                    <div className="rounded-md border border-border-subtle bg-elevated px-2 py-1.5 text-[11px] text-text-muted">暂无课时事件。</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ManualReviewSummary({
+  payload,
+  imageReviews,
+  pipelineDone,
+}: {
+  payload: PipelineResponse | null;
+  imageReviews: ImageReviewResponse | null;
+  pipelineDone: boolean;
+}) {
+  const imagePending = imageReviews?.pending ?? 0;
+  const mergePending = payload?.review_items.length ?? 0;
+  const total = imagePending + mergePending;
+  return (
+    <section className="rounded-lg border border-border-subtle bg-elevated p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold text-text-primary">人工确认</div>
+          <div className="mt-1 text-xs text-text-muted">
+            {total > 0 ? '抽取后需要人工处理的内容如下。' : pipelineDone ? '抽取结果暂时不需要人工确认。' : '抽取完成后这里会汇总待确认内容。'}
+          </div>
+        </div>
+        <StatusPill status={total > 0 ? 'running' : pipelineDone ? 'completed' : 'ready'} />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <MetricCard
+          label="待确认图片"
+          value={imagePending}
+          tone={imagePending > 0 ? 'active' : 'neutral'}
+          detail={imagePending > 0 ? '下方逐张确认' : '暂无图片待确认'}
+        />
+        <MetricCard
+          label="待复核合并"
+          value={mergePending}
+          tone={mergePending > 0 ? 'warn' : 'neutral'}
+          detail={mergePending > 0 ? '右侧查看候选节点' : '暂无合并待复核'}
+        />
+      </div>
+    </section>
+  );
 }
 
 export function PipelineDebugPage() {
@@ -574,9 +976,9 @@ export function PipelineDebugPage() {
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
   const [startResult, setStartResult] = useState<PipelineStartResponse | null>(null);
+  const [jobStatus, setJobStatus] = useState<PipelineJobStatusResponse | null>(null);
   const [metadata, setMetadata] = useState<TextbookMetadataResponse | null>(null);
   const [inferring, setInferring] = useState(false);
-  const [intakeMode, setIntakeMode] = useState<IntakeMode>('pdf');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [form, setForm] = useState<PipelineForm>(initialForm);
   const [imageReviews, setImageReviews] = useState<ImageReviewResponse | null>(null);
@@ -584,27 +986,36 @@ export function PipelineDebugPage() {
   const [imageReviewError, setImageReviewError] = useState('');
   const [imageReviewUpdating, setImageReviewUpdating] = useState('');
 
-  const refresh = async () => {
-    setLoading(true);
+  const refresh = async (options: { silent?: boolean } = {}) => {
+    if (!options.silent) setLoading(true);
     setError('');
     try {
       setPayload(await loadPipeline(activeSourceKey));
     } catch (err) {
       setError((err as Error).message || '读取管线状态失败');
     } finally {
-      setLoading(false);
+      if (!options.silent) setLoading(false);
     }
   };
 
-  const refreshImageReviews = async () => {
-    setImageReviewLoading(true);
+  const refreshImageReviews = async (options: { silent?: boolean } = {}) => {
+    if (!options.silent) setImageReviewLoading(true);
     setImageReviewError('');
     try {
       setImageReviews(await loadImageReviews(activeSourceKey));
     } catch (err) {
       setImageReviewError((err as Error).message || '读取待确认图片失败');
     } finally {
-      setImageReviewLoading(false);
+      if (!options.silent) setImageReviewLoading(false);
+    }
+  };
+
+  const refreshJobStatus = async (jobId = startResult?.job_id) => {
+    if (!jobId) return;
+    try {
+      setJobStatus(await loadPipelineJobStatus(activeSourceKey, jobId));
+    } catch {
+      setJobStatus(null);
     }
   };
 
@@ -612,7 +1023,7 @@ export function PipelineDebugPage() {
     setForm((current) => ({ ...current, [key]: value }));
   };
 
-  const canStart = form.book_id.trim().length > 0 && sourceReady(intakeMode, form) && !starting;
+  const canStart = form.book_id.trim().length > 0 && sourceReady(form) && !starting;
 
   const submitStart = async (event: FormEvent) => {
     event.preventDefault();
@@ -620,18 +1031,18 @@ export function PipelineDebugPage() {
     setStarting(true);
     setStartError('');
     setStartResult(null);
+    setJobStatus(null);
     try {
       const result = await startPipeline(activeSourceKey, {
         book_id: form.book_id.trim(),
         book_title: form.book_title.trim() || undefined,
         pdf_path: form.pdf_path.trim() || undefined,
-        source_markdown_path: intakeMode === 'markdown' ? form.source_markdown_path.trim() || undefined : undefined,
-        mineru_file_url: intakeMode === 'mineru' ? form.mineru_file_url.trim() || undefined : undefined,
-        mineru_base_url: intakeMode === 'mineru' ? form.mineru_base_url.trim() || undefined : undefined,
-        mineru_model_version: intakeMode === 'mineru' ? form.mineru_model_version.trim() || undefined : undefined,
-        mineru_language: intakeMode === 'mineru' ? form.mineru_language.trim() || undefined : undefined,
-        mineru_page_ranges: intakeMode === 'mineru' ? form.mineru_page_ranges.trim() || undefined : undefined,
-        mineru_force: intakeMode === 'mineru' ? form.mineru_force : undefined,
+        mineru_file_url: form.mineru_file_url.trim() || undefined,
+        mineru_base_url: form.mineru_base_url.trim() || undefined,
+        mineru_model_version: form.mineru_model_version.trim() || undefined,
+        mineru_language: form.mineru_language.trim() || undefined,
+        mineru_page_ranges: form.mineru_page_ranges.trim() || undefined,
+        mineru_force: form.mineru_force,
         outline_start_page: Number(form.outline_start_page) || undefined,
         outline_end_page: Number(form.outline_end_page) || undefined,
         dataset_id: activeSourceKey,
@@ -649,8 +1060,9 @@ export function PipelineDebugPage() {
       });
       setStartResult(result);
       window.setTimeout(() => {
-        void refresh();
-        void refreshImageReviews();
+        void refreshJobStatus(result.job_id);
+        void refresh({ silent: true });
+        void refreshImageReviews({ silent: true });
       }, 1200);
     } catch (err) {
       setStartError((err as Error).message || '启动失败');
@@ -684,6 +1096,8 @@ export function PipelineDebugPage() {
   };
 
   useEffect(() => {
+    setStartResult(null);
+    setJobStatus(null);
     void refresh();
     void refreshImageReviews();
   }, [activeSourceKey]);
@@ -712,6 +1126,24 @@ export function PipelineDebugPage() {
   const successRate = payload?.summary.lesson_runs
     ? payload.summary.qa_passed / Math.max(payload.summary.lesson_runs, 1)
     : 0;
+  const steps = useMemo(
+    () => buildPipelineSteps({ payload, imageReviews, jobStatus, starting, startResult }),
+    [payload, imageReviews, jobStatus, starting, startResult],
+  );
+  const pipelineDone = pipelineComplete(payload);
+  const jobDone = jobStatus?.status === 'completed' || jobStatus?.status === 'blocked';
+  const autoRefreshing = starting || Boolean(startResult && !jobDone && !pipelineDone && !pipelineBlocked(payload));
+  const lastUpdatedAt = jobStatus?.updated_at ?? latestUpdatedAt(payload);
+
+  useEffect(() => {
+    if (!autoRefreshing) return undefined;
+    const timer = window.setInterval(() => {
+      void refreshJobStatus();
+      void refresh({ silent: true });
+      void refreshImageReviews({ silent: true });
+    }, 3000);
+    return () => window.clearInterval(timer);
+  }, [autoRefreshing, activeSourceKey]);
 
   return (
     <main className="flex min-h-0 flex-1 flex-col bg-void">
@@ -723,11 +1155,12 @@ export function PipelineDebugPage() {
               <span className="text-xs text-text-muted">数据源：{activeSourceKey}</span>
             </div>
             <h1 className="text-xl font-semibold tracking-tight text-text-primary">教材知识抽取与合并运行台</h1>
-            <p className="mt-1 text-sm text-text-secondary">从 PDF、源 Markdown 或 MinerU 任务入口启动抽取，并跟踪课时运行、合并复核和质量状态。</p>
+            <p className="mt-1 text-sm text-text-secondary">从 PDF 入口启动 MinerU 解析和课时抽取，并实时跟踪合并、质检和人工确认状态。</p>
           </div>
           <button
             type="button"
             onClick={() => {
+              void refreshJobStatus();
               void refresh();
               void refreshImageReviews();
             }}
@@ -760,42 +1193,20 @@ export function PipelineDebugPage() {
             </div>
 
             <form onSubmit={submitStart} className="space-y-4 p-4">
-              <div className="grid grid-cols-3 overflow-hidden rounded-md border border-border-subtle bg-surface text-xs">
-                {([
-                  ['pdf', 'PDF'],
-                  ['markdown', 'Markdown'],
-                  ['mineru', 'MinerU'],
-                ] as Array<[IntakeMode, string]>).map(([mode, label]) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setIntakeMode(mode)}
-                    aria-pressed={intakeMode === mode}
-                    className={`px-3 py-2 font-medium transition-colors ${
-                      intakeMode === mode ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-
               <div className="grid gap-3">
                 <Field label="教材编号" value={form.book_id} onChange={(value) => updateForm('book_id', value)} placeholder="chem-hukj-xb2-structure" />
                 <Field label="教材标题" value={form.book_title} onChange={(value) => updateForm('book_title', value)} placeholder="自动识别或手动填写" />
-
-                {intakeMode === 'pdf' && (
-                  <Field label="PDF 绝对路径" value={form.pdf_path} onChange={(value) => updateForm('pdf_path', value)} placeholder="/Users/.../book.pdf" />
-                )}
-
-                {intakeMode === 'markdown' && (
-                  <Field label="源 Markdown 路径" value={form.source_markdown_path} onChange={(value) => updateForm('source_markdown_path', value)} placeholder="/Users/.../full.md" />
-                )}
-
-                {intakeMode === 'mineru' && (
-                  <>
-                    <Field label="PDF 绝对路径" value={form.pdf_path} onChange={(value) => updateForm('pdf_path', value)} placeholder="本地上传 MinerU 时使用" />
-                    <Field label="MinerU 文件 URL" value={form.mineru_file_url} onChange={(value) => updateForm('mineru_file_url', value)} placeholder="已有公网文件地址时填写" />
+                <div className="rounded-lg border border-accent/30 bg-accent/10 p-3">
+                  <div className="mb-3 flex items-start gap-2">
+                    <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+                    <div>
+                      <div className="text-xs font-semibold text-text-primary">统一抽取入口</div>
+                      <div className="mt-1 text-[11px] leading-5 text-text-secondary">默认输入 PDF，经 MinerU 生成解析文本后进入课时抽取。</div>
+                    </div>
+                  </div>
+                  <div className="grid gap-3">
+                    <Field label="PDF 绝对路径" value={form.pdf_path} onChange={(value) => updateForm('pdf_path', value)} placeholder="/Users/.../book.pdf" />
+                    <Field label="MinerU 文件 URL" value={form.mineru_file_url} onChange={(value) => updateForm('mineru_file_url', value)} placeholder="已有公网文件地址时填写，可不填" />
                     <div className="grid grid-cols-2 gap-3">
                       <Field label="页码范围" value={form.mineru_page_ranges} onChange={(value) => updateForm('mineru_page_ranges', value)} placeholder="1-80" />
                       <SelectField
@@ -808,8 +1219,8 @@ export function PipelineDebugPage() {
                         ]}
                       />
                     </div>
-                  </>
-                )}
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="目录起始页" value={form.outline_start_page} onChange={(value) => updateForm('outline_start_page', value)} inputMode="numeric" />
@@ -873,41 +1284,37 @@ export function PipelineDebugPage() {
                     <Field label="并行数" value={form.parallelism} onChange={(value) => updateForm('parallelism', value)} inputMode="numeric" />
                   </div>
                   <SelectField<PipelineLessonBackendKind>
-                    label="模型接口"
+                    label="文本模型接口"
                     value={form.lesson_backend_kind}
                     onChange={(value) => updateForm('lesson_backend_kind', value)}
                     options={[
-                      { value: 'openai_responses', label: 'OpenAI Responses' },
-                      { value: 'openai_chat_completions', label: 'Chat Completions' },
+                      { value: 'openai_responses', label: 'Responses 接口' },
+                      { value: 'openai_chat_completions', label: '聊天补全接口' },
                     ]}
                   />
-                  <Field label="OpenAI Base URL" value={form.openai_base_url} onChange={(value) => updateForm('openai_base_url', value)} placeholder="默认使用环境配置" />
-                  <Field label="模型名称" value={form.openai_model} onChange={(value) => updateForm('openai_model', value)} placeholder="默认由后端决定" />
-                  <Field label="VLM API URL" value={form.vlm_api_url} onChange={(value) => updateForm('vlm_api_url', value)} placeholder="例如 http://localhost:8000/v1/chat/completions" />
-                  <Field label="VLM API Key" value={form.vlm_api_key} onChange={(value) => updateForm('vlm_api_key', value)} placeholder="留空则使用后端环境变量" type="password" />
-                  <Field label="VLM 模型名称" value={form.vlm_model} onChange={(value) => updateForm('vlm_model', value)} placeholder="例如 gpt-4.1-mini 或 qwen-vl-max" />
-                  {intakeMode === 'mineru' && (
-                    <>
-                      <Field label="MinerU Base URL" value={form.mineru_base_url} onChange={(value) => updateForm('mineru_base_url', value)} />
-                      <Field label="MinerU 模型版本" value={form.mineru_model_version} onChange={(value) => updateForm('mineru_model_version', value)} />
-                      <label className="flex items-center gap-2 text-xs text-text-secondary">
-                        <input
-                          type="checkbox"
-                          checked={form.mineru_force}
-                          onChange={(event) => updateForm('mineru_force', event.target.checked)}
-                          className="h-4 w-4 accent-[var(--color-accent)]"
-                        />
-                        强制重新生成 MinerU 源 Markdown
-                      </label>
-                    </>
-                  )}
+                  <Field label="文本模型接口地址" value={form.openai_base_url} onChange={(value) => updateForm('openai_base_url', value)} placeholder="默认使用环境配置" />
+                  <Field label="文本模型名称" value={form.openai_model} onChange={(value) => updateForm('openai_model', value)} placeholder="默认由后端决定" />
+                  <Field label="视觉模型接口地址" value={form.vlm_api_url} onChange={(value) => updateForm('vlm_api_url', value)} placeholder="例如 http://localhost:8000/v1/chat/completions" />
+                  <Field label="视觉模型密钥" value={form.vlm_api_key} onChange={(value) => updateForm('vlm_api_key', value)} placeholder="留空则使用后端环境变量" type="password" />
+                  <Field label="视觉模型名称" value={form.vlm_model} onChange={(value) => updateForm('vlm_model', value)} placeholder="例如 gpt-4.1-mini 或 qwen-vl-max" />
+                  <Field label="MinerU 接口地址" value={form.mineru_base_url} onChange={(value) => updateForm('mineru_base_url', value)} />
+                  <Field label="MinerU 模型版本" value={form.mineru_model_version} onChange={(value) => updateForm('mineru_model_version', value)} />
+                  <label className="flex items-center gap-2 text-xs text-text-secondary">
+                    <input
+                      type="checkbox"
+                      checked={form.mineru_force}
+                      onChange={(event) => updateForm('mineru_force', event.target.checked)}
+                      className="h-4 w-4 accent-[var(--color-accent)]"
+                    />
+                    强制重新解析 PDF
+                  </label>
                 </div>
               )}
 
               <div className="grid gap-3 rounded-lg border border-border-subtle bg-surface p-3 text-xs text-text-secondary">
                 <div className="flex items-center justify-between gap-3">
                   <span>入口状态</span>
-                  <span className={sourceReady(intakeMode, form) ? 'text-node-process' : 'text-node-event'}>{sourceReadyLabel(intakeMode, form)}</span>
+                  <span className={sourceReady(form) ? 'text-node-process' : 'text-node-event'}>{sourceReadyLabel(form)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span>目标数据集</span>
@@ -941,12 +1348,16 @@ export function PipelineDebugPage() {
           </section>
 
           <section className="min-w-0 space-y-5">
+            <PipelineProgressPanel steps={steps} jobStatus={jobStatus} autoRefreshing={autoRefreshing} lastUpdatedAt={lastUpdatedAt} />
+
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <MetricCard label="课时运行" value={payload?.summary.lesson_runs ?? 0} detail={latestLesson ? `最近：${timeText(latestLesson.updated_at)}` : '暂无运行'} />
               <MetricCard label="已暂存" value={payload?.summary.staged ?? 0} tone="active" detail="等待合并或质检" />
               <MetricCard label="已通过 QA" value={payload?.summary.qa_passed ?? 0} tone="ok" detail={`通过率 ${percentValue(successRate)}`} />
               <MetricCard label="阻断项" value={payload?.summary.blocked ?? 0} tone={(payload?.summary.blocked ?? 0) > 0 ? 'warn' : 'neutral'} detail="需要人工处理" />
             </div>
+
+            <ManualReviewSummary payload={payload} imageReviews={imageReviews} pipelineDone={pipelineDone} />
 
             <ImageReviewPanel
               reviews={imageReviews}
@@ -1023,6 +1434,16 @@ export function PipelineDebugPage() {
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-text-muted">启动接口</span>
                   <span className="text-node-process">已接入</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-text-muted">当前任务</span>
+                  <span className={jobStatus ? 'text-text-primary' : 'text-text-secondary'}>
+                    {jobStatus ? statusLabel(jobStatus.status) : '暂无'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-text-muted">当前阶段</span>
+                  <span className="truncate text-text-primary">{stageLabel(jobStatus?.current_stage?.id) || '暂无'}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-text-muted">合并运行</span>

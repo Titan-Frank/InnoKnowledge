@@ -26,8 +26,32 @@ function sourceRefs(value: unknown): string[] {
   return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
 }
 
+function uniqueValues(values: string[]): string[] {
+  return [...new Set(values.filter(Boolean))];
+}
+
 function text(value: unknown): string {
   return value == null ? '' : String(value);
+}
+
+function evidenceAnchorId(evidenceId: string): string {
+  return `evidence-${evidenceId.replace(/[^A-Za-z0-9_-]/g, '-')}`;
+}
+
+function evidenceIdsFromRows(rows: Row[]): string[] {
+  return uniqueValues(rows.map((row) => text(row.id)).filter(Boolean));
+}
+
+function evidenceIdsForFragment(fragment: Row, evidenceRows: Row[]): string[] {
+  const ids = evidenceIdsFromRows(asRows(fragment.excerpts));
+  const sourceId = text(fragment.source_id);
+  const anchorRef = text(fragment.anchor_ref);
+  if (!sourceId || !anchorRef) return ids;
+  const matchingEvidenceIds = evidenceRows
+    .filter((row) => text(row.source_id) === sourceId && text(row.anchor_ref) === anchorRef)
+    .map((row) => text(row.id))
+    .filter(Boolean);
+  return uniqueValues([...ids, ...matchingEvidenceIds]);
 }
 
 function fragmentTitle(fragment: Row, index: number): string {
@@ -55,22 +79,16 @@ function relationLabel(type: string): string {
     instance_of: '实例',
     prerequisite_for: '前置知识',
     depends_on: '依赖',
-    extends: '延伸',
     part_of: '组成部分',
     contains: '包含',
     related_to: '相关',
-    analogous_to: '类比',
     same_as: '等同',
-    explains: '解释',
     causes: '导致',
     affects: '影响',
     uses: '使用',
-    measures: '测量',
     produces: '生成',
-    consumes: '消耗',
-    applies_to: '适用于',
-    represented_by: '表示为',
-    symbolizes: '象征',
+    represents: '表征',
+    about: '关于',
     has_property: '具有性质',
   };
   return labels[type] || '关联';
@@ -249,11 +267,24 @@ export function DetailUnit({ node }: { node: OKMNode }) {
   const evidence = asRows(unit.evidence);
   const media = asRows(unit.media);
   const sourceFragments = asRows(unit.source_fragments);
+  const visibleSourceFragments = sourceFragments.slice(0, 4);
+  const visibleEvidenceIds = new Set(
+    visibleSourceFragments.flatMap((fragment) => evidenceIdsForFragment(fragment, evidence)),
+  );
   const cardSections = Array.isArray(unit.card?.sections) ? unit.card.sections : [];
-  const body = unit.body?.content?.trim() || node.description;
+  const body = unit.body?.content?.trim() || '';
+  const bodySourceRefs = sourceRefs(unit.body?.source_refs);
+  const evidenceIndex = new Map<string, number>();
+  for (const evidenceId of bodySourceRefs) {
+    if (!evidenceIndex.has(evidenceId)) evidenceIndex.set(evidenceId, evidenceIndex.size + 1);
+  }
+  for (const item of evidence) {
+    const evidenceId = text(item.id);
+    if (evidenceId && !evidenceIndex.has(evidenceId)) evidenceIndex.set(evidenceId, evidenceIndex.size + 1);
+  }
   const related = [...outgoing, ...incoming].slice(0, 12);
   const resolveMarkdownImage = (src: string): string | undefined => {
-    if (/^(https?:|data:|blob:)/i.test(src)) return src;
+    if (/^(https?:|data:|blob:)/i.test(src) || src.startsWith('/api/source/')) return src;
     const normalized = normalizeAssetRef(src);
     const fileName = basename(src);
     const filePrefix = fileName.replace(/…$/, '');
@@ -269,6 +300,35 @@ export function DetailUnit({ node }: { node: OKMNode }) {
     });
     return match ? text(match.url) : undefined;
   };
+  const renderEvidenceRef = (evidenceId: string, key: string) => {
+    const index = evidenceIndex.get(evidenceId);
+    if (!index) {
+      return (
+        <sup key={key} className="ml-0.5 align-super text-[0.65em] font-semibold text-text-muted" title={evidenceId}>
+          [?]
+        </sup>
+      );
+    }
+    if (!visibleEvidenceIds.has(evidenceId)) {
+      return (
+        <sup key={key} className="ml-0.5 align-super text-[0.65em] font-semibold text-accent" title={evidenceId}>
+          [{index}]
+        </sup>
+      );
+    }
+    return (
+      <sup key={key} className="ml-0.5 align-super text-[0.65em] font-semibold">
+        <a
+          href={`#${evidenceAnchorId(evidenceId)}`}
+          className="rounded-sm px-0.5 text-accent transition-colors hover:bg-accent/15 hover:text-accent"
+          title={`查看证据 ${index}: ${evidenceId}`}
+          aria-label={`查看证据 ${index}`}
+        >
+          [{index}]
+        </a>
+      </sup>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -283,7 +343,12 @@ export function DetailUnit({ node }: { node: OKMNode }) {
           <div className="rounded-lg border border-border-subtle bg-elevated p-4">
             <SectionTitle title="知识正文" />
             <div className="max-h-[360px] overflow-y-auto rounded-md border border-border-subtle bg-surface px-3 py-3 scrollbar-thin">
-              <MarkdownView content={body} className={detailMarkdownClass} resolveImageUrl={resolveMarkdownImage} />
+              <MarkdownView
+                content={body}
+                className={detailMarkdownClass}
+                resolveImageUrl={resolveMarkdownImage}
+                renderEvidenceRef={renderEvidenceRef}
+              />
             </div>
           </div>
         )}
@@ -293,9 +358,10 @@ export function DetailUnit({ node }: { node: OKMNode }) {
         <section className="rounded-lg border border-border-subtle bg-elevated p-4">
           <SectionTitle title="课本原文" meta={`${sourceFragments.length} 个分块`} />
           <div className="space-y-3">
-            {sourceFragments.slice(0, 4).map((fragment, index) => {
+            {visibleSourceFragments.map((fragment, index) => {
               const excerpts = asRows(fragment.excerpts);
               const modalities = sourceRefs(fragment.modalities);
+              const fragmentEvidenceIds = evidenceIdsForFragment(fragment, evidence);
               const markdown = sourceFragmentMarkdown(excerpts);
               const title = fragmentTitle(fragment, index);
               return (
@@ -306,6 +372,20 @@ export function DetailUnit({ node }: { node: OKMNode }) {
                       {modalities.map((item) => (
                         <span key={item} className="rounded-full bg-elevated px-2 py-0.5">{modalityLabel(item)}</span>
                       ))}
+                      {fragmentEvidenceIds.map((evidenceId) => {
+                        const evidenceNumber = evidenceIndex.get(evidenceId);
+                        if (!evidenceNumber) return null;
+                        return (
+                          <span
+                            key={evidenceId}
+                            id={evidenceAnchorId(evidenceId)}
+                            className="scroll-mt-24 rounded-full bg-accent/10 px-2 py-0.5 font-medium text-accent"
+                            title={evidenceId}
+                          >
+                            证据 {evidenceNumber}
+                          </span>
+                        );
+                      })}
                     </div>
                     <button
                       type="button"

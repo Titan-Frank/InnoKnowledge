@@ -7,11 +7,11 @@ export type EdgeVisual = {
   category: string;
 };
 
-export const HIERARCHY_TYPES = new Set(['is_a', 'instance_of', 'prerequisite_for', 'depends_on', 'extends']);
+export const HIERARCHY_TYPES = new Set(['is_a', 'instance_of', 'prerequisite_for', 'depends_on']);
 export const STRUCTURE_TYPES = new Set(['part_of', 'contains']);
-export const ASSOCIATION_TYPES = new Set(['related_to', 'analogous_to', 'same_as']);
-export const CAUSAL_TYPES = new Set(['explains', 'causes', 'affects']);
-export const OPERATIONAL_TYPES = new Set(['uses', 'measures', 'produces', 'consumes', 'applies_to', 'represented_by', 'symbolizes', 'has_property']);
+export const ASSOCIATION_TYPES = new Set(['related_to', 'same_as', 'about']);
+export const CAUSAL_TYPES = new Set(['causes', 'affects']);
+export const OPERATIONAL_TYPES = new Set(['uses', 'produces', 'represents', 'has_property']);
 
 export function resolveEdgeVisual(edgeType: string): EdgeVisual {
   if (HIERARCHY_TYPES.has(edgeType)) {

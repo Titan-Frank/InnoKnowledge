@@ -28,7 +28,7 @@ export function createApp(sql: Sql, dbUrl: string): Hono {
   registerPipelineRoutes(app, sql);
   registerImageReviewRoutes(app, sql);
   registerSearchRoutes(app, sql);
-  registerEnrichRoutes(app);
+  registerEnrichRoutes(app, sql);
 
   // Serve built viewer assets (production mode)
   if (existsSync(VIEWER_DIST_DIR)) {

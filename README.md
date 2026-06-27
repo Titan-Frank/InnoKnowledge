@@ -4,16 +4,18 @@
 
 ## 当前标准
 
-项目已经正式切到新的统一世界知识标准，不再使用 `v2`。
+当前项目顶层标准是 `ai-nks-v0.1`，详见 `docs/ai-nks-v0.1.md`。
+
+`ai-nks-v0.1` 把 OKM 定义为面向 AI 使用的知识基础设施：底层是可追溯知识图谱，中层是通过 `ApiUnit` 聚合出来的知识单元视图，上层是对象级检索、语义规划、AI Tutor 和知识持续演化能力。
+
+当前代码和 PostgreSQL 正在执行的底层工程 schema 仍是 `world-v1.2`。它是 `ai-nks-v0.1` 在当前代码中的可执行图谱基线，不是最新标准的完整边界。
 
 - 顶层本体：`entity / concept / property / process / event / method / rule / representation / resource`
 - 分类结构：`taxonomy term`
 - 事实关系：`world_edges`
 - 领域扩展：`world_domain_profiles`
-- 证据约束：`world_mentions / world_evidence / world_node_cards`
+- 证据与表达：`world_mentions / world_evidence / world_node_cards / world_node_bodies`
 - `schema` 负责结构规则，`tag` 只负责检索辅助
-
-当前标准版本：`V1.2`
 
 核心依据：
 
@@ -31,6 +33,7 @@
 docker compose up -d postgres
 export DATABASE_URL=postgresql://okm:okm@localhost:5432/knowledge
 docker compose exec -T postgres psql -U okm -d knowledge < schemas/pg/knowledge_store.sql
+npm run import-file-assets -w packages/pipeline -- --dataset-id main --db "$DATABASE_URL"
 export MINERU_API_KEY=你的_MinerU_API_令牌
 export OPENAI_API_KEY=你的_OpenAI_API_令牌
 # 可选：用于判断教材图片是否真正承载知识内容
@@ -45,17 +48,11 @@ npm run server-pipeline-run -w packages/pipeline -- \
 ```
 
 如果只是启动前端和接口服务，不走抽取流程，也建议先完成上面的 schema 初始化。
+`import-file-assets` 会把已有本地结构化索引导入 PostgreSQL，包括教材大纲、`data/enrich` 教材树和 MinerU 来源状态。PDF、Markdown、图片这类大文件仍保留在文件系统，PG 保存可查询的结构和索引。
 
 传入 `--pdf-path` 时，流程会先调用 MinerU，把 PDF 转成
 `data/mineru/<book-id>/full.md`，再生成或对齐大纲，最后按课时进入
-`world_staging_*` 抽取。也可以跳过 MinerU，直接传已经存在的 Markdown：
-
-```bash
-npm run server-pipeline-run -w packages/pipeline -- \
-  --book-id chem-grade8 \
-  --source-markdown-path /abs/path/to/full.md \
-  --db "$DATABASE_URL"
-```
+`world_staging_*` 抽取。
 
 如果 PDF 已经有公网 URL，也可以让 MinerU 直接抓取：
 
@@ -124,7 +121,22 @@ npm run generate-node-bodies -w packages/pipeline -- \
   --pretty
 ```
 
-默认不会覆盖人工维护的节点正文。需要重新生成由节点卡片展开的正文时，可以追加 `--overwrite-existing`。
+默认不会覆盖人工维护的节点正文。只有真实卡片内容会写入 `world_node_bodies`；自动回填的占位卡片会被跳过，避免重复说明被当成正式正文。需要重新生成由节点卡片展开的正文时，可以追加 `--overwrite-existing`。
+
+需要让模型根据节点信息、高质量卡片、课本原文片段和证据引用写正式正文时，使用模型模式：
+
+```bash
+npm run generate-node-bodies -w packages/pipeline -- \
+  --dataset-id main \
+  --db "$DATABASE_URL" \
+  --mode model \
+  --api-key-env OPENAI_API_KEY \
+  --model "$OPENAI_MODEL" \
+  --limit 5 \
+  --pretty
+```
+
+先用 `--node-id <id>` 或 `--limit` 小批量检查质量，再用 `--overwrite-existing` 覆盖旧的 `card_expansion` 正文。
 
 前端调试页会读取流水线运行结果、质量检查结果和待复核图片。通过 `npm run dev` 启动后，在 viewer 的调试入口里可以查看待复核图片，并把图片标为核心图、辅助图、保留或删除。
 
@@ -147,6 +159,10 @@ npm run generate-node-bodies -w packages/pipeline -- \
 
 运行表：
 
+- `world_textbook_outlines`
+- `world_enrich_library`
+- `world_enrich_books`
+- `world_mineru_sources`
 - `world_lesson_runs`
 - `world_staging_nodes`
 - `world_staging_edges`
@@ -178,6 +194,11 @@ npm run generate-node-bodies -w packages/pipeline -- \
 
 - `schemas/world-knowledge-standard.md`
 - `schemas/world-knowledge-architecture.md`
+- `docs/ai-nks-v0.1.md`
+- `docs/documentation-status.md`
+- `docs/current-system-architecture.md`
+- `docs/knowledge-unit-contract.md`
+- `docs/prompt-inventory.md`
 - `schemas/world-knowledge.schema.json`
 - `schemas/world-knowledge-edge.schema.json`
 - `schemas/world-taxonomy-term.schema.json`

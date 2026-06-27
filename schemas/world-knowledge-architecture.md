@@ -1,6 +1,8 @@
 # World Knowledge Architecture V1.2
 
-这份文档把统一知识体系的结构明确拆成四层，并补上证据约束。
+状态说明：本文是当前代码和数据库正在执行的 `world-v1.2` 工程架构说明，主要描述底层图谱 schema。当前顶层标准是 `ai-nks-v0.1`；完整标准见 `docs/ai-nks-v0.1.md`，文档优先级和过期边界见 `docs/documentation-status.md`。
+
+这份文档把底层统一知识图谱结构明确拆成四层，并补上证据约束。
 
 ## 一、总结构
 
@@ -108,6 +110,7 @@
 - 扩展信息附着在 `node_id` 上
 - 领域扩展不改写节点本体
 - 学科、学段、课程角色应放在这一层
+- 学习目标、难度、诊断题、常见错误、评价任务等教学画像先放在 `properties.pedagogical_profile`
 
 ## 三、证据与溯源平面
 
@@ -125,6 +128,8 @@
 - `world_evidence`
 - `world_node_cards`
 - `world_node_bodies`
+
+其中 `world_node_cards` 是结构化摘要，`world_node_bodies` 是持久化知识正文，二者都不等于课本原文。课本原文应通过证据和原文片段读取。
 
 理论上它更接近一个横跨四层的 provenance 平面，而不是第五个分类层。
 

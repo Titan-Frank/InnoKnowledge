@@ -1,8 +1,16 @@
 # Knowledge Map Schemas
 
-## 当前有效标准
+## 当前工程 schema 基线
 
-仓库当前只保留一套正式标准：统一世界知识标准。
+仓库当前只保留一套可执行工程 schema：统一世界知识 `world-v1.2`。
+
+注意：这里的 `world-v1.2` 是当前代码、数据库和质量检查正在使用的底层结构约束，不代表项目顶层标准版本。当前顶层标准是 `ai-nks-v0.1`，以 `docs/` 下的文档为准，尤其是：
+
+- `docs/ai-nks-v0.1.md`
+- `docs/documentation-status.md`
+- `docs/ai_nks_technical_report_v0_2.md`
+- `docs/discussion.md`
+- `docs/knowledge-unit-contract.md`
 
 ```
 schemas/

@@ -179,12 +179,24 @@ export function buildSystemInstructions(input: { prompt?: string } = {}): string
 - represents/about 用于表示对象和论述主题。
 - same_as 只用于高度确定的同一对象；不确定时用 related_to。
 
-学习维度判断：
-- factual：事实、名称、符号、具体信息。
-- conceptual：概念、分类、原理、结构关系。
-- procedural：步骤、算法、实验操作、解题方法。
-- metacognitive：策略选择、反思、认知监控。
-`.trim();
+	学习维度判断：
+	- factual：事实、名称、符号、具体信息。
+	- conceptual：概念、分类、原理、结构关系。
+	- procedural：步骤、算法、实验操作、解题方法。
+	- metacognitive：策略选择、反思、认知监控。
+
+	语义核心：
+	- 节点的 definition 保持短定义，只回答“它是什么”。
+	- 如果当前证据支持更完整信息，放入 node.properties.semantic_core。
+	- semantic_core 可以包含 core_claims、formal_expressions、conditions、boundaries、counterexamples、misconceptions。
+	- 没有证据支撑的公式、边界、反例、常见误解不要补。
+
+	教学画像：
+	- domain_profiles 只描述该知识对象在具体领域和学段中的教学投影。
+	- school_stages 和 curriculum_roles 说明教学位置。
+	- 如果当前证据能支持学习目标、难度、诊断题、常见错误、评价任务，放入 domain_profiles.properties.pedagogical_profile。
+	- pedagogical_profile 可以包含 learning_objectives、difficulty_level、diagnostic_questions、common_errors、assessment_tasks、remediation_suggestions、extension_suggestions。
+	`.trim();
   const prompt = input.prompt?.trim();
   return prompt ? `${base}\n\n补充项目提示：\n${prompt}` : base;
 }
@@ -241,6 +253,35 @@ export async function callModelExtractionRequest(
 }
 
 export function buildResponseSchema(): RawRecord {
+  const stringList = {
+    type: "array",
+    items: { type: "string" },
+  };
+  const semanticCore = {
+    type: "object",
+    additionalProperties: true,
+    properties: {
+      core_claims: stringList,
+      formal_expressions: stringList,
+      conditions: stringList,
+      boundaries: stringList,
+      counterexamples: stringList,
+      misconceptions: stringList,
+    },
+  };
+  const pedagogicalProfile = {
+    type: "object",
+    additionalProperties: true,
+    properties: {
+      learning_objectives: stringList,
+      difficulty_level: { type: "string", enum: ["introductory", "basic", "intermediate", "advanced", "expert"] },
+      diagnostic_questions: stringList,
+      common_errors: stringList,
+      assessment_tasks: stringList,
+      remediation_suggestions: stringList,
+      extension_suggestions: stringList,
+    },
+  };
   const nodeItem = {
     type: "object",
     additionalProperties: false,
@@ -255,7 +296,13 @@ export function buildResponseSchema(): RawRecord {
       knowledge_form: { type: "array", items: { type: "string", enum: sortedSet(VALID_KNOWLEDGE_FORMS) } },
       learning_mode: { type: "array", items: { type: "string", enum: sortedSet(VALID_LEARNING_MODES) } },
       scope: { type: "string", enum: ["universal", "domain-specific", "culture-specific"] },
-      properties: { type: "object", additionalProperties: true },
+      properties: {
+        type: "object",
+        additionalProperties: true,
+        properties: {
+          semantic_core: semanticCore,
+        },
+      },
       external_ids: { type: "object", additionalProperties: { type: "string" } },
       tags: { type: "array", items: { type: "string" } },
       notes: { type: "string" },
@@ -310,7 +357,13 @@ export function buildResponseSchema(): RawRecord {
       domain: { type: "string", enum: sortedSet(VALID_DOMAINS) },
       school_stages: { type: "array", items: { type: "string" } },
       curriculum_roles: { type: "array", items: { type: "string" } },
-      properties: { type: "object", additionalProperties: true },
+      properties: {
+        type: "object",
+        additionalProperties: true,
+        properties: {
+          pedagogical_profile: pedagogicalProfile,
+        },
+      },
     },
     required: ["node_id", "domain", "school_stages", "curriculum_roles", "properties"],
   };

@@ -70,7 +70,7 @@ export type StrictQaResult = {
 };
 
 const REQUIRED_CARD_SECTIONS = new Set(["definition", "essence", "key_points", "example", "application", "misconception"]);
-const VALID_BODY_GENERATED_FROM = new Set(["manual", "card_expansion", "imported_unit", "node_card_fallback"]);
+const VALID_BODY_GENERATED_FROM = new Set(["manual", "card_expansion", "imported_unit", "model_generation"]);
 
 export function runStrictQa(rows: StrictQaRows): StrictQaResult {
   const qa = new StrictQaRunner(rows);

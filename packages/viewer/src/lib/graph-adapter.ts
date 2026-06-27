@@ -27,9 +27,9 @@ export interface BuildResult {
 }
 
 const NODE_SIZE_MAP: Record<string, number> = {
-  concept: 26, principle: 24, process: 21, substance: 20, entity: 20,
-  experiment: 18, activity: 18, method: 18, representation: 17, symbol: 17,
-  skill: 17, question: 16, event: 16, issue: 16, other: 16,
+  concept: 26, rule: 24, process: 21, entity: 20, property: 18,
+  method: 18, representation: 17, resource: 16, event: 16,
+  substance: 20, experiment: 18, symbol: 17, other: 16,
 };
 
 function getNodeSize(nodeType: string, nodeLayer: string | null | undefined): number {

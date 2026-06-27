@@ -12,21 +12,19 @@ type TypeFilterGroup = {
 };
 
 const TOP_OBJECT_TYPES = new Set([
-  'concept', 'entity', 'process', 'event', 'method', 'principle', 'representation',
-  'resource', 'substance', 'experiment', 'activity', 'skill', 'symbol', 'question',
-  'issue', 'simulation_tool', '仿真工具',
+  'entity', 'concept', 'property', 'process', 'event', 'method', 'rule', 'representation', 'resource',
 ]);
 
 const TYPE_SORT_ORDER = new Map<string, number>([
   ['concept', 10],
   ['entity', 20],
-  ['process', 30],
-  ['event', 40],
-  ['principle', 50],
+  ['property', 30],
+  ['process', 40],
+  ['event', 50],
   ['method', 60],
-  ['representation', 70],
-  ['simulation_tool', 80],
-  ['仿真工具', 80],
+  ['rule', 70],
+  ['representation', 80],
+  ['resource', 90],
 ]);
 
 const CHEM_DOMAIN_TYPES = new Set([

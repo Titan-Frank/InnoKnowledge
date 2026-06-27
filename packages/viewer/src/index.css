@@ -23,20 +23,18 @@
   --color-accent-dim: #1d4ed8;
 
   /* OKM node type colors */
-  --color-node-concept: #555AFF;
-  --color-node-substance: #3782FF;
   --color-node-entity: #3782FF;
-  --color-node-experiment: #1EB478;
-  --color-node-activity: #1EB478;
+  --color-node-concept: #555AFF;
+  --color-node-property: #9A9AB0;
   --color-node-process: #2BA876;
-  --color-node-principle: #8C55FF;
-  --color-node-method: #FFB400;
-  --color-node-skill: #A06BFF;
-  --color-node-representation: #5580CC;
-  --color-node-symbol: #5580CC;
-  --color-node-question: #F02D2D;
   --color-node-event: #E84855;
-  --color-node-issue: #D94848;
+  --color-node-method: #FFB400;
+  --color-node-rule: #8C55FF;
+  --color-node-representation: #5580CC;
+  --color-node-resource: #14B8A6;
+  --color-node-substance: #3782FF;
+  --color-node-experiment: #1EB478;
+  --color-node-symbol: #5580CC;
   --color-node-other: #9A9AB0;
 
   /* Edge category colors */

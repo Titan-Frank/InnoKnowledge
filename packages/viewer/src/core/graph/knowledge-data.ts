@@ -54,7 +54,7 @@ function resolveNodeLayer(node: ApiNode): 'backbone' | 'support' {
 
   if (
     node.node_kind === 'concept' ||
-    node.node_kind === 'principle' ||
+    node.node_kind === 'rule' ||
     (node as Record<string, unknown>).node_kind === 'process' ||
     (node.node_kind === 'entity' && (node.node_subkind === 'substance' || node.node_subkind === 'particle'))
   ) {
@@ -84,16 +84,15 @@ function deriveDisplayType(node: ApiNode): string {
   };
 
   const KIND_TO_TYPE: Record<string, string> = {
+    property: 'property',
     concept: 'concept',
     entity: 'entity',
     method: 'method',
-    activity: 'activity',
     process: 'process',
-    principle: 'principle',
-    skill: 'skill',
+    rule: 'rule',
     representation: 'representation',
     event: 'event',
-    issue: 'issue',
+    resource: 'resource',
   };
 
   if (node.node_subkind && SUBKIND_TO_TYPE[node.node_subkind]) {
@@ -110,7 +109,7 @@ function deriveDisplayType(node: ApiNode): string {
 function deriveLegacyNodeKind(type: string): string {
   const kindMap: Record<string, string> = {
     substance: 'entity',
-    experiment: 'activity',
+    experiment: 'event',
     symbol: 'representation',
   };
   return kindMap[type] || type || 'other';

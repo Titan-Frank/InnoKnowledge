@@ -84,7 +84,7 @@
         "manual",
         "card_expansion",
         "imported_unit",
-        "node_card_fallback"
+        "model_generation"
       ]
     },
     "properties": {

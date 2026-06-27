@@ -1,6 +1,6 @@
 import type {
   ApiNodeCard, ApiUnit, MetaResponse, BundleResponse, SearchResponse,
-  PipelineResponse, PipelineStartRequest, PipelineStartResponse,
+  PipelineJobStatusResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
 } from '@okm/types';
@@ -165,6 +165,15 @@ export async function startPipeline(
   return postJson<PipelineStartResponse>(
     `/api/source/${encodeURIComponent(sourceKey)}/pipeline/start`,
     payload,
+  );
+}
+
+export async function loadPipelineJobStatus(
+  sourceKey: string,
+  jobId: string,
+): Promise<PipelineJobStatusResponse> {
+  return fetchJson<PipelineJobStatusResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/jobs/${encodeURIComponent(jobId)}`,
   );
 }
 

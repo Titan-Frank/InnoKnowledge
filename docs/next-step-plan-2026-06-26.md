@@ -55,7 +55,7 @@ OKM 现在已经不是一个单纯的知识图谱抽取脚本，而是正在变�
 
 ### 仍然缺的关键能力
 
-1. `world_node_bodies` 正文表、正文结构规则、类型、读取回退、生成命令和正文质检已经补齐，后续需要接真实数据跑一批正文生成。
+1. `world_node_bodies` 正文表、正文结构规则、类型、正式正文读取、生成命令和正文质检已经补齐，后续需要接真实数据跑一批正文生成。
 2. 知识单元视图还需要进一步稳定成公开契约。它已经能用，但导出格式和 API 文档还需要补齐。
 3. 外部知识单元导入还没有实现。尤其是 Obsidian 笔记到 OKM 多表结构的映射、对齐、合并、冲突复核还没有工程入口。
 4. 对象级检索还停留在管线候选检索和前端查看层，尚未形成可评测的“对象级检索 + 语义规划 + 生成”闭环。
@@ -76,7 +76,7 @@ OKM 现在已经不是一个单纯的知识图谱抽取脚本，而是正在变�
 
 ## 四、阶段一：补齐 `world_node_bodies`
 
-> 2026-06-26 完成记录：已新增 `world_node_bodies`、`schemas/world-node-body.schema.json`、`ApiUnitBody` 更新、Unit API 正文优先读取与卡片回退、`generate-node-bodies` 管线命令、正文质检规则和 Viewer“知识正文”展示。
+> 2026-06-26 完成记录：已新增 `world_node_bodies`、`schemas/world-node-body.schema.json`、`ApiUnitBody` 更新、Unit API 正文读取、`generate-node-bodies` 管线命令、正文质检规则和 Viewer“知识正文”展示。2026-06-27 已废除卡片临时回退，缺少持久化正文时 `body` 为空。
 
 ### 目标
 
@@ -99,13 +99,14 @@ OKM 现在已经不是一个单纯的知识图谱抽取脚本，而是正在变�
    - 更新 `packages/types/src/models.ts` 中的 `ApiUnitBody`，让它和数据库字段一致。
 
 3. 更新服务端知识单元查询。
-   - `loadUnit` 优先读取 `world_node_bodies`。
-   - 如果没有正文，再回退到现在的 `renderCardBody(card)`。
-   - 返回值明确标记 `generated_from`，区分 `manual`、`card_expansion`、`imported_unit`、`node_card_fallback`。
+   - `loadUnit` 只读取 `world_node_bodies`。
+   - 如果没有持久化正文，`body` 返回空，不再临时展开 `world_node_cards`。
+   - 返回值明确标记 `generated_from`，区分 `manual`、`card_expansion`、`model_generation`、`imported_unit`。
 
 4. 增加正文生成入口。
    - 新增管线命令，例如 `generate-node-bodies`。
    - 第一版只做卡片到 Markdown 正文的扩展。
+   - 模型模式根据节点信息、高质量卡片、课本原文片段和证据引用生成正式正文。
    - 生成结果必须带 `source_refs_json`，不能生成无来源正文。
 
 5. 更新 Viewer。
@@ -121,7 +122,7 @@ OKM 现在已经不是一个单纯的知识图谱抽取脚本，而是正在变�
 ### 验收标准
 
 1. 一个已有节点可以从 `world_node_bodies` 读取正文并在 Viewer 中展示。
-2. 没有正文的节点仍能用卡片回退显示，不破坏现有前端。
+2. 没有正文的节点不显示“知识正文”，避免把结构化卡片误当成正式正文。
 3. `npm test -w packages/pipeline`、`npm run check`、`npm run build` 通过。
 
 ## 五、阶段二：固定知识单元视图契约
@@ -313,7 +314,7 @@ OKM 现在已经不是一个单纯的知识图谱抽取脚本，而是正在变�
 2. `ApiUnitBody` 类型更新。
 3. `loadUnit` 优先读取正文表。
 4. Viewer 展示真实正文。
-5. 回退到卡片的兼容路径。
+5. 缺少持久化正文时返回空的接口行为。
 
 ### 第 3 到 4 周：正文生成和质量检查
 
@@ -366,7 +367,7 @@ OKM 现在已经不是一个单纯的知识图谱抽取脚本，而是正在变�
 
 ## 十二、近期第一步
 
-建议下一步直接从 `world_node_bodies` 开始。原因很简单：它是后面所有能力的共同依赖，而且当前代码已经有知识单元 API、Viewer Markdown 渲染、证据图片解析和卡片回退逻辑，改动可以比较小步、比较稳。
+建议下一步直接从 `world_node_bodies` 开始。原因很简单：它是后面所有能力的共同依赖，而且当前代码已经有知识单元 API、Viewer Markdown 渲染、证据图片解析和正式正文生成入口，改动可以比较小步、比较稳。
 
 第一步任务可以拆成一个最小提交：
 

@@ -3,15 +3,19 @@ export type {
   ApiNode, ApiEdge, EdgeType, EdgeLayer,
   ApiProfile, ApiMention, ApiEvidence,
   NodeCardSection, ApiNodeCard,
-  ApiUnitBody, ApiUnitMedia, ApiUnit,
+  SemanticCoreProperties, NodeProperties,
+  PedagogicalProfileProperties, DomainProfileProperties,
+  ApiUnitBody, ApiUnitMedia, ApiUnitNode, ApiUnitRelation,
+  ApiUnitDomainProfile, ApiUnitSourceFragment, ApiUnit,
 } from './models.js';
 
 export type {
   HealthResponse, SourceSummary, MetaResponse,
   BundleSourceInfo, ApiBookBundle, BundleResponse,
-  NodeCardResponse, SearchHit, SearchResponse, ApiErrorResponse,
+  NodeCardResponse, UnitResponse, SearchHit, SearchResponse, ApiErrorResponse,
   PipelineLessonRun, PipelineMergeRun, PipelineReviewItem, PipelineResponse,
   PipelineLessonBackendKind, PipelineStartRequest, PipelineStartResponse,
+  PipelineJobStage, PipelineWorkerState, PipelineJobEvent, PipelineJobStatusResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewRelevance, ImageReviewStatus, ImageReviewAction,
   ImageReviewDecision, ImageReviewContext, ImageReviewItem, ImageReviewResponse,

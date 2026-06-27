@@ -128,9 +128,10 @@ test("runs a remote MinerU URL flow through injectable dependencies", async () =
     assert.equal(result.status, "success");
     assert.equal(result.created, true);
     assert.equal(result.batch_id, "batch-a");
+    assert.equal(result.zip_url, "https://zip.test/result.zip");
     assert.equal(readFileSync(join(dir, "full.md"), "utf8"), "# MinerU\n");
     assert.equal(existsSync(join(dir, "images", "a.txt")), true);
-    assert.equal(JSON.parse(readFileSync(join(dir, "mineru-result.json"), "utf8")).zip_url, "https://zip.test/result.zip");
+    assert.equal(existsSync(join(dir, "mineru-result.json")), false);
     assert.equal(calls[0]?.startsWith("POST https://mineru.test/api/v4/extract/task/batch"), true);
     assert.equal(calls.at(-1), "GET https://mineru.test/api/v4/extract-results/batch/batch-a ");
   } finally {

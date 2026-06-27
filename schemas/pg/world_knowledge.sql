@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS world_node_bodies (
   media_refs_json JSONB NOT NULL DEFAULT '[]'::jsonb,
   source_refs_json JSONB NOT NULL DEFAULT '[]'::jsonb,
   generated_from TEXT NOT NULL CHECK (
-    generated_from IN ('manual', 'card_expansion', 'imported_unit', 'node_card_fallback')
+    generated_from IN ('manual', 'card_expansion', 'imported_unit', 'model_generation')
   ),
   properties_json JSONB NOT NULL DEFAULT '{}'::jsonb,
   status TEXT NOT NULL CHECK (status IN ('draft', 'active', 'deprecated')),

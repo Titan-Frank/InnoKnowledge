@@ -4,6 +4,7 @@ type MarkdownViewProps = {
   content: string;
   className?: string;
   resolveImageUrl?: (src: string) => string | undefined;
+  renderEvidenceRef?: (evidenceId: string, key: string) => ReactNode;
   hideDecorativeImages?: boolean;
   imageLayout?: 'inline' | 'preview' | 'reader';
 };
@@ -332,6 +333,7 @@ function renderTableBlock(
   rows: string[][],
   key: string,
   resolveImageUrl?: (src: string) => string | undefined,
+  renderEvidenceRef?: MarkdownViewProps['renderEvidenceRef'],
 ): ReactNode {
   return (
     <div key={key} className="overflow-x-auto">
@@ -340,7 +342,7 @@ function renderTableBlock(
           <tr>
             {header.map((cell, index) => (
               <th key={index} className="border border-border-subtle bg-surface px-2 py-1 font-medium text-text-primary">
-                {renderInline(cell, `${key}:th:${index}`, resolveImageUrl)}
+                {renderInline(cell, `${key}:th:${index}`, resolveImageUrl, 'inline', renderEvidenceRef)}
               </th>
             ))}
           </tr>
@@ -350,7 +352,7 @@ function renderTableBlock(
             <tr key={rowIndex}>
               {row.map((cell, cellIndex) => (
                 <td key={cellIndex} className="border border-border-subtle px-2 py-1 align-top text-text-secondary">
-                  {renderInline(cell, `${key}:td:${rowIndex}:${cellIndex}`, resolveImageUrl)}
+                  {renderInline(cell, `${key}:td:${rowIndex}:${cellIndex}`, resolveImageUrl, 'inline', renderEvidenceRef)}
                 </td>
               ))}
             </tr>
@@ -361,24 +363,30 @@ function renderTableBlock(
   );
 }
 
-function renderHtmlTable(markup: string, key: string, resolveImageUrl?: (src: string) => string | undefined): ReactNode {
+function renderHtmlTable(
+  markup: string,
+  key: string,
+  resolveImageUrl?: (src: string) => string | undefined,
+  renderEvidenceRef?: MarkdownViewProps['renderEvidenceRef'],
+): ReactNode {
   const rows = parseHtmlTable(markup);
   if (rows.length === 0) {
     return (
       <p key={key} className="whitespace-pre-line">
-        {renderInline(cleanHtmlTableCell(markup), `${key}:fallback`, resolveImageUrl)}
+        {renderInline(cleanHtmlTableCell(markup), `${key}:fallback`, resolveImageUrl, 'inline', renderEvidenceRef)}
       </p>
     );
   }
 
   const [header, ...bodyRows] = rows;
-  return renderTableBlock(header, bodyRows, key, resolveImageUrl);
+  return renderTableBlock(header, bodyRows, key, resolveImageUrl, renderEvidenceRef);
 }
 
 function renderHtmlDetails(
   markup: string,
   key: string,
   resolveImageUrl?: (src: string) => string | undefined,
+  renderEvidenceRef?: MarkdownViewProps['renderEvidenceRef'],
   hideDecorativeImages = true,
   imageLayout: MarkdownViewProps['imageLayout'] = 'inline',
 ): ReactNode {
@@ -393,13 +401,14 @@ function renderHtmlDetails(
   return (
     <details key={key} className="border border-border-subtle bg-surface">
       <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-text-primary">
-        {renderInline(summary, `${key}:summary`, resolveImageUrl)}
+        {renderInline(summary, `${key}:summary`, resolveImageUrl, 'inline', renderEvidenceRef)}
       </summary>
       {body ? (
         <div className="border-t border-border-subtle px-3 py-2">
           <MarkdownView
             content={body}
             resolveImageUrl={resolveImageUrl}
+            renderEvidenceRef={renderEvidenceRef}
             hideDecorativeImages={hideDecorativeImages}
             imageLayout={imageLayout}
           />
@@ -432,9 +441,10 @@ function renderInline(
   keyPrefix: string,
   resolveImageUrl?: (src: string) => string | undefined,
   imageLayout: MarkdownViewProps['imageLayout'] = 'inline',
+  renderEvidenceRef?: MarkdownViewProps['renderEvidenceRef'],
 ): ReactNode[] {
   const nodes: ReactNode[] = [];
-  const tokenRe = /!\[([^\]]*)\]\(([^)\n]+)\)|!\[([^\]]*)\]\(([^)\s]+…)|\$\$\s*([^$]+?)\s*\$\$|\$([^$\n]+)\$|`([^`]+)`|\*\*([^*]+)\*\*/g;
+  const tokenRe = /!\[([^\]]*)\]\(([^)\n]+)\)|!\[([^\]]*)\]\(([^)\s]+…)|\$\$\s*([^$]+?)\s*\$\$|\$([^$\n]+)\$|`?\[(evidence:[^\]\s`]+)\]`?|`([^`]+)`|\*\*([^*]+)\*\*/g;
   let lastIndex = 0;
   let index = 0;
   let match: RegExpExecArray | null;
@@ -465,15 +475,26 @@ function renderInline(
     } else if (match[5] != null || match[6] != null) {
       nodes.push(renderMath(match[5] || match[6], `${keyPrefix}:math:${index}`));
     } else if (match[7] != null) {
+      const evidenceId = match[7];
       nodes.push(
-        <code key={`${keyPrefix}:code:${index}`} className="bg-surface px-1 py-0.5 font-mono text-[0.95em] text-text-primary">
-          {match[7]}
-        </code>,
+        renderEvidenceRef
+          ? renderEvidenceRef(evidenceId, `${keyPrefix}:evidence:${index}`)
+          : (
+            <sup key={`${keyPrefix}:evidence:${index}`} className="align-super text-[0.68em] font-medium text-text-muted">
+              [证据]
+            </sup>
+          ),
       );
     } else if (match[8] != null) {
       nodes.push(
-        <strong key={`${keyPrefix}:strong:${index}`} className="font-semibold text-text-primary">
+        <code key={`${keyPrefix}:code:${index}`} className="bg-surface px-1 py-0.5 font-mono text-[0.95em] text-text-primary">
           {match[8]}
+        </code>,
+      );
+    } else if (match[9] != null) {
+      nodes.push(
+        <strong key={`${keyPrefix}:strong:${index}`} className="font-semibold text-text-primary">
+          {match[9]}
         </strong>,
       );
     }
@@ -528,6 +549,7 @@ export function MarkdownView({
   content,
   className = '',
   resolveImageUrl,
+  renderEvidenceRef,
   hideDecorativeImages = true,
   imageLayout = 'inline',
 }: MarkdownViewProps) {
@@ -574,7 +596,7 @@ export function MarkdownView({
       const Tag = `h${level + 2}` as 'h3' | 'h4' | 'h5' | 'h6';
       blocks.push(
         <Tag key={`h:${i}`} className="mt-3 font-semibold leading-snug text-text-primary first:mt-0">
-          {renderInline(heading[2], `h:${i}`, resolveImageUrl)}
+          {renderInline(heading[2], `h:${i}`, resolveImageUrl, imageLayout, renderEvidenceRef)}
         </Tag>,
       );
       i += 1;
@@ -592,7 +614,7 @@ export function MarkdownView({
         tableLines.push(lines[i]);
         i += 1;
       }
-      blocks.push(renderHtmlTable(tableLines.join('\n'), `html-table:${i}`, resolveImageUrl));
+      blocks.push(renderHtmlTable(tableLines.join('\n'), `html-table:${i}`, resolveImageUrl, renderEvidenceRef));
       continue;
     }
 
@@ -607,7 +629,7 @@ export function MarkdownView({
         detailsLines.push(lines[i]);
         i += 1;
       }
-      blocks.push(renderHtmlDetails(detailsLines.join('\n'), `html-details:${i}`, resolveImageUrl, hideDecorativeImages, imageLayout));
+      blocks.push(renderHtmlDetails(detailsLines.join('\n'), `html-details:${i}`, resolveImageUrl, renderEvidenceRef, hideDecorativeImages, imageLayout));
       continue;
     }
 
@@ -619,7 +641,7 @@ export function MarkdownView({
         rows.push(splitTableRow(lines[i]));
         i += 1;
       }
-      blocks.push(renderTableBlock(header, rows, `table:${i}`, resolveImageUrl));
+      blocks.push(renderTableBlock(header, rows, `table:${i}`, resolveImageUrl, renderEvidenceRef));
       continue;
     }
 
@@ -632,7 +654,7 @@ export function MarkdownView({
       blocks.push(
         <ul key={`ul:${i}`} className="list-disc space-y-1 pl-5">
           {items.map((item, index) => (
-            <li key={index}>{renderInline(item, `ul:${i}:${index}`, resolveImageUrl, imageLayout)}</li>
+            <li key={index}>{renderInline(item, `ul:${i}:${index}`, resolveImageUrl, imageLayout, renderEvidenceRef)}</li>
           ))}
         </ul>,
       );
@@ -648,7 +670,7 @@ export function MarkdownView({
       blocks.push(
         <ol key={`ol:${i}`} className="list-decimal space-y-1 pl-5">
           {items.map((item, index) => (
-            <li key={index}>{renderInline(item, `ol:${i}:${index}`, resolveImageUrl, imageLayout)}</li>
+            <li key={index}>{renderInline(item, `ol:${i}:${index}`, resolveImageUrl, imageLayout, renderEvidenceRef)}</li>
           ))}
         </ol>,
       );
@@ -668,7 +690,7 @@ export function MarkdownView({
     }
     blocks.push(
       <p key={`p:${i}`} className="whitespace-pre-line">
-        {renderInline(paragraph.join('\n'), `p:${i}`, resolveImageUrl, imageLayout)}
+        {renderInline(paragraph.join('\n'), `p:${i}`, resolveImageUrl, imageLayout, renderEvidenceRef)}
       </p>,
     );
   }
