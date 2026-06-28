@@ -511,6 +511,10 @@ function assetUrlForPath(sourceKey: string, resolvedPath: string): string {
   return `/api/source/${encodeURIComponent(sourceKey)}/assets/${encodeURIComponent(resolvedPath)}`;
 }
 
+function assetPathKey(resolvedPath: string): string {
+  return path.resolve(resolvedPath).replace(/\\/g, '/');
+}
+
 function resolveMarkdownAssetPath(markdownPath: string, assetRef: string): string | null {
   const cleanRef = assetRef.trim();
   if (!cleanRef || /^(https?:|data:|blob:|\/api\/)/i.test(cleanRef) || cleanRef.startsWith('#')) {
@@ -528,10 +532,28 @@ function resolveMarkdownAssetPath(markdownPath: string, assetRef: string): strin
   return candidates.find((candidate) => existsSync(candidate)) || null;
 }
 
-function rewriteMarkdownImageUrls(markdown: string, markdownPath: string, sourceKey: string): string {
+function visibleImageAssetPaths(rows: Record<string, unknown>[]): Set<string> {
+  const paths = new Set<string>();
+  for (const row of rows) {
+    if (String(row.modality || '').toLowerCase() !== 'image') continue;
+    if (isHiddenImageEvidence(row)) continue;
+    const resolvedPath = resolveImagePath(row);
+    if (!resolvedPath || /^https?:\/\//i.test(resolvedPath)) continue;
+    paths.add(assetPathKey(resolvedPath));
+  }
+  return paths;
+}
+
+function rewriteMarkdownImageUrls(
+  markdown: string,
+  markdownPath: string,
+  sourceKey: string,
+  allowedAssetPaths?: Set<string>,
+): string {
   return markdown.replace(/!\[([^\]]*)\]\(([^)\n]+)\)/g, (match, alt: string, src: string) => {
     const resolvedPath = resolveMarkdownAssetPath(markdownPath, src);
     if (!resolvedPath) return match;
+    if (allowedAssetPaths && !allowedAssetPaths.has(assetPathKey(resolvedPath))) return '';
     return `![${alt}](${assetUrlForPath(sourceKey, resolvedPath)})`;
   });
 }
@@ -587,7 +609,7 @@ function markdownFragmentFromOutline(
     if (!markdown) continue;
 
     const normalizedMarkdown = normalizeDetailsSummaries(
-      rewriteMarkdownImageUrls(markdown, markdownPath, sourceKey),
+      rewriteMarkdownImageUrls(markdown, markdownPath, sourceKey, visibleImageAssetPaths(items)),
     );
     const fallbackModalities = uniqueStrings(items.map((row) => textValue(row.modality) || 'text'));
     const pageStart = item.page_start ?? first.page_start;

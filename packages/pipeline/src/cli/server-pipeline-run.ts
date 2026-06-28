@@ -89,6 +89,11 @@ type RunnerOptions = {
   retrievalContext: boolean;
   retrievalLimit: number;
   qualityRetryCount: number;
+  skipNodeBodies?: boolean;
+  nodeBodyMode?: "card" | "model";
+  nodeBodyLimit?: number;
+  nodeBodyMaxEvidence?: number;
+  overwriteNodeBodies?: boolean;
   progressStore?: PipelineProgressStore;
   assetStore?: PipelineAssetStore;
   commandRunner?: CommandRunner;
@@ -367,6 +372,17 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
 
     const normalizeOk = await runPipelineCommandStage(result, progressStore, options, "normalize", buildNormalizeCommand(options), "Normalize command failed.");
     if (!normalizeOk) return result;
+    if (!options.skipNodeBodies) {
+      const nodeBodiesOk = await runPipelineCommandStage(
+        result,
+        progressStore,
+        options,
+        "node_bodies",
+        buildNodeBodiesCommand(options),
+        "Node body generation command failed.",
+      );
+      if (!nodeBodiesOk) return result;
+    }
     const qaOk = await runPipelineCommandStage(result, progressStore, options, "strict_qa", buildStrictQaCommand(options), "Strict QA command failed.");
     if (!qaOk) return result;
     const integrityOk = await runPipelineCommandStage(result, progressStore, options, "graph_integrity", buildGraphIntegrityCommand(options), "Graph integrity command failed.");
@@ -611,6 +627,32 @@ function buildNormalizeCommand(options: RunnerOptions): string[] {
   return ["node", resolve(CLI_DIR, "normalize.js"), "--dataset-id", options.datasetId, "--db", options.dbUrl];
 }
 
+function buildNodeBodiesCommand(options: RunnerOptions): string[] {
+  const mode = options.nodeBodyMode ?? "model";
+  const command = [
+    "node",
+    resolve(CLI_DIR, "generate-node-bodies.js"),
+    "--dataset-id",
+    options.datasetId,
+    "--db",
+    options.dbUrl,
+    "--mode",
+    mode,
+    "--pretty",
+  ];
+  if (mode === "model") {
+    command.push("--api-mode", options.apiMode);
+    if (options.model) command.push("--model", options.model);
+    if (options.baseUrl) command.push("--base-url", options.baseUrl);
+    if (options.reasoningEffort) command.push("--reasoning-effort", options.reasoningEffort);
+    command.push("--timeout", String(options.timeoutSeconds));
+    command.push("--max-evidence", String(options.nodeBodyMaxEvidence ?? 8));
+  }
+  if (options.nodeBodyLimit && options.nodeBodyLimit > 0) command.push("--limit", String(options.nodeBodyLimit));
+  if (options.overwriteNodeBodies) command.push("--overwrite-existing");
+  return command;
+}
+
 function buildStrictQaCommand(options: RunnerOptions): string[] {
   return ["node", resolve(CLI_DIR, "strict-qa.js"), "--dataset-id", options.datasetId, "--db", options.dbUrl];
 }
@@ -640,15 +682,16 @@ async function runPipelineCommandStage(
   const stage: ServerPipelineStage = { id, status: "running", output: { command } };
   await recordStage(result, progressStore, stage);
   const commandResult = await runCommand(command, options.commandRunner);
-  stage.status = commandResult.exitCode === 0 ? "completed" : "blocked";
+  const outputFailure = commandResult.exitCode === 0 ? stageFailureFromOutput(id, commandResult.stdout) : null;
+  stage.status = commandResult.exitCode === 0 && !outputFailure ? "completed" : "blocked";
   stage.output = {
     command,
     exit_code: commandResult.exitCode,
     stdout_tail: tail(commandResult.stdout),
     stderr_tail: tail(commandResult.stderr),
   };
-  if (commandResult.exitCode !== 0) {
-    stage.error = errorMessage;
+  if (stage.status === "blocked") {
+    stage.error = outputFailure ?? errorMessage;
     await recordStage(result, progressStore, stage);
     result.status = "blocked";
     await progressStore.updateJob({
@@ -657,13 +700,41 @@ async function runPipelineCommandStage(
       status: "blocked",
       currentStageId: id,
       progress: sanitizeStageOutput(stage),
-      error: errorMessage,
+      error: stage.error,
       completed: true,
     });
     return false;
   }
   await recordStage(result, progressStore, stage);
   return true;
+}
+
+function stageFailureFromOutput(stageId: string, stdout: string): string | null {
+  if (stageId !== "node_bodies") return null;
+  const output = parseJsonObjectFromOutput(stdout);
+  if (!output) return null;
+  const failed = numberValue(output.failed_model_generation) ?? 0;
+  if (failed > 0) return `${failed} node body generation request(s) failed.`;
+  return null;
+}
+
+function parseJsonObjectFromOutput(stdout: string): RawRecord | null {
+  const trimmed = stdout.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    const firstBrace = trimmed.indexOf("{");
+    const lastBrace = trimmed.lastIndexOf("}");
+    if (firstBrace < 0 || lastBrace <= firstBrace) return null;
+    try {
+      const parsed = JSON.parse(trimmed.slice(firstBrace, lastBrace + 1)) as unknown;
+      return isRecord(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
 }
 
 async function runExtractionCommands(
@@ -993,6 +1064,7 @@ function stageSortOrder(stageId: string, fallback: number): number {
     "staging_quality",
     "canonical_commit",
     "normalize",
+    "node_bodies",
     "strict_qa",
     "graph_integrity",
   ].indexOf(stageId);
@@ -1016,6 +1088,7 @@ function stageLabel(stageId: string): string {
     staging_quality: "检查暂存质量",
     canonical_commit: "合并入正式图谱",
     normalize: "归一化知识对象",
+    node_bodies: "生成知识正文",
     strict_qa: "严格质检",
     graph_integrity: "图谱完整性检查",
   };
@@ -1121,6 +1194,11 @@ function parseOptions(argv: string[]): RunnerOptions {
     retrievalContext: parseBoolean(flags.get("retrieval-context"), true),
     retrievalLimit: parseInteger(flags.get("retrieval-limit"), 8),
     qualityRetryCount: parseNonNegativeInteger(flags.get("quality-retry-count") ?? flags.get("quality-retries"), 1),
+    skipNodeBodies: flags.has("skip-node-bodies"),
+    nodeBodyMode: parseNodeBodyMode(flags.get("node-body-mode") ?? "model"),
+    nodeBodyLimit: parseNonNegativeInteger(flags.get("node-body-limit"), 0),
+    nodeBodyMaxEvidence: parseInteger(flags.get("node-body-max-evidence"), 8),
+    overwriteNodeBodies: flags.has("overwrite-node-bodies"),
   };
 }
 
@@ -1170,6 +1248,11 @@ function parseApiMode(value: string): "responses" | "chat_completions" {
   if (value === "responses" || value === "openai_responses") return "responses";
   if (value === "chat_completions" || value === "openai_chat_completions") return "chat_completions";
   throw new Error(`Unsupported lesson backend/api mode '${value}'.`);
+}
+
+function parseNodeBodyMode(value: string): "card" | "model" {
+  if (value === "card" || value === "model") return value;
+  throw new Error(`Unsupported node body mode '${value}'.`);
 }
 
 function parseBoolean(value: string | undefined, fallback: boolean): boolean {

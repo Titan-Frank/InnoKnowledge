@@ -627,6 +627,7 @@ const stageLabels: Record<string, string> = {
   staging_quality: '检查暂存质量',
   canonical_commit: '合并入正式图谱',
   normalize: '归一化知识对象',
+  node_bodies: '生成知识正文',
   strict_qa: '严格质检',
   graph_integrity: '图谱完整性检查',
 };
@@ -634,7 +635,7 @@ const stageLabels: Record<string, string> = {
 const sourceStageIds = ['check_postgres', 'mineru_source_markdown', 'prepare_source_markdown'];
 const outlineStageIds = ['extract_pdf_outline', 'ensure_outline', 'prepare_outline_chunks', 'lesson_plan'];
 const lessonStageIds = ['lesson_staging'];
-const mergeStageIds = ['staging_quality', 'canonical_commit', 'normalize', 'strict_qa', 'graph_integrity'];
+const mergeStageIds = ['staging_quality', 'canonical_commit', 'normalize', 'node_bodies', 'strict_qa', 'graph_integrity'];
 
 function stageLabel(stageId: string | undefined): string {
   if (!stageId) return '';

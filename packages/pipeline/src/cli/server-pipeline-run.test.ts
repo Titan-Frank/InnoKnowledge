@@ -93,8 +93,10 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   const normalizeStage = result.stages.find((stage) => stage.id === "normalize");
   const qaStage = result.stages.find((stage) => stage.id === "strict_qa");
   const integrityStage = result.stages.find((stage) => stage.id === "graph_integrity");
+  const nodeBodiesStage = result.stages.find((stage) => stage.id === "node_bodies");
   const canonicalCommand = canonicalStage?.output?.command as string[];
   const stagingQualityCommand = stagingQualityStage?.output?.command as string[];
+  const nodeBodiesCommand = nodeBodiesStage?.output?.command as string[];
   const integrityCommand = integrityStage?.output?.command as string[];
   assert.equal(stagingQualityStage?.status, "completed");
   assert.ok(stagingQualityCommand.some((part) => part.endsWith("staging-quality.js")));
@@ -103,16 +105,21 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.ok(canonicalCommand.some((part) => part.endsWith("merge-staged-lessons.js")));
   assert.ok(canonicalCommand.includes("--db"));
   assert.equal(normalizeStage?.status, "completed");
+  assert.equal(nodeBodiesStage?.status, "completed");
+  assert.ok(nodeBodiesCommand.some((part) => part.endsWith("generate-node-bodies.js")));
+  assert.ok(nodeBodiesCommand.includes("--mode"));
+  assert.ok(nodeBodiesCommand.includes("model"));
   assert.equal(qaStage?.status, "completed");
   assert.equal(integrityStage?.status, "completed");
   assert.ok(integrityCommand.some((part) => part.endsWith("graph-integrity.js")));
   assert.ok(integrityCommand.includes("--mark-qa-passed"));
-  assert.ok(commands.at(-5)?.some((part) => part.endsWith("staging-quality.js")));
-  assert.ok(commands.at(-4)?.some((part) => part.endsWith("merge-staged-lessons.js")));
-  assert.ok(commands.at(-3)?.some((part) => part.endsWith("normalize.js")));
+  assert.ok(commands.at(-6)?.some((part) => part.endsWith("staging-quality.js")));
+  assert.ok(commands.at(-5)?.some((part) => part.endsWith("merge-staged-lessons.js")));
+  assert.ok(commands.at(-4)?.some((part) => part.endsWith("normalize.js")));
+  assert.ok(commands.at(-3)?.some((part) => part.endsWith("generate-node-bodies.js")));
   assert.ok(commands.at(-2)?.some((part) => part.endsWith("strict-qa.js")));
   assert.ok(commands.at(-1)?.some((part) => part.endsWith("graph-integrity.js")));
-  assert.ok(commands.slice(0, -5).every((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))));
+  assert.ok(commands.slice(0, -6).every((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))));
 });
 
 test("server pipeline retries chunks that fail staging quality", async () => {
@@ -187,6 +194,48 @@ test("server pipeline retries chunks that fail staging quality", async () => {
   assert.equal(result.stages.find((stage) => stage.id === "staging_quality")?.status, "completed");
 });
 
+test("server pipeline blocks when node body generation reports model failures", async () => {
+  const commands: string[][] = [];
+  const result = await runServerPipeline({
+    bookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-a",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 8,
+    noChunks: false,
+    pdfPath: "",
+    subject: "computer-science",
+    schoolStage: "higher",
+    gradeBand: "university",
+    textbookId: bookId,
+    apiMode: "responses",
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: createNoopPipelineAssetStore(),
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async (command) => {
+      commands.push(command);
+      if (isNodeBodiesCommand(command)) {
+        return { exitCode: 0, stdout: JSON.stringify({ failed_model_generation: 2 }), stderr: "" };
+      }
+      return { exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  });
+
+  assert.equal(result.status, "blocked");
+  const nodeBodiesStage = result.stages.find((stage) => stage.id === "node_bodies");
+  assert.equal(nodeBodiesStage?.status, "blocked");
+  assert.match(nodeBodiesStage?.error ?? "", /2 node body generation/);
+  assert.equal(commands.some((command) => command.some((part) => part.endsWith("strict-qa.js"))), false);
+});
+
 async function fakePostgresChecker() {
   return {
     status: "success" as const,
@@ -206,4 +255,8 @@ function isExtractionCommand(command: string[]): boolean {
 
 function isStagingQualityCommand(command: string[]): boolean {
   return command.some((part) => part.endsWith("staging-quality.js"));
+}
+
+function isNodeBodiesCommand(command: string[]): boolean {
+  return command.some((part) => part.endsWith("generate-node-bodies.js"));
 }

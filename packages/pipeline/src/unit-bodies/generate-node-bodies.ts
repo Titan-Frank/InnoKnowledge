@@ -344,6 +344,21 @@ export function collectBodySourceRefs(card: NodeCardBodyRow): string[] {
   return uniqueStrings(refs);
 }
 
+function collectModelBodySourceRefs(card: NodeCardBodyRow): string[] {
+  const refs: unknown[] = Array.isArray(card.source_refs_json) ? [...card.source_refs_json] : [];
+  const sections = Array.isArray(card.sections_json) ? card.sections_json.filter(isRecord) : [];
+  for (const section of sections) {
+    if (Array.isArray(section.source_refs)) refs.push(...section.source_refs);
+  }
+  return uniqueStrings(refs);
+}
+
+function renderModelCardContextMarkdown(card: NodeCardBodyRow): string {
+  const formalContent = renderNodeCardBodyMarkdown(card);
+  if (formalContent) return formalContent;
+  return textValue(card.summary);
+}
+
 export function planNodeBodiesFromCards(input: {
   datasetId: string;
   cards: NodeCardBodyRow[];
@@ -452,7 +467,7 @@ export async function planModelNodeBodies(input: {
       skippedEmptyContent.push(node.id);
       continue;
     }
-    const cardMarkdown = renderNodeCardBodyMarkdown(card);
+    const cardMarkdown = renderModelCardContextMarkdown(card);
     if (!cardMarkdown) {
       if (hasBackfilledContent(card)) skippedBackfilledOnly.push(node.id);
       else skippedEmptyContent.push(node.id);
@@ -676,7 +691,7 @@ function collectEvidenceForModelBody(input: {
   maxEvidence: number;
 }): NodeBodyInputEvidenceRow[] {
   const ids = new Set<string>();
-  for (const id of collectBodySourceRefs(input.card)) ids.add(id);
+  for (const id of collectModelBodySourceRefs(input.card)) ids.add(id);
   for (const mention of input.mentions) {
     for (const id of uniqueStrings(Array.isArray(mention.source_refs_json) ? mention.source_refs_json : [])) ids.add(id);
     for (const row of input.evidenceByAnchor.get(`${mention.source_id}:${mention.anchor_ref}`) ?? []) ids.add(row.id);

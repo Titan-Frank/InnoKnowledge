@@ -33,9 +33,9 @@ flowchart TD
   I --> J["merge-staged-lessons"]
   J --> K["world_* 正式表"]
   K --> L["normalize"]
-  L --> M["strict_qa 与 graph_integrity"]
-  K --> N["generate-node-bodies"]
+  L --> N["generate-node-bodies"]
   N --> O["world_node_bodies"]
+  O --> M["strict_qa 与 graph_integrity"]
   K --> P["Hono API"]
   O --> P
   P --> Q["React viewer"]
@@ -279,17 +279,18 @@ staging 写入后，系统会执行：
 
 ### 7. 知识正文生成
 
-归并和质量检查之后，可以从 `world_node_cards` 生成更适合阅读的 Markdown 正文：
+一键流水线会在归一化之后自动生成知识正文，然后再进入严格质检和图完整性检查。默认使用模型模式，根据节点、卡片、课本原文片段和证据引用写入 `world_node_bodies`。需要单独补跑或小批量检查时，可以直接调用：
 
 ```bash
 npm run generate-node-bodies -w packages/pipeline -- \
   --dataset-id main \
   --db "$DATABASE_URL" \
+  --mode model \
   --pretty
 ```
 
 默认不会覆盖人工维护的正文。
-自动回填的占位卡片不会写入 `world_node_bodies`，避免重复短定义被当成正式正文。
+如果使用 `--mode card`，自动回填的占位卡片不会写入 `world_node_bodies`，避免重复短定义被当成正式正文。
 
 正文生成有两种模式：
 

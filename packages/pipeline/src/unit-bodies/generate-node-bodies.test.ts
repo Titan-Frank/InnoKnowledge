@@ -176,13 +176,14 @@ test("parses model node body JSON from plain or fenced output", () => {
   );
 });
 
-test("plans model-written bodies from node cards and evidence", async () => {
+test("plans model-written bodies from node cards, including backfilled card context", async () => {
   const plan = await planModelNodeBodies({
     datasetId: "main",
     nodes: [node, { ...node, id: "rule:water-formula" }],
     cards: [card, backfilledCard],
     mentions: [
       { target_id: "concept:water", source_id: "book", anchor_ref: "lesson:1", source_refs_json: ["ev1"] },
+      { target_id: "rule:water-formula", source_id: "book", anchor_ref: "lesson:1", source_refs_json: ["ev1"] },
     ],
     evidence: [evidence],
     existingBodies: [],
@@ -194,9 +195,9 @@ test("plans model-written bodies from node cards and evidence", async () => {
     }),
   });
 
-  assert.deepEqual(plan.skippedBackfilledOnly, ["rule:water-formula"]);
+  assert.deepEqual(plan.skippedBackfilledOnly, []);
   assert.deepEqual(plan.modelFailures, []);
-  assert.equal(plan.rows.length, 1);
+  assert.equal(plan.rows.length, 2);
   assert.deepEqual(plan.rows[0], {
     dataset_id: "main",
     node_id: "concept:water",
@@ -216,6 +217,9 @@ test("plans model-written bodies from node cards and evidence", async () => {
     created_at: "now",
     updated_at: "now",
   });
+  assert.equal(plan.rows[1]?.node_id, "rule:water-formula");
+  assert.equal(plan.rows[1]?.generated_from, "model_generation");
+  assert.deepEqual(plan.rows[1]?.source_refs_json, ["ev1"]);
 });
 
 test("builds a constrained upsert statement for node bodies", () => {

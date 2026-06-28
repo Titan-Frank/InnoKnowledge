@@ -112,18 +112,19 @@ npm run parallel-lesson-pipeline -w packages/pipeline -- \
   --db "$DATABASE_URL"
 ```
 
-课时抽取、入库、合并和质量检查完成后，可以从节点卡片生成更适合前端 Unit 视图展示的 Markdown 正文：
+`server-pipeline-run` 会在归一化之后自动生成知识正文，再进入严格质检和图完整性检查。默认使用模型模式，根据节点、卡片、课本原文片段和证据引用写入 `world_node_bodies`。如果只想单独重跑正文生成，可以使用下面的命令：
 
 ```bash
 npm run generate-node-bodies -w packages/pipeline -- \
   --dataset-id main \
   --db "$DATABASE_URL" \
+  --mode model \
   --pretty
 ```
 
-默认不会覆盖人工维护的节点正文。只有真实卡片内容会写入 `world_node_bodies`；自动回填的占位卡片会被跳过，避免重复说明被当成正式正文。需要重新生成由节点卡片展开的正文时，可以追加 `--overwrite-existing`。
+默认不会覆盖人工维护的节点正文。需要重新生成旧正文时，可以追加 `--overwrite-existing`。如果只想把真实卡片内容固化成正文，可以改用 `--mode card`；自动回填的占位卡片会被跳过，避免重复说明被当成正式正文。
 
-需要让模型根据节点信息、高质量卡片、课本原文片段和证据引用写正式正文时，使用模型模式：
+小批量检查质量时，可以加 `--node-id <id>` 或 `--limit`：
 
 ```bash
 npm run generate-node-bodies -w packages/pipeline -- \
@@ -135,8 +136,6 @@ npm run generate-node-bodies -w packages/pipeline -- \
   --limit 5 \
   --pretty
 ```
-
-先用 `--node-id <id>` 或 `--limit` 小批量检查质量，再用 `--overwrite-existing` 覆盖旧的 `card_expansion` 正文。
 
 前端调试页会读取流水线运行结果、质量检查结果和待复核图片。通过 `npm run dev` 启动后，在 viewer 的调试入口里可以查看待复核图片，并把图片标为核心图、辅助图、保留或删除。
 
