@@ -78,6 +78,7 @@ type RunnerOptions = {
   textbookId: string;
   apiMode: "responses" | "chat_completions";
   extractionStrategy: "single_pass" | "hybrid";
+  extractionTemplate?: string;
   modelRetryCount: number;
   model: string;
   baseUrl: string;
@@ -284,6 +285,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       textbookId: options.textbookId,
       apiMode: options.apiMode,
       extractionStrategy: options.extractionStrategy,
+      extractionTemplate: options.extractionTemplate ?? "auto",
       modelRetryCount: options.modelRetryCount,
       model: options.model,
       baseUrl: options.baseUrl,
@@ -997,6 +999,7 @@ function createRunResult(options: RunnerOptions): ServerPipelineResult {
       school_stage: options.schoolStage,
       grade_band: options.gradeBand,
       extraction_strategy: options.extractionStrategy,
+      extraction_template: options.extractionTemplate ?? "auto",
       model_retry_count: options.modelRetryCount,
       vlm_api_url_configured: Boolean(options.vlmApiUrl),
       vlm_concurrency: options.vlmConcurrency,
@@ -1192,6 +1195,7 @@ function parseOptions(argv: string[]): RunnerOptions {
     textbookId: flags.get("textbook-id") ?? bookId,
     apiMode: parseApiMode(flags.get("api-mode") ?? "responses"),
     extractionStrategy: parseExtractionStrategy(flags.get("extraction-strategy")),
+    extractionTemplate: flags.get("extraction-template") ?? "auto",
     modelRetryCount: parseNonNegativeInteger(flags.get("model-retry-count"), 2),
     model: flags.get("model") ?? "",
     baseUrl: flags.get("base-url") ?? "",

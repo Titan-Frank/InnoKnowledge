@@ -1,0 +1,106 @@
+id: textbook/biology
+version: 1
+name: 生物教材抽取模板
+description: 面向生物教材，强调结构、功能、层级、过程、调控、适应和实验观察。
+selector:
+  subjects:
+    - biology
+  book_id_patterns:
+    - biology
+    - bio
+    - 生物
+prompt:
+  focus:
+    - 优先抽取生物结构、功能、层级、生命过程、调控机制、适应关系和实验观察。
+    - 关系重点关注结构与功能、组成层级、调控影响、过程依赖条件和模型表征。
+    - 对层级范围、条件、例外、常见误解放入 properties.semantic_core。
+  node_rules:
+    - 细胞、组织、器官、个体、种群等对象使用 entity。
+    - 生理过程、调控过程、生态过程使用 process。
+    - 功能、性状和特征使用 property。
+    - 实验方法、观察方法和探究步骤使用 method。
+  edge_rules:
+    - 结构与功能之间优先使用 has_property、affects 或 depends_on。
+    - 层级关系使用 part_of、contains、is_a 或 instance_of。
+    - 调控、反馈和环境影响使用 affects 或 causes。
+  evidence_rules:
+    - 图示、模式图、实验记录和数据表可以作为核心 evidence。
+output:
+  node_fields:
+    - id
+    - name
+    - kind
+    - subkind
+    - definition
+    - aliases
+    - domains
+    - knowledge_form
+    - learning_mode
+    - properties.semantic_core.conditions
+    - properties.semantic_core.boundaries
+    - properties.semantic_core.misconceptions
+    - tags
+  edge_fields:
+    - from
+    - to
+    - type
+    - directionality
+    - confidence
+    - evidence_anchor
+    - notes
+  evidence_fields:
+    - anchor
+    - excerpt
+    - locator
+    - modality
+    - node_ids
+  allowed_node_kinds:
+    - entity
+    - concept
+    - property
+    - process
+    - method
+    - rule
+    - representation
+  preferred_edge_types:
+    - is_a
+    - instance_of
+    - part_of
+    - contains
+    - has_property
+    - depends_on
+    - causes
+    - affects
+    - represents
+    - related_to
+identifiers:
+  node_id: "{kind}:{biology_role}:{normalized_name}"
+  relation_id: "{from}:{type}:{to}"
+  evidence_anchor: "ev{index}"
+display:
+  node_labels:
+    entity: 生物结构/对象
+    concept: 生物概念
+    property: 功能/特征
+    process: 生命过程
+    method: 实验/观察方法
+    rule: 调控规律
+    representation: 模式图/模型
+  edge_labels:
+    is_a: 属于
+    instance_of: 实例
+    part_of: 层级组成
+    contains: 包含
+    has_property: 具有功能/特征
+    depends_on: 依赖条件
+    causes: 导致
+    affects: 调控/影响
+    represents: 表征
+    related_to: 相关
+  colors:
+    entity: "#3782FF"
+    process: "#2BA876"
+    property: "#FFB400"
+    method: "#1EB478"
+    rule: "#8C55FF"
+    representation: "#5580CC"

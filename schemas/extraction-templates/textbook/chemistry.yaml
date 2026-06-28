@@ -1,0 +1,103 @@
+id: textbook/chemistry
+version: 1
+name: 化学教材抽取模板
+description: 面向化学教材，强调物质、结构、反应、条件、现象、实验和性质。
+selector:
+  subjects:
+    - chemistry
+  book_id_patterns:
+    - chemistry
+    - chem
+    - 化学
+prompt:
+  focus:
+    - 优先抽取物质、微粒、结构、性质、反应、条件、现象、实验操作和化学符号。
+    - 对反应条件、现象、产物、守恒、结构性质关系要放入 properties.semantic_core。
+    - 关系重点关注物质组成、结构决定性质、条件影响反应、方法使用试剂或仪器。
+  node_rules:
+    - 具体物质、微粒、仪器和样品使用 entity。
+    - 物质性质使用 property，反应或变化过程使用 process，化学方程式和规则使用 rule 或 representation。
+    - 实验操作和检验方法使用 method。
+  edge_rules:
+    - 反应物到产物使用 produces，条件对反应的作用使用 affects 或 depends_on。
+    - 结构与性质之间优先使用 has_property、affects 或 depends_on。
+    - 实验方法和试剂、仪器之间使用 uses。
+  evidence_rules:
+    - 化学方程式、实验现象、表格和图示都是关键证据，不能只保留普通文字说明。
+output:
+  node_fields:
+    - id
+    - name
+    - kind
+    - subkind
+    - definition
+    - aliases
+    - domains
+    - knowledge_form
+    - learning_mode
+    - properties.semantic_core.conditions
+    - properties.semantic_core.formal_expressions
+    - tags
+  edge_fields:
+    - from
+    - to
+    - type
+    - directionality
+    - confidence
+    - evidence_anchor
+    - notes
+  evidence_fields:
+    - anchor
+    - excerpt
+    - locator
+    - modality
+    - node_ids
+  allowed_node_kinds:
+    - entity
+    - concept
+    - property
+    - process
+    - method
+    - rule
+    - representation
+  preferred_edge_types:
+    - part_of
+    - contains
+    - has_property
+    - uses
+    - produces
+    - depends_on
+    - causes
+    - affects
+    - represents
+    - related_to
+identifiers:
+  node_id: "{kind}:{chemistry_role}:{normalized_name}"
+  relation_id: "{from}:{type}:{to}"
+  evidence_anchor: "ev{index}"
+display:
+  node_labels:
+    entity: 物质/仪器
+    concept: 化学概念
+    property: 性质
+    process: 反应/变化
+    method: 实验方法
+    rule: 规律/方程式
+    representation: 化学符号/模型
+  edge_labels:
+    part_of: 组成
+    contains: 包含
+    has_property: 具有性质
+    uses: 使用试剂/仪器
+    produces: 生成
+    depends_on: 依赖条件
+    affects: 影响
+    represents: 表征
+    related_to: 相关
+  colors:
+    entity: "#3782FF"
+    process: "#2BA876"
+    property: "#FFB400"
+    method: "#1EB478"
+    rule: "#8C55FF"
+    representation: "#5580CC"

@@ -17,6 +17,7 @@ import {
   extractMarkdownEvidenceHints,
   parseModelBundleFromResponse,
 } from "./model-lesson-extraction.js";
+import { resolveExtractionTemplate } from "./extraction-template.js";
 
 const bookId = "model-book";
 const canonicalAnchor = "struct:model-book:chunk:1-1-a";
@@ -73,6 +74,7 @@ test("builds OpenAI Responses and Chat Completions requests with the same schema
       model: "gpt-test",
       prompt: "只保留证据充分的节点。",
       reasoningEffort: "medium",
+      extractionTemplate: resolveExtractionTemplate({ templateId: "physics" }),
     });
     assert.equal(responses.api_mode, "responses");
     assert.equal(responses.endpoint, "https://api.openai.com/v1/responses");
@@ -80,6 +82,13 @@ test("builds OpenAI Responses and Chat Completions requests with the same schema
     assert.deepEqual(responses.body.reasoning, { effort: "medium" });
     assert.equal(((responses.body.text as Record<string, unknown>).format as Record<string, unknown>).name, "world_knowledge_lesson_bundle");
     assert.match(responses.user_payload, /"lesson_context"/);
+    assert.match(responses.user_payload, /"extraction_template"/);
+    assert.match(responses.instructions, /物理教材抽取模板/);
+    const responseText = responses.body.text as { format: { schema: { properties: Record<string, unknown> } } };
+    const edgesSchema = responseText.format.schema.properties.edges as { items: { properties: { type: { enum: string[] } } } };
+    const edgeTypeEnum = edgesSchema.items.properties.type.enum;
+    assert.ok(edgeTypeEnum.includes("represents"));
+    assert.ok(!edgeTypeEnum.includes("same_as"));
 
     const chat = buildModelExtractionRequest({
       bookId,
@@ -112,6 +121,7 @@ test("builds the hybrid edge request from first-stage nodes and evidence only", 
         subject: "chemistry",
         schoolStage: "senior-secondary",
         gradeBand: "grade-11",
+        extractionTemplate: resolveExtractionTemplate({ templateId: "chemistry" }),
       },
       {
         nodes: [{ id: "node:map", label: "知识图谱", kind: "concept", definition: "结构化表示知识。" }],
@@ -131,7 +141,8 @@ test("builds the hybrid edge request from first-stage nodes and evidence only", 
       { id: "node:map", name: "知识图谱", kind: "concept", aliases: [], definition: "结构化表示知识。" },
     ]);
     assert.deepEqual(userPayload.evidence_units.map((item) => item.anchor), ["ev1"]);
-    assert.ok(userPayload.allowed_edge_types.includes("related_to"));
+    assert.ok(userPayload.allowed_edge_types.includes("produces"));
+    assert.ok(!userPayload.allowed_edge_types.includes("same_as"));
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }
@@ -308,6 +319,84 @@ test("converts a model bundle into Python-compatible staging artifacts", () => {
     assert.equal(payload.domain_profiles[1]?.notes, "Backfilled because the model omitted a domain profile.");
     assert.equal(payload.node_cards[0]?.summary, "以节点和关系表示知识。");
     assert.match(payload.issues.at(-1) ?? "", /Dropped 1 edges/);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("attaches extraction template metadata and display rules to staging artifacts", () => {
+  const repo = makeFixtureRepo();
+  try {
+    const payload = buildExtractionPayloadFromModelBundle(
+      {
+        bookId,
+        batchAnchor: canonicalAnchor,
+        repoRoot: repo.root,
+        subject: "physics",
+        schoolStage: "senior-secondary",
+        gradeBand: "grade-11",
+        extractionTemplate: resolveExtractionTemplate({ templateId: "physics" }),
+      },
+      {
+        nodes: [
+          {
+            id: "node:force",
+            name: "力",
+            kind: "property",
+            subkind: null,
+            definition: "物体间的相互作用。",
+            aliases: [],
+            domains: ["physics"],
+            knowledge_form: ["propositional"],
+            learning_mode: ["conceptual"],
+            scope: "domain-specific",
+            properties: {},
+            external_ids: {},
+            tags: [],
+            notes: "",
+          },
+          {
+            id: "node:model",
+            name: "力的示意图",
+            kind: "representation",
+            subkind: null,
+            definition: "用箭头表示力的图。",
+            aliases: [],
+            domains: ["physics"],
+            knowledge_form: ["representational"],
+            learning_mode: ["conceptual"],
+            scope: "domain-specific",
+            properties: {},
+            external_ids: {},
+            tags: [],
+            notes: "",
+          },
+        ],
+        edges: [
+          { from: "node:model", to: "node:force", type: "represents", directionality: "directed", confidence: 0.92, evidence_anchor: "ev1", notes: "" },
+        ],
+        evidence_units: [{ anchor: "ev1", excerpt: "力的示意图可以表示力的方向。", locator: "line:2", modality: "text", node_ids: ["node:force"] }],
+        domain_profiles: [],
+        node_cards: [],
+        issues: [],
+      },
+    );
+
+    const nodeProperties = payload.nodes[0]?.properties as Record<string, unknown>;
+    const nodeTemplate = nodeProperties.extraction_template as Record<string, unknown>;
+    const nodeDisplay = nodeProperties.template_display as Record<string, unknown>;
+    assert.equal(nodeTemplate.id, "textbook/physics");
+    assert.equal(nodeDisplay.label, "物理量");
+    assert.equal(nodeDisplay.color, "#FFB400");
+
+    const edgeProperties = payload.edges[0]?.properties as Record<string, unknown>;
+    const edgeDisplay = edgeProperties.template_display as Record<string, unknown>;
+    assert.equal((edgeProperties.extraction_template as Record<string, unknown>).id, "textbook/physics");
+    assert.equal(edgeDisplay.label, "表征");
+    assert.equal((payload.evidence[0]?.properties as Record<string, Record<string, unknown>>).extraction_template.id, "textbook/physics");
+    assert.equal((payload.mentions[0]?.properties as Record<string, Record<string, unknown>>).extraction_template.id, "textbook/physics");
+    assert.equal((payload.domain_profiles[0]?.properties as Record<string, Record<string, unknown>>).extraction_template.id, "textbook/physics");
+    assert.equal((payload.node_cards[0]?.properties as Record<string, Record<string, unknown>>).extraction_template.id, "textbook/physics");
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }

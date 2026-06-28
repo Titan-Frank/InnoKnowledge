@@ -181,6 +181,8 @@ function buildPipelineCommand(
     toPipelineApiMode(lessonBackendKind),
     '--extraction-strategy',
     parseExtractionStrategy(body.extraction_strategy),
+    '--extraction-template',
+    asString(body.extraction_template, 'auto'),
     '--quality-retry-count',
     String(asInt(body.quality_retry_count, 1)),
     '--model-retry-count',

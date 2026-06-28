@@ -19,6 +19,8 @@ export function DetailRelations({ node }: { node: OKMNode }) {
           const otherId = edge.from === node.id ? edge.to : edge.from;
           const otherNode = knowledgeGraph.nodeById.get(otherId);
           const visual = resolveEdgeVisual(edge.edgeType);
+          const edgeColor = edge.displayColor || visual.stroke;
+          const edgeLabel = edge.displayCategory || edge.displayLabel || visual.category;
           const isOutgoing = edge.from === node.id;
 
           return (
@@ -27,9 +29,9 @@ export function DetailRelations({ node }: { node: OKMNode }) {
               onClick={() => setSelectedNodeId(otherId)}
               className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs text-text-secondary transition-colors hover:bg-hover"
             >
-              <div className="h-0.5 w-4 rounded" style={{ backgroundColor: visual.stroke }} />
+              <div className="h-0.5 w-4 rounded" style={{ backgroundColor: edgeColor }} />
               <span className="text-text-muted">{isOutgoing ? '→' : '←'}</span>
-              <span style={{ color: visual.stroke }}>{visual.category}</span>
+              <span style={{ color: edgeColor }}>{edgeLabel}</span>
               <span className="truncate">{otherNode?.name ?? otherId}</span>
             </button>
           );

@@ -3,7 +3,7 @@ import { useAppState } from '@/hooks/useAppState';
 import { useG6 } from '@/hooks/useG6';
 import { okmKnowledgeGraphToG6 } from '@/lib/graph-adapter';
 import { getVisibleNodes } from '@/lib/visibility';
-import { getTypeLabel } from '@/core/graph/knowledge-data';
+import { getNodeTypeLabel } from '@/core/graph/knowledge-data';
 import { ZoomIn, ZoomOut, Maximize2, Play, Pause, RotateCcw } from '@/lib/lucide-icons';
 
 export function GraphCanvas() {
@@ -136,7 +136,7 @@ export function GraphCanvas() {
           {(() => {
             const node = knowledgeGraph.nodeById.get(selectedNodeId);
             if (!node) return null;
-            return <span className="text-sm text-text-muted">({getTypeLabel(node.nodeType)})</span>;
+            return <span className="text-sm text-text-muted">({getNodeTypeLabel(node)})</span>;
           })()}
           <button
             onClick={handleClearSelection}

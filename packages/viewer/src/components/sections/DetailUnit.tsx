@@ -94,6 +94,19 @@ function relationLabel(type: string): string {
   return labels[type] || '关联';
 }
 
+function relationDisplay(edge: Record<string, unknown>, fallbackType: string): { label: string; color?: string } {
+  const properties = edge.properties && typeof edge.properties === 'object' && !Array.isArray(edge.properties)
+    ? edge.properties as Record<string, unknown>
+    : {};
+  const templateDisplay = properties.template_display && typeof properties.template_display === 'object' && !Array.isArray(properties.template_display)
+    ? properties.template_display as Record<string, unknown>
+    : {};
+  return {
+    label: typeof templateDisplay.label === 'string' && templateDisplay.label.trim() ? templateDisplay.label : relationLabel(fallbackType),
+    color: typeof templateDisplay.color === 'string' && templateDisplay.color.trim() ? templateDisplay.color : undefined,
+  };
+}
+
 function normalizeAssetRef(value: string): string {
   const clean = value.trim().split(/[?#]/, 1)[0] ?? '';
   try {
@@ -532,15 +545,17 @@ export function DetailUnit({ node }: { node: OKMNode }) {
               const otherNode = knowledgeGraph?.nodeById.get(otherId);
               const edgeType = text(edge.type || edge.edge_type);
               const visual = resolveEdgeVisual(edgeType);
+              const display = relationDisplay(edge, edgeType);
+              const edgeColor = display.color || visual.stroke;
               return (
                 <button
                   key={text(edge.id)}
                   onClick={() => otherId && setSelectedNodeId(otherId)}
                   className="flex w-full items-center gap-2 rounded-md border border-transparent bg-surface px-2.5 py-2 text-left text-sm text-text-secondary transition-colors hover:border-border-subtle hover:bg-hover"
                 >
-                  <div className="h-0.5 w-4 shrink-0" style={{ backgroundColor: visual.stroke }} />
+                  <div className="h-0.5 w-4 shrink-0" style={{ backgroundColor: edgeColor }} />
                   <span className="text-text-muted">{isOutgoing ? '→' : '←'}</span>
-                  <span className="shrink-0" style={{ color: visual.stroke }}>{relationLabel(edgeType)}</span>
+                  <span className="shrink-0" style={{ color: edgeColor }}>{display.label}</span>
                   <span className="truncate">{otherNode?.name ?? otherId}</span>
                 </button>
               );

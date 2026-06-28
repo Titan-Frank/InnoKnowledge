@@ -21,6 +21,7 @@ import {
   parseHybridNodeEvidenceBundleFromResponse,
   type ModelExtractionStrategy,
 } from "../extraction/model-lesson-extraction.js";
+import { resolveExtractionTemplate } from "../extraction/extraction-template.js";
 import { filterImageEvidencePayload } from "../extraction/image-relevance.js";
 import {
   loadRetrievalCandidatesForQueries,
@@ -103,6 +104,12 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
       reasoningEffort: flags.get("reasoning-effort") ?? "",
       timeoutMs,
     };
+    requestBase.extractionTemplate = resolveExtractionTemplate({
+      repoRoot,
+      templateId: flags.get("extraction-template"),
+      subject: requestBase.subject,
+      bookId: requestBase.bookId,
+    });
     const pgOutline = await loadPostgresOutline({
       dbUrl: flags.get("db"),
       datasetId: requestBase.datasetId,
@@ -200,6 +207,7 @@ const EXTRACT_LESSON_OPENAI_FLAGS = new Set([
   "embedding-model",
   "embedding-url",
   "extraction-strategy",
+  "extraction-template",
   "grade-band",
   "model",
   "model-retry-count",

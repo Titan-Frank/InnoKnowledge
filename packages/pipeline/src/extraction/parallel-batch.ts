@@ -51,6 +51,7 @@ export type TsModelExtractionCommandOptions = {
   textbookId?: string;
   apiMode?: "responses" | "chat_completions";
   extractionStrategy?: "single_pass" | "hybrid";
+  extractionTemplate?: string;
   modelRetryCount?: number;
   baseUrl?: string;
   apiKeyEnv?: string;
@@ -186,6 +187,7 @@ function buildTsModelExtractionCommand(item: ParallelLessonRun, options: TsModel
   pushOptional(command, "--textbook-id", options.textbookId);
   pushOptional(command, "--api-mode", options.apiMode);
   pushOptional(command, "--extraction-strategy", options.extractionStrategy);
+  pushOptional(command, "--extraction-template", options.extractionTemplate);
   if (options.modelRetryCount !== undefined) pushOptional(command, "--model-retry-count", String(options.modelRetryCount));
   pushOptional(command, "--base-url", options.baseUrl);
   pushOptional(command, "--api-key-env", options.apiKeyEnv);

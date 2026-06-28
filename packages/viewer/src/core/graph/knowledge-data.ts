@@ -14,6 +14,10 @@ export function getTypeLabel(type: string): string {
   return TYPE_META[type]?.label ?? humanizeKey(type);
 }
 
+export function getNodeTypeLabel(node: OKMNode): string {
+  return node.displayTypeLabel || getTypeLabel(node.nodeType);
+}
+
 export function humanizeKey(key: string): string {
   return key
     .replaceAll('_', ' ')
@@ -64,7 +68,17 @@ function resolveNodeLayer(node: ApiNode): 'backbone' | 'support' {
   return 'support';
 }
 
+function templateDisplayRecord(properties: Record<string, unknown> | undefined): Record<string, unknown> {
+  const display = properties?.template_display;
+  return display && typeof display === 'object' && !Array.isArray(display) ? display as Record<string, unknown> : {};
+}
+
 function deriveDisplayType(node: ApiNode): string {
+  const props = node.properties as Record<string, unknown> | undefined;
+  const templateDisplay = templateDisplayRecord(props);
+  if (typeof templateDisplay.type_key === 'string' && templateDisplay.type_key.trim()) {
+    return templateDisplay.type_key.trim();
+  }
   if (node.node_type) return node.node_type as string;
 
   const SUBKIND_TO_TYPE: Record<string, string> = {
@@ -128,12 +142,15 @@ function normalizeNode(node: ApiNode, profilesForNode: ApiProfile[]): OKMNode {
   const nodeType = deriveDisplayType(normalized);
   const nodeKind = normalized.node_kind || deriveLegacyNodeKind(nodeType);
   const nodeLayer = resolveNodeLayer({ ...normalized, node_type: nodeType, node_kind: nodeKind });
+  const templateDisplay = templateDisplayRecord((normalized.properties as Record<string, unknown>) || {});
 
   return {
     id: normalized.id,
     name: normalized.name as string,
     description: normalized.description as string,
     nodeType,
+    displayTypeLabel: typeof templateDisplay.label === 'string' ? templateDisplay.label : null,
+    displayColor: typeof templateDisplay.color === 'string' ? templateDisplay.color : null,
     nodeKind,
     nodeSubkind: normalized.node_subkind || null,
     nodeLayer,
@@ -197,15 +214,20 @@ function normalizeEdge(edge: ApiEdge, nodeById: Map<string, OKMNode>): OKMEdge |
   const source = nodeById.get(edge.from);
   const target = nodeById.get(edge.to);
   if (!source || !target) return null;
+  const props = (edge.properties as Record<string, unknown>) || {};
+  const templateDisplay = templateDisplayRecord(props);
 
   return {
     id: edge.id,
     from: edge.from,
     to: edge.to,
     edgeType: edge.edge_type,
+    displayLabel: typeof templateDisplay.label === 'string' ? templateDisplay.label : null,
+    displayCategory: typeof templateDisplay.category === 'string' ? templateDisplay.category : null,
+    displayColor: typeof templateDisplay.color === 'string' ? templateDisplay.color : null,
     edgeLayer: resolveEdgeLayer(edge, source, target),
     backboneExpand: resolveBackboneExpand(edge, source, target),
-    properties: (edge.properties as Record<string, unknown>) || {},
+    properties: props,
   };
 }
 

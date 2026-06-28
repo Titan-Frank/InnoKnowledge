@@ -50,6 +50,7 @@ export * from "./normalize/normalize-edges.js";
 export * from "./extraction/parallel-batch.js";
 export * from "./extraction/parallel-batch-runner.js";
 export * from "./extraction/model-lesson-extraction.js";
+export * from "./extraction/extraction-template.js";
 export * from "./extraction/parallel-lesson-pipeline.js";
 export * from "./shared/pathing.js";
 export * from "./shared/postgres-executor.js";

@@ -51,6 +51,8 @@ test("server pipeline runner plans TypeScript lesson extraction commands", async
   assert.equal(commands.length, 37);
   assert.ok(commands[0]?.some((part) => part.endsWith("extract-lesson-openai.js")));
   assert.ok(commands[0]?.includes("--write-staging"));
+  assert.ok(commands[0]?.includes("--extraction-template"));
+  assert.ok(commands[0]?.includes("auto"));
   assert.ok(commands[0]?.includes("--vlm-api-url"));
   assert.ok(commands[0]?.includes("http://localhost:8000/v1"));
   assert.ok(!commands[0]?.some((part) => part.includes("run_okm_harness.py")));

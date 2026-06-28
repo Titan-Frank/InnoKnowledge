@@ -5,6 +5,7 @@ import type {
   ImageReviewResponse,
   PipelineJobStatusResponse,
   PipelineExtractionStrategy,
+  PipelineExtractionTemplateId,
   PipelineLessonBackendKind,
   PipelineNodeBodyMode,
   PipelineResponse,
@@ -49,6 +50,7 @@ type PipelineForm = {
   output_root: string;
   parallelism: string;
   extraction_strategy: PipelineExtractionStrategy;
+  extraction_template: PipelineExtractionTemplateId;
   quality_retry_count: string;
   model_retry_count: string;
   node_body_mode: PipelineNodeBodyMode;
@@ -87,6 +89,7 @@ const initialForm: PipelineForm = {
   output_root: 'data/main',
   parallelism: '8',
   extraction_strategy: 'hybrid',
+  extraction_template: 'auto',
   quality_retry_count: '1',
   model_retry_count: '2',
   node_body_mode: 'model',
@@ -100,6 +103,14 @@ const initialForm: PipelineForm = {
   vlm_api_key: '',
   vlm_model: '',
 };
+
+const EXTRACTION_TEMPLATE_OPTIONS = [
+  { value: 'auto', label: '自动选择' },
+  { value: 'textbook/physics', label: '物理教材' },
+  { value: 'textbook/chemistry', label: '化学教材' },
+  { value: 'textbook/biology', label: '生物教材' },
+  { value: 'textbook/general', label: '通用教材' },
+];
 
 function numberValue(value: unknown): number {
   return typeof value === 'number' ? value : Number(value ?? 0) || 0;
@@ -1060,6 +1071,7 @@ export function PipelineDebugPage() {
         output_root: form.output_root.trim() || 'data/main',
         parallelism: Number(form.parallelism) || 8,
         extraction_strategy: form.extraction_strategy,
+        extraction_template: form.extraction_template,
         quality_retry_count: Number(form.quality_retry_count) || 1,
         model_retry_count: Number(form.model_retry_count) || 2,
         node_body_mode: form.node_body_mode,
@@ -1271,6 +1283,14 @@ export function PipelineDebugPage() {
                     ]}
                   />
                   <Field label="年级" value={form.lesson_grade_band} onChange={(value) => updateForm('lesson_grade_band', value)} placeholder="grade11" />
+                </div>
+                <div className="mt-3">
+                  <SelectField<PipelineExtractionTemplateId>
+                    label="抽取模板"
+                    value={form.extraction_template}
+                    onChange={(value) => updateForm('extraction_template', value)}
+                    options={EXTRACTION_TEMPLATE_OPTIONS}
+                  />
                 </div>
                 {metadata && (
                   <div className="mt-3 flex flex-wrap gap-1.5 text-[10px] text-text-muted">

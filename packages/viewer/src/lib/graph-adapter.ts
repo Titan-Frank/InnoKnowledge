@@ -145,7 +145,7 @@ export function okmKnowledgeGraphToG6(
 
   const nodes = visibleNodes.map((node) => {
     const communityId = communityMemberships.get(node.id);
-    const typeColor = getTypeColor(node.nodeType);
+    const typeColor = node.displayColor || getTypeColor(node.nodeType);
     const color = communityCount > 0 && communityId != null ? getCommunityColor(communityId, mode) : typeColor;
     const borderColor = lightenForBorder(color);
     const size = getNodeSize(node.nodeType, node.nodeLayer);
@@ -185,6 +185,7 @@ export function okmKnowledgeGraphToG6(
     .filter((edge) => visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to))
     .map((edge) => {
       const visual = resolveEdgeVisual(edge.edgeType);
+      const edgeColor = edge.displayColor || visual.stroke;
       edgePairs.push({ id: edge.id, source: edge.from, target: edge.to });
       return {
         id: edge.id,
@@ -193,10 +194,10 @@ export function okmKnowledgeGraphToG6(
         data: {
           edgeType: edge.edgeType,
           edgeLayer: edge.edgeLayer,
-          category: visual.category,
+          category: edge.displayCategory || edge.displayLabel || visual.category,
         },
         style: {
-          stroke: visual.stroke,
+          stroke: edgeColor,
           strokeOpacity: edge.edgeLayer === 'backbone' ? 0.62 : 0.38,
           lineWidth: edge.edgeLayer === 'backbone' ? 1.5 : 1,
           lineDash: visual.dashArray ? visual.dashArray.split(' ').map(Number) : undefined,

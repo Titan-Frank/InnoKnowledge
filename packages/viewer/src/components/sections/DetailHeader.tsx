@@ -1,9 +1,9 @@
 import type { OKMNode } from '@/core/graph/types';
-import { getTypeLabel } from '@/core/graph/knowledge-data';
+import { getNodeTypeLabel } from '@/core/graph/knowledge-data';
 import { TYPE_META, NODE_LAYER_LABELS } from '@/lib/constants';
 
 export function DetailHeader({ node }: { node: OKMNode }) {
-  const typeColor = TYPE_META[node.nodeType]?.color ?? '#9A9AB0';
+  const typeColor = node.displayColor || TYPE_META[node.nodeType]?.color || '#9A9AB0';
 
   return (
     <div className="rounded-lg border border-border-subtle bg-elevated p-4">
@@ -13,7 +13,7 @@ export function DetailHeader({ node }: { node: OKMNode }) {
           <h2 className="break-words text-xl font-semibold leading-tight text-text-primary">{node.name}</h2>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className="rounded-full px-2 py-0.5 text-xs font-medium" style={{ backgroundColor: `${typeColor}20`, color: typeColor }}>
-              {getTypeLabel(node.nodeType)}
+              {getNodeTypeLabel(node)}
             </span>
             <span className="rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted">
               {NODE_LAYER_LABELS[node.nodeLayer] ?? node.nodeLayer}

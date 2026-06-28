@@ -141,6 +141,7 @@ export interface PipelineResponse {
 export type PipelineLessonBackendKind = 'openai_responses' | 'openai_chat_completions';
 export type PipelineExtractionStrategy = 'hybrid' | 'single_pass';
 export type PipelineNodeBodyMode = 'card' | 'model';
+export type PipelineExtractionTemplateId = 'auto' | string;
 
 export interface PipelineStartRequest {
   book_id: string;
@@ -158,6 +159,7 @@ export interface PipelineStartRequest {
   output_root?: string;
   parallelism?: number;
   extraction_strategy?: PipelineExtractionStrategy;
+  extraction_template?: PipelineExtractionTemplateId;
   quality_retry_count?: number;
   model_retry_count?: number;
   node_body_mode?: PipelineNodeBodyMode;
