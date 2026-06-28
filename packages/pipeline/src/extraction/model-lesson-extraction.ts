@@ -37,7 +37,6 @@ export const DEFAULT_OPENAI_MODEL = "gpt-4.1";
 export const DEFAULT_OPENAI_TIMEOUT_MS = 180_000;
 
 export type ModelApiMode = "responses" | "chat_completions";
-export type ModelExtractionStrategy = "single_pass" | "hybrid";
 
 export type MarkdownEvidenceHint = {
   modality: "image" | "table" | "equation";
@@ -160,84 +159,6 @@ export function buildModelLessonPayload(input: BuildModelLessonPayloadInput): Mo
   };
 }
 
-export function buildSystemInstructions(input: { prompt?: string; extractionTemplate?: ExtractionTemplate | null } = {}): string {
-  const base = `
-你是 Open Knowledge Map 项目的专用教材知识抽取器。
-任务是为当前单个 lesson/chunk 生成统一世界知识标准下的结构化候选。
-
-硬约束：
-1. 只处理当前一个 lesson/chunk。
-2. 先证据后知识对象：每个节点和关系都必须能落到当前 lesson 的 evidence anchor。
-3. 不要把章节编号、复习题、术语表、小结当成正式知识节点。
-4. 节点主类只能使用 9 类：entity/concept/property/process/event/method/rule/representation/resource。
-5. tag 只是辅助检索，不承担主分类；主分类靠 kind、domain、relation。
-6. 关系只允许使用 schema 合法 type，证据不足就不要编造。
-7. 输出必须严格符合 JSON schema。
-
-主类判断：
-- entity：具体对象、物质、人物、地点、设备、样本。
-- concept：抽象概念、理论对象、学科核心术语。
-- property：性质、属性、状态量、可观测特征。
-- process：连续过程、机制、变化过程。
-- event：具有时间边界的事件或历史事实。
-- method：步骤、算法、实验方法、操作技能。
-- rule：定律、规则、公式、原则、约束。
-- representation：图、表、模型、符号、方程、示意图。
-- resource：资料、文本、工具、数据集、媒介资源。
-
-关系判断：
-- is_a 用于类属关系；instance_of 用于具体实例属于某类。
-- part_of/contains 用于组成和包含。
-- has_property 用于对象具有属性。
-- uses/produces 用于方法或过程使用、产出某对象。
-- depends_on/prerequisite_for 用于依赖和先修。
-- causes/affects 用于因果和影响。
-- represents/about 用于表示对象和论述主题。
-- same_as 只用于高度确定的同一对象；不确定时用 related_to。
-
-	学习维度判断：
-	- factual：事实、名称、符号、具体信息。
-	- conceptual：概念、分类、原理、结构关系。
-	- procedural：步骤、算法、实验操作、解题方法。
-	- metacognitive：策略选择、反思、认知监控。
-
-	语义核心：
-	- 节点的 definition 保持短定义，只回答“它是什么”。
-	- 如果当前证据支持更完整信息，放入 node.properties.semantic_core。
-	- semantic_core 可以包含 core_claims、formal_expressions、conditions、boundaries、counterexamples、misconceptions。
-	- 没有证据支撑的公式、边界、反例、常见误解不要补。
-
-	教学画像：
-	- domain_profiles 只描述该知识对象在具体领域和学段中的教学投影。
-	- school_stages 和 curriculum_roles 说明教学位置。
-	- 如果当前证据能支持学习目标、难度、诊断题、常见错误、评价任务，放入 domain_profiles.properties.pedagogical_profile。
-	- pedagogical_profile 可以包含 learning_objectives、difficulty_level、diagnostic_questions、common_errors、assessment_tasks、remediation_suggestions、extension_suggestions。
-	`.trim();
-  return appendPromptBlocks(base, input.prompt, input.extractionTemplate, "single_pass");
-}
-
-export function buildModelExtractionRequest(input: BuildModelExtractionRequestInput): ModelExtractionRequest {
-  const apiMode = input.apiMode ?? "responses";
-  const baseUrl = (input.baseUrl ?? DEFAULT_OPENAI_BASE_URL).replace(/\/+$/, "");
-  const instructions = buildSystemInstructions({ prompt: input.prompt, extractionTemplate: input.extractionTemplate });
-  const userPayload = JSON.stringify(buildModelLessonPayload(input), null, 2);
-  const model = input.model ?? DEFAULT_OPENAI_MODEL;
-  const schema = buildResponseSchema(input.extractionTemplate);
-  const body =
-    apiMode === "responses"
-      ? buildResponsesBody(model, instructions, userPayload, schema, input.reasoningEffort)
-      : buildChatCompletionsBody(model, instructions, userPayload, schema, input.reasoningEffort);
-
-  return {
-    api_mode: apiMode,
-    endpoint: `${baseUrl}/${apiMode === "responses" ? "responses" : "chat/completions"}`,
-    timeout_ms: input.timeoutMs ?? DEFAULT_OPENAI_TIMEOUT_MS,
-    instructions,
-    user_payload: userPayload,
-    body,
-  };
-}
-
 export function buildHybridNodeEvidenceExtractionRequest(input: BuildModelExtractionRequestInput): ModelExtractionRequest {
   return buildSchemaBackedExtractionRequest(input, {
     instructions: buildHybridNodeEvidenceInstructions({ prompt: input.prompt, extractionTemplate: input.extractionTemplate }),
@@ -307,7 +228,7 @@ function buildSchemaBackedExtractionRequest(
   input: BuildModelExtractionRequestInput,
   options: { instructions: string; userPayload: string; schema: RawRecord },
 ): ModelExtractionRequest {
-  const apiMode = input.apiMode ?? "responses";
+  const apiMode = input.apiMode ?? "chat_completions";
   const baseUrl = (input.baseUrl ?? DEFAULT_OPENAI_BASE_URL).replace(/\/+$/, "");
   const model = input.model ?? DEFAULT_OPENAI_MODEL;
   const body =
@@ -365,7 +286,7 @@ function appendPromptBlocks(
   base: string,
   prompt?: string,
   extractionTemplate?: ExtractionTemplate | null,
-  stage: "single_pass" | "node_evidence" | "edges" = "single_pass",
+  stage: "node_evidence" | "edges" = "node_evidence",
 ): string {
   const blocks = [base];
   if (extractionTemplate) {
@@ -749,10 +670,6 @@ function uniqueStable(values: Iterable<string>): string[] {
   return result;
 }
 
-export function buildExtractionPayloadFromModelResponse(input: BuildModelLessonPayloadInput, body: RawRecord): ExtractionPayload {
-  return buildExtractionPayloadFromModelBundle(input, parseModelBundleFromResponse(body));
-}
-
 function buildStrictHybridModelBundle(
   nodeEvidenceBundle: HybridNodeEvidenceBundle,
   edgeBundle: HybridEdgeBundle,
@@ -922,6 +839,9 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
 
   const evidence: RawRecord[] = [];
   const evidenceByAnchor = new Map<string, string>();
+  const modelExtractionMethod = (input as BuildModelExtractionRequestInput).apiMode === "responses"
+    ? "openai_responses"
+    : "openai_chat_completions";
   for (const [zeroIndex, raw] of asRecords(bundle.evidence_units).entries()) {
     const index = zeroIndex + 1;
     const anchor = stringValue(raw.anchor).trim();
@@ -940,7 +860,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       excerpt,
       locator: stringValue(raw.locator).trim(),
       modality: stringValue(raw.modality || "text"),
-      extraction_method: "openai_responses",
+      extraction_method: modelExtractionMethod,
       normalized_claims: [excerpt.slice(0, 120)],
       properties: applyEvidenceTemplateProperties({}, extractionTemplate),
     });

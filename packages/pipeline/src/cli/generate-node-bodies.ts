@@ -17,7 +17,6 @@ import {
   parseModelNodeBodyResultText,
   runGenerateNodeBodiesFromDatabase,
   type ModelNodeBodyGenerator,
-  type NodeBodyGenerationMode,
 } from "../unit-bodies/generate-node-bodies.js";
 import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import { REPO_ROOT } from "../shared/pathing.js";
@@ -45,24 +44,21 @@ async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promi
   const sql = postgres(dbUrl, { max: 1 });
   const repoRoot = flags.get("repo-root") ?? REPO_ROOT;
   const env = loadEnvironment(repoRoot, processEnv);
-  const mode = parseMode(flags.get("mode"));
+  assertModelOnlyMode(flags.get("mode"));
   const modelName = flags.get("model") ?? env.OPENAI_MODEL ?? DEFAULT_OPENAI_MODEL;
   const modelRetryCount = parseNonNegativeInteger(flags.get("model-retry-count"), "model-retry-count") ?? 2;
-  const generator = mode === "model"
-    ? makeModelNodeBodyGenerator({
-        apiKey: requiredApiKey(env, flags.get("api-key-env") ?? "OPENAI_API_KEY"),
-        apiMode: parseApiMode(flags.get("api-mode")),
-        baseUrl: flags.get("base-url") ?? env.OPENAI_BASE_URL ?? DEFAULT_OPENAI_BASE_URL,
-        model: modelName,
-        reasoningEffort: flags.get("reasoning-effort") ?? "",
-        timeoutMs: parseTimeoutMs(flags.get("timeout")),
-        retryCount: modelRetryCount,
-      })
-    : undefined;
+  const generator = makeModelNodeBodyGenerator({
+    apiKey: requiredApiKey(env, flags.get("api-key-env") ?? "OPENAI_API_KEY"),
+    apiMode: parseApiMode(flags.get("api-mode")),
+    baseUrl: flags.get("base-url") ?? env.OPENAI_BASE_URL ?? DEFAULT_OPENAI_BASE_URL,
+    model: modelName,
+    reasoningEffort: flags.get("reasoning-effort") ?? "",
+    timeoutMs: parseTimeoutMs(flags.get("timeout")),
+    retryCount: modelRetryCount,
+  });
   try {
     return await runGenerateNodeBodiesFromDatabase({
       datasetId: required(flags, "dataset-id"),
-      mode,
       nodeId: flags.get("node-id") ?? "",
       limit: parseNonNegativeInteger(flags.get("limit"), "limit"),
       maxEvidencePerNode: parsePositiveInteger(flags.get("max-evidence"), "max-evidence") ?? 8,
@@ -210,16 +206,14 @@ function requiredApiKey(env: CliEnv, name: string): string {
   return value;
 }
 
-function parseMode(value: string | undefined): NodeBodyGenerationMode {
-  if (value === undefined || value === "model") return "model";
-  if (value === "card") return "card";
-  if (value === "model") return "model";
-  throw new Error(`Invalid --mode '${value}'. Expected card or model.`);
+function assertModelOnlyMode(value: string | undefined): void {
+  if (value === undefined || value === "model") return;
+  throw new Error("--mode card 已废弃；正文生成现在只支持模型生成。");
 }
 
 function parseApiMode(value: string | undefined): ModelApiMode {
-  if (value === undefined || value === "responses") return "responses";
-  if (value === "chat_completions") return "chat_completions";
+  if (value === undefined || value === "chat_completions") return "chat_completions";
+  if (value === "responses") return "responses";
   throw new Error(`Invalid --api-mode '${value}'. Expected responses or chat_completions.`);
 }
 

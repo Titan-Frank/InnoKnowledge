@@ -9,8 +9,8 @@ import {
   buildHybridEdgeExtractionRequest,
   buildHybridEdgeResponseSchema,
   buildHybridExtractionPayloadFromModelBundles,
+  buildHybridNodeEvidenceExtractionRequest,
   buildHybridNodeEvidenceResponseSchema,
-  buildModelExtractionRequest,
   buildModelLessonPayload,
   buildRetrievalQueries,
   buildResponseSchema,
@@ -64,10 +64,10 @@ test("builds a model lesson payload from one chunk, not a local extractor payloa
   }
 });
 
-test("builds OpenAI Responses and Chat Completions requests with the same schema intent as Python", () => {
+test("builds two-stage model requests with chat completions as the default API", () => {
   const repo = makeFixtureRepo();
   try {
-    const responses = buildModelExtractionRequest({
+    const request = buildHybridNodeEvidenceExtractionRequest({
       bookId,
       batchAnchor: canonicalAnchor,
       repoRoot: repo.root,
@@ -76,30 +76,27 @@ test("builds OpenAI Responses and Chat Completions requests with the same schema
       reasoningEffort: "medium",
       extractionTemplate: resolveExtractionTemplate({ templateId: "physics" }),
     });
-    assert.equal(responses.api_mode, "responses");
-    assert.equal(responses.endpoint, "https://api.openai.com/v1/responses");
-    assert.equal(responses.body.model, "gpt-test");
-    assert.deepEqual(responses.body.reasoning, { effort: "medium" });
-    assert.equal(((responses.body.text as Record<string, unknown>).format as Record<string, unknown>).name, "world_knowledge_lesson_bundle");
-    assert.match(responses.user_payload, /"lesson_context"/);
-    assert.match(responses.user_payload, /"extraction_template"/);
-    assert.match(responses.instructions, /物理教材抽取模板/);
-    const responseText = responses.body.text as { format: { schema: { properties: Record<string, unknown> } } };
-    const edgesSchema = responseText.format.schema.properties.edges as { items: { properties: { type: { enum: string[] } } } };
-    const edgeTypeEnum = edgesSchema.items.properties.type.enum;
-    assert.ok(edgeTypeEnum.includes("represents"));
-    assert.ok(!edgeTypeEnum.includes("same_as"));
+    assert.equal(request.api_mode, "chat_completions");
+    assert.equal(request.endpoint, "https://api.openai.com/v1/chat/completions");
+    assert.equal(request.body.model, "gpt-test");
+    assert.equal((request.body.response_format as Record<string, unknown>).type, "json_schema");
+    assert.equal(((request.body.response_format as Record<string, Record<string, unknown>>).json_schema).name, "world_knowledge_node_evidence_bundle");
+    assert.match(request.user_payload, /"lesson_context"/);
+    assert.match(request.user_payload, /"extraction_template"/);
+    assert.match(request.instructions, /物理教材抽取模板/);
+    assert.match(request.instructions, /第一阶段/);
+    assert.doesNotMatch(request.instructions, /- edges:/);
+    assert.doesNotMatch(request.instructions, /关系规则：/);
 
-    const chat = buildModelExtractionRequest({
+    const responses = buildHybridNodeEvidenceExtractionRequest({
       bookId,
       batchAnchor: "chunk:1-1-a",
       repoRoot: repo.root,
-      apiMode: "chat_completions",
+      apiMode: "responses",
       baseUrl: "https://example.test/v1/",
     });
-    assert.equal(chat.endpoint, "https://example.test/v1/chat/completions");
-    assert.equal((chat.body.response_format as Record<string, unknown>).type, "json_schema");
-    assert.equal(((chat.body.response_format as Record<string, Record<string, unknown>>).json_schema).name, "world_knowledge_lesson_bundle");
+    assert.equal(responses.endpoint, "https://example.test/v1/responses");
+    assert.equal(((responses.body.text as Record<string, unknown>).format as Record<string, unknown>).name, "world_knowledge_node_evidence_bundle");
 
     const schema = buildResponseSchema();
     assert.equal(schema.name, "world_knowledge_lesson_bundle");
@@ -313,7 +310,7 @@ test("converts a model bundle into Python-compatible staging artifacts", () => {
       node_cards: 2,
     });
     assert.equal(payload.edges[0]?.from, "node:map");
-    assert.equal(payload.evidence[0]?.extraction_method, "openai_responses");
+    assert.equal(payload.evidence[0]?.extraction_method, "openai_chat_completions");
     assert.equal(payload.evidence[1]?.extraction_method, "markdown_hint");
     assert.equal(payload.mentions[1]?.role, "mentions");
     assert.equal(payload.domain_profiles[1]?.notes, "Backfilled because the model omitted a domain profile.");

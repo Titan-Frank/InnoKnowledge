@@ -86,11 +86,11 @@ P3 使用的 Schema 来自 `buildModelNodeBodyResponseSchema`，要求输出 `co
 来源：
 
 - `packages/pipeline/src/extraction/model-lesson-extraction.ts`
-- 函数：`buildSystemInstructions`
+- 函数：`buildHybridNodeEvidenceExtractionRequest`、`buildHybridEdgeExtractionRequest`
 
 用途：
 
-把当前一个 `lesson/chunk` 的 Markdown 内容抽取成统一世界知识标准下的候选结构，包括节点、关系、证据、领域画像和节点卡片。
+用两阶段流程抽取当前一个 `lesson/chunk`：第一阶段只抽取节点和证据，第二阶段只基于第一阶段结果判断关系。领域画像和节点卡片由后续规范化、补齐和 reducer 流程处理。
 
 ### P1 输入
 
@@ -182,8 +182,8 @@ Chat Completions：
 ### P1 提示词
 
 ```text
-你是 Open Knowledge Map 项目的专用教材知识抽取器。
-任务是为当前单个 lesson/chunk 生成统一世界知识标准下的结构化候选。
+第一阶段提示词由 `buildHybridNodeEvidenceExtractionRequest` 生成，任务是只从当前 lesson/chunk 中抽取证据和候选知识节点。
+第二阶段提示词由 `buildHybridEdgeExtractionRequest` 生成，任务是只根据第一阶段给出的 candidate_nodes 和 evidence_units 判断关系。
 
 硬约束：
 1. 只处理当前一个 lesson/chunk。
@@ -251,15 +251,21 @@ Chat Completions：
 
 ### P1 输出
 
-P1 必须返回一个 JSON 对象。Schema 在 `buildResponseSchema` 中生成，顶层必须包含：
+P1 分两次调用模型。第一阶段 Schema 在 `buildHybridNodeEvidenceResponseSchema` 中生成，顶层必须包含：
 
 ```json
 {
   "nodes": [],
-  "edges": [],
   "evidence_units": [],
-  "domain_profiles": [],
-  "node_cards": [],
+  "issues": []
+}
+```
+
+第二阶段 Schema 在 `buildHybridEdgeResponseSchema` 中生成，顶层必须包含：
+
+```json
+{
+  "edges": [],
   "issues": []
 }
 ```

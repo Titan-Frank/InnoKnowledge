@@ -4,10 +4,8 @@ import type {
   ImageReviewItem,
   ImageReviewResponse,
   PipelineJobStatusResponse,
-  PipelineExtractionStrategy,
   PipelineExtractionTemplateId,
   PipelineLessonBackendKind,
-  PipelineNodeBodyMode,
   PipelineResponse,
   PipelineReviewItem,
   PipelineStartResponse,
@@ -49,11 +47,9 @@ type PipelineForm = {
   outline_end_page: string;
   output_root: string;
   parallelism: string;
-  extraction_strategy: PipelineExtractionStrategy;
   extraction_template: PipelineExtractionTemplateId;
   quality_retry_count: string;
   model_retry_count: string;
-  node_body_mode: PipelineNodeBodyMode;
   lesson_subject: string;
   lesson_school_stage: string;
   lesson_grade_band: string;
@@ -88,15 +84,13 @@ const initialForm: PipelineForm = {
   outline_end_page: '20',
   output_root: 'data/main',
   parallelism: '8',
-  extraction_strategy: 'hybrid',
   extraction_template: 'auto',
   quality_retry_count: '1',
   model_retry_count: '2',
-  node_body_mode: 'model',
   lesson_subject: '',
   lesson_school_stage: '',
   lesson_grade_band: '',
-  lesson_backend_kind: 'openai_responses',
+  lesson_backend_kind: 'openai_chat_completions',
   openai_base_url: '',
   openai_model: '',
   vlm_api_url: '',
@@ -1070,11 +1064,9 @@ export function PipelineDebugPage() {
         dataset_id: activeSourceKey,
         output_root: form.output_root.trim() || 'data/main',
         parallelism: Number(form.parallelism) || 8,
-        extraction_strategy: form.extraction_strategy,
         extraction_template: form.extraction_template,
         quality_retry_count: Number(form.quality_retry_count) || 1,
         model_retry_count: Number(form.model_retry_count) || 2,
-        node_body_mode: form.node_body_mode,
         lesson_backend_kind: form.lesson_backend_kind,
         lesson_subject: form.lesson_subject.trim() || undefined,
         lesson_school_stage: form.lesson_school_stage.trim() || undefined,
@@ -1318,35 +1310,17 @@ export function PipelineDebugPage() {
                     <Field label="输出目录" value={form.output_root} onChange={(value) => updateForm('output_root', value)} />
                     <Field label="并行数" value={form.parallelism} onChange={(value) => updateForm('parallelism', value)} inputMode="numeric" />
                   </div>
-                  <SelectField<PipelineExtractionStrategy>
-                    label="抽取策略"
-                    value={form.extraction_strategy}
-                    onChange={(value) => updateForm('extraction_strategy', value)}
-                    options={[
-                      { value: 'hybrid', label: '两阶段' },
-                      { value: 'single_pass', label: '单次抽取' },
-                    ]}
-                  />
                   <div className="grid grid-cols-2 gap-3">
                     <Field label="质量重抽次数" value={form.quality_retry_count} onChange={(value) => updateForm('quality_retry_count', value)} inputMode="numeric" />
                     <Field label="模型重试次数" value={form.model_retry_count} onChange={(value) => updateForm('model_retry_count', value)} inputMode="numeric" />
                   </div>
-                  <SelectField<PipelineNodeBodyMode>
-                    label="正文生成方式"
-                    value={form.node_body_mode}
-                    onChange={(value) => updateForm('node_body_mode', value)}
-                    options={[
-                      { value: 'model', label: '模型生成' },
-                      { value: 'card', label: '卡片生成' },
-                    ]}
-                  />
                   <SelectField<PipelineLessonBackendKind>
                     label="文本模型接口"
                     value={form.lesson_backend_kind}
                     onChange={(value) => updateForm('lesson_backend_kind', value)}
                     options={[
-                      { value: 'openai_responses', label: 'Responses 接口' },
                       { value: 'openai_chat_completions', label: '聊天补全接口' },
+                      { value: 'openai_responses', label: 'Responses 接口' },
                     ]}
                   />
                   <Field label="文本模型接口地址" value={form.openai_base_url} onChange={(value) => updateForm('openai_base_url', value)} placeholder="默认使用环境配置" />

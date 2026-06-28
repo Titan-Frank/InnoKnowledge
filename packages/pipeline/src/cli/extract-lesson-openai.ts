@@ -8,18 +8,16 @@ import {
   DEFAULT_OPENAI_BASE_URL,
   DEFAULT_OPENAI_MODEL,
   DEFAULT_OPENAI_TIMEOUT_MS,
-  buildExtractionPayloadFromModelResponse,
   buildHybridEdgeExtractionRequest,
   buildHybridExtractionPayloadFromModelBundles,
   buildHybridNodeEvidenceExtractionRequest,
-  buildModelExtractionRequest,
   buildModelLessonPayload,
   buildRetrievalQueries,
   callModelExtractionRequest,
+  type BuildModelExtractionRequestInput,
   type ModelApiMode,
   parseHybridEdgeBundleFromResponse,
   parseHybridNodeEvidenceBundleFromResponse,
-  type ModelExtractionStrategy,
 } from "../extraction/model-lesson-extraction.js";
 import { resolveExtractionTemplate } from "../extraction/extraction-template.js";
 import { filterImageEvidencePayload } from "../extraction/image-relevance.js";
@@ -36,7 +34,7 @@ import { normalizeLessonArtifacts } from "../staging/staging.js";
 
 type CliEnv = Record<string, string | undefined>;
 type RawRecord = Record<string, unknown>;
-type ExtractLessonRequestBase = Parameters<typeof buildModelExtractionRequest>[0] & {
+type ExtractLessonRequestBase = BuildModelExtractionRequestInput & {
   datasetId?: string;
   outputRoot: string;
   subject: string;
@@ -83,7 +81,6 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
     const repoRoot = flags.get("repo-root") ?? REPO_ROOT;
     const env = loadEnvironment(repoRoot, deps.env ?? processEnv);
     const apiMode = parseApiMode(flags.get("api-mode"));
-    const extractionStrategy = parseExtractionStrategy(flags.get("extraction-strategy"));
     const modelRetryCount = parseNonNegativeInteger(flags.get("model-retry-count") ?? env.MODEL_RETRY_COUNT, "model-retry-count") ?? 2;
     const timeoutMs = parseTimeoutMs(flags.get("timeout"));
     const outputRoot = required(flags, "output-root");
@@ -127,19 +124,16 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
     }
 
     try {
-      let payload: RawRecord;
-      if (extractionStrategy === "hybrid") {
-        const nodeEvidenceRequest = buildHybridNodeEvidenceExtractionRequest(requestInput);
-        const nodeEvidenceBody = await callModelExtractionRequestWithRetries(nodeEvidenceRequest, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
-        const nodeEvidenceBundle = parseHybridNodeEvidenceBundleFromResponse(nodeEvidenceBody);
-        const edgeRequest = buildHybridEdgeExtractionRequest(requestInput, nodeEvidenceBundle);
-        const edgeBody = await callModelExtractionRequestWithRetries(edgeRequest, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
-        payload = buildHybridExtractionPayloadFromModelBundles(requestInput, nodeEvidenceBundle, parseHybridEdgeBundleFromResponse(edgeBody));
-      } else {
-        const request = buildModelExtractionRequest(requestInput);
-        const responseBody = await callModelExtractionRequestWithRetries(request, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
-        payload = buildExtractionPayloadFromModelResponse(requestInput, responseBody);
-      }
+      const nodeEvidenceRequest = buildHybridNodeEvidenceExtractionRequest(requestInput);
+      const nodeEvidenceBody = await callModelExtractionRequestWithRetries(nodeEvidenceRequest, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
+      const nodeEvidenceBundle = parseHybridNodeEvidenceBundleFromResponse(nodeEvidenceBody);
+      const edgeRequest = buildHybridEdgeExtractionRequest(requestInput, nodeEvidenceBundle);
+      const edgeBody = await callModelExtractionRequestWithRetries(edgeRequest, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
+      let payload: RawRecord = buildHybridExtractionPayloadFromModelBundles(
+        requestInput,
+        nodeEvidenceBundle,
+        parseHybridEdgeBundleFromResponse(edgeBody),
+      );
       if (!flags.has("no-image-filter")) {
         const vlmConcurrency = parsePositiveInteger(flags.get("vlm-concurrency") ?? env.VLM_CONCURRENCY, "vlm-concurrency") ?? 3;
         const imageFilterResult = await filterImageEvidencePayload(payload, {
@@ -206,7 +200,6 @@ const EXTRACT_LESSON_OPENAI_FLAGS = new Set([
   "embedding-api-key-env",
   "embedding-model",
   "embedding-url",
-  "extraction-strategy",
   "extraction-template",
   "grade-band",
   "model",
@@ -280,17 +273,9 @@ async function loadPostgresOutline(input: {
 }
 
 function parseApiMode(value: string | undefined): ModelApiMode {
-  if (value === undefined || value === "responses") return "responses";
-  if (value === "chat_completions") return "chat_completions";
+  if (value === undefined || value === "chat_completions") return "chat_completions";
+  if (value === "responses") return "responses";
   throw new Error(`Invalid --api-mode '${value}'. Expected responses or chat_completions.`);
-}
-
-function parseExtractionStrategy(value: string | undefined): ModelExtractionStrategy {
-  if (value === undefined || value === "" || value === "hybrid" || value === "two_stage" || value === "two-stage") return "hybrid";
-  if (value === "single_pass" || value === "single-pass" || value === "current") {
-    return "single_pass";
-  }
-  throw new Error(`Invalid --extraction-strategy '${value}'. Expected single_pass or hybrid.`);
 }
 
 function parseTimeoutMs(value: string | undefined): number {

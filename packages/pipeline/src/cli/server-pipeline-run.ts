@@ -77,7 +77,6 @@ type RunnerOptions = {
   gradeBand: string;
   textbookId: string;
   apiMode: "responses" | "chat_completions";
-  extractionStrategy: "single_pass" | "hybrid";
   extractionTemplate?: string;
   modelRetryCount: number;
   model: string;
@@ -93,7 +92,6 @@ type RunnerOptions = {
   retrievalLimit: number;
   qualityRetryCount: number;
   skipNodeBodies?: boolean;
-  nodeBodyMode?: "card" | "model";
   nodeBodyConcurrency?: number;
   nodeBodyLimit?: number;
   nodeBodyMaxEvidence?: number;
@@ -284,7 +282,6 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       gradeBand: options.gradeBand,
       textbookId: options.textbookId,
       apiMode: options.apiMode,
-      extractionStrategy: options.extractionStrategy,
       extractionTemplate: options.extractionTemplate ?? "auto",
       modelRetryCount: options.modelRetryCount,
       model: options.model,
@@ -635,7 +632,6 @@ function buildNormalizeCommand(options: RunnerOptions): string[] {
 }
 
 function buildNodeBodiesCommand(options: RunnerOptions): string[] {
-  const mode = options.nodeBodyMode ?? "model";
   const command = [
     "node",
     resolve(CLI_DIR, "generate-node-bodies.js"),
@@ -643,20 +639,16 @@ function buildNodeBodiesCommand(options: RunnerOptions): string[] {
     options.datasetId,
     "--db",
     options.dbUrl,
-    "--mode",
-    mode,
     "--pretty",
   ];
-  if (mode === "model") {
-    command.push("--api-mode", options.apiMode);
-    if (options.model) command.push("--model", options.model);
-    if (options.baseUrl) command.push("--base-url", options.baseUrl);
-    if (options.reasoningEffort) command.push("--reasoning-effort", options.reasoningEffort);
-    command.push("--timeout", String(options.timeoutSeconds));
-    command.push("--max-evidence", String(options.nodeBodyMaxEvidence ?? 8));
-    command.push("--concurrency", String(options.nodeBodyConcurrency ?? options.parallelism));
-    command.push("--model-retry-count", String(options.modelRetryCount));
-  }
+  command.push("--api-mode", options.apiMode);
+  if (options.model) command.push("--model", options.model);
+  if (options.baseUrl) command.push("--base-url", options.baseUrl);
+  if (options.reasoningEffort) command.push("--reasoning-effort", options.reasoningEffort);
+  command.push("--timeout", String(options.timeoutSeconds));
+  command.push("--max-evidence", String(options.nodeBodyMaxEvidence ?? 8));
+  command.push("--concurrency", String(options.nodeBodyConcurrency ?? options.parallelism));
+  command.push("--model-retry-count", String(options.modelRetryCount));
   if (options.nodeBodyLimit && options.nodeBodyLimit > 0) command.push("--limit", String(options.nodeBodyLimit));
   if (options.overwriteNodeBodies) command.push("--overwrite-existing");
   return command;
@@ -998,7 +990,6 @@ function createRunResult(options: RunnerOptions): ServerPipelineResult {
       subject: options.subject,
       school_stage: options.schoolStage,
       grade_band: options.gradeBand,
-      extraction_strategy: options.extractionStrategy,
       extraction_template: options.extractionTemplate ?? "auto",
       model_retry_count: options.modelRetryCount,
       vlm_api_url_configured: Boolean(options.vlmApiUrl),
@@ -1193,8 +1184,7 @@ function parseOptions(argv: string[]): RunnerOptions {
     schoolStage: flags.get("school-stage") ?? "higher",
     gradeBand: flags.get("grade-band") ?? "university",
     textbookId: flags.get("textbook-id") ?? bookId,
-    apiMode: parseApiMode(flags.get("api-mode") ?? "responses"),
-    extractionStrategy: parseExtractionStrategy(flags.get("extraction-strategy")),
+    apiMode: parseApiMode(flags.get("api-mode") ?? "chat_completions"),
     extractionTemplate: flags.get("extraction-template") ?? "auto",
     modelRetryCount: parseNonNegativeInteger(flags.get("model-retry-count"), 2),
     model: flags.get("model") ?? "",
@@ -1210,7 +1200,6 @@ function parseOptions(argv: string[]): RunnerOptions {
     retrievalLimit: parseInteger(flags.get("retrieval-limit"), 8),
     qualityRetryCount: parseNonNegativeInteger(flags.get("quality-retry-count") ?? flags.get("quality-retries"), 1),
     skipNodeBodies: flags.has("skip-node-bodies"),
-    nodeBodyMode: parseNodeBodyMode(flags.get("node-body-mode") ?? "model"),
     nodeBodyConcurrency: parseInteger(flags.get("node-body-concurrency") ?? flags.get("parallelism"), 8),
     nodeBodyLimit: parseNonNegativeInteger(flags.get("node-body-limit"), 0),
     nodeBodyMaxEvidence: parseInteger(flags.get("node-body-max-evidence"), 8),
@@ -1264,19 +1253,6 @@ function parseApiMode(value: string): "responses" | "chat_completions" {
   if (value === "responses" || value === "openai_responses") return "responses";
   if (value === "chat_completions" || value === "openai_chat_completions") return "chat_completions";
   throw new Error(`Unsupported lesson backend/api mode '${value}'.`);
-}
-
-function parseExtractionStrategy(value: string | undefined): "single_pass" | "hybrid" {
-  if (value === undefined || value === "" || value === "hybrid" || value === "two_stage" || value === "two-stage") return "hybrid";
-  if (value === "single_pass" || value === "single-pass" || value === "current") {
-    return "single_pass";
-  }
-  throw new Error(`Unsupported extraction strategy '${value}'.`);
-}
-
-function parseNodeBodyMode(value: string): "card" | "model" {
-  if (value === "card" || value === "model") return value;
-  throw new Error(`Unsupported node body mode '${value}'.`);
 }
 
 function parseBoolean(value: string | undefined, fallback: boolean): boolean {

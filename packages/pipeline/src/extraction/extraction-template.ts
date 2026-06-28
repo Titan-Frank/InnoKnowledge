@@ -87,13 +87,11 @@ export function listTextbookExtractionTemplateSummaries(repoRoot = REPO_ROOT): E
   }));
 }
 
-export function buildTemplateInstructionBlock(template: ExtractionTemplate, stage: "single_pass" | "node_evidence" | "edges"): string {
+export function buildTemplateInstructionBlock(template: ExtractionTemplate, stage: "node_evidence" | "edges"): string {
   const stageHint = stage === "node_evidence"
     ? "本阶段只使用模板中的节点、证据和标识符规则，不输出关系。"
-    : stage === "edges"
-      ? "本阶段只使用模板中的关系、证据和展示标签规则，不新增节点。"
-      : "本阶段使用完整模板规则输出节点、关系、证据、领域画像和卡片。";
-  return [
+    : "本阶段只使用模板中的关系、证据和展示标签规则，不新增节点。";
+  const lines = [
     `教材抽取模板：${template.name}（${template.id} v${template.version}）`,
     template.description,
     stageHint,
@@ -101,31 +99,45 @@ export function buildTemplateInstructionBlock(template: ExtractionTemplate, stag
     "抽取重点：",
     ...bulletLines(template.prompt.focus),
     "",
-    "节点规则：",
-    ...bulletLines(template.prompt.node_rules),
-    "",
-    "关系规则：",
-    ...bulletLines(template.prompt.edge_rules),
-    "",
     "证据规则：",
     ...bulletLines(template.prompt.evidence_rules),
     "",
-    "输出字段：",
-    `- nodes: ${template.output.node_fields.join(", ")}`,
-    `- edges: ${template.output.edge_fields.join(", ")}`,
-    `- evidence_units: ${template.output.evidence_fields.join(", ")}`,
-    `- allowed_node_kinds: ${template.output.allowed_node_kinds.join(", ")}`,
-    `- preferred_edge_types: ${template.output.preferred_edge_types.join(", ")}`,
-    "",
-    "标识符规则：",
-    `- node.id: ${template.identifiers.node_id}`,
-    `- edge.id: ${template.identifiers.relation_id}`,
-    `- evidence.anchor: ${template.identifiers.evidence_anchor}`,
-    "",
-    "展示标签：",
-    `- node_labels: ${formatRecord(template.display.node_labels)}`,
-    `- edge_labels: ${formatRecord(template.display.edge_labels)}`,
-  ].join("\n").trim();
+  ];
+  if (stage === "node_evidence") {
+    lines.push(
+      "节点规则：",
+      ...bulletLines(template.prompt.node_rules),
+      "",
+      "输出字段：",
+      `- nodes: ${template.output.node_fields.join(", ")}`,
+      `- evidence_units: ${template.output.evidence_fields.join(", ")}`,
+      `- allowed_node_kinds: ${template.output.allowed_node_kinds.join(", ")}`,
+      "",
+      "标识符规则：",
+      `- node.id: ${template.identifiers.node_id}`,
+      `- evidence.anchor: ${template.identifiers.evidence_anchor}`,
+      "",
+      "展示标签：",
+      `- node_labels: ${formatRecord(template.display.node_labels)}`,
+    );
+  } else {
+    lines.push(
+      "关系规则：",
+      ...bulletLines(template.prompt.edge_rules),
+      "",
+      "输出字段：",
+      `- edges: ${template.output.edge_fields.join(", ")}`,
+      `- preferred_edge_types: ${template.output.preferred_edge_types.join(", ")}`,
+      "",
+      "标识符规则：",
+      `- edge.id: ${template.identifiers.relation_id}`,
+      `- evidence.anchor: ${template.identifiers.evidence_anchor}`,
+      "",
+      "展示标签：",
+      `- edge_labels: ${formatRecord(template.display.edge_labels)}`,
+    );
+  }
+  return lines.join("\n").trim();
 }
 
 export function templateModelPayload(template: ExtractionTemplate): RawRecord {

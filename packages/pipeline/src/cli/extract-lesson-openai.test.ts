@@ -9,6 +9,10 @@ import { runExtractLessonOpenAiCli } from "./extract-lesson-openai.js";
 const bookId = "cli-model-book";
 const canonicalAnchor = "struct:cli-model-book:chunk:1-1-a";
 
+function requestBodiesStageName(body: Record<string, unknown>): string {
+  return String(((body.response_format as { json_schema?: { name?: unknown } } | undefined)?.json_schema?.name) ?? "");
+}
+
 test("returns a blocked JSON payload when the API key is missing", async () => {
   const repo = makeFixtureRepo();
   const stdout: string[] = [];
@@ -23,8 +27,6 @@ test("returns a blocked JSON payload when the API key is missing", async () => {
         "/tmp/output",
         "--repo-root",
         repo.root,
-        "--extraction-strategy",
-        "single_pass",
       ],
       { stdout: (text) => stdout.push(text), stderr: () => undefined, env: {} },
     );
@@ -72,9 +74,12 @@ test("calls the model with retrieval context loaded from a read-only executor", 
         env: { OPENAI_API_KEY: "test-key" },
         fetchImpl: async (_url, init) => {
           requestBodies.push(JSON.parse(String(init?.body)));
+          const text = requestBodies.length === 1
+            ? JSON.stringify({ nodes: [], evidence_units: [], issues: [] })
+            : JSON.stringify({ edges: [], issues: [] });
           return new Response(
             JSON.stringify({
-              output: [{ content: [{ type: "output_text", text: JSON.stringify({ nodes: [], edges: [], evidence_units: [], domain_profiles: [], node_cards: [], issues: [] }) }] }],
+              choices: [{ message: { content: text } }],
             }),
             { status: 200, headers: { "Content-Type": "application/json" } },
           );
@@ -91,8 +96,8 @@ test("calls the model with retrieval context loaded from a read-only executor", 
     const payload = JSON.parse(stdout.join("")) as { status: string; counts: { nodes: number } };
     assert.equal(payload.status, "success");
     assert.equal(payload.counts.nodes, 0);
-    const requestBody = requestBodies[0] as { input: Array<{ content: Array<{ text: string }> }> };
-    const lessonPayload = JSON.parse(requestBody.input[0]!.content[0]!.text) as { lesson_context: { retrieval_candidates: unknown[] } };
+    const requestBody = requestBodies[0] as { messages: Array<{ content: string }> };
+    const lessonPayload = JSON.parse(requestBody.messages[1]!.content) as { lesson_context: { retrieval_candidates: unknown[] } };
     assert.deepEqual(lessonPayload.lesson_context.retrieval_candidates, [
       { node_id: "node:known", name: "模型抽取", kind: "concept", score: 100, method: "local" },
     ]);
@@ -117,8 +122,6 @@ test("uses OpenAI model and base URL from environment when flags are omitted", a
         "/tmp/output",
         "--repo-root",
         repo.root,
-        "--extraction-strategy",
-        "single_pass",
         "--no-image-filter",
       ],
       {
@@ -132,9 +135,14 @@ test("uses OpenAI model and base URL from environment when flags are omitted", a
         fetchImpl: async (url, init) => {
           requestUrl = String(url);
           requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+          const text = requestBody.response_format
+            ? requestUrl.endsWith("/chat/completions") && requestBodiesStageName(requestBody) === "world_knowledge_edge_bundle"
+              ? JSON.stringify({ edges: [], issues: [] })
+              : JSON.stringify({ nodes: [], evidence_units: [], issues: [] })
+            : JSON.stringify({ nodes: [], evidence_units: [], issues: [] });
           return new Response(
             JSON.stringify({
-              output: [{ content: [{ type: "output_text", text: JSON.stringify({ nodes: [], edges: [], evidence_units: [], domain_profiles: [], node_cards: [], issues: [] }) }] }],
+              choices: [{ message: { content: text } }],
             }),
             { status: 200, headers: { "Content-Type": "application/json" } },
           );
@@ -143,7 +151,7 @@ test("uses OpenAI model and base URL from environment when flags are omitted", a
     );
 
     assert.equal(code, 0);
-    assert.equal(requestUrl, "https://llm.example.test/v1/responses");
+    assert.equal(requestUrl, "https://llm.example.test/v1/chat/completions");
     assert.equal(requestBody.model, "test-llm-model");
     const payload = JSON.parse(stdout.join("")) as { status: string };
     assert.equal(payload.status, "success");
@@ -167,8 +175,6 @@ test("retries transient model request failures before blocking", async () => {
         "/tmp/output",
         "--repo-root",
         repo.root,
-        "--extraction-strategy",
-        "single_pass",
         "--no-image-filter",
       ],
       {
@@ -178,9 +184,12 @@ test("retries transient model request failures before blocking", async () => {
         fetchImpl: async () => {
           calls += 1;
           if (calls === 1) throw new Error("fetch failed");
+          const text = calls === 2
+            ? JSON.stringify({ nodes: [], evidence_units: [], issues: [] })
+            : JSON.stringify({ edges: [], issues: [] });
           return new Response(
             JSON.stringify({
-              output: [{ content: [{ type: "output_text", text: JSON.stringify({ nodes: [], edges: [], evidence_units: [], domain_profiles: [], node_cards: [], issues: [] }) }] }],
+              choices: [{ message: { content: text } }],
             }),
             { status: 200, headers: { "Content-Type": "application/json" } },
           );
@@ -189,7 +198,7 @@ test("retries transient model request failures before blocking", async () => {
     );
 
     assert.equal(code, 0);
-    assert.equal(calls, 2);
+    assert.equal(calls, 3);
     const payload = JSON.parse(stdout.join("")) as { status: string };
     assert.equal(payload.status, "success");
   } finally {
@@ -197,7 +206,7 @@ test("retries transient model request failures before blocking", async () => {
   }
 });
 
-test("runs the hybrid two-stage extraction strategy", async () => {
+test("runs the two-stage extraction flow", async () => {
   const repo = makeFixtureRepo();
   const stdout: string[] = [];
   const requestBodies: Record<string, unknown>[] = [];
@@ -212,8 +221,6 @@ test("runs the hybrid two-stage extraction strategy", async () => {
         "/tmp/output",
         "--repo-root",
         repo.root,
-        "--extraction-strategy",
-        "hybrid",
       ],
       {
         stdout: (text) => stdout.push(text),
@@ -251,7 +258,7 @@ test("runs the hybrid two-stage extraction strategy", async () => {
                     notes: "",
                   },
                 ]);
-          return new Response(JSON.stringify({ output: [{ content: [{ type: "output_text", text }] }] }), {
+          return new Response(JSON.stringify({ choices: [{ message: { content: text } }] }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
           });
@@ -261,9 +268,9 @@ test("runs the hybrid two-stage extraction strategy", async () => {
 
     assert.equal(code, 0);
     assert.equal(requestBodies.length, 2);
-    assert.equal((((requestBodies[0]?.text as Record<string, unknown>).format as Record<string, unknown>).name), "world_knowledge_node_evidence_bundle");
-    assert.equal((((requestBodies[1]?.text as Record<string, unknown>).format as Record<string, unknown>).name), "world_knowledge_edge_bundle");
-    const secondPayload = JSON.parse(((requestBodies[1]?.input as Array<{ content: Array<{ text: string }> }>)[0]!.content[0]!.text)) as {
+    assert.equal(((requestBodies[0]?.response_format as Record<string, Record<string, unknown>>).json_schema).name, "world_knowledge_node_evidence_bundle");
+    assert.equal(((requestBodies[1]?.response_format as Record<string, Record<string, unknown>>).json_schema).name, "world_knowledge_edge_bundle");
+    const secondPayload = JSON.parse((requestBodies[1]?.messages as Array<{ content: string }>)[1]!.content) as {
       markdown_lines?: unknown;
       candidate_nodes: unknown[];
     };

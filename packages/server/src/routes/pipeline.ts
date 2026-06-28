@@ -3,8 +3,6 @@ import { spawn } from 'node:child_process';
 import { createWriteStream, mkdirSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import type {
-  PipelineExtractionStrategy,
-  PipelineNodeBodyMode,
   PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
 } from '@okm/types';
@@ -27,25 +25,13 @@ function asInt(value: unknown, fallback: number): number {
 }
 
 function parseLessonBackendKind(value: unknown): 'openai_responses' | 'openai_chat_completions' {
-  const raw = asString(value, 'openai_responses');
+  const raw = asString(value, 'openai_chat_completions');
   if (raw === 'openai_responses' || raw === 'openai_chat_completions') return raw;
   throw new Error(`Unsupported lesson backend '${raw}'. Use openai_responses or openai_chat_completions.`);
 }
 
-function parseExtractionStrategy(value: unknown): PipelineExtractionStrategy {
-  const raw = asString(value, 'hybrid');
-  if (raw === 'hybrid' || raw === 'single_pass') return raw;
-  throw new Error(`Unsupported extraction strategy '${raw}'. Use hybrid or single_pass.`);
-}
-
-function parseNodeBodyMode(value: unknown): PipelineNodeBodyMode {
-  const raw = asString(value, 'model');
-  if (raw === 'card' || raw === 'model') return raw;
-  throw new Error(`Unsupported node body mode '${raw}'. Use card or model.`);
-}
-
-function toPipelineApiMode(kind: 'openai_responses' | 'openai_chat_completions'): 'openai_responses' | 'chat_completions' {
-  return kind === 'openai_chat_completions' ? 'chat_completions' : 'openai_responses';
+function toPipelineApiMode(kind: 'openai_responses' | 'openai_chat_completions'): 'responses' | 'chat_completions' {
+  return kind === 'openai_chat_completions' ? 'chat_completions' : 'responses';
 }
 
 function inferTextbookMetadata(
@@ -179,16 +165,12 @@ function buildPipelineCommand(
     logPath,
     '--api-mode',
     toPipelineApiMode(lessonBackendKind),
-    '--extraction-strategy',
-    parseExtractionStrategy(body.extraction_strategy),
     '--extraction-template',
     asString(body.extraction_template, 'auto'),
     '--quality-retry-count',
     String(asInt(body.quality_retry_count, 1)),
     '--model-retry-count',
     String(asInt(body.model_retry_count, 2)),
-    '--node-body-mode',
-    parseNodeBodyMode(body.node_body_mode),
     '--subject',
     asString(body.lesson_subject, inferred.lesson_subject),
     '--school-stage',

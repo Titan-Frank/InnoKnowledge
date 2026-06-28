@@ -44,32 +44,13 @@ export async function resolveDatasetRow(
   sql: Sql,
   key: string,
 ): Promise<DatasetRow | undefined> {
-  const worldTableCheck = await sql<{ regclass: string | null }[]>`
-    SELECT to_regclass('world_datasets') AS regclass
-  `;
-  if (worldTableCheck[0]?.regclass) {
-    const worldRows = await sql<DatasetRow[]>`
-      SELECT dataset_id, dataset_name AS version_key, COALESCE(root_path, '') AS root_path, is_active
-      FROM world_datasets
-      WHERE dataset_id = ${key} OR dataset_name = ${key}
-      ORDER BY is_active DESC, dataset_id ASC
-      LIMIT 1
-    `;
-    if (worldRows[0]) return worldRows[0];
-  }
-
-  const legacyTableCheck = await sql<{ regclass: string | null }[]>`
-    SELECT to_regclass('datasets') AS regclass
-  `;
-  if (!legacyTableCheck[0]?.regclass) return undefined;
-
   const rows = await sql<DatasetRow[]>`
-    SELECT dataset_id, version_key, root_path, is_active
-    FROM datasets
-    WHERE dataset_id = ${key} OR version_key = ${key}
+    SELECT dataset_id, dataset_name AS version_key, COALESCE(root_path, '') AS root_path, is_active
+    FROM world_datasets
+    WHERE dataset_id = ${key} OR dataset_name = ${key}
     ORDER BY is_active DESC, dataset_id ASC
     LIMIT 1
-  `;
+  `.catch(() => [] as DatasetRow[]);
   return rows[0];
 }
 
@@ -78,49 +59,38 @@ export async function resolveDatasetRow(
 export async function loadNodes(sql: Sql, datasetId: string): Promise<ApiNode[]> {
   const rows = await sql`
     SELECT * FROM world_nodes WHERE dataset_id = ${datasetId} ORDER BY id
-  `.catch(() => sql`
-    SELECT * FROM nodes WHERE dataset_id = ${datasetId} ORDER BY id
-  `);
+  `;
 
   return rows.map((row: Record<string, unknown>) => {
-    if ('name' in row || 'kind' in row) {
-      const parsed = worldJsonRow(row, [
-        'aliases', 'domains', 'knowledge_form', 'learning_mode',
-        'properties', 'external_ids', 'tags',
-      ]);
-      const properties = asRecord(parsed.properties);
-      return {
-        ...parsed,
-        canonical_name: textValue(parsed.name) || textValue(parsed.id),
-        node_kind: textValue(parsed.kind) || 'concept',
-        node_subkind: textValue(parsed.subkind) || null,
-        node_layer: textValue(properties.node_layer || properties.layer) || undefined,
-        learning_modes: Array.isArray(parsed.learning_mode) ? parsed.learning_mode : [],
-        bridge_tags: Array.isArray(parsed.tags) ? parsed.tags : [],
-        framework_refs: [],
-        profile_refs: [],
-        same_as_refs: [],
-        properties: {
-          ...properties,
-          domains: parsed.domains || [],
-          knowledge_form: parsed.knowledge_form || [],
-          learning_modes: Array.isArray(parsed.learning_mode) ? parsed.learning_mode : [],
-          scope: parsed.scope || '',
-          bridge_tags: parsed.tags || [],
-          tags: parsed.tags || [],
-        },
-        community_id: null,
-        pca_x: null,
-        pca_y: null,
-      } as unknown as ApiNode;
-    }
-
-    const parsed = stripJsonSuffix(row, [
-      'aliases', 'learning_modes', 'bridge_tags', 'framework_refs',
-      'profile_refs', 'same_as_refs', 'properties',
+    const parsed = worldJsonRow(row, [
+      'aliases', 'domains', 'knowledge_form', 'learning_mode',
+      'properties', 'external_ids', 'tags',
     ]);
-    delete parsed.embedding;
-    return parsed as unknown as ApiNode;
+    const properties = asRecord(parsed.properties);
+    return {
+      ...parsed,
+      canonical_name: textValue(parsed.name) || textValue(parsed.id),
+      node_kind: textValue(parsed.kind) || 'concept',
+      node_subkind: textValue(parsed.subkind) || null,
+      node_layer: textValue(properties.node_layer || properties.layer) || undefined,
+      learning_modes: Array.isArray(parsed.learning_mode) ? parsed.learning_mode : [],
+      bridge_tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+      framework_refs: [],
+      profile_refs: [],
+      same_as_refs: [],
+      properties: {
+        ...properties,
+        domains: parsed.domains || [],
+        knowledge_form: parsed.knowledge_form || [],
+        learning_modes: Array.isArray(parsed.learning_mode) ? parsed.learning_mode : [],
+        scope: parsed.scope || '',
+        bridge_tags: parsed.tags || [],
+        tags: parsed.tags || [],
+      },
+      community_id: null,
+      pca_x: null,
+      pca_y: null,
+    } as unknown as ApiNode;
   });
 }
 
@@ -129,37 +99,21 @@ export async function loadNodes(sql: Sql, datasetId: string): Promise<ApiNode[]>
 export async function loadEdges(sql: Sql, datasetId: string): Promise<ApiEdge[]> {
   const rows = await sql`
     SELECT * FROM world_edges WHERE dataset_id = ${datasetId} ORDER BY id
-  `.catch(() => sql`
-    SELECT * FROM edges WHERE dataset_id = ${datasetId} ORDER BY id
-  `);
+  `;
 
   return rows.map((row: Record<string, unknown>) => {
-    if ('type' in row && !('edge_type' in row)) {
-      const parsed = worldJsonRow(row, ['source_refs', 'properties']);
-      const properties = asRecord(parsed.properties);
-      return {
-        ...parsed,
-        edge_type: textValue(parsed.type) || 'related_to',
-        edge_layer: textValue(properties.edge_layer || properties.layer) || undefined,
-        from: parsed.from_id,
-        to: parsed.to_id,
-        backbone_expand: typeof properties.backbone_expand === 'boolean'
-          ? properties.backbone_expand
-          : undefined,
-      } as unknown as ApiEdge;
-    }
-
-    const parsed = stripJsonSuffix(row, [
-      'framework_refs', 'profile_refs', 'source_refs', 'properties',
-    ]);
-    // Map DB column names to API field names
-    if ('from_id' in parsed) {
-      parsed.from = parsed.from_id;
-    }
-    if ('to_id' in parsed) {
-      parsed.to = parsed.to_id;
-    }
-    return parsed as unknown as ApiEdge;
+    const parsed = worldJsonRow(row, ['source_refs', 'properties']);
+    const properties = asRecord(parsed.properties);
+    return {
+      ...parsed,
+      edge_type: textValue(parsed.type) || 'related_to',
+      edge_layer: textValue(properties.edge_layer || properties.layer) || undefined,
+      from: parsed.from_id,
+      to: parsed.to_id,
+      backbone_expand: typeof properties.backbone_expand === 'boolean'
+        ? properties.backbone_expand
+        : undefined,
+    } as unknown as ApiEdge;
   });
 }
 
@@ -168,40 +122,31 @@ export async function loadEdges(sql: Sql, datasetId: string): Promise<ApiEdge[]>
 export async function loadProfiles(sql: Sql, datasetId: string): Promise<ApiProfile[]> {
   const rows = await sql`
     SELECT * FROM world_domain_profiles WHERE dataset_id = ${datasetId} ORDER BY id
-  `.catch(() => sql`
-    SELECT * FROM profiles WHERE dataset_id = ${datasetId} ORDER BY id
-  `);
+  `;
 
   return rows.map((row: Record<string, unknown>) => {
-    if ('domain' in row || 'school_stages_json' in row || 'curriculum_roles_json' in row) {
-      const parsed = worldJsonRow(row, [
-        'school_stages', 'curriculum_roles', 'source_refs', 'properties',
-      ]);
-      const properties = asRecord(parsed.properties);
-      const schoolStages = Array.isArray(parsed.school_stages) ? parsed.school_stages.map(String) : [];
-      const curriculumRoles = Array.isArray(parsed.curriculum_roles) ? parsed.curriculum_roles.map(String) : [];
-      const sourceRefs = Array.isArray(parsed.source_refs) ? parsed.source_refs.map(String) : [];
-      return {
-        ...parsed,
-        subject: textValue(properties.subject) || textValue(parsed.domain),
-        school_stage: schoolStages[0] || textValue(properties.school_stage),
-        grade_band: textValue(properties.grade_band) || schoolStages[0] || '',
-        context_key: textValue(properties.context_key) || `${parsed.domain || 'domain'}:${schoolStages[0] || 'unknown'}`,
-        curriculum_role: curriculumRoles[0] || textValue(properties.curriculum_role),
-        mastery_level: textValue(properties.mastery_level),
-        learning_objectives: Array.isArray(properties.learning_objectives) ? properties.learning_objectives : [],
-        framework_refs: Array.isArray(properties.framework_refs) ? properties.framework_refs : [],
-        textbook_refs: sourceRefs,
-        textbook_ids: Array.isArray(properties.textbook_ids) ? properties.textbook_ids : [],
-        assessment_signals: Array.isArray(properties.assessment_signals) ? properties.assessment_signals : [],
-        source_refs: sourceRefs,
-      } as unknown as ApiProfile;
-    }
-
-    return stripJsonSuffix(row, [
-      'learning_objectives', 'framework_refs', 'textbook_refs',
-      'textbook_ids', 'assessment_signals', 'source_refs', 'properties',
-    ]) as unknown as ApiProfile;
+    const parsed = worldJsonRow(row, [
+      'school_stages', 'curriculum_roles', 'source_refs', 'properties',
+    ]);
+    const properties = asRecord(parsed.properties);
+    const schoolStages = Array.isArray(parsed.school_stages) ? parsed.school_stages.map(String) : [];
+    const curriculumRoles = Array.isArray(parsed.curriculum_roles) ? parsed.curriculum_roles.map(String) : [];
+    const sourceRefs = Array.isArray(parsed.source_refs) ? parsed.source_refs.map(String) : [];
+    return {
+      ...parsed,
+      subject: textValue(properties.subject) || textValue(parsed.domain),
+      school_stage: schoolStages[0] || textValue(properties.school_stage),
+      grade_band: textValue(properties.grade_band) || schoolStages[0] || '',
+      context_key: textValue(properties.context_key) || `${parsed.domain || 'domain'}:${schoolStages[0] || 'unknown'}`,
+      curriculum_role: curriculumRoles[0] || textValue(properties.curriculum_role),
+      mastery_level: textValue(properties.mastery_level),
+      learning_objectives: Array.isArray(properties.learning_objectives) ? properties.learning_objectives : [],
+      framework_refs: Array.isArray(properties.framework_refs) ? properties.framework_refs : [],
+      textbook_refs: sourceRefs,
+      textbook_ids: Array.isArray(properties.textbook_ids) ? properties.textbook_ids : [],
+      assessment_signals: Array.isArray(properties.assessment_signals) ? properties.assessment_signals : [],
+      source_refs: sourceRefs,
+    } as unknown as ApiProfile;
   });
 }
 
@@ -210,9 +155,7 @@ export async function loadProfiles(sql: Sql, datasetId: string): Promise<ApiProf
 export async function loadMentions(sql: Sql, datasetId: string): Promise<ApiMention[]> {
   const rows = await sql`
     SELECT * FROM world_mentions WHERE dataset_id = ${datasetId}
-  `.catch(() => sql`
-    SELECT * FROM mentions WHERE dataset_id = ${datasetId}
-  `);
+  `;
 
   return rows.map((row: Record<string, unknown>) => {
     return stripJsonSuffix(row, ['source_refs', 'confidence_map', 'properties']) as unknown as ApiMention;
@@ -224,9 +167,7 @@ export async function loadMentions(sql: Sql, datasetId: string): Promise<ApiMent
 export async function loadEvidence(sql: Sql, datasetId: string): Promise<ApiEvidence[]> {
   const rows = await sql`
     SELECT * FROM world_evidence WHERE dataset_id = ${datasetId}
-  `.catch(() => sql`
-    SELECT * FROM evidence WHERE dataset_id = ${datasetId}
-  `);
+  `;
 
   return rows
     .map((row: Record<string, unknown>) => stripJsonSuffix(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence)
@@ -244,11 +185,7 @@ export async function loadNodeCard(
     SELECT * FROM world_node_cards
     WHERE dataset_id = ${datasetId} AND node_id = ${nodeId}
     LIMIT 1
-  `.catch(() => sql`
-    SELECT * FROM node_cards
-    WHERE dataset_id = ${datasetId} AND node_id = ${nodeId}
-    LIMIT 1
-  `);
+  `;
 
   if (!rows.length) return null;
 
@@ -1178,29 +1115,14 @@ function enrichBookSummary(row: EnrichBookSummaryRow): Record<string, unknown> {
 // ── Book IDs ──────────────────────────────────────────────
 
 export async function loadBookIds(sql: Sql, datasetId: string): Promise<string[]> {
-  const worldTableCheck = await sql<{ regclass: string | null }[]>`
-    SELECT to_regclass('world_evidence') AS regclass
-  `;
-  if (worldTableCheck[0]?.regclass) {
-    const rows = await sql<{ source_id: string }[]>`
-      SELECT DISTINCT source_id FROM world_evidence
-      WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
-      UNION
-      SELECT DISTINCT source_id FROM world_mentions
-      WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
-      ORDER BY source_id
-    `.catch(() => [] as { source_id: string }[]);
-    return rows.map((r) => r.source_id);
-  }
-
   const rows = await sql<{ source_id: string }[]>`
-    SELECT DISTINCT source_id FROM evidence
+    SELECT DISTINCT source_id FROM world_evidence
     WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
     UNION
-    SELECT DISTINCT source_id FROM mentions
+    SELECT DISTINCT source_id FROM world_mentions
     WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
     ORDER BY source_id
-  `;
+  `.catch(() => [] as { source_id: string }[]);
 
   return rows.map((r) => r.source_id);
 }
@@ -1281,63 +1203,20 @@ export async function buildSourcesPayload(sql: Sql): Promise<SourcesPayload> {
     };
   }
 
-  const tableCheck = await sql<{ regclass: string | null }[]>`
-    SELECT to_regclass('datasets') AS regclass
-  `;
-
-  if (!tableCheck[0]?.regclass) {
-    return {
-      active_source: 'main',
-      sources: [
-        {
-          key: 'main',
-          label: 'MAIN',
-          description: 'Default world knowledge dataset',
-          has_profiles: false,
-          book_count: 0,
-          books: [],
-          is_active: false,
-          root_path: 'data/main',
-        },
-      ],
-    };
-  }
-
-  const datasets = await sql<DatasetRow[]>`
-    SELECT dataset_id, version_key, root_path, is_active
-    FROM datasets
-    ORDER BY is_active DESC, dataset_id ASC
-  `;
-
-  let activeSource: string | null = null;
-  const sources = await Promise.all(
-    datasets.map(async (row) => {
-      const bookIds = await loadBookIds(sql, row.dataset_id);
-      const profileRows = await sql<{ count: number }[]>`
-        SELECT COUNT(*) AS count FROM world_domain_profiles WHERE dataset_id = ${row.dataset_id}
-      `.catch(() => sql<{ count: number }[]>`
-        SELECT COUNT(*) AS count FROM profiles WHERE dataset_id = ${row.dataset_id}
-      `);
-      const profileCount = profileRows[0].count;
-
-      if (row.is_active) activeSource = row.dataset_id;
-
-      return {
-        key: row.dataset_id,
-        label: row.version_key.toUpperCase(),
-        description: `PostgreSQL dataset ${row.dataset_id}`,
-        has_profiles: profileCount > 0,
-        book_count: bookIds.length,
-        books: bookIds.map((bookId) => ({ book_id: bookId })),
-        is_active: Boolean(row.is_active),
-        root_path: row.root_path,
-      };
-    }),
-  );
-
   return {
-    active_source: activeSource || (sources[0]?.key ?? null),
-    sources,
+    active_source: 'main',
+    sources: [
+      {
+        key: 'main',
+        label: 'MAIN',
+        description: 'Default world knowledge dataset',
+        has_profiles: false,
+        book_count: 0,
+        books: [],
+        is_active: false,
+        root_path: 'data/main',
+      },
+    ],
   };
 }
 
@@ -1376,10 +1255,8 @@ export async function buildBundlePayload(
 
   const profileRows = await sql<{ count: number }[]>`
     SELECT COUNT(*) AS count FROM world_domain_profiles WHERE dataset_id = ${datasetRow.dataset_id}
-  `.catch(() => sql<{ count: number }[]>`
-    SELECT COUNT(*) AS count FROM profiles WHERE dataset_id = ${datasetRow.dataset_id}
-  `);
-  const profileCount = profileRows[0].count;
+  `.catch(() => [{ count: 0 }]);
+  const profileCount = Number(profileRows[0]?.count ?? 0);
 
   const allMentions = await loadMentions(sql, datasetRow.dataset_id);
   const allEvidence = await loadEvidence(sql, datasetRow.dataset_id);

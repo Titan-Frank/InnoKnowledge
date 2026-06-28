@@ -118,11 +118,10 @@ npm run parallel-lesson-pipeline -w packages/pipeline -- \
 npm run generate-node-bodies -w packages/pipeline -- \
   --dataset-id main \
   --db "$DATABASE_URL" \
-  --mode model \
   --pretty
 ```
 
-默认不会覆盖人工维护的节点正文。需要重新生成旧正文时，可以追加 `--overwrite-existing`。如果只想把真实卡片内容固化成正文，可以改用 `--mode card`；自动回填的占位卡片会被跳过，避免重复说明被当成正式正文。
+正文生成只支持模型生成，会根据节点、卡片上下文、课本原文片段和证据引用写入 `model_generation` 正文。默认不会覆盖人工维护的节点正文。需要重新生成旧正文时，可以追加 `--overwrite-existing`。
 
 小批量检查质量时，可以加 `--node-id <id>` 或 `--limit`：
 
@@ -130,7 +129,6 @@ npm run generate-node-bodies -w packages/pipeline -- \
 npm run generate-node-bodies -w packages/pipeline -- \
   --dataset-id main \
   --db "$DATABASE_URL" \
-  --mode model \
   --api-key-env OPENAI_API_KEY \
   --model "$OPENAI_MODEL" \
   --limit 5 \

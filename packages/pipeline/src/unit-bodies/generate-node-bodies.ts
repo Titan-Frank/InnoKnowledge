@@ -2,8 +2,6 @@ import type { SqlStatement } from "../staging/staging-sql.js";
 
 type RawRecord = Record<string, unknown>;
 
-export type NodeBodyGenerationMode = "card" | "model";
-
 export type NodeCardBodyRow = {
   node_id: string;
   title?: string | null;
@@ -63,7 +61,7 @@ export type GeneratedNodeBodyRow = {
   content: string;
   media_refs_json: RawRecord[];
   source_refs_json: string[];
-  generated_from: "card_expansion" | "model_generation";
+  generated_from: "model_generation";
   properties_json: RawRecord;
   status: "active";
   created_at: string;
@@ -109,7 +107,7 @@ export type GenerateNodeBodiesPlan = {
 
 export type GenerateNodeBodiesDatabaseOutput = {
   status: "success";
-  mode: NodeBodyGenerationMode;
+  mode: "model";
   dataset_id: string;
   selected: number;
   generated: number;
@@ -331,19 +329,6 @@ export function renderNodeCardBodyMarkdown(card: NodeCardBodyRow): string {
   return lines.join("\n").trim();
 }
 
-export function collectBodySourceRefs(card: NodeCardBodyRow): string[] {
-  const refs: unknown[] = isBackfilledCard(card)
-    ? []
-    : Array.isArray(card.source_refs_json)
-      ? [...card.source_refs_json]
-      : [];
-  const sections = usableBodySections(card);
-  for (const section of sections) {
-    if (Array.isArray(section.source_refs)) refs.push(...section.source_refs);
-  }
-  return uniqueStrings(refs);
-}
-
 function collectModelBodySourceRefs(card: NodeCardBodyRow): string[] {
   const refs: unknown[] = Array.isArray(card.source_refs_json) ? [...card.source_refs_json] : [];
   const sections = Array.isArray(card.sections_json) ? card.sections_json.filter(isRecord) : [];
@@ -357,66 +342,6 @@ function renderModelCardContextMarkdown(card: NodeCardBodyRow): string {
   const formalContent = renderNodeCardBodyMarkdown(card);
   if (formalContent) return formalContent;
   return textValue(card.summary);
-}
-
-export function planNodeBodiesFromCards(input: {
-  datasetId: string;
-  cards: NodeCardBodyRow[];
-  existingBodies?: ExistingNodeBodyRow[];
-  overwriteExisting?: boolean;
-  now: string;
-}): GenerateNodeBodiesPlan {
-  const existing = new Map((input.existingBodies ?? []).map((row) => [row.node_id, row]));
-  const rows: GeneratedNodeBodyRow[] = [];
-  const skippedExisting: string[] = [];
-  const skippedMissingSourceRefs: string[] = [];
-  const skippedEmptyContent: string[] = [];
-  const skippedBackfilledOnly: string[] = [];
-  const modelFailures: ModelGenerationFailure[] = [];
-
-  for (const card of input.cards) {
-    const existingBody = existing.get(card.node_id);
-    if (existingBody && !input.overwriteExisting && existingBody.generated_from !== "card_expansion") {
-      skippedExisting.push(card.node_id);
-      continue;
-    }
-
-    const content = renderNodeCardBodyMarkdown(card);
-    if (!content) {
-      if (hasBackfilledContent(card)) {
-        skippedBackfilledOnly.push(card.node_id);
-        continue;
-      }
-      skippedEmptyContent.push(card.node_id);
-      continue;
-    }
-
-    const sourceRefs = collectBodySourceRefs(card);
-    if (sourceRefs.length === 0) {
-      skippedMissingSourceRefs.push(card.node_id);
-      continue;
-    }
-
-    rows.push({
-      dataset_id: input.datasetId,
-      node_id: card.node_id,
-      format: "markdown",
-      content,
-      media_refs_json: [],
-      source_refs_json: sourceRefs,
-      generated_from: "card_expansion",
-      properties_json: {
-        source: "world_node_cards",
-        card_title: textValue(card.title),
-        filtered_backfilled_sections: countBackfilledSections(card),
-      },
-      status: "active",
-      created_at: input.now,
-      updated_at: input.now,
-    });
-  }
-
-  return { rows, skippedExisting, skippedMissingSourceRefs, skippedEmptyContent, skippedBackfilledOnly, modelFailures };
 }
 
 export async function planModelNodeBodies(input: {
@@ -622,7 +547,6 @@ export function buildUpsertNodeBodyStatement(row: GeneratedNodeBodyRow): SqlStat
 
 export async function runGenerateNodeBodiesFromDatabase(input: {
   datasetId: string;
-  mode?: NodeBodyGenerationMode;
   now?: string;
   nodeId?: string | null;
   limit?: number | null;
@@ -634,7 +558,6 @@ export async function runGenerateNodeBodiesFromDatabase(input: {
   query: GenerateNodeBodiesQueryExecutor;
   executeStatement: GenerateNodeBodiesExecutor;
 }): Promise<GenerateNodeBodiesDatabaseOutput> {
-  const mode = input.mode ?? "model";
   const now = input.now || new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00");
   const readStatements: string[] = [];
   const statements: string[] = [];
@@ -648,32 +571,24 @@ export async function runGenerateNodeBodiesFromDatabase(input: {
 
   const cards = (await query(buildSelectNodeCardsForBodiesQuery(input.datasetId))).map(toNodeCardBodyRow);
   const existingBodies = (await query(buildSelectExistingNodeBodiesQuery(input.datasetId))).map(toExistingNodeBodyRow);
-  const plan = mode === "model"
-    ? await planModelNodeBodies({
-        datasetId: input.datasetId,
-        nodes: (await query(buildSelectNodesForModelBodiesQuery({
-          datasetId: input.datasetId,
-          nodeId: input.nodeId,
-          limit: input.limit,
-        }))).map(toNodeBodyInputNodeRow),
-        cards,
-        existingBodies,
-        mentions: (await query(buildSelectMentionsForModelBodiesQuery(input.datasetId))).map(toNodeBodyInputMentionRow),
-        evidence: (await query(buildSelectEvidenceForModelBodiesQuery(input.datasetId))).map(toNodeBodyInputEvidenceRow),
-        overwriteExisting: input.overwriteExisting,
-        maxEvidencePerNode: input.maxEvidencePerNode ?? undefined,
-        concurrency: input.concurrency ?? 8,
-        modelName: input.modelName ?? "",
-        generateBody: input.generateBody ?? missingModelGenerator,
-        now,
-      })
-    : planNodeBodiesFromCards({
-        datasetId: input.datasetId,
-        cards,
-        existingBodies,
-        overwriteExisting: input.overwriteExisting,
-        now,
-      });
+  const plan = await planModelNodeBodies({
+    datasetId: input.datasetId,
+    nodes: (await query(buildSelectNodesForModelBodiesQuery({
+      datasetId: input.datasetId,
+      nodeId: input.nodeId,
+      limit: input.limit,
+    }))).map(toNodeBodyInputNodeRow),
+    cards,
+    existingBodies,
+    mentions: (await query(buildSelectMentionsForModelBodiesQuery(input.datasetId))).map(toNodeBodyInputMentionRow),
+    evidence: (await query(buildSelectEvidenceForModelBodiesQuery(input.datasetId))).map(toNodeBodyInputEvidenceRow),
+    overwriteExisting: input.overwriteExisting,
+    maxEvidencePerNode: input.maxEvidencePerNode ?? undefined,
+    concurrency: input.concurrency ?? 8,
+    modelName: input.modelName ?? "",
+    generateBody: input.generateBody ?? missingModelGenerator,
+    now,
+  });
 
   for (const row of plan.rows) {
     const statement = buildUpsertNodeBodyStatement(row);
@@ -684,9 +599,9 @@ export async function runGenerateNodeBodiesFromDatabase(input: {
 
   return {
     status: "success",
-    mode,
+    mode: "model",
     dataset_id: input.datasetId,
-    selected: mode === "model" ? plan.rows.length + plan.skippedExisting.length + plan.skippedMissingSourceRefs.length + plan.skippedEmptyContent.length + plan.skippedBackfilledOnly.length + plan.modelFailures.length : cards.length,
+    selected: plan.rows.length + plan.skippedExisting.length + plan.skippedMissingSourceRefs.length + plan.skippedEmptyContent.length + plan.skippedBackfilledOnly.length + plan.modelFailures.length,
     generated: plan.rows.length,
     skipped_existing: plan.skippedExisting.length,
     skipped_missing_source_refs: plan.skippedMissingSourceRefs.length,
@@ -730,11 +645,6 @@ function hasBackfilledContent(card: NodeCardBodyRow): boolean {
   if (isBackfilledCard(card)) return true;
   const sections = Array.isArray(card.sections_json) ? card.sections_json.filter(isRecord) : [];
   return sections.some(isBackfilledSection);
-}
-
-function countBackfilledSections(card: NodeCardBodyRow): number {
-  const sections = Array.isArray(card.sections_json) ? card.sections_json.filter(isRecord) : [];
-  return sections.filter(isBackfilledSection).length;
 }
 
 function collectEvidenceForModelBody(input: {

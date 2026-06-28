@@ -285,17 +285,10 @@ staging 写入后，系统会执行：
 npm run generate-node-bodies -w packages/pipeline -- \
   --dataset-id main \
   --db "$DATABASE_URL" \
-  --mode model \
   --pretty
 ```
 
-默认不会覆盖人工维护的正文。
-如果使用 `--mode card`，自动回填的占位卡片不会写入 `world_node_bodies`，避免重复短定义被当成正式正文。
-
-正文生成有两种模式：
-
-- `--mode card`：默认模式，只把高质量 `world_node_cards` 固化成 Markdown。
-- `--mode model`：调用 OpenAI 兼容模型，根据节点信息、高质量卡片、课本原文片段和证据引用生成正式正文，写入来源标记为 `model_generation`。
+正文生成只支持模型生成：调用 OpenAI 兼容模型，根据节点信息、高质量卡片、课本原文片段和证据引用生成正式正文，写入来源标记为 `model_generation`。默认不会覆盖人工维护的正文；需要重新生成旧正文时显式追加 `--overwrite-existing`。
 
 核心代码：
 
