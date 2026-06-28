@@ -4,7 +4,9 @@ import type {
   ImageReviewItem,
   ImageReviewResponse,
   PipelineJobStatusResponse,
+  PipelineExtractionStrategy,
   PipelineLessonBackendKind,
+  PipelineNodeBodyMode,
   PipelineResponse,
   PipelineReviewItem,
   PipelineStartResponse,
@@ -46,6 +48,10 @@ type PipelineForm = {
   outline_end_page: string;
   output_root: string;
   parallelism: string;
+  extraction_strategy: PipelineExtractionStrategy;
+  quality_retry_count: string;
+  model_retry_count: string;
+  node_body_mode: PipelineNodeBodyMode;
   lesson_subject: string;
   lesson_school_stage: string;
   lesson_grade_band: string;
@@ -79,7 +85,11 @@ const initialForm: PipelineForm = {
   outline_start_page: '1',
   outline_end_page: '20',
   output_root: 'data/main',
-  parallelism: '4',
+  parallelism: '8',
+  extraction_strategy: 'hybrid',
+  quality_retry_count: '1',
+  model_retry_count: '2',
+  node_body_mode: 'model',
   lesson_subject: '',
   lesson_school_stage: '',
   lesson_grade_band: '',
@@ -1048,7 +1058,11 @@ export function PipelineDebugPage() {
         outline_end_page: Number(form.outline_end_page) || undefined,
         dataset_id: activeSourceKey,
         output_root: form.output_root.trim() || 'data/main',
-        parallelism: Number(form.parallelism) || 4,
+        parallelism: Number(form.parallelism) || 8,
+        extraction_strategy: form.extraction_strategy,
+        quality_retry_count: Number(form.quality_retry_count) || 1,
+        model_retry_count: Number(form.model_retry_count) || 2,
+        node_body_mode: form.node_body_mode,
         lesson_backend_kind: form.lesson_backend_kind,
         lesson_subject: form.lesson_subject.trim() || undefined,
         lesson_school_stage: form.lesson_school_stage.trim() || undefined,
@@ -1284,6 +1298,28 @@ export function PipelineDebugPage() {
                     <Field label="输出目录" value={form.output_root} onChange={(value) => updateForm('output_root', value)} />
                     <Field label="并行数" value={form.parallelism} onChange={(value) => updateForm('parallelism', value)} inputMode="numeric" />
                   </div>
+                  <SelectField<PipelineExtractionStrategy>
+                    label="抽取策略"
+                    value={form.extraction_strategy}
+                    onChange={(value) => updateForm('extraction_strategy', value)}
+                    options={[
+                      { value: 'hybrid', label: '两阶段' },
+                      { value: 'single_pass', label: '单次抽取' },
+                    ]}
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="质量重抽次数" value={form.quality_retry_count} onChange={(value) => updateForm('quality_retry_count', value)} inputMode="numeric" />
+                    <Field label="模型重试次数" value={form.model_retry_count} onChange={(value) => updateForm('model_retry_count', value)} inputMode="numeric" />
+                  </div>
+                  <SelectField<PipelineNodeBodyMode>
+                    label="正文生成方式"
+                    value={form.node_body_mode}
+                    onChange={(value) => updateForm('node_body_mode', value)}
+                    options={[
+                      { value: 'model', label: '模型生成' },
+                      { value: 'card', label: '卡片生成' },
+                    ]}
+                  />
                   <SelectField<PipelineLessonBackendKind>
                     label="文本模型接口"
                     value={form.lesson_backend_kind}
@@ -1343,7 +1379,7 @@ export function PipelineDebugPage() {
                 className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-dim disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted"
               >
                 {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                启动抽取任务
+                一键生成最终结果
               </button>
             </form>
           </section>

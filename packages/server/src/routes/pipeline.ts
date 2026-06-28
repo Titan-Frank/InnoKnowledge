@@ -3,6 +3,8 @@ import { spawn } from 'node:child_process';
 import { createWriteStream, mkdirSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import type {
+  PipelineExtractionStrategy,
+  PipelineNodeBodyMode,
   PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
 } from '@okm/types';
@@ -28,6 +30,18 @@ function parseLessonBackendKind(value: unknown): 'openai_responses' | 'openai_ch
   const raw = asString(value, 'openai_responses');
   if (raw === 'openai_responses' || raw === 'openai_chat_completions') return raw;
   throw new Error(`Unsupported lesson backend '${raw}'. Use openai_responses or openai_chat_completions.`);
+}
+
+function parseExtractionStrategy(value: unknown): PipelineExtractionStrategy {
+  const raw = asString(value, 'hybrid');
+  if (raw === 'hybrid' || raw === 'single_pass') return raw;
+  throw new Error(`Unsupported extraction strategy '${raw}'. Use hybrid or single_pass.`);
+}
+
+function parseNodeBodyMode(value: unknown): PipelineNodeBodyMode {
+  const raw = asString(value, 'model');
+  if (raw === 'card' || raw === 'model') return raw;
+  throw new Error(`Unsupported node body mode '${raw}'. Use card or model.`);
 }
 
 function toPipelineApiMode(kind: 'openai_responses' | 'openai_chat_completions'): 'openai_responses' | 'chat_completions' {
@@ -156,7 +170,7 @@ function buildPipelineCommand(
     '--output-root',
     outputRoot,
     '--parallelism',
-    String(asInt(body.parallelism, 4)),
+    String(asInt(body.parallelism, 8)),
     '--db',
     process.env.DATABASE_URL || DEFAULT_DATABASE_URL,
     '--job-id',
@@ -165,6 +179,14 @@ function buildPipelineCommand(
     logPath,
     '--api-mode',
     toPipelineApiMode(lessonBackendKind),
+    '--extraction-strategy',
+    parseExtractionStrategy(body.extraction_strategy),
+    '--quality-retry-count',
+    String(asInt(body.quality_retry_count, 1)),
+    '--model-retry-count',
+    String(asInt(body.model_retry_count, 2)),
+    '--node-body-mode',
+    parseNodeBodyMode(body.node_body_mode),
     '--subject',
     asString(body.lesson_subject, inferred.lesson_subject),
     '--school-stage',

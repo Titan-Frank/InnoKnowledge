@@ -14,7 +14,18 @@ test("returns a blocked JSON payload when the API key is missing", async () => {
   const stdout: string[] = [];
   try {
     const code = await runExtractLessonOpenAiCli(
-      ["--book-id", bookId, "--batch-anchor", canonicalAnchor, "--output-root", "/tmp/output", "--repo-root", repo.root],
+      [
+        "--book-id",
+        bookId,
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+        "--extraction-strategy",
+        "single_pass",
+      ],
       { stdout: (text) => stdout.push(text), stderr: () => undefined, env: {} },
     );
 
@@ -97,7 +108,19 @@ test("uses OpenAI model and base URL from environment when flags are omitted", a
   let requestBody: Record<string, unknown> = {};
   try {
     const code = await runExtractLessonOpenAiCli(
-      ["--book-id", bookId, "--batch-anchor", canonicalAnchor, "--output-root", "/tmp/output", "--repo-root", repo.root],
+      [
+        "--book-id",
+        bookId,
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+        "--extraction-strategy",
+        "single_pass",
+        "--no-image-filter",
+      ],
       {
         stdout: (text) => stdout.push(text),
         stderr: () => undefined,
@@ -124,6 +147,133 @@ test("uses OpenAI model and base URL from environment when flags are omitted", a
     assert.equal(requestBody.model, "test-llm-model");
     const payload = JSON.parse(stdout.join("")) as { status: string };
     assert.equal(payload.status, "success");
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("retries transient model request failures before blocking", async () => {
+  const repo = makeFixtureRepo();
+  const stdout: string[] = [];
+  let calls = 0;
+  try {
+    const code = await runExtractLessonOpenAiCli(
+      [
+        "--book-id",
+        bookId,
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+        "--extraction-strategy",
+        "single_pass",
+        "--no-image-filter",
+      ],
+      {
+        stdout: (text) => stdout.push(text),
+        stderr: () => undefined,
+        env: { OPENAI_API_KEY: "test-key", MODEL_RETRY_COUNT: "1" },
+        fetchImpl: async () => {
+          calls += 1;
+          if (calls === 1) throw new Error("fetch failed");
+          return new Response(
+            JSON.stringify({
+              output: [{ content: [{ type: "output_text", text: JSON.stringify({ nodes: [], edges: [], evidence_units: [], domain_profiles: [], node_cards: [], issues: [] }) }] }],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          );
+        },
+      },
+    );
+
+    assert.equal(code, 0);
+    assert.equal(calls, 2);
+    const payload = JSON.parse(stdout.join("")) as { status: string };
+    assert.equal(payload.status, "success");
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("runs the hybrid two-stage extraction strategy", async () => {
+  const repo = makeFixtureRepo();
+  const stdout: string[] = [];
+  const requestBodies: Record<string, unknown>[] = [];
+  try {
+    const code = await runExtractLessonOpenAiCli(
+      [
+        "--book-id",
+        bookId,
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+        "--extraction-strategy",
+        "hybrid",
+      ],
+      {
+        stdout: (text) => stdout.push(text),
+        stderr: () => undefined,
+        env: { OPENAI_API_KEY: "test-key" },
+        fetchImpl: async (_url, init) => {
+          const requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+          requestBodies.push(requestBody);
+          const text =
+            requestBodies.length === 1
+              ? JSON.stringify({
+                  nodes: [
+                    { id: "node:map", label: "模型抽取", kind: "concept", definition: "根据证据生成结构化节点。" },
+                    { id: "node:evidence", name: "证据", kind: "concept", definition: "支撑节点和关系的教材片段。" },
+                  ],
+                  evidence_units: [
+                    {
+                      anchor: "ev1",
+                      excerpt: "模型根据证据抽取节点。",
+                      locator: "line:2",
+                      modality: "text",
+                      node_ids: ["node:map", "node:evidence"],
+                    },
+                  ],
+                  issues: [],
+                })
+              : JSON.stringify([
+                  {
+                    from: "node:map",
+                    to: "node:evidence",
+                    type: "uses",
+                    directionality: "directed",
+                    confidence: 0.9,
+                    evidence_anchor: "ev1",
+                    notes: "",
+                  },
+                ]);
+          return new Response(JSON.stringify({ output: [{ content: [{ type: "output_text", text }] }] }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      },
+    );
+
+    assert.equal(code, 0);
+    assert.equal(requestBodies.length, 2);
+    assert.equal((((requestBodies[0]?.text as Record<string, unknown>).format as Record<string, unknown>).name), "world_knowledge_node_evidence_bundle");
+    assert.equal((((requestBodies[1]?.text as Record<string, unknown>).format as Record<string, unknown>).name), "world_knowledge_edge_bundle");
+    const secondPayload = JSON.parse(((requestBodies[1]?.input as Array<{ content: Array<{ text: string }> }>)[0]!.content[0]!.text)) as {
+      markdown_lines?: unknown;
+      candidate_nodes: unknown[];
+    };
+    assert.equal(secondPayload.markdown_lines, undefined);
+    assert.equal(secondPayload.candidate_nodes.length, 2);
+    const payload = JSON.parse(stdout.join("")) as { status: string; counts: { nodes: number; edges: number }; issues: string[] };
+    assert.equal(payload.status, "success");
+    assert.equal(payload.counts.nodes, 2);
+    assert.equal(payload.counts.edges, 1);
+    assert.ok(payload.issues.some((issue) => issue.includes("bare JSON array")));
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }

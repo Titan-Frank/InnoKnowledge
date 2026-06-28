@@ -6,6 +6,10 @@ import test from "node:test";
 
 import {
   buildExtractionPayloadFromModelBundle,
+  buildHybridEdgeExtractionRequest,
+  buildHybridEdgeResponseSchema,
+  buildHybridExtractionPayloadFromModelBundles,
+  buildHybridNodeEvidenceResponseSchema,
   buildModelExtractionRequest,
   buildModelLessonPayload,
   buildRetrievalQueries,
@@ -90,6 +94,88 @@ test("builds OpenAI Responses and Chat Completions requests with the same schema
 
     const schema = buildResponseSchema();
     assert.equal(schema.name, "world_knowledge_lesson_bundle");
+    assert.equal(buildHybridNodeEvidenceResponseSchema().name, "world_knowledge_node_evidence_bundle");
+    assert.equal(buildHybridEdgeResponseSchema().name, "world_knowledge_edge_bundle");
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("builds the hybrid edge request from first-stage nodes and evidence only", () => {
+  const repo = makeFixtureRepo();
+  try {
+    const request = buildHybridEdgeExtractionRequest(
+      {
+        bookId,
+        batchAnchor: canonicalAnchor,
+        repoRoot: repo.root,
+        subject: "chemistry",
+        schoolStage: "senior-secondary",
+        gradeBand: "grade-11",
+      },
+      {
+        nodes: [{ id: "node:map", label: "知识图谱", kind: "concept", definition: "结构化表示知识。" }],
+        evidence_units: [{ anchor: "ev1", excerpt: "知识图谱是一种表示方法", source_locator: "line:2", node_ids: ["node:map"] }],
+        issues: [],
+      },
+    );
+
+    const userPayload = JSON.parse(request.user_payload) as {
+      markdown_lines?: unknown;
+      candidate_nodes: Array<{ id: string; name: string }>;
+      evidence_units: Array<{ anchor: string }>;
+      allowed_edge_types: string[];
+    };
+    assert.equal(userPayload.markdown_lines, undefined);
+    assert.deepEqual(userPayload.candidate_nodes, [
+      { id: "node:map", name: "知识图谱", kind: "concept", aliases: [], definition: "结构化表示知识。" },
+    ]);
+    assert.deepEqual(userPayload.evidence_units.map((item) => item.anchor), ["ev1"]);
+    assert.ok(userPayload.allowed_edge_types.includes("related_to"));
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("strictly keeps hybrid edges only when nodes and evidence anchors exist", () => {
+  const repo = makeFixtureRepo();
+  try {
+    const payload = buildHybridExtractionPayloadFromModelBundles(
+      {
+        bookId,
+        batchAnchor: canonicalAnchor,
+        repoRoot: repo.root,
+        subject: "chemistry",
+        schoolStage: "senior-secondary",
+        gradeBand: "grade-11",
+      },
+      {
+        nodes: [
+          { id: "node:map", label: "知识图谱", kind: "concept", definition: "以节点和关系表示知识。", domain: "chemistry" },
+          { id: "node:repr", name: "表示方法", kind: "method", definition: "表达对象和关系的方法。", learning_dimension: ["procedural"] },
+        ],
+        evidence_units: [
+          { anchor: "ev1", excerpt: "知识图谱是一种表示方法", locator: "line:2", modality: "text", node_ids: ["node:map", "node:repr"] },
+        ],
+        issues: ["stage1"],
+      },
+      {
+        edges: [
+          { source: "node:map", target: "node:repr", type: "uses", confidence: 0.9, evidence_anchor: "ev1", notes: "" },
+          { from: "node:map", to: "missing", type: "uses", confidence: 0.9, evidence_anchor: "ev1", notes: "" },
+          { from: "node:map", to: "node:repr", type: "uses", confidence: 0.9, evidence_anchor: "missing", notes: "" },
+        ],
+        issues: ["stage2"],
+      },
+    );
+
+    assert.equal(payload.counts.nodes, 2);
+    assert.equal(payload.counts.edges, 1);
+    assert.equal(payload.edges[0]?.from, "node:map");
+    assert.equal(payload.edges[0]?.to, "node:repr");
+    assert.ok(payload.issues.includes("stage1"));
+    assert.ok(payload.issues.includes("stage2"));
+    assert.ok(payload.issues.some((issue) => issue.includes("Strict hybrid validator dropped 2 edge")));
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }

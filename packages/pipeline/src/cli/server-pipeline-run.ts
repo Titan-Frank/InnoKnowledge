@@ -77,6 +77,8 @@ type RunnerOptions = {
   gradeBand: string;
   textbookId: string;
   apiMode: "responses" | "chat_completions";
+  extractionStrategy: "single_pass" | "hybrid";
+  modelRetryCount: number;
   model: string;
   baseUrl: string;
   timeoutSeconds: number;
@@ -91,6 +93,7 @@ type RunnerOptions = {
   qualityRetryCount: number;
   skipNodeBodies?: boolean;
   nodeBodyMode?: "card" | "model";
+  nodeBodyConcurrency?: number;
   nodeBodyLimit?: number;
   nodeBodyMaxEvidence?: number;
   overwriteNodeBodies?: boolean;
@@ -280,6 +283,8 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       gradeBand: options.gradeBand,
       textbookId: options.textbookId,
       apiMode: options.apiMode,
+      extractionStrategy: options.extractionStrategy,
+      modelRetryCount: options.modelRetryCount,
       model: options.model,
       baseUrl: options.baseUrl,
       reasoningEffort: options.reasoningEffort,
@@ -647,6 +652,8 @@ function buildNodeBodiesCommand(options: RunnerOptions): string[] {
     if (options.reasoningEffort) command.push("--reasoning-effort", options.reasoningEffort);
     command.push("--timeout", String(options.timeoutSeconds));
     command.push("--max-evidence", String(options.nodeBodyMaxEvidence ?? 8));
+    command.push("--concurrency", String(options.nodeBodyConcurrency ?? options.parallelism));
+    command.push("--model-retry-count", String(options.modelRetryCount));
   }
   if (options.nodeBodyLimit && options.nodeBodyLimit > 0) command.push("--limit", String(options.nodeBodyLimit));
   if (options.overwriteNodeBodies) command.push("--overwrite-existing");
@@ -989,6 +996,8 @@ function createRunResult(options: RunnerOptions): ServerPipelineResult {
       subject: options.subject,
       school_stage: options.schoolStage,
       grade_band: options.gradeBand,
+      extraction_strategy: options.extractionStrategy,
+      model_retry_count: options.modelRetryCount,
       vlm_api_url_configured: Boolean(options.vlmApiUrl),
       vlm_concurrency: options.vlmConcurrency,
       vlm_cache_dir: options.vlmCacheDir,
@@ -1163,7 +1172,7 @@ function parseOptions(argv: string[]): RunnerOptions {
     outputRoot,
     datasetId,
     dbUrl: required(flags, "db"),
-    parallelism: parseInteger(flags.get("parallelism"), 4),
+    parallelism: parseInteger(flags.get("parallelism"), 8),
     noChunks: flags.has("no-chunks"),
     pdfPath: flags.get("pdf-path") ?? "",
     bookTitle: flags.get("book-title") ?? "",
@@ -1182,6 +1191,8 @@ function parseOptions(argv: string[]): RunnerOptions {
     gradeBand: flags.get("grade-band") ?? "university",
     textbookId: flags.get("textbook-id") ?? bookId,
     apiMode: parseApiMode(flags.get("api-mode") ?? "responses"),
+    extractionStrategy: parseExtractionStrategy(flags.get("extraction-strategy")),
+    modelRetryCount: parseNonNegativeInteger(flags.get("model-retry-count"), 2),
     model: flags.get("model") ?? "",
     baseUrl: flags.get("base-url") ?? "",
     timeoutSeconds: parseInteger(flags.get("timeout"), 600),
@@ -1196,6 +1207,7 @@ function parseOptions(argv: string[]): RunnerOptions {
     qualityRetryCount: parseNonNegativeInteger(flags.get("quality-retry-count") ?? flags.get("quality-retries"), 1),
     skipNodeBodies: flags.has("skip-node-bodies"),
     nodeBodyMode: parseNodeBodyMode(flags.get("node-body-mode") ?? "model"),
+    nodeBodyConcurrency: parseInteger(flags.get("node-body-concurrency") ?? flags.get("parallelism"), 8),
     nodeBodyLimit: parseNonNegativeInteger(flags.get("node-body-limit"), 0),
     nodeBodyMaxEvidence: parseInteger(flags.get("node-body-max-evidence"), 8),
     overwriteNodeBodies: flags.has("overwrite-node-bodies"),
@@ -1248,6 +1260,14 @@ function parseApiMode(value: string): "responses" | "chat_completions" {
   if (value === "responses" || value === "openai_responses") return "responses";
   if (value === "chat_completions" || value === "openai_chat_completions") return "chat_completions";
   throw new Error(`Unsupported lesson backend/api mode '${value}'.`);
+}
+
+function parseExtractionStrategy(value: string | undefined): "single_pass" | "hybrid" {
+  if (value === undefined || value === "" || value === "hybrid" || value === "two_stage" || value === "two-stage") return "hybrid";
+  if (value === "single_pass" || value === "single-pass" || value === "current") {
+    return "single_pass";
+  }
+  throw new Error(`Unsupported extraction strategy '${value}'.`);
 }
 
 function parseNodeBodyMode(value: string): "card" | "model" {

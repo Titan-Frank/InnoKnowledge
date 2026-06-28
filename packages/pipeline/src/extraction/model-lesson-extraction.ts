@@ -28,6 +28,7 @@ export const DEFAULT_OPENAI_MODEL = "gpt-4.1";
 export const DEFAULT_OPENAI_TIMEOUT_MS = 180_000;
 
 export type ModelApiMode = "responses" | "chat_completions";
+export type ModelExtractionStrategy = "single_pass" | "hybrid";
 
 export type MarkdownEvidenceHint = {
   modality: "image" | "table" | "equation";
@@ -98,6 +99,9 @@ export type ModelBundle = {
   node_cards?: RawRecord[];
   issues?: unknown[];
 };
+
+export type HybridNodeEvidenceBundle = Pick<ModelBundle, "nodes" | "evidence_units" | "issues">;
+export type HybridEdgeBundle = Pick<ModelBundle, "edges" | "issues">;
 
 export type ExtractionPayload = {
   status: "success";
@@ -221,6 +225,130 @@ export function buildModelExtractionRequest(input: BuildModelExtractionRequestIn
     user_payload: userPayload,
     body,
   };
+}
+
+export function buildHybridNodeEvidenceExtractionRequest(input: BuildModelExtractionRequestInput): ModelExtractionRequest {
+  return buildSchemaBackedExtractionRequest(input, {
+    instructions: buildHybridNodeEvidenceInstructions({ prompt: input.prompt }),
+    userPayload: JSON.stringify(buildModelLessonPayload(input), null, 2),
+    schema: buildHybridNodeEvidenceResponseSchema(),
+  });
+}
+
+export function buildHybridEdgeExtractionRequest(
+  input: BuildModelExtractionRequestInput,
+  nodeEvidenceBundle: HybridNodeEvidenceBundle,
+): ModelExtractionRequest {
+  const lessonPayload = buildModelLessonPayload(input);
+  const normalized = normalizeHybridNodeEvidenceBundle(nodeEvidenceBundle);
+  const userPayload = JSON.stringify(
+    {
+      lesson_context: lessonPayload.lesson_context,
+      allowed_edge_types: sortedSet(VALID_EDGE_TYPES),
+      candidate_nodes: normalized.nodes.map((node) => ({
+        id: node.id,
+        name: node.name,
+        kind: node.kind,
+        aliases: node.aliases,
+        definition: node.definition,
+      })),
+      evidence_units: normalized.evidence_units.map((evidence) => ({
+        anchor: evidence.anchor,
+        excerpt: evidence.excerpt,
+        locator: evidence.locator,
+        modality: evidence.modality,
+        node_ids: evidence.node_ids,
+      })),
+    },
+    null,
+    2,
+  );
+  return buildSchemaBackedExtractionRequest(input, {
+    instructions: buildHybridEdgeInstructions({ prompt: input.prompt }),
+    userPayload,
+    schema: buildHybridEdgeResponseSchema(),
+  });
+}
+
+export function buildHybridExtractionPayloadFromModelResponses(
+  input: BuildModelLessonPayloadInput,
+  nodeEvidenceBody: RawRecord,
+  edgeBody: RawRecord,
+): ExtractionPayload {
+  return buildHybridExtractionPayloadFromModelBundles(
+    input,
+    parseHybridNodeEvidenceBundleFromResponse(nodeEvidenceBody),
+    parseHybridEdgeBundleFromResponse(edgeBody),
+  );
+}
+
+export function buildHybridExtractionPayloadFromModelBundles(
+  input: BuildModelLessonPayloadInput,
+  nodeEvidenceBundle: HybridNodeEvidenceBundle,
+  edgeBundle: HybridEdgeBundle,
+): ExtractionPayload {
+  const bundle = buildStrictHybridModelBundle(nodeEvidenceBundle, edgeBundle);
+  return buildExtractionPayloadFromModelBundle(input, bundle);
+}
+
+function buildSchemaBackedExtractionRequest(
+  input: BuildModelExtractionRequestInput,
+  options: { instructions: string; userPayload: string; schema: RawRecord },
+): ModelExtractionRequest {
+  const apiMode = input.apiMode ?? "responses";
+  const baseUrl = (input.baseUrl ?? DEFAULT_OPENAI_BASE_URL).replace(/\/+$/, "");
+  const model = input.model ?? DEFAULT_OPENAI_MODEL;
+  const body =
+    apiMode === "responses"
+      ? buildResponsesBody(model, options.instructions, options.userPayload, options.schema, input.reasoningEffort)
+      : buildChatCompletionsBody(model, options.instructions, options.userPayload, options.schema, input.reasoningEffort);
+
+  return {
+    api_mode: apiMode,
+    endpoint: `${baseUrl}/${apiMode === "responses" ? "responses" : "chat/completions"}`,
+    timeout_ms: input.timeoutMs ?? DEFAULT_OPENAI_TIMEOUT_MS,
+    instructions: options.instructions,
+    user_payload: options.userPayload,
+    body,
+  };
+}
+
+function buildHybridNodeEvidenceInstructions(input: { prompt?: string } = {}): string {
+  const base = `
+你是 Open Knowledge Map 项目的第一阶段教材知识抽取器。
+任务是只从当前 lesson/chunk 中抽取证据和候选知识节点。
+
+硬约束：
+1. 只输出 nodes、evidence_units、issues 三个字段。
+2. 这一阶段绝对不要输出关系；关系会在第二阶段单独判断。
+3. 每个节点必须能被当前 lesson 的 evidence_units 支撑，证据不足就不要列为节点。
+4. evidence_units.anchor 必须稳定、简短、唯一，例如 ev1、ev2。
+5. node.id 必须稳定、唯一，后续关系阶段会直接引用这些 id。
+6. 节点主类只能使用 9 类：entity/concept/property/process/event/method/rule/representation/resource。
+7. 不要把章节编号、复习题、术语表、小结当成正式知识节点。
+8. 输出必须严格符合 JSON schema。
+  `.trim();
+  const prompt = input.prompt?.trim();
+  return prompt ? `${base}\n\n补充项目提示：\n${prompt}` : base;
+}
+
+function buildHybridEdgeInstructions(input: { prompt?: string } = {}): string {
+  const base = `
+你是 Open Knowledge Map 项目的第二阶段关系抽取器。
+任务是只根据第一阶段给出的 candidate_nodes 和 evidence_units 判断关系。
+
+硬约束：
+1. 只输出 edges、issues 两个字段。
+2. 不要新增节点，不要改写节点 id，不要新增证据。
+3. edge.from 和 edge.to 必须来自 candidate_nodes.id。
+4. edge.evidence_anchor 必须完全等于 evidence_units.anchor 中的一个值。
+5. 关系 type 只能来自 allowed_edge_types。
+6. 如果证据不能直接支持关系，就不要输出该关系。
+7. 优先抽取教材明确表达的类属、组成、性质、因果、依赖、表示、使用、产出关系。
+8. 输出必须严格符合 JSON schema，不要解释。
+  `.trim();
+  const prompt = input.prompt?.trim();
+  return prompt ? `${base}\n\n补充项目提示：\n${prompt}` : base;
 }
 
 export async function callModelExtractionRequest(
@@ -402,6 +530,46 @@ export function buildResponseSchema(): RawRecord {
   };
 }
 
+export function buildHybridNodeEvidenceResponseSchema(): RawRecord {
+  const properties = responseSchemaProperties();
+  return {
+    name: "world_knowledge_node_evidence_bundle",
+    strict: true,
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        nodes: properties.nodes,
+        evidence_units: properties.evidence_units,
+        issues: properties.issues,
+      },
+      required: ["nodes", "evidence_units", "issues"],
+    },
+  };
+}
+
+export function buildHybridEdgeResponseSchema(): RawRecord {
+  const properties = responseSchemaProperties();
+  return {
+    name: "world_knowledge_edge_bundle",
+    strict: true,
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        edges: properties.edges,
+        issues: properties.issues,
+      },
+      required: ["edges", "issues"],
+    },
+  };
+}
+
+function responseSchemaProperties(): RawRecord {
+  const schema = recordValue(recordValue(buildResponseSchema().schema).properties);
+  return schema;
+}
+
 export function extractTextOutput(body: RawRecord): string {
   const choices = Array.isArray(body.choices) ? body.choices : [];
   const firstChoice = choices[0];
@@ -427,6 +595,21 @@ export function parseModelBundleFromResponse(body: RawRecord): ModelBundle {
   return parsed as ModelBundle;
 }
 
+export function parseHybridNodeEvidenceBundleFromResponse(body: RawRecord): HybridNodeEvidenceBundle {
+  const parsed = parseJsonObjectFromText(extractTextOutput(body));
+  if (!isRecord(parsed)) throw new Error("Hybrid node/evidence output must be a JSON object.");
+  return parsed as HybridNodeEvidenceBundle;
+}
+
+export function parseHybridEdgeBundleFromResponse(body: RawRecord): HybridEdgeBundle {
+  const parsed = parseJsonValueFromText(extractTextOutput(body));
+  if (Array.isArray(parsed)) {
+    return { edges: parsed.filter(isRecord), issues: ["Model returned a bare JSON array instead of the requested edge object."] };
+  }
+  if (!isRecord(parsed)) throw new Error("Hybrid edge output must be a JSON object or edge array.");
+  return parsed as HybridEdgeBundle;
+}
+
 function parseJsonObjectFromText(text: string): RawRecord {
   const trimmed = text.trim();
   const candidates = [trimmed];
@@ -450,6 +633,30 @@ function parseJsonObjectFromText(text: string): RawRecord {
   throw new Error(`Model output must be a JSON object: ${errors[0] ?? "empty output"}`);
 }
 
+function parseJsonValueFromText(text: string): unknown {
+  const trimmed = text.trim();
+  const candidates = [trimmed];
+  for (const block of extractFencedBlocks(trimmed)) {
+    candidates.push(block);
+  }
+  for (const arrayText of extractBalancedJsonArrays(trimmed)) {
+    candidates.push(arrayText);
+  }
+  for (const objectText of extractBalancedJsonObjects(trimmed)) {
+    candidates.push(objectText);
+  }
+
+  const errors: string[] = [];
+  for (const candidate of uniqueStable(candidates.filter(Boolean))) {
+    try {
+      return JSON.parse(candidate) as unknown;
+    } catch (error) {
+      errors.push((error as Error).message);
+    }
+  }
+  throw new Error(`Model output must contain JSON: ${errors[0] ?? "empty output"}`);
+}
+
 function extractFencedBlocks(text: string): string[] {
   const blocks: string[] = [];
   const pattern = /```[ \t]*(?:json)?[^\n\r`]*[\r\n]+([\s\S]*?)```/gi;
@@ -463,13 +670,22 @@ function extractFencedBlocks(text: string): string[] {
 function extractBalancedJsonObjects(text: string): string[] {
   const objects: string[] = [];
   for (let start = text.indexOf("{"); start >= 0; start = text.indexOf("{", start + 1)) {
-    const end = findBalancedJsonObjectEnd(text, start);
+    const end = findBalancedJsonValueEnd(text, start, "{", "}");
     if (end >= 0) objects.push(text.slice(start, end + 1).trim());
   }
   return objects;
 }
 
-function findBalancedJsonObjectEnd(text: string, start: number): number {
+function extractBalancedJsonArrays(text: string): string[] {
+  const arrays: string[] = [];
+  for (let start = text.indexOf("["); start >= 0; start = text.indexOf("[", start + 1)) {
+    const end = findBalancedJsonValueEnd(text, start, "[", "]");
+    if (end >= 0) arrays.push(text.slice(start, end + 1).trim());
+  }
+  return arrays;
+}
+
+function findBalancedJsonValueEnd(text: string, start: number, open: string, close: string): number {
   let depth = 0;
   let inString = false;
   let escaped = false;
@@ -487,9 +703,9 @@ function findBalancedJsonObjectEnd(text: string, start: number): number {
     }
     if (char === "\"") {
       inString = true;
-    } else if (char === "{") {
+    } else if (char === open) {
       depth += 1;
-    } else if (char === "}") {
+    } else if (char === close) {
       depth -= 1;
       if (depth === 0) return index;
     }
@@ -510,6 +726,120 @@ function uniqueStable(values: Iterable<string>): string[] {
 
 export function buildExtractionPayloadFromModelResponse(input: BuildModelLessonPayloadInput, body: RawRecord): ExtractionPayload {
   return buildExtractionPayloadFromModelBundle(input, parseModelBundleFromResponse(body));
+}
+
+function buildStrictHybridModelBundle(nodeEvidenceBundle: HybridNodeEvidenceBundle, edgeBundle: HybridEdgeBundle): ModelBundle {
+  const normalized = normalizeHybridNodeEvidenceBundle(nodeEvidenceBundle);
+  const nodeIds = new Set(normalized.nodes.map((node) => stringValue(node.id)).filter(Boolean));
+  const evidenceAnchors = new Set(normalized.evidence_units.map((evidence) => stringValue(evidence.anchor)).filter(Boolean));
+  const edges: RawRecord[] = [];
+  const seenEdges = new Set<string>();
+  let droppedEdges = 0;
+
+  for (const raw of asRecords(edgeBundle.edges)) {
+    const from = stringValue(raw.from || raw.source || raw.source_id).trim();
+    const to = stringValue(raw.to || raw.target || raw.target_id).trim();
+    const type = stringValue(raw.type || raw.relation || raw.predicate).trim();
+    const evidenceAnchor = stringValue(raw.evidence_anchor || raw.anchor || raw.evidence).trim();
+    if (!nodeIds.has(from) || !nodeIds.has(to) || !VALID_EDGE_TYPES.has(type) || !evidenceAnchors.has(evidenceAnchor)) {
+      droppedEdges += 1;
+      continue;
+    }
+
+    const edgeKey = `${from}\u0000${type}\u0000${to}\u0000${evidenceAnchor}`;
+    if (seenEdges.has(edgeKey)) continue;
+    seenEdges.add(edgeKey);
+    edges.push({
+      from,
+      to,
+      type,
+      directionality: stringValue(raw.directionality || "directed"),
+      confidence: numberOrDefault(raw.confidence, 0.8),
+      evidence_anchor: evidenceAnchor,
+      notes: stringValue(raw.notes).trim(),
+    });
+  }
+
+  return {
+    nodes: normalized.nodes,
+    evidence_units: normalized.evidence_units,
+    edges,
+    domain_profiles: [],
+    node_cards: [],
+    issues: trimmedStrings(nodeEvidenceBundle.issues).concat(
+      trimmedStrings(edgeBundle.issues),
+      normalized.issues,
+      droppedEdges > 0
+        ? [`Strict hybrid validator dropped ${droppedEdges} edge(s) with missing node ids, invalid relation types, or missing evidence anchors.`]
+        : [],
+    ),
+  };
+}
+
+function normalizeHybridNodeEvidenceBundle(bundle: HybridNodeEvidenceBundle): {
+  nodes: RawRecord[];
+  evidence_units: RawRecord[];
+  issues: string[];
+} {
+  const issues: string[] = [];
+  const nodes: RawRecord[] = [];
+  const seenNodeIds = new Set<string>();
+
+  for (const raw of asRecords(bundle.nodes)) {
+    const id = stringValue(raw.id || raw.node_id).trim();
+    if (!id || seenNodeIds.has(id)) continue;
+    const name = stringValue(raw.name || raw.label || raw.title || raw.term).trim();
+    if (!name) {
+      issues.push(`Hybrid stage 1 dropped node '${id}' because it had no name.`);
+      continue;
+    }
+
+    const kind = validOrDefault(stringValue(raw.kind || raw.node_kind).trim(), VALID_NODE_KINDS, "concept");
+    if (kind !== stringValue(raw.kind || raw.node_kind).trim()) {
+      issues.push(`Hybrid stage 1 normalized node kind for ${id}.`);
+    }
+    seenNodeIds.add(id);
+    nodes.push({
+      id,
+      name,
+      kind,
+      subkind: raw.subkind ?? null,
+      definition: stringValue(raw.definition || raw.description || name).trim(),
+      aliases: trimmedStrings(raw.aliases),
+      domains: validListOrDefault(raw.domains ?? raw.domain, VALID_DOMAINS, "general"),
+      knowledge_form: validListOrDefault(raw.knowledge_form, VALID_KNOWLEDGE_FORMS, "propositional"),
+      learning_mode: validListOrDefault(raw.learning_mode ?? raw.learning_dimension, VALID_LEARNING_MODES, "conceptual"),
+      scope: validOrDefault(stringValue(raw.scope).trim(), new Set(["universal", "domain-specific", "culture-specific"]), "domain-specific"),
+      properties: recordValue(raw.properties),
+      external_ids: recordValue(raw.external_ids),
+      tags: trimmedStrings(raw.tags),
+      notes: stringValue(raw.notes).trim(),
+    });
+  }
+
+  const nodeIds = new Set(nodes.map((node) => stringValue(node.id)));
+  const evidenceUnits: RawRecord[] = [];
+  const seenEvidenceAnchors = new Set<string>();
+  for (const [zeroIndex, raw] of asRecords(bundle.evidence_units).entries()) {
+    const fallbackAnchor = `ev${zeroIndex + 1}`;
+    const anchor = stringValue(raw.anchor || raw.evidence_anchor || raw.id || fallbackAnchor).trim();
+    const excerpt = stringValue(raw.excerpt || raw.quote || raw.text).trim();
+    if (!anchor || !excerpt || seenEvidenceAnchors.has(anchor)) continue;
+    seenEvidenceAnchors.add(anchor);
+    evidenceUnits.push({
+      anchor,
+      excerpt,
+      locator: stringValue(raw.locator || raw.source_locator || raw.location || "lesson-chunk").trim(),
+      modality: validOrDefault(stringValue(raw.modality || "text").trim(), new Set(["text", "image", "table", "equation"]), "text"),
+      node_ids: trimmedStrings(raw.node_ids).filter((nodeId) => nodeIds.has(nodeId)),
+    });
+  }
+
+  return {
+    nodes,
+    evidence_units: evidenceUnits,
+    issues,
+  };
 }
 
 export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPayloadInput, bundle: ModelBundle): ExtractionPayload {
@@ -1085,6 +1415,15 @@ function uniqueStrings(values: Iterable<string>): string[] {
     result.push(value);
   }
   return result;
+}
+
+function validOrDefault(value: string, allowed: Set<string>, fallback: string): string {
+  return allowed.has(value) ? value : fallback;
+}
+
+function validListOrDefault(value: unknown, allowed: Set<string>, fallback: string): string[] {
+  const validValues = trimmedStrings(value).filter((item) => allowed.has(item));
+  return validValues.length > 0 ? uniqueStrings(validValues) : [fallback];
 }
 
 function numberOrDefault(value: unknown, defaultValue: number): number {

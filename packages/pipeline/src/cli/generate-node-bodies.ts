@@ -47,6 +47,7 @@ async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promi
   const env = loadEnvironment(repoRoot, processEnv);
   const mode = parseMode(flags.get("mode"));
   const modelName = flags.get("model") ?? env.OPENAI_MODEL ?? DEFAULT_OPENAI_MODEL;
+  const modelRetryCount = parseNonNegativeInteger(flags.get("model-retry-count"), "model-retry-count") ?? 2;
   const generator = mode === "model"
     ? makeModelNodeBodyGenerator({
         apiKey: requiredApiKey(env, flags.get("api-key-env") ?? "OPENAI_API_KEY"),
@@ -55,6 +56,7 @@ async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promi
         model: modelName,
         reasoningEffort: flags.get("reasoning-effort") ?? "",
         timeoutMs: parseTimeoutMs(flags.get("timeout")),
+        retryCount: modelRetryCount,
       })
     : undefined;
   try {
@@ -65,6 +67,7 @@ async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promi
       limit: parseNonNegativeInteger(flags.get("limit"), "limit"),
       maxEvidencePerNode: parsePositiveInteger(flags.get("max-evidence"), "max-evidence") ?? 8,
       modelName,
+      concurrency: parsePositiveInteger(flags.get("concurrency"), "concurrency") ?? 8,
       overwriteExisting: flags.has("overwrite-existing"),
       generateBody: generator,
       query: async (statement) => {
@@ -89,6 +92,7 @@ function makeModelNodeBodyGenerator(options: {
   model: string;
   reasoningEffort?: string;
   timeoutMs: number;
+  retryCount: number;
 }): ModelNodeBodyGenerator {
   const baseUrl = options.baseUrl.replace(/\/+$/, "");
   return async (input) => {
@@ -101,16 +105,42 @@ function makeModelNodeBodyGenerator(options: {
       schema: prompt.response_schema,
       reasoningEffort: options.reasoningEffort,
     });
-    const response = await callModelExtractionRequest({
+    const response = await callModelRequestWithRetries({
       api_mode: options.apiMode,
       endpoint: `${baseUrl}/${options.apiMode === "responses" ? "responses" : "chat/completions"}`,
       timeout_ms: options.timeoutMs,
       instructions: prompt.instructions,
       user_payload: prompt.user_payload,
       body,
-    }, options.apiKey);
+    }, options.apiKey, options.retryCount);
     return parseModelNodeBodyResultText(extractTextOutput(response));
   };
+}
+
+async function callModelRequestWithRetries(
+  request: Parameters<typeof callModelExtractionRequest>[0],
+  apiKey: string,
+  retryCount: number,
+): Promise<RawRecord> {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt <= retryCount; attempt += 1) {
+    try {
+      return await callModelExtractionRequest(request, apiKey);
+    } catch (error) {
+      lastError = error as Error;
+      if (attempt >= retryCount || !isRetryableModelError(lastError)) break;
+      await sleep(Math.min(2000 * (attempt + 1), 8000));
+    }
+  }
+  throw lastError ?? new Error("Model request failed.");
+}
+
+function isRetryableModelError(error: Error): boolean {
+  return /fetch failed|network|socket|timeout|aborted|429|500|502|503|504/i.test(error.message);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
 }
 
 function buildOpenAiBody(input: {
@@ -181,7 +211,8 @@ function requiredApiKey(env: CliEnv, name: string): string {
 }
 
 function parseMode(value: string | undefined): NodeBodyGenerationMode {
-  if (value === undefined || value === "card") return "card";
+  if (value === undefined || value === "model") return "model";
+  if (value === "card") return "card";
   if (value === "model") return "model";
   throw new Error(`Invalid --mode '${value}'. Expected card or model.`);
 }

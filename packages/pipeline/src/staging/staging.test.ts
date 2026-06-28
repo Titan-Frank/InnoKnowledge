@@ -221,3 +221,25 @@ test("normalizes a full lesson artifact bundle with Python-compatible count keys
   assert.equal(result.mentions[0]?.source_id, bookId);
   assert.equal(result.evidence[0]?.anchor_ref, anchor);
 });
+
+test("deduplicates mentions by raw id before staging counts and inserts", () => {
+  const result = normalizeLessonArtifacts(
+    {
+      nodes: [{ id: "n1", name: "Water", kind: "concept", definition: "A substance" }],
+      edges: [],
+      domainProfiles: [],
+      mentions: [
+        { id: "m1", target_id: "n1", source_refs: ["ev1"] },
+        { id: "m1", target_id: "n1", source_refs: ["ev2"] },
+      ],
+      evidence: [{ id: "ev1", excerpt: "text" }],
+      nodeCards: [],
+    },
+    bookId,
+    anchor,
+  );
+
+  assert.equal(result.counts.mentions, 1);
+  assert.deepEqual(result.mentions.map((mention) => mention.raw_mention_id), ["m1"]);
+  assert.deepEqual(result.mentions[0]?.source_refs_json, ["ev1"]);
+});

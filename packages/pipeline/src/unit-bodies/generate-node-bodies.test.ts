@@ -222,6 +222,41 @@ test("plans model-written bodies from node cards, including backfilled card cont
   assert.deepEqual(plan.rows[1]?.source_refs_json, ["ev1"]);
 });
 
+test("plans model-written bodies with bounded concurrency and stable row order", async () => {
+  let active = 0;
+  let maxActive = 0;
+  const nodes = Array.from({ length: 4 }, (_, index) => ({
+    ...node,
+    id: `concept:water-${index}`,
+    name: `Water ${index}`,
+  }));
+  const plan = await planModelNodeBodies({
+    datasetId: "main",
+    nodes,
+    cards: nodes.map((item) => ({ ...card, node_id: item.id, title: item.name })),
+    mentions: nodes.map((item) => ({ target_id: item.id, source_id: "book", anchor_ref: "lesson:1", source_refs_json: ["ev1"] })),
+    evidence: [evidence],
+    existingBodies: [],
+    modelName: "test-model",
+    now: "now",
+    concurrency: 2,
+    generateBody: async (input) => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      active -= 1;
+      return {
+        content: `## 定义\n\n${input.node.name} 的正式正文。`,
+        source_refs: [input.evidence[0]!.id],
+      };
+    },
+  });
+
+  assert.equal(maxActive, 2);
+  assert.deepEqual(plan.rows.map((row) => row.node_id), nodes.map((item) => item.id));
+  assert.deepEqual(plan.modelFailures, []);
+});
+
 test("builds a constrained upsert statement for node bodies", () => {
   const plan = planNodeBodiesFromCards({ datasetId: "main", cards: [card], now: "now" });
   const statement = buildUpsertNodeBodyStatement(plan.rows[0]!);
@@ -235,6 +270,7 @@ test("runs node body generation from database rows", async () => {
   const executed: string[] = [];
   const result = await runGenerateNodeBodiesFromDatabase({
     datasetId: "main",
+    mode: "card",
     now: "now",
     query: (statement) => {
       if (statement.name === "select-node-cards-for-bodies") return [card];
@@ -262,4 +298,47 @@ test("runs node body generation from database rows", async () => {
     statements: ["upsert-world-node-body"],
     executedStatements: executed,
   });
+});
+
+test("runs model node body generation from database rows by default", async () => {
+  const executed: string[] = [];
+  const modelNode = { ...node, id: "concept:model-water" };
+  const modelCard = { ...card, node_id: modelNode.id };
+  const result = await runGenerateNodeBodiesFromDatabase({
+    datasetId: "main",
+    now: "now",
+    concurrency: 2,
+    modelName: "test-model",
+    query: (statement) => {
+      if (statement.name === "select-node-cards-for-bodies") return [modelCard];
+      if (statement.name === "select-existing-node-bodies") return [];
+      if (statement.name === "select-nodes-for-model-bodies") return [modelNode];
+      if (statement.name === "select-mentions-for-model-bodies") {
+        return [{ target_id: modelNode.id, source_id: "book", anchor_ref: "lesson:1", source_refs_json: ["ev1"] }];
+      }
+      if (statement.name === "select-evidence-for-model-bodies") return [evidence];
+      return [];
+    },
+    generateBody: (input) => ({
+      content: `## 定义\n\n${input.node.name} 的正式正文。`,
+      source_refs: [input.evidence[0]!.id],
+    }),
+    executeStatement: (statement) => {
+      executed.push(statement.name);
+    },
+  });
+
+  assert.equal(result.mode, "model");
+  assert.equal(result.selected, 1);
+  assert.equal(result.generated, 1);
+  assert.equal(result.failed_model_generation, 0);
+  assert.deepEqual(result.read_statements, [
+    "select-node-cards-for-bodies",
+    "select-existing-node-bodies",
+    "select-nodes-for-model-bodies",
+    "select-mentions-for-model-bodies",
+    "select-evidence-for-model-bodies",
+  ]);
+  assert.deepEqual(result.statements, ["upsert-world-node-body"]);
+  assert.deepEqual(result.executedStatements, executed);
 });

@@ -238,22 +238,25 @@ export function normalizeDomainProfiles(domainProfiles: RawRecord[]): Normalized
 }
 
 export function normalizeMentions(mentions: RawRecord[], bookId: string, anchor: string): NormalizedMention[] {
-  return mentions.map((mention) => {
-    const rawMentionId = stringValue(pickPythonOr(mention.id, mention.raw_mention_id)).trim();
-    if (!rawMentionId) throw new Error("Mention missing id.");
-    return {
-      raw_mention_id: rawMentionId,
-      source_type: stringValue(pickPythonOr(mention.source_type, "textbook")),
-      source_id: stringValue(pickPythonOr(mention.source_id, bookId)),
-      anchor_ref: stringValue(pickPythonOr(mention.anchor_ref, anchor)),
-      target_type: stringValue(pickPythonOr(mention.target_type, "node")),
-      target_raw_id: stringValue(pickPythonOr(mention.target_id, mention.target_raw_id)).trim(),
-      role: stringValue(pickPythonOr(mention.role, "mentions")),
-      source_refs_json: uniqueStrings(mention.source_refs),
-      confidence: numberValue(pickPythonOr(mention.confidence, 0.8)),
-      properties_json: recordValue(mention.properties),
-    };
-  });
+  return uniqueByKey(
+    mentions.map((mention) => {
+      const rawMentionId = stringValue(pickPythonOr(mention.id, mention.raw_mention_id)).trim();
+      if (!rawMentionId) throw new Error("Mention missing id.");
+      return {
+        raw_mention_id: rawMentionId,
+        source_type: stringValue(pickPythonOr(mention.source_type, "textbook")),
+        source_id: stringValue(pickPythonOr(mention.source_id, bookId)),
+        anchor_ref: stringValue(pickPythonOr(mention.anchor_ref, anchor)),
+        target_type: stringValue(pickPythonOr(mention.target_type, "node")),
+        target_raw_id: stringValue(pickPythonOr(mention.target_id, mention.target_raw_id)).trim(),
+        role: stringValue(pickPythonOr(mention.role, "mentions")),
+        source_refs_json: uniqueStrings(mention.source_refs),
+        confidence: numberValue(pickPythonOr(mention.confidence, 0.8)),
+        properties_json: recordValue(mention.properties),
+      };
+    }),
+    (mention) => mention.raw_mention_id,
+  );
 }
 
 export function normalizeEvidence(evidence: RawRecord[], bookId: string, anchor: string): NormalizedEvidence[] {
@@ -330,6 +333,18 @@ function uniqueEnum(value: unknown, allowed: Set<string>): string[] {
 
 function uniqueStrings(value: unknown): string[] {
   return uniqueStable(trimmedStrings(value));
+}
+
+function uniqueByKey<T>(values: T[], keyForValue: (value: T) => string): T[] {
+  const result: T[] = [];
+  const seen = new Set<string>();
+  for (const value of values) {
+    const key = keyForValue(value);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(value);
+  }
+  return result;
 }
 
 function trimmedStrings(value: unknown): string[] {

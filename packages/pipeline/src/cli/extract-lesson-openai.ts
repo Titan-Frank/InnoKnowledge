@@ -9,11 +9,17 @@ import {
   DEFAULT_OPENAI_MODEL,
   DEFAULT_OPENAI_TIMEOUT_MS,
   buildExtractionPayloadFromModelResponse,
+  buildHybridEdgeExtractionRequest,
+  buildHybridExtractionPayloadFromModelBundles,
+  buildHybridNodeEvidenceExtractionRequest,
   buildModelExtractionRequest,
   buildModelLessonPayload,
   buildRetrievalQueries,
   callModelExtractionRequest,
   type ModelApiMode,
+  parseHybridEdgeBundleFromResponse,
+  parseHybridNodeEvidenceBundleFromResponse,
+  type ModelExtractionStrategy,
 } from "../extraction/model-lesson-extraction.js";
 import { filterImageEvidencePayload } from "../extraction/image-relevance.js";
 import {
@@ -76,6 +82,8 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
     const repoRoot = flags.get("repo-root") ?? REPO_ROOT;
     const env = loadEnvironment(repoRoot, deps.env ?? processEnv);
     const apiMode = parseApiMode(flags.get("api-mode"));
+    const extractionStrategy = parseExtractionStrategy(flags.get("extraction-strategy"));
+    const modelRetryCount = parseNonNegativeInteger(flags.get("model-retry-count") ?? env.MODEL_RETRY_COUNT, "model-retry-count") ?? 2;
     const timeoutMs = parseTimeoutMs(flags.get("timeout"));
     const outputRoot = required(flags, "output-root");
     const requestBase: ExtractLessonRequestBase = {
@@ -103,7 +111,6 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
     if (pgOutline) requestBase.outline = pgOutline;
     const retrievalCandidates = await resolveRetrievalCandidates(flags, requestBase, env, deps);
     const requestInput = { ...requestBase, retrievalCandidates };
-    const request = buildModelExtractionRequest(requestInput);
 
     const apiKeyEnv = flags.get("api-key-env") ?? "OPENAI_API_KEY";
     const apiKey = (env[apiKeyEnv] ?? "").trim();
@@ -113,8 +120,19 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
     }
 
     try {
-      const responseBody = await callModelExtractionRequest(request, apiKey, deps.fetchImpl ?? fetch);
-      let payload: RawRecord = buildExtractionPayloadFromModelResponse(requestInput, responseBody);
+      let payload: RawRecord;
+      if (extractionStrategy === "hybrid") {
+        const nodeEvidenceRequest = buildHybridNodeEvidenceExtractionRequest(requestInput);
+        const nodeEvidenceBody = await callModelExtractionRequestWithRetries(nodeEvidenceRequest, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
+        const nodeEvidenceBundle = parseHybridNodeEvidenceBundleFromResponse(nodeEvidenceBody);
+        const edgeRequest = buildHybridEdgeExtractionRequest(requestInput, nodeEvidenceBundle);
+        const edgeBody = await callModelExtractionRequestWithRetries(edgeRequest, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
+        payload = buildHybridExtractionPayloadFromModelBundles(requestInput, nodeEvidenceBundle, parseHybridEdgeBundleFromResponse(edgeBody));
+      } else {
+        const request = buildModelExtractionRequest(requestInput);
+        const responseBody = await callModelExtractionRequestWithRetries(request, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
+        payload = buildExtractionPayloadFromModelResponse(requestInput, responseBody);
+      }
       if (!flags.has("no-image-filter")) {
         const vlmConcurrency = parsePositiveInteger(flags.get("vlm-concurrency") ?? env.VLM_CONCURRENCY, "vlm-concurrency") ?? 3;
         const imageFilterResult = await filterImageEvidencePayload(payload, {
@@ -181,8 +199,10 @@ const EXTRACT_LESSON_OPENAI_FLAGS = new Set([
   "embedding-api-key-env",
   "embedding-model",
   "embedding-url",
+  "extraction-strategy",
   "grade-band",
   "model",
+  "model-retry-count",
   "output-root",
   "pretty",
   "prompt",
@@ -255,6 +275,14 @@ function parseApiMode(value: string | undefined): ModelApiMode {
   if (value === undefined || value === "responses") return "responses";
   if (value === "chat_completions") return "chat_completions";
   throw new Error(`Invalid --api-mode '${value}'. Expected responses or chat_completions.`);
+}
+
+function parseExtractionStrategy(value: string | undefined): ModelExtractionStrategy {
+  if (value === undefined || value === "" || value === "hybrid" || value === "two_stage" || value === "two-stage") return "hybrid";
+  if (value === "single_pass" || value === "single-pass" || value === "current") {
+    return "single_pass";
+  }
+  throw new Error(`Invalid --extraction-strategy '${value}'. Expected single_pass or hybrid.`);
 }
 
 function parseTimeoutMs(value: string | undefined): number {
@@ -462,6 +490,40 @@ function parsePositiveInteger(value: string | undefined, name: string): number |
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed < 1) throw new Error(`--${name} must be a positive integer.`);
   return parsed;
+}
+
+function parseNonNegativeInteger(value: string | undefined, name: string): number | undefined {
+  if (value === undefined) return undefined;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) throw new Error(`--${name} must be a non-negative integer.`);
+  return parsed;
+}
+
+async function callModelExtractionRequestWithRetries(
+  request: Parameters<typeof callModelExtractionRequest>[0],
+  apiKey: string,
+  fetchImpl: typeof fetch,
+  retryCount: number,
+): Promise<RawRecord> {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt <= retryCount; attempt += 1) {
+    try {
+      return await callModelExtractionRequest(request, apiKey, fetchImpl);
+    } catch (error) {
+      lastError = error as Error;
+      if (attempt >= retryCount || !isRetryableModelError(lastError)) break;
+      await sleep(Math.min(2000 * (attempt + 1), 8000));
+    }
+  }
+  throw lastError ?? new Error("Model request failed.");
+}
+
+function isRetryableModelError(error: Error): boolean {
+  return /fetch failed|network|socket|timeout|aborted|429|500|502|503|504/i.test(error.message);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
 }
 
 function parseOptionalNumber(value: string | undefined, name: string): number | undefined {

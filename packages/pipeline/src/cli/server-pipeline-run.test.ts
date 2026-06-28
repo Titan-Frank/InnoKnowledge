@@ -23,6 +23,8 @@ test("server pipeline runner plans TypeScript lesson extraction commands", async
     gradeBand: "university",
     textbookId: bookId,
     apiMode: "responses",
+    extractionStrategy: "single_pass",
+    modelRetryCount: 2,
     model: "gpt-test",
     baseUrl: "",
     timeoutSeconds: 30,
@@ -70,6 +72,8 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
     gradeBand: "university",
     textbookId: bookId,
     apiMode: "responses",
+    extractionStrategy: "single_pass",
+    modelRetryCount: 2,
     model: "gpt-test",
     baseUrl: "",
     timeoutSeconds: 30,
@@ -109,6 +113,10 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.ok(nodeBodiesCommand.some((part) => part.endsWith("generate-node-bodies.js")));
   assert.ok(nodeBodiesCommand.includes("--mode"));
   assert.ok(nodeBodiesCommand.includes("model"));
+  assert.ok(nodeBodiesCommand.includes("--concurrency"));
+  assert.ok(nodeBodiesCommand.includes("8"));
+  assert.ok(nodeBodiesCommand.includes("--model-retry-count"));
+  assert.ok(nodeBodiesCommand.includes("2"));
   assert.equal(qaStage?.status, "completed");
   assert.equal(integrityStage?.status, "completed");
   assert.ok(integrityCommand.some((part) => part.endsWith("graph-integrity.js")));
@@ -140,6 +148,8 @@ test("server pipeline retries chunks that fail staging quality", async () => {
     gradeBand: "university",
     textbookId: bookId,
     apiMode: "responses",
+    extractionStrategy: "single_pass",
+    modelRetryCount: 2,
     model: "gpt-test",
     baseUrl: "",
     timeoutSeconds: 30,
@@ -209,6 +219,8 @@ test("server pipeline blocks when node body generation reports model failures", 
     gradeBand: "university",
     textbookId: bookId,
     apiMode: "responses",
+    extractionStrategy: "single_pass",
+    modelRetryCount: 2,
     model: "gpt-test",
     baseUrl: "",
     timeoutSeconds: 30,

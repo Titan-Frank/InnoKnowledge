@@ -430,6 +430,7 @@ export async function planModelNodeBodies(input: {
   modelName: string;
   now: string;
   maxEvidencePerNode?: number;
+  concurrency?: number;
   generateBody: ModelNodeBodyGenerator;
 }): Promise<GenerateNodeBodiesPlan> {
   const existing = new Map((input.existingBodies ?? []).map((row) => [row.node_id, row]));
@@ -454,6 +455,7 @@ export async function planModelNodeBodies(input: {
   const skippedBackfilledOnly: string[] = [];
   const modelFailures: ModelGenerationFailure[] = [];
   const maxEvidence = input.maxEvidencePerNode ?? 8;
+  const tasks: ModelNodeBodyTask[] = [];
 
   for (const node of input.nodes) {
     const existingBody = existing.get(node.id);
@@ -485,52 +487,102 @@ export async function planModelNodeBodies(input: {
       skippedMissingSourceRefs.push(node.id);
       continue;
     }
-    const allowedEvidenceIds = new Set(evidenceRows.map((row) => row.id));
 
+    tasks.push({
+      datasetId: input.datasetId,
+      node,
+      card,
+      cardMarkdown,
+      evidenceRows,
+      allowedEvidenceIds: new Set(evidenceRows.map((row) => row.id)),
+      modelName: input.modelName,
+      now: input.now,
+    });
+  }
+
+  const taskResults = await mapWithConcurrency(tasks, input.concurrency ?? 8, async (task) => {
     try {
       const generated = await input.generateBody({
-        datasetId: input.datasetId,
-        node,
-        card,
-        card_markdown: cardMarkdown,
-        evidence: evidenceRows,
+        datasetId: task.datasetId,
+        node: task.node,
+        card: task.card,
+        card_markdown: task.cardMarkdown,
+        evidence: task.evidenceRows,
       });
       const content = textValue(generated.content);
-      if (!content) {
-        skippedEmptyContent.push(node.id);
-        continue;
-      }
-      const sourceRefs = uniqueStrings(generated.source_refs).filter((id) => allowedEvidenceIds.has(id));
+      if (!content) return { kind: "skipped_empty" as const, nodeId: task.node.id };
+      const sourceRefs = uniqueStrings(generated.source_refs).filter((id) => task.allowedEvidenceIds.has(id));
       if (sourceRefs.length === 0) {
-        modelFailures.push({ node_id: node.id, message: "Model output did not cite any provided evidence id." });
-        continue;
+        return {
+          kind: "model_failure" as const,
+          failure: { node_id: task.node.id, message: "Model output did not cite any provided evidence id." },
+        };
       }
-      rows.push({
-        dataset_id: input.datasetId,
-        node_id: node.id,
-        format: "markdown",
-        content,
-        media_refs_json: Array.isArray(generated.media_refs) ? generated.media_refs.filter(isRecord) : [],
-        source_refs_json: sourceRefs,
-        generated_from: "model_generation",
-        properties_json: {
-          source: "model_node_body",
-          model: input.modelName,
-          prompt_version: "node-body-writer-v1",
-          card_title: textValue(card.title),
-          evidence_count: evidenceRows.length,
-          ...recordValue(generated.properties),
+      return {
+        kind: "row" as const,
+        row: {
+          dataset_id: task.datasetId,
+          node_id: task.node.id,
+          format: "markdown" as const,
+          content,
+          media_refs_json: Array.isArray(generated.media_refs) ? generated.media_refs.filter(isRecord) : [],
+          source_refs_json: sourceRefs,
+          generated_from: "model_generation" as const,
+          properties_json: {
+            source: "model_node_body",
+            model: task.modelName,
+            prompt_version: "node-body-writer-v1",
+            card_title: textValue(task.card.title),
+            evidence_count: task.evidenceRows.length,
+            ...recordValue(generated.properties),
+          },
+          status: "active" as const,
+          created_at: task.now,
+          updated_at: task.now,
         },
-        status: "active",
-        created_at: input.now,
-        updated_at: input.now,
-      });
+      };
     } catch (error) {
-      modelFailures.push({ node_id: node.id, message: (error as Error).message });
+      return { kind: "model_failure" as const, failure: { node_id: task.node.id, message: (error as Error).message } };
     }
+  });
+
+  for (const result of taskResults) {
+    if (result.kind === "row") rows.push(result.row);
+    else if (result.kind === "skipped_empty") skippedEmptyContent.push(result.nodeId);
+    else modelFailures.push(result.failure);
   }
 
   return { rows, skippedExisting, skippedMissingSourceRefs, skippedEmptyContent, skippedBackfilledOnly, modelFailures };
+}
+
+type ModelNodeBodyTask = {
+  datasetId: string;
+  node: NodeBodyInputNodeRow;
+  card: NodeCardBodyRow;
+  cardMarkdown: string;
+  evidenceRows: NodeBodyInputEvidenceRow[];
+  allowedEvidenceIds: Set<string>;
+  modelName: string;
+  now: string;
+};
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  if (items.length === 0) return [];
+  const workerCount = Math.max(1, Math.min(Math.floor(concurrency), items.length));
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await worker(items[index]!, index);
+    }
+  }));
+  return results;
 }
 
 export function buildUpsertNodeBodyStatement(row: GeneratedNodeBodyRow): SqlStatement {
@@ -576,12 +628,13 @@ export async function runGenerateNodeBodiesFromDatabase(input: {
   limit?: number | null;
   maxEvidencePerNode?: number | null;
   modelName?: string;
+  concurrency?: number | null;
   overwriteExisting?: boolean;
   generateBody?: ModelNodeBodyGenerator;
   query: GenerateNodeBodiesQueryExecutor;
   executeStatement: GenerateNodeBodiesExecutor;
 }): Promise<GenerateNodeBodiesDatabaseOutput> {
-  const mode = input.mode ?? "card";
+  const mode = input.mode ?? "model";
   const now = input.now || new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00");
   const readStatements: string[] = [];
   const statements: string[] = [];
@@ -609,6 +662,7 @@ export async function runGenerateNodeBodiesFromDatabase(input: {
         evidence: (await query(buildSelectEvidenceForModelBodiesQuery(input.datasetId))).map(toNodeBodyInputEvidenceRow),
         overwriteExisting: input.overwriteExisting,
         maxEvidencePerNode: input.maxEvidencePerNode ?? undefined,
+        concurrency: input.concurrency ?? 8,
         modelName: input.modelName ?? "",
         generateBody: input.generateBody ?? missingModelGenerator,
         now,
