@@ -350,6 +350,58 @@ test("parses VLM JSON when providers wrap it in a Markdown code fence", async ()
   }
 });
 
+test("parses fenced VLM JSON with surrounding provider text", async () => {
+  const repo = makeImageFixture();
+  try {
+    const result = await filterImageEvidencePayload(
+      {
+        evidence: [imageEvidence("ev-fenced-with-text", "![教材图片](images/unknown.png)", "line:3", "images/unknown.png")],
+        mentions: [],
+        edges: [],
+        domain_profiles: [],
+        node_cards: [],
+        counts: { evidence: 1, mentions: 0, edges: 0, domain_profiles: 0, node_cards: 0 },
+        issues: [],
+      },
+      {
+        repoRoot: repo.root,
+        vlmApiUrl: "http://localhost:8000/v1",
+        fetchImpl: async () =>
+          new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  message: {
+                    content: [
+                      "下面是判断结果：",
+                      "```json",
+                      JSON.stringify({
+                        keep: true,
+                        relevance: "core_content",
+                        visual_summary: "图片展示教材中的概念图。",
+                        reason: "图中含有 {公式} 与概念结构，属于核心内容。",
+                        confidence: 0.91,
+                      }, null, 2),
+                      "```",
+                      "以上为 JSON。",
+                    ].join("\n"),
+                  },
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          ),
+      },
+    );
+
+    assert.equal(result.decisions["ev-fenced-with-text"]?.source, "vlm");
+    assert.equal(result.decisions["ev-fenced-with-text"]?.relevance, "core_content");
+    assert.deepEqual(result.dropped_evidence_ids, []);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
 test("falls back to source markdown when an image evidence path is stale", async () => {
   const repo = makeImageFixture();
   let called = false;

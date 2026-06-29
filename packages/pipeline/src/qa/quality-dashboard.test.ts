@@ -53,6 +53,20 @@ test("builds lesson and global quality dashboard metrics", async () => {
   assert.deepEqual(second.quality_issues, ["Lesson produced no staged edges."]);
 });
 
+test("uses canonical image review state after a lesson has been merged", async () => {
+  const result = await runQualityDashboardFromDatabase({
+    datasetId: "main",
+    now: "2026-06-29T00:00:00.000Z",
+    query: (statement) => rowsForCanonicalConfirmed(statement.name),
+  });
+
+  assert.equal(result.lessons[0]?.status, "qa_passed");
+  assert.equal(result.lessons[0]?.image_review_count, 0);
+  assert.equal(result.lessons[0]?.manual_pending_items, 1);
+  assert.equal(result.summary.image_review_count, 0);
+  assert.equal(result.summary.manual_pending_items, 2);
+});
+
 function rowsFor(name: string): Array<Record<string, unknown>> {
   switch (name) {
     case "select-quality-lesson-runs":
@@ -110,10 +124,28 @@ function rowsFor(name: string): Array<Record<string, unknown>> {
       return [{ from_id: "n1", to_id: "n2", status: "active" }];
     case "select-quality-canonical-evidence":
       return [
-        { modality: "image", properties_json: { image_relevance: { review_status: "pending" } } },
-        { modality: "text", properties_json: {} },
+        { source_id: "book-a", anchor_ref: "struct:book-a:1", modality: "image", properties_json: { image_relevance: { review_status: "pending" } } },
+        { source_id: "book-a", anchor_ref: "struct:book-a:2", modality: "text", properties_json: {} },
       ];
     default:
       return [];
   }
+}
+
+function rowsForCanonicalConfirmed(name: string): Array<Record<string, unknown>> {
+  if (name !== "select-quality-canonical-evidence") return rowsFor(name);
+  return [
+    {
+      source_id: "book-a",
+      anchor_ref: "struct:book-a:1",
+      modality: "image",
+      properties_json: {
+        image_relevance: {
+          relevance: "core_content",
+          review_status: "confirmed",
+        },
+      },
+    },
+    { source_id: "book-a", anchor_ref: "struct:book-a:2", modality: "text", properties_json: {} },
+  ];
 }

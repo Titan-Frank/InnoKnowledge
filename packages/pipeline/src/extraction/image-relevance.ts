@@ -408,12 +408,11 @@ function extractModelText(body: unknown): string {
 
 function parseJsonObject(text: string): RawRecord {
   const trimmed = text.trim();
-  const candidates = [trimmed];
-  const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
-  if (fenced) candidates.push(fenced[1]!.trim());
-  const firstBrace = trimmed.indexOf("{");
-  const lastBrace = trimmed.lastIndexOf("}");
-  if (firstBrace >= 0 && lastBrace > firstBrace) candidates.push(trimmed.slice(firstBrace, lastBrace + 1));
+  const candidates = [
+    trimmed,
+    ...extractFencedJsonCandidates(trimmed),
+    ...extractJsonObjectCandidates(trimmed),
+  ];
 
   const errors: string[] = [];
   for (const candidate of uniqueStable(candidates.filter(Boolean))) {
@@ -425,7 +424,60 @@ function parseJsonObject(text: string): RawRecord {
       errors.push((error as Error).message);
     }
   }
-  throw new Error(`VLM JSON output must be an object: ${errors[0] ?? "empty output"}`);
+  throw new Error(`VLM JSON output must be an object: ${errors.slice(0, 3).join("; ") || "empty output"}`);
+}
+
+function extractFencedJsonCandidates(text: string): string[] {
+  const candidates: string[] = [];
+  const fencePattern = /```(?:json)?\s*([\s\S]*?)```/gi;
+  for (const match of text.matchAll(fencePattern)) {
+    const body = match[1]?.trim();
+    if (body) candidates.push(body);
+  }
+  return candidates;
+}
+
+function extractJsonObjectCandidates(text: string): string[] {
+  const candidates: string[] = [];
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] !== "{") continue;
+    const candidate = balancedJsonObjectAt(text, index);
+    if (candidate) {
+      candidates.push(candidate);
+      index += candidate.length - 1;
+    }
+  }
+  return candidates;
+}
+
+function balancedJsonObjectAt(text: string, start: number): string | null {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === "\"") {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === "\"") {
+      inString = true;
+      continue;
+    }
+    if (char === "{") {
+      depth += 1;
+    } else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) return text.slice(start, index + 1);
+    }
+  }
+  return null;
 }
 
 function uniqueStable(values: Iterable<string>): string[] {

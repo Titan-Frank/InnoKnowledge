@@ -88,6 +88,8 @@ type CanonicalEdgeRow = {
 };
 
 type CanonicalEvidenceRow = {
+  source_id: string;
+  anchor_ref: string;
   modality: string | null;
   properties_json: unknown;
 };
@@ -189,7 +191,7 @@ export function buildSelectQualityCanonicalEdgesQuery(datasetId: string): SqlSta
 export function buildSelectQualityCanonicalEvidenceQuery(datasetId: string): SqlStatement {
   return {
     name: "select-quality-canonical-evidence",
-    sql: "SELECT modality, properties_json FROM world_evidence WHERE dataset_id = $1",
+    sql: "SELECT source_id, anchor_ref, modality, properties_json FROM world_evidence WHERE dataset_id = $1",
     params: [datasetId],
   };
 }
@@ -209,6 +211,7 @@ function buildQualityDashboard(input: {
   const nodesByLesson = groupByLesson(input.stagingNodeRows);
   const edgesByLesson = groupByLesson(input.stagingEdgeRows);
   const evidenceByLesson = groupByLesson(input.stagingEvidenceRows);
+  const canonicalEvidenceByLesson = groupCanonicalEvidenceByLesson(input.canonicalEvidenceRows);
   const reviewCountByLesson = countBy(input.reviewRows, (row) => row.lesson_run_id);
   let supportedObjects = 0;
   let supportableObjects = 0;
@@ -229,7 +232,11 @@ function buildQualityDashboard(input: {
       nodes.map((row) => row.raw_node_id),
       edges.map((row) => ({ from: row.from_raw_node_id, to: row.to_raw_node_id })),
     );
-    const imageReviewCount = evidence.filter((row) => isPendingImageReview(row.modality, row.properties_json)).length;
+    const imageReviewCount = lessonImageReviewCount({
+      lesson,
+      stagingEvidenceRows: evidence,
+      canonicalEvidenceRows: canonicalEvidenceByLesson.get(lessonKey(lesson)) ?? [],
+    });
     const mergeReviewCount = reviewCountByLesson.get(lesson.lesson_run_id) ?? 0;
     const blockedItem = lesson.status === "blocked" ? 1 : 0;
     return {
@@ -263,8 +270,9 @@ function buildQualityDashboard(input: {
   const nodeCount = canonicalNodes.length || fallbackNodeCount;
   const relationCount = canonicalEdges.length || fallbackRelationCount;
   const isolatedNodeCount = canonicalNodes.length > 0 ? canonicalGraph.isolatedCount : lessons.reduce((sum, row) => sum + row.isolated_node_count, 0);
-  const imageReviewCount = input.canonicalEvidenceRows.filter((row) => isPendingImageReview(row.modality, row.properties_json)).length ||
-    lessons.reduce((sum, row) => sum + row.image_review_count, 0);
+  const imageReviewCount = input.canonicalEvidenceRows.length > 0
+    ? input.canonicalEvidenceRows.filter((row) => isPendingImageReview(row.modality, row.properties_json)).length
+    : lessons.reduce((sum, row) => sum + row.image_review_count, 0);
   const mergeReviewCount = input.reviewRows.length;
   const blockedLessonCount = lessons.filter((row) => row.status === "blocked").length;
 
@@ -346,6 +354,8 @@ function toCanonicalEdgeRow(row: RawRecord): CanonicalEdgeRow {
 
 function toCanonicalEvidenceRow(row: RawRecord): CanonicalEvidenceRow {
   return {
+    source_id: requiredString(row.source_id, "source_id"),
+    anchor_ref: requiredString(row.anchor_ref, "anchor_ref"),
     modality: optionalString(row.modality),
     properties_json: row.properties_json,
   };
@@ -357,6 +367,34 @@ function groupByLesson<T extends { lesson_run_id: string }>(rows: T[]): Map<stri
     grouped.set(row.lesson_run_id, [...(grouped.get(row.lesson_run_id) ?? []), row]);
   }
   return grouped;
+}
+
+function groupCanonicalEvidenceByLesson(rows: CanonicalEvidenceRow[]): Map<string, CanonicalEvidenceRow[]> {
+  const grouped = new Map<string, CanonicalEvidenceRow[]>();
+  for (const row of rows) {
+    const key = `${row.source_id}\n${row.anchor_ref}`;
+    grouped.set(key, [...(grouped.get(key) ?? []), row]);
+  }
+  return grouped;
+}
+
+function lessonKey(lesson: LessonRow): string {
+  return `${lesson.book_id}\n${lesson.batch_anchor}`;
+}
+
+function lessonImageReviewCount(input: {
+  lesson: LessonRow;
+  stagingEvidenceRows: StagingEvidenceRow[];
+  canonicalEvidenceRows: CanonicalEvidenceRow[];
+}): number {
+  if (usesCanonicalEvidenceForReviews(input.lesson.status) || input.canonicalEvidenceRows.length > 0) {
+    return input.canonicalEvidenceRows.filter((row) => isPendingImageReview(row.modality, row.properties_json)).length;
+  }
+  return input.stagingEvidenceRows.filter((row) => isPendingImageReview(row.modality, row.properties_json)).length;
+}
+
+function usesCanonicalEvidenceForReviews(status: string): boolean {
+  return status === "merged" || status === "qa_passed";
 }
 
 function countBy<T>(rows: T[], keyFor: (row: T) => string): Map<string, number> {
