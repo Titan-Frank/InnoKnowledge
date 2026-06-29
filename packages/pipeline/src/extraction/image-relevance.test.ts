@@ -177,6 +177,7 @@ test("includes source markdown context in VLM prompt", async () => {
                     content: JSON.stringify({
                       keep: true,
                       relevance: "core_content",
+                      visual_summary: "图片显示电场线方向示意。",
                       reason: "图片内容和电场线上下文一致。",
                       confidence: 0.92,
                     }),
@@ -191,9 +192,11 @@ test("includes source markdown context in VLM prompt", async () => {
     );
 
     assert.equal(result.decisions["ev-context"]?.relevance, "core_content");
+    assert.equal(result.decisions["ev-context"]?.visual_summary, "图片显示电场线方向示意。");
     assert.match(prompt, /只要图片内容能和标题、前文、图片行、后文中的任一处形成合理对应，就保留/);
     assert.match(prompt, /不是最核心、信息量一般、只起辅助作用/);
     assert.match(prompt, /relevance="supporting"/);
+    assert.match(prompt, /visual_summary 写图片中可见的主要内容/);
     assert.match(prompt, /标题路径：第一章 电场/);
     assert.match(prompt, /源文件行：4/);
     assert.match(prompt, /前文：电场线可以表示电场方向。/);
@@ -326,7 +329,7 @@ test("parses VLM JSON when providers wrap it in a Markdown code fence", async ()
                   message: {
                     content: [
                       "```json",
-                      JSON.stringify({ keep: true, relevance: "supporting", reason: "支持正文说明。", confidence: 0.8 }, null, 2),
+                      JSON.stringify({ keep: true, relevance: "supporting", visual_summary: "图片显示教材配图。", reason: "支持正文说明。", confidence: 0.8 }, null, 2),
                       "```",
                     ].join("\n"),
                   },
@@ -340,7 +343,121 @@ test("parses VLM JSON when providers wrap it in a Markdown code fence", async ()
 
     assert.equal(result.decisions["ev-code-fence"]?.source, "vlm");
     assert.equal(result.decisions["ev-code-fence"]?.relevance, "supporting");
+    assert.equal(result.decisions["ev-code-fence"]?.visual_summary, "图片显示教材配图。");
     assert.equal((result.payload.evidence as unknown[]).length, 1);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("falls back to source markdown when an image evidence path is stale", async () => {
+  const repo = makeImageFixture();
+  let called = false;
+  try {
+    writeFileSync(join(repo.root, "data", "mineru", "book", "images", "real.png"), pngHeader(370, 118));
+    writeFileSync(join(repo.root, "data", "mineru", "book", "full.md"), [
+      "# 第一章",
+      "",
+      "根据洪特规则，基态氮原子的轨道表示式为： ![](images/real.png)",
+    ].join("\n"));
+
+    const result = await filterImageEvidencePayload(
+      {
+        evidence: [imageEvidence("ev-stale-path", "根据洪特规则，基态氮原子的轨道表示式为： ![](images/missing.png)", "line:66-72", "images/missing.png")],
+        mentions: [],
+        edges: [],
+        domain_profiles: [],
+        node_cards: [],
+        counts: { evidence: 1, mentions: 0, edges: 0, domain_profiles: 0, node_cards: 0 },
+        issues: [],
+      },
+      {
+        repoRoot: repo.root,
+        vlmApiUrl: "http://localhost:8000/v1",
+        fetchImpl: async () => {
+          called = true;
+          return new Response(vlmResponse({ keep: true, relevance: "supporting", reason: "真实图片和正文匹配。", confidence: 0.88 }));
+        },
+      },
+    );
+
+    assert.equal(called, true);
+    assert.equal(result.decisions["ev-stale-path"]?.source, "vlm");
+    assert.match(result.decisions["ev-stale-path"]?.path ?? "", /images\/real\.png$/);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("recovers a nearby markdown image when model evidence only stores the caption", async () => {
+  const repo = makeImageFixture();
+  let called = false;
+  try {
+    writeFileSync(join(repo.root, "data", "mineru", "book", "images", "caption.png"), pngHeader(287, 376));
+    writeFileSync(join(repo.root, "data", "mineru", "book", "full.md"), [
+      "# 第三章",
+      "",
+      "![](images/caption.png)",
+      "",
+      "图 3.21 X 射线衍射仪和单晶衍射图",
+    ].join("\n"));
+
+    const result = await filterImageEvidencePayload(
+      {
+        evidence: [imageEvidence("ev-caption", "图 3.21 X 射线衍射仪和单晶衍射图", "line:5", "")],
+        mentions: [],
+        edges: [],
+        domain_profiles: [],
+        node_cards: [],
+        counts: { evidence: 1, mentions: 0, edges: 0, domain_profiles: 0, node_cards: 0 },
+        issues: [],
+      },
+      {
+        repoRoot: repo.root,
+        vlmApiUrl: "http://localhost:8000/v1",
+        fetchImpl: async () => {
+          called = true;
+          return new Response(vlmResponse({ keep: true, relevance: "core_content", reason: "图题附近图片可作为核心图。", confidence: 0.91 }));
+        },
+      },
+    );
+
+    assert.equal(called, true);
+    assert.equal(result.decisions["ev-caption"]?.source, "vlm");
+    assert.match(result.decisions["ev-caption"]?.path ?? "", /images\/caption\.png$/);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("uses HTML img src values as image evidence paths", async () => {
+  const repo = makeImageFixture();
+  let called = false;
+  try {
+    writeFileSync(join(repo.root, "data", "mineru", "book", "images", "table.png"), pngHeader(180, 90));
+    const result = await filterImageEvidencePayload(
+      {
+        evidence: [imageEvidence("ev-html-image", "<img src=\"images/table.png\"/>", "line:8", "")],
+        mentions: [],
+        edges: [],
+        domain_profiles: [],
+        node_cards: [],
+        counts: { evidence: 1, mentions: 0, edges: 0, domain_profiles: 0, node_cards: 0 },
+        issues: [],
+      },
+      {
+        repoRoot: repo.root,
+        vlmApiUrl: "http://localhost:8000/v1",
+        fetchImpl: async () => {
+          called = true;
+          return new Response(vlmResponse({ keep: true, relevance: "supporting", reason: "表格内图片可辅助说明。", confidence: 0.83 }));
+        },
+      },
+    );
+
+    assert.equal(called, true);
+    assert.equal(result.decisions["ev-html-image"]?.source, "vlm");
+    assert.match(result.decisions["ev-html-image"]?.path ?? "", /images\/table\.png$/);
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }
@@ -538,6 +655,21 @@ function textEvidence(id: string, excerpt: string): Record<string, unknown> {
     normalized_claims: [excerpt],
     properties: {},
   };
+}
+
+function vlmResponse(decision: { keep: boolean; relevance: string; reason: string; confidence: number; visual_summary?: string }): string {
+  return JSON.stringify({
+    choices: [
+      {
+        message: {
+          content: JSON.stringify({
+            visual_summary: "图片显示教材中的学科配图。",
+            ...decision,
+          }),
+        },
+      },
+    ],
+  });
 }
 
 function makeImageFixture(): { root: string } {

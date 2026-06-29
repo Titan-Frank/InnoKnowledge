@@ -54,6 +54,8 @@ test("server pipeline runner plans TypeScript lesson extraction commands", async
   assert.ok(commands[0]?.includes("auto"));
   assert.ok(commands[0]?.includes("--vlm-api-url"));
   assert.ok(commands[0]?.includes("http://localhost:8000/v1"));
+  assert.ok(commands[0]?.includes("--enrich-context"));
+  assert.ok(commands[0]?.includes("--enrich-context-limit"));
   assert.ok(!commands[0]?.some((part) => part.includes("run_okm_harness.py")));
   assert.equal(executed.filter((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))).length, 37);
 });
@@ -97,11 +99,13 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   const normalizeStage = result.stages.find((stage) => stage.id === "normalize");
   const qaStage = result.stages.find((stage) => stage.id === "strict_qa");
   const integrityStage = result.stages.find((stage) => stage.id === "graph_integrity");
+  const qualityDashboardStage = result.stages.find((stage) => stage.id === "quality_dashboard");
   const nodeBodiesStage = result.stages.find((stage) => stage.id === "node_bodies");
   const canonicalCommand = canonicalStage?.output?.command as string[];
   const stagingQualityCommand = stagingQualityStage?.output?.command as string[];
   const nodeBodiesCommand = nodeBodiesStage?.output?.command as string[];
   const integrityCommand = integrityStage?.output?.command as string[];
+  const qualityDashboardCommand = qualityDashboardStage?.output?.command as string[];
   assert.equal(stagingQualityStage?.status, "completed");
   assert.ok(stagingQualityCommand.some((part) => part.endsWith("staging-quality.js")));
   assert.ok(stagingQualityCommand.includes("--book-id"));
@@ -111,6 +115,8 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.equal(normalizeStage?.status, "completed");
   assert.equal(nodeBodiesStage?.status, "completed");
   assert.ok(nodeBodiesCommand.some((part) => part.endsWith("generate-node-bodies.js")));
+  assert.ok(nodeBodiesCommand.includes("--book-id"));
+  assert.ok(nodeBodiesCommand.includes(bookId));
   assert.equal(nodeBodiesCommand.includes("--mode"), false);
   assert.ok(nodeBodiesCommand.includes("--concurrency"));
   assert.ok(nodeBodiesCommand.includes("8"));
@@ -120,13 +126,16 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.equal(integrityStage?.status, "completed");
   assert.ok(integrityCommand.some((part) => part.endsWith("graph-integrity.js")));
   assert.ok(integrityCommand.includes("--mark-qa-passed"));
-  assert.ok(commands.at(-6)?.some((part) => part.endsWith("staging-quality.js")));
-  assert.ok(commands.at(-5)?.some((part) => part.endsWith("merge-staged-lessons.js")));
-  assert.ok(commands.at(-4)?.some((part) => part.endsWith("normalize.js")));
-  assert.ok(commands.at(-3)?.some((part) => part.endsWith("generate-node-bodies.js")));
-  assert.ok(commands.at(-2)?.some((part) => part.endsWith("strict-qa.js")));
-  assert.ok(commands.at(-1)?.some((part) => part.endsWith("graph-integrity.js")));
-  assert.ok(commands.slice(0, -6).every((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))));
+  assert.equal(qualityDashboardStage?.status, "completed");
+  assert.ok(qualityDashboardCommand.some((part) => part.endsWith("quality-dashboard.js")));
+  assert.ok(commands.at(-7)?.some((part) => part.endsWith("staging-quality.js")));
+  assert.ok(commands.at(-6)?.some((part) => part.endsWith("merge-staged-lessons.js")));
+  assert.ok(commands.at(-5)?.some((part) => part.endsWith("normalize.js")));
+  assert.ok(commands.at(-4)?.some((part) => part.endsWith("generate-node-bodies.js")));
+  assert.ok(commands.at(-3)?.some((part) => part.endsWith("strict-qa.js")));
+  assert.ok(commands.at(-2)?.some((part) => part.endsWith("graph-integrity.js")));
+  assert.ok(commands.at(-1)?.some((part) => part.endsWith("quality-dashboard.js")));
+  assert.ok(commands.slice(0, -7).every((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))));
 });
 
 test("server pipeline retries chunks that fail staging quality", async () => {

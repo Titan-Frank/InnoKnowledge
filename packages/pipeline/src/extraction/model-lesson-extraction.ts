@@ -29,6 +29,7 @@ import {
   type OutlineItem,
 } from "../shared/pathing.js";
 import { resolveOutlineAnchorFromItems } from "./parallel-batch.js";
+import type { EnrichHint } from "./enrich-context.js";
 
 type RawRecord = Record<string, unknown>;
 
@@ -60,6 +61,7 @@ export type ModelLessonContext = {
   source_path: string;
   markdown_excerpt_preview: string;
   retrieval_candidates: RawRecord[];
+  enrich_hints: EnrichHint[];
   markdown_evidence_hints: MarkdownEvidenceHint[];
 };
 
@@ -76,6 +78,7 @@ export type BuildModelLessonPayloadInput = {
   outline?: RawRecord;
   markdownLines?: string[];
   retrievalCandidates?: RawRecord[];
+  enrichHints?: EnrichHint[];
   textbookId?: string;
   subject?: string;
   schoolStage?: string;
@@ -152,6 +155,7 @@ export function buildModelLessonPayload(input: BuildModelLessonPayloadInput): Mo
       source_path: stringValue(outline.source_path),
       markdown_excerpt_preview: makeExcerpt(markdownLines),
       retrieval_candidates: input.retrievalCandidates ?? [],
+      enrich_hints: input.enrichHints ?? [],
       markdown_evidence_hints: extractMarkdownEvidenceHints(markdownLines),
     },
     ...(input.extractionTemplate ? { extraction_template: templateModelPayload(input.extractionTemplate) } : {}),
@@ -259,7 +263,9 @@ function buildHybridNodeEvidenceInstructions(input: { prompt?: string; extractio
 5. node.id 必须稳定、唯一，后续关系阶段会直接引用这些 id。
 6. 节点主类只能使用 9 类：entity/concept/property/process/event/method/rule/representation/resource。
 7. 不要把章节编号、复习题、术语表、小结当成正式知识节点。
-8. 输出必须严格符合 JSON schema。
+8. lesson_context.enrich_hints 只是对应教材位置的辅助判断材料，只能帮助判断术语边界、命名和粒度，不能作为节点证据。
+9. 如果 enrich_hints 和当前 lesson/chunk 证据冲突，以当前 lesson/chunk 的证据为准。
+10. 输出必须严格符合 JSON schema。
   `.trim();
   return appendPromptBlocks(base, input.prompt, input.extractionTemplate, "node_evidence");
 }
@@ -277,7 +283,8 @@ function buildHybridEdgeInstructions(input: { prompt?: string; extractionTemplat
 5. 关系 type 只能来自 allowed_edge_types。
 6. 如果证据不能直接支持关系，就不要输出该关系。
 7. 优先抽取教材明确表达的类属、组成、性质、因果、依赖、表示、使用、产出关系。
-8. 输出必须严格符合 JSON schema，不要解释。
+8. 如果 lesson_context.enrich_hints 存在，它只能帮助理解课时主题，不能作为关系证据。
+9. 输出必须严格符合 JSON schema，不要解释。
   `.trim();
   return appendPromptBlocks(base, input.prompt, input.extractionTemplate, "edges");
 }

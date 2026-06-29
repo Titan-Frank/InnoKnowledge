@@ -59,6 +59,7 @@ test("builds a model lesson payload from one chunk, not a local extractor payloa
       ],
     );
     assert.deepEqual(payload.lesson_context.retrieval_candidates, [{ node_id: "node:known", name: "Known", kind: "concept", score: 0.9 }]);
+    assert.deepEqual(payload.lesson_context.enrich_hints, []);
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }
@@ -85,6 +86,7 @@ test("builds two-stage model requests with chat completions as the default API",
     assert.match(request.user_payload, /"extraction_template"/);
     assert.match(request.instructions, /物理教材抽取模板/);
     assert.match(request.instructions, /第一阶段/);
+    assert.match(request.instructions, /不能作为节点证据/);
     assert.doesNotMatch(request.instructions, /- edges:/);
     assert.doesNotMatch(request.instructions, /关系规则：/);
 

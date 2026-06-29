@@ -1,6 +1,4 @@
 import type { Hono } from 'hono';
-import { existsSync, readFileSync } from 'node:fs';
-import path from 'node:path';
 import type {
   ImageReviewAction,
   ImageReviewContext,
@@ -12,10 +10,19 @@ import type {
 } from '@okm/types';
 import type { Sql } from '../db/connection.js';
 import { resolveDatasetRow } from '../db/queries.js';
-import { REPO_ROOT } from '../utils/paths.js';
+import {
+  cleanContextLine,
+  findImageSourceLine,
+  lineNumberFromLocator,
+  rawImagePathFromEvidence,
+  readSourceLines,
+  resolveEvidenceImagePath,
+  resolveSourcePath,
+  sourcePathFromEvidence,
+  type SourceLineCache,
+} from '../utils/markdown-image-paths.js';
 
 type Row = Record<string, unknown>;
-type SourceLineCache = Map<string, string[] | null>;
 type JsonValue = Parameters<Sql['json']>[0];
 
 const VALID_ACTIONS = new Set<ImageReviewAction>(['keep', 'drop', 'core_content', 'supporting', 'uncertain']);
@@ -109,7 +116,7 @@ export function registerImageReviewRoutes(app: Hono, sql: Sql) {
 }
 
 function imageReviewItemFromRow(row: Row, sourceKey: string, sourceCache: SourceLineCache): ImageReviewItem {
-  const imagePath = resolveImagePath(row);
+  const imagePath = resolveEvidenceImagePath(row, sourceCache);
   return {
     evidence_id: textValue(row.id),
     source_id: textValue(row.source_id),
@@ -120,7 +127,9 @@ function imageReviewItemFromRow(row: Row, sourceKey: string, sourceCache: Source
     page_start: row.page_start == null ? null : Number(row.page_start),
     page_end: row.page_end == null ? null : Number(row.page_end),
     image_path: imagePath,
-    image_url: /^https?:\/\//i.test(imagePath) ? imagePath : `/api/source/${encodeURIComponent(sourceKey)}/assets/${encodeURIComponent(imagePath)}`,
+    image_url: imagePath ? (
+      /^https?:\/\//i.test(imagePath) ? imagePath : `/api/source/${encodeURIComponent(sourceKey)}/assets/${encodeURIComponent(imagePath)}`
+    ) : '',
     context: imageReviewContextFromRow(row, imagePath, sourceCache),
     decision: imageDecisionFromProperties(asRecord(row.properties_json)),
     updated_at: textValue(row.updated_at) || null,
@@ -128,8 +137,7 @@ function imageReviewItemFromRow(row: Row, sourceKey: string, sourceCache: Source
 }
 
 function imageReviewContextFromRow(row: Row, imagePath: string, sourceCache: SourceLineCache): ImageReviewContext {
-  const properties = asRecord(row.properties_json);
-  const sourcePath = textValue(row.source_path || properties.source_path);
+  const sourcePath = sourcePathFromEvidence(row);
   const fallbackLine = cleanContextLine(textValue(row.excerpt));
   const fallback: ImageReviewContext = {
     source_path: sourcePath,
@@ -147,7 +155,7 @@ function imageReviewContextFromRow(row: Row, imagePath: string, sourceCache: Sou
   if (!lines) return fallback;
 
   const sourceLine =
-    findImageSourceLine(lines, rawImagePathFromRow(row), imagePath, textValue(row.excerpt)) ||
+    findImageSourceLine(lines, rawImagePathFromEvidence(row), imagePath, textValue(row.excerpt)) ||
     lineNumberFromLocator(textValue(row.locator));
   if (!sourceLine || sourceLine < 1 || sourceLine > lines.length) return fallback;
 
@@ -160,70 +168,6 @@ function imageReviewContextFromRow(row: Row, imagePath: string, sourceCache: Sou
     image_line: cleanContextLine(lines[lineIndex]) || fallbackLine,
     after: nearbyContextLines(lines, lineIndex, 1),
   };
-}
-
-function resolveSourcePath(sourcePath: string): string {
-  if (!sourcePath || /^https?:\/\//i.test(sourcePath)) return '';
-  return path.isAbsolute(sourcePath) ? sourcePath : path.resolve(REPO_ROOT, sourcePath);
-}
-
-function readSourceLines(sourcePath: string, sourceCache: SourceLineCache): string[] | null {
-  if (sourceCache.has(sourcePath)) return sourceCache.get(sourcePath) ?? null;
-  let lines: string[] | null = null;
-  try {
-    if (existsSync(sourcePath)) lines = readFileSync(sourcePath, 'utf8').split(/\r?\n/);
-  } catch {
-    lines = null;
-  }
-  sourceCache.set(sourcePath, lines);
-  return lines;
-}
-
-function rawImagePathFromRow(row: Row): string {
-  const properties = asRecord(row.properties_json);
-  return textValue(properties.path || properties.image_path || row.image_path || imagePathFromMarkdown(textValue(row.excerpt)));
-}
-
-function lineNumberFromLocator(locator: string): number | null {
-  const match = /line:(\d+)/i.exec(locator);
-  if (!match) return null;
-  const parsed = Number(match[1]);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function findImageSourceLine(lines: string[], rawImagePath: string, imagePath: string, excerpt: string): number | null {
-  const candidates = imagePathCandidates(rawImagePath, imagePath, imagePathFromMarkdown(excerpt));
-  for (let index = 0; index < lines.length; index += 1) {
-    if (candidates.some((candidate) => lines[index]?.includes(candidate))) return index + 1;
-  }
-
-  const normalizedExcerpt = cleanContextLine(excerpt);
-  if (normalizedExcerpt.length < 8) return null;
-  for (let index = 0; index < lines.length; index += 1) {
-    if (cleanContextLine(lines[index] ?? '').includes(normalizedExcerpt)) return index + 1;
-  }
-  return null;
-}
-
-function imagePathCandidates(...values: string[]): string[] {
-  const candidates = new Set<string>();
-  for (const value of values) {
-    const trimmed = value.trim();
-    if (!trimmed) continue;
-    candidates.add(trimmed);
-    candidates.add(safeDecodeURIComponent(trimmed));
-    const base = path.basename(trimmed);
-    if (base) candidates.add(base);
-  }
-  return [...candidates].filter((candidate) => candidate.length > 0);
-}
-
-function safeDecodeURIComponent(value: string): string {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
 }
 
 function headingPathForLine(lines: string[], lineIndex: number): string[] {
@@ -250,17 +194,6 @@ function nearbyContextLines(lines: string[], lineIndex: number, direction: -1 | 
     if (output.length >= 4) break;
   }
   return output;
-}
-
-function cleanContextLine(line: string): string {
-  return line
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match: string, alt: string, src: string) => {
-      const label = alt.trim() || path.basename(src.trim()) || '图片';
-      return `[图片：${label}]`;
-    })
-    .replace(/^#{1,6}\s+/, '')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 function applyReviewAction(previous: ImageReviewDecision, action: ImageReviewAction, reason: string): ImageReviewDecision {
@@ -325,6 +258,7 @@ function imageDecisionFromProperties(properties: Row): ImageReviewDecision {
     relevance,
     reason: textValue(raw.reason) || '缺少图片复核说明。',
     source: parseSource(raw.source),
+    visual_summary: textValue(raw.visual_summary) || undefined,
     confidence: numberOrUndefined(raw.confidence),
     path: textValue(raw.path) || undefined,
     width: numberOrUndefined(raw.width),
@@ -352,23 +286,6 @@ function parseSource(value: unknown): ImageReviewDecision['source'] {
 
 function parseManualAction(value: unknown): ImageReviewAction | undefined {
   return VALID_ACTIONS.has(value as ImageReviewAction) ? value as ImageReviewAction : undefined;
-}
-
-function resolveImagePath(row: Row): string {
-  const properties = asRecord(row.properties_json);
-  const rawPath = textValue(properties.path || properties.image_path || imagePathFromMarkdown(textValue(row.excerpt)));
-  if (!rawPath || /^https?:\/\//i.test(rawPath) || path.isAbsolute(rawPath)) return rawPath;
-
-  const sourcePath = textValue(row.source_path || properties.source_path);
-  if (sourcePath) {
-    const resolvedSource = path.isAbsolute(sourcePath) ? sourcePath : path.resolve(REPO_ROOT, sourcePath);
-    return path.resolve(path.dirname(resolvedSource), rawPath);
-  }
-  return path.resolve(REPO_ROOT, rawPath);
-}
-
-function imagePathFromMarkdown(value: string): string {
-  return /!\[[^\]]*\]\(([^)]+)\)/.exec(value)?.[1]?.trim() ?? '';
 }
 
 function parseLimit(value: string | undefined): number {

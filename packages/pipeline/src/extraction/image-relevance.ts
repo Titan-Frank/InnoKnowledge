@@ -11,6 +11,7 @@ export type ImageRelevanceDecision = {
   relevance: ImageRelevanceLabel;
   reason: string;
   source: "vlm" | "fallback";
+  visual_summary?: string;
   confidence?: number;
   path?: string;
   width?: number;
@@ -51,7 +52,7 @@ const DEFAULT_VLM_MODEL = "gpt-4.1-mini";
 const DEFAULT_VLM_TIMEOUT_MS = 60_000;
 const DEFAULT_VLM_CONCURRENCY = 8;
 const CACHE_VERSION = 1;
-const PROMPT_VERSION = "textbook-image-relevance-v4-related-context";
+const PROMPT_VERSION = "textbook-image-relevance-v5-visual-summary";
 
 export async function filterImageEvidencePayload(
   payload: RawRecord,
@@ -159,7 +160,7 @@ export async function classifyImageEvidence(
   evidence: RawRecord,
   options: ImageEvidenceFilterRuntimeOptions,
 ): Promise<ImageRelevanceDecision> {
-  const imagePath = resolveEvidenceImagePath(evidence, options.repoRoot);
+  const imagePath = resolveEvidenceImagePath(evidence, options.repoRoot, options.sourceLineCache);
   const metadata = imagePath ? readImageMetadata(imagePath) : null;
 
   const apiUrl = options.vlmApiUrl?.trim();
@@ -229,6 +230,7 @@ async function callVlmForImageRelevance(
     const decision: ImageRelevanceDecision = {
       keep: modelResult.keep,
       relevance: modelResult.relevance,
+      visual_summary: modelResult.visual_summary,
       reason: modelResult.reason,
       confidence: modelResult.confidence,
       source: "vlm",
@@ -283,7 +285,10 @@ function buildVlmPrompt(evidence: RawRecord, metadata: ImageMetadata | null, con
     "过滤为 decorative：栏目图标、提示语、页眉页脚、二维码、标志、纯装饰图，且图片本身没有可用的学科知识内容。",
     "过滤为 mismatch：图片本身有知识内容，但和当前标题、前后文或课时明显不相关。",
     "只有图片看不清、上下文缺失且图片内容也无法辨认，或确实无法判断图片是否相关时，才返回 keep=true、relevance=\"uncertain\"。",
-    "只返回 JSON：keep、relevance、reason、confidence。",
+    "必须先识别图片内容，再判断相关性。",
+    "visual_summary 写图片中可见的主要内容，不要照抄上下文；如果图片看不清，就说明看不清。",
+    "reason 写为什么保留或删除，必须结合图片内容和教材上下文。",
+    "只返回 JSON：visual_summary、keep、relevance、reason、confidence。",
     "",
     "教材上下文：",
     `标题路径：${context.headingPath.length > 0 ? context.headingPath.join(" / ") : stringValue(evidence.anchor_ref) || "未知"}`,
@@ -347,10 +352,11 @@ function imageRelevanceJsonSchema(): RawRecord {
       properties: {
         keep: { type: "boolean" },
         relevance: { type: "string", enum: ["core_content", "supporting", "decorative", "mismatch", "uncertain"] },
+        visual_summary: { type: "string" },
         reason: { type: "string" },
         confidence: { type: "number" },
       },
-      required: ["keep", "relevance", "reason", "confidence"],
+      required: ["visual_summary", "keep", "relevance", "reason", "confidence"],
     },
   };
 }
@@ -362,6 +368,7 @@ function parseVlmDecision(body: unknown): Omit<ImageRelevanceDecision, "source" 
   return {
     keep: keepForRelevance(relevance, parsed.keep),
     relevance,
+    visual_summary: stringValue(parsed.visual_summary).trim() || undefined,
     reason: stringValue(parsed.reason).trim() || "VLM 未给出原因。",
     confidence: numberOrUndefined(parsed.confidence),
   };
@@ -469,6 +476,7 @@ function readCachedDecision(cacheDir: string | undefined, key: string): ImageRel
     return {
       keep: keepForRelevance(relevance, rawDecision.keep),
       relevance,
+      visual_summary: stringValue(rawDecision.visual_summary).trim() || undefined,
       reason: stringValue(rawDecision.reason).trim() || "缓存的 VLM 判断未给出原因。",
       confidence: numberOrUndefined(rawDecision.confidence),
       source: "vlm",
@@ -495,6 +503,7 @@ function writeCachedDecision(cacheDir: string | undefined, key: string, input: C
       decision: {
         keep: input.decision.keep,
         relevance: input.decision.relevance,
+        visual_summary: input.decision.visual_summary,
         reason: input.decision.reason,
         confidence: input.decision.confidence,
         source: input.decision.source,
@@ -682,7 +691,8 @@ function readSourceLines(sourcePath: string, sourceLineCache: SourceLineCache | 
 
 function rawImagePathFromEvidence(evidence: RawRecord): string {
   const properties = recordValue(evidence.properties);
-  return stringValue(properties.path || properties.image_path || evidence.path).trim() || imagePathFromMarkdown(stringValue(evidence.excerpt));
+  const directPath = stringValue(properties.path || properties.image_path || properties.src || evidence.path).trim();
+  return directPath || imagePathFromMarkup(stringValue(evidence.locator)) || imagePathFromMarkup(stringValue(evidence.excerpt));
 }
 
 function lineNumberFromLocator(locator: string): number | null {
@@ -693,7 +703,7 @@ function lineNumberFromLocator(locator: string): number | null {
 }
 
 function findImageSourceLine(lines: string[], rawImagePath: string, imagePath: string, excerpt: string): number | null {
-  const candidates = imagePathCandidates(rawImagePath, imagePath, imagePathFromMarkdown(excerpt));
+  const candidates = imagePathCandidates(rawImagePath, imagePath, imagePathFromMarkup(excerpt));
   for (let index = 0; index < lines.length; index += 1) {
     if (candidates.some((candidate) => lines[index]?.includes(candidate))) return index + 1;
   }
@@ -702,6 +712,11 @@ function findImageSourceLine(lines: string[], rawImagePath: string, imagePath: s
   if (normalizedExcerpt.length < 8) return null;
   for (let index = 0; index < lines.length; index += 1) {
     if (cleanContextLine(lines[index] ?? "").includes(normalizedExcerpt)) return index + 1;
+  }
+  for (const fragment of excerptSearchFragments(excerpt)) {
+    for (let index = 0; index < lines.length; index += 1) {
+      if (cleanContextLine(lines[index] ?? "").includes(fragment)) return index + 1;
+    }
   }
   return null;
 }
@@ -763,29 +778,95 @@ function cleanContextLine(line: string): string {
       const label = alt.trim() || basenameFromPath(src.trim()) || "图片";
       return `[图片：${label}]`;
     })
+    .replace(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi, (_match: string, src: string) => {
+      const label = basenameFromPath(src.trim()) || "图片";
+      return `[图片：${label}]`;
+    })
     .replace(/^#{1,6}\s+/, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function resolveEvidenceImagePath(evidence: RawRecord, repoRoot: string): string | undefined {
+function resolveEvidenceImagePath(evidence: RawRecord, repoRoot: string, sourceLineCache?: SourceLineCache): string | undefined {
+  const rawPath = rawImagePathFromEvidence(evidence);
+  const sourcePath = sourcePathFromEvidence(evidence);
+  if (rawPath) {
+    const resolvedRawPath = resolveImagePathAgainstSource(rawPath, sourcePath, repoRoot);
+    if (!resolvedRawPath || /^https?:\/\//i.test(resolvedRawPath) || existsSync(resolvedRawPath)) return resolvedRawPath || undefined;
+  }
+
+  const resolvedSourcePath = resolveSourcePath(sourcePath, repoRoot);
+  if (!resolvedSourcePath) return undefined;
+  const lines = readSourceLines(resolvedSourcePath, sourceLineCache);
+  if (!lines) return undefined;
+
+  const sourceLine =
+    findImageSourceLine(lines, rawPath, "", stringValue(evidence.excerpt)) ||
+    lineNumberFromLocator(stringValue(evidence.locator));
+  if (!sourceLine || sourceLine < 1 || sourceLine > lines.length) return undefined;
+
+  const nearbyPath = findNearbyImagePath(lines, sourceLine);
+  if (!nearbyPath) return undefined;
+  return resolveImagePathAgainstSource(nearbyPath, sourcePath, repoRoot) || undefined;
+}
+
+function sourcePathFromEvidence(evidence: RawRecord): string {
   const properties = recordValue(evidence.properties);
-  const rawPath = stringValue(properties.path || properties.image_path || evidence.path).trim() || imagePathFromMarkdown(stringValue(evidence.excerpt));
-  if (!rawPath || /^https?:\/\//i.test(rawPath)) return rawPath || undefined;
-  if (isAbsolute(rawPath)) return rawPath;
+  return stringValue(evidence.source_path || properties.source_path).trim();
+}
+
+function resolveImagePathAgainstSource(rawPath: string, sourcePath: string, repoRoot: string): string {
+  const cleanPath = rawPath.trim();
+  if (!cleanPath || /^https?:\/\//i.test(cleanPath)) return cleanPath;
+  const withoutQuery = cleanPath.split(/[?#]/, 1)[0] || cleanPath;
+  if (isAbsolute(withoutQuery)) return withoutQuery;
 
   const candidates: string[] = [];
-  const sourcePath = stringValue(evidence.source_path || properties.source_path).trim();
   if (sourcePath) {
     const sourceAbs = isAbsolute(sourcePath) ? sourcePath : resolve(repoRoot, sourcePath);
-    candidates.push(resolve(dirname(sourceAbs), rawPath));
+    candidates.push(resolve(dirname(sourceAbs), withoutQuery));
   }
-  candidates.push(resolve(repoRoot, rawPath));
+  candidates.push(resolve(repoRoot, withoutQuery));
   return candidates.find((candidate) => existsSync(candidate)) ?? candidates[0];
 }
 
-function imagePathFromMarkdown(value: string): string {
-  return /!\[[^\]]*\]\(([^)]+)\)/.exec(value)?.[1]?.trim() ?? "";
+function imagePathFromMarkup(value: string): string {
+  return /!\[[^\]]*\]\(([^)\n]+)\)/.exec(value)?.[1]?.trim() ??
+    /<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/i.exec(value)?.[1]?.trim() ??
+    imageLikePathFromText(value);
+}
+
+function imageLikePathFromText(value: string): string {
+  const trimmed = value.trim();
+  return /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(trimmed) ? trimmed : "";
+}
+
+function findNearbyImagePath(lines: string[], sourceLine: number): string {
+  const sourceIndex = sourceLine - 1;
+  const windowSize = 16;
+  for (let index = sourceIndex; index >= Math.max(0, sourceIndex - windowSize); index -= 1) {
+    const imagePath = imagePathFromMarkup(lines[index] ?? "");
+    if (imagePath) return imagePath;
+  }
+  for (let index = sourceIndex + 1; index <= Math.min(lines.length - 1, sourceIndex + windowSize); index += 1) {
+    const imagePath = imagePathFromMarkup(lines[index] ?? "");
+    if (imagePath) return imagePath;
+  }
+  return "";
+}
+
+function excerptSearchFragments(excerpt: string): string[] {
+  const withoutImages = cleanContextLine(excerpt)
+    .replace(/\[图片：[^\]]+\]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const fragments = new Set<string>();
+  for (const sentence of withoutImages.split(/[。！？；]/)) {
+    const fragment = sentence.trim();
+    if (fragment.length >= 12) fragments.add(fragment.slice(0, 80));
+  }
+  if (withoutImages.length >= 12) fragments.add(withoutImages.slice(0, 80));
+  return [...fragments];
 }
 
 type ImageMetadata = { width: number; height: number };

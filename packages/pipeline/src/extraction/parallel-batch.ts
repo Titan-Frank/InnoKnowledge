@@ -45,6 +45,7 @@ export type TsModelExtractionCommandOptions = {
   datasetId?: string;
   model?: string;
   prompt?: string;
+  bookTitle?: string;
   subject?: string;
   schoolStage?: string;
   gradeBand?: string;
@@ -61,6 +62,8 @@ export type TsModelExtractionCommandOptions = {
   vlmCacheDir?: string;
   vlmConcurrency?: number;
   vlmModel?: string;
+  enrichContext?: boolean;
+  enrichContextLimit?: number;
 };
 
 export function chunked<T>(items: T[], size: number): T[][] {
@@ -180,6 +183,7 @@ function buildTsModelExtractionCommand(item: ParallelLessonRun, options: TsModel
   pushOptional(command, "--dataset-id", options.datasetId);
   pushOptional(command, "--model", options.model);
   pushOptional(command, "--prompt", options.prompt);
+  pushOptional(command, "--book-title", options.bookTitle);
   pushOptional(command, "--subject", options.subject);
   pushOptional(command, "--school-stage", options.schoolStage);
   pushOptional(command, "--grade-band", options.gradeBand);
@@ -196,6 +200,10 @@ function buildTsModelExtractionCommand(item: ParallelLessonRun, options: TsModel
   pushOptional(command, "--vlm-cache-dir", options.vlmCacheDir);
   if (options.vlmConcurrency !== undefined) pushOptional(command, "--vlm-concurrency", String(options.vlmConcurrency));
   pushOptional(command, "--vlm-model", options.vlmModel);
+  if (options.enrichContext) {
+    command.push("--enrich-context");
+    if (options.enrichContextLimit !== undefined) command.push("--enrich-context-limit", String(options.enrichContextLimit));
+  }
   return command;
 }
 

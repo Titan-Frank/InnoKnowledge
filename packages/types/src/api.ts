@@ -138,11 +138,50 @@ export interface PipelineResponse {
   review_items: PipelineReviewItem[];
 }
 
+export interface PipelineQualityLessonRow {
+  lesson_run_id: string;
+  book_id: string;
+  batch_anchor: string;
+  status: string;
+  node_count: number;
+  relation_count: number;
+  evidence_count: number;
+  evidence_coverage: number;
+  isolated_node_count: number;
+  isolated_node_ratio: number;
+  disconnected_components: number;
+  image_review_count: number;
+  merge_review_count: number;
+  manual_pending_items: number;
+  quality_issues: string[];
+  updated_at: string | null;
+}
+
+export interface PipelineQualityDashboardResponse {
+  dataset_id: string;
+  generated_at: string;
+  summary: {
+    lesson_count: number;
+    node_count: number;
+    relation_count: number;
+    evidence_count: number;
+    evidence_coverage: number;
+    isolated_node_count: number;
+    isolated_node_ratio: number;
+    disconnected_components: number;
+    image_review_count: number;
+    merge_review_count: number;
+    blocked_lesson_count: number;
+    manual_pending_items: number;
+  };
+  lessons: PipelineQualityLessonRow[];
+}
+
 export type PipelineLessonBackendKind = 'openai_responses' | 'openai_chat_completions';
 export type PipelineExtractionTemplateId = 'auto' | string;
 
 export interface PipelineStartRequest {
-  book_id: string;
+  book_id?: string;
   pdf_path?: string;
   book_title?: string;
   outline_start_page?: number;
@@ -230,8 +269,9 @@ export interface PipelineJobStatusResponse {
 }
 
 export interface TextbookMetadataRequest {
-  book_id: string;
+  book_id?: string;
   pdf_path?: string;
+  mineru_file_url?: string;
 }
 
 export interface TextbookMetadataResponse {
@@ -240,6 +280,11 @@ export interface TextbookMetadataResponse {
   lesson_subject: string;
   lesson_school_stage: string;
   lesson_grade_band: string;
+  mineru_language: string;
+  mineru_page_ranges: string;
+  outline_start_page: number;
+  outline_end_page: number;
+  extraction_template: PipelineExtractionTemplateId;
   confidence: number;
   signals: string[];
 }
@@ -255,6 +300,7 @@ export interface ImageReviewDecision {
   relevance: ImageReviewRelevance;
   reason: string;
   source: 'vlm' | 'fallback' | 'manual';
+  visual_summary?: string;
   confidence?: number;
   path?: string;
   width?: number;

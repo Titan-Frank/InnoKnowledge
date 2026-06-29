@@ -54,6 +54,13 @@ npm run server-pipeline-run -w packages/pipeline -- \
 `data/mineru/<book-id>/full.md`，再生成或对齐大纲，最后按课时进入
 `world_staging_*` 抽取。
 
+抽取单个课时时，`server-pipeline-run` 默认会从 PostgreSQL 的
+`world_enrich_books` 读取对应教材位置的少量 enrich 内容，作为
+`lesson_context.enrich_hints` 传给模型。它只用于辅助判断术语边界、命名
+和节点粒度，不能作为节点或关系证据；正式节点仍必须由当前课时的
+Markdown、图片、表格或公式证据支撑。单独运行 `extract-lesson-openai`
+时可以用 `--enrich-context` 开启这一辅助上下文。
+
 如果 PDF 已经有公网 URL，也可以让 MinerU 直接抓取：
 
 ```bash

@@ -243,3 +243,81 @@ test("deduplicates mentions by raw id before staging counts and inserts", () => 
   assert.deepEqual(result.mentions.map((mention) => mention.raw_mention_id), ["m1"]);
   assert.deepEqual(result.mentions[0]?.source_refs_json, ["ev1"]);
 });
+
+test("deduplicates edges by raw id before staging counts and inserts", () => {
+  const result = normalizeLessonArtifacts(
+    {
+      nodes: [
+        { id: "n1", name: "Water", kind: "concept", definition: "A substance" },
+        { id: "n2", name: "Liquid", kind: "concept", definition: "A state of matter" },
+      ],
+      edges: [
+        { id: "e1", type: "related_to", from: "n1", to: "n2", source_refs: ["ev1"] },
+        { id: "e1", type: "is_a", from: "n2", to: "n1", source_refs: ["ev2"] },
+      ],
+      domainProfiles: [],
+      mentions: [],
+      evidence: [{ id: "ev1", excerpt: "text" }],
+      nodeCards: [],
+    },
+    bookId,
+    anchor,
+  );
+
+  assert.equal(result.counts.edges, 1);
+  assert.deepEqual(result.edges.map((edge) => edge.raw_edge_id), ["e1"]);
+  assert.equal(result.edges[0]?.type, "related_to");
+  assert.deepEqual(result.edges[0]?.source_refs_json, ["ev1"]);
+});
+
+test("normalizes model edge direction aliases to schema values", () => {
+  assert.deepEqual(
+    normalizeEdges([
+      { id: "e1", type: "related_to", from: "n1", to: "n2", directionality: "forward" },
+      { id: "e2", type: "related_to", from: "n1", to: "n2", directionality: "unidirectional" },
+      { id: "e3", type: "related_to", from: "n1", to: "n2", directionality: "bidirectional" },
+    ]).map((edge) => edge.directionality),
+    ["directed", "directed", "undirected"],
+  );
+});
+
+test("backfills missing mentions from evidence-backed node refs", () => {
+  const result = normalizeLessonArtifacts(
+    {
+      nodes: [{ id: "n1", name: "Water", kind: "concept", definition: "A substance", source_refs: ["ev1"] }],
+      edges: [],
+      domainProfiles: [{ id: "p1", node_id: "n1", domain: "chemistry", source_refs: ["ev1"] }],
+      mentions: [],
+      evidence: [{ id: "ev1", excerpt: "text" }],
+      nodeCards: [{ id: "c1", node_id: "n1", source_refs: ["ev1"], sections: [{ id: "definition", source_refs: ["ev1"] }] }],
+    },
+    bookId,
+    anchor,
+  );
+
+  assert.equal(result.counts.mentions, 1);
+  assert.equal(result.mentions[0]?.target_raw_id, "n1");
+  assert.deepEqual(result.mentions[0]?.source_refs_json, ["ev1"]);
+  assert.deepEqual(result.mentions[0]?.properties_json, { backfilled: true });
+});
+
+test("backfills node refs and mentions from profile and card refs", () => {
+  const result = normalizeLessonArtifacts(
+    {
+      nodes: [{ id: "n1", name: "Water", kind: "concept", definition: "A substance" }],
+      edges: [],
+      domainProfiles: [{ id: "p1", node_id: "n1", domain: "chemistry", source_refs: ["ev1"] }],
+      mentions: [{ id: "mention:auto:n1", target_id: "other", source_refs: ["ev1"] }],
+      evidence: [{ id: "ev1", excerpt: "text" }],
+      nodeCards: [{ id: "c1", node_id: "n1", source_refs: ["ev1"], sections: [{ id: "definition", source_refs: ["ev1"] }] }],
+    },
+    bookId,
+    anchor,
+  );
+
+  assert.deepEqual(result.nodes[0]?.source_refs_json, ["ev1"]);
+  assert.equal(result.counts.mentions, 2);
+  const repaired = result.mentions.find((mention) => mention.target_raw_id === "n1");
+  assert.equal(repaired?.raw_mention_id, "mention:auto:n1:2");
+  assert.deepEqual(repaired?.source_refs_json, ["ev1"]);
+});

@@ -1,6 +1,6 @@
 import type {
   ApiNodeCard, ApiUnit, MetaResponse, BundleResponse, SearchResponse,
-  PipelineJobStatusResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
+  PipelineJobStatusResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
 } from '@okm/types';
@@ -155,6 +155,12 @@ export async function searchNodes(
 export async function loadPipeline(sourceKey: string): Promise<PipelineResponse | null> {
   return fetchOptionalJson<PipelineResponse>(
     `/api/source/${encodeURIComponent(sourceKey)}/pipeline`,
+  );
+}
+
+export async function loadPipelineQuality(sourceKey: string): Promise<PipelineQualityDashboardResponse | null> {
+  return fetchOptionalJson<PipelineQualityDashboardResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/quality`,
   );
 }
 

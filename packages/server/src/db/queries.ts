@@ -8,6 +8,7 @@ import type {
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { REPO_ROOT } from '../utils/paths.js';
+import { resolveEvidenceImagePath } from '../utils/markdown-image-paths.js';
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -273,44 +274,8 @@ function numberValue(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function firstImagePath(row: Record<string, unknown>): string {
-  const properties = asRecord(row.properties);
-  const candidates = [
-    properties.path,
-    properties.image_path,
-    properties.src,
-    row.locator,
-    row.excerpt,
-  ];
-  for (const candidate of candidates) {
-    const text = textValue(candidate);
-    if (!text) continue;
-    const markdown = text.match(/!\[[^\]]*\]\(([^)]+)\)/);
-    const value = markdown ? markdown[1] : text;
-    if (/\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(value)) return value;
-  }
-  return '';
-}
-
 function resolveImagePath(row: Record<string, unknown>): string {
-  const imagePath = firstImagePath(row);
-  if (!imagePath || /^https?:\/\//i.test(imagePath)) return imagePath;
-  const candidates: string[] = [];
-  if (path.isAbsolute(imagePath)) candidates.push(imagePath);
-  candidates.push(path.resolve(REPO_ROOT, imagePath));
-
-  const sourcePath = textValue(row.source_path);
-  if (sourcePath) {
-    const resolvedSource = path.isAbsolute(sourcePath)
-      ? sourcePath
-      : path.resolve(REPO_ROOT, sourcePath);
-    candidates.push(path.resolve(path.dirname(resolvedSource), imagePath));
-  }
-
-  for (const candidate of candidates) {
-    if (existsSync(candidate)) return candidate;
-  }
-  return candidates[candidates.length - 1] || imagePath;
+  return resolveEvidenceImagePath(row, markdownCache);
 }
 
 function mediaFromEvidence(rows: Record<string, unknown>[], sourceKey: string): ApiUnitMedia[] {

@@ -14,6 +14,7 @@ export type {
   BundleSourceInfo, ApiBookBundle, BundleResponse,
   NodeCardResponse, UnitResponse, SearchHit, SearchResponse, ApiErrorResponse,
   PipelineLessonRun, PipelineMergeRun, PipelineReviewItem, PipelineResponse,
+  PipelineQualityLessonRow, PipelineQualityDashboardResponse,
   PipelineLessonBackendKind, PipelineExtractionTemplateId, PipelineStartRequest, PipelineStartResponse,
   PipelineJobStage, PipelineWorkerState, PipelineJobEvent, PipelineJobStatusResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,

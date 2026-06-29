@@ -13,10 +13,6 @@ type ExpandedFragment = {
   modalities: string[];
   markdown: string;
 };
-type FragmentImage = {
-  src: string;
-  alt: string;
-};
 
 function asRows(value: unknown): Row[] {
   return Array.isArray(value) ? (value as Row[]) : [];
@@ -180,29 +176,6 @@ function sourceFragmentMarkdown(excerpts: Row[]): string {
   }
 
   return lines.join('\n\n').trim() || '这个分块主要是图片证据。';
-}
-
-function splitFragmentMarkdown(markdown: string): { textMarkdown: string; images: FragmentImage[] } {
-  const imageRe = /!\[([^\]]*)\]\(([^)\n]+)\)/g;
-  const images: FragmentImage[] = [];
-  const textLines = markdown.split('\n').map((line) => {
-    let match: RegExpExecArray | null;
-    let cleaned = line;
-    imageRe.lastIndex = 0;
-    while ((match = imageRe.exec(line)) !== null) {
-      images.push({
-        alt: match[1] || '教材图片',
-        src: match[2].trim(),
-      });
-      cleaned = cleaned.replace(match[0], '').trim();
-    }
-    return cleaned;
-  });
-
-  return {
-    textMarkdown: textLines.join('\n').replace(/\n{3,}/g, '\n\n').trim(),
-    images,
-  };
 }
 
 function SectionTitle({ title, meta }: { title: string; meta?: string }) {
@@ -426,86 +399,53 @@ export function DetailUnit({ node }: { node: OKMNode }) {
       )}
 
       {expandedFragment && (
-        (() => {
-          const { textMarkdown, images } = splitFragmentMarkdown(expandedFragment.markdown);
-          const resolvedImages = images
-            .map((image) => ({ ...image, resolved: resolveMarkdownImage(image.src) }))
-            .filter((image) => Boolean(image.resolved));
-          const hasText = textMarkdown.length > 0;
-          const hasImages = resolvedImages.length > 0;
-          return (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-void/85 p-4 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-void/85 p-4 backdrop-blur-sm animate-fade-in">
+          <button
+            type="button"
+            className="absolute inset-0 cursor-default"
+            aria-label="关闭片段全屏"
+            onClick={() => setExpandedFragment(null)}
+          />
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="expanded-fragment-title"
+            className="relative flex max-h-[92vh] w-full max-w-5xl animate-slide-up flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface shadow-2xl"
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-border-subtle bg-elevated px-5 py-4">
+              <div className="min-w-0">
+                <div id="expanded-fragment-title" className="truncate text-base font-semibold text-text-primary">
+                  {expandedFragment.title}
+                </div>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {expandedFragment.modalities.map((item) => (
+                    <span key={item} className="rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted">
+                      {modalityLabel(item)}
+                    </span>
+                  ))}
+                </div>
+              </div>
               <button
                 type="button"
-                className="absolute inset-0 cursor-default"
-                aria-label="关闭片段全屏"
                 onClick={() => setExpandedFragment(null)}
-              />
-              <section
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="expanded-fragment-title"
-                className="relative flex max-h-[92vh] w-full max-w-6xl animate-slide-up flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface shadow-2xl"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border-subtle bg-surface text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+                aria-label="关闭片段全屏"
               >
-                <div className="flex items-center justify-between gap-3 border-b border-border-subtle bg-elevated px-5 py-4">
-                  <div className="min-w-0">
-                    <div id="expanded-fragment-title" className="truncate text-base font-semibold text-text-primary">
-                      {expandedFragment.title}
-                    </div>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {expandedFragment.modalities.map((item) => (
-                        <span key={item} className="rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted">
-                          {modalityLabel(item)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedFragment(null)}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border-subtle bg-surface text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
-                    aria-label="关闭片段全屏"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="min-h-0 flex-1 overflow-y-auto bg-surface px-5 py-5 scrollbar-thin sm:px-8">
-                  <div className={hasImages && hasText ? 'grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,42%)]' : 'space-y-5'}>
-                    {hasText && (
-                      <article className="min-w-0 rounded-lg border border-border-subtle bg-elevated px-4 py-4 sm:px-5">
-                        <MarkdownView
-                          content={textMarkdown}
-                          className={expandedFragmentMarkdownClass}
-                          resolveImageUrl={resolveMarkdownImage}
-                          imageLayout="reader"
-                        />
-                      </article>
-                    )}
-                    {hasImages && (
-                      <div className={hasText ? 'min-w-0 space-y-3 lg:sticky lg:top-0 lg:self-start' : 'min-w-0 space-y-3'}>
-                        {resolvedImages.map((image, index) => (
-                          <figure key={`${image.src}:${index}`} className="overflow-hidden rounded-lg border border-border-subtle bg-elevated p-3">
-                            <div className="flex min-h-64 items-center justify-center rounded-md bg-surface">
-                              <img
-                                src={image.resolved}
-                                alt={image.alt}
-                                className="max-h-[68vh] w-full max-w-full rounded-md object-contain"
-                                loading="lazy"
-                              />
-                            </div>
-                            {image.alt === '教材图片' ? null : (
-                              <figcaption className="mt-2 text-xs text-text-muted">{image.alt}</figcaption>
-                            )}
-                          </figure>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </section>
+                <X className="h-4 w-4" />
+              </button>
             </div>
-          );
-        })()
+            <div className="min-h-0 flex-1 overflow-y-auto bg-surface px-4 py-5 scrollbar-thin sm:px-8">
+              <article className="mx-auto min-w-0 max-w-[78ch] rounded-lg border border-border-subtle bg-elevated px-4 py-5 sm:px-6">
+                <MarkdownView
+                  content={expandedFragment.markdown}
+                  className={expandedFragmentMarkdownClass}
+                  resolveImageUrl={resolveMarkdownImage}
+                  imageLayout="reader"
+                />
+              </article>
+            </div>
+          </section>
+        </div>
       )}
 
       {cardSections.length > 0 && (

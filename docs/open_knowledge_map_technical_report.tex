@@ -1,0 +1,655 @@
+% Open Knowledge Map technical report.
+% Compile with: python3 /Users/titan-frank/.codex/plugins/cache/openai-bundled/latex/0.2.4/scripts/compile_latex.py /Users/titan-frank/Documents/hsd/research/Open-Knowledge-Map/docs/open_knowledge_map_technical_report.tex
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+
+\geometry{
+  left=1.05in,
+  right=1.05in,
+  top=1.0in,
+  bottom=1.0in
+}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!45!black,
+  citecolor=blue!45!black,
+  urlcolor=blue!45!black,
+  pdftitle={Open Knowledge Map: An AI-Native Knowledge Infrastructure for Evidence-Grounded Textbook Extraction, Knowledge Units, and Runtime-Ready Learning Systems},
+  pdfauthor={Open Knowledge Map Contributors}
+}
+
+\setlist[itemize]{leftmargin=1.25em,itemsep=0.25em,topsep=0.35em}
+\setlist[enumerate]{leftmargin=1.5em,itemsep=0.25em,topsep=0.35em}
+\setlength{\parskip}{0.55em}
+\setlength{\parindent}{0pt}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\code}[1]{\nolinkurl{#1}}
+\newcommand{\OKM}{Open Knowledge Map}
+\newcommand{\AINKS}{AI-NKS}
+
+\lstdefinestyle{okmstyle}{
+  basicstyle=\ttfamily\small,
+  columns=fullflexible,
+  breaklines=true,
+  frame=single,
+  framerule=0.2pt,
+  rulecolor=\color{black!25},
+  backgroundcolor=\color{black!2},
+  xleftmargin=0.5em,
+  xrightmargin=0.5em
+}
+\lstset{style=okmstyle}
+
+\title{
+  \bfseries\LARGE Open Knowledge Map:\\
+  An AI-Native Knowledge Infrastructure for Evidence-Grounded\\
+  Textbook Extraction, Knowledge Units, and Runtime-Ready Learning Systems
+}
+
+\author{
+  Open Knowledge Map Contributors\\
+  \small Technical Report Draft\\
+  \small Repository: \href{https://github.com/Titan-Frank/Open-Knowledge-Map}{Titan-Frank/Open-Knowledge-Map}
+}
+
+\date{June 29, 2026\\[0.5em]
+  \small Code: \code{Open-Knowledge-Map}\qquad
+  Standard: \code{ai-nks-v0.1}\qquad
+  Executable schema: \code{world-v1.2}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Large language models and agent systems make it possible to generate explanations, answer questions, and operate over learning materials, but ordinary retrieval-augmented generation over document chunks is a weak substrate for long-term educational use. Textbook pages and markdown fragments are easy to search, yet they do not by themselves provide stable object identities, typed relations, pedagogical projections, evidence links, quality gates, or a runtime contract that a tutor, planner, or evaluation system can safely call. This report presents \OKM, a TypeScript-first repository that turns PDF textbooks into evidence-grounded world knowledge objects, stores them in PostgreSQL, exposes them as complete \emph{knowledge units}, and makes them inspectable through a React graph viewer and pipeline debug workbench.
+
+The current system implements the bottom and middle layers of an AI-native knowledge system. At the top-level design layer, \code{ai-nks-v0.1} defines the repository as knowledge infrastructure for AI use: source resources are transformed into Knowledge Objects, assembled into Knowledge Units, connected through a Knowledge Network, and prepared for future Knowledge Runtime capabilities such as object-level retrieval, grounded generation, semantic planning, and AI tutoring. At the executable engineering layer, \code{world-v1.2} remains the active PostgreSQL and JSON Schema baseline: it fixes nine node kinds, fifteen relation types, domain profiles, evidence, mentions, structured cards, persistent knowledge bodies, staging tables, merge records, and quality checks.
+
+The implemented pipeline follows a conservative production boundary. Lesson or chunk workers may write only \code{world_lesson_runs} and \code{world_staging_*}; canonical \code{world_*} writes, duplicate merges, remapping, normalization, body generation, and final QA are handled by reducer and post-processing stages. The service layer then assembles \code{ApiUnit} responses that combine a node identity, relations, domain profiles, mentions, evidence, media, source fragments, structured cards, and persistent knowledge body content. This separation lets the project keep raw textbook evidence, generated knowledge bodies, and graph-level object identities distinct. The report documents the current architecture, data model, extraction flow, API contract, viewer/debug workflow, verification strategy, and remaining research and engineering gaps.
+\end{abstract}
+
+\vspace{0.8em}
+\noindent\textbf{Scope note.}
+This report reflects the repository state and documentation inspected on June 29, 2026. It is a system report, not a claim that the full \AINKS{} runtime, AI Tutor, learning-outcome evaluation, or large-scale benchmark suite is already complete. The sections on runtime, evaluation, and evolution mark the boundary between implemented substrate and planned capabilities.
+
+\newpage
+
+\section{Introduction}
+
+Textbooks are dense, structured, and pedagogically curated, but their computational form is usually weak. A PDF or a markdown conversion preserves surface content, page order, figures, and headings; it does not automatically create durable knowledge identities, distinguish claims from evidence, expose prerequisite relations, or explain which generated statement came from which source. This becomes a practical bottleneck when the goal is to build AI systems that do more than search for passages. A grounded tutor, curriculum planner, graph browser, or assessment generator needs knowledge objects that can be identified, linked, inspected, updated, and called from software.
+
+\OKM{} addresses this bottleneck by building an extraction and knowledge-serving pipeline around three design decisions. First, the repository treats textbooks as source resources rather than as the final unit of knowledge. A PDF is parsed by MinerU, aligned to an outline, split by lesson or chunk, and processed into staged knowledge candidates. Second, the system separates production-time extraction from consumption-time knowledge views. Model workers create staged rows; reducers, normalization, and QA decide what becomes canonical; the server later assembles complete \code{ApiUnit} views for users and downstream systems. Third, the project places evidence and governance in the main data model rather than in an optional sidecar. Nodes, relations, domain profiles, cards, and bodies are all expected to remain traceable to mentions, evidence, or source fragments.
+
+This report follows the style of a system technical report. It explains the motivation, architecture, implemented modules, data boundaries, operational workflow, and research implications of the current repository. The emphasis is on what is already encoded in TypeScript, PostgreSQL, schema files, and viewer behavior, with future work called out explicitly.
+
+\subsection{Contributions}
+
+The current repository makes six concrete contributions as a system substrate:
+
+\begin{enumerate}
+  \item It defines a two-level standard boundary: \code{ai-nks-v0.1} as the top-level AI-native knowledge system standard, and \code{world-v1.2} as the active executable schema baseline.
+  \item It implements a TypeScript-first textbook extraction pipeline that moves from PDF or MinerU markdown to lesson/chunk extraction, staging tables, canonical merge, normalization, knowledge body generation, strict QA, and graph integrity checks.
+  \item It implements a PostgreSQL-centered knowledge store that separates source artifacts, textbook outlines, MinerU status, canonical world knowledge tables, staging tables, pipeline job state, and retrieval candidates.
+  \item It exposes \code{ApiUnit} as the public knowledge-unit contract, combining identity, relations, teaching projections, evidence, media, source fragments, cards, and persistent bodies in one service-layer response.
+  \item It provides a Hono API server and React/Vite viewer for graph browsing, unit inspection, textbook workbench use, pipeline launch, live job status, image review, and merge-review oriented debugging.
+  \item It prepares a runtime-ready substrate for later grounded generation and AI tutoring by preserving object identities, evidence references, body sources, pipeline traces, and review decisions as structured data.
+\end{enumerate}
+
+\section{Background and Positioning}
+
+\subsection{From Document Retrieval to Knowledge Infrastructure}
+
+A common way to use AI over textbooks is to chunk the source document, embed the chunks, retrieve relevant text, and ask a model to answer from the retrieved passages. This follows the broad retrieval-augmented generation pattern \cite{rag}, but it has structural limits. The chunk is not a stable knowledge object; it may mix definitions, examples, figures, exercises, and narrative text. Relations among concepts remain implicit. If a generated explanation is wrong, it is difficult to decide whether the fault lies in source parsing, retrieval, model interpretation, or missing evidence.
+
+\OKM{} uses the document as input, but not as the final interface. The pipeline extracts explicit objects and relations, attaches evidence, stores structured cards, and later generates durable knowledge bodies. This turns retrieval from ``find a nearby passage'' into ``load a knowledge unit with its evidence and graph neighborhood.''
+
+\subsection{AI-NKS and World-v1.2}
+
+The repository uses two standard layers. \code{ai-nks-v0.1} is the current top-level system language. It frames the project as an AI-native knowledge infrastructure organized around Knowledge Object, Knowledge Unit, Knowledge Network, Knowledge Runtime, and governance. \code{world-v1.2} is the active engineering baseline: it defines the actual PostgreSQL schema, JSON Schema constraints, node kinds, relation types, evidence tables, cards, bodies, and QA behavior. This layering is close to the broader knowledge-graph literature, where identity, schema, context, validation, and provenance are treated as separate design concerns \cite{hogan-kg,rdf,owl,shacl,prov}.
+
+This distinction matters because it prevents two mistakes. The first is calling the current graph schema the whole research vision. The second is renaming or migrating storage prematurely before the runtime contract is stable. The repository currently treats \code{world-v1.2} as the executable graph substrate under the broader \AINKS{} direction.
+
+\subsection{Knowledge Units as the Consumption Boundary}
+
+In the current code, a knowledge point is not a single row in \code{world_nodes}. A node row is only the identity core. The complete consumption unit is \code{ApiUnit}, assembled by the server from several tables. This contract is important for future AI use because a tutor or generator should not have to hand-join database tables or guess whether a field is source text, generated body text, or structured summary. It should request one unit and receive the node, its graph neighborhood, domain profiles, evidence, card, body, media, and source fragments in a stable shape. The educational motivation is aligned with work on intelligent tutoring systems and learner modeling: useful tutoring needs a domain model, a learner model, task selection, feedback, and evidence about changing learner state \cite{vanlehn,corbett-anderson,piech-dkt,bull-kay}.
+
+\section{System Overview}
+
+Figure~\ref{fig:architecture} shows the implemented architecture. The main flow starts from a PDF textbook or a previously generated MinerU markdown file. The pipeline creates or loads a textbook outline, splits the material into lessons or chunks, calls model-based extraction, optionally asks a vision model to classify image evidence, writes staged records, applies quality gates, merges and normalizes canonical objects, generates knowledge bodies, and runs final QA. PostgreSQL is the authoritative structured store. The Hono server reads from it and exposes graph bundles, units, search, pipeline status, image review, and textbook workbench routes. The React viewer consumes only these API contracts.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.95\textwidth}{!}{%
+\begin{tikzpicture}[
+  node distance=0.55cm and 0.7cm,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=0.8cm, text width=2.6cm, fill=blue!4},
+  store/.style={draw, cylinder, shape border rotate=90, aspect=0.25, align=center, minimum height=1.0cm, text width=2.4cm, fill=green!5},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+  \node[box] (pdf) {PDF textbook\\or URL};
+  \node[box, right=of pdf] (mineru) {MinerU\\markdown};
+  \node[box, right=of mineru] (outline) {Outline\\and chunks};
+  \node[box, below=of outline] (extract) {Lesson/chunk\\model workers};
+  \node[box, left=of extract] (vlm) {Vision model\\image review hints};
+  \node[store, below=of extract] (pg) {PostgreSQL\\knowledge store};
+  \node[box, right=of extract] (qa) {Merge\\normalize\\QA};
+  \node[box, right=of qa] (bodies) {Knowledge\\body writer};
+  \node[box, below=of pg] (api) {Hono API\\unit and bundle};
+  \node[box, right=of api] (viewer) {React viewer\\debug workbench};
+
+  \draw[arr] (pdf) -- (mineru);
+  \draw[arr] (mineru) -- (outline);
+  \draw[arr] (outline) -- (extract);
+  \draw[arr] (vlm) -- (extract);
+  \draw[arr] (extract) -- (qa);
+  \draw[arr] (qa) -- (bodies);
+  \draw[arr] (extract) -- (pg);
+  \draw[arr] (qa) -- (pg);
+  \draw[arr] (bodies) |- (pg);
+  \draw[arr] (pg) -- (api);
+  \draw[arr] (api) -- (viewer);
+\end{tikzpicture}
+}%
+\caption{Current \OKM{} architecture. Structured state is centered in PostgreSQL; generated files remain local artifacts and are not treated as the canonical index.}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{Repository Layout}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\toprule
+\textbf{Path} & \textbf{Responsibility}\\
+\midrule
+\code{packages/types} & Shared TypeScript models and API types, including graph models, pipeline responses, outline structures, and the \code{ApiUnit} contract.\\
+\code{packages/pipeline} & Extraction pipeline, MinerU integration, outline parsing, lesson extraction, staging, merge, normalization, retrieval candidates, QA, progress tracking, and node body generation.\\
+\code{packages/server} & Hono API server, PostgreSQL connection and query layer, graph bundle assembly, unit loading, search, pipeline launch/status, image review, and enrich/textbook routes.\\
+\code{packages/viewer} & React/Vite graph viewer, G6 graph canvas, detail panel, textbook tree page, pipeline debug page, image review workflow, and frontend API client.\\
+\code{schemas} & World knowledge standard, JSON Schemas, architecture notes, extraction templates, and PostgreSQL schema files.\\
+\code{docs} & Current architecture, AI-NKS standard notes, knowledge unit contract, prompt inventory, run notes, and route planning.\\
+\bottomrule
+\end{tabularx}
+\caption{Main repository modules.}
+\end{table}
+
+\section{Knowledge Standard and Data Model}
+
+\subsection{Top-Level Node Kinds}
+
+The executable schema fixes nine top-level node kinds. The design draws on upper-ontology practice, semantic-web standards, and controlled vocabulary principles: object type, taxonomy, relation, and evidence are separated rather than collapsed into one tag field \cite{bfo,owl,skos,hogan-kg}.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Kind} & \textbf{Role} & \textbf{Typical examples}\\
+\midrule
+\code{entity} & Stable referent or object & oxygen, cell, earth, microscope\\
+\code{concept} & Abstract meaning unit & inertia, fraction, democracy\\
+\code{property} & Measurable or descriptive feature & density, speed, temperature\\
+\code{process} & Ongoing process or mechanism & evaporation, photosynthesis\\
+\code{event} & Bounded occurrence & historical event, experiment observation\\
+\code{method} & Reusable procedure & filtration, equation solving\\
+\code{rule} & Law, rule, theorem, principle & Newton's first law\\
+\code{representation} & Symbolic or visual representation & equation, map, circuit diagram\\
+\code{resource} & Knowledge-bearing medium & textbook, paper, course, video\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The goal is not to describe every school subject with one flat tag list. Instead, \OKM{} separates object identity, taxonomy, factual relations, domain-specific teaching projection, and evidence.
+
+\subsection{Relation Set}
+
+The current relation set contains fifteen stable relation types:
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\toprule
+\textbf{Relation family} & \textbf{Types}\\
+\midrule
+Classification & \code{is_a}, \code{instance_of}\\
+Structure & \code{part_of}, \code{contains}\\
+Property and use & \code{has_property}, \code{uses}, \code{produces}\\
+Dependency and learning & \code{depends_on}, \code{prerequisite_for}\\
+Causal and influence & \code{causes}, \code{affects}\\
+Representation and topic & \code{represents}, \code{about}\\
+Alignment and weak link & \code{same_as}, \code{related_to}\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The small controlled set keeps extraction and QA tractable. Higher-order runtime relations such as \code{supports}, \code{contradicts}, \code{applies_to}, or \code{updates} are part of the AI-NKS direction, but they should enter through explicit schema extension rather than by overloading tags. This follows the same separation between formal schema and lightweight discovery labels used in semantic-web and knowledge-organization work \cite{rdf,owl,skos,shacl}.
+
+\subsection{Evidence Plane}
+
+Every useful knowledge system needs an answer to the question: why should this object, relation, or explanation be trusted? \OKM{} answers through a cross-cutting evidence plane, following the provenance principle that generated or asserted claims should be traceable to sources, activities, and derivation records \cite{prov}.
+
+\begin{itemize}
+  \item \code{world_mentions} records mentions of a knowledge object in a source.
+  \item \code{world_evidence} records source-backed evidence units, including text, image, table, formula, and other modalities.
+  \item \code{world_node_cards} stores structured summaries that are easier to inspect and use for body generation.
+  \item \code{world_node_bodies} stores persistent knowledge bodies for reading and generation.
+  \item \code{source_fragments} in \code{ApiUnit} represent textbook source material and should not be confused with generated bodies.
+\end{itemize}
+
+\section{Extraction Pipeline}
+
+The extraction pipeline is implemented in \code{packages/pipeline}. Its main command is:
+
+\begin{lstlisting}[language=bash]
+npm run server-pipeline-run -w packages/pipeline -- \
+  --book-id chem-grade8 \
+  --pdf-path /abs/path/to/book.pdf \
+  --db "$DATABASE_URL"
+\end{lstlisting}
+
+The same command can accept a MinerU file URL, model options, vision-model options, concurrency settings, retry controls, and node-body generation options.
+
+\subsection{Stage Flow}
+
+Figure~\ref{fig:pipeline-flow} summarizes the stage boundary. The most important engineering rule is that lesson workers do not write canonical world tables. They write only lesson run state and staging rows. Canonical writes happen after merge, remapping, normalization, and quality checks.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=0.45cm,
+  stage/.style={draw, rounded corners=2pt, align=center, text width=3.0cm, minimum height=0.75cm, fill=orange!5},
+  table/.style={draw, align=center, text width=3.0cm, minimum height=0.75cm, fill=green!5},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+  \node[stage] (s1) {1. Prepare source\\PDF or markdown};
+  \node[stage, below=of s1] (s2) {2. Build outline\\lesson/chunk plan};
+  \node[stage, below=of s2] (s3) {3. Extract nodes\\and evidence};
+  \node[stage, below=of s3] (s4) {4. Extract relations\\and image decisions};
+  \node[table, right=1.0cm of s3] (staging) {\code{world_lesson_runs}\\\code{world_staging_*}};
+  \node[stage, below=of s4] (s5) {5. Staging quality\\and retry};
+  \node[stage, below=of s5] (s6) {6. Merge staged\\lessons};
+  \node[stage, below=of s6] (s7) {7. Normalize\\cards and\\evidence};
+  \node[table, right=1.0cm of s6] (canonical) {Canonical\\\code{world_*}};
+  \node[stage, below=of s7] (s8) {8. Generate\\knowledge bodies};
+  \node[stage, below=of s8] (s9) {9. Strict QA\\graph integrity};
+
+  \draw[arr] (s1) -- (s2);
+  \draw[arr] (s2) -- (s3);
+  \draw[arr] (s3) -- (s4);
+  \draw[arr] (s4) -- (s5);
+  \draw[arr] (s5) -- (s6);
+  \draw[arr] (s6) -- (s7);
+  \draw[arr] (s7) -- (s8);
+  \draw[arr] (s8) -- (s9);
+  \draw[arr] (s3.east) -- (staging.west);
+  \draw[arr] (s4.east) -- (staging.west);
+  \draw[arr] (s6.east) -- (canonical.west);
+  \draw[arr] (s7.east) -- (canonical.west);
+  \draw[arr] (s8.east) -- (canonical.west);
+\end{tikzpicture}
+\caption{Pipeline stages and write boundary. Lesson/chunk workers write staging rows; reducers and post-processing stages write canonical world tables.}
+\label{fig:pipeline-flow}
+\end{figure}
+
+\subsection{Source Preparation}
+
+Source preparation supports two input modes. With a local PDF, the pipeline invokes MinerU and writes the resulting markdown and images under \code{data/mineru/<book-id>/}. With a remote PDF URL, MinerU can fetch and parse the source directly. Structured source status is persisted through \code{world_mineru_sources}; local markdown and images remain large content files, not the authoritative structured index.
+
+Outline handling is similarly split. The service and pipeline read structured outline metadata from PostgreSQL through \code{world_textbook_outlines}. File-based outline artifacts can be imported or used as working material, but they are not the long-term metadata source.
+
+\subsection{Model Extraction}
+
+The current prompt inventory defines three runtime model prompt families:
+
+\begin{itemize}
+  \item P1: lesson/chunk knowledge extraction, implemented in \code{model-lesson-extraction.ts};
+  \item P2: textbook image relevance classification, implemented in \code{image-relevance.ts};
+  \item P3: knowledge node body writing, implemented in \code{generate-node-bodies.ts}.
+\end{itemize}
+
+P1 uses a structured input payload containing lesson context, page range, source path, markdown excerpt preview, retrieval candidates, evidence hints, and markdown lines. The extraction path uses JSON Schema response constraints in addition to natural-language instructions. The project therefore does not rely on prompt text alone for output structure. This choice is consistent with graph-validation practice: the model may propose content, but schema and quality gates decide whether the content can enter the maintained graph \cite{shacl,hogan-kg}.
+
+\subsection{Image Evidence}
+
+When configured, the vision-model path classifies images into decisions such as core content, supporting content, decorative image, mismatch, or uncertain. The decision is stored in \code{properties_json.image_relevance}. Decorative and mismatched image evidence can be hidden from the consumption view, while uncertain images are preserved and shown in the review workflow.
+
+This design reflects a practical textbook issue: figures can be central knowledge carriers, but many textbook PDFs also contain icons, decorative graphics, QR codes, publisher marks, and layout artifacts. Treating all images as equally useful evidence makes the graph noisy; deleting uncertain images too aggressively loses important context. The current system keeps uncertainty visible.
+
+\subsection{Quality Gates and Retry}
+
+After staging writes, \code{staging-quality} checks whether each lesson/chunk produced sufficient and internally consistent staged output. The server pipeline has retry controls for blocked chunks, so a failed quality check can rerun affected lesson/chunk anchors instead of restarting the entire book. After merge and normalization, \code{strict-qa} validates schema legality and \code{graph-integrity} checks graph-level issues such as cycles, isolated nodes, disconnected components, and final QA markings.
+
+\section{PostgreSQL Knowledge Store}
+
+The current repository treats PostgreSQL as the only authoritative structured store. The initialization file is \code{schemas/pg/knowledge_store.sql}. The data model can be read in five groups.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\toprule
+\textbf{Group} & \textbf{Tables}\\
+\midrule
+Dataset and sources & \code{world_datasets}, \code{world_source_artifacts}, \code{world_textbook_outlines}, \code{world_enrich_library}, \code{world_enrich_books}, \code{world_mineru_sources}\\
+Canonical knowledge & \code{world_nodes}, \code{world_edges}, \code{world_taxonomy_terms}, \code{world_taxonomy_edges}, \code{world_domain_profiles}, \code{world_mentions}, \code{world_evidence}, \code{world_evidence_links}, \code{world_node_cards}, \code{world_node_bodies}\\
+Retrieval support & \code{retrieval_candidates}\\
+Pipeline status & \code{world_pipeline_jobs}, \code{world_pipeline_job_stages}, \code{world_pipeline_job_events}, \code{world_pipeline_worker_states}\\
+Staging and merge & \code{world_lesson_runs}, \code{world_staging_nodes}, \code{world_staging_edges}, \code{world_staging_domain_profiles}, \code{world_staging_mentions}, \code{world_staging_evidence}, \code{world_staging_node_cards}, \code{world_merge_runs}, \code{world_canonical_node_map}\\
+\bottomrule
+\end{tabularx}
+\caption{PostgreSQL table groups in the current schema.}
+\end{table}
+
+This schema makes several boundaries explicit:
+
+\begin{itemize}
+  \item \code{world_nodes} stores the identity core, not a full knowledge unit.
+  \item \code{world_node_cards} stores structured summaries, not textbook source text.
+  \item \code{world_node_bodies} stores persistent knowledge bodies, not textbook source text.
+  \item \code{source_fragments} and \code{world_evidence} are the evidence/source-text paths.
+  \item Staging and canonical tables remain separate so model output can be checked, merged, and normalized before becoming part of the graph.
+\end{itemize}
+
+\section{Knowledge Unit API}
+
+The most important consumption-side contract is \code{ApiUnit}. It is served by \code{GET /api/source/:key/unit/:node_id}. It is not a single table row; it is an assembled view.
+
+\begin{lstlisting}
+interface ApiUnit {
+  node: ApiUnitNode;
+  relations: {
+    outgoing: ApiUnitRelation[];
+    incoming: ApiUnitRelation[];
+  };
+  domain_profiles: ApiUnitDomainProfile[];
+  mentions: ApiMention[];
+  evidence: ApiEvidence[];
+  media: ApiUnitMedia[];
+  source_fragments: ApiUnitSourceFragment[];
+  card: ApiNodeCard | null;
+  body: ApiUnitBody | null;
+}
+\end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=0.45cm and 0.65cm,
+  source/.style={draw, rounded corners=2pt, align=center, text width=2.45cm, minimum height=0.7cm, fill=green!5},
+  unit/.style={draw, rounded corners=3pt, align=center, text width=3.0cm, minimum height=1.1cm, fill=blue!6},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+  \node[source] (nodes) {\code{world_nodes}\\identity};
+  \node[source, below=of nodes] (edges) {\code{world_edges}\\relations};
+  \node[source, below=of edges] (profiles) {\code{world_domain_profiles}\\teaching view};
+  \node[source, right=1.2cm of nodes] (mentions) {\code{world_mentions}\\mentions};
+  \node[source, below=of mentions] (evidence) {\code{world_evidence}\\source evidence};
+  \node[source, below=of evidence] (cards) {\code{world_node_cards}\\summary card};
+  \node[source, right=1.2cm of evidence] (bodies) {\code{world_node_bodies}\\knowledge body};
+  \node[unit, below=1.1cm of bodies] (apiunit) {\code{ApiUnit}\\complete consumption\\view};
+
+  \foreach \x in {nodes,edges,profiles,mentions,evidence,cards,bodies}
+    \draw[arr] (\x) -- (apiunit);
+\end{tikzpicture}
+\caption{Knowledge unit assembly. The service layer combines identity, graph neighborhood, domain projection, evidence, source fragments, cards, and bodies into one public unit.}
+\label{fig:unit}
+\end{figure}
+
+The server implementation in \code{packages/server/src/db/queries.ts} loads the node, outgoing and incoming edges, profiles, mentions, matching evidence, card, body, media derived from evidence, and source fragments derived from evidence and textbook outlines. The viewer should consume this response instead of reconstructing table joins in the browser.
+
+\section{Server Runtime and Pipeline Jobs}
+
+The server is a Hono application in \code{packages/server}. It exposes health, metadata, graph bundles, unit loading, node cards, search, pipeline status, image review, asset serving, and textbook workbench routes.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\toprule
+\textbf{Route} & \textbf{Role}\\
+\midrule
+\code{GET /api/health} & Health and database readiness check.\\
+\code{GET /api/meta} & Available datasets, active source, and textbook metadata.\\
+\code{GET /api/source/:key/bundle} & Graph bundle for viewer initialization.\\
+\code{GET /api/source/:key/unit/:node_id} & Complete knowledge unit view.\\
+\code{GET /api/source/:key/search} & Node search using text and vector paths where available.\\
+\code{GET /api/source/:key/pipeline} & Pipeline summary, recent runs, merge status, and review items.\\
+\code{POST /api/source/:key/pipeline/start} & Starts a detached server-side pipeline job.\\
+\code{GET /api/source/:key/pipeline/jobs/:job_id} & Detailed job status from \code{world_pipeline_*}.\\
+\code{GET/POST /api/source/:key/image-reviews} & Reads and writes human image-review decisions.\\
+\code{GET /api/enrich/books} and \code{GET /api/enrich/book} & Textbook workbench metadata.\\
+\bottomrule
+\end{tabularx}
+\caption{Main API routes.}
+\end{table}
+
+Pipeline jobs started from the viewer are detached child processes. The server creates a job id, prepares a log path under \code{runs/server-jobs}, passes \code{--job-id} and \code{--log-path} into the pipeline command, and lets the pipeline write structured progress into PostgreSQL. This means the browser can close while the job continues; the UI later reads \code{world_pipeline_jobs}, stage rows, events, and worker states to reconstruct status.
+
+\section{Viewer and Debug Workbench}
+
+The viewer is a React/Vite application built around three work areas:
+
+\begin{itemize}
+  \item graph browsing through \code{GraphCanvas}, filters, and detail panels;
+  \item textbook navigation through \code{TextbookTreePage};
+  \item extraction inspection and control through \code{PipelineDebugPage}.
+\end{itemize}
+
+The graph page first loads \code{/api/meta} and then \code{/api/source/:key/bundle}. Clicking a node loads \code{/api/source/:key/unit/:node_id} and shows the full knowledge unit. The detail view separates generated knowledge body, textbook source fragments, structured card, relations, domain profiles, evidence, and media. This separation is essential because it keeps the user from mistaking generated explanatory text for the textbook source.
+
+The debug page covers the operational loop: infer textbook metadata, start a pipeline run, watch stage progress, inspect worker state, see blocked conditions, review image evidence, and inspect merge-review items. Image review actions are written back through the server so later unit views can hide rejected images or preserve confirmed core and supporting images.
+
+\section{Structured Output and Prompt Governance}
+
+\OKM{} uses model calls, but it does not leave the core data shape to free-form generation. The repository pairs prompt instructions with JSON Schema response constraints. In the lesson extraction path, the model receives serialized lesson context and markdown lines; the response must match the world-knowledge lesson bundle schema. In the image path, the response must contain a keep decision, relevance label, reason, and confidence. In the node-body path, the response must contain markdown body content and source references.
+
+This pattern gives the project three useful properties:
+
+\begin{enumerate}
+  \item The natural-language prompt expresses extraction policy, such as evidence-first extraction and legal node kinds.
+  \item The JSON Schema expresses machine-checkable structure.
+  \item The pipeline remains responsible for parsing, repair, staging, merge, normalization, and QA.
+\end{enumerate}
+
+The prompt inventory also documents a key production choice: lesson/chunk extraction is intentionally local to the current slice. Cross-lesson consolidation belongs to reducer stages and later graph-level logic, not to a worker that sees only one slice.
+
+\section{Case Study: Physics Textbook Run}
+
+A documented run on a high-school physics textbook provides an early system-level validation of the pipeline. The input was a PDF textbook parsed through MinerU, with markdown and images cached under \code{data/mineru/physics-hukj-compulsory-3/}. The final documented database state included 19 lesson runs, 288 nodes, 153 edges, 436 evidence rows, 320 mentions, 288 node cards, 291 domain profiles, and 1006 node-term links. The run passed staging quality, canonical merge, normalization, strict QA, and graph integrity marking, while graph integrity still reported structural warnings such as isolated nodes and disconnected components.
+
+The same run exposed practical hardening needs that have shaped the current repository:
+
+\begin{itemize}
+  \item Chinese textbook table-of-contents lines required stronger outline parsing.
+  \item Model responses sometimes wrapped JSON in markdown code fences, requiring robust JSON extraction.
+  \item Empty database reruns needed dataset bootstrap before progress and staging writes.
+  \item PostgreSQL JSONB writes needed object/array parameters rather than stringified JSON.
+  \item Some chunks returned zero nodes and needed targeted retry rather than whole-book restart.
+  \item Image filtering could remove references that still needed text-evidence repair.
+\end{itemize}
+
+The important result is not that one run is enough to validate the research program. The important result is that real textbook extraction revealed failure modes, and those failure modes became pipeline hardening tasks: better parsing, stricter JSON repair, retry controls, database progress persistence, and clearer evidence boundaries.
+
+\section{Verification Strategy}
+
+The repository uses a layered verification strategy:
+
+\begin{itemize}
+  \item TypeScript checks across workspaces through \code{npm run check}.
+  \item Workspace builds through \code{npm run build}.
+  \item Pipeline tests through \code{npm test -w packages/pipeline}.
+  \item Stage-level quality checks through \code{staging-quality}.
+  \item Schema and data checks through \code{strict-qa}.
+  \item Graph-level checks through \code{graph-integrity}.
+\end{itemize}
+
+These checks target different risks. TypeScript catches contract drift across packages. Pipeline tests catch transformation and SQL behavior. Staging quality checks whether model-produced staged output is usable. Strict QA checks schema legality. Graph integrity looks for structural graph problems that might not violate row-level schema rules.
+
+The current test design should continue to grow around business-output parity and database correctness. For database paths, useful tests should create temporary rows, verify writes and reads, and clean up after themselves. For extraction behavior, focused fixtures are more valuable than broad snapshots because the model layer itself is probabilistic.
+
+\section{Design Discussion}
+
+\subsection{Why Use TypeScript Across the Pipeline}
+
+The repository is moving toward a TypeScript-first pipeline because the shared contracts are consumed by the pipeline, server, and viewer. Keeping models in \code{packages/types} reduces duplicate definitions and makes it easier for the server and frontend to agree on public API shapes. This does not make Python irrelevant for research scripts or experiments, but the production extraction and serving path benefits from a single typed contract.
+
+\subsection{Why Keep PostgreSQL as the Structured Authority}
+
+File artifacts remain useful for large content, cached markdown, images, and local run logs. They are not reliable as the authoritative index for a multi-stage extraction system. PostgreSQL gives the pipeline and server a common place to store dataset identity, outlines, source status, staged rows, canonical graph rows, pipeline job state, review decisions, and API query state.
+
+\subsection{Why Separate Cards, Bodies, and Source Fragments}
+
+The project draws a strict line among three forms of text:
+
+\begin{itemize}
+  \item source fragments: textbook evidence and original context;
+  \item node cards: structured summaries and sections;
+  \item node bodies: persistent explanatory knowledge prose generated or maintained from evidence.
+\end{itemize}
+
+Mixing these would make the system easier to demo but harder to trust. A tutor or graph viewer must know whether it is showing original textbook material, a model-written explanation, or a structured summary.
+
+\subsection{Why Use a Reducer Boundary}
+
+Lesson workers operate with local context and limited evidence. They are allowed to generate candidates. They should not decide global identity, cross-lesson duplicate resolution, or final graph status. The reducer boundary protects the canonical graph from local model noise and gives the project a clear place for merge review, remapping, normalization, and quality policy.
+
+\section{Limitations}
+
+The current system is a strong substrate, but it is not complete AI-native learning infrastructure yet.
+
+\begin{enumerate}
+  \item Object-level retrieval exists only partially. Search and candidate retrieval are present, but the full runtime contract for grounded generation and semantic planning is not complete.
+  \item AI Tutor behavior is not yet implemented as a first-class application over \code{ApiUnit}.
+  \item Learning outcomes have not been evaluated through learner studies, controlled classroom deployments, or long-term A/B tests.
+  \item Graph density and relation quality need more evaluation. The physics run showed useful output, but also isolated nodes and disconnected components.
+  \item Staging writes still deserve stronger transaction guarantees in failure cases.
+  \item Image review can be improved with cheap rule-based prefilters before vision-model calls.
+  \item The top-level AI-NKS standard still needs a careful migration path before new runtime relations or governance fields become executable schema.
+\end{enumerate}
+
+\section{Future Work}
+
+The next phase should focus on turning the current substrate into a callable runtime. Four directions are especially important.
+
+\textbf{Stabilize \code{ApiUnit} as the public contract.}
+Future search, generation, tutoring, and planning modules should consume \code{ApiUnit} instead of joining tables directly. This keeps evidence, body, card, relation, and media semantics consistent across applications.
+
+\textbf{Build object-level retrieval and grounded generation.}
+Search results should return units and relation paths, not only node hits. Grounded generation should cite unit bodies and source fragments explicitly, and it should be able to refuse when evidence is insufficient.
+
+\textbf{Improve graph construction quality.}
+The pipeline should improve relation extraction, low-risk relation completion, cross-chunk merge evidence, and graph integrity feedback. Isolated nodes and weakly connected components are useful diagnostic signals, not merely warnings to suppress.
+
+\textbf{Close the education loop.}
+The long-term AI-NKS direction needs learner tasks, misconception detection, diagnostic questions, assessment tasks, feedback write-back, and evaluation metrics. The current data model already has places for pedagogical profiles and evidence; the runtime still needs to use them in tutoring and measurement. This future work is motivated by the long-standing tutoring and instructional-design literature: one-to-one tutoring remains a high bar for learning systems, and effective instruction depends on task-centered practice, feedback, assessment, and adaptation to learner state \cite{bloom-two-sigma,merrill,anderson-krathwohl,vanlehn}.
+
+\section{Conclusion}
+
+\OKM{} is best understood as an implemented knowledge-infrastructure substrate rather than a simple textbook parser or graph viewer. Its core contribution is the disciplined separation of source resources, staged model output, canonical world knowledge, consumption-side knowledge units, generated bodies, and evidence. The current TypeScript workspaces, PostgreSQL schema, Hono API, React viewer, and documented pipeline commands make this separation operational.
+
+The project is also deliberately unfinished in a productive way. It has enough structure to support reliable extraction, inspection, and QA; it has enough runtime shape to expose knowledge units to future AI systems; and it has enough evidence and provenance to avoid treating model prose as ground truth. The next research step is to make these knowledge units callable by tutors, planners, and evaluators, then measure whether object-level, evidence-grounded knowledge infrastructure improves accuracy, traceability, maintainability, and learning outcomes compared with ordinary document-chunk retrieval.
+
+\newpage
+
+\begin{thebibliography}{99}
+
+\bibitem{bfo}
+Robert Arp, Barry Smith, and Andrew D. Spear.
+\newblock \emph{Building Ontologies with Basic Formal Ontology}.
+\newblock MIT Press, 2015.
+
+\bibitem{anderson-krathwohl}
+Lorin W. Anderson, David R. Krathwohl, Peter W. Airasian, Kathleen A. Cruikshank, Richard E. Mayer, Paul R. Pintrich, James Raths, and Merlin C. Wittrock.
+\newblock \emph{A Taxonomy for Learning, Teaching, and Assessing: A Revision of Bloom's Taxonomy of Educational Objectives}.
+\newblock Longman, 2001.
+
+\bibitem{bloom-two-sigma}
+Benjamin S. Bloom.
+\newblock The 2 sigma problem: The search for methods of group instruction as effective as one-to-one tutoring.
+\newblock \emph{Educational Researcher}, 13(6):4--16, 1984.
+
+\bibitem{bull-kay}
+Susan Bull and Judy Kay.
+\newblock SMILI: A framework for interfaces to learning data in open learner models, learning analytics and related fields.
+\newblock \emph{International Journal of Artificial Intelligence in Education}, 26:293--331, 2016.
+
+\bibitem{corbett-anderson}
+Albert T. Corbett and John R. Anderson.
+\newblock Knowledge tracing: Modeling the acquisition of procedural knowledge.
+\newblock \emph{User Modeling and User-Adapted Interaction}, 4:253--278, 1994.
+
+\bibitem{hogan-kg}
+Aidan Hogan, Eva Blomqvist, Michael Cochez, Claudia d'Amato, Gerard de Melo, Claudio Gutierrez, Jos\'{e} Emilio Labra Gayo, Sabrina Kirrane, Sebastian Neumaier, Axel Polleres, Roberto Navigli, Axel-Cyrille Ngonga Ngomo, Sabbir M. Rashid, Anisa Rula, Lukas Schmelzeisen, Juan Sequeda, Steffen Staab, and Antoine Zimmermann.
+\newblock Knowledge graphs.
+\newblock \emph{ACM Computing Surveys}, 54(4):1--37, 2021.
+
+\bibitem{merrill}
+M. David Merrill.
+\newblock First principles of instruction.
+\newblock \emph{Educational Technology Research and Development}, 50(3):43--59, 2002.
+
+\bibitem{piech-dkt}
+Chris Piech, Jonathan Bassen, Jonathan Huang, Surya Ganguli, Mehran Sahami, Leonidas J. Guibas, and Jascha Sohl-Dickstein.
+\newblock Deep knowledge tracing.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2015.
+
+\bibitem{skos}
+Alistair Miles and Sean Bechhofer.
+\newblock \emph{SKOS Simple Knowledge Organization System Reference}.
+\newblock W3C Recommendation, 2009.
+
+\bibitem{rdf}
+Richard Cyganiak, David Wood, and Markus Lanthaler.
+\newblock \emph{RDF 1.1 Concepts and Abstract Syntax}.
+\newblock W3C Recommendation, 2014.
+
+\bibitem{owl}
+W3C OWL Working Group.
+\newblock \emph{OWL 2 Web Ontology Language Document Overview}.
+\newblock W3C Recommendation, 2012.
+
+\bibitem{shacl}
+Holger Knublauch and Dimitris Kontokostas.
+\newblock \emph{Shapes Constraint Language (SHACL)}.
+\newblock W3C Recommendation, 2017.
+
+\bibitem{prov}
+Timothy Lebo, Satya Sahoo, and Deborah McGuinness.
+\newblock \emph{PROV-O: The PROV Ontology}.
+\newblock W3C Recommendation, 2013.
+
+\bibitem{rag}
+Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich K\"uttler, Mike Lewis, Wen-tau Yih, Tim Rockt\"aschel, Sebastian Riedel, and Douwe Kiela.
+\newblock Retrieval-augmented generation for knowledge-intensive NLP tasks.
+\newblock \emph{Advances in Neural Information Processing Systems}, 2020.
+
+\bibitem{vanlehn}
+Kurt VanLehn.
+\newblock The behavior of tutoring systems.
+\newblock \emph{International Journal of Artificial Intelligence in Education}, 16(3):227--265, 2006.
+
+\end{thebibliography}
+
+\end{document}

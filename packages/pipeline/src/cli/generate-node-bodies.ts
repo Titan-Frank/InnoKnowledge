@@ -60,6 +60,7 @@ async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promi
     return await runGenerateNodeBodiesFromDatabase({
       datasetId: required(flags, "dataset-id"),
       nodeId: flags.get("node-id") ?? "",
+      bookId: flags.get("book-id") ?? "",
       limit: parseNonNegativeInteger(flags.get("limit"), "limit"),
       maxEvidencePerNode: parsePositiveInteger(flags.get("max-evidence"), "max-evidence") ?? 8,
       modelName,
@@ -101,15 +102,25 @@ function makeModelNodeBodyGenerator(options: {
       schema: prompt.response_schema,
       reasoningEffort: options.reasoningEffort,
     });
-    const response = await callModelRequestWithRetries({
-      api_mode: options.apiMode,
-      endpoint: `${baseUrl}/${options.apiMode === "responses" ? "responses" : "chat/completions"}`,
-      timeout_ms: options.timeoutMs,
-      instructions: prompt.instructions,
-      user_payload: prompt.user_payload,
-      body,
-    }, options.apiKey, options.retryCount);
-    return parseModelNodeBodyResultText(extractTextOutput(response));
+    let lastError: Error | null = null;
+    for (let attempt = 0; attempt <= options.retryCount; attempt += 1) {
+      try {
+        const response = await callModelRequestWithRetries({
+          api_mode: options.apiMode,
+          endpoint: `${baseUrl}/${options.apiMode === "responses" ? "responses" : "chat/completions"}`,
+          timeout_ms: options.timeoutMs,
+          instructions: prompt.instructions,
+          user_payload: prompt.user_payload,
+          body,
+        }, options.apiKey, options.retryCount);
+        return parseModelNodeBodyResultText(extractTextOutput(response));
+      } catch (error) {
+        lastError = error as Error;
+        if (attempt >= options.retryCount || !isRetryableGeneratedBodyError(lastError)) break;
+        await sleep(Math.min(1000 * (attempt + 1), 4000));
+      }
+    }
+    throw lastError ?? new Error("Model node body generation failed.");
   };
 }
 
@@ -133,6 +144,10 @@ async function callModelRequestWithRetries(
 
 function isRetryableModelError(error: Error): boolean {
   return /fetch failed|network|socket|timeout|aborted|429|500|502|503|504/i.test(error.message);
+}
+
+function isRetryableGeneratedBodyError(error: Error): boolean {
+  return /^Model output/i.test(error.message);
 }
 
 function sleep(ms: number): Promise<void> {

@@ -23,6 +23,7 @@
     "normalize": "npm run build && node dist/cli/normalize.js",
     "parallel-batch": "npm run build && node dist/cli/parallel-batch.js",
     "parallel-lesson-pipeline": "npm run build && node dist/cli/parallel-lesson-pipeline.js",
+    "quality-dashboard": "npm run build && node dist/cli/quality-dashboard.js",
     "retrieve-candidates": "npm run build && node dist/cli/retrieve-candidates.js",
     "server-pipeline-run": "npm run build && node dist/cli/server-pipeline-run.js",
     "staging-quality": "npm run build && node dist/cli/staging-quality.js",

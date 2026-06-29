@@ -6,6 +6,7 @@ import type {
   PipelineJobStatusResponse,
   PipelineExtractionTemplateId,
   PipelineLessonBackendKind,
+  PipelineQualityDashboardResponse,
   PipelineResponse,
   PipelineReviewItem,
   PipelineStartResponse,
@@ -16,6 +17,7 @@ import {
   loadPipelineJobStatus,
   loadImageReviews,
   loadPipeline,
+  loadPipelineQuality,
   startPipeline,
   updateImageReview,
 } from '@/services/backend-client';
@@ -28,6 +30,7 @@ import {
   GitBranch,
   Info,
   Loader2,
+  Network,
   Play,
   RotateCcw,
   Search,
@@ -77,11 +80,11 @@ const initialForm: PipelineForm = {
   mineru_file_url: '',
   mineru_base_url: 'https://mineru.net',
   mineru_model_version: 'vlm',
-  mineru_language: 'ch',
+  mineru_language: 'auto',
   mineru_page_ranges: '',
   mineru_force: false,
-  outline_start_page: '1',
-  outline_end_page: '20',
+  outline_start_page: '',
+  outline_end_page: '',
   output_root: 'data/main',
   parallelism: '8',
   extraction_template: 'auto',
@@ -119,6 +122,28 @@ function timeText(value: string | null): string {
 
 function percentValue(value: number): string {
   return `${Math.round(value * 100)}%`;
+}
+
+function optionalNumber(value: string): number | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed) || parsed <= 0) return undefined;
+  return Math.floor(parsed);
+}
+
+function optionalAutoString(value: string): string | undefined {
+  const trimmed = value.trim();
+  return trimmed && trimmed !== 'auto' ? trimmed : undefined;
+}
+
+function shouldUseInferredValue(currentValue: string, previousValue: string | undefined): boolean {
+  return !currentValue.trim() || Boolean(previousValue && currentValue === previousValue);
+}
+
+function templateLabel(value: string | undefined): string {
+  if (!value || value === 'auto') return '自动选择';
+  return EXTRACTION_TEMPLATE_OPTIONS.find((option) => option.value === value)?.label ?? value;
 }
 
 function statusLabel(status: string): string {
@@ -524,6 +549,13 @@ function ImageReviewPanel({
                   )}
 
                   <section className="border-b border-border-subtle pb-3">
+                    <div className="mb-2 text-[10px] font-medium text-text-muted">模型识别内容</div>
+                    <div className="whitespace-pre-wrap break-words text-[11px] leading-5 text-text-secondary">
+                      {activeItem.decision.visual_summary || '当前记录没有保存模型识别内容。重新进行图片判断后会显示。'}
+                    </div>
+                  </section>
+
+                  <section className="border-b border-border-subtle pb-3">
                     <div className="mb-2 text-[10px] font-medium text-text-muted">判断说明</div>
                     <div className="whitespace-pre-wrap break-words text-[11px] leading-5 text-text-secondary">
                       {activeItem.decision.reason || '缺少判断说明。'}
@@ -588,8 +620,8 @@ function ImageReviewPanel({
 }
 
 function sourceReadyLabel(form: PipelineForm): string {
-  if (form.pdf_path.trim()) return 'PDF 已填写，将经 MinerU 解析';
-  if (form.mineru_file_url.trim()) return 'MinerU 文件 URL 已填写';
+  if (form.pdf_path.trim()) return 'PDF 已填写，其他参数自动处理';
+  if (form.mineru_file_url.trim()) return 'MinerU 文件 URL 已填写，其他参数自动处理';
   return '需要 PDF 绝对路径或 MinerU 文件 URL';
 }
 
@@ -645,12 +677,13 @@ const stageLabels: Record<string, string> = {
   node_bodies: '生成知识正文',
   strict_qa: '严格质检',
   graph_integrity: '图谱完整性检查',
+  quality_dashboard: '生成质量仪表盘',
 };
 
 const sourceStageIds = ['check_postgres', 'mineru_source_markdown', 'prepare_source_markdown'];
 const outlineStageIds = ['extract_pdf_outline', 'ensure_outline', 'prepare_outline_chunks', 'lesson_plan'];
 const lessonStageIds = ['lesson_staging'];
-const mergeStageIds = ['staging_quality', 'canonical_commit', 'normalize', 'node_bodies', 'strict_qa', 'graph_integrity'];
+const mergeStageIds = ['staging_quality', 'canonical_commit', 'normalize', 'node_bodies', 'strict_qa', 'graph_integrity', 'quality_dashboard'];
 
 function stageLabel(stageId: string | undefined): string {
   if (!stageId) return '';
@@ -979,6 +1012,138 @@ function ManualReviewSummary({
   );
 }
 
+function QualityDashboardPanel({
+  quality,
+  loading,
+  error,
+  onRefresh,
+}: {
+  quality: PipelineQualityDashboardResponse | null;
+  loading: boolean;
+  error: string;
+  onRefresh: () => void;
+}) {
+  const summary = quality?.summary;
+  const lessons = quality?.lessons ?? [];
+  const lowCoverageCount = lessons.filter((row) => row.evidence_coverage < 0.8 && row.node_count + row.relation_count > 0).length;
+  const highIsolationCount = lessons.filter((row) => row.isolated_node_ratio > 0.4 && row.node_count > 0).length;
+  return (
+    <section className="overflow-hidden rounded-lg border border-border-subtle bg-elevated">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Network className="h-4 w-4 text-accent" />
+          <div>
+            <div className="text-sm font-semibold text-text-primary">质量仪表盘</div>
+            <div className="text-[11px] text-text-muted">
+              {quality ? `生成时间：${timeText(quality.generated_at)}` : '读取课时质量、证据覆盖和图连通性。'}
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={loading}
+          className="flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border-subtle bg-surface px-2 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
+          刷新
+        </button>
+      </div>
+
+      <div className="space-y-4 p-4">
+        {error && (
+          <div className="flex items-start gap-2 rounded-lg border border-node-event/40 bg-node-event/10 p-3 text-xs text-node-event" role="alert">
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <MetricCard
+            label="证据覆盖率"
+            value={summary ? percentValue(summary.evidence_coverage) : '暂无'}
+            tone={summary && summary.evidence_coverage < 0.8 ? 'warn' : 'ok'}
+            detail={lowCoverageCount > 0 ? `${lowCoverageCount} 个课时低于 80%` : '节点和关系证据引用'}
+          />
+          <MetricCard
+            label="孤立节点比例"
+            value={summary ? percentValue(summary.isolated_node_ratio) : '暂无'}
+            tone={summary && summary.isolated_node_ratio > 0.4 ? 'warn' : 'neutral'}
+            detail={summary ? `${summary.isolated_node_count} 个孤立节点` : '等待统计'}
+          />
+          <MetricCard
+            label="连通分量"
+            value={summary?.disconnected_components ?? '暂无'}
+            tone={summary && summary.disconnected_components > 1 ? 'active' : 'neutral'}
+            detail={highIsolationCount > 0 ? `${highIsolationCount} 个课时孤立偏高` : '按正式图计算'}
+          />
+          <MetricCard
+            label="人工待处理"
+            value={summary?.manual_pending_items ?? '暂无'}
+            tone={summary && summary.manual_pending_items > 0 ? 'warn' : 'ok'}
+            detail={summary ? `图片 ${summary.image_review_count}，合并 ${summary.merge_review_count}` : '等待统计'}
+          />
+        </div>
+
+        <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-3 py-2">
+            <div className="text-xs font-semibold text-text-primary">课时质量表</div>
+            <div className="text-[11px] text-text-muted">
+              {summary ? `${summary.lesson_count} 个课时，${summary.node_count} 个正式节点，${summary.relation_count} 条正式关系` : '暂无统计'}
+            </div>
+          </div>
+          <div className="max-h-[420px] overflow-auto scrollbar-thin">
+            <table className="w-full min-w-[900px] text-left text-xs">
+              <thead className="sticky top-0 z-10 bg-surface text-text-muted">
+                <tr>
+                  <th className="px-3 py-2 font-medium">状态</th>
+                  <th className="px-3 py-2 font-medium">课时</th>
+                  <th className="px-3 py-2 font-medium">节点</th>
+                  <th className="px-3 py-2 font-medium">关系</th>
+                  <th className="px-3 py-2 font-medium">证据覆盖</th>
+                  <th className="px-3 py-2 font-medium">孤立比例</th>
+                  <th className="px-3 py-2 font-medium">连通分量</th>
+                  <th className="px-3 py-2 font-medium">待复核图片</th>
+                  <th className="px-3 py-2 font-medium">人工待处理</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lessons.map((row) => {
+                  const coverageWarn = row.evidence_coverage < 0.8 && row.node_count + row.relation_count > 0;
+                  const isolationWarn = row.isolated_node_ratio > 0.4 && row.node_count > 0;
+                  return (
+                    <tr key={row.lesson_run_id} className="border-t border-border-subtle transition-colors hover:bg-hover">
+                      <td className="px-3 py-2"><StatusPill status={row.status} /></td>
+                      <td className="max-w-[300px] px-3 py-2">
+                        <div className="truncate font-medium text-text-primary" title={row.batch_anchor}>{row.batch_anchor}</div>
+                        {row.quality_issues.length > 0 && (
+                          <div className="mt-1 truncate text-[10px] text-node-event">{row.quality_issues[0]}</div>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 tabular-nums text-text-secondary">{row.node_count}</td>
+                      <td className="px-3 py-2 tabular-nums text-text-secondary">{row.relation_count}</td>
+                      <td className={`px-3 py-2 tabular-nums ${coverageWarn ? 'text-node-event' : 'text-text-secondary'}`}>{percentValue(row.evidence_coverage)}</td>
+                      <td className={`px-3 py-2 tabular-nums ${isolationWarn ? 'text-node-event' : 'text-text-secondary'}`}>{percentValue(row.isolated_node_ratio)}</td>
+                      <td className="px-3 py-2 tabular-nums text-text-secondary">{row.disconnected_components}</td>
+                      <td className={`px-3 py-2 tabular-nums ${row.image_review_count > 0 ? 'text-accent' : 'text-text-secondary'}`}>{row.image_review_count}</td>
+                      <td className={`px-3 py-2 tabular-nums ${row.manual_pending_items > 0 ? 'text-node-event' : 'text-text-secondary'}`}>{row.manual_pending_items}</td>
+                    </tr>
+                  );
+                })}
+                {!loading && lessons.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="px-3 py-10 text-center text-text-muted">暂无质量统计。抽取或合并后会显示每课时质量表。</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function PipelineDebugPage() {
   const { selectedSourceKey } = useAppState();
   const activeSourceKey =
@@ -1001,6 +1166,9 @@ export function PipelineDebugPage() {
   const [imageReviewLoading, setImageReviewLoading] = useState(false);
   const [imageReviewError, setImageReviewError] = useState('');
   const [imageReviewUpdating, setImageReviewUpdating] = useState('');
+  const [quality, setQuality] = useState<PipelineQualityDashboardResponse | null>(null);
+  const [qualityLoading, setQualityLoading] = useState(false);
+  const [qualityError, setQualityError] = useState('');
 
   const refresh = async (options: { silent?: boolean } = {}) => {
     if (!options.silent) setLoading(true);
@@ -1026,6 +1194,18 @@ export function PipelineDebugPage() {
     }
   };
 
+  const refreshQuality = async (options: { silent?: boolean } = {}) => {
+    if (!options.silent) setQualityLoading(true);
+    setQualityError('');
+    try {
+      setQuality(await loadPipelineQuality(activeSourceKey));
+    } catch (err) {
+      setQualityError((err as Error).message || '读取质量仪表盘失败');
+    } finally {
+      if (!options.silent) setQualityLoading(false);
+    }
+  };
+
   const refreshJobStatus = async (jobId = startResult?.job_id) => {
     if (!jobId) return;
     try {
@@ -1039,7 +1219,23 @@ export function PipelineDebugPage() {
     setForm((current) => ({ ...current, [key]: value }));
   };
 
-  const canStart = form.book_id.trim().length > 0 && sourceReady(form) && !starting;
+  const canInfer = Boolean(form.book_id.trim() || form.pdf_path.trim() || form.mineru_file_url.trim());
+  const canStart = sourceReady(form) && !starting;
+
+  const applyInferredMetadata = (result: TextbookMetadataResponse) => {
+    const previous = metadata;
+    setMetadata(result);
+    setForm((current) => ({
+      ...current,
+      book_id: shouldUseInferredValue(current.book_id, previous?.book_id) ? result.book_id : current.book_id,
+      book_title: shouldUseInferredValue(current.book_title, previous?.title) ? result.title : current.book_title,
+      lesson_subject: shouldUseInferredValue(current.lesson_subject, previous?.lesson_subject) ? result.lesson_subject : current.lesson_subject,
+      lesson_school_stage: shouldUseInferredValue(current.lesson_school_stage, previous?.lesson_school_stage)
+        ? result.lesson_school_stage
+        : current.lesson_school_stage,
+      lesson_grade_band: shouldUseInferredValue(current.lesson_grade_band, previous?.lesson_grade_band) ? result.lesson_grade_band : current.lesson_grade_band,
+    }));
+  };
 
   const submitStart = async (event: FormEvent) => {
     event.preventDefault();
@@ -1050,17 +1246,17 @@ export function PipelineDebugPage() {
     setJobStatus(null);
     try {
       const result = await startPipeline(activeSourceKey, {
-        book_id: form.book_id.trim(),
+        book_id: form.book_id.trim() || undefined,
         book_title: form.book_title.trim() || undefined,
         pdf_path: form.pdf_path.trim() || undefined,
         mineru_file_url: form.mineru_file_url.trim() || undefined,
         mineru_base_url: form.mineru_base_url.trim() || undefined,
         mineru_model_version: form.mineru_model_version.trim() || undefined,
-        mineru_language: form.mineru_language.trim() || undefined,
+        mineru_language: optionalAutoString(form.mineru_language),
         mineru_page_ranges: form.mineru_page_ranges.trim() || undefined,
         mineru_force: form.mineru_force,
-        outline_start_page: Number(form.outline_start_page) || undefined,
-        outline_end_page: Number(form.outline_end_page) || undefined,
+        outline_start_page: optionalNumber(form.outline_start_page),
+        outline_end_page: optionalNumber(form.outline_end_page),
         dataset_id: activeSourceKey,
         output_root: form.output_root.trim() || 'data/main',
         parallelism: Number(form.parallelism) || 8,
@@ -1082,6 +1278,7 @@ export function PipelineDebugPage() {
         void refreshJobStatus(result.job_id);
         void refresh({ silent: true });
         void refreshImageReviews({ silent: true });
+        void refreshQuality({ silent: true });
       }, 1200);
     } catch (err) {
       setStartError((err as Error).message || '启动失败');
@@ -1090,35 +1287,40 @@ export function PipelineDebugPage() {
     }
   };
 
-  const submitInfer = async () => {
-    if (!form.book_id.trim()) return;
-    setInferring(true);
-    setStartError('');
+  const submitInfer = async (options: { silent?: boolean } = {}) => {
+    if (!canInfer) return;
+    if (!options.silent) {
+      setInferring(true);
+      setStartError('');
+    }
     try {
       const result = await inferTextbookMetadata(activeSourceKey, {
-        book_id: form.book_id.trim(),
+        book_id: form.book_id.trim() || undefined,
         pdf_path: form.pdf_path.trim() || undefined,
+        mineru_file_url: form.mineru_file_url.trim() || undefined,
       });
-      setMetadata(result);
-      setForm((current) => ({
-        ...current,
-        book_title: current.book_title || result.title,
-        lesson_subject: result.lesson_subject,
-        lesson_school_stage: result.lesson_school_stage,
-        lesson_grade_band: result.lesson_grade_band,
-      }));
+      applyInferredMetadata(result);
     } catch (err) {
-      setStartError((err as Error).message || '识别教材信息失败');
+      if (!options.silent) setStartError((err as Error).message || '识别教材信息失败');
     } finally {
-      setInferring(false);
+      if (!options.silent) setInferring(false);
     }
   };
+
+  useEffect(() => {
+    if (!canInfer) return undefined;
+    const timer = window.setTimeout(() => {
+      void submitInfer({ silent: true });
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [activeSourceKey, form.book_id, form.pdf_path, form.mineru_file_url]);
 
   useEffect(() => {
     setStartResult(null);
     setJobStatus(null);
     void refresh();
     void refreshImageReviews();
+    void refreshQuality();
   }, [activeSourceKey]);
 
   const submitImageReview = async (item: ImageReviewItem, action: ImageReviewAction) => {
@@ -1128,6 +1330,7 @@ export function PipelineDebugPage() {
       await updateImageReview(activeSourceKey, item.evidence_id, { action });
       await refreshImageReviews();
       void refresh();
+      void refreshQuality({ silent: true });
     } catch (err) {
       setImageReviewError((err as Error).message || '提交图片确认失败');
     } finally {
@@ -1151,7 +1354,7 @@ export function PipelineDebugPage() {
   );
   const pipelineDone = pipelineComplete(payload);
   const jobDone = jobStatus?.status === 'completed' || jobStatus?.status === 'blocked';
-  const autoRefreshing = starting || Boolean(startResult && !jobDone && !pipelineDone && !pipelineBlocked(payload));
+  const autoRefreshing = starting || Boolean(startResult && !jobDone && !pipelineBlocked(payload));
   const lastUpdatedAt = jobStatus?.updated_at ?? latestUpdatedAt(payload);
 
   useEffect(() => {
@@ -1160,6 +1363,7 @@ export function PipelineDebugPage() {
       void refreshJobStatus();
       void refresh({ silent: true });
       void refreshImageReviews({ silent: true });
+      void refreshQuality({ silent: true });
     }, 3000);
     return () => window.clearInterval(timer);
   }, [autoRefreshing, activeSourceKey]);
@@ -1182,6 +1386,7 @@ export function PipelineDebugPage() {
               void refreshJobStatus();
               void refresh();
               void refreshImageReviews();
+              void refreshQuality();
             }}
             className="flex h-9 items-center gap-2 rounded-md border border-border-subtle bg-elevated px-3 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
           >
@@ -1213,37 +1418,18 @@ export function PipelineDebugPage() {
 
             <form onSubmit={submitStart} className="space-y-4 p-4">
               <div className="grid gap-3">
-                <Field label="教材编号" value={form.book_id} onChange={(value) => updateForm('book_id', value)} placeholder="chem-hukj-xb2-structure" />
-                <Field label="教材标题" value={form.book_title} onChange={(value) => updateForm('book_title', value)} placeholder="自动识别或手动填写" />
                 <div className="rounded-lg border border-accent/30 bg-accent/10 p-3">
                   <div className="mb-3 flex items-start gap-2">
                     <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
                     <div>
                       <div className="text-xs font-semibold text-text-primary">统一抽取入口</div>
-                      <div className="mt-1 text-[11px] leading-5 text-text-secondary">默认输入 PDF，经 MinerU 生成解析文本后进入课时抽取。</div>
+                      <div className="mt-1 text-[11px] leading-5 text-text-secondary">PDF 与 MinerU 统一处理，教材信息、语言和目录页默认自动设置。</div>
                     </div>
                   </div>
                   <div className="grid gap-3">
                     <Field label="PDF 绝对路径" value={form.pdf_path} onChange={(value) => updateForm('pdf_path', value)} placeholder="/Users/.../book.pdf" />
                     <Field label="MinerU 文件 URL" value={form.mineru_file_url} onChange={(value) => updateForm('mineru_file_url', value)} placeholder="已有公网文件地址时填写，可不填" />
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field label="页码范围" value={form.mineru_page_ranges} onChange={(value) => updateForm('mineru_page_ranges', value)} placeholder="1-80" />
-                      <SelectField
-                        label="语言"
-                        value={form.mineru_language}
-                        onChange={(value) => updateForm('mineru_language', value)}
-                        options={[
-                          { value: 'ch', label: '中文' },
-                          { value: 'en', label: '英文' },
-                        ]}
-                      />
-                    </div>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="目录起始页" value={form.outline_start_page} onChange={(value) => updateForm('outline_start_page', value)} inputMode="numeric" />
-                  <Field label="目录结束页" value={form.outline_end_page} onChange={(value) => updateForm('outline_end_page', value)} inputMode="numeric" />
                 </div>
               </div>
 
@@ -1253,12 +1439,16 @@ export function PipelineDebugPage() {
                   <button
                     type="button"
                     onClick={() => void submitInfer()}
-                    disabled={inferring || !form.book_id.trim()}
+                    disabled={inferring || !canInfer}
                     className="flex h-7 items-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-2 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {inferring ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
-                    自动识别
+                    重新识别
                   </button>
+                </div>
+                <div className="mb-3 grid grid-cols-2 gap-2">
+                  <Field label="教材编号" value={form.book_id} onChange={(value) => updateForm('book_id', value)} placeholder="留空自动生成" />
+                  <Field label="教材标题" value={form.book_title} onChange={(value) => updateForm('book_title', value)} placeholder="留空自动识别" />
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <Field label="学科" value={form.lesson_subject} onChange={(value) => updateForm('lesson_subject', value)} placeholder="chemistry" />
@@ -1287,6 +1477,10 @@ export function PipelineDebugPage() {
                 {metadata && (
                   <div className="mt-3 flex flex-wrap gap-1.5 text-[10px] text-text-muted">
                     <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">置信度 {percentValue(metadata.confidence)}</span>
+                    <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">语言 {metadata.mineru_language === 'en' ? '英文' : '中文'}</span>
+                    <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">页码 {metadata.mineru_page_ranges || '整本'}</span>
+                    <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">目录 {metadata.outline_start_page}-{metadata.outline_end_page}</span>
+                    <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{templateLabel(metadata.extraction_template)}</span>
                     {metadata.signals.slice(0, 5).map((signal) => (
                       <span key={signal} className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{signal}</span>
                     ))}
@@ -1330,6 +1524,23 @@ export function PipelineDebugPage() {
                   <Field label="视觉模型名称" value={form.vlm_model} onChange={(value) => updateForm('vlm_model', value)} placeholder="例如 gpt-4.1-mini 或 qwen-vl-max" />
                   <Field label="MinerU 接口地址" value={form.mineru_base_url} onChange={(value) => updateForm('mineru_base_url', value)} />
                   <Field label="MinerU 模型版本" value={form.mineru_model_version} onChange={(value) => updateForm('mineru_model_version', value)} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="解析页码范围" value={form.mineru_page_ranges} onChange={(value) => updateForm('mineru_page_ranges', value)} placeholder="留空解析整本" />
+                    <SelectField
+                      label="解析语言"
+                      value={form.mineru_language}
+                      onChange={(value) => updateForm('mineru_language', value)}
+                      options={[
+                        { value: 'auto', label: '自动' },
+                        { value: 'ch', label: '中文' },
+                        { value: 'en', label: '英文' },
+                      ]}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="目录起始页" value={form.outline_start_page} onChange={(value) => updateForm('outline_start_page', value)} placeholder="自动" inputMode="numeric" />
+                    <Field label="目录结束页" value={form.outline_end_page} onChange={(value) => updateForm('outline_end_page', value)} placeholder="自动" inputMode="numeric" />
+                  </div>
                   <label className="flex items-center gap-2 text-xs text-text-secondary">
                     <input
                       type="checkbox"
@@ -1389,6 +1600,13 @@ export function PipelineDebugPage() {
             </div>
 
             <ManualReviewSummary payload={payload} imageReviews={imageReviews} pipelineDone={pipelineDone} />
+
+            <QualityDashboardPanel
+              quality={quality}
+              loading={qualityLoading}
+              error={qualityError}
+              onRefresh={() => void refreshQuality()}
+            />
 
             <ImageReviewPanel
               reviews={imageReviews}

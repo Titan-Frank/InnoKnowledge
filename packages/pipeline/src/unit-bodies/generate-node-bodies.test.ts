@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   buildModelNodeBodyPrompt,
+  buildSelectNodesForModelBodiesQuery,
   buildUpsertNodeBodyStatement,
   parseModelNodeBodyResultText,
   planModelNodeBodies,
@@ -139,6 +140,23 @@ test("parses model node body JSON from plain or fenced output", () => {
     parseModelNodeBodyResultText('{"markdown":"正文","evidence_refs":["ev1"]}'),
     { content: "正文", source_refs: ["ev1"], media_refs: [], properties: {} },
   );
+  assert.deepEqual(
+    parseModelNodeBodyResultText('{"content":"正文内容 [ev1]"}'),
+    { content: "正文内容 [ev1]", source_refs: ["ev1"], media_refs: [], properties: {} },
+  );
+});
+
+test("builds model body node query scoped to a source book", () => {
+  const statement = buildSelectNodesForModelBodiesQuery({
+    datasetId: "main",
+    bookId: "chem-book",
+    limit: 25,
+  });
+  assert.deepEqual(statement.params, ["main", "", 25, "chem-book", false]);
+  assert.match(statement.sql, /world_mentions AS mention/);
+  assert.match(statement.sql, /world_evidence AS evidence/);
+  assert.match(statement.sql, /evidence\.source_id = \$4/);
+  assert.match(statement.sql, /world_node_bodies AS body/);
 });
 
 test("plans model-written bodies from node cards, including backfilled card context", async () => {
@@ -248,13 +266,17 @@ test("runs model node body generation from database rows by default", async () =
   const modelCard = { ...card, node_id: modelNode.id };
   const result = await runGenerateNodeBodiesFromDatabase({
     datasetId: "main",
+    bookId: "book",
     now: "now",
     concurrency: 2,
     modelName: "test-model",
     query: (statement) => {
       if (statement.name === "select-node-cards-for-bodies") return [modelCard];
       if (statement.name === "select-existing-node-bodies") return [];
-      if (statement.name === "select-nodes-for-model-bodies") return [modelNode];
+      if (statement.name === "select-nodes-for-model-bodies") {
+        assert.deepEqual(statement.params, ["main", "", 0, "book", false]);
+        return [modelNode];
+      }
       if (statement.name === "select-mentions-for-model-bodies") {
         return [{ target_id: modelNode.id, source_id: "book", anchor_ref: "lesson:1", source_refs_json: ["ev1"] }];
       }

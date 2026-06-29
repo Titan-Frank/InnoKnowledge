@@ -151,23 +151,55 @@ export function buildSelectExistingNodeBodiesQuery(datasetId: string): SqlStatem
   };
 }
 
-export function buildSelectNodesForModelBodiesQuery(input: { datasetId: string; nodeId?: string | null; limit?: number | null }): SqlStatement {
+export function buildSelectNodesForModelBodiesQuery(input: {
+  datasetId: string;
+  nodeId?: string | null;
+  limit?: number | null;
+  bookId?: string | null;
+  overwriteExisting?: boolean;
+}): SqlStatement {
   return {
     name: "select-nodes-for-model-bodies",
     sql: [
-      "SELECT id, name, kind, subkind, definition, aliases_json, domains_json, knowledge_form_json, learning_mode_json, scope, properties_json, tags_json",
-      "FROM world_nodes",
-      "WHERE dataset_id = $1",
-      "  AND status != 'deprecated'",
-      "  AND ($2 = '' OR id = $2)",
-      "ORDER BY id",
+      "SELECT n.id, n.name, n.kind, n.subkind, n.definition, n.aliases_json, n.domains_json, n.knowledge_form_json, n.learning_mode_json, n.scope, n.properties_json, n.tags_json",
+      "FROM world_nodes AS n",
+      "WHERE n.dataset_id = $1",
+      "  AND n.status != 'deprecated'",
+      "  AND ($2 = '' OR n.id = $2)",
+      "  AND (",
+      "    $4 = ''",
+      "    OR EXISTS (",
+      "      SELECT 1",
+      "      FROM world_mentions AS mention",
+      "      JOIN LATERAL jsonb_array_elements_text(mention.source_refs_json) AS mention_ref(evidence_id) ON true",
+      "      JOIN world_evidence AS evidence",
+      "        ON evidence.dataset_id = mention.dataset_id",
+      "       AND evidence.id = mention_ref.evidence_id",
+      "      WHERE mention.dataset_id = n.dataset_id",
+      "        AND mention.target_type = 'node'",
+      "        AND mention.target_id = n.id",
+      "        AND evidence.source_id = $4",
+      "    )",
+      "  )",
+      "  AND (",
+      "    $5",
+      "    OR NOT EXISTS (",
+      "      SELECT 1",
+      "      FROM world_node_bodies AS body",
+      "      WHERE body.dataset_id = n.dataset_id",
+      "        AND body.node_id = n.id",
+      "        AND body.status != 'deprecated'",
+      "        AND body.generated_from IS DISTINCT FROM 'card_expansion'",
+      "    )",
+      "  )",
+      "ORDER BY n.id",
       "LIMIT NULLIF($3, 0)",
     ].join("\n"),
-    params: [input.datasetId, input.nodeId ?? "", input.limit ?? 0],
+    params: [input.datasetId, input.nodeId ?? "", input.limit ?? 0, input.bookId ?? "", input.overwriteExisting === true],
   };
 }
 
-export function buildSelectMentionsForModelBodiesQuery(datasetId: string): SqlStatement {
+export function buildSelectMentionsForModelBodiesQuery(datasetId: string, bookId = ""): SqlStatement {
   return {
     name: "select-mentions-for-model-bodies",
     sql: [
@@ -175,22 +207,24 @@ export function buildSelectMentionsForModelBodiesQuery(datasetId: string): SqlSt
       "FROM world_mentions",
       "WHERE dataset_id = $1",
       "  AND target_type = 'node'",
+      "  AND ($2 = '' OR source_id = $2)",
       "ORDER BY target_id, source_id, anchor_ref",
     ].join("\n"),
-    params: [datasetId],
+    params: [datasetId, bookId],
   };
 }
 
-export function buildSelectEvidenceForModelBodiesQuery(datasetId: string): SqlStatement {
+export function buildSelectEvidenceForModelBodiesQuery(datasetId: string, bookId = ""): SqlStatement {
   return {
     name: "select-evidence-for-model-bodies",
     sql: [
       "SELECT id, source_type, source_id, anchor_ref, source_path, page_start, page_end, excerpt, locator, modality, normalized_claims_json, properties_json",
       "FROM world_evidence",
       "WHERE dataset_id = $1",
+      "  AND ($2 = '' OR source_id = $2)",
       "ORDER BY source_id, anchor_ref, id",
     ].join("\n"),
-    params: [datasetId],
+    params: [datasetId, bookId],
   };
 }
 
@@ -296,7 +330,9 @@ export function parseModelNodeBodyResultText(text: string): ModelNodeBodyResult 
       : Array.isArray(parsed.sources)
         ? parsed.sources
         : [];
-  const sourceRefs = uniqueStrings(rawSourceRefs);
+  const sourceRefs = uniqueStrings(rawSourceRefs).length > 0
+    ? uniqueStrings(rawSourceRefs)
+    : extractBracketedSourceRefs(content);
   if (sourceRefs.length === 0) throw new Error("Model output is missing source_refs.");
   return {
     content,
@@ -304,6 +340,10 @@ export function parseModelNodeBodyResultText(text: string): ModelNodeBodyResult 
     media_refs: Array.isArray(parsed.media_refs) ? parsed.media_refs.filter(isRecord) : [],
     properties: recordValue(parsed.properties),
   };
+}
+
+function extractBracketedSourceRefs(content: string): string[] {
+  return uniqueStrings([...content.matchAll(/\[([^\]\s]+)\]/g)].map((match) => match[1]).filter(Boolean));
 }
 
 export function renderNodeCardBodyMarkdown(card: NodeCardBodyRow): string {
@@ -549,6 +589,7 @@ export async function runGenerateNodeBodiesFromDatabase(input: {
   datasetId: string;
   now?: string;
   nodeId?: string | null;
+  bookId?: string | null;
   limit?: number | null;
   maxEvidencePerNode?: number | null;
   modelName?: string;
@@ -577,11 +618,13 @@ export async function runGenerateNodeBodiesFromDatabase(input: {
       datasetId: input.datasetId,
       nodeId: input.nodeId,
       limit: input.limit,
+      bookId: input.bookId,
+      overwriteExisting: input.overwriteExisting,
     }))).map(toNodeBodyInputNodeRow),
     cards,
     existingBodies,
-    mentions: (await query(buildSelectMentionsForModelBodiesQuery(input.datasetId))).map(toNodeBodyInputMentionRow),
-    evidence: (await query(buildSelectEvidenceForModelBodiesQuery(input.datasetId))).map(toNodeBodyInputEvidenceRow),
+    mentions: (await query(buildSelectMentionsForModelBodiesQuery(input.datasetId, input.bookId ?? ""))).map(toNodeBodyInputMentionRow),
+    evidence: (await query(buildSelectEvidenceForModelBodiesQuery(input.datasetId, input.bookId ?? ""))).map(toNodeBodyInputEvidenceRow),
     overwriteExisting: input.overwriteExisting,
     maxEvidencePerNode: input.maxEvidencePerNode ?? undefined,
     concurrency: input.concurrency ?? 8,

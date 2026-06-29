@@ -80,6 +80,9 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
     if (!VALID_EDGE_TYPES.has(edge.type)) {
       errors.push(`Edge ${edge.raw_edge_id} has invalid type ${edge.type}.`);
     }
+    if (edge.directionality !== "directed" && edge.directionality !== "undirected") {
+      errors.push(`Edge ${edge.raw_edge_id} has invalid directionality ${edge.directionality}.`);
+    }
     if (!nodeIds.has(edge.from_raw_node_id) || !nodeIds.has(edge.to_raw_node_id)) {
       errors.push(`Edge ${edge.raw_edge_id} references missing node endpoint.`);
     }

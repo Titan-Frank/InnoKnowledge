@@ -19,6 +19,11 @@ import {
   parseHybridEdgeBundleFromResponse,
   parseHybridNodeEvidenceBundleFromResponse,
 } from "../extraction/model-lesson-extraction.js";
+import {
+  loadEnrichHintsForLesson,
+  outlineTitlePathFromRecord,
+  type EnrichContextQueryExecutor,
+} from "../extraction/enrich-context.js";
 import { resolveExtractionTemplate } from "../extraction/extraction-template.js";
 import { filterImageEvidencePayload } from "../extraction/image-relevance.js";
 import {
@@ -39,6 +44,7 @@ type ExtractLessonRequestBase = BuildModelExtractionRequestInput & {
   outputRoot: string;
   subject: string;
   schoolStage: string;
+  bookTitle?: string;
 };
 
 export type ExtractLessonOpenAiCliDeps = {
@@ -47,6 +53,7 @@ export type ExtractLessonOpenAiCliDeps = {
   env?: CliEnv;
   fetchImpl?: typeof fetch;
   retrievalQueryExecutor?: RetrievalCandidateQueryExecutor;
+  enrichContextExecutor?: EnrichContextQueryExecutor;
   embedQuery?: (queryText: string) => Promise<number[]> | number[];
   stagingStatementExecutor?: SqlExecutor;
 };
@@ -92,6 +99,7 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
       outputRoot,
       model: flags.get("model") ?? env.OPENAI_MODEL ?? DEFAULT_OPENAI_MODEL,
       prompt: flags.get("prompt") ?? "",
+      bookTitle: flags.get("book-title") ?? "",
       subject: flags.get("subject") ?? "computer-science",
       schoolStage: flags.get("school-stage") ?? "higher",
       gradeBand: flags.get("grade-band") ?? "university",
@@ -114,7 +122,8 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
     });
     if (pgOutline) requestBase.outline = pgOutline;
     const retrievalCandidates = await resolveRetrievalCandidates(flags, requestBase, env, deps);
-    const requestInput = { ...requestBase, retrievalCandidates };
+    const enrichHints = await resolveEnrichHints(flags, requestBase, deps);
+    const requestInput = { ...requestBase, retrievalCandidates, enrichHints };
 
     const apiKeyEnv = flags.get("api-key-env") ?? "OPENAI_API_KEY";
     const apiKey = (env[apiKeyEnv] ?? "").trim();
@@ -194,12 +203,15 @@ const EXTRACT_LESSON_OPENAI_FLAGS = new Set([
   "api-mode",
   "base-url",
   "batch-anchor",
+  "book-title",
   "book-id",
   "dataset-id",
   "db",
   "embedding-api-key-env",
   "embedding-model",
   "embedding-url",
+  "enrich-context",
+  "enrich-context-limit",
   "extraction-template",
   "grade-band",
   "model",
@@ -322,6 +334,40 @@ async function resolveRetrievalCandidates(
   }
 }
 
+async function resolveEnrichHints(
+  flags: Map<string, string>,
+  requestBase: ExtractLessonRequestBase,
+  deps: ExtractLessonOpenAiCliDeps,
+) {
+  if (!flags.has("enrich-context")) return undefined;
+  if (!requestBase.datasetId) return [];
+  const ownedExecutor = deps.enrichContextExecutor ? null : await createExplicitPostgresEnrichContextExecutor(flags.get("db"));
+  const executor = deps.enrichContextExecutor ?? ownedExecutor?.executor;
+  if (!executor) {
+    throw new Error("--enrich-context requires --db when no enrich context executor is injected.");
+  }
+
+  try {
+    const payload = buildModelLessonPayload({ ...requestBase, retrievalCandidates: [], enrichHints: [] });
+    return await loadEnrichHintsForLesson({
+      datasetId: requestBase.datasetId,
+      executor,
+      bookId: requestBase.bookId,
+      textbookId: requestBase.textbookId,
+      bookTitle: requestBase.bookTitle,
+      subject: requestBase.subject,
+      schoolStage: requestBase.schoolStage,
+      gradeBand: requestBase.gradeBand,
+      lessonTitle: payload.lesson_context.lesson_title,
+      outlineTitlePath: outlineTitlePathFromRecord(requestBase.outline, payload.lesson_context.batch_anchor),
+      markdownLines: payload.markdown_lines,
+      limit: parsePositiveInteger(flags.get("enrich-context-limit"), "enrich-context-limit") ?? 6,
+    });
+  } finally {
+    await ownedExecutor?.close();
+  }
+}
+
 function parseRetrievalCandidatesJson(value: string | undefined): RawRecord[] | undefined {
   if (value === undefined) return undefined;
   const parsed = JSON.parse(value) as unknown;
@@ -345,6 +391,28 @@ async function createExplicitPostgresRetrievalExecutor(dbUrl: string | undefined
     executor: async (statement) => {
       if (!/^\s*SELECT\b/i.test(statement.sql)) {
         throw new Error(`Retrieval context executor refuses non-SELECT statement '${statement.name}'.`);
+      }
+      const rows = await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
+      return Array.isArray(rows) ? rows.filter(isRecord) : [];
+    },
+    close: () => sql.end(),
+  };
+}
+
+async function createExplicitPostgresEnrichContextExecutor(dbUrl: string | undefined): Promise<
+  | {
+      executor: EnrichContextQueryExecutor;
+      close: () => Promise<void>;
+    }
+  | null
+> {
+  if (!dbUrl) return null;
+  const postgres = (await import("postgres")).default;
+  const sql = postgres(dbUrl, { max: 1 });
+  return {
+    executor: async (statement) => {
+      if (!/^\s*SELECT\b/i.test(statement.sql)) {
+        throw new Error(`Enrich context executor refuses non-SELECT statement '${statement.name}'.`);
       }
       const rows = await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
       return Array.isArray(rows) ? rows.filter(isRecord) : [];

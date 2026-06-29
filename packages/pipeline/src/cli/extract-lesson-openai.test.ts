@@ -106,6 +106,92 @@ test("calls the model with retrieval context loaded from a read-only executor", 
   }
 });
 
+test("passes matching enrich context as auxiliary lesson hints", async () => {
+  const repo = makeFixtureRepo();
+  const stdout: string[] = [];
+  const statementNames: string[] = [];
+  const requestBodies: unknown[] = [];
+  try {
+    const code = await runExtractLessonOpenAiCli(
+      [
+        "--book-id",
+        bookId,
+        "--book-title",
+        "高中化学选择性必修2 物质结构与性质",
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+        "--dataset-id",
+        "dataset-a",
+        "--subject",
+        "chemistry",
+        "--school-stage",
+        "senior-secondary",
+        "--enrich-context",
+        "--enrich-context-limit",
+        "1",
+      ],
+      {
+        stdout: (text) => stdout.push(text),
+        stderr: () => undefined,
+        env: { OPENAI_API_KEY: "test-key" },
+        fetchImpl: async (_url, init) => {
+          requestBodies.push(JSON.parse(String(init?.body)));
+          const text = requestBodies.length === 1
+            ? JSON.stringify({ nodes: [], evidence_units: [], issues: [] })
+            : JSON.stringify({ edges: [], issues: [] });
+          return new Response(
+            JSON.stringify({
+              choices: [{ message: { content: text } }],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          );
+        },
+        enrichContextExecutor: (statement) => {
+          statementNames.push(statement.name);
+          return [
+            {
+              path: "data/enrich/化学/高中_化学_沪科技版_选择性必修2物质结构与性质_enriched.json",
+              filename: "高中_化学_沪科技版_选择性必修2物质结构与性质_enriched.json",
+              title: "高中 化学 沪科技版 选择性必修2物质结构与性质",
+              subject: "化学",
+              stage: "高中",
+              grade: "",
+              course: "化学",
+              publisher: "沪科技版",
+              volume: "选择性必修2物质结构与性质",
+              tree_json: [
+                {
+                  title: "模型抽取",
+                  enrichment: {
+                    definition: "模型抽取是根据证据生成结构化节点的过程。",
+                    content: "用于辅助判断术语边界。",
+                  },
+                },
+              ],
+            },
+          ];
+        },
+      },
+    );
+
+    assert.equal(code, 0);
+    assert.deepEqual(statementNames, ["select-enrich-context-books"]);
+    const requestBody = requestBodies[0] as { messages: Array<{ content: string }> };
+    const lessonPayload = JSON.parse(requestBody.messages[1]!.content) as {
+      lesson_context: { enrich_hints: Array<{ title: string; definition: string }> };
+    };
+    assert.equal(lessonPayload.lesson_context.enrich_hints.length, 1);
+    assert.equal(lessonPayload.lesson_context.enrich_hints[0]?.title, "模型抽取");
+    assert.match(lessonPayload.lesson_context.enrich_hints[0]?.definition ?? "", /结构化节点/);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
 test("uses OpenAI model and base URL from environment when flags are omitted", async () => {
   const repo = makeFixtureRepo();
   const stdout: string[] = [];

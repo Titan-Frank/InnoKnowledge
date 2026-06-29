@@ -90,6 +90,8 @@ type RunnerOptions = {
   vlmModel?: string;
   retrievalContext: boolean;
   retrievalLimit: number;
+  enrichContext?: boolean;
+  enrichContextLimit?: number;
   qualityRetryCount: number;
   skipNodeBodies?: boolean;
   nodeBodyConcurrency?: number;
@@ -280,6 +282,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       subject: options.subject,
       schoolStage: options.schoolStage,
       gradeBand: options.gradeBand,
+      bookTitle: options.bookTitle,
       textbookId: options.textbookId,
       apiMode: options.apiMode,
       extractionTemplate: options.extractionTemplate ?? "auto",
@@ -293,6 +296,8 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       vlmCacheDir: options.vlmApiUrl ? options.vlmCacheDir : undefined,
       vlmConcurrency: options.vlmApiUrl ? options.vlmConcurrency : undefined,
       vlmModel: options.vlmApiUrl ? options.vlmModel : undefined,
+      enrichContext: options.enrichContext ?? true,
+      enrichContextLimit: options.enrichContextLimit ?? 6,
     }).map((item) => ({
       ...item,
       command: addExtractionExecutionFlags(item.command, options),
@@ -391,13 +396,15 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
     if (!qaOk) return result;
     const integrityOk = await runPipelineCommandStage(result, progressStore, options, "graph_integrity", buildGraphIntegrityCommand(options), "Graph integrity command failed.");
     if (!integrityOk) return result;
+    const qualityDashboardOk = await runPipelineCommandStage(result, progressStore, options, "quality_dashboard", buildQualityDashboardCommand(options), "Quality dashboard command failed.");
+    if (!qualityDashboardOk) return result;
 
     result.status = "completed";
     await progressStore.updateJob({
       datasetId: options.datasetId,
       jobId: result.job_id,
       status: "completed",
-      currentStageId: "graph_integrity",
+      currentStageId: "quality_dashboard",
       progress: { completed_stages: result.stages.length },
       completed: true,
     });
@@ -639,6 +646,8 @@ function buildNodeBodiesCommand(options: RunnerOptions): string[] {
     options.datasetId,
     "--db",
     options.dbUrl,
+    "--book-id",
+    options.bookId,
     "--pretty",
   ];
   command.push("--api-mode", options.apiMode);
@@ -669,6 +678,17 @@ function buildGraphIntegrityCommand(options: RunnerOptions): string[] {
     "--mark-qa-passed",
     "--book-id",
     options.bookId,
+  ];
+}
+
+function buildQualityDashboardCommand(options: RunnerOptions): string[] {
+  return [
+    "node",
+    resolve(CLI_DIR, "quality-dashboard.js"),
+    "--dataset-id",
+    options.datasetId,
+    "--db",
+    options.dbUrl,
   ];
 }
 
@@ -1070,6 +1090,7 @@ function stageSortOrder(stageId: string, fallback: number): number {
     "node_bodies",
     "strict_qa",
     "graph_integrity",
+    "quality_dashboard",
   ].indexOf(stageId);
   return index >= 0 ? index + 1 : fallback;
 }
@@ -1094,6 +1115,7 @@ function stageLabel(stageId: string): string {
     node_bodies: "生成知识正文",
     strict_qa: "严格质检",
     graph_integrity: "图谱完整性检查",
+    quality_dashboard: "生成质量仪表盘",
   };
   return labels[stageId] ?? stageId;
 }
@@ -1198,6 +1220,8 @@ function parseOptions(argv: string[]): RunnerOptions {
     vlmModel: flags.get("vlm-model") ?? process.env.VLM_MODEL ?? "",
     retrievalContext: parseBoolean(flags.get("retrieval-context"), true),
     retrievalLimit: parseInteger(flags.get("retrieval-limit"), 8),
+    enrichContext: parseBoolean(flags.get("enrich-context"), true),
+    enrichContextLimit: parseInteger(flags.get("enrich-context-limit"), 6),
     qualityRetryCount: parseNonNegativeInteger(flags.get("quality-retry-count") ?? flags.get("quality-retries"), 1),
     skipNodeBodies: flags.has("skip-node-bodies"),
     nodeBodyConcurrency: parseInteger(flags.get("node-body-concurrency") ?? flags.get("parallelism"), 8),
