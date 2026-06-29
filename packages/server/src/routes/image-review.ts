@@ -221,7 +221,7 @@ function applyReviewAction(previous: ImageReviewDecision, action: ImageReviewAct
       keep: true,
       relevance: 'core_content',
       reason: reason || '人工复核确认为核心知识图。',
-      review_status: 'confirmed',
+      review_status: 'approved',
     };
   }
   if (action === 'supporting') {
@@ -230,7 +230,7 @@ function applyReviewAction(previous: ImageReviewDecision, action: ImageReviewAct
       keep: true,
       relevance: 'supporting',
       reason: reason || '人工复核确认为辅助知识图。',
-      review_status: 'confirmed',
+      review_status: 'approved',
     };
   }
   if (action === 'uncertain') {
@@ -246,7 +246,7 @@ function applyReviewAction(previous: ImageReviewDecision, action: ImageReviewAct
     ...base,
     keep: true,
     reason: reason || '人工复核决定保留这张图片。',
-    review_status: 'confirmed',
+    review_status: 'approved',
   };
 }
 
@@ -276,7 +276,8 @@ function parseRelevance(value: unknown): ImageReviewDecision['relevance'] {
 }
 
 function parseReviewStatus(value: unknown, relevance: ImageReviewDecision['relevance']): ImageReviewDecision['review_status'] {
-  if (value === 'auto' || value === 'pending' || value === 'confirmed' || value === 'rejected') return value;
+  if (value === 'confirmed') return 'approved';
+  if (value === 'auto' || value === 'pending' || value === 'approved' || value === 'rejected') return value;
   return relevance === 'uncertain' ? 'pending' : 'auto';
 }
 

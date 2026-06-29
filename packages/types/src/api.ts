@@ -62,6 +62,43 @@ export interface BundleResponse {
   loadWarnings: string[];
 }
 
+// ── GET /api/annotation/textbooks ────────────────────────
+
+export interface AnnotationLessonSummary {
+  lesson_id: string;
+  title: string;
+  label: string;
+  source_path: string;
+  md_start: number;
+  md_end: number;
+  line_count: number;
+  page_start: number | null;
+  page_end: number | null;
+  preview: string;
+}
+
+export interface AnnotationTextbookSummary {
+  book_id: string;
+  title: string;
+  source_path: string;
+  line_count: number;
+  lesson_count: number;
+  lessons: AnnotationLessonSummary[];
+}
+
+export interface AnnotationTextbookListResponse {
+  generated_at: string;
+  books: AnnotationTextbookSummary[];
+}
+
+export interface AnnotationLessonTextResponse {
+  book: Omit<AnnotationTextbookSummary, 'lessons'>;
+  lesson: AnnotationLessonSummary & {
+    source_text: string;
+    lines: string[];
+  };
+}
+
 // ── GET /api/source/:key/node-card/:node_id ───────────────
 
 export type NodeCardResponse = ApiNodeCard;
@@ -292,7 +329,7 @@ export interface TextbookMetadataResponse {
 // ── Image Review ─────────────────────────────────────────
 
 export type ImageReviewRelevance = 'core_content' | 'supporting' | 'decorative' | 'mismatch' | 'uncertain';
-export type ImageReviewStatus = 'auto' | 'pending' | 'confirmed' | 'rejected';
+export type ImageReviewStatus = 'auto' | 'pending' | 'approved' | 'confirmed' | 'rejected';
 export type ImageReviewAction = 'keep' | 'drop' | 'core_content' | 'supporting' | 'uncertain';
 
 export interface ImageReviewDecision {

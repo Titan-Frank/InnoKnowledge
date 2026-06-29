@@ -72,6 +72,7 @@ async function createExecuteStatement(dbUrl: string | undefined): Promise<{ exec
 function assertAllowedStoreStagingStatement(statement: SqlStatement): void {
   const trimmed = statement.sql.trim();
   const allowed =
+    /^(BEGIN|COMMIT|ROLLBACK)\b/i.test(trimmed) ||
     /^INSERT\s+INTO\s+world_lesson_runs\b/i.test(trimmed) ||
     /^DELETE\s+FROM\s+world_staging_(nodes|edges|domain_profiles|mentions|evidence|node_cards)\b/i.test(trimmed) ||
     /^INSERT\s+INTO\s+world_staging_(nodes|edges|domain_profiles|mentions|evidence|node_cards)\b/i.test(trimmed);

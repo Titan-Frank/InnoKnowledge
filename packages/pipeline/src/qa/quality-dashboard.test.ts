@@ -57,7 +57,7 @@ test("uses canonical image review state after a lesson has been merged", async (
   const result = await runQualityDashboardFromDatabase({
     datasetId: "main",
     now: "2026-06-29T00:00:00.000Z",
-    query: (statement) => rowsForCanonicalConfirmed(statement.name),
+    query: (statement) => rowsForCanonicalApproved(statement.name),
   });
 
   assert.equal(result.lessons[0]?.status, "qa_passed");
@@ -132,7 +132,7 @@ function rowsFor(name: string): Array<Record<string, unknown>> {
   }
 }
 
-function rowsForCanonicalConfirmed(name: string): Array<Record<string, unknown>> {
+function rowsForCanonicalApproved(name: string): Array<Record<string, unknown>> {
   if (name !== "select-quality-canonical-evidence") return rowsFor(name);
   return [
     {
@@ -142,7 +142,7 @@ function rowsForCanonicalConfirmed(name: string): Array<Record<string, unknown>>
       properties_json: {
         image_relevance: {
           relevance: "core_content",
-          review_status: "confirmed",
+          review_status: "approved",
         },
       },
     },

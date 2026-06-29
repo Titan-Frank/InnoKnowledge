@@ -57,7 +57,11 @@ test("writes store staging with Python-compatible output shape", async () => {
   assert.deepEqual(output.quality.warnings, []);
   assert.equal(output.statements[0], "upsert-world-lesson-run");
   assert.ok(output.statements.includes("insert-world-staging-nodes"));
-  assert.deepEqual(output.statements, executed.map((statement) => statement.name));
+  assert.equal(executed[0]?.name, "begin-staging-transaction");
+  assert.equal(executed.at(-1)?.name, "commit-staging-transaction");
+  assert.deepEqual(output.statements, executed
+    .filter((statement) => !statement.name.includes("staging-transaction"))
+    .map((statement) => statement.name));
 });
 
 test("returns blocked output before writing when integrity fails", async () => {
@@ -94,7 +98,11 @@ test("executes store staging statements in plan order", async () => {
   });
 
   assert.equal(output.status, "success");
-  assert.deepEqual(output.statements, executed.map((statement) => statement.name));
+  assert.deepEqual(output.statements, executed
+    .filter((statement) => !statement.name.includes("staging-transaction"))
+    .map((statement) => statement.name));
+  assert.equal(executed[0]?.name, "begin-staging-transaction");
+  assert.equal(executed.at(-1)?.name, "commit-staging-transaction");
   assert.deepEqual(output.statements.slice(0, 7), [
     "upsert-world-lesson-run",
     "delete-world_staging_nodes",

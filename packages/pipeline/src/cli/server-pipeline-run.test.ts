@@ -205,7 +205,12 @@ test("server pipeline retries chunks that fail staging quality", async () => {
   assert.equal(retryExtractionCommands.length, 1);
   assert.ok(retryExtractionCommands[0]?.includes(failedAnchor));
   assert.ok(retryExtractionCommands[0]?.includes("--prompt"));
-  assert.match(retryExtractionCommands[0]?.at(-1) ?? "", /质量失败后的自动重抽/);
+  const retryPrompt = retryExtractionCommands[0]?.at(-1) ?? "";
+  assert.match(retryPrompt, /质量失败后的自动重抽/);
+  assert.match(retryPrompt, /computer-science/);
+  assert.match(retryPrompt, /higher/);
+  assert.match(retryPrompt, /university/);
+  assert.doesNotMatch(retryPrompt, /高中物理|物理量/);
   assert.equal(commands.filter(isExtractionCommand).length, 38);
   assert.equal(result.stages.find((stage) => stage.id === "lesson_staging_retry_1")?.status, "completed");
   assert.equal(result.stages.find((stage) => stage.id === "staging_quality")?.status, "completed");

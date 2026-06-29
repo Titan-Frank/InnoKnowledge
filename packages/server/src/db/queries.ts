@@ -316,7 +316,10 @@ function isHiddenImageEvidence(row: Record<string, unknown>): boolean {
   const relevance = asRecord(properties.image_relevance);
   const status = textValue(relevance.review_status);
   const label = textValue(relevance.relevance);
-  return relevance.keep === false || status === 'rejected' || status === 'pending' || (!status && label === 'uncertain');
+  if (relevance.keep === false || status === 'rejected') return true;
+  if (status === 'pending') return true;
+  if (!status && label === 'uncertain') return true;
+  return false;
 }
 
 const markdownCache = new Map<string, string[] | null>();

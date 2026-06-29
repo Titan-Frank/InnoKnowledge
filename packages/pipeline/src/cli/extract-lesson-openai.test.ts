@@ -470,7 +470,10 @@ test("writes successful model output into staging through an injected executor",
     );
 
     assert.equal(code, 0);
-    assert.deepEqual(statements.slice(0, 7), [
+    assert.equal(statements[0], "begin-staging-transaction");
+    assert.equal(statements.at(-1), "commit-staging-transaction");
+    const stagedStatements = statements.filter((statement) => !statement.includes("staging-transaction"));
+    assert.deepEqual(stagedStatements.slice(0, 7), [
       "upsert-world-lesson-run",
       "delete-world_staging_nodes",
       "delete-world_staging_edges",
@@ -479,12 +482,12 @@ test("writes successful model output into staging through an injected executor",
       "delete-world_staging_evidence",
       "delete-world_staging_node_cards",
     ]);
-    assert.ok(statements.includes("insert-world-staging-nodes"));
+    assert.ok(stagedStatements.includes("insert-world-staging-nodes"));
     const payload = JSON.parse(stdout.join("")) as { status: string; staging: { dataset_id: string; statements: string[] }; counts: { nodes: number } };
     assert.equal(payload.status, "success");
     assert.equal(payload.staging.dataset_id, "dataset-a");
     assert.equal(payload.counts.nodes, 1);
-    assert.deepEqual(payload.staging.statements, statements);
+    assert.deepEqual(payload.staging.statements, stagedStatements);
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }

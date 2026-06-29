@@ -16,7 +16,7 @@ export type ImageRelevanceDecision = {
   path?: string;
   width?: number;
   height?: number;
-  review_status?: "auto" | "pending" | "confirmed" | "rejected";
+  review_status?: "auto" | "pending" | "approved" | "confirmed" | "rejected";
 };
 
 export type ImageEvidenceFilterOptions = {

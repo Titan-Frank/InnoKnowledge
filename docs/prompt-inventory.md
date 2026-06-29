@@ -581,6 +581,8 @@ core_content / supporting / decorative / mismatch / uncertain
 1. `keep=true` 的图片证据会保留。
 2. `keep=false` 的图片证据会被过滤，并触发相关节点引用、关系引用、领域画像引用和卡片引用的清理。
 3. `uncertain` 不等于过滤；提示词明确要求只有无法判断时才使用，并且通常仍是 `keep=true`。
+4. `uncertain` 且未复核，或 `review_status=pending`，只在前端调试页待复核列表显示，普通知识单元详情默认隐藏。
+5. 人工标为核心图、辅助图或保留后写入 `review_status=approved`，普通知识单元详情显示；人工删除后写入 `review_status=rejected`，普通知识单元详情隐藏。
 
 ### P2 示例
 

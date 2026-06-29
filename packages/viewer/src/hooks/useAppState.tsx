@@ -11,7 +11,7 @@ interface AppState {
   sourceConfigs: Map<string, SourceConfig>;
   selectedSourceKey: string | null;
   sourceLoading: boolean;
-  workspace: 'graph' | 'textbook' | 'pipeline';
+  workspace: 'graph' | 'textbook' | 'pipeline' | 'annotation';
 
   // Search
   searchTerm: string;
@@ -37,7 +37,7 @@ interface AppActions {
   setCardCache: (cache: Map<string, ApiNodeCard | null>) => void;
   setSourceLoading: (loading: boolean) => void;
   setSelectedSourceKey: (key: string | null) => void;
-  setWorkspace: (workspace: 'graph' | 'textbook' | 'pipeline') => void;
+  setWorkspace: (workspace: 'graph' | 'textbook' | 'pipeline' | 'annotation') => void;
 }
 
 type AppContextValue = AppState & AppActions & ReturnType<typeof useGraphState>;
@@ -59,7 +59,7 @@ function AppStateInner({ children }: { children: ReactNode }) {
   const [sourceConfigs, setSourceConfigsState] = useState<Map<string, SourceConfig>>(new Map());
   const [selectedSourceKey, setSelectedSourceKey] = useState<string | null>(null);
   const [sourceLoading, setSourceLoading] = useState(false);
-  const [workspace, setWorkspace] = useState<'graph' | 'textbook' | 'pipeline'>('graph');
+  const [workspace, setWorkspace] = useState<'graph' | 'textbook' | 'pipeline' | 'annotation'>('graph');
 
   const [searchTerm, setSearchTermState] = useState('');
   const [serverSearchHits, setServerSearchHitsState] = useState<Map<string, SearchHitMeta>>(new Map());

@@ -457,7 +457,7 @@ async function runStagingQualityWithRetries(
     const attempt = await runStagingQualityAttempt(result, progressStore, options, attempts);
     if (attempt.ok) return true;
 
-    const retryCommands = retryCommandsForBlockedLessons(commands, attempt.parsed, retryIndex + 1);
+    const retryCommands = retryCommandsForBlockedLessons(commands, attempt.parsed, retryIndex + 1, options);
     const canRetry = retryIndex < options.qualityRetryCount && retryCommands.length > 0;
     if (!canRetry) {
       const error = "Staging quality command failed.";
@@ -574,6 +574,7 @@ function retryCommandsForBlockedLessons(
   commands: ParallelExtractionCommand[],
   parsed: StagingQualityOutput | null,
   retryNumber: number,
+  options: RunnerOptions,
 ): ParallelExtractionCommand[] {
   const byLessonRunId = new Map(commands.map((command) => [command.lesson_run_id, command]));
   return extractBlockedLessonResults(parsed)
@@ -584,7 +585,7 @@ function retryCommandsForBlockedLessons(
       return {
         ...command,
         worker_slot: index,
-        command: appendRetryPrompt(command.command, buildStagingQualityRetryPrompt(qualityResult, retryNumber)),
+        command: appendRetryPrompt(command.command, buildStagingQualityRetryPrompt(qualityResult, retryNumber, options)),
       };
     })
     .filter((command): command is ParallelExtractionCommand => command !== null);
@@ -594,16 +595,27 @@ function appendRetryPrompt(command: string[], prompt: string): string[] {
   return [...command, "--prompt", prompt];
 }
 
-function buildStagingQualityRetryPrompt(result: RawRecord, retryNumber: number): string {
+function buildStagingQualityRetryPrompt(result: RawRecord, retryNumber: number, options: RunnerOptions): string {
   const errors = Array.isArray(result.errors) ? result.errors.map(stringValue).filter(Boolean) : [];
   const issueText = errors.length > 0 ? errors.slice(0, 8).join("；") : "质量检查未通过。";
+  const subjectContext = buildRetrySubjectContext(options);
   return [
     `这是第 ${retryNumber} 次质量失败后的自动重抽。`,
     `上一轮问题：${issueText}`,
-    "请不要只返回证据。必须从当前 chunk 抽取高中物理核心知识对象，并为每个节点补齐 definition、domain_profile、mention、node_card 和 evidence source_refs。",
-    "即使当前文本以习题、探究、小结或图示为主，也要从题干、公式、图、表和说明中抽取概念、物理量、方法、定律、表示或实验装置。",
+    `请不要只返回证据。必须从当前 chunk 抽取与${subjectContext}对应的核心知识对象，并为每个节点补齐 definition、domain_profile、mention、node_card 和 evidence source_refs。`,
+    "即使当前文本以习题、探究、小结或图示为主，也要从题干、公式、图、表和说明中抽取概念、对象、属性、方法、规则、表示、过程、案例、材料或活动。",
     "节点、提及、卡片和领域画像不能为空；证据不足的关系可以少，但不要让节点数为 0。",
   ].join("\n");
+}
+
+function buildRetrySubjectContext(options: RunnerOptions): string {
+  const parts = [
+    options.subject ? `学科 ${options.subject}` : "",
+    options.schoolStage ? `学段 ${options.schoolStage}` : "",
+    options.gradeBand ? `年级段 ${options.gradeBand}` : "",
+    options.bookTitle ? `教材《${options.bookTitle}》` : "",
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(" / ") : "当前教材";
 }
 
 function parseStagingQualityOutput(stdout: string): StagingQualityOutput | null {

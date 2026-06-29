@@ -84,7 +84,7 @@ npm run server-pipeline-run -w packages/pipeline -- \
 
 - 核心图、辅助图会保留，并写入 `world_evidence.properties_json.image_relevance`
 - 装饰图或不匹配图片会从当次抽取结果中删除
-- 无法判断的图片会默认保留，并在前端调试页进入待复核列表
+- 无法判断的图片会默认保留为 `uncertain`，进入前端调试页待复核；普通知识单元详情默认不显示，人工标为核心图、辅助图或保留后才显示
 
 也可以在命令行里直接指定视觉模型参数：
 
@@ -142,7 +142,7 @@ npm run generate-node-bodies -w packages/pipeline -- \
   --pretty
 ```
 
-前端调试页会读取流水线运行结果、质量检查结果和待复核图片。通过 `npm run dev` 启动后，在 viewer 的调试入口里可以查看待复核图片，并把图片标为核心图、辅助图、保留或删除。
+前端调试页会读取流水线运行结果、质量检查结果和待复核图片。通过 `npm run dev` 启动后，在 viewer 的调试入口里可以查看待复核图片，并把图片标为核心图、辅助图、保留或删除。待复核图片只在调试页出现；标为核心图、辅助图或保留后写入 `review_status=approved`，才会进入普通知识单元详情；标为删除后写入 `review_status=rejected`，继续隐藏。
 
 ## 存储
 

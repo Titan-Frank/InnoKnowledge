@@ -10,6 +10,7 @@ import { registerUnitRoutes } from './routes/unit.js';
 import { registerPipelineRoutes } from './routes/pipeline.js';
 import { registerEnrichRoutes } from './routes/enrich.js';
 import { registerImageReviewRoutes } from './routes/image-review.js';
+import { registerAnnotationRoutes } from './routes/annotation.js';
 import { VIEWER_DIST_DIR } from './utils/paths.js';
 import { existsSync } from 'node:fs';
 
@@ -29,6 +30,7 @@ export function createApp(sql: Sql, dbUrl: string): Hono {
   registerImageReviewRoutes(app, sql);
   registerSearchRoutes(app, sql);
   registerEnrichRoutes(app, sql);
+  registerAnnotationRoutes(app);
 
   // Serve built viewer assets (production mode)
   if (existsSync(VIEWER_DIST_DIR)) {

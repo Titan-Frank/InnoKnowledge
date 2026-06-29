@@ -333,9 +333,9 @@ P1 uses a structured input payload containing lesson context, page range, source
 
 \subsection{Image Evidence}
 
-When configured, the vision-model path classifies images into decisions such as core content, supporting content, decorative image, mismatch, or uncertain. The decision is stored in \code{properties_json.image_relevance}. Decorative and mismatched image evidence can be hidden from the consumption view, while uncertain images are preserved and shown in the review workflow.
+When configured, the vision-model path classifies images into decisions such as core content, supporting content, decorative image, mismatch, or uncertain. The decision is stored in \code{properties_json.image_relevance}. Decorative and mismatched image evidence can be hidden from the consumption view. Unreviewed uncertain images are preserved and shown in the debug review workflow, but ordinary unit views hide them until a reviewer marks them approved.
 
-This design reflects a practical textbook issue: figures can be central knowledge carriers, but many textbook PDFs also contain icons, decorative graphics, QR codes, publisher marks, and layout artifacts. Treating all images as equally useful evidence makes the graph noisy; deleting uncertain images too aggressively loses important context. The current system keeps uncertainty visible.
+This design reflects a practical textbook issue: figures can be central knowledge carriers, but many textbook PDFs also contain icons, decorative graphics, QR codes, publisher marks, and layout artifacts. Treating all images as equally useful evidence makes the graph noisy; deleting uncertain images too aggressively loses important context. The current system keeps uncertainty visible to reviewers without promoting unreviewed images into normal unit detail pages.
 
 \subsection{Quality Gates and Retry}
 
@@ -459,7 +459,7 @@ The viewer is a React/Vite application built around three work areas:
 
 The graph page first loads \code{/api/meta} and then \code{/api/source/:key/bundle}. Clicking a node loads \code{/api/source/:key/unit/:node_id} and shows the full knowledge unit. The detail view separates generated knowledge body, textbook source fragments, structured card, relations, domain profiles, evidence, and media. This separation is essential because it keeps the user from mistaking generated explanatory text for the textbook source.
 
-The debug page covers the operational loop: infer textbook metadata, start a pipeline run, watch stage progress, inspect worker state, see blocked conditions, review image evidence, and inspect merge-review items. Image review actions are written back through the server so later unit views can hide rejected images or preserve confirmed core and supporting images.
+The debug page covers the operational loop: infer textbook metadata, start a pipeline run, watch stage progress, inspect worker state, see blocked conditions, review image evidence, and inspect merge-review items. Image review actions are written back through the server so later unit views can hide rejected images or show approved core, supporting, or manually kept images.
 
 \section{Structured Output and Prompt Governance}
 
@@ -544,7 +544,6 @@ The current system is a strong substrate, but it is not complete AI-native learn
   \item AI Tutor behavior is not yet implemented as a first-class application over \code{ApiUnit}.
   \item Learning outcomes have not been evaluated through learner studies, controlled classroom deployments, or long-term A/B tests.
   \item Graph density and relation quality need more evaluation. The physics run showed useful output, but also isolated nodes and disconnected components.
-  \item Staging writes still deserve stronger transaction guarantees in failure cases.
   \item Image review can be improved with cheap rule-based prefilters before vision-model calls.
   \item The top-level AI-NKS standard still needs a careful migration path before new runtime relations or governance fields become executable schema.
 \end{enumerate}

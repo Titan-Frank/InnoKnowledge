@@ -1,5 +1,6 @@
 import type {
   ApiNodeCard, ApiUnit, MetaResponse, BundleResponse, SearchResponse,
+  AnnotationLessonTextResponse, AnnotationTextbookListResponse,
   PipelineJobStatusResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
@@ -116,6 +117,19 @@ export async function loadEnrichBooks(): Promise<EnrichIndexResponse> {
 export async function loadEnrichBook(path: string): Promise<EnrichBookResponse> {
   const params = new URLSearchParams({ path });
   return fetchJson<EnrichBookResponse>(`/api/enrich/book?${params}`);
+}
+
+export async function loadAnnotationTextbooks(): Promise<AnnotationTextbookListResponse> {
+  return fetchJson<AnnotationTextbookListResponse>('/api/annotation/textbooks');
+}
+
+export async function loadAnnotationLessonText(
+  bookId: string,
+  lessonId: string,
+): Promise<AnnotationLessonTextResponse> {
+  return fetchJson<AnnotationLessonTextResponse>(
+    `/api/annotation/textbooks/${encodeURIComponent(bookId)}/lessons/${encodeURIComponent(lessonId)}`,
+  );
 }
 
 export async function loadNodeCard(

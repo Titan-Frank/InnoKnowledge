@@ -59,7 +59,7 @@ MinerU 已生成并缓存结果，本轮最终重跑时直接使用：
 
 3. 空库初始化
 
-   清空数据库后，如果没有 `world_datasets` 的 `main` 记录，lesson 写入会失败。本轮手动补了 `main` 数据集记录。建议后续把数据集初始化做成 pipeline 的正式阶段。
+   清空数据库后，如果没有 `world_datasets` 的 `main` 记录，lesson 写入会失败。本轮先手动补了 `main` 数据集记录；后续代码已把数据集初始化内置到 `server-pipeline-run`，会自动 upsert `world_datasets`。
 
 4. PostgreSQL JSONB 写入
 
@@ -84,37 +84,30 @@ MinerU 已生成并缓存结果，本轮最终重跑时直接使用：
 - `chunk:11-4-a`（电磁场与电磁波）第一次返回 0 节点，单独加明确提示重跑后成功抽出 14 个节点和 13 条边。
 - `chunk:9-7-a` 曾在写 mentions 时遇到重复主键并留下半写入状态，重跑后恢复正常。这暴露出 staging 写入需要事务保护。
 
+后续代码已修复：
+
+- `storeStagingRows` 现在会把每个 lesson run 的 `world_lesson_runs` upsert、旧 staging 删除和新 staging 插入放在同一事务里，失败时回滚，不再允许留下半写入状态。
+- `server-pipeline-run` 已支持 staging quality blocked chunk 自动重抽，并且重抽提示词按学科、学段、年级段和教材标题动态生成，不再写死高中物理。
+
 ## 优化建议
 
-1. 给 staging 写入加事务
-
-   当前 lesson run upsert、旧 staging 删除、新 staging 插入不是事务式执行。任何中途失败都可能留下半写入状态。建议 `storeStagingRows` 的 PostgreSQL 执行器支持事务包裹。
-
-2. 增加失败 chunk 自动重试
-
-   如果某个 chunk 出现 `nodes=0`、`mentions=0`、`staging_quality` blocked 或模型返回空 name 过多，可以自动用更强提示重跑该 chunk，而不是停掉整本书。
-
-3. 让数据库运行状态支持手动续跑
+1. 让数据库运行状态支持手动续跑
 
    服务端启动的 pipeline 已把任务、阶段、事件和课时处理状态写入 PostgreSQL。后续如果仍需要手动续跑，应让手动续跑命令也带上同一个 `job_id` 并回写 `world_pipeline_jobs`、`world_pipeline_job_stages` 和 `world_pipeline_job_events`，避免最终图谱已成功但运行台仍显示旧状态。
 
-4. 数据集初始化内置化
-
-   空库重跑时应自动 upsert `world_datasets(dataset_id='main')`，避免外部手动 SQL。
-
-5. 节点展示名质量门
+2. 节点展示名质量门
 
    本轮仍有少数 canonical name 来自 id 回填，例如 `n_primary_energy`、`n_nuclear_energy`。建议增加中文展示名检查：如果 name 像机器 id，应进入重试或后处理改名，而不是直接进入 canonical。
 
-6. 关系抽取需要增强
+3. 关系抽取需要增强
 
    graph integrity 显示孤立节点 126、弱连通分量 12。建议在提示词中要求每个核心节点至少产出 1 条关系；同时在 reducer 前增加关系补全阶段，基于同一 lesson 的 node card 和 evidence 自动补 `related_to`、`part_of`、`uses` 等低风险关系。
 
-7. VLM 图片判断可加规则前置
+4. VLM 图片判断可加规则前置
 
    VLM 已能过滤大量问号图标和栏目图，但小图标、封底、二维码、出版社标志等可以先用尺寸、文件位置、caption 规则快速过滤，减少 VLM 调用成本。
 
-8. 模型输出 schema 可以更硬
+5. 模型输出 schema 可以更硬
 
    当前 schema 虽然要求字段存在，但模型仍会填空字符串。建议在转换前增加更明确的 prompt 约束，或在响应后统计空字段比例，超过阈值自动重试。
 

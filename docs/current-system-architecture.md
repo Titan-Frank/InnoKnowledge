@@ -239,6 +239,12 @@ world_textbook_outlines.outline_json
 | `mismatch` | 图片有内容，但和当前课时不匹配 |
 | `uncertain` | 无法判断，默认保留并进入复核 |
 
+产品显示规则固定为：
+
+1. `uncertain` 且未复核，或 `review_status=pending`：前端调试页显示，普通知识单元详情默认隐藏。
+2. 人工标为核心图、辅助图或保留后，写入 `review_status=approved`：普通知识单元详情显示。
+3. 人工标为删除后，写入 `review_status=rejected`：普通知识单元详情隐藏。
+
 ### 5. Staging 写入
 
 lesson worker 只能写：
@@ -259,6 +265,8 @@ lesson worker 只能写：
 - `packages/pipeline/src/staging/staging-rows.ts`
 - `packages/pipeline/src/staging/staging-sql.ts`
 - `packages/pipeline/src/staging/staging-store.ts`
+
+每个 lesson run 的 staging 写入是一个事务：先 upsert `world_lesson_runs`，再删除该 `lesson_run_id` 的旧 staging 行，最后插入新的 staging 行；任一步失败都会回滚，不能留下半写入状态。
 
 ### 6. 质量门和归并
 
@@ -530,6 +538,5 @@ viewer 不应该自己理解数据库表结构。它应该消费 `BundleResponse
 
 1. 把 `ApiUnit` 当成正式公开契约继续稳定下来，避免前端和未来生成系统各自拼表。
 2. 继续收紧 `semantic_core`、`pedagogical_profile` 等扩展字段的 schema。
-3. 给 staging 写入增加更强的事务保护，避免 lesson run 中途失败留下半写入状态。
-4. 让 pipeline manifest 更好支持断点续跑和最终状态回写。
-5. 补充对象级检索和生成评测，让知识单元不只可看，还能被稳定调用。
+3. 让 pipeline manifest 更好支持断点续跑和最终状态回写。
+4. 补充对象级检索和生成评测，让知识单元不只可看，还能被稳定调用。

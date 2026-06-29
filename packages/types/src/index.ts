@@ -12,6 +12,7 @@ export type {
 export type {
   HealthResponse, SourceSummary, MetaResponse,
   BundleSourceInfo, ApiBookBundle, BundleResponse,
+  AnnotationLessonSummary, AnnotationTextbookSummary, AnnotationTextbookListResponse, AnnotationLessonTextResponse,
   NodeCardResponse, UnitResponse, SearchHit, SearchResponse, ApiErrorResponse,
   PipelineLessonRun, PipelineMergeRun, PipelineReviewItem, PipelineResponse,
   PipelineQualityLessonRow, PipelineQualityDashboardResponse,
