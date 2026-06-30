@@ -29,6 +29,7 @@ export {
   Download,
   FileText,
   Link,
+  MessageSquareText,
   Plus,
   Save,
   Trash2,

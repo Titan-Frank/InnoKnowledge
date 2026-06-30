@@ -65,7 +65,7 @@ type ExtractLessonOpenAiErrorPayload = {
 
 const DEFAULT_EMBEDDING_URL = "https://heckb8bcaq88cko9mooamhkbceqq9ecc.openapi-sj.sii.edu.cn/v1/embeddings";
 const DEFAULT_EMBEDDING_MODEL = "Qwen/Qwen3-Embedding-4B";
-const EMBEDDING_DIMENSION = 2560;
+const EMBEDDING_DIMENSION = 1024;
 
 async function main(argv: string[]): Promise<number> {
   return runExtractLessonOpenAiCli(argv);

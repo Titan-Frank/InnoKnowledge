@@ -7,6 +7,7 @@ import { registerBundleRoutes } from './routes/bundle.js';
 import { registerNodeCardRoutes } from './routes/node-card.js';
 import { registerSearchRoutes } from './routes/search.js';
 import { registerUnitRoutes } from './routes/unit.js';
+import { registerRuntimeRoutes } from './routes/runtime.js';
 import { registerPipelineRoutes } from './routes/pipeline.js';
 import { registerEnrichRoutes } from './routes/enrich.js';
 import { registerImageReviewRoutes } from './routes/image-review.js';
@@ -29,6 +30,7 @@ export function createApp(sql: Sql, dbUrl: string): Hono {
   registerPipelineRoutes(app, sql);
   registerImageReviewRoutes(app, sql);
   registerSearchRoutes(app, sql);
+  registerRuntimeRoutes(app, sql);
   registerEnrichRoutes(app, sql);
   registerAnnotationRoutes(app);
 

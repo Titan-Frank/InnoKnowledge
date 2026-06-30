@@ -132,3 +132,71 @@ test("reports empty lesson quality errors", () => {
 
   assert.deepEqual(checkLessonStagingQuality(rows).errors, ["Lesson produced no staged nodes.", "Lesson produced no staged evidence."]);
 });
+
+test("reports node admission policy warnings without blocking", () => {
+  const rows = buildStagingTableRows(
+    context,
+    normalizeLessonArtifacts(
+      {
+        nodes: [
+          {
+            id: "n1",
+            name: "第1章",
+            kind: "concept",
+            definition: "A structural textbook heading",
+            source_refs: ["ev1"],
+          },
+          {
+            id: "n2",
+            name: "考点一",
+            kind: "concept",
+            definition: "An assessment label",
+            source_refs: ["ev1"],
+          },
+          {
+            id: "n3",
+            name: "质量守恒定律",
+            kind: "rule",
+            definition: "A chemistry rule",
+            source_refs: ["ev1"],
+          },
+        ],
+        edges: [{ id: "e1", type: "related_to", from: "n1", to: "n2", source_refs: ["ev1"] }],
+        domainProfiles: [
+          { id: "p1", node_id: "n1", domain: "chemistry", source_refs: ["ev1"] },
+          { id: "p2", node_id: "n2", domain: "chemistry", source_refs: ["ev1"] },
+          { id: "p3", node_id: "n3", domain: "chemistry", source_refs: ["ev1"] },
+        ],
+        mentions: [
+          { id: "m1", target_id: "n1", source_refs: ["ev1"] },
+          { id: "m2", target_id: "n2", source_refs: ["ev1"] },
+          { id: "m3", target_id: "n3", source_refs: ["ev1"] },
+        ],
+        evidence: [{ id: "ev1", excerpt: "claim" }],
+        nodeCards: ["n1", "n2", "n3"].map((node_id) => ({
+          id: `c:${node_id}`,
+          node_id,
+          summary: `${node_id} summary`,
+          sections: ["definition", "essence", "key_points", "example", "application", "misconception"].map((section_type) => ({
+            id: `${node_id}:${section_type}`,
+            section_type,
+            content: ["content"],
+            source_refs: ["ev1"],
+          })),
+        })),
+      },
+      context.bookId,
+      context.batchAnchor,
+    ),
+  );
+
+  const result = checkLessonStagingQuality(rows);
+
+  assert.equal(result.status, "success");
+  assert.deepEqual(result.errors, []);
+  assert.deepEqual(result.warnings, [
+    "Node n1 looks like a directory heading or textbook column; review node admission policy.",
+    "Node n2 looks like an assessment label rather than a knowledge object; review node admission policy.",
+    "Node n3 has no staged relations; review relation potential before activation.",
+  ]);
+});

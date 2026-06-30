@@ -1,4 +1,4 @@
-% Open Knowledge Map technical report.
+% Open Knowledge Mesh technical report.
 % Compile with: python3 /Users/titan-frank/.codex/plugins/cache/openai-bundled/latex/0.2.4/scripts/compile_latex.py /Users/titan-frank/Documents/hsd/research/Open-Knowledge-Map/docs/open_knowledge_map_technical_report.tex
 \documentclass[11pt,letterpaper]{article}
 
@@ -19,6 +19,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{float}
+\usepackage{titling}
 
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
 
@@ -34,8 +35,8 @@
   linkcolor=blue!45!black,
   citecolor=blue!45!black,
   urlcolor=blue!45!black,
-  pdftitle={Open Knowledge Map: An AI-Native Knowledge Infrastructure for Evidence-Grounded Textbook Extraction, Knowledge Units, and Runtime-Ready Learning Systems},
-  pdfauthor={Open Knowledge Map Contributors}
+  pdftitle={Open Knowledge Mesh: An AI-Native Knowledge Object Infrastructure for Evidence-Grounded Learning Systems},
+  pdfauthor={Wenbo Wu and Aimin Zhou}
 }
 
 \setlist[itemize]{leftmargin=1.25em,itemsep=0.25em,topsep=0.35em}
@@ -45,8 +46,22 @@
 
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \newcommand{\code}[1]{\nolinkurl{#1}}
-\newcommand{\OKM}{Open Knowledge Map}
+\newcommand{\OKM}{Open Knowledge Mesh}
 \newcommand{\AINKS}{AI-NKS}
+\newcommand{\uiscreenshotplaceholder}[4]{%
+\begin{figure}[H]
+\centering
+\fcolorbox{black!30}{black!3}{%
+\begin{minipage}[c][0.22\textheight][c]{0.9\textwidth}
+\centering
+\textbf{UI screenshot placeholder}\\[0.45em]
+\small #1\\[0.55em]
+\footnotesize #2
+\end{minipage}}
+\caption{#3}
+\label{#4}
+\end{figure}
+}
 
 \lstdefinestyle{okmstyle}{
   basicstyle=\ttfamily\small,
@@ -60,84 +75,246 @@
   xrightmargin=0.5em
 }
 \lstset{style=okmstyle}
+\setlength{\droptitle}{-0.75in}
 
 \title{
-  \bfseries\LARGE Open Knowledge Map:\\
-  An AI-Native Knowledge Infrastructure for Evidence-Grounded\\
-  Textbook Extraction, Knowledge Units, and Runtime-Ready Learning Systems
+  \bfseries\LARGE Open Knowledge Mesh:\\
+  An AI-Native Knowledge Object Infrastructure for\\
+  Evidence-Grounded Learning Systems
 }
 
 \author{
-  Open Knowledge Map Contributors\\
-  \small Technical Report Draft\\
-  \small Repository: \href{https://github.com/Titan-Frank/Open-Knowledge-Map}{Titan-Frank/Open-Knowledge-Map}
+  \begin{tabular}{c}
+    Wenbo Wu$^{1}$ \quad and \quad Aimin Zhou$^{2}$\\[0.35em]
+    \small $^{1}$School of Computer Science and Technology, East China Normal University\\
+    \small $^{2}$Shanghai Institute of AI for Education\\[0.35em]
+    \small $^{1}$\href{mailto:51285900030@mail.ecnu.edu.cn}{51285900030@mail.ecnu.edu.cn}
+    \qquad
+    $^{2}$\href{mailto:amzhou@cs.ecnu.edu.cn}{amzhou@cs.ecnu.edu.cn}
+  \end{tabular}
 }
 
-\date{June 29, 2026\\[0.5em]
-  \small Code: \code{Open-Knowledge-Map}\qquad
-  Standard: \code{ai-nks-v0.1}\qquad
-  Executable schema: \code{world-v1.2}
-}
+\date{June 30, 2026}
 
 \begin{document}
 \maketitle
+\vspace{-0.25em}
 
 \begin{abstract}
-Large language models and agent systems make it possible to generate explanations, answer questions, and operate over learning materials, but ordinary retrieval-augmented generation over document chunks is a weak substrate for long-term educational use. Textbook pages and markdown fragments are easy to search, yet they do not by themselves provide stable object identities, typed relations, pedagogical projections, evidence links, quality gates, or a runtime contract that a tutor, planner, or evaluation system can safely call. This report presents \OKM, a TypeScript-first repository that turns PDF textbooks into evidence-grounded world knowledge objects, stores them in PostgreSQL, exposes them as complete \emph{knowledge units}, and makes them inspectable through a React graph viewer and pipeline debug workbench.
+Large language models and agent systems increasingly operate over textbooks, courses, and other learning materials, but document-chunk retrieval is a weak substrate for repeated educational use. Textbook pages and markdown fragments are searchable, yet they do not by themselves provide stable knowledge identities, typed relations, pedagogical projections, evidence links, quality gates, or a runtime contract that a tutor, planner, or evaluation system can safely call.
 
-The current system implements the bottom and middle layers of an AI-native knowledge system. At the top-level design layer, \code{ai-nks-v0.1} defines the repository as knowledge infrastructure for AI use: source resources are transformed into Knowledge Objects, assembled into Knowledge Units, connected through a Knowledge Network, and prepared for future Knowledge Runtime capabilities such as object-level retrieval, grounded generation, semantic planning, and AI tutoring. At the executable engineering layer, \code{world-v1.2} remains the active PostgreSQL and JSON Schema baseline: it fixes nine node kinds, fifteen relation types, domain profiles, evidence, mentions, structured cards, persistent knowledge bodies, staging tables, merge records, and quality checks.
+This report presents \OKM, an AI-native knowledge object infrastructure for evidence-grounded learning systems. The central claim is that textbooks and disciplinary materials should be treated as source evidence for governable Knowledge Objects rather than as the final computational form of knowledge. \OKM{} organizes extracted objects into a typed Knowledge Network, assembles them into consumption-side Knowledge Units, and keeps generated explanations, source fragments, evidence, media, and graph identities separate.
 
-The implemented pipeline follows a conservative production boundary. Lesson or chunk workers may write only \code{world_lesson_runs} and \code{world_staging_*}; canonical \code{world_*} writes, duplicate merges, remapping, normalization, body generation, and final QA are handled by reducer and post-processing stages. The service layer then assembles \code{ApiUnit} responses that combine a node identity, relations, domain profiles, mentions, evidence, media, source fragments, structured cards, and persistent knowledge body content. This separation lets the project keep raw textbook evidence, generated knowledge bodies, and graph-level object identities distinct. The report documents the current architecture, data model, extraction flow, API contract, viewer/debug workflow, verification strategy, and remaining research and engineering gaps.
+The current implementation provides a TypeScript-first extraction pipeline, a PostgreSQL-backed knowledge store, a structured unit API, and a React viewer/debug workbench. It supports textbook parsing, lesson-level extraction, staging, merge and normalization, evidence preservation, knowledge body generation, image review, and quality checks. A documented physics-textbook run produced 288 nodes, 153 edges, 436 evidence rows, and 288 node cards, while also exposing graph-connectivity and extraction-hardening gaps. The report describes the theory, architecture, data model, pipeline, API contract, verification strategy, and remaining work, marking the full runtime, AI tutoring, learning-outcome evaluation, and version-governance loop as future work rather than implemented results.
 \end{abstract}
 
-\vspace{0.8em}
-\noindent\textbf{Scope note.}
-This report reflects the repository state and documentation inspected on June 29, 2026. It is a system report, not a claim that the full \AINKS{} runtime, AI Tutor, learning-outcome evaluation, or large-scale benchmark suite is already complete. The sections on runtime, evaluation, and evolution mark the boundary between implemented substrate and planned capabilities.
+\vspace{0.55em}
+\noindent{\footnotesize $^\dagger$ Repository state inspected on June 30, 2026. Full \AINKS{} runtime, AI Tutor, learning-outcome study, version governance, and large-scale benchmarks remain future work unless explicitly marked as implemented.}
 
 \newpage
 
 \section{Introduction}
 
-Textbooks are dense, structured, and pedagogically curated, but their computational form is usually weak. A PDF or a markdown conversion preserves surface content, page order, figures, and headings; it does not automatically create durable knowledge identities, distinguish claims from evidence, expose prerequisite relations, or explain which generated statement came from which source. This becomes a practical bottleneck when the goal is to build AI systems that do more than search for passages. A grounded tutor, curriculum planner, graph browser, or assessment generator needs knowledge objects that can be identified, linked, inspected, updated, and called from software.
+Textbooks are dense, structured, and pedagogically curated, but their computational form is usually weak. A PDF or a markdown conversion preserves surface content, page order, figures, and headings; it does not automatically create durable knowledge identities, distinguish claims from evidence, expose prerequisite relations, or explain which generated statement came from which source. This becomes a practical bottleneck when the goal is to build AI systems that do more than search for passages. Recent work on large language models and LLM-based agents shows that AI systems increasingly generate, plan, use tools, and act over external information, which raises the need for stable and inspectable knowledge substrates \cite{zhao-llm-survey,xi-agent-survey}. A grounded tutor, curriculum planner, graph browser, or assessment generator needs knowledge objects that can be identified, linked, inspected, updated, and called from software.
 
-\OKM{} addresses this bottleneck by building an extraction and knowledge-serving pipeline around three design decisions. First, the repository treats textbooks as source resources rather than as the final unit of knowledge. A PDF is parsed by MinerU, aligned to an outline, split by lesson or chunk, and processed into staged knowledge candidates. Second, the system separates production-time extraction from consumption-time knowledge views. Model workers create staged rows; reducers, normalization, and QA decide what becomes canonical; the server later assembles complete \code{ApiUnit} views for users and downstream systems. Third, the project places evidence and governance in the main data model rather than in an optional sidecar. Nodes, relations, domain profiles, cards, and bodies are all expected to remain traceable to mentions, evidence, or source fragments.
+\OKM{} addresses this bottleneck as an AI-native knowledge object infrastructure rather than as a document-retrieval pipeline. Its current implementation realizes this infrastructure through an extraction pipeline, a governed PostgreSQL-backed knowledge store, structured serving APIs, and a viewer/debug workbench. Three design decisions shape the system. First, the repository treats textbooks as source resources rather than as the final unit of knowledge. A PDF is parsed by MinerU, aligned to an outline, split by lesson or chunk, and processed into staged knowledge candidates. Second, the system separates production-time extraction from consumption-time knowledge views. Model workers create staged rows; reducers, normalization, and QA decide what becomes canonical; the server later assembles complete \code{ApiUnit} views for users and downstream systems. Third, the project places evidence and governance in the main data model rather than in an optional sidecar. Nodes, relations, domain profiles, cards, and bodies are all expected to remain traceable to mentions, evidence, or source fragments.
 
-This report follows the style of a system technical report. It explains the motivation, architecture, implemented modules, data boundaries, operational workflow, and research implications of the current repository. The emphasis is on what is already encoded in TypeScript, PostgreSQL, schema files, and viewer behavior, with future work called out explicitly.
+The report is organized around three engineering questions. First, what should be the stable computational unit when textbooks are used by AI systems: a document chunk, a chapter heading, or a governed Knowledge Object? Second, where should the system boundary be drawn among source evidence, model-generated candidates, canonical graph state, generated explanatory bodies, and consumption-side units? Third, what minimum pipeline, database, API, and review contracts are needed before later tutoring or generation layers can safely depend on the knowledge store?
+
+This report follows the style of a system technical report. It explains the theoretical foundation, architecture, implemented modules, data boundaries, operational workflow, and research implications of the current repository. The emphasis is on what is already encoded in TypeScript, PostgreSQL, schema files, and viewer behavior, with future work called out explicitly.
 
 \subsection{Contributions}
 
-The current repository makes six concrete contributions as a system substrate:
+This report makes four contributions:
 
 \begin{enumerate}
-  \item It defines a two-level standard boundary: \code{ai-nks-v0.1} as the top-level AI-native knowledge system standard, and \code{world-v1.2} as the active executable schema baseline.
-  \item It implements a TypeScript-first textbook extraction pipeline that moves from PDF or MinerU markdown to lesson/chunk extraction, staging tables, canonical merge, normalization, knowledge body generation, strict QA, and graph integrity checks.
-  \item It implements a PostgreSQL-centered knowledge store that separates source artifacts, textbook outlines, MinerU status, canonical world knowledge tables, staging tables, pipeline job state, and retrieval candidates.
-  \item It exposes \code{ApiUnit} as the public knowledge-unit contract, combining identity, relations, teaching projections, evidence, media, source fragments, cards, and persistent bodies in one service-layer response.
-  \item It provides a Hono API server and React/Vite viewer for graph browsing, unit inspection, textbook workbench use, pipeline launch, live job status, image review, and merge-review oriented debugging.
-  \item It prepares a runtime-ready substrate for later grounded generation and AI tutoring by preserving object identities, evidence references, body sources, pipeline traces, and review decisions as structured data.
+  \item It formulates an evidence-grounded Knowledge Object model for textbook-based learning systems, separating conceptual knowledge-system design from the executable \code{world-v1.2} schema used by the current implementation.
+  \item It presents a stage-gated extraction architecture that converts PDF or MinerU markdown into staged lesson/chunk candidates, canonical Knowledge Objects, typed relations, evidence records, normalized cards, and persistent knowledge bodies.
+  \item It implements a PostgreSQL-centered knowledge store that keeps source artifacts, textbook outlines, MinerU status, staging rows, canonical graph tables, evidence, pipeline jobs, review decisions, and retrieval candidates in separate but connected tables.
+  \item It defines \code{ApiUnit} as the public consumption contract for downstream viewers and future AI runtime components, combining identity, relations, domain profiles, mentions, evidence, media, source fragments, structured cards, persistent bodies, and completeness signals in one response.
 \end{enumerate}
 
-\section{Background and Positioning}
+We further document an operational physics-textbook run to show the current system capacity and to identify remaining graph-quality, benchmark, and governance gaps.
+
+\section{Theoretical Foundation}
+
+\subsection{Problem Setting}
+
+\OKM{} starts from a historical problem rather than from a parsing technique. The claim is not that disciplines, curricula, textbooks, or examinations have become useless. The traditional ``discipline--course--textbook--knowledge point'' system solved real problems: it compressed growing knowledge into teachable domains, reduced cognitive load for learners, supported professional specialization, and made large-scale schooling and evaluation administratively possible. Disciplines remain important because they provide methods, language, evidence standards, and learning sequences \cite{sweller,anderson-krathwohl,merrill}.
+
+The structural change introduced by AI is that knowledge is no longer used only by human readers, teachers, and test takers. It is also retrieved, interpreted, combined, checked, generated, and called by AI systems \cite{zhao-llm-survey,xi-agent-survey}. Under these conditions, the conventional textbook ``knowledge point'' becomes too ambiguous as the basic computational unit. A chapter paragraph or document chunk may mix definitions, examples, diagrams, exercises, analogies, and teaching cues in the same span. It often leaves source status, object boundary, prerequisite structure, applicability conditions, and evidence strength implicit.
+
+The theoretical problem for \OKM{} is therefore not how to cut textbooks into smaller pieces, nor how to draw a denser graph. The problem is how to reconstruct the traditional educational arrangement into a human-AI collaborative Knowledge Object network that is computable, traceable, teachable, callable at runtime, and able to evolve. Stated more directly, after AI becomes a participant in knowledge retrieval, explanation, reasoning, generation, and execution, the basic question is how to transform the traditional ``discipline--course--textbook--knowledge point'' system into an infrastructure in which humans and AI can share, inspect, verify, and operate over the same knowledge objects.
+
+\subsection{Why Traditional Knowledge Systems Worked}
+
+Before proposing a new knowledge system, it is necessary to state why the older system worked. At the epistemic level, disciplines divide a complex world into relatively stable objects, methods, terms, and evidence norms. Physics, biology, history, mathematics, and other domains are not arbitrary labels; they define what counts as a legitimate question, explanation, proof, or observation within a domain \cite{bernstein-classification}.
+
+At the learning level, disciplines and courses reduce cognitive burden. Learners cannot process every possible relation across the world at once. A curriculum narrows the field, orders concepts, and gives learners a sequence in which schemas can form. A textbook then gives the sequence a durable expression through definitions, examples, figures, exercises, and chapter order \cite{sweller,anderson-krathwohl,merrill}.
+
+At the institutional level, the same structure makes mass education possible. Stable subjects, standard textbooks, teacher qualifications, lesson hours, examinations, and grade boundaries give schools a manageable way to organize teaching and assessment. A curriculum standard is therefore not just a knowledge list. It is also a governance device that decides what enters school, how deeply it is taught, and how achievement can be evaluated \cite{soysal-strang-mass-education,bernstein-classification}.
+
+\OKM{} keeps this historical value. It does not reject disciplines. It changes their role. In an AI-native knowledge system, disciplines become domain perspectives, explanation frames, evidence norms, learning-path constraints, and application contexts rather than the only possible structure for organizing knowledge. The claim is therefore not that subject boundaries should disappear. The claim is that subject boundaries should no longer be the only unit through which knowledge is identified, reused, retrieved, and governed when AI systems participate in learning and reasoning.
+
+\subsection{Knowledge Systems as Historical Arrangements}
+
+The discipline--course--textbook--examination system is not a natural or permanent form of knowledge. It is a historical arrangement that became effective under particular social, technical, and institutional conditions. A useful way to frame \OKM{} is therefore comparative: different societies have organized knowledge around different units, and each arrangement reflected the problems that society needed knowledge to solve.
+
+The Chinese classical knowledge order was not organized around modern school subjects such as physics, chemistry, biology, economics, or political science. Its mainstream institutional form was centered on classics, moral cultivation, political order, textual interpretation, literary competence, and official selection. Late imperial civil examinations made Confucian textual learning a durable governance and selection mechanism, binding knowledge, status, state service, and cultural legitimacy together \cite{elman-civil-examinations}. This example matters because it shows that a knowledge system can be organized around classics and statecraft rather than around modern disciplinary objects and methods.
+
+The modern Western school and university order took a different path. Early modern didactic thought, including Comenius's universal teaching ideal, treated instruction as a systematic problem of how to organize and transmit knowledge \cite{comenius-great-didactic}. In the nineteenth century, mass schooling became tied to state formation, compulsory education, public administration, and standardized institutional expansion \cite{soysal-strang-mass-education}. At the higher-education level, the Prussian reform context associated with Humboldt and the Berlin institutions helped articulate the research-university ideal, where knowledge was not merely fixed material for transmission but an open problem pursued through scholarly inquiry \cite{humboldt-higher-institutions}. In curriculum sociology, Bernstein later made explicit that the selection, classification, distribution, transmission, and evaluation of public educational knowledge reflect social organization and power, not only neutral epistemic order \cite{bernstein-classification}.
+
+This historical comparison supports the central claim of \OKM{}. The older discipline--course--textbook--knowledge-point structure remains valuable, but it is not the final possible form of knowledge organization. If imperial China could organize knowledge around classics, moral order, and examinations, and modern industrial society could organize knowledge around subjects, textbooks, credentials, and professions, then AI-mediated society can require another arrangement. The proposed arrangement is not anti-disciplinary. It treats disciplines as important perspectives and constraints, while moving the basic managed unit toward Knowledge Objects that can be shared by human learning, AI retrieval, grounded generation, tutoring, assessment, and governance.
+
+\subsection{Why AI Changes the Unit of Knowledge}
+
+AI changes the operating conditions of knowledge systems in four ways. First, knowledge access is less often the primary bottleneck. Learners and teachers can ask for explanations, summaries, comparisons, and examples on demand. Second, the cost of cross-domain connection is lower. A problem can call physics, chemistry, mathematics, engineering, and social context in the same reasoning process. Third, knowledge expression can be generated dynamically. The same underlying knowledge may appear as a textbook explanation, teacher note, learner answer, exercise, diagram, simulation prompt, or project task. Fourth, knowledge use becomes operational. AI systems may not only display knowledge; they may select it, compose it, check it, use it to plan learning paths, diagnose misunderstanding, or call tools.
+
+These changes do not remove the need for structure. They make structure more important. AI systems can generate fluent text without stable object boundaries, combine domains without sufficient evidence, and personalize explanations while drifting away from curriculum goals. The hallucination problem in natural-language generation and the growing interest in unifying LLMs with knowledge graphs both point to the same requirement: generated text needs external structure, provenance, and checkable factual grounding \cite{ji-hallucination,pan-llm-kg}. A system that only stores text chunks cannot reliably decide which span is a definition, which span is an example, which claim is evidenced, which relation is pedagogically necessary, and which condition limits applicability.
+
+Education policy language is also moving in this direction. UNESCO's 2024 student AI competency framework frames students not only as users of AI tools, but as responsible and creative participants who need competencies across human-centered mindset, AI ethics, AI techniques and applications, and AI system design \cite{unesco-ai-students}. Its teacher framework similarly treats the teacher role as changing in a teacher--AI--student relationship, with competencies across human-centered mindset, AI ethics, AI foundations and applications, AI pedagogy, and professional learning \cite{unesco-ai-teachers}. These frameworks do not by themselves define a knowledge schema, but they show that AI education is shifting from fixed content coverage toward responsible judgment, tool use, design, pedagogy, and human agency in AI-mediated environments.
+
+The conclusion is that the AI era does not simply need more text. It needs knowledge infrastructure. Knowledge must remain understandable to humans, but it must also become stable enough for machines to retrieve, join, constrain, verify, and call. This is why \OKM{} moves the basic unit from chapter, lesson, knowledge point, exam label, or chunk toward a governed Knowledge Object.
+
+\subsection{From Knowledge Point to Knowledge Object}
+
+A Knowledge Object is the proposed basic unit of the new system. It is not a textbook heading, a curriculum-standard item, an examination point, or a retrieval chunk. It is a knowledge identity that can be uniquely addressed, defined, connected to other objects, grounded in evidence, exposed through software contracts, and governed over time. This proposal is related to earlier learning-object work, but it is stricter: the object is not only reusable instructional content, but also a governed identity with evidence, relations, pedagogical projections, and runtime semantics \cite{wiley-learning-objects,koedinger-kli}.
+
+This target model gives \OKM{} six structural expectations:
+
+\begin{enumerate}
+  \item Identity: stable id, name, aliases, domain, kind, status, and version boundary.
+  \item Semantic core: definition, core claims, formulas, conditions, scope, counterexamples, and misconceptions when evidence supports them.
+  \item Relations: prerequisite, taxonomic, structural, causal, representational, application, analogy, and weak association links.
+  \item Pedagogy: learning objectives, difficulty, teaching roles, diagnostic value, remediation cues, and likely misconceptions.
+  \item Computation: retrievable summaries, typed relations, applicability constraints, generation constraints, and stable service contracts.
+  \item Governance: source evidence, review status, confidence, update history, risk markers, and feedback paths.
+\end{enumerate}
+
+The current repository implements the substrate-level subset of this target model. It supports stable object identity, controlled types, semantic-core fields, typed relations, evidence grounding, domain profiles, structured cards, persistent bodies, source fragments, unit-completeness signals, and pipeline quality gates. Full lifecycle governance and runtime pedagogical adaptation remain future work.
+
+This definition also clarifies what a Knowledge Object is not. It is not admitted merely because a word appears in a textbook. It is not identical to a chapter heading, curriculum bullet, exam point, or model-generated phrase. In the current implementation, a candidate becomes useful only when its identity, source evidence, relation potential, domain profile, structured card, and quality state are sufficient for downstream inspection or use.
+
+\subsection{Repositioning Disciplines, Curricula, Textbooks, and Exams}
+
+The new system does not cancel older educational structures. It gives each of them a clearer role in the Knowledge Object network:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}lYY@{}}
+\toprule
+\textbf{Source} & \textbf{Role in \OKM} & \textbf{Boundary}\\
+\midrule
+Discipline & Domain perspective, explanation frame, evidence norm, and learning-path condition. & It is not the only organizing structure.\\
+Curriculum standard & Learning range, goals, competency requirements, and stage boundary. & It is not directly a node list.\\
+Textbook & Evidence source, expression form, examples, order, diagrams, tables, and formulas. & It does not directly determine object boundaries.\\
+Textbook catalog & Splitting, navigation, and sequencing cue. & It is not itself a knowledge graph.\\
+Exam point or question bank & Task type, evaluation weight, common error, and mastery signal. & It does not decide whether knowledge exists.\\
+Teacher expert & Review, boundary judgment, misconception confirmation, and quality governance. & It should not manually maintain every low-value candidate.\\
+Learner data & Misconception, gap, remediation, and adaptation signal. & It should not directly rewrite factual knowledge.\\
+\bottomrule
+\end{tabularx}
+\caption{Theoretical role of traditional educational sources in the Knowledge Object network.}
+\end{table}
+
+This repositioning is important for engineering. If every curriculum item, catalog line, or examination label is treated as a node by default, the graph becomes a copy of existing administrative structure. If textbook evidence is ignored, the graph becomes ungrounded generated content. \OKM{} instead uses these sources as constraints over Knowledge Object admission, naming, granularity, evidence, and teaching use.
+
+\subsection{Design Principles for an AI-Native Knowledge System}
+
+The theoretical foundation can be summarized as eight design principles:
+
+\begin{enumerate}
+  \item Addressable: knowledge must have stable identities across books, courses, systems, and time.
+  \item Definable: a unit should expose a clear semantic core, not only a fuzzy text span.
+  \item Evidential: important claims, relations, formulas, examples, and explanations should be traceable to sources.
+  \item Relational: objects should enter a network of prerequisite, composition, causal, representational, application, and analogy relations.
+  \item Pedagogical: objects should support learning goals, diagnosis, misconception detection, remediation, and evaluation.
+  \item Computable: objects should be retrievable, composable, constrainable, and callable by AI systems.
+  \item Expressive: the same object should support multiple realizations, such as textbook explanation, teacher material, learner question answering, exercise, diagram, or simulation.
+  \item Governable: objects need status, review, version, risk, feedback, and evolution mechanisms.
+\end{enumerate}
+
+These principles explain why the repository invests in identity, evidence, staging, QA, and service contracts before building a polished AI Tutor. The tutor is a future application; the current work is to make the underlying knowledge substrate trustworthy enough to call.
+
+\subsection{Implemented Boundary in This Repository}
+
+The current repository implements an executable subset of this theory. It does not yet implement the whole AI-native knowledge system. The conceptual layer describes the target system: Knowledge Objects, Knowledge Units, Knowledge Networks, Knowledge Runtime, and governance. The executable layer is the current \code{world-v1.2} schema and service contract.
+
+In the implementation, \code{world_nodes} stores the identity skeleton and minimal semantic fields for Knowledge Objects. Richer content lives across \code{properties.semantic_core}, \code{world_edges}, \code{world_evidence}, \code{world_mentions}, \code{world_domain_profiles}, cards, persistent bodies, media, and source fragments. The public consumption boundary is therefore \code{ApiUnit}, not a node row alone.
+
+This boundary matters for the rest of the report. \OKM{} currently demonstrates the knowledge substrate: staged extraction, canonical merge, typed relations, evidence grounding, cards, bodies, unit completeness, QA, graph integrity checks, and viewer/API inspection. Runtime tutoring, learner feedback write-back, expert governance queues, version evolution, and broad benchmark evaluation remain future work.
+
+\section{System Positioning and Boundary}
 
 \subsection{From Document Retrieval to Knowledge Infrastructure}
 
-A common way to use AI over textbooks is to chunk the source document, embed the chunks, retrieve relevant text, and ask a model to answer from the retrieved passages. This follows the broad retrieval-augmented generation pattern \cite{rag}, but it has structural limits. The chunk is not a stable knowledge object; it may mix definitions, examples, figures, exercises, and narrative text. Relations among concepts remain implicit. If a generated explanation is wrong, it is difficult to decide whether the fault lies in source parsing, retrieval, model interpretation, or missing evidence.
+A common way to use AI over textbooks is to chunk the source document, embed the chunks, retrieve relevant text, and ask a model to answer from the retrieved passages. This follows the broad retrieval-augmented generation pattern \cite{rag,gao-rag-survey}, but it has structural limits. The chunk is not a stable knowledge object; it may mix definitions, examples, figures, exercises, and narrative text. Relations among concepts remain implicit. If a generated explanation is wrong, it is difficult to decide whether the fault lies in source parsing, retrieval, model interpretation, or missing evidence.
 
 \OKM{} uses the document as input, but not as the final interface. The pipeline extracts explicit objects and relations, attaches evidence, stores structured cards, and later generates durable knowledge bodies. This turns retrieval from ``find a nearby passage'' into ``load a knowledge unit with its evidence and graph neighborhood.''
 
-\subsection{AI-NKS and World-v1.2}
+\subsection{What OKM Is Not}
 
-The repository uses two standard layers. \code{ai-nks-v0.1} is the current top-level system language. It frames the project as an AI-native knowledge infrastructure organized around Knowledge Object, Knowledge Unit, Knowledge Network, Knowledge Runtime, and governance. \code{world-v1.2} is the active engineering baseline: it defines the actual PostgreSQL schema, JSON Schema constraints, node kinds, relation types, evidence tables, cards, bodies, and QA behavior. This layering is close to the broader knowledge-graph literature, where identity, schema, context, validation, and provenance are treated as separate design concerns \cite{hogan-kg,rdf,owl,shacl,prov}.
+The current project boundary is deliberately narrower and more precise than several nearby ideas. \OKM{} is not an ordinary textbook graph whose purpose is only to visualize chapter concepts. It is not a RAG chunk library, because chunks are source material rather than governed object identities. It is not a standalone K-Unit teaching package, because the current public contract is \code{ApiUnit}, assembled from the maintained database. It is also not a node network built only for frontend display; the graph, evidence, staging, and unit contracts are intended to serve later retrieval, generation, planning, tutoring, and governance.
+
+\subsection{Conceptual Standard and Executable Schema}
+
+The repository uses two standard layers. The conceptual layer is the top-level language for the AI-native knowledge system. In repository documents this layer is versioned as \code{ai-nks-v0.1}; it frames the project as knowledge infrastructure organized around Knowledge Object, Knowledge Unit, Knowledge Network, Knowledge Runtime, and governance. The executable engineering layer is the active PostgreSQL and JSON Schema baseline. In repository documents this layer is versioned as \code{world-v1.2}; it defines the actual storage schema, node kinds, relation types, evidence tables, cards, bodies, and QA behavior. This layering is close to the broader knowledge-graph literature, where identity, schema, context, validation, acquisition, and provenance are treated as separate design concerns \cite{hogan-kg,ji-kg-survey,rdf,owl,shacl,prov}.
 
 This distinction matters because it prevents two mistakes. The first is calling the current graph schema the whole research vision. The second is renaming or migrating storage prematurely before the runtime contract is stable. The repository currently treats \code{world-v1.2} as the executable graph substrate under the broader \AINKS{} direction.
 
+\subsection{Terminology Boundaries}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}lYY@{}}
+\toprule
+\textbf{Term} & \textbf{Meaning} & \textbf{Current engineering status}\\
+\midrule
+Knowledge Object & Governable knowledge identity with evidence, relations, teaching use, and evolution boundary. & Top-level theoretical core.\\
+\code{world_nodes} & Identity skeleton for a Knowledge Object: id, name, kind, definition, status, and minimal semantic data. & Current PostgreSQL table.\\
+Knowledge Unit & Consumption-side unit for viewer, retrieval, generation, and later tutoring. & Expressed through \code{ApiUnit}.\\
+\code{ApiUnit} & Public view assembled by \code{node_id}: node, relations, domain profiles, mentions, evidence, media, source fragments, card, and body. & Current most important service contract.\\
+K-Unit & Earlier idea for a learning or collaboration unit. & Only a conceptual source; not the current schema or API.\\
+Knowledge Realization & A generated expression of the same object, such as textbook explanation, exercise, video, simulation, or tutor response. & Future extension.\\
+Knowledge Runtime & Mechanism for object retrieval, semantic planning, grounded generation, tutoring, feedback, and evolution. & Future implementation.\\
+\bottomrule
+\end{tabularx}
+\caption{Core terminology boundaries used by the current report.}
+\end{table}
+
+The immediate engineering rule is that \code{world_nodes} does not equal a complete knowledge point, \code{ApiUnit} is the current public knowledge-unit view, and early K-Unit JSON examples should not be treated as an executable API. This keeps theory, storage, and consumption contracts aligned without making the database schema more complex than the current implementation can justify.
+
 \subsection{Knowledge Units as the Consumption Boundary}
 
-In the current code, a knowledge point is not a single row in \code{world_nodes}. A node row is only the identity core. The complete consumption unit is \code{ApiUnit}, assembled by the server from several tables. This contract is important for future AI use because a tutor or generator should not have to hand-join database tables or guess whether a field is source text, generated body text, or structured summary. It should request one unit and receive the node, its graph neighborhood, domain profiles, evidence, card, body, media, and source fragments in a stable shape. The educational motivation is aligned with work on intelligent tutoring systems and learner modeling: useful tutoring needs a domain model, a learner model, task selection, feedback, and evidence about changing learner state \cite{vanlehn,corbett-anderson,piech-dkt,bull-kay}.
+In the current code, a knowledge point is not a single row in \code{world_nodes}. A node row is only the identity core. The complete consumption unit is \code{ApiUnit}, assembled by the server from several tables. This contract is important for future AI use because a tutor or generator should not have to hand-join database tables or guess whether a field is source text, generated body text, or structured summary. It should request one unit and receive the node, its graph neighborhood, domain profiles, evidence, card, body, media, and source fragments in a stable shape. The educational motivation is aligned with work on intelligent tutoring systems, learner modeling, and learning analytics: useful tutoring needs a domain model, a learner model, task selection, feedback, and evidence about changing learner state \cite{vanlehn,corbett-anderson,piech-dkt,bull-kay,koedinger-kli,siemens-learning-analytics}.
+
+\subsection{Implemented and Planned Layers}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}lYY@{}}
+\toprule
+\textbf{Layer} & \textbf{Implemented or emerging} & \textbf{Planned}\\
+\midrule
+Source & PDF, MinerU markdown, images, formulas, tables, outlines, and enrich-book context. & Obsidian notes, external knowledge bases, and curated human-authored bodies.\\
+Evidence & \code{world_evidence}, \code{world_mentions}, and \code{source_fragments}. & Finer evidence chains and conflict management.\\
+Knowledge Object & \code{world_nodes}, nine official kinds, and \code{properties.semantic_core}. & Version evolution and object-level impact analysis.\\
+Knowledge Network & \code{world_edges} with fifteen relation types. & Higher-order relations such as \code{supports}, \code{contradicts}, \code{applies_to}, \code{updates}, and \code{replaces}.\\
+Domain and pedagogy & \code{world_domain_profiles} and pedagogical profile fields. & Curriculum mapping, exam weighting, learner adaptation, and optional pedagogical roles.\\
+Knowledge Unit & \code{ApiUnit}, unit API, completeness score, and viewer presentation. & JSON export, runtime context pack, and score-driven repair workflow.\\
+Runtime & Search and retrieval candidates are emerging. & Object-level retrieval, semantic planning, grounded generation, and AI Tutor behavior.\\
+Governance & Staging, merge, normalization, strict QA, graph integrity, quality dashboard, and image review. & Expert review queues, version governance, and learning-feedback write-back.\\
+\bottomrule
+\end{tabularx}
+\caption{Current implementation boundary and planned AI-NKS layers.}
+\end{table}
 
 \section{System Overview}
 
-Figure~\ref{fig:architecture} shows the implemented architecture. The main flow starts from a PDF textbook or a previously generated MinerU markdown file. The pipeline creates or loads a textbook outline, splits the material into lessons or chunks, calls model-based extraction, optionally asks a vision model to classify image evidence, writes staged records, applies quality gates, merges and normalizes canonical objects, generates knowledge bodies, and runs final QA. PostgreSQL is the authoritative structured store. The Hono server reads from it and exposes graph bundles, units, search, pipeline status, image review, and textbook workbench routes. The React viewer consumes only these API contracts.
+Figure~\ref{fig:architecture} shows the implemented construction and serving substrate, not the full future Knowledge Runtime. The main flow starts from a PDF textbook or a previously generated MinerU markdown file. The pipeline creates or loads a textbook outline, splits the material into lessons or chunks, attaches optional enrich-book hints from PostgreSQL, calls model-based extraction, optionally asks a vision model to classify image evidence, writes staged records, applies quality gates, merges and normalizes canonical objects, generates knowledge bodies, and runs strict QA, graph integrity, and quality-dashboard stages. PostgreSQL is the authoritative structured store. The Hono server reads from it and exposes graph bundles, units, search, pipeline status, quality diagnostics, image review, and textbook workbench routes. The React viewer consumes only these API contracts.
 
 \begin{figure}[H]
 \centering
@@ -151,6 +328,7 @@ Figure~\ref{fig:architecture} shows the implemented architecture. The main flow 
   \node[box] (pdf) {PDF textbook\\or URL};
   \node[box, right=of pdf] (mineru) {MinerU\\markdown};
   \node[box, right=of mineru] (outline) {Outline\\and chunks};
+  \node[box, right=of outline] (enrich) {Enrich books\\context hints};
   \node[box, below=of outline] (extract) {Lesson/chunk\\model workers};
   \node[box, left=of extract] (vlm) {Vision model\\image review hints};
   \node[store, below=of extract] (pg) {PostgreSQL\\knowledge store};
@@ -162,6 +340,7 @@ Figure~\ref{fig:architecture} shows the implemented architecture. The main flow 
   \draw[arr] (pdf) -- (mineru);
   \draw[arr] (mineru) -- (outline);
   \draw[arr] (outline) -- (extract);
+  \draw[arr] (enrich) -- (extract);
   \draw[arr] (vlm) -- (extract);
   \draw[arr] (extract) -- (qa);
   \draw[arr] (qa) -- (bodies);
@@ -172,7 +351,7 @@ Figure~\ref{fig:architecture} shows the implemented architecture. The main flow 
   \draw[arr] (api) -- (viewer);
 \end{tikzpicture}
 }%
-\caption{Current \OKM{} architecture. Structured state is centered in PostgreSQL; generated files remain local artifacts and are not treated as the canonical index.}
+\caption{Current \OKM{} architecture. Structured state is centered in PostgreSQL; generated files remain local artifacts and are not treated as the canonical index. Enrich-book content is used only as auxiliary extraction context.}
 \label{fig:architecture}
 \end{figure}
 
@@ -186,11 +365,11 @@ Figure~\ref{fig:architecture} shows the implemented architecture. The main flow 
 \textbf{Path} & \textbf{Responsibility}\\
 \midrule
 \code{packages/types} & Shared TypeScript models and API types, including graph models, pipeline responses, outline structures, and the \code{ApiUnit} contract.\\
-\code{packages/pipeline} & Extraction pipeline, MinerU integration, outline parsing, lesson extraction, staging, merge, normalization, retrieval candidates, QA, progress tracking, and node body generation.\\
+\code{packages/pipeline} & Extraction pipeline, MinerU integration, outline parsing, enrich-context loading, lesson extraction, staging, merge, normalization, retrieval candidates, QA, progress tracking, and node body generation.\\
 \code{packages/server} & Hono API server, PostgreSQL connection and query layer, graph bundle assembly, unit loading, search, pipeline launch/status, image review, and enrich/textbook routes.\\
 \code{packages/viewer} & React/Vite graph viewer, G6 graph canvas, detail panel, textbook tree page, pipeline debug page, image review workflow, and frontend API client.\\
 \code{schemas} & World knowledge standard, JSON Schemas, architecture notes, extraction templates, and PostgreSQL schema files.\\
-\code{docs} & Current architecture, AI-NKS standard notes, knowledge unit contract, prompt inventory, run notes, and route planning.\\
+\code{docs} & Theoretical foundation, theory decision record, current architecture, AI-NKS standard notes, knowledge unit contract, prompt inventory, run notes, and route planning.\\
 \bottomrule
 \end{tabularx}
 \caption{Main repository modules.}
@@ -223,6 +402,8 @@ The executable schema fixes nine top-level node kinds. The design draws on upper
 
 The goal is not to describe every school subject with one flat tag list. Instead, \OKM{} separates object identity, taxonomy, factual relations, domain-specific teaching projection, and evidence.
 
+The current theory boundary also rejects a premature expansion into many new top-level education object types. \code{world_nodes.kind} remains the official top-level type field. More detailed semantic structure is placed in \code{world_nodes.properties.semantic_core}; educational roles such as skill, task, or misconception may become optional pedagogical metadata later, but they are not new top-level node kinds in the current executable schema.
+
 \subsection{Relation Set}
 
 The current relation set contains fifteen stable relation types:
@@ -248,7 +429,7 @@ The small controlled set keeps extraction and QA tractable. Higher-order runtime
 
 \subsection{Evidence Plane}
 
-Every useful knowledge system needs an answer to the question: why should this object, relation, or explanation be trusted? \OKM{} answers through a cross-cutting evidence plane, following the provenance principle that generated or asserted claims should be traceable to sources, activities, and derivation records \cite{prov}.
+Every useful knowledge system needs an answer to the question: why should this object, relation, or explanation be trusted? \OKM{} answers through a cross-cutting evidence plane, following the provenance principle that generated or asserted claims should be traceable to sources, activities, and derivation records \cite{prov}. This is especially important for generation-heavy systems, where hallucination, stale knowledge, and non-transparent reasoning motivate explicit source grounding and audit trails \cite{ji-hallucination,gao-rag-survey}.
 
 \begin{itemize}
   \item \code{world_mentions} records mentions of a knowledge object in a source.
@@ -256,6 +437,7 @@ Every useful knowledge system needs an answer to the question: why should this o
   \item \code{world_node_cards} stores structured summaries that are easier to inspect and use for body generation.
   \item \code{world_node_bodies} stores persistent knowledge bodies for reading and generation.
   \item \code{source_fragments} in \code{ApiUnit} represent textbook source material and should not be confused with generated bodies.
+  \item \code{world_enrich_books} stores auxiliary textbook-workbench content and extraction hints; it is not by itself evidence for canonical nodes or relations.
 \end{itemize}
 
 \section{Extraction Pipeline}
@@ -269,11 +451,11 @@ npm run server-pipeline-run -w packages/pipeline -- \
   --db "$DATABASE_URL"
 \end{lstlisting}
 
-The same command can accept a MinerU file URL, model options, vision-model options, concurrency settings, retry controls, and node-body generation options.
+The same command can accept a MinerU file URL, model options, vision-model options, concurrency settings, retry controls, enrich-context controls, and node-body generation options. In the current server pipeline path, enrich context is enabled by default with a small limit. The pipeline reads nearby \code{world_enrich_books} material and passes it as \code{lesson_context.enrich_hints}; this context is only allowed to help with terminology boundary, naming, and granularity. It is not evidence for creating nodes or relations.
 
 \subsection{Stage Flow}
 
-Figure~\ref{fig:pipeline-flow} summarizes the stage boundary. The most important engineering rule is that lesson workers do not write canonical world tables. They write only lesson run state and staging rows. Canonical writes happen after merge, remapping, normalization, and quality checks.
+Figure~\ref{fig:pipeline-flow} summarizes the stage boundary. The most important engineering rule is that lesson workers do not write canonical world tables. They write only lesson run state and staging rows. Canonical writes happen after merge, remapping, normalization, and quality checks. The server runner currently records ordered stages such as database check, MinerU parsing, outline preparation, lesson planning, lesson staging, staging-quality retry, canonical commit, normalization, node-body generation, strict QA, graph integrity, and quality-dashboard generation.
 
 \begin{figure}[H]
 \centering
@@ -294,6 +476,7 @@ Figure~\ref{fig:pipeline-flow} summarizes the stage boundary. The most important
   \node[table, right=1.0cm of s6] (canonical) {Canonical\\\code{world_*}};
   \node[stage, below=of s7] (s8) {8. Generate\\knowledge bodies};
   \node[stage, below=of s8] (s9) {9. Strict QA\\graph integrity};
+  \node[stage, below=of s9] (s10) {10. Quality\\dashboard};
 
   \draw[arr] (s1) -- (s2);
   \draw[arr] (s2) -- (s3);
@@ -303,13 +486,14 @@ Figure~\ref{fig:pipeline-flow} summarizes the stage boundary. The most important
   \draw[arr] (s6) -- (s7);
   \draw[arr] (s7) -- (s8);
   \draw[arr] (s8) -- (s9);
+  \draw[arr] (s9) -- (s10);
   \draw[arr] (s3.east) -- (staging.west);
   \draw[arr] (s4.east) -- (staging.west);
   \draw[arr] (s6.east) -- (canonical.west);
   \draw[arr] (s7.east) -- (canonical.west);
   \draw[arr] (s8.east) -- (canonical.west);
 \end{tikzpicture}
-\caption{Pipeline stages and write boundary. Lesson/chunk workers write staging rows; reducers and post-processing stages write canonical world tables.}
+\caption{Pipeline stages and write boundary. Lesson/chunk workers write staging rows; reducers and post-processing stages write canonical world tables and quality summaries.}
 \label{fig:pipeline-flow}
 \end{figure}
 
@@ -317,11 +501,11 @@ Figure~\ref{fig:pipeline-flow} summarizes the stage boundary. The most important
 
 Source preparation supports two input modes. With a local PDF, the pipeline invokes MinerU and writes the resulting markdown and images under \code{data/mineru/<book-id>/}. With a remote PDF URL, MinerU can fetch and parse the source directly. Structured source status is persisted through \code{world_mineru_sources}; local markdown and images remain large content files, not the authoritative structured index.
 
-Outline handling is similarly split. The service and pipeline read structured outline metadata from PostgreSQL through \code{world_textbook_outlines}. File-based outline artifacts can be imported or used as working material, but they are not the long-term metadata source.
+Outline handling is similarly split. The service and pipeline read structured outline metadata from PostgreSQL through \code{world_textbook_outlines}. File-based outline artifacts can be imported or used as working material, but they are not the long-term metadata source. The extraction path can also read \code{world_enrich_books} as auxiliary context for the same textbook position. These enrich hints improve boundary and naming decisions, but the prompt and pipeline treat the current lesson or chunk as the evidence-bearing source.
 
 \subsection{Model Extraction}
 
-The current prompt inventory defines three runtime model prompt families:
+The current prompt inventory defines three model prompt families used by the pipeline:
 
 \begin{itemize}
   \item P1: lesson/chunk knowledge extraction, implemented in \code{model-lesson-extraction.ts};
@@ -329,17 +513,17 @@ The current prompt inventory defines three runtime model prompt families:
   \item P3: knowledge node body writing, implemented in \code{generate-node-bodies.ts}.
 \end{itemize}
 
-P1 uses a structured input payload containing lesson context, page range, source path, markdown excerpt preview, retrieval candidates, evidence hints, and markdown lines. The extraction path uses JSON Schema response constraints in addition to natural-language instructions. The project therefore does not rely on prompt text alone for output structure. This choice is consistent with graph-validation practice: the model may propose content, but schema and quality gates decide whether the content can enter the maintained graph \cite{shacl,hogan-kg}.
+P1 uses a structured input payload containing lesson context, page range, source path, markdown excerpt preview, retrieval candidates, evidence hints, optional \code{lesson_context.enrich_hints}, and markdown lines. The extraction path uses JSON Schema response constraints in addition to natural-language instructions. The project therefore does not rely on prompt text alone for output structure. The prompt explicitly says that enrich hints can help interpret the lesson topic, but cannot serve as node or relation evidence; if enrich hints conflict with the current slice, the current slice wins. This choice is consistent with graph-validation practice: the model may propose content, but schema and quality gates decide whether the content can enter the maintained graph \cite{shacl,hogan-kg}.
 
 \subsection{Image Evidence}
 
-When configured, the vision-model path classifies images into decisions such as core content, supporting content, decorative image, mismatch, or uncertain. The decision is stored in \code{properties_json.image_relevance}. Decorative and mismatched image evidence can be hidden from the consumption view. Unreviewed uncertain images are preserved and shown in the debug review workflow, but ordinary unit views hide them until a reviewer marks them approved.
+When configured, the vision-model path classifies images into decisions such as core content, supporting content, decorative image, mismatch, or uncertain. The decision is stored in \code{properties_json.image_relevance}. Decorative and mismatched image evidence can be hidden from the consumption view. Unreviewed uncertain images are preserved with \code{review_status=pending} or an implicit pending state and are shown in the debug review workflow, but ordinary unit views hide them until a reviewer marks them approved. Rejected images keep their evidence record but remain hidden from normal unit details.
 
-This design reflects a practical textbook issue: figures can be central knowledge carriers, but many textbook PDFs also contain icons, decorative graphics, QR codes, publisher marks, and layout artifacts. Treating all images as equally useful evidence makes the graph noisy; deleting uncertain images too aggressively loses important context. The current system keeps uncertainty visible to reviewers without promoting unreviewed images into normal unit detail pages.
+This design reflects a practical textbook issue: figures can be central knowledge carriers, but many textbook PDFs also contain icons, decorative graphics, QR codes, publisher marks, and layout artifacts. Treating all images as equally useful evidence makes the graph noisy; deleting uncertain images too aggressively loses important context. The current system keeps uncertainty visible to reviewers without promoting unreviewed images into normal unit detail pages, and reviewer decisions are persisted as approved or rejected status rather than being stored only in the browser.
 
 \subsection{Quality Gates and Retry}
 
-After staging writes, \code{staging-quality} checks whether each lesson/chunk produced sufficient and internally consistent staged output. The server pipeline has retry controls for blocked chunks, so a failed quality check can rerun affected lesson/chunk anchors instead of restarting the entire book. After merge and normalization, \code{strict-qa} validates schema legality and \code{graph-integrity} checks graph-level issues such as cycles, isolated nodes, disconnected components, and final QA markings.
+After staging writes, \code{staging-quality} checks whether each lesson/chunk produced sufficient and internally consistent staged output. The server pipeline has retry controls for blocked chunks, so a failed quality check can rerun affected lesson/chunk anchors instead of restarting the entire book. The retry prompt is generated from the failed lesson's quality issues and explicitly asks the worker to repair missing nodes, definitions, domain profiles, mentions, node cards, and evidence references. After merge and normalization, \code{strict-qa} validates schema legality, \code{graph-integrity} checks graph-level issues such as cycles, isolated nodes, disconnected components, and final QA markings, and \code{quality-dashboard} materializes lesson-level and canonical quality metrics for the debug page.
 
 \section{PostgreSQL Knowledge Store}
 
@@ -353,8 +537,8 @@ The current repository treats PostgreSQL as the only authoritative structured st
 \textbf{Group} & \textbf{Tables}\\
 \midrule
 Dataset and sources & \code{world_datasets}, \code{world_source_artifacts}, \code{world_textbook_outlines}, \code{world_enrich_library}, \code{world_enrich_books}, \code{world_mineru_sources}\\
-Canonical knowledge & \code{world_nodes}, \code{world_edges}, \code{world_taxonomy_terms}, \code{world_taxonomy_edges}, \code{world_domain_profiles}, \code{world_mentions}, \code{world_evidence}, \code{world_evidence_links}, \code{world_node_cards}, \code{world_node_bodies}\\
-Retrieval support & \code{retrieval_candidates}\\
+Canonical knowledge & \code{world_nodes}, \code{world_node_terms}, \code{world_edges}, \code{world_taxonomy_terms}, \code{world_taxonomy_edges}, \code{world_domain_profiles}, \code{world_mentions}, \code{world_evidence}, \code{world_evidence_links}, \code{world_node_cards}, \code{world_node_bodies}\\
+Retrieval support & node embeddings on \code{world_nodes} and candidate rows in \code{retrieval_candidates}\\
 Pipeline status & \code{world_pipeline_jobs}, \code{world_pipeline_job_stages}, \code{world_pipeline_job_events}, \code{world_pipeline_worker_states}\\
 Staging and merge & \code{world_lesson_runs}, \code{world_staging_nodes}, \code{world_staging_edges}, \code{world_staging_domain_profiles}, \code{world_staging_mentions}, \code{world_staging_evidence}, \code{world_staging_node_cards}, \code{world_merge_runs}, \code{world_canonical_node_map}\\
 \bottomrule
@@ -366,9 +550,11 @@ This schema makes several boundaries explicit:
 
 \begin{itemize}
   \item \code{world_nodes} stores the identity core, not a full knowledge unit.
+  \item \code{world_node_terms} stores canonical names, aliases, and tags as normalized lookup terms.
   \item \code{world_node_cards} stores structured summaries, not textbook source text.
   \item \code{world_node_bodies} stores persistent knowledge bodies, not textbook source text.
   \item \code{source_fragments} and \code{world_evidence} are the evidence/source-text paths.
+  \item \code{world_enrich_books} can provide extraction context, but it is not promoted to evidence unless a later explicit evidence path is added.
   \item Staging and canonical tables remain separate so model output can be checked, merged, and normalized before becoming part of the graph.
 \end{itemize}
 
@@ -390,6 +576,14 @@ interface ApiUnit {
   source_fragments: ApiUnitSourceFragment[];
   card: ApiNodeCard | null;
   body: ApiUnitBody | null;
+  completeness: ApiUnitCompleteness;
+}
+
+interface ApiUnitCompleteness {
+  score: number;
+  passed: number;
+  total: number;
+  signals: ApiUnitCompletenessSignal[];
 }
 \end{lstlisting}
 
@@ -417,11 +611,11 @@ interface ApiUnit {
 \label{fig:unit}
 \end{figure}
 
-The server implementation in \code{packages/server/src/db/queries.ts} loads the node, outgoing and incoming edges, profiles, mentions, matching evidence, card, body, media derived from evidence, and source fragments derived from evidence and textbook outlines. The viewer should consume this response instead of reconstructing table joins in the browser.
+The server implementation in \code{packages/server/src/db/queries.ts} loads the node, outgoing and incoming edges, profiles, mentions, matching evidence, card, body, media derived from reviewed evidence, and source fragments derived from evidence and textbook outlines. It then calls \code{buildApiUnitCompleteness} to score the unit across node definition, semantic core, relations, evidence, source fragments, domain profiles, body source references, structured card, and mentions. Pending uncertain images and rejected images are filtered out of ordinary unit media. The viewer should consume this response instead of reconstructing table joins in the browser.
 
-\section{Server Runtime and Pipeline Jobs}
+\section{Server Layer and Pipeline Jobs}
 
-The server is a Hono application in \code{packages/server}. It exposes health, metadata, graph bundles, unit loading, node cards, search, pipeline status, image review, asset serving, and textbook workbench routes.
+The server is a Hono application in \code{packages/server}. It exposes health, metadata, graph bundles, unit loading, node cards, search, pipeline status, pipeline quality diagnostics, image review, asset serving, and textbook workbench routes.
 
 \begin{table}[H]
 \centering
@@ -436,6 +630,8 @@ The server is a Hono application in \code{packages/server}. It exposes health, m
 \code{GET /api/source/:key/unit/:node_id} & Complete knowledge unit view.\\
 \code{GET /api/source/:key/search} & Node search using text and vector paths where available.\\
 \code{GET /api/source/:key/pipeline} & Pipeline summary, recent runs, merge status, and review items.\\
+\code{GET /api/source/:key/pipeline/quality} & Quality dashboard payload with lesson metrics, evidence coverage, isolated nodes, disconnected components, and manual-review counts.\\
+\code{POST /api/source/:key/pipeline/infer-textbook} & Infers book title, subject, stage, grade band, MinerU language, outline page defaults, and extraction template from the request and stored outline.\\
 \code{POST /api/source/:key/pipeline/start} & Starts a detached server-side pipeline job.\\
 \code{GET /api/source/:key/pipeline/jobs/:job_id} & Detailed job status from \code{world_pipeline_*}.\\
 \code{GET/POST /api/source/:key/image-reviews} & Reads and writes human image-review decisions.\\
@@ -445,7 +641,7 @@ The server is a Hono application in \code{packages/server}. It exposes health, m
 \caption{Main API routes.}
 \end{table}
 
-Pipeline jobs started from the viewer are detached child processes. The server creates a job id, prepares a log path under \code{runs/server-jobs}, passes \code{--job-id} and \code{--log-path} into the pipeline command, and lets the pipeline write structured progress into PostgreSQL. This means the browser can close while the job continues; the UI later reads \code{world_pipeline_jobs}, stage rows, events, and worker states to reconstruct status.
+Pipeline jobs started from the viewer are detached child processes. The server creates a job id, prepares a log path under \code{runs/server-jobs}, passes \code{--job-id} and \code{--log-path} into the pipeline command, and lets the pipeline write structured progress into PostgreSQL. The command builder also forwards user or inferred values such as dataset id, output root, parallelism, extraction template, quality retry count, model retry count, subject, school stage, grade band, OpenAI-compatible model settings, VLM settings, PDF path, MinerU URL, MinerU language, page ranges, and outline page range. This means the browser can close while the job continues; the UI later reads \code{world_pipeline_jobs}, stage rows, events, and worker states to reconstruct status.
 
 \section{Viewer and Debug Workbench}
 
@@ -457,13 +653,41 @@ The viewer is a React/Vite application built around three work areas:
   \item extraction inspection and control through \code{PipelineDebugPage}.
 \end{itemize}
 
-The graph page first loads \code{/api/meta} and then \code{/api/source/:key/bundle}. Clicking a node loads \code{/api/source/:key/unit/:node_id} and shows the full knowledge unit. The detail view separates generated knowledge body, textbook source fragments, structured card, relations, domain profiles, evidence, and media. This separation is essential because it keeps the user from mistaking generated explanatory text for the textbook source.
+The final version should include UI screenshots only where the interface proves that the repository contracts are inspectable by a user. The architecture and pipeline figures already explain backend structure; the screenshots should instead show graph reading, source navigation, pipeline execution, and quality-governance workflows.
 
-The debug page covers the operational loop: infer textbook metadata, start a pipeline run, watch stage progress, inspect worker state, see blocked conditions, review image evidence, and inspect merge-review items. Image review actions are written back through the server so later unit views can hide rejected images or show approved core, supporting, or manually kept images.
+The graph page first loads \code{/api/meta} and then \code{/api/source/:key/bundle}. Clicking a node loads \code{/api/source/:key/unit/:node_id} and shows the full knowledge unit. The detail view displays relation, evidence, profile, mention, and completeness counters; renders the generated knowledge body with evidence references; separates semantic-core groups, textbook source fragments, structured card sections, relations, domain profiles, evidence, and media; and supports full-screen reading of source fragments. This separation is essential because it keeps the user from mistaking generated explanatory text for the textbook source.
+
+\uiscreenshotplaceholder
+{Capture the graph browsing page with one representative node selected.}
+{The graph canvas should remain visible while the right-side detail panel shows relation, evidence, profile, mention, and completeness counters, generated body content, source fragments, and structured card sections. Use a node from the documented physics run if available.}
+{Placeholder for the graph browsing and knowledge-unit inspection UI.}
+{fig:ui-graph-unit-placeholder}
+
+The textbook workbench should be shown separately because it is the reader-facing bridge between textbook outline metadata, lesson source material, and extraction context. A useful screenshot should show that the system can inspect the textbook structure before or after extraction, not only the resulting graph.
+
+\uiscreenshotplaceholder
+{Capture the textbook tree or textbook workbench page with a real outline expanded.}
+{Show chapter and lesson levels, the selected lesson/detail pane, page range or source metadata, and enough source text or outline context to make clear that textbook navigation is backed by stored outline data rather than a static file screenshot.}
+{Placeholder for the textbook navigation and source-inspection UI.}
+{fig:ui-textbook-workbench-placeholder}
+
+The debug page covers the operational loop: infer textbook metadata, start a pipeline run, watch stage progress, inspect worker state, inspect quality-dashboard metrics, see blocked conditions, review image evidence, and inspect merge-review items. Image review actions are written back through the server so later unit views can hide \code{review_status=rejected} images or show \code{review_status=approved} core, supporting, or manually kept images.
+
+\uiscreenshotplaceholder
+{Capture the pipeline debug page during or immediately after a real pipeline run.}
+{Show inferred textbook metadata or launch controls, the current or latest job id, stage progress, lesson-worker state, blocked or completed stages, and quality-dashboard metric cards such as evidence coverage, isolated nodes, disconnected components, and manual-review counts.}
+{Placeholder for the pipeline launch, live status, and quality-dashboard UI.}
+{fig:ui-pipeline-debug-placeholder}
+
+\uiscreenshotplaceholder
+{Capture the image review panel with at least one pending or uncertain textbook image.}
+{Show the image preview, lesson/page/source location, model relevance label, confidence or reason text, and the human actions for approval, rejection, or manual keep. The screenshot should make clear that review decisions are persisted through the server, not only hidden in the browser.}
+{Placeholder for the image evidence review UI.}
+{fig:ui-image-review-placeholder}
 
 \section{Structured Output and Prompt Governance}
 
-\OKM{} uses model calls, but it does not leave the core data shape to free-form generation. The repository pairs prompt instructions with JSON Schema response constraints. In the lesson extraction path, the model receives serialized lesson context and markdown lines; the response must match the world-knowledge lesson bundle schema. In the image path, the response must contain a keep decision, relevance label, reason, and confidence. In the node-body path, the response must contain markdown body content and source references.
+\OKM{} uses model calls, but it does not leave the core data shape to free-form generation. The repository pairs prompt instructions with JSON Schema response constraints. In the lesson extraction path, the model receives serialized lesson context, optional enrich hints, and markdown lines; the response must match the world-knowledge lesson bundle schema. In the image path, the response must contain a keep decision, relevance label, reason, confidence, and review-state-compatible decision. In the node-body path, the response must contain markdown body content and source references.
 
 This pattern gives the project three useful properties:
 
@@ -475,9 +699,34 @@ This pattern gives the project three useful properties:
 
 The prompt inventory also documents a key production choice: lesson/chunk extraction is intentionally local to the current slice. Cross-lesson consolidation belongs to reducer stages and later graph-level logic, not to a worker that sees only one slice.
 
+The same rule applies to enrich hints. They can reduce naming and granularity errors, but they do not widen the worker's evidence boundary. This keeps auxiliary textbook material from silently becoming canonical proof.
+
 \section{Case Study: Physics Textbook Run}
 
-A documented run on a high-school physics textbook provides an early system-level validation of the pipeline. The input was a PDF textbook parsed through MinerU, with markdown and images cached under \code{data/mineru/physics-hukj-compulsory-3/}. The final documented database state included 19 lesson runs, 288 nodes, 153 edges, 436 evidence rows, 320 mentions, 288 node cards, 291 domain profiles, and 1006 node-term links. The run passed staging quality, canonical merge, normalization, strict QA, and graph integrity marking, while graph integrity still reported structural warnings such as isolated nodes and disconnected components.
+A documented run on a high-school physics textbook provides an early system-level check of the pipeline. The input was a PDF textbook parsed through MinerU, with markdown and images cached under \code{data/mineru/physics-hukj-compulsory-3/}. Table~\ref{tab:physics-run} summarizes the final documented database state.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{0.88\textwidth}{@{}l r Y@{}}
+\toprule
+\textbf{Artifact} & \textbf{Count} & \textbf{Interpretation}\\
+\midrule
+Lesson runs & 19 & The pipeline processed the textbook by lesson-scale units rather than as one global prompt.\\
+Canonical nodes & 288 & Extracted knowledge-object identities after staging, merge, and normalization.\\
+Canonical edges & 153 & Typed relations accepted into the current graph.\\
+Evidence rows & 436 & Source-backed evidence items retained for inspection and grounding.\\
+Mentions & 320 & Links from objects back to source occurrences.\\
+Node cards & 288 & Structured summaries available for every accepted node in this run.\\
+Domain profiles & 291 & Teaching-oriented projections attached to nodes.\\
+Node-term links & 1006 & Normalized canonical-name, alias, and tag lookup records for graph organization.\\
+\bottomrule
+\end{tabularx}
+\caption{Documented output of the physics-textbook run. The counts show system operation, not a final benchmark result.}
+\label{tab:physics-run}
+\end{table}
+
+The run passed staging quality, canonical merge, normalization, strict QA, and graph integrity marking. Graph integrity still reported structural warnings such as isolated nodes and disconnected components. These warnings are important: they show that the pipeline can finish and persist usable objects, but they also show that extraction success is not the same as a dense, pedagogically complete, or experimentally validated knowledge graph.
 
 The same run exposed practical hardening needs that have shaped the current repository:
 
@@ -503,9 +752,28 @@ The repository uses a layered verification strategy:
   \item Stage-level quality checks through \code{staging-quality}.
   \item Schema and data checks through \code{strict-qa}.
   \item Graph-level checks through \code{graph-integrity}.
+  \item Debug-page quality summaries through \code{quality-dashboard}.
 \end{itemize}
 
-These checks target different risks. TypeScript catches contract drift across packages. Pipeline tests catch transformation and SQL behavior. Staging quality checks whether model-produced staged output is usable. Strict QA checks schema legality. Graph integrity looks for structural graph problems that might not violate row-level schema rules.
+These checks target different risks. TypeScript catches contract drift across packages. Pipeline tests catch transformation and SQL behavior. Staging quality checks whether model-produced staged output is usable. Strict QA checks schema legality. Graph integrity looks for structural graph problems that might not violate row-level schema rules. The quality dashboard aggregates lesson and canonical metrics such as evidence coverage, isolated-node ratio, disconnected components, pending image reviews, merge-review counts, blocked lessons, and stored quality issues.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}lYY@{}}
+\toprule
+\textbf{Check} & \textbf{What it supports} & \textbf{What it does not prove}\\
+\midrule
+TypeScript check and build & Package contracts still compile across pipeline, server, viewer, and shared types. & Semantic correctness of extracted knowledge.\\
+Pipeline tests & Stage behavior, SQL writes, data-shape handling, and focused regression cases. & General extraction accuracy across subjects.\\
+Staging quality & Lesson/chunk outputs are non-empty and internally usable before merge. & Human-level boundary judgment for every candidate.\\
+Strict QA & Canonical rows satisfy schema and controlled-vocabulary constraints. & Pedagogical usefulness or factual completeness.\\
+Graph integrity & Structural graph issues such as cycles, isolated nodes, disconnected components, and final QA state are visible. & That the graph is optimal, dense, or ready for tutoring.\\
+Quality dashboard & Operational quality metrics are visible in the server and debug page. & Independent human evaluation, baseline comparison, or learning-outcome evidence.\\
+\bottomrule
+\end{tabularx}
+\caption{Verification scope of the current repository checks.}
+\end{table}
 
 The current test design should continue to grow around business-output parity and database correctness. For database paths, useful tests should create temporary rows, verify writes and reads, and clean up after themselves. For extraction behavior, focused fixtures are more valuable than broad snapshots because the model layer itself is probabilistic.
 
@@ -537,38 +805,45 @@ Lesson workers operate with local context and limited evidence. They are allowed
 
 \section{Limitations}
 
-The current system is a strong substrate, but it is not complete AI-native learning infrastructure yet.
+The current system should be read as an infrastructure substrate, not as a completed AI-native learning platform.
 
 \begin{enumerate}
   \item Object-level retrieval exists only partially. Search and candidate retrieval are present, but the full runtime contract for grounded generation and semantic planning is not complete.
   \item AI Tutor behavior is not yet implemented as a first-class application over \code{ApiUnit}.
+  \item Knowledge Realization is still future work: the same Knowledge Object is not yet systematically rendered into exercises, simulations, videos, tutor responses, or teacher materials.
+  \item The repository does not yet include a human-annotated multi-subject benchmark, baseline comparisons against chunk retrieval or chapter-centric extraction, or ablation studies.
   \item Learning outcomes have not been evaluated through learner studies, controlled classroom deployments, or long-term A/B tests.
   \item Graph density and relation quality need more evaluation. The physics run showed useful output, but also isolated nodes and disconnected components.
+  \item Evidence conflict management, expert review queues, version governance, and learning-feedback write-back are not yet complete.
+  \item Curriculum mapping, exam weighting, and learner-adaptive use of domain profiles remain planned capabilities.
   \item Image review can be improved with cheap rule-based prefilters before vision-model calls.
   \item The top-level AI-NKS standard still needs a careful migration path before new runtime relations or governance fields become executable schema.
 \end{enumerate}
 
 \section{Future Work}
 
-The next phase should focus on turning the current substrate into a callable runtime. Four directions are especially important.
+The next phase should focus on turning the current substrate into a callable runtime. Five directions are especially important.
 
 \textbf{Stabilize \code{ApiUnit} as the public contract.}
-Future search, generation, tutoring, and planning modules should consume \code{ApiUnit} instead of joining tables directly. This keeps evidence, body, card, relation, and media semantics consistent across applications.
+Future search, generation, tutoring, and planning modules should consume \code{ApiUnit} instead of joining tables directly. This keeps evidence, body, card, relation, and media semantics consistent across applications. The next contract-level additions should include unit export, runtime context packs for model calls, and repair workflows driven by the existing completeness signals.
 
 \textbf{Build object-level retrieval and grounded generation.}
-Search results should return units and relation paths, not only node hits. Grounded generation should cite unit bodies and source fragments explicitly, and it should be able to refuse when evidence is insufficient.
+Search results should return units and relation paths, not only node hits. Grounded generation should cite unit bodies and source fragments explicitly, and it should be able to refuse when evidence is insufficient. This direction extends retrieval-augmented generation from passage retrieval toward knowledge-unit retrieval and graph-aware grounding \cite{gao-rag-survey,pan-llm-kg}.
 
 \textbf{Improve graph construction quality.}
 The pipeline should improve relation extraction, low-risk relation completion, cross-chunk merge evidence, and graph integrity feedback. Isolated nodes and weakly connected components are useful diagnostic signals, not merely warnings to suppress.
 
+\textbf{Add knowledge realization and governance.}
+The same Knowledge Object should eventually support multiple governed expressions: textbook explanation, tutor response, exercise, diagram, simulation, and teacher material. This requires versioning, expert review, conflict handling, and feedback records rather than one-off generation.
+
 \textbf{Close the education loop.}
-The long-term AI-NKS direction needs learner tasks, misconception detection, diagnostic questions, assessment tasks, feedback write-back, and evaluation metrics. The current data model already has places for pedagogical profiles and evidence; the runtime still needs to use them in tutoring and measurement. This future work is motivated by the long-standing tutoring and instructional-design literature: one-to-one tutoring remains a high bar for learning systems, and effective instruction depends on task-centered practice, feedback, assessment, and adaptation to learner state \cite{bloom-two-sigma,merrill,anderson-krathwohl,vanlehn}.
+The long-term AI-NKS direction needs learner tasks, misconception detection, diagnostic questions, assessment tasks, feedback write-back, and evaluation metrics. It also changes what a course can mean computationally. A traditional course is usually a pre-authored sequence of chapters and lessons; in AI-NKS, a course can become a generated path over a Knowledge Object Network, constrained by learning goals, learner state, evidence availability, curriculum boundaries, and assessment feedback. The current data model already has places for pedagogical profiles and evidence; the runtime still needs to use them in tutoring and measurement. This future work is motivated by the long-standing tutoring, instructional-design, learning-analytics, and educational-knowledge-graph literature: one-to-one tutoring remains a high bar for learning systems, and effective instruction depends on task-centered practice, feedback, assessment, adaptation to learner state, and domain structures that can support pedagogical applications \cite{bloom-two-sigma,merrill,anderson-krathwohl,vanlehn,koedinger-kli,siemens-learning-analytics,qu-education-kg}.
 
 \section{Conclusion}
 
 \OKM{} is best understood as an implemented knowledge-infrastructure substrate rather than a simple textbook parser or graph viewer. Its core contribution is the disciplined separation of source resources, staged model output, canonical world knowledge, consumption-side knowledge units, generated bodies, and evidence. The current TypeScript workspaces, PostgreSQL schema, Hono API, React viewer, and documented pipeline commands make this separation operational.
 
-The project is also deliberately unfinished in a productive way. It has enough structure to support reliable extraction, inspection, and QA; it has enough runtime shape to expose knowledge units to future AI systems; and it has enough evidence and provenance to avoid treating model prose as ground truth. The next research step is to make these knowledge units callable by tutors, planners, and evaluators, then measure whether object-level, evidence-grounded knowledge infrastructure improves accuracy, traceability, maintainability, and learning outcomes compared with ordinary document-chunk retrieval.
+The project is deliberately incomplete in the areas that require stronger empirical evidence. It has enough structure to support extraction, inspection, and QA; it has enough service-layer shape to expose knowledge units to future AI systems; and it has enough evidence and provenance to avoid treating model prose as ground truth. The next research step is to make these knowledge units callable by retrievers, generators, tutors, planners, and evaluators, then measure whether object-level, evidence-grounded knowledge infrastructure improves accuracy, traceability, maintainability, and learning outcomes compared with ordinary document-chunk retrieval.
 
 \newpage
 
@@ -578,6 +853,13 @@ The project is also deliberately unfinished in a productive way. It has enough s
 Robert Arp, Barry Smith, and Andrew D. Spear.
 \newblock \emph{Building Ontologies with Basic Formal Ontology}.
 \newblock MIT Press, 2015.
+
+\bibitem{bernstein-classification}
+Basil Bernstein.
+\newblock On the classification and framing of educational knowledge.
+\newblock In Michael F. D. Young, editor, \emph{Knowledge and Control}, pages 47--69. Collier-Macmillan, 1971.
+\newblock Full volume title: \emph{Knowledge and Control: New Directions for the Sociology of Education}.
+\newblock Reprinted by Routledge, \href{https://doi.org/10.4324/9781351018142-13}{https://doi.org/10.4324/9781351018142-13}
 
 \bibitem{anderson-krathwohl}
 Lorin W. Anderson, David R. Krathwohl, Peter W. Airasian, Kathleen A. Cruikshank, Richard E. Mayer, Paul R. Pintrich, James Raths, and Merlin C. Wittrock.
@@ -599,20 +881,92 @@ Albert T. Corbett and John R. Anderson.
 \newblock Knowledge tracing: Modeling the acquisition of procedural knowledge.
 \newblock \emph{User Modeling and User-Adapted Interaction}, 4:253--278, 1994.
 
+\bibitem{comenius-great-didactic}
+John Amos Comenius.
+\newblock \emph{The Great Didactic of John Amos Comenius}.
+\newblock Translated by M. W. Keatinge. Adam and Charles Black, 1896.
+\newblock \href{https://archive.org/details/greatdidacticofj00come}{https://archive.org/details/greatdidacticofj00come}
+
+\bibitem{elman-civil-examinations}
+Benjamin A. Elman.
+\newblock \emph{A Cultural History of Civil Examinations in Late Imperial China}.
+\newblock University of California Press, 2000.
+\newblock \href{https://www.ucpress.edu/book/9780520215092/a-cultural-history-of-civil-examinations-in-late-imperial-china}{https://www.ucpress.edu/book/9780520215092/a-cultural-history-of-civil-examinations-in-late-imperial-china}
+
+\bibitem{gao-rag-survey}
+Yunfan Gao, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu Pan, Yuxi Bi, Yi Dai, Jiawei Sun, Meng Wang, and Haofen Wang.
+\newblock Retrieval-augmented generation for large language models: A survey.
+\newblock arXiv preprint \href{https://arxiv.org/abs/2312.10997}{arXiv:2312.10997}, 2023.
+\newblock \href{https://doi.org/10.48550/arXiv.2312.10997}{https://doi.org/10.48550/arXiv.2312.10997}
+
 \bibitem{hogan-kg}
 Aidan Hogan, Eva Blomqvist, Michael Cochez, Claudia d'Amato, Gerard de Melo, Claudio Gutierrez, Jos\'{e} Emilio Labra Gayo, Sabrina Kirrane, Sebastian Neumaier, Axel Polleres, Roberto Navigli, Axel-Cyrille Ngonga Ngomo, Sabbir M. Rashid, Anisa Rula, Lukas Schmelzeisen, Juan Sequeda, Steffen Staab, and Antoine Zimmermann.
 \newblock Knowledge graphs.
 \newblock \emph{ACM Computing Surveys}, 54(4):1--37, 2021.
+
+\bibitem{humboldt-higher-institutions}
+Wilhelm von Humboldt.
+\newblock On the internal and external organization of the higher scientific institutions in Berlin.
+\newblock 1810.
+\newblock Translated by Thomas Dunlap in \emph{German History in Documents and Images}.
+\newblock \href{https://germanhistorydocs.org/en/the-holy-roman-empire-1648-1815/ghdi:document-3642}{https://germanhistorydocs.org/en/the-holy-roman-empire-1648-1815/ghdi:document-3642}
+
+\bibitem{ji-hallucination}
+Ziwei Ji, Nayeon Lee, Rita Frieske, Tiezheng Yu, Dan Su, Yan Xu, Etsuko Ishii, Ye Jin Bang, Andrea Madotto, and Pascale Fung.
+\newblock Survey of hallucination in natural language generation.
+\newblock \emph{ACM Computing Surveys}, 55(12), Article 248, 2023.
+\newblock \href{https://doi.org/10.1145/3571730}{https://doi.org/10.1145/3571730}
+
+\bibitem{ji-kg-survey}
+Shaoxiong Ji, Shirui Pan, Erik Cambria, Pekka Marttinen, and Philip S. Yu.
+\newblock A survey on knowledge graphs: Representation, acquisition, and applications.
+\newblock \emph{IEEE Transactions on Neural Networks and Learning Systems}, 33(2):494--514, 2022.
+\newblock \href{https://doi.org/10.1109/TNNLS.2021.3070843}{https://doi.org/10.1109/TNNLS.2021.3070843}
+
+\bibitem{koedinger-kli}
+Kenneth R. Koedinger, Albert T. Corbett, and Charles Perfetti.
+\newblock The Knowledge-Learning-Instruction framework: Bridging the science-practice chasm to enhance robust student learning.
+\newblock \emph{Cognitive Science}, 36(5):757--798, 2012.
+\newblock \href{https://doi.org/10.1111/j.1551-6709.2012.01245.x}{https://doi.org/10.1111/j.1551-6709.2012.01245.x}
 
 \bibitem{merrill}
 M. David Merrill.
 \newblock First principles of instruction.
 \newblock \emph{Educational Technology Research and Development}, 50(3):43--59, 2002.
 
+\bibitem{pan-llm-kg}
+Shirui Pan, Linhao Luo, Yufei Wang, Chen Chen, Jiapu Wang, and Xindong Wu.
+\newblock Unifying large language models and knowledge graphs: A roadmap.
+\newblock \emph{IEEE Transactions on Knowledge and Data Engineering}, 36(7):3580--3599, 2024.
+\newblock \href{https://doi.org/10.1109/TKDE.2024.3352100}{https://doi.org/10.1109/TKDE.2024.3352100}
+
+\bibitem{sweller}
+John Sweller.
+\newblock Cognitive load during problem solving: Effects on learning.
+\newblock \emph{Cognitive Science}, 12(2):257--285, 1988.
+
+\bibitem{qu-education-kg}
+Kechen Qu, Kam Cheong Li, Billy T. M. Wong, Manfred M. F. Wu, and Mengjin Liu.
+\newblock A survey of knowledge graph approaches and applications in education.
+\newblock \emph{Electronics}, 13(13):2537, 2024.
+\newblock \href{https://doi.org/10.3390/electronics13132537}{https://doi.org/10.3390/electronics13132537}
+
 \bibitem{piech-dkt}
 Chris Piech, Jonathan Bassen, Jonathan Huang, Surya Ganguli, Mehran Sahami, Leonidas J. Guibas, and Jascha Sohl-Dickstein.
 \newblock Deep knowledge tracing.
 \newblock In \emph{Advances in Neural Information Processing Systems}, 2015.
+
+\bibitem{siemens-learning-analytics}
+George Siemens.
+\newblock Learning analytics: The emergence of a discipline.
+\newblock \emph{American Behavioral Scientist}, 57(10):1380--1400, 2013.
+\newblock \href{https://doi.org/10.1177/0002764213498851}{https://doi.org/10.1177/0002764213498851}
+
+\bibitem{soysal-strang-mass-education}
+Yasemin Nuhoglu Soysal and David Strang.
+\newblock Construction of the first mass education systems in nineteenth-century Europe.
+\newblock \emph{Sociology of Education}, 62(4):277--288, 1989.
+\newblock \href{https://doi.org/10.2307/2112831}{https://doi.org/10.2307/2112831}
 
 \bibitem{skos}
 Alistair Miles and Sean Bechhofer.
@@ -648,6 +1002,36 @@ Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin
 Kurt VanLehn.
 \newblock The behavior of tutoring systems.
 \newblock \emph{International Journal of Artificial Intelligence in Education}, 16(3):227--265, 2006.
+
+\bibitem{unesco-ai-students}
+Fengchun Miao, Kelly Shiohira, and Natalie Lao.
+\newblock \emph{AI Competency Framework for Students}.
+\newblock UNESCO, 2024.
+\newblock \href{https://www.unesco.org/en/articles/ai-competency-framework-students}{https://www.unesco.org/en/articles/ai-competency-framework-students}
+
+\bibitem{unesco-ai-teachers}
+Fengchun Miao and Mutlu Cukurova.
+\newblock \emph{AI Competency Framework for Teachers}.
+\newblock UNESCO, 2024.
+\newblock \href{https://www.unesco.org/en/articles/ai-competency-framework-teachers}{https://www.unesco.org/en/articles/ai-competency-framework-teachers}
+
+\bibitem{wiley-learning-objects}
+David A. Wiley.
+\newblock Connecting learning objects to instructional design theory: A definition, a metaphor, and a taxonomy.
+\newblock In David A. Wiley, editor, \emph{The Instructional Use of Learning Objects}. Association for Educational Communications and Technology, 2000.
+\newblock \href{https://www.reusability.org/read/}{https://www.reusability.org/read/}
+
+\bibitem{xi-agent-survey}
+Zhiheng Xi, Wenxiang Chen, Xin Guo, Wei He, Yiwen Ding, Boyang Hong, Ming Zhang, Junzhe Wang, Senjie Jin, Enyu Zhou, Rui Zheng, Xiaoran Fan, Xiao Wang, Limao Xiong, Yuhao Zhou, Weiran Wang, Changhao Jiang, Yicheng Zou, Xiangyang Liu, Zhangyue Yin, Shihan Dou, Rongxiang Weng, Wenbin Cheng, Qi Zhang, Wenjuan Qin, Yongyan Zheng, Xipeng Qiu, Xuanjing Huang, and Tao Gui.
+\newblock The rise and potential of large language model based agents: A survey.
+\newblock \emph{Science China Information Sciences}, 68(2):121101, 2025.
+\newblock \href{https://doi.org/10.1007/s11432-024-4222-0}{https://doi.org/10.1007/s11432-024-4222-0}
+
+\bibitem{zhao-llm-survey}
+Wayne Xin Zhao, Kun Zhou, Junyi Li, Tianyi Tang, Xiaolei Wang, Yupeng Hou, Yingqian Min, Beichen Zhang, Junjie Zhang, Zican Dong, Yifan Du, Chen Yang, Yushuo Chen, Zhipeng Chen, Jinhao Jiang, Ruiyang Ren, Yifan Li, Xinyu Tang, Zikang Liu, Peiyu Liu, Jian-Yun Nie, and Ji-Rong Wen.
+\newblock A survey of large language models.
+\newblock \emph{Frontiers of Computer Science}, 20:2012627, 2026.
+\newblock \href{https://doi.org/10.1007/s11704-026-60308-3}{https://doi.org/10.1007/s11704-026-60308-3}
 
 \end{thebibliography}
 

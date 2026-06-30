@@ -127,6 +127,66 @@ export interface SearchResponse {
   mode: 'full' | 'text_only';
 }
 
+// ── Runtime retrieval and grounded generation ─────────────
+
+export type UnitRetrievalMode = 'hybrid' | 'text' | 'vector';
+export type UnitRetrievalExecutionMode = 'full' | 'text_only';
+
+export interface UnitRetrievalHit {
+  node_id: string;
+  canonical_name: string;
+  node_kind: string;
+  node_layer: string;
+  score: number;
+  text_match: boolean;
+  vector_match: boolean;
+  similarity: number | null;
+  reasons: string[];
+  unit: ApiUnit;
+}
+
+export interface UnitRetrievalResponse {
+  query: string;
+  source: string;
+  mode: UnitRetrievalExecutionMode;
+  requested_mode: UnitRetrievalMode;
+  hits: UnitRetrievalHit[];
+}
+
+export interface GroundedGenerationRequest {
+  question: string;
+  limit?: number;
+  retrieval_mode?: UnitRetrievalMode;
+}
+
+export interface GroundedGenerationCitation {
+  node_id: string;
+  evidence_id: string;
+  note?: string;
+}
+
+export interface GroundedGenerationInvalidCitation extends GroundedGenerationCitation {
+  reason: string;
+}
+
+export interface GroundedGenerationResponse {
+  question: string;
+  source: string;
+  answer: string;
+  citations: GroundedGenerationCitation[];
+  unsupported_claims: string[];
+  used_node_ids: string[];
+  retrieval: UnitRetrievalResponse;
+  grounding: {
+    status: 'grounded' | 'partial' | 'insufficient_context' | 'model_error';
+    valid_citation_count: number;
+    invalid_citation_count: number;
+    invalid_citations: GroundedGenerationInvalidCitation[];
+    cited_evidence_ids: string[];
+  };
+  model: string;
+}
+
 // ── GET /api/source/:key/pipeline ────────────────────────
 
 export interface PipelineLessonRun {

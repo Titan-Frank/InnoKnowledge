@@ -9,6 +9,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { REPO_ROOT } from '../utils/paths.js';
 import { resolveEvidenceImagePath } from '../utils/markdown-image-paths.js';
+import { buildApiUnitCompleteness } from './unit-completeness.js';
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -719,7 +720,7 @@ export async function loadUnit(
     datasetId,
     evidenceRecords.flatMap((row) => outlineCandidatesForRow(row)),
   );
-  return {
+  const unitWithoutCompleteness = {
     node: worldJsonRow(nodeRows[0] as Record<string, unknown>, [
       'aliases', 'domains', 'knowledge_form', 'learning_mode', 'properties', 'external_ids', 'tags',
     ]) as unknown as ApiUnitNode,
@@ -740,6 +741,10 @@ export async function loadUnit(
     source_fragments: sourceFragmentsFromEvidence(evidenceRecords, sourceKey, outlines),
     card,
     body,
+  };
+  return {
+    ...unitWithoutCompleteness,
+    completeness: buildApiUnitCompleteness(unitWithoutCompleteness),
   };
 }
 

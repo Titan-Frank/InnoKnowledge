@@ -24,7 +24,7 @@ export type PlannedEmbeddingUpdate = {
 
 export const DEFAULT_EMBEDDING_URL = "https://heckb8bcaq88cko9mooamhkbceqq9ecc.openapi-sj.sii.edu.cn/v1/embeddings";
 export const DEFAULT_EMBEDDING_MODEL = "Qwen/Qwen3-Embedding-4B";
-export const EMBEDDING_VECTOR_DIMENSION = 2560;
+export const EMBEDDING_VECTOR_DIMENSION = 1024;
 
 export type EmbeddingFetchResponse = {
   ok: boolean;

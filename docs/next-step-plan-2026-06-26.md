@@ -45,7 +45,7 @@ OKM 现在已经不是一个单纯的知识图谱抽取脚本，而是正在变�
    - 事实关系：15 类 `world_edges.type`。
    - 领域画像：`world_domain_profiles`。
    - 证据与溯源：`world_evidence`、`world_evidence_links`、`world_mentions`、`world_node_cards`。
-   - 向量字段：`world_nodes.embedding vector(2560)`。
+   - 向量字段：`world_nodes.embedding vector(1024)`。
 
 4. 服务端和前端已经有知识单元视图雏形：
    - `packages/types/src/models.ts` 已有 `ApiUnit`、`ApiUnitBody`、`ApiUnitMedia` 这些知识单元相关类型。

@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS world_nodes (
   properties_json JSONB NOT NULL DEFAULT '{}'::jsonb,
   external_ids_json JSONB NOT NULL DEFAULT '{}'::jsonb,
   tags_json JSONB NOT NULL DEFAULT '[]'::jsonb,
-  embedding vector(2560) DEFAULT NULL,
+  embedding vector(1024) DEFAULT NULL,
   status TEXT NOT NULL CHECK (status IN ('draft', 'active', 'deprecated')),
   deprecated_by TEXT,
   created_at TEXT NOT NULL,
@@ -435,6 +435,24 @@ CREATE INDEX IF NOT EXISTS idx_world_node_bodies_status
 ON world_node_bodies(dataset_id, status);
 
 -------------------------------------------------------------------
+-- world_unit_embeddings
+-------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS world_unit_embeddings (
+  dataset_id TEXT NOT NULL,
+  node_id TEXT NOT NULL,
+  embedding vector(1024) NOT NULL,
+  content_hash TEXT NOT NULL,
+  retrieval_text TEXT NOT NULL,
+  embedding_model TEXT NOT NULL,
+  generated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, node_id),
+  FOREIGN KEY (dataset_id, node_id) REFERENCES world_nodes(dataset_id, id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_world_unit_embeddings_model
+ON world_unit_embeddings(dataset_id, embedding_model);
+
+-------------------------------------------------------------------
 -- retrieval_candidates
 -------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS retrieval_candidates (
@@ -575,7 +593,7 @@ CREATE TABLE IF NOT EXISTS world_staging_nodes (
   external_ids_json JSONB NOT NULL DEFAULT '{}'::jsonb,
   tags_json JSONB NOT NULL DEFAULT '[]'::jsonb,
   semantic_key TEXT,
-  embedding vector(2560) DEFAULT NULL,
+  embedding vector(1024) DEFAULT NULL,
   source_refs_json JSONB NOT NULL DEFAULT '[]'::jsonb,
   status TEXT NOT NULL DEFAULT 'draft',
   created_at TEXT NOT NULL,

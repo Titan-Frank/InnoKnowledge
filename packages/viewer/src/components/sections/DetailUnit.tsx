@@ -22,6 +22,14 @@ function sourceRefs(value: unknown): string[] {
   return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
 }
 
+function asRecord(value: unknown): Row {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Row : {};
+}
+
+function textList(value: unknown): string[] {
+  return Array.isArray(value) ? value.map((item) => text(item).trim()).filter(Boolean) : [];
+}
+
 function uniqueValues(values: string[]): string[] {
   return [...new Set(values.filter(Boolean))];
 }
@@ -196,6 +204,22 @@ function StatTile({ label, value }: { label: string; value: number }) {
   );
 }
 
+function DetailListGroup({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="rounded-md border border-border-subtle bg-surface p-3">
+      <div className="mb-2 text-xs font-medium text-text-primary">{title}</div>
+      <ul className="space-y-1.5 text-sm leading-relaxed text-text-secondary">
+        {items.map((item, index) => (
+          <li key={`${title}:${index}`} className="flex gap-2">
+            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent/70" />
+            <span className="min-w-0">{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 const detailMarkdownClass = [
   'text-base leading-7 text-text-secondary',
 ].join(' ');
@@ -260,6 +284,16 @@ export function DetailUnit({ node }: { node: OKMNode }) {
   const cardSections = Array.isArray(unit.card?.sections) ? unit.card.sections : [];
   const body = unit.body?.content?.trim() || '';
   const bodySourceRefs = sourceRefs(unit.body?.source_refs);
+  const completenessScore = typeof unit.completeness?.score === 'number' ? unit.completeness.score : null;
+  const semanticCore = asRecord(asRecord(unit.node?.properties).semantic_core);
+  const semanticCoreGroups = [
+    { title: '核心命题', items: textList(semanticCore.core_claims) },
+    { title: '公式与表达', items: textList(semanticCore.formal_expressions) },
+    { title: '成立条件', items: textList(semanticCore.conditions) },
+    { title: '适用边界', items: textList(semanticCore.boundaries) },
+    { title: '反例', items: textList(semanticCore.counterexamples) },
+    { title: '常见误解', items: textList(semanticCore.misconceptions) },
+  ].filter((group) => group.items.length > 0);
   const evidenceIndex = new Map<string, number>();
   for (const evidenceId of bodySourceRefs) {
     if (!evidenceIndex.has(evidenceId)) evidenceIndex.set(evidenceId, evidenceIndex.size + 1);
@@ -319,11 +353,12 @@ export function DetailUnit({ node }: { node: OKMNode }) {
   return (
     <div className="space-y-4">
       <section>
-        <div className="mb-3 grid grid-cols-4 gap-2">
+        <div className={completenessScore == null ? 'mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4' : 'mb-3 grid grid-cols-2 gap-2 sm:grid-cols-5'}>
           <StatTile label="关系" value={outgoing.length + incoming.length} />
           <StatTile label="证据" value={evidence.length} />
           <StatTile label="画像" value={profiles.length} />
           <StatTile label="提及" value={unit.mentions?.length ?? 0} />
+          {completenessScore != null && <StatTile label="完整度" value={completenessScore} />}
         </div>
         {body && (
           <div className="rounded-lg border border-border-subtle bg-elevated p-4">
@@ -339,6 +374,17 @@ export function DetailUnit({ node }: { node: OKMNode }) {
           </div>
         )}
       </section>
+
+      {semanticCoreGroups.length > 0 && (
+        <section className="rounded-lg border border-border-subtle bg-elevated p-4">
+          <SectionTitle title="知识骨架" meta={`${semanticCoreGroups.length} 组`} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {semanticCoreGroups.map((group) => (
+              <DetailListGroup key={group.title} title={group.title} items={group.items} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {sourceFragments.length > 0 && (
         <section className="rounded-lg border border-border-subtle bg-elevated p-4">
@@ -511,6 +557,16 @@ export function DetailUnit({ node }: { node: OKMNode }) {
             {profiles.map((profile) => {
               const stages = sourceRefs(profile.school_stages);
               const roles = sourceRefs(profile.curriculum_roles);
+              const pedagogicalProfile = asRecord(asRecord(profile.properties).pedagogical_profile);
+              const difficulty = text(pedagogicalProfile.difficulty_level).trim();
+              const pedagogicalGroups = [
+                { title: '学习目标', items: textList(pedagogicalProfile.learning_objectives) },
+                { title: '诊断问题', items: textList(pedagogicalProfile.diagnostic_questions) },
+                { title: '常见错误', items: textList(pedagogicalProfile.common_errors) },
+                { title: '评价任务', items: textList(pedagogicalProfile.assessment_tasks) },
+                { title: '补救建议', items: textList(pedagogicalProfile.remediation_suggestions) },
+                { title: '拓展建议', items: textList(pedagogicalProfile.extension_suggestions) },
+              ].filter((group) => group.items.length > 0);
               return (
                 <div key={text(profile.id)} className="rounded-lg border border-border-subtle bg-surface p-3">
                   <div className="text-xs font-medium text-text-primary">{text(profile.domain)}</div>
@@ -526,6 +582,23 @@ export function DetailUnit({ node }: { node: OKMNode }) {
                       </span>
                     ))}
                   </div>
+                  {(difficulty || pedagogicalGroups.length > 0) && (
+                    <div className="mt-3 border-t border-border-subtle pt-3">
+                      <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-medium text-text-primary">
+                        <span>学习与教学</span>
+                        {difficulty && (
+                          <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">
+                            难度：{difficulty}
+                          </span>
+                        )}
+                      </div>
+                      <div className="grid gap-2">
+                        {pedagogicalGroups.map((group) => (
+                          <DetailListGroup key={`${text(profile.id)}:${group.title}`} title={group.title} items={group.items} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

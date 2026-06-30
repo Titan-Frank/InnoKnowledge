@@ -5,13 +5,15 @@ import { GraphStateProvider, useGraphState } from './app-state/graph';
 import { prepareGraphData } from '@/core/graph/knowledge-data';
 import { loadBundle } from '@/services/backend-client';
 
+type Workspace = 'graph' | 'textbook' | 'runtime' | 'pipeline' | 'annotation';
+
 interface AppState {
   // Source management
   manifest: Record<string, unknown> | null;
   sourceConfigs: Map<string, SourceConfig>;
   selectedSourceKey: string | null;
   sourceLoading: boolean;
-  workspace: 'graph' | 'textbook' | 'pipeline' | 'annotation';
+  workspace: Workspace;
 
   // Search
   searchTerm: string;
@@ -37,7 +39,7 @@ interface AppActions {
   setCardCache: (cache: Map<string, ApiNodeCard | null>) => void;
   setSourceLoading: (loading: boolean) => void;
   setSelectedSourceKey: (key: string | null) => void;
-  setWorkspace: (workspace: 'graph' | 'textbook' | 'pipeline' | 'annotation') => void;
+  setWorkspace: (workspace: Workspace) => void;
 }
 
 type AppContextValue = AppState & AppActions & ReturnType<typeof useGraphState>;
@@ -59,7 +61,7 @@ function AppStateInner({ children }: { children: ReactNode }) {
   const [sourceConfigs, setSourceConfigsState] = useState<Map<string, SourceConfig>>(new Map());
   const [selectedSourceKey, setSelectedSourceKey] = useState<string | null>(null);
   const [sourceLoading, setSourceLoading] = useState(false);
-  const [workspace, setWorkspace] = useState<'graph' | 'textbook' | 'pipeline' | 'annotation'>('graph');
+  const [workspace, setWorkspace] = useState<Workspace>('graph');
 
   const [searchTerm, setSearchTermState] = useState('');
   const [serverSearchHits, setServerSearchHitsState] = useState<Map<string, SearchHitMeta>>(new Map());

@@ -1,6 +1,6 @@
 import { useAppState } from '@/hooks/useAppState';
 import type { SearchHitMeta } from '@/core/graph/types';
-import { Sun, Moon, Search, Network, BarChart3, BookOpen, ClipboardList } from '@/lib/lucide-icons';
+import { Sun, Moon, Search, Network, BarChart3, BookOpen, ClipboardList, MessageSquareText } from '@/lib/lucide-icons';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { searchNodes } from '@/services/backend-client';
 
@@ -101,6 +101,16 @@ export function Header() {
         >
           <BookOpen className="h-3.5 w-3.5" />
           教材
+        </button>
+        <button
+          onClick={() => setWorkspace('runtime')}
+          aria-pressed={workspace === 'runtime'}
+          className={`flex items-center gap-1 px-2.5 py-1 text-xs transition-colors ${
+            workspace === 'runtime' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'
+          }`}
+        >
+          <MessageSquareText className="h-3.5 w-3.5" />
+          运行时
         </button>
         <button
           onClick={() => setWorkspace('pipeline')}

@@ -39,8 +39,8 @@ async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promi
       },
       embedTexts: (texts) =>
         embedTextsOpenAICompatible(texts, {
-          url: flags.get("embedding-url") ?? DEFAULT_EMBEDDING_URL,
-          model: flags.get("embedding-model") ?? DEFAULT_EMBEDDING_MODEL,
+          url: flags.get("embedding-url") ?? process.env.EMBEDDING_URL ?? DEFAULT_EMBEDDING_URL,
+          model: flags.get("embedding-model") ?? process.env.EMBEDDING_MODEL ?? DEFAULT_EMBEDDING_MODEL,
           apiKey: process.env[flags.get("embedding-api-key-env") ?? "EMBEDDING_API_KEY"] ?? "",
           maxRetries: parsePositiveInteger(flags.get("max-retries"), 3),
           retryDelayMs: parseNonNegativeInteger(flags.get("retry-delay-ms"), 2000),

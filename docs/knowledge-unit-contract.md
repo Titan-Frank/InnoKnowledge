@@ -4,6 +4,8 @@
 
 本文固定 OKM 当前阶段对“知识点”的工程定义。这里的“知识点”不等于教材目录里的一个条目，也不等于图谱中的单个节点。它是面向前端、检索、生成和教学系统使用的完整知识单元视图。
 
+知识节点能否进入正式图谱，应先按 `docs/node-extraction-policy.md` 判断。本文只说明通过准入后的知识对象如何被组织成消费侧知识单元。
+
 ## 一、核心定义
 
 OKM 中的知识点定义为：
@@ -45,6 +47,7 @@ interface ApiUnit {
   source_fragments: ApiUnitSourceFragment[];
   card: ApiNodeCard | null;
   body: ApiUnitBody | null;
+  completeness: ApiUnitCompleteness;
 }
 ```
 
@@ -62,12 +65,15 @@ interface ApiUnit {
 | `source_fragments` | 课本原文片段，只作为证据和上下文 | `world_evidence` |
 | `card` | 结构化摘要和分节说明 | `world_node_cards` |
 | `body` | 持久化知识正文；没有正文时为空，不临时展开卡片 | `world_node_bodies` |
+| `completeness` | 当前知识单元完整度评分和检查项 | 服务端按 `ApiUnit` 聚合结果计算 |
 
 `body`、`card`、`source_fragments` 的边界必须保持清楚：
 
 1. `source_fragments` 是课本原文和图片证据。
 2. `card` 是结构化摘要。
 3. `body` 是知识正文，可以由人工维护、卡片展开、模型写作或外部知识单元导入生成，但必须保留 `source_refs`。
+
+`completeness` 用来判断知识单元是否已经适合前端展示、对象级检索和后续生成系统使用。当前检查项包括定义、语义核心、关系、证据、原文片段、领域画像、正文引用、结构化卡片和来源提及。它是质量信号，不替代人工审核。
 
 ## 四、当前工程 schema 类型口径
 
@@ -154,5 +160,6 @@ same_as / related_to
 5. “结构化卡片”来自 `ApiUnit.card`。
 6. “关系”来自 `ApiUnit.relations`。
 7. “领域画像”来自 `ApiUnit.domain_profiles`。
+8. “完整度”来自 `ApiUnit.completeness`。
 
 后续新增检索、生成、智能辅导能力时，应优先读取 `ApiUnit`，不要直接拼多张表形成另一套隐含契约。

@@ -405,6 +405,7 @@ interface ApiUnit {
   source_fragments: ApiUnitSourceFragment[];
   card: ApiNodeCard | null;
   body: ApiUnitBody | null;
+  completeness: ApiUnitCompleteness;
 }
 ```
 
@@ -421,8 +422,11 @@ interface ApiUnit {
 | `source_fragments` | 从证据和原文 Markdown 解析 |
 | `card` | `world_node_cards` |
 | `body` | 只读取 `world_node_bodies`；没有持久化正文时返回空 |
+| `completeness` | 服务端按 `ApiUnit` 聚合结果计算 |
 
 这就是当前项目里“知识点”的消费侧定义：不是一个孤立节点，而是以节点为身份核心聚合出来的完整知识单元。
+
+`completeness` 当前检查定义、语义核心、关系、证据、原文片段、领域画像、正文引用、结构化卡片和来源提及。它用于让前端、导出和未来 Runtime 判断知识单元是否足够可用，不改变底层表结构。
 
 ## 八、前端 viewer
 

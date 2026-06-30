@@ -4,7 +4,7 @@
 
 ## 当前标准
 
-当前项目顶层标准是 `ai-nks-v0.1`，详见 `docs/ai-nks-v0.1.md`。
+当前项目的理论边界见 `docs/theory-decision-record.md`，顶层标准是 `ai-nks-v0.1`，详见 `docs/ai-nks-v0.1.md`。知识节点准入规则见 `docs/node-extraction-policy.md`。
 
 `ai-nks-v0.1` 把 OKM 定义为面向 AI 使用的知识基础设施：底层是可追溯知识图谱，中层是通过 `ApiUnit` 聚合出来的知识单元视图，上层是对象级检索、语义规划、AI Tutor 和知识持续演化能力。
 
@@ -198,6 +198,8 @@ npm run generate-node-bodies -w packages/pipeline -- \
 
 - `schemas/world-knowledge-standard.md`
 - `schemas/world-knowledge-architecture.md`
+- `docs/theoretical-foundation.md`
+- `docs/theory-decision-record.md`
 - `docs/ai-nks-v0.1.md`
 - `docs/documentation-status.md`
 - `docs/current-system-architecture.md`

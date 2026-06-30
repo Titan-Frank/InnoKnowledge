@@ -8,6 +8,7 @@ import { StatusBar } from './components/StatusBar';
 import { PipelineDebugPage } from './components/PipelineDebugPage';
 import { TextbookTreePage } from './components/TextbookTreePage';
 import { AnnotationWorkbench } from './components/AnnotationWorkbench';
+import { RuntimeWorkbench } from './components/RuntimeWorkbench';
 import { useAppState } from './hooks/useAppState';
 
 function AppContent() {
@@ -21,6 +22,8 @@ function AppContent() {
         <PipelineDebugPage />
       ) : workspace === 'textbook' ? (
         <TextbookTreePage />
+      ) : workspace === 'runtime' ? (
+        <RuntimeWorkbench />
       ) : workspace === 'annotation' ? (
         <AnnotationWorkbench />
       ) : (
