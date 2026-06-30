@@ -437,13 +437,14 @@ interface ApiUnit {
 - `packages/viewer/src/App.tsx`
 - `packages/viewer/src/main.tsx`
 
-当前有三个主要工作区：
+当前有四个主要工作区：
 
 | 工作区 | 主要组件 | 职责 |
 |---|---|---|
-| 图谱浏览 | `GraphCanvas`、`FilterPanel`、`DetailPanel` | 浏览知识图谱、筛选节点、查看详情 |
+| 图谱浏览 | `GraphCanvas`、`FilterPanel`、`DetailPanel`、`GraphSearchPanel` | 浏览知识图谱、筛选节点、查看详情，并在展示页内完成对象检索和带引用回答 |
 | 流水线调试 | `PipelineDebugPage` | 查看 pipeline 状态、启动抽取、复核图片 |
 | 教材工作台 | `TextbookTreePage` | 查看教材树和教材相关内容 |
+| 标注工作台 | `AnnotationWorkbench` | 查看教材原文并手工补充节点、边和证据 |
 
 前端启动时会先请求：
 
@@ -455,6 +456,15 @@ interface ApiUnit {
 ```text
 GET /api/source/:key/unit/:node_id
 ```
+
+展示页内的检索浮窗会调用：
+
+```text
+GET /api/source/:key/units/search
+POST /api/source/:key/grounded-generate
+```
+
+命中对象会同步到图谱样式层，用于高亮检索结果；点击命中对象或引用会选中并定位到对应节点。
 
 然后在右侧详情面板中展示：
 

@@ -8,7 +8,7 @@ import { StatusBar } from './components/StatusBar';
 import { PipelineDebugPage } from './components/PipelineDebugPage';
 import { TextbookTreePage } from './components/TextbookTreePage';
 import { AnnotationWorkbench } from './components/AnnotationWorkbench';
-import { RuntimeWorkbench } from './components/RuntimeWorkbench';
+import { GraphSearchPanel } from './components/GraphSearchPanel';
 import { useAppState } from './hooks/useAppState';
 
 function AppContent() {
@@ -22,8 +22,6 @@ function AppContent() {
         <PipelineDebugPage />
       ) : workspace === 'textbook' ? (
         <TextbookTreePage />
-      ) : workspace === 'runtime' ? (
-        <RuntimeWorkbench />
       ) : workspace === 'annotation' ? (
         <AnnotationWorkbench />
       ) : (
@@ -31,6 +29,7 @@ function AppContent() {
           <FilterPanel />
           <div className="relative order-1 min-h-[360px] min-w-0 flex-1 lg:order-none lg:min-h-0">
             <GraphCanvas />
+            <GraphSearchPanel />
           </div>
           <DetailPanel />
         </main>

@@ -98,6 +98,9 @@ type RunnerOptions = {
   nodeBodyLimit?: number;
   nodeBodyMaxEvidence?: number;
   overwriteNodeBodies?: boolean;
+  skipEmbeddings?: boolean;
+  nodeEmbeddingBatchSize?: number;
+  unitEmbeddingBatchSize?: number;
   progressStore?: PipelineProgressStore;
   assetStore?: PipelineAssetStore;
   commandRunner?: CommandRunner;
@@ -392,6 +395,27 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       );
       if (!nodeBodiesOk) return result;
     }
+    if (!options.skipEmbeddings) {
+      const nodeEmbeddingsOk = await runPipelineCommandStage(
+        result,
+        progressStore,
+        options,
+        "node_embeddings",
+        buildNodeEmbeddingsCommand(options),
+        "Node embedding backfill command failed.",
+      );
+      if (!nodeEmbeddingsOk) return result;
+
+      const unitEmbeddingsOk = await runPipelineCommandStage(
+        result,
+        progressStore,
+        options,
+        "unit_embeddings",
+        buildUnitEmbeddingsCommand(options),
+        "Unit embedding backfill command failed.",
+      );
+      if (!unitEmbeddingsOk) return result;
+    }
     const qaOk = await runPipelineCommandStage(result, progressStore, options, "strict_qa", buildStrictQaCommand(options), "Strict QA command failed.");
     if (!qaOk) return result;
     const integrityOk = await runPipelineCommandStage(result, progressStore, options, "graph_integrity", buildGraphIntegrityCommand(options), "Graph integrity command failed.");
@@ -675,6 +699,36 @@ function buildNodeBodiesCommand(options: RunnerOptions): string[] {
   return command;
 }
 
+function buildNodeEmbeddingsCommand(options: RunnerOptions): string[] {
+  return [
+    "node",
+    resolve(CLI_DIR, "backfill-embeddings.js"),
+    "--dataset-id",
+    options.datasetId,
+    "--db",
+    options.dbUrl,
+    "--table",
+    "world_nodes",
+    "--batch-size",
+    String(options.nodeEmbeddingBatchSize ?? 8),
+    "--sleep-between-batches-ms",
+    "200",
+  ];
+}
+
+function buildUnitEmbeddingsCommand(options: RunnerOptions): string[] {
+  return [
+    "node",
+    resolve(CLI_DIR, "backfill-unit-embeddings.js"),
+    "--dataset-id",
+    options.datasetId,
+    "--db",
+    options.dbUrl,
+    "--batch-size",
+    String(options.unitEmbeddingBatchSize ?? 8),
+  ];
+}
+
 function buildStrictQaCommand(options: RunnerOptions): string[] {
   return ["node", resolve(CLI_DIR, "strict-qa.js"), "--dataset-id", options.datasetId, "--db", options.dbUrl];
 }
@@ -743,11 +797,26 @@ async function runPipelineCommandStage(
 }
 
 function stageFailureFromOutput(stageId: string, stdout: string): string | null {
-  if (stageId !== "node_bodies") return null;
   const output = parseJsonObjectFromOutput(stdout);
   if (!output) return null;
-  const failed = numberValue(output.failed_model_generation) ?? 0;
-  if (failed > 0) return `${failed} node body generation request(s) failed.`;
+  if (stageId === "node_bodies") {
+    const failed = numberValue(output.failed_model_generation) ?? 0;
+    if (failed > 0) return `${failed} node body generation request(s) failed.`;
+  }
+  if (stageId === "node_embeddings") {
+    const selected = numberValue(output.selected) ?? 0;
+    const updated = numberValue(output.updated) ?? 0;
+    if (selected > 0 && updated < selected) {
+      return `Node embedding backfill updated ${updated}/${selected} selected node(s).`;
+    }
+  }
+  if (stageId === "unit_embeddings") {
+    const pending = numberValue(output.pending) ?? 0;
+    const updated = numberValue(output.updated) ?? 0;
+    if (pending > 0 && updated < pending) {
+      return `Unit embedding backfill updated ${updated}/${pending} pending unit(s).`;
+    }
+  }
   return null;
 }
 
@@ -1100,6 +1169,8 @@ function stageSortOrder(stageId: string, fallback: number): number {
     "canonical_commit",
     "normalize",
     "node_bodies",
+    "node_embeddings",
+    "unit_embeddings",
     "strict_qa",
     "graph_integrity",
     "quality_dashboard",
@@ -1125,6 +1196,8 @@ function stageLabel(stageId: string): string {
     canonical_commit: "合并入正式图谱",
     normalize: "归一化知识对象",
     node_bodies: "生成知识正文",
+    node_embeddings: "生成节点向量",
+    unit_embeddings: "生成单元向量",
     strict_qa: "严格质检",
     graph_integrity: "图谱完整性检查",
     quality_dashboard: "生成质量仪表盘",
@@ -1240,6 +1313,9 @@ function parseOptions(argv: string[]): RunnerOptions {
     nodeBodyLimit: parseNonNegativeInteger(flags.get("node-body-limit"), 0),
     nodeBodyMaxEvidence: parseInteger(flags.get("node-body-max-evidence"), 8),
     overwriteNodeBodies: flags.has("overwrite-node-bodies"),
+    skipEmbeddings: flags.has("skip-embeddings"),
+    nodeEmbeddingBatchSize: parseInteger(flags.get("node-embedding-batch-size") ?? flags.get("embedding-batch-size"), 8),
+    unitEmbeddingBatchSize: parseInteger(flags.get("unit-embedding-batch-size") ?? flags.get("embedding-batch-size"), 8),
   };
 }
 

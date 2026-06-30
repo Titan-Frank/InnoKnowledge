@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { OKMNode } from '@/core/graph/types';
 import { useAppState } from '@/hooks/useAppState';
 import { useUnitLoader } from '@/hooks/useUnitLoader';
-import { Loader2, Maximize2, X } from '@/lib/lucide-icons';
+import { ChevronDown, ChevronRight, Loader2, Maximize2, X } from '@/lib/lucide-icons';
 import { resolveEdgeVisual } from '@/lib/edge-styles';
 import { SCHOOL_STAGE_LABELS, CURRICULUM_ROLE_LABELS } from '@/lib/constants';
 import { MarkdownView } from '@/components/MarkdownView';
@@ -12,6 +12,13 @@ type ExpandedFragment = {
   title: string;
   modalities: string[];
   markdown: string;
+};
+
+type EvidenceSummary = {
+  badge: string;
+  meta: string;
+  preview: string;
+  title: string;
 };
 
 function asRows(value: unknown): Row[] {
@@ -73,8 +80,69 @@ function modalityLabel(value: string): string {
     image: '图片',
     equation: '公式',
     table: '表格',
+    textbook: '课本',
   };
   return labels[value] || value;
+}
+
+function pageRangeLabel(row: Row): string {
+  const start = row.page_start ?? row.page;
+  const end = row.page_end;
+  if (start != null && end != null && end !== start) return `第 ${text(start)}-${text(end)} 页`;
+  if (start != null) return `第 ${text(start)} 页`;
+  return '';
+}
+
+function compactPreview(value: string, maxLength = 52): string {
+  const cleaned = value
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+    .replace(/[#*_`>[\\\]]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!cleaned) return '';
+  return cleaned.length > maxLength ? `${cleaned.slice(0, maxLength)}…` : cleaned;
+}
+
+function evidenceModality(row: Row | undefined): string {
+  if (!row) return '';
+  const properties = asRecord(row.properties);
+  const value = text(row.modality || properties.modality || '').toLowerCase();
+  if (value) return value;
+  const excerpt = text(row.excerpt);
+  if (/!\[[^\]]*]\([^)]+\)/.test(excerpt) || /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(excerpt)) return 'image';
+  return text(row.source_type).toLowerCase();
+}
+
+function evidenceSummary(evidenceId: string, evidenceNumber: number, row: Row | undefined): EvidenceSummary {
+  const modality = evidenceModality(row);
+  const page = row ? pageRangeLabel(row) : '';
+  const meta = [modality ? modalityLabel(modality) : '证据', page].filter(Boolean).join(' · ');
+  const preview = compactPreview(text(row?.excerpt || row?.locator || row?.anchor_ref || evidenceId));
+  const fallbackPreview = preview || evidenceId;
+  return {
+    badge: `#${evidenceNumber}`,
+    meta: meta || `证据 ${evidenceNumber}`,
+    preview: fallbackPreview,
+    title: `${meta || `证据 ${evidenceNumber}`}：${fallbackPreview}\n${evidenceId}`,
+  };
+}
+
+function evidenceOverview(evidenceIds: string[], evidenceById: Map<string, Row>): string {
+  const order = ['text', 'equation', 'image', 'table'];
+  const counts = new Map<string, number>();
+  for (const evidenceId of evidenceIds) {
+    const modality = evidenceModality(evidenceById.get(evidenceId)) || 'evidence';
+    counts.set(modality, (counts.get(modality) || 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .sort(([a], [b]) => {
+      const ai = order.indexOf(a);
+      const bi = order.indexOf(b);
+      if (ai !== -1 || bi !== -1) return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+      return modalityLabel(a).localeCompare(modalityLabel(b), 'zh-CN');
+    })
+    .map(([modality, count]) => `${modalityLabel(modality)} ${count}`)
+    .join(' · ');
 }
 
 function relationLabel(type: string): string {
@@ -236,9 +304,11 @@ export function DetailUnit({ node }: { node: OKMNode }) {
   const { unit, loading } = useUnitLoader(node);
   const { knowledgeGraph, setSelectedNodeId } = useAppState();
   const [expandedFragment, setExpandedFragment] = useState<ExpandedFragment | null>(null);
+  const [expandedEvidenceKeys, setExpandedEvidenceKeys] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     setExpandedFragment(null);
+    setExpandedEvidenceKeys(new Set());
   }, [node.id]);
 
   useEffect(() => {
@@ -302,6 +372,11 @@ export function DetailUnit({ node }: { node: OKMNode }) {
     const evidenceId = text(item.id);
     if (evidenceId && !evidenceIndex.has(evidenceId)) evidenceIndex.set(evidenceId, evidenceIndex.size + 1);
   }
+  const evidenceById = new Map<string, Row>();
+  for (const item of evidence) {
+    const evidenceId = text(item.id);
+    if (evidenceId) evidenceById.set(evidenceId, item);
+  }
   const related = [...outgoing, ...incoming].slice(0, 12);
   const resolveMarkdownImage = (src: string): string | undefined => {
     if (/^(https?:|data:|blob:)/i.test(src) || src.startsWith('/api/source/')) return src;
@@ -330,24 +405,35 @@ export function DetailUnit({ node }: { node: OKMNode }) {
       );
     }
     if (!visibleEvidenceIds.has(evidenceId)) {
+      const summary = evidenceSummary(evidenceId, index, evidenceById.get(evidenceId));
       return (
-        <sup key={key} className="ml-0.5 align-super text-[0.65em] font-semibold text-accent" title={evidenceId}>
+        <sup key={key} className="ml-0.5 align-super text-[0.65em] font-semibold text-accent" title={summary.title}>
           [{index}]
         </sup>
       );
     }
+    const summary = evidenceSummary(evidenceId, index, evidenceById.get(evidenceId));
     return (
       <sup key={key} className="ml-0.5 align-super text-[0.65em] font-semibold">
         <a
           href={`#${evidenceAnchorId(evidenceId)}`}
           className="rounded-sm px-0.5 text-accent transition-colors hover:bg-accent/15 hover:text-accent"
-          title={`查看证据 ${index}: ${evidenceId}`}
-          aria-label={`查看证据 ${index}`}
+          title={`查看${summary.meta}: ${summary.preview}`}
+          aria-label={`查看${summary.meta}`}
         >
           [{index}]
         </a>
       </sup>
     );
+  };
+
+  const toggleEvidenceList = (key: string) => {
+    setExpandedEvidenceKeys((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   };
 
   return (
@@ -396,38 +482,73 @@ export function DetailUnit({ node }: { node: OKMNode }) {
               const fragmentEvidenceIds = evidenceIdsForFragment(fragment, evidence);
               const markdown = sourceFragmentMarkdown(excerpts);
               const title = fragmentTitle(fragment, index);
+              const fragmentKey = `${text(fragment.source_id)}:${text(fragment.anchor_ref)}:${index}`;
+              const evidenceExpanded = expandedEvidenceKeys.has(fragmentKey);
               return (
-                <div key={`${text(fragment.anchor_ref)}:${index}`} className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
-                  <div className="flex items-center gap-2 border-b border-border-subtle px-3 py-2 text-xs text-text-muted">
-                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-                      <span className="min-w-0 truncate font-medium text-text-secondary">{title}</span>
-                      {modalities.map((item) => (
-                        <span key={item} className="rounded-full bg-elevated px-2 py-0.5">{modalityLabel(item)}</span>
-                      ))}
-                      {fragmentEvidenceIds.map((evidenceId) => {
-                        const evidenceNumber = evidenceIndex.get(evidenceId);
-                        if (!evidenceNumber) return null;
-                        return (
-                          <span
-                            key={evidenceId}
-                            id={evidenceAnchorId(evidenceId)}
-                            className="scroll-mt-24 rounded-full bg-accent/10 px-2 py-0.5 font-medium text-accent"
-                            title={evidenceId}
+                <div key={fragmentKey} className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
+                  <div className="border-b border-border-subtle px-3 py-2 text-xs text-text-muted">
+                    <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+                        <span className="min-w-0 truncate font-medium text-text-secondary">{title}</span>
+                        {modalities.map((item) => (
+                          <span key={item} className="rounded-full bg-elevated px-2 py-0.5">{modalityLabel(item)}</span>
+                        ))}
+                        {fragmentEvidenceIds.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => toggleEvidenceList(fragmentKey)}
+                            className="flex max-w-full cursor-pointer items-center gap-1 rounded-full bg-accent/10 px-2 py-0.5 font-medium text-accent transition-colors hover:bg-accent/15"
+                            aria-expanded={evidenceExpanded}
+                            aria-controls={`fragment-evidence-${index}`}
                           >
-                            证据 {evidenceNumber}
-                          </span>
-                        );
-                      })}
+                            {evidenceExpanded ? <ChevronDown className="h-3 w-3 shrink-0" /> : <ChevronRight className="h-3 w-3 shrink-0" />}
+                            <span className="shrink-0">{fragmentEvidenceIds.length} 条证据</span>
+                            <span className="hidden min-w-0 truncate text-[11px] text-text-secondary sm:inline">
+                              {evidenceOverview(fragmentEvidenceIds, evidenceById)}
+                            </span>
+                          </button>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setExpandedFragment({ title, modalities, markdown })}
+                        className="flex h-7 shrink-0 items-center gap-1 rounded-md border border-border-subtle bg-elevated px-2 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+                        aria-label={`全屏查看${title}`}
+                      >
+                        <Maximize2 className="h-3.5 w-3.5" />
+                        全屏
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setExpandedFragment({ title, modalities, markdown })}
-                      className="flex h-7 shrink-0 items-center gap-1 rounded-md border border-border-subtle bg-elevated px-2 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
-                      aria-label={`全屏查看${title}`}
-                    >
-                      <Maximize2 className="h-3.5 w-3.5" />
-                      全屏
-                    </button>
+                    {evidenceExpanded && fragmentEvidenceIds.length > 0 && (
+                      <div id={`fragment-evidence-${index}`} className="mt-2 grid gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
+                        {fragmentEvidenceIds.map((evidenceId) => {
+                          const evidenceNumber = evidenceIndex.get(evidenceId);
+                          if (!evidenceNumber) return null;
+                          const summary = evidenceSummary(evidenceId, evidenceNumber, evidenceById.get(evidenceId));
+                          return (
+                            <button
+                              type="button"
+                              key={evidenceId}
+                              id={evidenceAnchorId(evidenceId)}
+                              onClick={() => setExpandedFragment({ title, modalities, markdown })}
+                              className="scroll-mt-24 cursor-pointer rounded-md border border-accent/20 bg-accent/10 px-2.5 py-1.5 text-left transition-colors hover:border-accent/45 hover:bg-accent/15 focus-visible:border-accent focus-visible:outline-none"
+                              title={summary.title}
+                              aria-label={`查看${summary.meta}: ${summary.preview}`}
+                            >
+                              <span className="flex items-center gap-1.5">
+                                <span className="shrink-0 rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-accent">
+                                  {summary.badge}
+                                </span>
+                                <span className="min-w-0 truncate font-medium text-accent">{summary.meta}</span>
+                              </span>
+                              <span className="mt-1 block truncate text-[11px] leading-4 text-text-secondary">
+                                {summary.preview}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                   <div className="max-h-80 overflow-y-auto px-3 py-3 scrollbar-thin">
                     <MarkdownView

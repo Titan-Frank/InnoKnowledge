@@ -10,9 +10,10 @@ export function GraphCanvas() {
   const appState = useAppState();
   const {
     knowledgeGraph, selectedNodeId, selectedTypes, selectedBook,
-    layerMode, expandedBackboneNodeId, showLabels,
-    themeMode, setSelectedNodeId, setExpandedBackboneNodeId,
+    layerMode, expandedBackboneNodeId, showLabels, hoverNodeId,
+    themeMode, setSelectedNodeId, setExpandedBackboneNodeId, setHoverNodeId,
     setCommunityInfo, setIsLayoutRunning,
+    serverSearchHits,
   } = appState;
 
   const [hoveredNodeName, setHoveredNodeName] = useState<string | null>(null);
@@ -48,15 +49,20 @@ export function GraphCanvas() {
   const handleNodeHover = useCallback((nodeId: string | null) => {
     if (!nodeId || !knowledgeGraph) {
       setHoveredNodeName(null);
+      setHoverNodeId(null);
       return;
     }
     const node = knowledgeGraph.nodeById.get(nodeId);
     setHoveredNodeName(node?.name ?? null);
-  }, [knowledgeGraph]);
+    setHoverNodeId(node?.id ?? null);
+  }, [knowledgeGraph, setHoverNodeId]);
 
   const handleStageClick = useCallback(() => {
     setSelectedNodeId(null);
-  }, [setSelectedNodeId]);
+    setHoverNodeId(null);
+  }, [setSelectedNodeId, setHoverNodeId]);
+
+  const searchHitIds = useMemo(() => new Set(serverSearchHits.keys()), [serverSearchHits]);
 
   const {
     containerRef, setGraph, zoomIn, zoomOut, fitToScreen,
@@ -67,6 +73,8 @@ export function GraphCanvas() {
     onStageClick: handleStageClick,
     onLayoutRunningChange: setIsLayoutRunning,
     selectedNodeId,
+    searchHitIds,
+    previewNodeId: hoverNodeId,
     themeMode,
     showLabels,
   });

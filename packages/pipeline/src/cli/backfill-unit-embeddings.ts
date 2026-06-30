@@ -3,10 +3,20 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { embedTextsOpenAICompatible, DEFAULT_EMBEDDING_MODEL, DEFAULT_EMBEDDING_URL, runEmbeddingBackfillFromDatabase, type EmbeddingBackfillMode } from "../shared/embeddings.js";
+import {
+  DEFAULT_EMBEDDING_MODEL,
+  DEFAULT_EMBEDDING_URL,
+  embedTextsOpenAICompatible,
+} from "../shared/embeddings.js";
 import { REPO_ROOT } from "../shared/pathing.js";
 import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
+import {
+  runUnitEmbeddingBackfillFromDatabase,
+  type UnitEmbeddingDatabaseOutput,
+} from "../unit-embeddings/unit-embeddings.js";
+
+type RawRecord = Record<string, unknown>;
 
 async function main(argv: string[]): Promise<number> {
   try {
@@ -23,32 +33,30 @@ async function main(argv: string[]): Promise<number> {
   }
 }
 
-type RawRecord = Record<string, unknown>;
-
-async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promise<Awaited<ReturnType<typeof runEmbeddingBackfillFromDatabase>>> {
+async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promise<UnitEmbeddingDatabaseOutput> {
   const postgres = (await import("postgres")).default;
   const sql = postgres(dbUrl, { max: 1 });
-  const datasetId = flags.get("dataset-id") ?? "";
+  const embeddingModel = flags.get("embedding-model") ?? process.env.EMBEDDING_MODEL ?? DEFAULT_EMBEDDING_MODEL;
   try {
-    return await runEmbeddingBackfillFromDatabase({
-      table: parseTable(flags.get("table") ?? "both"),
-      batchSize: parsePositiveInteger(flags.get("batch-size"), 32),
-      sleepBetweenBatchesMs: parseNonNegativeInteger(flags.get("sleep-between-batches-ms"), 500),
+    return await runUnitEmbeddingBackfillFromDatabase({
+      datasetId: flags.get("dataset-id") ?? flags.get("source") ?? "main",
+      batchSize: parsePositiveInteger(flags.get("batch-size"), 8),
+      limit: parseOptionalPositiveInteger(flags.get("limit"), "limit"),
+      force: flags.has("force"),
+      embeddingModel,
       query: async (statement) => {
         assertSelectStatement(statement);
-        const scoped = scopeEmbeddingStatementToDataset(statement, datasetId);
-        const rows = await sql.unsafe(scoped.sql, preparePostgresJsParams(scoped.params) as never[]);
+        const rows = await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
         return Array.isArray(rows) ? rows.filter(isRecord) : [];
       },
       executeStatement: async (statement) => {
-        assertAllowedEmbeddingWriteStatement(statement);
-        const scoped = scopeEmbeddingStatementToDataset(statement, datasetId);
-        await sql.unsafe(scoped.sql, preparePostgresJsParams(scoped.params) as never[]);
+        assertAllowedUnitEmbeddingWriteStatement(statement);
+        await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
       },
       embedTexts: (texts) =>
         embedTextsOpenAICompatible(texts, {
           url: flags.get("embedding-url") ?? process.env.EMBEDDING_URL ?? DEFAULT_EMBEDDING_URL,
-          model: flags.get("embedding-model") ?? process.env.EMBEDDING_MODEL ?? DEFAULT_EMBEDDING_MODEL,
+          model: embeddingModel,
           apiKey: process.env[flags.get("embedding-api-key-env") ?? "EMBEDDING_API_KEY"] ?? "",
           maxRetries: parsePositiveInteger(flags.get("max-retries"), 3),
           retryDelayMs: parseNonNegativeInteger(flags.get("retry-delay-ms"), 2000),
@@ -82,15 +90,17 @@ function parseFlags(argv: string[]): Map<string, string> {
   return flags;
 }
 
-function parseTable(value: string): EmbeddingBackfillMode {
-  if (value === "world_nodes" || value === "world_staging_nodes" || value === "both") return value;
-  throw new Error(`Unsupported table '${value}'.`);
-}
-
 function parsePositiveInteger(value: string | undefined, fallback: number): number {
   if (value === undefined || value === "") return fallback;
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed < 1) throw new Error(`Invalid positive integer: ${value}`);
+  return parsed;
+}
+
+function parseOptionalPositiveInteger(value: string | undefined, name: string): number | null {
+  if (value === undefined || value === "") return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) throw new Error(`--${name} must be a positive integer.`);
   return parsed;
 }
 
@@ -103,42 +113,15 @@ function parseNonNegativeInteger(value: string | undefined, fallback: number): n
 
 function assertSelectStatement(statement: SqlStatement): void {
   if (!/^\s*SELECT\b/i.test(statement.sql)) {
-    throw new Error(`Embedding backfill query executor refuses non-SELECT statement '${statement.name}'.`);
+    throw new Error(`Unit embedding query executor refuses non-SELECT statement '${statement.name}'.`);
   }
 }
 
-function assertAllowedEmbeddingWriteStatement(statement: SqlStatement): void {
+function assertAllowedUnitEmbeddingWriteStatement(statement: SqlStatement): void {
   const trimmed = statement.sql.trim();
-  if (!/^UPDATE\s+(world_nodes|world_staging_nodes)\s+SET\s+embedding\s*=\s*\$1::vector\s+WHERE\s+(id|raw_node_id)\s*=\s*\$2$/i.test(trimmed)) {
-    throw new Error(`Embedding backfill executor refuses statement '${statement.name}' outside embedding updates.`);
+  if (!/^INSERT\s+INTO\s+world_unit_embeddings\b[\s\S]+ON\s+CONFLICT\s+\(dataset_id,\s*node_id\)\s+DO\s+UPDATE\s+SET/i.test(trimmed)) {
+    throw new Error(`Unit embedding executor refuses statement '${statement.name}' outside world_unit_embeddings upserts.`);
   }
-}
-
-function scopeEmbeddingStatementToDataset(statement: SqlStatement, datasetId: string): SqlStatement {
-  if (!datasetId) return statement;
-  const trimmed = statement.sql.trim();
-  if (/^SELECT\b/i.test(trimmed) && /\bFROM\s+(world_nodes|world_staging_nodes)\b/i.test(trimmed)) {
-    return {
-      ...statement,
-      sql: `${statement.sql} AND dataset_id = $${statement.params.length + 1}`,
-      params: [...statement.params, datasetId],
-    };
-  }
-  if (/^UPDATE\s+world_nodes\b/i.test(trimmed)) {
-    return {
-      ...statement,
-      sql: `${statement.sql} AND dataset_id = $${statement.params.length + 1}`,
-      params: [...statement.params, datasetId],
-    };
-  }
-  if (/^UPDATE\s+world_staging_nodes\b/i.test(trimmed)) {
-    return {
-      ...statement,
-      sql: `${statement.sql} AND dataset_id = $${statement.params.length + 1}`,
-      params: [...statement.params, datasetId],
-    };
-  }
-  return statement;
 }
 
 function loadDotenvFile(path: string): void {
