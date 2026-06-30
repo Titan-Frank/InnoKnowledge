@@ -209,13 +209,14 @@ function renderMathNodes(value: string, keyPrefix: string): ReactNode[] {
       const isSubscript = char === '_';
       let script = '';
       i += 1;
-      const group = readBraceGroup(value, i);
+      const scriptStart = skipSpaces(value, i);
+      const group = readBraceGroup(value, scriptStart);
       if (group) {
         script = group.content;
         i = group.end;
       } else {
-        script = value[i] ?? '';
-        i += 1;
+        script = value[scriptStart] ?? '';
+        i = scriptStart + 1;
       }
       flushText();
       const Tag = isSubscript ? 'sub' : 'sup';

@@ -58,7 +58,7 @@ flowchart TD
 
 | 命令 | 作用 |
 |---|---|
-| `npm run dev` | 同时启动 server 和 viewer |
+| `npm run dev` | 构建 viewer 并启动一个本地服务，统一从 `http://127.0.0.1:8765/viewer/` 访问 |
 | `npm run build` | 构建 pipeline、server、viewer |
 | `npm run check` | 对所有 workspace 做 TypeScript 检查 |
 | `npm test -w packages/pipeline` | 构建并运行 pipeline 测试 |
@@ -498,6 +498,8 @@ export DATABASE_URL=postgresql://okm:okm@localhost:5432/knowledge
 docker compose exec -T postgres psql -U okm -d knowledge < schemas/pg/knowledge_store.sql
 npm run dev
 ```
+
+本地应用只保留一个访问端口：后端服务监听 `8765`，并从 `/viewer/` 提供前端页面；viewer 在开发时只监听文件变化并更新构建产物，不再单独启动前端端口。
 
 常用环境变量：
 

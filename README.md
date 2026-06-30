@@ -142,7 +142,7 @@ npm run generate-node-bodies -w packages/pipeline -- \
   --pretty
 ```
 
-前端调试页会读取流水线运行结果、质量检查结果和待复核图片。通过 `npm run dev` 启动后，在 viewer 的调试入口里可以查看待复核图片，并把图片标为核心图、辅助图、保留或删除。待复核图片只在调试页出现；标为核心图、辅助图或保留后写入 `review_status=approved`，才会进入普通知识单元详情；标为删除后写入 `review_status=rejected`，继续隐藏。
+前端调试页会读取流水线运行结果、质量检查结果和待复核图片。通过 `npm run dev` 启动后，从 `http://127.0.0.1:8765/viewer/` 进入 viewer 的调试入口，可以查看待复核图片，并把图片标为核心图、辅助图、保留或删除。待复核图片只在调试页出现；标为核心图、辅助图或保留后写入 `review_status=approved`，才会进入普通知识单元详情；标为删除后写入 `review_status=rejected`，继续隐藏。
 
 ## 存储
 

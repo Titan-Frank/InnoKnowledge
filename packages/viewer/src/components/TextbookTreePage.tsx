@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppState } from '@/hooks/useAppState';
-import { loadEnrichBook, loadEnrichBooks, type EnrichBookSummary, type EnrichIndexResponse, type EnrichNode } from '@/services/backend-client';
+import { loadEnrichBook, loadEnrichBooks, loadUnit, type EnrichBookSummary, type EnrichIndexResponse, type EnrichNode } from '@/services/backend-client';
 import { MarkdownView } from '@/components/MarkdownView';
 import { BookOpen, ChevronDown, ChevronRight, Layers, Network, Search } from '@/lib/lucide-icons';
-import type { ApiEvidence, ApiMention } from '@okm/types';
+import type { ApiEvidence, ApiMention, ApiUnit } from '@okm/types';
 import type { OKMBook, OKMNode } from '@/core/graph/types';
 
 type SourceMode = 'dataset' | 'enrich';
@@ -38,6 +38,33 @@ type WorkbenchNode = {
   outline?: OutlineItem;
   enrich?: EnrichNode;
 };
+
+type RelatedUnitState = {
+  unit: ApiUnit | null;
+  loading: boolean;
+  error: string;
+};
+
+const TEXTBOOK_DETAIL_WIDTH_KEY = 'okm-textbook-detail-width';
+const DEFAULT_TEXTBOOK_DETAIL_WIDTH = 420;
+const MIN_TEXTBOOK_DETAIL_WIDTH = 340;
+const MAX_TEXTBOOK_DETAIL_WIDTH = 760;
+
+function clampTextbookDetailWidth(value: number): number {
+  const viewportLimit = typeof window === 'undefined'
+    ? MAX_TEXTBOOK_DETAIL_WIDTH
+    : Math.floor(window.innerWidth - 320 - 420 - 32);
+  return Math.min(
+    Math.max(value, MIN_TEXTBOOK_DETAIL_WIDTH),
+    Math.max(MIN_TEXTBOOK_DETAIL_WIDTH, Math.min(MAX_TEXTBOOK_DETAIL_WIDTH, viewportLimit)),
+  );
+}
+
+function readTextbookDetailWidth(): number {
+  if (typeof window === 'undefined') return DEFAULT_TEXTBOOK_DETAIL_WIDTH;
+  const stored = Number(window.localStorage.getItem(TEXTBOOK_DETAIL_WIDTH_KEY));
+  return clampTextbookDetailWidth(Number.isFinite(stored) && stored > 0 ? stored : DEFAULT_TEXTBOOK_DETAIL_WIDTH);
+}
 
 function text(value: unknown): string {
   return value == null ? '' : String(value);
@@ -205,6 +232,37 @@ function sameImageRef(a: string, b: string): boolean {
   );
 }
 
+function relatedUnitCacheKey(sourceKey: string, nodeId: string): string {
+  return `${sourceKey}:${nodeId}`;
+}
+
+function unitBodyContent(unit: ApiUnit | null | undefined): string {
+  return unit?.body?.content?.trim() || '';
+}
+
+function resolveUnitMarkdownImage(unit: ApiUnit | null | undefined, src: string): string | undefined {
+  if (/^(https?:|data:|blob:)/i.test(src) || src.startsWith('/api/source/')) return src;
+  const normalized = normalizeAssetRef(src);
+  const fileName = basename(src);
+  const filePrefix = fileName.replace(/…$/, '');
+  const media = Array.isArray(unit?.media) ? unit.media : [];
+  const match = media.find((item) => {
+    const itemPath = normalizeAssetRef(text(item.path));
+    const itemName = basename(itemPath);
+    return (
+      itemPath === normalized ||
+      itemPath.endsWith(`/${normalized}`) ||
+      itemName === fileName ||
+      (filePrefix.length >= 8 && itemName.startsWith(filePrefix))
+    );
+  });
+  return match?.url;
+}
+
+function nodeKindLabel(node: OKMNode): string {
+  return node.displayTypeLabel || node.nodeSubkind || node.nodeKind || node.nodeType || '知识节点';
+}
+
 function describeBook(book: EnrichBookSummary): string {
   return [book.subject, book.stage, book.grade, book.course, book.publisher, book.volume]
     .filter(Boolean)
@@ -313,6 +371,13 @@ export function TextbookTreePage() {
   const [activeEnrichBook, setActiveEnrichBook] = useState<EnrichBookSummary | null>(null);
   const [enrichLoading, setEnrichLoading] = useState(false);
   const [enrichError, setEnrichError] = useState('');
+  const [relatedUnitCache, setRelatedUnitCache] = useState<Map<string, RelatedUnitState>>(new Map());
+  const [expandedRelatedNodeIds, setExpandedRelatedNodeIds] = useState<Set<string>>(new Set());
+  const [detailPanelWidth, setDetailPanelWidth] = useState(readTextbookDetailWidth);
+  const [isDetailResizing, setIsDetailResizing] = useState(false);
+  const [isWideLayout, setIsWideLayout] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches
+  ));
 
   const datasetBooks = useMemo(() => (
     Array.from(knowledgeGraph?.booksById.values() || [])
@@ -396,6 +461,24 @@ export function TextbookTreePage() {
   }, []);
 
   useEffect(() => {
+    window.localStorage.setItem(TEXTBOOK_DETAIL_WIDTH_KEY, String(detailPanelWidth));
+  }, [detailPanelWidth]);
+
+  useEffect(() => {
+    const handleResize = () => setDetailPanelWidth((current) => clampTextbookDetailWidth(current));
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 1280px)');
+    const handleChange = () => setIsWideLayout(query.matches);
+    handleChange();
+    query.addEventListener('change', handleChange);
+    return () => query.removeEventListener('change', handleChange);
+  }, []);
+
+  useEffect(() => {
     if (sourceMode !== 'enrich') return;
     if (selectedEnrichPath || !filteredEnrichBooks[0]) return;
     setSelectedEnrichPath(filteredEnrichBooks[0].path);
@@ -461,10 +544,62 @@ export function TextbookTreePage() {
     ));
     return match?.url;
   };
-  const selectedKnowledgeNodes = selectedMentions
-    .map((mention) => knowledgeGraph?.nodeById.get(mention.target_id))
-    .filter(Boolean)
-    .filter((node, index, arr) => arr.findIndex((item) => item?.id === node?.id) === index) as OKMNode[];
+  const selectedKnowledgeNodes = useMemo(() => (
+    selectedMentions
+      .map((mention) => knowledgeGraph?.nodeById.get(mention.target_id))
+      .filter(Boolean)
+      .filter((node, index, arr) => arr.findIndex((item) => item?.id === node?.id) === index) as OKMNode[]
+  ), [knowledgeGraph, selectedMentions]);
+  const expandedKnowledgeNodeKey = selectedKnowledgeNodes
+    .filter((node) => expandedRelatedNodeIds.has(node.id))
+    .map((node) => node.id)
+    .join('\u0000');
+
+  useEffect(() => {
+    setExpandedRelatedNodeIds(new Set());
+  }, [selectedTreeId, selectedSourceKey, sourceMode]);
+
+  useEffect(() => {
+    if (sourceMode !== 'dataset' || !selectedSourceKey || !expandedKnowledgeNodeKey) return;
+    const nodeIds = expandedKnowledgeNodeKey.split('\u0000').filter(Boolean);
+    const missingNodeIds = nodeIds.filter((nodeId) => (
+      !relatedUnitCache.has(relatedUnitCacheKey(selectedSourceKey, nodeId))
+    ));
+    if (!missingNodeIds.length) return;
+
+    setRelatedUnitCache((current) => {
+      const next = new Map(current);
+      missingNodeIds.forEach((nodeId) => {
+        const key = relatedUnitCacheKey(selectedSourceKey, nodeId);
+        if (!next.has(key)) next.set(key, { unit: null, loading: true, error: '' });
+      });
+      return next;
+    });
+
+    Promise.all(missingNodeIds.map(async (nodeId) => {
+      try {
+        return { nodeId, unit: await loadUnit(selectedSourceKey, nodeId), error: '' };
+      } catch (error) {
+        return {
+          nodeId,
+          unit: null,
+          error: (error as Error)?.message || '知识正文加载失败',
+        };
+      }
+    })).then((rows) => {
+      setRelatedUnitCache((current) => {
+        const next = new Map(current);
+        rows.forEach((row) => {
+          next.set(relatedUnitCacheKey(selectedSourceKey, row.nodeId), {
+            unit: row.unit,
+            loading: false,
+            error: row.error,
+          });
+        });
+        return next;
+      });
+    });
+  }, [expandedKnowledgeNodeKey, relatedUnitCache, selectedSourceKey, sourceMode]);
 
   const sourceStats = sourceMode === 'enrich'
     ? {
@@ -491,6 +626,45 @@ export function TextbookTreePage() {
       return next;
     });
   };
+
+  const toggleRelatedNode = (id: string) => {
+    setExpandedRelatedNodeIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const startDetailResize = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isWideLayout) return;
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = detailPanelWidth;
+    setIsDetailResizing(true);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const handleMove = (moveEvent: PointerEvent) => {
+      setDetailPanelWidth(clampTextbookDetailWidth(startWidth + startX - moveEvent.clientX));
+    };
+    const handleUp = () => {
+      setIsDetailResizing(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+      window.removeEventListener('pointercancel', handleUp);
+    };
+
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+    window.addEventListener('pointercancel', handleUp);
+  }, [detailPanelWidth, isWideLayout]);
+
+  const nudgeDetailWidth = useCallback((delta: number) => {
+    setDetailPanelWidth((current) => clampTextbookDetailWidth(current + delta));
+  }, []);
 
   const renderBookList = () => {
     if (sourceMode === 'dataset') {
@@ -743,22 +917,73 @@ export function TextbookTreePage() {
           <div className="mb-3 flex items-center gap-2 text-xs font-medium text-text-muted">
             <Network className="h-3.5 w-3.5" />
             关联知识节点
+            {selectedKnowledgeNodes.length > 0 && (
+              <span className="ml-auto text-[10px] font-normal">{selectedKnowledgeNodes.length} 个</span>
+            )}
           </div>
           {selectedKnowledgeNodes.length ? (
-            <div className="flex flex-wrap gap-2">
-              {selectedKnowledgeNodes.map((node) => (
-                <button
-                  key={node.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedNodeId(node.id);
-                    setWorkspace('graph');
-                  }}
-                  className="rounded-md border border-border-subtle bg-elevated px-2 py-1 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
-                >
-                  {node.name}
-                </button>
-              ))}
+            <div className="divide-y divide-border-subtle border border-border-subtle bg-elevated">
+              {selectedKnowledgeNodes.map((node) => {
+                const unitState = selectedSourceKey
+                  ? relatedUnitCache.get(relatedUnitCacheKey(selectedSourceKey, node.id))
+                  : null;
+                const expanded = expandedRelatedNodeIds.has(node.id);
+                const loadingBody = Boolean(expanded && selectedSourceKey && (!unitState || unitState.loading));
+                const body = unitBodyContent(unitState?.unit);
+                return (
+                  <article key={node.id}>
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-stretch">
+                      <button
+                        type="button"
+                        onClick={() => toggleRelatedNode(node.id)}
+                        aria-expanded={expanded}
+                        className="flex min-w-0 items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-hover"
+                      >
+                        {expanded ? (
+                          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-text-muted" />
+                        ) : (
+                          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-text-muted" />
+                        )}
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold text-text-primary">{node.name}</span>
+                          <span className="mt-1 block truncate text-[10px] font-normal text-text-muted">{nodeKindLabel(node)}</span>
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`在图谱中查看 ${node.name}`}
+                        onClick={() => {
+                          setSelectedNodeId(node.id);
+                          setWorkspace('graph');
+                        }}
+                        className="m-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border-subtle bg-surface text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
+                      >
+                        <Network className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    {expanded && (
+                      <div className="border-t border-border-subtle bg-surface px-3 py-3">
+                        <div className="border-l-2 border-accent/30 pl-3">
+                          {loadingBody ? (
+                            <p className="text-xs leading-6 text-text-muted">正在加载知识正文...</p>
+                          ) : unitState?.error ? (
+                            <p className="text-xs leading-6 text-red-300">{unitState.error}</p>
+                          ) : body ? (
+                            <MarkdownView
+                              content={body}
+                              className="text-xs leading-6 text-text-secondary"
+                              resolveImageUrl={(src) => resolveUnitMarkdownImage(unitState?.unit, src)}
+                              imageLayout="preview"
+                            />
+                          ) : (
+                            <p className="text-xs leading-6 text-text-muted">这个知识节点还没有知识正文。</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
             </div>
           ) : (
             <p className="text-sm text-text-muted">这个目录节点暂时没有关联到知识节点。</p>
@@ -802,7 +1027,10 @@ export function TextbookTreePage() {
     : activeDatasetBook ? `${activeDatasetBook.mentions.length} 提及 · ${activeDatasetBook.evidence.length} 证据` : '从当前知识图数据源读取';
 
   return (
-    <main className="grid min-h-0 flex-1 grid-cols-[320px_minmax(420px,1fr)_420px] bg-void max-xl:grid-cols-[300px_minmax(420px,1fr)] max-lg:flex max-lg:flex-col max-lg:overflow-y-auto">
+    <main
+      className="grid min-h-0 flex-1 grid-cols-[320px_minmax(420px,1fr)_420px] bg-void max-xl:grid-cols-[300px_minmax(420px,1fr)] max-lg:flex max-lg:flex-col max-lg:overflow-y-auto"
+      style={isWideLayout ? { gridTemplateColumns: `320px minmax(420px,1fr) ${detailPanelWidth}px` } : undefined}
+    >
       <aside className="flex min-h-0 flex-col border-r border-border-subtle bg-surface max-lg:min-h-[260px] max-lg:max-h-[34vh] max-lg:border-b max-lg:border-r-0">
         <div className="border-b border-border-subtle p-3">
           <div className="mb-3 flex items-center gap-2">
@@ -936,7 +1164,31 @@ export function TextbookTreePage() {
         </div>
       </section>
 
-      <aside className="flex min-h-0 flex-col border-l border-border-subtle bg-surface max-xl:col-span-2 max-xl:min-h-[420px] max-xl:border-l-0 max-xl:border-t max-lg:col-span-1 max-lg:min-h-[360px]">
+      <aside className="relative flex min-h-0 flex-col border-l border-border-subtle bg-surface max-xl:col-span-2 max-xl:min-h-[420px] max-xl:border-l-0 max-xl:border-t max-lg:col-span-1 max-lg:min-h-[360px]">
+        {isWideLayout && (
+          <div
+            role="separator"
+            aria-label="调整节点详情宽度"
+            aria-orientation="vertical"
+            tabIndex={0}
+            onPointerDown={startDetailResize}
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                nudgeDetailWidth(24);
+              }
+              if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                nudgeDetailWidth(-24);
+              }
+            }}
+            className={`absolute left-0 top-0 z-20 h-full w-3 -translate-x-1.5 cursor-col-resize outline-none transition-colors ${
+              isDetailResizing ? 'bg-accent/25' : 'hover:bg-accent/20 focus:bg-accent/20'
+            }`}
+          >
+            <span className="absolute left-1/2 top-1/2 h-12 w-0.5 -translate-x-1/2 -translate-y-1/2 bg-border-strong" />
+          </div>
+        )}
         <div className="border-b border-border-subtle p-3">
           <div className="text-sm font-semibold text-text-primary">节点详情</div>
           <div className="mt-1 text-xs text-text-muted">
