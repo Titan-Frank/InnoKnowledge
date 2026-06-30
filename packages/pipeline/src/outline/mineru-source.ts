@@ -32,7 +32,6 @@ export type MineruSourceResult =
       status: "success";
       created: boolean;
       source_markdown_path: string;
-      manifest_path: string;
       book_id?: string;
       batch_id?: string;
       zip_url?: string;
@@ -114,14 +113,12 @@ export async function runMineruSourceMarkdown(options: MineruSourceOptions, depe
   const outputDir = resolve(options.outputDir);
   mkdirSync(outputDir, { recursive: true });
   const finalMarkdown = join(outputDir, "full.md");
-  const manifestPath = join(outputDir, "mineru-result.json");
 
   if (existsSync(finalMarkdown) && !options.force) {
     return {
       status: "success",
       created: false,
       source_markdown_path: finalMarkdown,
-      manifest_path: manifestPath,
     };
   }
 
@@ -153,9 +150,7 @@ export async function runMineruSourceMarkdown(options: MineruSourceOptions, depe
       extract_dir: extractDir,
       raw_markdown_path: rawMarkdown,
       source_markdown_path: sourceMarkdown,
-      manifest_path: manifestPath,
     };
-    writeFileSync(manifestPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
     return payload;
   } catch (error) {
     return { status: "blocked", error: (error as Error).message };

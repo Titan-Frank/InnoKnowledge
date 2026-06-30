@@ -133,12 +133,13 @@ export type NormalizedLessonArtifacts = {
 };
 
 export function normalizeLessonArtifacts(input: LessonArtifactInput, bookId: string, batchAnchor: string): NormalizedLessonArtifacts {
-  const nodes = normalizeNodes(input.nodes);
+  let nodes = normalizeNodes(input.nodes);
   const edges = normalizeEdges(input.edges);
   const domainProfiles = normalizeDomainProfiles(input.domainProfiles);
-  const mentions = normalizeMentions(input.mentions, bookId, batchAnchor);
+  let mentions = normalizeMentions(input.mentions, bookId, batchAnchor);
   const evidence = normalizeEvidence(input.evidence, bookId, batchAnchor);
   const nodeCards = normalizeNodeCards(input.nodeCards);
+  ({ nodes, mentions } = repairNodeEvidenceMentions({ nodes, domainProfiles, mentions, evidence, nodeCards, bookId, batchAnchor }));
   return {
     nodes,
     edges,
@@ -155,6 +156,65 @@ export function normalizeLessonArtifacts(input: LessonArtifactInput, bookId: str
       node_cards: nodeCards.length,
     },
   };
+}
+
+function repairNodeEvidenceMentions(input: {
+  nodes: NormalizedNode[];
+  domainProfiles: NormalizedDomainProfile[];
+  mentions: NormalizedMention[];
+  evidence: NormalizedEvidence[];
+  nodeCards: NormalizedNodeCard[];
+  bookId: string;
+  batchAnchor: string;
+}): Pick<NormalizedLessonArtifacts, "nodes" | "mentions"> {
+  const evidenceIds = new Set(input.evidence.map((item) => item.raw_evidence_id));
+  const refsByNode = new Map<string, string[]>();
+  const mentionedNodeIds = new Set(input.mentions.map((mention) => mention.target_raw_id));
+  const mentionIds = new Set(input.mentions.map((mention) => mention.raw_mention_id));
+
+  const addRefs = (nodeId: string, refs: string[]) => {
+    const validRefs = refs.filter((ref) => evidenceIds.has(ref));
+    if (validRefs.length === 0) return;
+    refsByNode.set(nodeId, uniqueStable([...(refsByNode.get(nodeId) ?? []), ...validRefs]));
+  };
+
+  for (const node of input.nodes) addRefs(node.raw_node_id, node.source_refs_json);
+  for (const profile of input.domainProfiles) addRefs(profile.raw_node_id, profile.source_refs_json);
+  for (const mention of input.mentions) addRefs(mention.target_raw_id, mention.source_refs_json);
+  for (const card of input.nodeCards) {
+    addRefs(card.raw_node_id, card.source_refs_json);
+    for (const section of card.sections_json) addRefs(card.raw_node_id, section.source_refs);
+  }
+
+  const repairedNodes = input.nodes.map((node) => {
+    if (node.source_refs_json.some((ref) => evidenceIds.has(ref))) return node;
+    const refs = refsByNode.get(node.raw_node_id) ?? [];
+    return refs.length > 0 ? { ...node, source_refs_json: refs } : node;
+  });
+
+  const repairedMentions = [...input.mentions];
+  for (const node of repairedNodes) {
+    if (mentionedNodeIds.has(node.raw_node_id)) continue;
+    const refs = refsByNode.get(node.raw_node_id) ?? node.source_refs_json.filter((ref) => evidenceIds.has(ref));
+    if (refs.length === 0) continue;
+    const rawMentionId = uniqueMentionId(`mention:auto:${node.raw_node_id}`, mentionIds);
+    mentionIds.add(rawMentionId);
+    mentionedNodeIds.add(node.raw_node_id);
+    repairedMentions.push({
+      raw_mention_id: rawMentionId,
+      source_type: "textbook",
+      source_id: input.bookId,
+      anchor_ref: input.batchAnchor,
+      target_type: "node",
+      target_raw_id: node.raw_node_id,
+      role: "mentions",
+      source_refs_json: refs,
+      confidence: 0.8,
+      properties_json: { backfilled: true },
+    });
+  }
+
+  return { nodes: repairedNodes, mentions: repairedMentions };
 }
 
 export function normalizeNodes(nodes: RawRecord[]): NormalizedNode[] {
@@ -197,22 +257,31 @@ export function normalizeNodes(nodes: RawRecord[]): NormalizedNode[] {
 }
 
 export function normalizeEdges(edges: RawRecord[]): NormalizedEdge[] {
-  return edges.map((edge) => {
-    const rawEdgeId = stringValue(pickPythonOr(edge.id, edge.raw_edge_id)).trim();
-    if (!rawEdgeId) throw new Error("Edge missing id.");
-    return {
-      raw_edge_id: rawEdgeId,
-      type: requireValidEdgeType(stringValue(pickPythonOr(edge.type, edge.edge_type)).trim()),
-      from_raw_node_id: stringValue(pickPythonOr(edge.from, edge.from_raw_node_id)).trim(),
-      to_raw_node_id: stringValue(pickPythonOr(edge.to, edge.to_raw_node_id)).trim(),
-      directionality: stringValue(pickPythonOr(edge.directionality, "directed")),
-      confidence: numberValue(pickPythonOr(edge.confidence, 0.8)),
-      source_refs_json: uniqueStrings(edge.source_refs),
-      properties_json: recordValue(edge.properties),
-      status: stringValue(pickPythonOr(edge.status, "draft")),
-      notes: stringValue(edge.notes).trim(),
-    };
-  });
+  return uniqueByKey(
+    edges.map((edge) => {
+      const rawEdgeId = stringValue(pickPythonOr(edge.id, edge.raw_edge_id)).trim();
+      if (!rawEdgeId) throw new Error("Edge missing id.");
+      return {
+        raw_edge_id: rawEdgeId,
+        type: requireValidEdgeType(stringValue(pickPythonOr(edge.type, edge.edge_type)).trim()),
+        from_raw_node_id: stringValue(pickPythonOr(edge.from, edge.from_raw_node_id)).trim(),
+        to_raw_node_id: stringValue(pickPythonOr(edge.to, edge.to_raw_node_id)).trim(),
+        directionality: normalizeDirectionality(edge.directionality),
+        confidence: numberValue(pickPythonOr(edge.confidence, 0.8)),
+        source_refs_json: uniqueStrings(edge.source_refs),
+        properties_json: recordValue(edge.properties),
+        status: stringValue(pickPythonOr(edge.status, "draft")),
+        notes: stringValue(edge.notes).trim(),
+      };
+    }),
+    (edge) => edge.raw_edge_id,
+  );
+}
+
+function normalizeDirectionality(value: unknown): "directed" | "undirected" {
+  const directionality = stringValue(pickPythonOr(value, "directed")).trim().toLowerCase();
+  if (["undirected", "bidirectional", "bi-directional", "two_way", "two-way", "mutual"].includes(directionality)) return "undirected";
+  return "directed";
 }
 
 export function normalizeDomainProfiles(domainProfiles: RawRecord[]): NormalizedDomainProfile[] {
@@ -238,22 +307,25 @@ export function normalizeDomainProfiles(domainProfiles: RawRecord[]): Normalized
 }
 
 export function normalizeMentions(mentions: RawRecord[], bookId: string, anchor: string): NormalizedMention[] {
-  return mentions.map((mention) => {
-    const rawMentionId = stringValue(pickPythonOr(mention.id, mention.raw_mention_id)).trim();
-    if (!rawMentionId) throw new Error("Mention missing id.");
-    return {
-      raw_mention_id: rawMentionId,
-      source_type: stringValue(pickPythonOr(mention.source_type, "textbook")),
-      source_id: stringValue(pickPythonOr(mention.source_id, bookId)),
-      anchor_ref: stringValue(pickPythonOr(mention.anchor_ref, anchor)),
-      target_type: stringValue(pickPythonOr(mention.target_type, "node")),
-      target_raw_id: stringValue(pickPythonOr(mention.target_id, mention.target_raw_id)).trim(),
-      role: stringValue(pickPythonOr(mention.role, "mentions")),
-      source_refs_json: uniqueStrings(mention.source_refs),
-      confidence: numberValue(pickPythonOr(mention.confidence, 0.8)),
-      properties_json: recordValue(mention.properties),
-    };
-  });
+  return uniqueByKey(
+    mentions.map((mention) => {
+      const rawMentionId = stringValue(pickPythonOr(mention.id, mention.raw_mention_id)).trim();
+      if (!rawMentionId) throw new Error("Mention missing id.");
+      return {
+        raw_mention_id: rawMentionId,
+        source_type: stringValue(pickPythonOr(mention.source_type, "textbook")),
+        source_id: stringValue(pickPythonOr(mention.source_id, bookId)),
+        anchor_ref: stringValue(pickPythonOr(mention.anchor_ref, anchor)),
+        target_type: stringValue(pickPythonOr(mention.target_type, "node")),
+        target_raw_id: stringValue(pickPythonOr(mention.target_id, mention.target_raw_id)).trim(),
+        role: stringValue(pickPythonOr(mention.role, "mentions")),
+        source_refs_json: uniqueStrings(mention.source_refs),
+        confidence: numberValue(pickPythonOr(mention.confidence, 0.8)),
+        properties_json: recordValue(mention.properties),
+      };
+    }),
+    (mention) => mention.raw_mention_id,
+  );
 }
 
 export function normalizeEvidence(evidence: RawRecord[], bookId: string, anchor: string): NormalizedEvidence[] {
@@ -330,6 +402,25 @@ function uniqueEnum(value: unknown, allowed: Set<string>): string[] {
 
 function uniqueStrings(value: unknown): string[] {
   return uniqueStable(trimmedStrings(value));
+}
+
+function uniqueByKey<T>(values: T[], keyForValue: (value: T) => string): T[] {
+  const result: T[] = [];
+  const seen = new Set<string>();
+  for (const value of values) {
+    const key = keyForValue(value);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(value);
+  }
+  return result;
+}
+
+function uniqueMentionId(base: string, used: Set<string>): string {
+  if (!used.has(base)) return base;
+  let index = 2;
+  while (used.has(`${base}:${index}`)) index += 1;
+  return `${base}:${index}`;
 }
 
 function trimmedStrings(value: unknown): string[] {

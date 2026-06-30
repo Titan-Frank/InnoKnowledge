@@ -23,20 +23,18 @@
   --color-accent-dim: #1d4ed8;
 
   /* OKM node type colors */
-  --color-node-concept: #555AFF;
-  --color-node-substance: #3782FF;
   --color-node-entity: #3782FF;
-  --color-node-experiment: #1EB478;
-  --color-node-activity: #1EB478;
+  --color-node-concept: #555AFF;
+  --color-node-property: #9A9AB0;
   --color-node-process: #2BA876;
-  --color-node-principle: #8C55FF;
-  --color-node-method: #FFB400;
-  --color-node-skill: #A06BFF;
-  --color-node-representation: #5580CC;
-  --color-node-symbol: #5580CC;
-  --color-node-question: #F02D2D;
   --color-node-event: #E84855;
-  --color-node-issue: #D94848;
+  --color-node-method: #FFB400;
+  --color-node-rule: #8C55FF;
+  --color-node-representation: #5580CC;
+  --color-node-resource: #14B8A6;
+  --color-node-substance: #3782FF;
+  --color-node-experiment: #1EB478;
+  --color-node-symbol: #5580CC;
   --color-node-other: #9A9AB0;
 
   /* Edge category colors */
@@ -53,6 +51,10 @@
   /* Animations */
   --animate-fade-in: fade-in 0.3s ease-out;
   --animate-slide-up: slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-detail-panel-in: detail-panel-in 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-detail-panel-up: detail-panel-up 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-detail-panel-out: detail-panel-out 0.28s cubic-bezier(0.7, 0, 0.84, 0);
+  --animate-detail-panel-down: detail-panel-down 0.28s cubic-bezier(0.7, 0, 0.84, 0);
   --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
 
   /* Shadows */
@@ -68,6 +70,26 @@
 @keyframes slide-up {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes detail-panel-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes detail-panel-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes detail-panel-out {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(24px); }
+}
+
+@keyframes detail-panel-down {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(18px); }
 }
 
 @keyframes pulse-glow {

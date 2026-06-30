@@ -8,19 +8,30 @@ import {
   DEFAULT_OPENAI_BASE_URL,
   DEFAULT_OPENAI_MODEL,
   DEFAULT_OPENAI_TIMEOUT_MS,
-  buildExtractionPayloadFromModelResponse,
-  buildModelExtractionRequest,
+  buildHybridEdgeExtractionRequest,
+  buildHybridExtractionPayloadFromModelBundles,
+  buildHybridNodeEvidenceExtractionRequest,
   buildModelLessonPayload,
   buildRetrievalQueries,
   callModelExtractionRequest,
+  type BuildModelExtractionRequestInput,
   type ModelApiMode,
+  parseHybridEdgeBundleFromResponse,
+  parseHybridNodeEvidenceBundleFromResponse,
 } from "../extraction/model-lesson-extraction.js";
+import {
+  loadEnrichHintsForLesson,
+  outlineTitlePathFromRecord,
+  type EnrichContextQueryExecutor,
+} from "../extraction/enrich-context.js";
+import { resolveExtractionTemplate } from "../extraction/extraction-template.js";
+import { filterImageEvidencePayload } from "../extraction/image-relevance.js";
 import {
   loadRetrievalCandidatesForQueries,
   type RetrievalCandidateQueryExecutor,
 } from "../retrieval/retrieve-candidates-query.js";
 import type { RetrievalMode } from "../retrieval/retrieve-candidates.js";
-import { preparePostgresParams } from "../shared/postgres-executor.js";
+import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import { REPO_ROOT } from "../shared/pathing.js";
 import { buildStagingTableRows } from "../staging/staging-rows.js";
 import { storeStagingRows, type SqlExecutor } from "../staging/staging-store.js";
@@ -28,11 +39,12 @@ import { normalizeLessonArtifacts } from "../staging/staging.js";
 
 type CliEnv = Record<string, string | undefined>;
 type RawRecord = Record<string, unknown>;
-type ExtractLessonRequestBase = Parameters<typeof buildModelExtractionRequest>[0] & {
+type ExtractLessonRequestBase = BuildModelExtractionRequestInput & {
   datasetId?: string;
   outputRoot: string;
   subject: string;
   schoolStage: string;
+  bookTitle?: string;
 };
 
 export type ExtractLessonOpenAiCliDeps = {
@@ -41,6 +53,7 @@ export type ExtractLessonOpenAiCliDeps = {
   env?: CliEnv;
   fetchImpl?: typeof fetch;
   retrievalQueryExecutor?: RetrievalCandidateQueryExecutor;
+  enrichContextExecutor?: EnrichContextQueryExecutor;
   embedQuery?: (queryText: string) => Promise<number[]> | number[];
   stagingStatementExecutor?: SqlExecutor;
 };
@@ -75,28 +88,42 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
     const repoRoot = flags.get("repo-root") ?? REPO_ROOT;
     const env = loadEnvironment(repoRoot, deps.env ?? processEnv);
     const apiMode = parseApiMode(flags.get("api-mode"));
+    const modelRetryCount = parseNonNegativeInteger(flags.get("model-retry-count") ?? env.MODEL_RETRY_COUNT, "model-retry-count") ?? 2;
     const timeoutMs = parseTimeoutMs(flags.get("timeout"));
     const outputRoot = required(flags, "output-root");
-    const requestBase = {
+    const requestBase: ExtractLessonRequestBase = {
       bookId: required(flags, "book-id"),
       batchAnchor: required(flags, "batch-anchor"),
       repoRoot,
       datasetId: flags.get("dataset-id"),
       outputRoot,
-      model: flags.get("model") ?? DEFAULT_OPENAI_MODEL,
+      model: flags.get("model") ?? env.OPENAI_MODEL ?? DEFAULT_OPENAI_MODEL,
       prompt: flags.get("prompt") ?? "",
+      bookTitle: flags.get("book-title") ?? "",
       subject: flags.get("subject") ?? "computer-science",
       schoolStage: flags.get("school-stage") ?? "higher",
       gradeBand: flags.get("grade-band") ?? "university",
       textbookId: flags.get("textbook-id") ?? "",
       apiMode,
-      baseUrl: flags.get("base-url") ?? DEFAULT_OPENAI_BASE_URL,
+      baseUrl: flags.get("base-url") ?? env.OPENAI_BASE_URL ?? DEFAULT_OPENAI_BASE_URL,
       reasoningEffort: flags.get("reasoning-effort") ?? "",
       timeoutMs,
     };
+    requestBase.extractionTemplate = resolveExtractionTemplate({
+      repoRoot,
+      templateId: flags.get("extraction-template"),
+      subject: requestBase.subject,
+      bookId: requestBase.bookId,
+    });
+    const pgOutline = await loadPostgresOutline({
+      dbUrl: flags.get("db"),
+      datasetId: requestBase.datasetId,
+      bookId: requestBase.bookId,
+    });
+    if (pgOutline) requestBase.outline = pgOutline;
     const retrievalCandidates = await resolveRetrievalCandidates(flags, requestBase, env, deps);
-    const requestInput = { ...requestBase, retrievalCandidates };
-    const request = buildModelExtractionRequest(requestInput);
+    const enrichHints = await resolveEnrichHints(flags, requestBase, deps);
+    const requestInput = { ...requestBase, retrievalCandidates, enrichHints };
 
     const apiKeyEnv = flags.get("api-key-env") ?? "OPENAI_API_KEY";
     const apiKey = (env[apiKeyEnv] ?? "").trim();
@@ -106,8 +133,29 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
     }
 
     try {
-      const responseBody = await callModelExtractionRequest(request, apiKey, deps.fetchImpl ?? fetch);
-      let payload: RawRecord = buildExtractionPayloadFromModelResponse(requestInput, responseBody);
+      const nodeEvidenceRequest = buildHybridNodeEvidenceExtractionRequest(requestInput);
+      const nodeEvidenceBody = await callModelExtractionRequestWithRetries(nodeEvidenceRequest, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
+      const nodeEvidenceBundle = parseHybridNodeEvidenceBundleFromResponse(nodeEvidenceBody);
+      const edgeRequest = buildHybridEdgeExtractionRequest(requestInput, nodeEvidenceBundle);
+      const edgeBody = await callModelExtractionRequestWithRetries(edgeRequest, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
+      let payload: RawRecord = buildHybridExtractionPayloadFromModelBundles(
+        requestInput,
+        nodeEvidenceBundle,
+        parseHybridEdgeBundleFromResponse(edgeBody),
+      );
+      if (!flags.has("no-image-filter")) {
+        const vlmConcurrency = parsePositiveInteger(flags.get("vlm-concurrency") ?? env.VLM_CONCURRENCY, "vlm-concurrency") ?? 3;
+        const imageFilterResult = await filterImageEvidencePayload(payload, {
+          repoRoot,
+          vlmApiUrl: flags.get("vlm-api-url") ?? env.VLM_API_URL,
+          vlmApiKey: env[flags.get("vlm-api-key-env") ?? "VLM_API_KEY"] ?? "",
+          vlmModel: flags.get("vlm-model") ?? env.VLM_MODEL,
+          vlmConcurrency,
+          vlmCacheDir: flags.get("vlm-cache-dir") ?? env.VLM_CACHE_DIR ?? resolve(repoRoot, outputRoot, ".cache", "image-relevance"),
+          fetchImpl: deps.fetchImpl ?? fetch,
+        });
+        payload = imageFilterResult.payload;
+      }
       if (flags.has("write-staging")) {
         payload = await writeStagingPayload({
           payload,
@@ -155,14 +203,19 @@ const EXTRACT_LESSON_OPENAI_FLAGS = new Set([
   "api-mode",
   "base-url",
   "batch-anchor",
+  "book-title",
   "book-id",
   "dataset-id",
   "db",
   "embedding-api-key-env",
   "embedding-model",
   "embedding-url",
+  "enrich-context",
+  "enrich-context-limit",
+  "extraction-template",
   "grade-band",
   "model",
+  "model-retry-count",
   "output-root",
   "pretty",
   "prompt",
@@ -177,7 +230,13 @@ const EXTRACT_LESSON_OPENAI_FLAGS = new Set([
   "textbook-id",
   "timeout",
   "vector-min-similarity",
+  "vlm-api-key-env",
+  "vlm-api-url",
+  "vlm-cache-dir",
+  "vlm-concurrency",
+  "vlm-model",
   "write-staging",
+  "no-image-filter",
 ]);
 
 function assertKnownFlags(flags: Map<string, string>, allowed: Set<string>): void {
@@ -201,9 +260,33 @@ function loadEnvironment(repoRoot: string, source: CliEnv): CliEnv {
   return env;
 }
 
+async function loadPostgresOutline(input: {
+  dbUrl?: string;
+  datasetId?: string;
+  bookId: string;
+}): Promise<RawRecord | undefined> {
+  if (!input.dbUrl || !input.datasetId) return undefined;
+  const postgres = (await import("postgres")).default;
+  const sql = postgres(input.dbUrl, { max: 1 });
+  try {
+    const rows = await sql<{ outline_json: unknown }[]>`
+      SELECT outline_json
+      FROM world_textbook_outlines
+      WHERE dataset_id = ${input.datasetId}
+        AND book_id = ${input.bookId}
+      LIMIT 1
+    `;
+    const outline = rows[0]?.outline_json;
+    if (isRecord(outline)) return outline;
+    throw new Error(`Outline for book '${input.bookId}' was not found in PostgreSQL dataset '${input.datasetId}'.`);
+  } finally {
+    await sql.end({ timeout: 1 });
+  }
+}
+
 function parseApiMode(value: string | undefined): ModelApiMode {
-  if (value === undefined || value === "responses") return "responses";
-  if (value === "chat_completions") return "chat_completions";
+  if (value === undefined || value === "chat_completions") return "chat_completions";
+  if (value === "responses") return "responses";
   throw new Error(`Invalid --api-mode '${value}'. Expected responses or chat_completions.`);
 }
 
@@ -251,6 +334,40 @@ async function resolveRetrievalCandidates(
   }
 }
 
+async function resolveEnrichHints(
+  flags: Map<string, string>,
+  requestBase: ExtractLessonRequestBase,
+  deps: ExtractLessonOpenAiCliDeps,
+) {
+  if (!flags.has("enrich-context")) return undefined;
+  if (!requestBase.datasetId) return [];
+  const ownedExecutor = deps.enrichContextExecutor ? null : await createExplicitPostgresEnrichContextExecutor(flags.get("db"));
+  const executor = deps.enrichContextExecutor ?? ownedExecutor?.executor;
+  if (!executor) {
+    throw new Error("--enrich-context requires --db when no enrich context executor is injected.");
+  }
+
+  try {
+    const payload = buildModelLessonPayload({ ...requestBase, retrievalCandidates: [], enrichHints: [] });
+    return await loadEnrichHintsForLesson({
+      datasetId: requestBase.datasetId,
+      executor,
+      bookId: requestBase.bookId,
+      textbookId: requestBase.textbookId,
+      bookTitle: requestBase.bookTitle,
+      subject: requestBase.subject,
+      schoolStage: requestBase.schoolStage,
+      gradeBand: requestBase.gradeBand,
+      lessonTitle: payload.lesson_context.lesson_title,
+      outlineTitlePath: outlineTitlePathFromRecord(requestBase.outline, payload.lesson_context.batch_anchor),
+      markdownLines: payload.markdown_lines,
+      limit: parsePositiveInteger(flags.get("enrich-context-limit"), "enrich-context-limit") ?? 6,
+    });
+  } finally {
+    await ownedExecutor?.close();
+  }
+}
+
 function parseRetrievalCandidatesJson(value: string | undefined): RawRecord[] | undefined {
   if (value === undefined) return undefined;
   const parsed = JSON.parse(value) as unknown;
@@ -275,7 +392,29 @@ async function createExplicitPostgresRetrievalExecutor(dbUrl: string | undefined
       if (!/^\s*SELECT\b/i.test(statement.sql)) {
         throw new Error(`Retrieval context executor refuses non-SELECT statement '${statement.name}'.`);
       }
-      const rows = await sql.unsafe(statement.sql, preparePostgresParams(statement.params) as never[]);
+      const rows = await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
+      return Array.isArray(rows) ? rows.filter(isRecord) : [];
+    },
+    close: () => sql.end(),
+  };
+}
+
+async function createExplicitPostgresEnrichContextExecutor(dbUrl: string | undefined): Promise<
+  | {
+      executor: EnrichContextQueryExecutor;
+      close: () => Promise<void>;
+    }
+  | null
+> {
+  if (!dbUrl) return null;
+  const postgres = (await import("postgres")).default;
+  const sql = postgres(dbUrl, { max: 1 });
+  return {
+    executor: async (statement) => {
+      if (!/^\s*SELECT\b/i.test(statement.sql)) {
+        throw new Error(`Enrich context executor refuses non-SELECT statement '${statement.name}'.`);
+      }
+      const rows = await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
       return Array.isArray(rows) ? rows.filter(isRecord) : [];
     },
     close: () => sql.end(),
@@ -353,7 +492,7 @@ async function createExplicitPostgresStagingExecutor(dbUrl: string | undefined):
   return {
     executor: async (statement) => {
       assertAllowedStagingStatement(statement.sql, statement.name);
-      await sql.unsafe(statement.sql, preparePostgresParams(statement.params) as never[]);
+      await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
     },
     close: () => sql.end(),
   };
@@ -362,6 +501,7 @@ async function createExplicitPostgresStagingExecutor(dbUrl: string | undefined):
 function assertAllowedStagingStatement(sql: string, name: string): void {
   const trimmed = sql.trim();
   const allowed =
+    /^(BEGIN|COMMIT|ROLLBACK)\b/i.test(trimmed) ||
     /^INSERT\s+INTO\s+world_lesson_runs\b/i.test(trimmed) ||
     /^DELETE\s+FROM\s+world_staging_(nodes|edges|domain_profiles|mentions|evidence|node_cards)\b/i.test(trimmed) ||
     /^INSERT\s+INTO\s+world_staging_(nodes|edges|domain_profiles|mentions|evidence|node_cards)\b/i.test(trimmed);
@@ -412,6 +552,40 @@ function parsePositiveInteger(value: string | undefined, name: string): number |
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed < 1) throw new Error(`--${name} must be a positive integer.`);
   return parsed;
+}
+
+function parseNonNegativeInteger(value: string | undefined, name: string): number | undefined {
+  if (value === undefined) return undefined;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) throw new Error(`--${name} must be a non-negative integer.`);
+  return parsed;
+}
+
+async function callModelExtractionRequestWithRetries(
+  request: Parameters<typeof callModelExtractionRequest>[0],
+  apiKey: string,
+  fetchImpl: typeof fetch,
+  retryCount: number,
+): Promise<RawRecord> {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt <= retryCount; attempt += 1) {
+    try {
+      return await callModelExtractionRequest(request, apiKey, fetchImpl);
+    } catch (error) {
+      lastError = error as Error;
+      if (attempt >= retryCount || !isRetryableModelError(lastError)) break;
+      await sleep(Math.min(2000 * (attempt + 1), 8000));
+    }
+  }
+  throw lastError ?? new Error("Model request failed.");
+}
+
+function isRetryableModelError(error: Error): boolean {
+  return /fetch failed|network|socket|timeout|aborted|429|500|502|503|504/i.test(error.message);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
 }
 
 function parseOptionalNumber(value: string | undefined, name: string): number | undefined {

@@ -47,7 +47,11 @@ test("executes staging SQL statements in plan order when integrity passes", asyn
     evidence: 1,
     node_cards: 1,
   });
-  assert.deepEqual(result.executedStatements, executed.map((statement) => statement.name));
+  assert.equal(executed[0]?.name, "begin-staging-transaction");
+  assert.equal(executed.at(-1)?.name, "commit-staging-transaction");
+  assert.deepEqual(result.executedStatements, executed
+    .filter((statement) => !statement.name.includes("staging-transaction"))
+    .map((statement) => statement.name));
   assert.deepEqual(result.executedStatements.slice(0, 7), [
     "upsert-world-lesson-run",
     "delete-world_staging_nodes",
@@ -58,6 +62,42 @@ test("executes staging SQL statements in plan order when integrity passes", asyn
     "delete-world_staging_node_cards",
   ]);
   assert.ok(result.executedStatements.includes("insert-world-staging-nodes"));
+});
+
+test("rolls back staging writes when any planned statement fails", async () => {
+  const rows = buildStagingTableRows(
+    context,
+    normalizeLessonArtifacts(
+      {
+        nodes: [{ id: "n1", name: "Water", kind: "concept", definition: "A substance" }],
+        edges: [{ id: "e1", type: "related_to", from: "n1", to: "n1" }],
+        domainProfiles: [{ id: "p1", node_id: "n1", domain: "chemistry" }],
+        mentions: [{ id: "m1", target_id: "n1" }],
+        evidence: [{ id: "ev1", excerpt: "claim" }],
+        nodeCards: [{ id: "c1", node_id: "n1" }],
+      },
+      context.bookId,
+      context.batchAnchor,
+    ),
+  );
+  const executed: string[] = [];
+
+  await assert.rejects(
+    storeStagingRows(rows, (statement) => {
+      executed.push(statement.name);
+      if (statement.name === "insert-world-staging-mentions") {
+        throw new Error("duplicate mention primary key");
+      }
+    }),
+    /duplicate mention primary key/,
+  );
+
+  assert.equal(executed[0], "begin-staging-transaction");
+  assert.equal(executed.at(-1), "rollback-staging-transaction");
+  assert.equal(executed.includes("commit-staging-transaction"), false);
+  assert.ok(executed.includes("insert-world-staging-nodes"));
+  assert.ok(executed.includes("insert-world-staging-mentions"));
+  assert.equal(executed.includes("insert-world-staging-evidence"), false);
 });
 
 test("blocks before executing SQL when staging integrity fails", async () => {

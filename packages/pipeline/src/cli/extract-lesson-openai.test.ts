@@ -9,12 +9,25 @@ import { runExtractLessonOpenAiCli } from "./extract-lesson-openai.js";
 const bookId = "cli-model-book";
 const canonicalAnchor = "struct:cli-model-book:chunk:1-1-a";
 
+function requestBodiesStageName(body: Record<string, unknown>): string {
+  return String(((body.response_format as { json_schema?: { name?: unknown } } | undefined)?.json_schema?.name) ?? "");
+}
+
 test("returns a blocked JSON payload when the API key is missing", async () => {
   const repo = makeFixtureRepo();
   const stdout: string[] = [];
   try {
     const code = await runExtractLessonOpenAiCli(
-      ["--book-id", bookId, "--batch-anchor", canonicalAnchor, "--output-root", "/tmp/output", "--repo-root", repo.root],
+      [
+        "--book-id",
+        bookId,
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+      ],
       { stdout: (text) => stdout.push(text), stderr: () => undefined, env: {} },
     );
 
@@ -61,9 +74,12 @@ test("calls the model with retrieval context loaded from a read-only executor", 
         env: { OPENAI_API_KEY: "test-key" },
         fetchImpl: async (_url, init) => {
           requestBodies.push(JSON.parse(String(init?.body)));
+          const text = requestBodies.length === 1
+            ? JSON.stringify({ nodes: [], evidence_units: [], issues: [] })
+            : JSON.stringify({ edges: [], issues: [] });
           return new Response(
             JSON.stringify({
-              output: [{ content: [{ type: "output_text", text: JSON.stringify({ nodes: [], edges: [], evidence_units: [], domain_profiles: [], node_cards: [], issues: [] }) }] }],
+              choices: [{ message: { content: text } }],
             }),
             { status: 200, headers: { "Content-Type": "application/json" } },
           );
@@ -80,11 +96,277 @@ test("calls the model with retrieval context loaded from a read-only executor", 
     const payload = JSON.parse(stdout.join("")) as { status: string; counts: { nodes: number } };
     assert.equal(payload.status, "success");
     assert.equal(payload.counts.nodes, 0);
-    const requestBody = requestBodies[0] as { input: Array<{ content: Array<{ text: string }> }> };
-    const lessonPayload = JSON.parse(requestBody.input[0]!.content[0]!.text) as { lesson_context: { retrieval_candidates: unknown[] } };
+    const requestBody = requestBodies[0] as { messages: Array<{ content: string }> };
+    const lessonPayload = JSON.parse(requestBody.messages[1]!.content) as { lesson_context: { retrieval_candidates: unknown[] } };
     assert.deepEqual(lessonPayload.lesson_context.retrieval_candidates, [
       { node_id: "node:known", name: "模型抽取", kind: "concept", score: 100, method: "local" },
     ]);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("passes matching enrich context as auxiliary lesson hints", async () => {
+  const repo = makeFixtureRepo();
+  const stdout: string[] = [];
+  const statementNames: string[] = [];
+  const requestBodies: unknown[] = [];
+  try {
+    const code = await runExtractLessonOpenAiCli(
+      [
+        "--book-id",
+        bookId,
+        "--book-title",
+        "高中化学选择性必修2 物质结构与性质",
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+        "--dataset-id",
+        "dataset-a",
+        "--subject",
+        "chemistry",
+        "--school-stage",
+        "senior-secondary",
+        "--enrich-context",
+        "--enrich-context-limit",
+        "1",
+      ],
+      {
+        stdout: (text) => stdout.push(text),
+        stderr: () => undefined,
+        env: { OPENAI_API_KEY: "test-key" },
+        fetchImpl: async (_url, init) => {
+          requestBodies.push(JSON.parse(String(init?.body)));
+          const text = requestBodies.length === 1
+            ? JSON.stringify({ nodes: [], evidence_units: [], issues: [] })
+            : JSON.stringify({ edges: [], issues: [] });
+          return new Response(
+            JSON.stringify({
+              choices: [{ message: { content: text } }],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          );
+        },
+        enrichContextExecutor: (statement) => {
+          statementNames.push(statement.name);
+          return [
+            {
+              path: "data/enrich/化学/高中_化学_沪科技版_选择性必修2物质结构与性质_enriched.json",
+              filename: "高中_化学_沪科技版_选择性必修2物质结构与性质_enriched.json",
+              title: "高中 化学 沪科技版 选择性必修2物质结构与性质",
+              subject: "化学",
+              stage: "高中",
+              grade: "",
+              course: "化学",
+              publisher: "沪科技版",
+              volume: "选择性必修2物质结构与性质",
+              tree_json: [
+                {
+                  title: "模型抽取",
+                  enrichment: {
+                    definition: "模型抽取是根据证据生成结构化节点的过程。",
+                    content: "用于辅助判断术语边界。",
+                  },
+                },
+              ],
+            },
+          ];
+        },
+      },
+    );
+
+    assert.equal(code, 0);
+    assert.deepEqual(statementNames, ["select-enrich-context-books"]);
+    const requestBody = requestBodies[0] as { messages: Array<{ content: string }> };
+    const lessonPayload = JSON.parse(requestBody.messages[1]!.content) as {
+      lesson_context: { enrich_hints: Array<{ title: string; definition: string }> };
+    };
+    assert.equal(lessonPayload.lesson_context.enrich_hints.length, 1);
+    assert.equal(lessonPayload.lesson_context.enrich_hints[0]?.title, "模型抽取");
+    assert.match(lessonPayload.lesson_context.enrich_hints[0]?.definition ?? "", /结构化节点/);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("uses OpenAI model and base URL from environment when flags are omitted", async () => {
+  const repo = makeFixtureRepo();
+  const stdout: string[] = [];
+  let requestUrl = "";
+  let requestBody: Record<string, unknown> = {};
+  try {
+    const code = await runExtractLessonOpenAiCli(
+      [
+        "--book-id",
+        bookId,
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+        "--no-image-filter",
+      ],
+      {
+        stdout: (text) => stdout.push(text),
+        stderr: () => undefined,
+        env: {
+          OPENAI_API_KEY: "test-key",
+          OPENAI_BASE_URL: "https://llm.example.test/v1",
+          OPENAI_MODEL: "test-llm-model",
+        },
+        fetchImpl: async (url, init) => {
+          requestUrl = String(url);
+          requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+          const text = requestBody.response_format
+            ? requestUrl.endsWith("/chat/completions") && requestBodiesStageName(requestBody) === "world_knowledge_edge_bundle"
+              ? JSON.stringify({ edges: [], issues: [] })
+              : JSON.stringify({ nodes: [], evidence_units: [], issues: [] })
+            : JSON.stringify({ nodes: [], evidence_units: [], issues: [] });
+          return new Response(
+            JSON.stringify({
+              choices: [{ message: { content: text } }],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          );
+        },
+      },
+    );
+
+    assert.equal(code, 0);
+    assert.equal(requestUrl, "https://llm.example.test/v1/chat/completions");
+    assert.equal(requestBody.model, "test-llm-model");
+    const payload = JSON.parse(stdout.join("")) as { status: string };
+    assert.equal(payload.status, "success");
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("retries transient model request failures before blocking", async () => {
+  const repo = makeFixtureRepo();
+  const stdout: string[] = [];
+  let calls = 0;
+  try {
+    const code = await runExtractLessonOpenAiCli(
+      [
+        "--book-id",
+        bookId,
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+        "--no-image-filter",
+      ],
+      {
+        stdout: (text) => stdout.push(text),
+        stderr: () => undefined,
+        env: { OPENAI_API_KEY: "test-key", MODEL_RETRY_COUNT: "1" },
+        fetchImpl: async () => {
+          calls += 1;
+          if (calls === 1) throw new Error("fetch failed");
+          const text = calls === 2
+            ? JSON.stringify({ nodes: [], evidence_units: [], issues: [] })
+            : JSON.stringify({ edges: [], issues: [] });
+          return new Response(
+            JSON.stringify({
+              choices: [{ message: { content: text } }],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          );
+        },
+      },
+    );
+
+    assert.equal(code, 0);
+    assert.equal(calls, 3);
+    const payload = JSON.parse(stdout.join("")) as { status: string };
+    assert.equal(payload.status, "success");
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("runs the two-stage extraction flow", async () => {
+  const repo = makeFixtureRepo();
+  const stdout: string[] = [];
+  const requestBodies: Record<string, unknown>[] = [];
+  try {
+    const code = await runExtractLessonOpenAiCli(
+      [
+        "--book-id",
+        bookId,
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+      ],
+      {
+        stdout: (text) => stdout.push(text),
+        stderr: () => undefined,
+        env: { OPENAI_API_KEY: "test-key" },
+        fetchImpl: async (_url, init) => {
+          const requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+          requestBodies.push(requestBody);
+          const text =
+            requestBodies.length === 1
+              ? JSON.stringify({
+                  nodes: [
+                    { id: "node:map", label: "模型抽取", kind: "concept", definition: "根据证据生成结构化节点。" },
+                    { id: "node:evidence", name: "证据", kind: "concept", definition: "支撑节点和关系的教材片段。" },
+                  ],
+                  evidence_units: [
+                    {
+                      anchor: "ev1",
+                      excerpt: "模型根据证据抽取节点。",
+                      locator: "line:2",
+                      modality: "text",
+                      node_ids: ["node:map", "node:evidence"],
+                    },
+                  ],
+                  issues: [],
+                })
+              : JSON.stringify([
+                  {
+                    from: "node:map",
+                    to: "node:evidence",
+                    type: "uses",
+                    directionality: "directed",
+                    confidence: 0.9,
+                    evidence_anchor: "ev1",
+                    notes: "",
+                  },
+                ]);
+          return new Response(JSON.stringify({ choices: [{ message: { content: text } }] }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      },
+    );
+
+    assert.equal(code, 0);
+    assert.equal(requestBodies.length, 2);
+    assert.equal(((requestBodies[0]?.response_format as Record<string, Record<string, unknown>>).json_schema).name, "world_knowledge_node_evidence_bundle");
+    assert.equal(((requestBodies[1]?.response_format as Record<string, Record<string, unknown>>).json_schema).name, "world_knowledge_edge_bundle");
+    const secondPayload = JSON.parse((requestBodies[1]?.messages as Array<{ content: string }>)[1]!.content) as {
+      markdown_lines?: unknown;
+      candidate_nodes: unknown[];
+    };
+    assert.equal(secondPayload.markdown_lines, undefined);
+    assert.equal(secondPayload.candidate_nodes.length, 2);
+    const payload = JSON.parse(stdout.join("")) as { status: string; counts: { nodes: number; edges: number }; issues: string[] };
+    assert.equal(payload.status, "success");
+    assert.equal(payload.counts.nodes, 2);
+    assert.equal(payload.counts.edges, 1);
+    assert.ok(payload.issues.some((issue) => issue.includes("bare JSON array")));
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }
@@ -188,7 +470,10 @@ test("writes successful model output into staging through an injected executor",
     );
 
     assert.equal(code, 0);
-    assert.deepEqual(statements.slice(0, 7), [
+    assert.equal(statements[0], "begin-staging-transaction");
+    assert.equal(statements.at(-1), "commit-staging-transaction");
+    const stagedStatements = statements.filter((statement) => !statement.includes("staging-transaction"));
+    assert.deepEqual(stagedStatements.slice(0, 7), [
       "upsert-world-lesson-run",
       "delete-world_staging_nodes",
       "delete-world_staging_edges",
@@ -197,12 +482,12 @@ test("writes successful model output into staging through an injected executor",
       "delete-world_staging_evidence",
       "delete-world_staging_node_cards",
     ]);
-    assert.ok(statements.includes("insert-world-staging-nodes"));
+    assert.ok(stagedStatements.includes("insert-world-staging-nodes"));
     const payload = JSON.parse(stdout.join("")) as { status: string; staging: { dataset_id: string; statements: string[] }; counts: { nodes: number } };
     assert.equal(payload.status, "success");
     assert.equal(payload.staging.dataset_id, "dataset-a");
     assert.equal(payload.counts.nodes, 1);
-    assert.deepEqual(payload.staging.statements, statements);
+    assert.deepEqual(payload.staging.statements, stagedStatements);
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }

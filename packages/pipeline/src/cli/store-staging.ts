@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { runStoreStaging, type StoreStagingInput } from "../staging/staging-store.js";
-import { preparePostgresParams } from "../shared/postgres-executor.js";
+import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
 const REQUIRED_FLAGS = [
@@ -63,7 +63,7 @@ async function createExecuteStatement(dbUrl: string | undefined): Promise<{ exec
   return {
     execute: async (statement: SqlStatement): Promise<void> => {
       assertAllowedStoreStagingStatement(statement);
-      await sql.unsafe(statement.sql, preparePostgresParams(statement.params) as never[]);
+      await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
     },
     close: () => sql.end(),
   };
@@ -72,6 +72,7 @@ async function createExecuteStatement(dbUrl: string | undefined): Promise<{ exec
 function assertAllowedStoreStagingStatement(statement: SqlStatement): void {
   const trimmed = statement.sql.trim();
   const allowed =
+    /^(BEGIN|COMMIT|ROLLBACK)\b/i.test(trimmed) ||
     /^INSERT\s+INTO\s+world_lesson_runs\b/i.test(trimmed) ||
     /^DELETE\s+FROM\s+world_staging_(nodes|edges|domain_profiles|mentions|evidence|node_cards)\b/i.test(trimmed) ||
     /^INSERT\s+INTO\s+world_staging_(nodes|edges|domain_profiles|mentions|evidence|node_cards)\b/i.test(trimmed);

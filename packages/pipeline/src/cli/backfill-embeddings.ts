@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { embedTextsOpenAICompatible, DEFAULT_EMBEDDING_MODEL, DEFAULT_EMBEDDING_URL, runEmbeddingBackfillFromDatabase, type EmbeddingBackfillMode } from "../shared/embeddings.js";
-import { preparePostgresParams } from "../shared/postgres-executor.js";
+import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
 async function main(argv: string[]): Promise<number> {
@@ -30,12 +30,12 @@ async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promi
       sleepBetweenBatchesMs: parseNonNegativeInteger(flags.get("sleep-between-batches-ms"), 500),
       query: async (statement) => {
         assertSelectStatement(statement);
-        const rows = await sql.unsafe(statement.sql, preparePostgresParams(statement.params) as never[]);
+        const rows = await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
         return Array.isArray(rows) ? rows.filter(isRecord) : [];
       },
       executeStatement: async (statement) => {
         assertAllowedEmbeddingWriteStatement(statement);
-        await sql.unsafe(statement.sql, preparePostgresParams(statement.params) as never[]);
+        await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
       },
       embedTexts: (texts) =>
         embedTextsOpenAICompatible(texts, {

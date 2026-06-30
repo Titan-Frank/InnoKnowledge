@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { preparePostgresParams } from "../shared/postgres-executor.js";
+import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import { runStagingQualityFromDatabase } from "../staging/staging-quality.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
@@ -96,11 +96,7 @@ function hasFlag(flags: ParsedFlags, name: string): boolean {
 }
 
 function preparePostgresParamsForStatement(statement: SqlStatement): unknown[] {
-  return statement.params.map((param, index) => (placeholderCastsToJsonb(statement.sql, index + 1) ? preparePostgresParams([param])[0] : param));
-}
-
-function placeholderCastsToJsonb(sql: string, index: number): boolean {
-  return new RegExp(`\\$${index}\\s*::\\s*jsonb`, "i").test(sql);
+  return preparePostgresJsParams(statement.params);
 }
 
 function assertSelectStatement(statement: SqlStatement): void {

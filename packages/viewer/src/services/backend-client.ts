@@ -1,7 +1,9 @@
 import type {
   ApiNodeCard, ApiUnit, MetaResponse, BundleResponse, SearchResponse,
-  PipelineResponse, PipelineStartRequest, PipelineStartResponse,
+  AnnotationLessonTextResponse, AnnotationTextbookListResponse,
+  PipelineJobStatusResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
+  ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
 } from '@okm/types';
 
 export interface EnrichBookSummary {
@@ -61,10 +63,23 @@ export class BackendError extends Error {
   }
 }
 
+async function backendErrorMessage(response: Response, fallback: string): Promise<string> {
+  const text = await response.text().catch(() => '');
+  if (!text) return fallback;
+  try {
+    const payload = JSON.parse(text) as Record<string, unknown>;
+    if (typeof payload.error === 'string' && payload.error.trim()) return payload.error;
+    if (typeof payload.message === 'string' && payload.message.trim()) return payload.message;
+  } catch {
+    return text;
+  }
+  return fallback;
+}
+
 export async function fetchJson<T = unknown>(path: string): Promise<T> {
   const response = await fetch(path);
   if (!response.ok) {
-    throw new BackendError(`Failed to load ${path}`, response.status, 'server');
+    throw new BackendError(await backendErrorMessage(response, `Failed to load ${path}`), response.status, 'server');
   }
   return response.json() as Promise<T>;
 }
@@ -82,7 +97,7 @@ export async function postJson<T = unknown>(path: string, body: unknown): Promis
     body: JSON.stringify(body),
   });
   if (!response.ok) {
-    throw new BackendError(`Failed to post ${path}`, response.status, 'server');
+    throw new BackendError(await backendErrorMessage(response, `Failed to post ${path}`), response.status, 'server');
   }
   return response.json() as Promise<T>;
 }
@@ -102,6 +117,19 @@ export async function loadEnrichBooks(): Promise<EnrichIndexResponse> {
 export async function loadEnrichBook(path: string): Promise<EnrichBookResponse> {
   const params = new URLSearchParams({ path });
   return fetchJson<EnrichBookResponse>(`/api/enrich/book?${params}`);
+}
+
+export async function loadAnnotationTextbooks(): Promise<AnnotationTextbookListResponse> {
+  return fetchJson<AnnotationTextbookListResponse>('/api/annotation/textbooks');
+}
+
+export async function loadAnnotationLessonText(
+  bookId: string,
+  lessonId: string,
+): Promise<AnnotationLessonTextResponse> {
+  return fetchJson<AnnotationLessonTextResponse>(
+    `/api/annotation/textbooks/${encodeURIComponent(bookId)}/lessons/${encodeURIComponent(lessonId)}`,
+  );
 }
 
 export async function loadNodeCard(
@@ -144,6 +172,12 @@ export async function loadPipeline(sourceKey: string): Promise<PipelineResponse 
   );
 }
 
+export async function loadPipelineQuality(sourceKey: string): Promise<PipelineQualityDashboardResponse | null> {
+  return fetchOptionalJson<PipelineQualityDashboardResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/quality`,
+  );
+}
+
 export async function startPipeline(
   sourceKey: string,
   payload: PipelineStartRequest,
@@ -154,12 +188,38 @@ export async function startPipeline(
   );
 }
 
+export async function loadPipelineJobStatus(
+  sourceKey: string,
+  jobId: string,
+): Promise<PipelineJobStatusResponse> {
+  return fetchJson<PipelineJobStatusResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/jobs/${encodeURIComponent(jobId)}`,
+  );
+}
+
 export async function inferTextbookMetadata(
   sourceKey: string,
   payload: TextbookMetadataRequest,
 ): Promise<TextbookMetadataResponse> {
   return postJson<TextbookMetadataResponse>(
     `/api/source/${encodeURIComponent(sourceKey)}/pipeline/infer-textbook`,
+    payload,
+  );
+}
+
+export async function loadImageReviews(sourceKey: string): Promise<ImageReviewResponse> {
+  return fetchJson<ImageReviewResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/image-reviews?limit=200`,
+  );
+}
+
+export async function updateImageReview(
+  sourceKey: string,
+  evidenceId: string,
+  payload: ImageReviewUpdateRequest,
+): Promise<ImageReviewUpdateResponse> {
+  return postJson<ImageReviewUpdateResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/image-reviews/${encodeURIComponent(evidenceId)}`,
     payload,
   );
 }

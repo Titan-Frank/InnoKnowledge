@@ -3,11 +3,20 @@ import { isAbsolute, resolve } from "node:path";
 
 import {
   VALID_DOMAINS,
-  VALID_EDGE_TYPES,
   VALID_KNOWLEDGE_FORMS,
   VALID_LEARNING_MODES,
   VALID_NODE_KINDS,
 } from "../shared/knowledge.js";
+import {
+  buildTemplateInstructionBlock,
+  templateAllowedNodeKinds,
+  templateEdgeDisplay,
+  templateMetadata,
+  templateModelPayload,
+  templateNodeDisplay,
+  templatePreferredEdgeTypes,
+  type ExtractionTemplate,
+} from "./extraction-template.js";
 import {
   REPO_ROOT,
   iterOutlineItems,
@@ -20,6 +29,7 @@ import {
   type OutlineItem,
 } from "../shared/pathing.js";
 import { resolveOutlineAnchorFromItems } from "./parallel-batch.js";
+import type { EnrichHint } from "./enrich-context.js";
 
 type RawRecord = Record<string, unknown>;
 
@@ -51,11 +61,13 @@ export type ModelLessonContext = {
   source_path: string;
   markdown_excerpt_preview: string;
   retrieval_candidates: RawRecord[];
+  enrich_hints: EnrichHint[];
   markdown_evidence_hints: MarkdownEvidenceHint[];
 };
 
 export type ModelLessonPayload = {
   lesson_context: ModelLessonContext;
+  extraction_template?: RawRecord;
   markdown_lines: string[];
 };
 
@@ -66,10 +78,12 @@ export type BuildModelLessonPayloadInput = {
   outline?: RawRecord;
   markdownLines?: string[];
   retrievalCandidates?: RawRecord[];
+  enrichHints?: EnrichHint[];
   textbookId?: string;
   subject?: string;
   schoolStage?: string;
   gradeBand?: string;
+  extractionTemplate?: ExtractionTemplate | null;
 };
 
 export type BuildModelExtractionRequestInput = BuildModelLessonPayloadInput & {
@@ -98,6 +112,9 @@ export type ModelBundle = {
   node_cards?: RawRecord[];
   issues?: unknown[];
 };
+
+export type HybridNodeEvidenceBundle = Pick<ModelBundle, "nodes" | "evidence_units" | "issues">;
+export type HybridEdgeBundle = Pick<ModelBundle, "edges" | "issues">;
 
 export type ExtractionPayload = {
   status: "success";
@@ -138,77 +155,153 @@ export function buildModelLessonPayload(input: BuildModelLessonPayloadInput): Mo
       source_path: stringValue(outline.source_path),
       markdown_excerpt_preview: makeExcerpt(markdownLines),
       retrieval_candidates: input.retrievalCandidates ?? [],
+      enrich_hints: input.enrichHints ?? [],
       markdown_evidence_hints: extractMarkdownEvidenceHints(markdownLines),
     },
+    ...(input.extractionTemplate ? { extraction_template: templateModelPayload(input.extractionTemplate) } : {}),
     markdown_lines: markdownLines,
   };
 }
 
-export function buildSystemInstructions(input: { prompt?: string } = {}): string {
-  const base = `
-你是 Open Knowledge Map 项目的专用教材知识抽取器。
-任务是为当前单个 lesson/chunk 生成统一世界知识标准下的结构化候选。
-
-硬约束：
-1. 只处理当前一个 lesson/chunk。
-2. 先证据后知识对象：每个节点和关系都必须能落到当前 lesson 的 evidence anchor。
-3. 不要把章节编号、复习题、术语表、小结当成正式知识节点。
-4. 节点主类只能使用 9 类：entity/concept/property/process/event/method/rule/representation/resource。
-5. tag 只是辅助检索，不承担主分类；主分类靠 kind、domain、relation。
-6. 关系只允许使用 schema 合法 type，证据不足就不要编造。
-7. 输出必须严格符合 JSON schema。
-
-主类判断：
-- entity：具体对象、物质、人物、地点、设备、样本。
-- concept：抽象概念、理论对象、学科核心术语。
-- property：性质、属性、状态量、可观测特征。
-- process：连续过程、机制、变化过程。
-- event：具有时间边界的事件或历史事实。
-- method：步骤、算法、实验方法、操作技能。
-- rule：定律、规则、公式、原则、约束。
-- representation：图、表、模型、符号、方程、示意图。
-- resource：资料、文本、工具、数据集、媒介资源。
-
-关系判断：
-- is_a 用于类属关系；instance_of 用于具体实例属于某类。
-- part_of/contains 用于组成和包含。
-- has_property 用于对象具有属性。
-- uses/produces 用于方法或过程使用、产出某对象。
-- depends_on/prerequisite_for 用于依赖和先修。
-- causes/affects 用于因果和影响。
-- represents/about 用于表示对象和论述主题。
-- same_as 只用于高度确定的同一对象；不确定时用 related_to。
-
-学习维度判断：
-- factual：事实、名称、符号、具体信息。
-- conceptual：概念、分类、原理、结构关系。
-- procedural：步骤、算法、实验操作、解题方法。
-- metacognitive：策略选择、反思、认知监控。
-`.trim();
-  const prompt = input.prompt?.trim();
-  return prompt ? `${base}\n\n补充项目提示：\n${prompt}` : base;
+export function buildHybridNodeEvidenceExtractionRequest(input: BuildModelExtractionRequestInput): ModelExtractionRequest {
+  return buildSchemaBackedExtractionRequest(input, {
+    instructions: buildHybridNodeEvidenceInstructions({ prompt: input.prompt, extractionTemplate: input.extractionTemplate }),
+    userPayload: JSON.stringify(buildModelLessonPayload(input), null, 2),
+    schema: buildHybridNodeEvidenceResponseSchema(input.extractionTemplate),
+  });
 }
 
-export function buildModelExtractionRequest(input: BuildModelExtractionRequestInput): ModelExtractionRequest {
-  const apiMode = input.apiMode ?? "responses";
+export function buildHybridEdgeExtractionRequest(
+  input: BuildModelExtractionRequestInput,
+  nodeEvidenceBundle: HybridNodeEvidenceBundle,
+): ModelExtractionRequest {
+  const lessonPayload = buildModelLessonPayload(input);
+  const normalized = normalizeHybridNodeEvidenceBundle(nodeEvidenceBundle);
+  const userPayload = JSON.stringify(
+    {
+      lesson_context: lessonPayload.lesson_context,
+      allowed_edge_types: templatePreferredEdgeTypes(input.extractionTemplate),
+      extraction_template: input.extractionTemplate ? templateModelPayload(input.extractionTemplate) : null,
+      candidate_nodes: normalized.nodes.map((node) => ({
+        id: node.id,
+        name: node.name,
+        kind: node.kind,
+        aliases: node.aliases,
+        definition: node.definition,
+      })),
+      evidence_units: normalized.evidence_units.map((evidence) => ({
+        anchor: evidence.anchor,
+        excerpt: evidence.excerpt,
+        locator: evidence.locator,
+        modality: evidence.modality,
+        node_ids: evidence.node_ids,
+      })),
+    },
+    null,
+    2,
+  );
+  return buildSchemaBackedExtractionRequest(input, {
+    instructions: buildHybridEdgeInstructions({ prompt: input.prompt, extractionTemplate: input.extractionTemplate }),
+    userPayload,
+    schema: buildHybridEdgeResponseSchema(input.extractionTemplate),
+  });
+}
+
+export function buildHybridExtractionPayloadFromModelResponses(
+  input: BuildModelLessonPayloadInput,
+  nodeEvidenceBody: RawRecord,
+  edgeBody: RawRecord,
+): ExtractionPayload {
+  return buildHybridExtractionPayloadFromModelBundles(
+    input,
+    parseHybridNodeEvidenceBundleFromResponse(nodeEvidenceBody),
+    parseHybridEdgeBundleFromResponse(edgeBody),
+  );
+}
+
+export function buildHybridExtractionPayloadFromModelBundles(
+  input: BuildModelLessonPayloadInput,
+  nodeEvidenceBundle: HybridNodeEvidenceBundle,
+  edgeBundle: HybridEdgeBundle,
+): ExtractionPayload {
+  const bundle = buildStrictHybridModelBundle(nodeEvidenceBundle, edgeBundle, input.extractionTemplate);
+  return buildExtractionPayloadFromModelBundle(input, bundle);
+}
+
+function buildSchemaBackedExtractionRequest(
+  input: BuildModelExtractionRequestInput,
+  options: { instructions: string; userPayload: string; schema: RawRecord },
+): ModelExtractionRequest {
+  const apiMode = input.apiMode ?? "chat_completions";
   const baseUrl = (input.baseUrl ?? DEFAULT_OPENAI_BASE_URL).replace(/\/+$/, "");
-  const instructions = buildSystemInstructions({ prompt: input.prompt });
-  const userPayload = JSON.stringify(buildModelLessonPayload(input), null, 2);
   const model = input.model ?? DEFAULT_OPENAI_MODEL;
-  const schema = buildResponseSchema();
   const body =
     apiMode === "responses"
-      ? buildResponsesBody(model, instructions, userPayload, schema, input.reasoningEffort)
-      : buildChatCompletionsBody(model, instructions, userPayload, schema, input.reasoningEffort);
+      ? buildResponsesBody(model, options.instructions, options.userPayload, options.schema, input.reasoningEffort)
+      : buildChatCompletionsBody(model, options.instructions, options.userPayload, options.schema, input.reasoningEffort);
 
   return {
     api_mode: apiMode,
     endpoint: `${baseUrl}/${apiMode === "responses" ? "responses" : "chat/completions"}`,
     timeout_ms: input.timeoutMs ?? DEFAULT_OPENAI_TIMEOUT_MS,
-    instructions,
-    user_payload: userPayload,
+    instructions: options.instructions,
+    user_payload: options.userPayload,
     body,
   };
+}
+
+function buildHybridNodeEvidenceInstructions(input: { prompt?: string; extractionTemplate?: ExtractionTemplate | null } = {}): string {
+  const base = `
+你是 Open Knowledge Map 项目的第一阶段教材知识抽取器。
+任务是只从当前 lesson/chunk 中抽取证据和候选知识节点。
+
+硬约束：
+1. 只输出 nodes、evidence_units、issues 三个字段。
+2. 这一阶段绝对不要输出关系；关系会在第二阶段单独判断。
+3. 每个节点必须能被当前 lesson 的 evidence_units 支撑，证据不足就不要列为节点。
+4. evidence_units.anchor 必须稳定、简短、唯一，例如 ev1、ev2。
+5. node.id 必须稳定、唯一，后续关系阶段会直接引用这些 id。
+6. 节点主类只能使用 9 类：entity/concept/property/process/event/method/rule/representation/resource。
+7. 不要把章节编号、复习题、术语表、小结当成正式知识节点。
+8. lesson_context.enrich_hints 只是对应教材位置的辅助判断材料，只能帮助判断术语边界、命名和粒度，不能作为节点证据。
+9. 如果 enrich_hints 和当前 lesson/chunk 证据冲突，以当前 lesson/chunk 的证据为准。
+10. 输出必须严格符合 JSON schema。
+  `.trim();
+  return appendPromptBlocks(base, input.prompt, input.extractionTemplate, "node_evidence");
+}
+
+function buildHybridEdgeInstructions(input: { prompt?: string; extractionTemplate?: ExtractionTemplate | null } = {}): string {
+  const base = `
+你是 Open Knowledge Map 项目的第二阶段关系抽取器。
+任务是只根据第一阶段给出的 candidate_nodes 和 evidence_units 判断关系。
+
+硬约束：
+1. 只输出 edges、issues 两个字段。
+2. 不要新增节点，不要改写节点 id，不要新增证据。
+3. edge.from 和 edge.to 必须来自 candidate_nodes.id。
+4. edge.evidence_anchor 必须完全等于 evidence_units.anchor 中的一个值。
+5. 关系 type 只能来自 allowed_edge_types。
+6. 如果证据不能直接支持关系，就不要输出该关系。
+7. 优先抽取教材明确表达的类属、组成、性质、因果、依赖、表示、使用、产出关系。
+8. 如果 lesson_context.enrich_hints 存在，它只能帮助理解课时主题，不能作为关系证据。
+9. 输出必须严格符合 JSON schema，不要解释。
+  `.trim();
+  return appendPromptBlocks(base, input.prompt, input.extractionTemplate, "edges");
+}
+
+function appendPromptBlocks(
+  base: string,
+  prompt?: string,
+  extractionTemplate?: ExtractionTemplate | null,
+  stage: "node_evidence" | "edges" = "node_evidence",
+): string {
+  const blocks = [base];
+  if (extractionTemplate) {
+    blocks.push(`模板契约：\n${buildTemplateInstructionBlock(extractionTemplate, stage)}`);
+  }
+  const trimmedPrompt = prompt?.trim();
+  if (trimmedPrompt) blocks.push(`补充项目提示：\n${trimmedPrompt}`);
+  return blocks.join("\n\n");
 }
 
 export async function callModelExtractionRequest(
@@ -240,14 +333,43 @@ export async function callModelExtractionRequest(
   }
 }
 
-export function buildResponseSchema(): RawRecord {
+export function buildResponseSchema(extractionTemplate?: ExtractionTemplate | null): RawRecord {
+  const stringList = {
+    type: "array",
+    items: { type: "string" },
+  };
+  const semanticCore = {
+    type: "object",
+    additionalProperties: true,
+    properties: {
+      core_claims: stringList,
+      formal_expressions: stringList,
+      conditions: stringList,
+      boundaries: stringList,
+      counterexamples: stringList,
+      misconceptions: stringList,
+    },
+  };
+  const pedagogicalProfile = {
+    type: "object",
+    additionalProperties: true,
+    properties: {
+      learning_objectives: stringList,
+      difficulty_level: { type: "string", enum: ["introductory", "basic", "intermediate", "advanced", "expert"] },
+      diagnostic_questions: stringList,
+      common_errors: stringList,
+      assessment_tasks: stringList,
+      remediation_suggestions: stringList,
+      extension_suggestions: stringList,
+    },
+  };
   const nodeItem = {
     type: "object",
     additionalProperties: false,
     properties: {
       id: { type: "string" },
       name: { type: "string" },
-      kind: { type: "string", enum: sortedSet(VALID_NODE_KINDS) },
+      kind: { type: "string", enum: templateAllowedNodeKinds(extractionTemplate) },
       subkind: { type: ["string", "null"] },
       definition: { type: "string" },
       aliases: { type: "array", items: { type: "string" } },
@@ -255,7 +377,13 @@ export function buildResponseSchema(): RawRecord {
       knowledge_form: { type: "array", items: { type: "string", enum: sortedSet(VALID_KNOWLEDGE_FORMS) } },
       learning_mode: { type: "array", items: { type: "string", enum: sortedSet(VALID_LEARNING_MODES) } },
       scope: { type: "string", enum: ["universal", "domain-specific", "culture-specific"] },
-      properties: { type: "object", additionalProperties: true },
+      properties: {
+        type: "object",
+        additionalProperties: true,
+        properties: {
+          semantic_core: semanticCore,
+        },
+      },
       external_ids: { type: "object", additionalProperties: { type: "string" } },
       tags: { type: "array", items: { type: "string" } },
       notes: { type: "string" },
@@ -282,7 +410,7 @@ export function buildResponseSchema(): RawRecord {
     properties: {
       from: { type: "string" },
       to: { type: "string" },
-      type: { type: "string", enum: sortedSet(VALID_EDGE_TYPES) },
+      type: { type: "string", enum: templatePreferredEdgeTypes(extractionTemplate) },
       directionality: { type: "string", enum: ["directed", "undirected"] },
       confidence: { type: "number" },
       evidence_anchor: { type: "string" },
@@ -310,7 +438,13 @@ export function buildResponseSchema(): RawRecord {
       domain: { type: "string", enum: sortedSet(VALID_DOMAINS) },
       school_stages: { type: "array", items: { type: "string" } },
       curriculum_roles: { type: "array", items: { type: "string" } },
-      properties: { type: "object", additionalProperties: true },
+      properties: {
+        type: "object",
+        additionalProperties: true,
+        properties: {
+          pedagogical_profile: pedagogicalProfile,
+        },
+      },
     },
     required: ["node_id", "domain", "school_stages", "curriculum_roles", "properties"],
   };
@@ -349,6 +483,46 @@ export function buildResponseSchema(): RawRecord {
   };
 }
 
+export function buildHybridNodeEvidenceResponseSchema(extractionTemplate?: ExtractionTemplate | null): RawRecord {
+  const properties = responseSchemaProperties(extractionTemplate);
+  return {
+    name: "world_knowledge_node_evidence_bundle",
+    strict: true,
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        nodes: properties.nodes,
+        evidence_units: properties.evidence_units,
+        issues: properties.issues,
+      },
+      required: ["nodes", "evidence_units", "issues"],
+    },
+  };
+}
+
+export function buildHybridEdgeResponseSchema(extractionTemplate?: ExtractionTemplate | null): RawRecord {
+  const properties = responseSchemaProperties(extractionTemplate);
+  return {
+    name: "world_knowledge_edge_bundle",
+    strict: true,
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        edges: properties.edges,
+        issues: properties.issues,
+      },
+      required: ["edges", "issues"],
+    },
+  };
+}
+
+function responseSchemaProperties(extractionTemplate?: ExtractionTemplate | null): RawRecord {
+  const schema = recordValue(recordValue(buildResponseSchema(extractionTemplate).schema).properties);
+  return schema;
+}
+
 export function extractTextOutput(body: RawRecord): string {
   const choices = Array.isArray(body.choices) ? body.choices : [];
   const firstChoice = choices[0];
@@ -369,13 +543,258 @@ export function extractTextOutput(body: RawRecord): string {
 }
 
 export function parseModelBundleFromResponse(body: RawRecord): ModelBundle {
-  const parsed = JSON.parse(extractTextOutput(body)) as unknown;
+  const parsed = parseJsonObjectFromText(extractTextOutput(body));
   if (!isRecord(parsed)) throw new Error("Model output must be a JSON object.");
   return parsed as ModelBundle;
 }
 
-export function buildExtractionPayloadFromModelResponse(input: BuildModelLessonPayloadInput, body: RawRecord): ExtractionPayload {
-  return buildExtractionPayloadFromModelBundle(input, parseModelBundleFromResponse(body));
+export function parseHybridNodeEvidenceBundleFromResponse(body: RawRecord): HybridNodeEvidenceBundle {
+  const parsed = parseJsonObjectFromText(extractTextOutput(body));
+  if (!isRecord(parsed)) throw new Error("Hybrid node/evidence output must be a JSON object.");
+  return parsed as HybridNodeEvidenceBundle;
+}
+
+export function parseHybridEdgeBundleFromResponse(body: RawRecord): HybridEdgeBundle {
+  const parsed = parseJsonValueFromText(extractTextOutput(body));
+  if (Array.isArray(parsed)) {
+    return { edges: parsed.filter(isRecord), issues: ["Model returned a bare JSON array instead of the requested edge object."] };
+  }
+  if (!isRecord(parsed)) throw new Error("Hybrid edge output must be a JSON object or edge array.");
+  return parsed as HybridEdgeBundle;
+}
+
+function parseJsonObjectFromText(text: string): RawRecord {
+  const trimmed = text.trim();
+  const candidates = [trimmed];
+  for (const block of extractFencedBlocks(trimmed)) {
+    candidates.push(block);
+  }
+  for (const objectText of extractBalancedJsonObjects(trimmed)) {
+    candidates.push(objectText);
+  }
+
+  const errors: string[] = [];
+  for (const candidate of uniqueStable(candidates.filter(Boolean))) {
+    try {
+      const parsed = JSON.parse(candidate) as unknown;
+      if (isRecord(parsed)) return parsed;
+      errors.push("parsed JSON was not an object");
+    } catch (error) {
+      errors.push((error as Error).message);
+    }
+  }
+  throw new Error(`Model output must be a JSON object: ${errors[0] ?? "empty output"}`);
+}
+
+function parseJsonValueFromText(text: string): unknown {
+  const trimmed = text.trim();
+  const candidates = [trimmed];
+  for (const block of extractFencedBlocks(trimmed)) {
+    candidates.push(block);
+  }
+  for (const arrayText of extractBalancedJsonArrays(trimmed)) {
+    candidates.push(arrayText);
+  }
+  for (const objectText of extractBalancedJsonObjects(trimmed)) {
+    candidates.push(objectText);
+  }
+
+  const errors: string[] = [];
+  for (const candidate of uniqueStable(candidates.filter(Boolean))) {
+    try {
+      return JSON.parse(candidate) as unknown;
+    } catch (error) {
+      errors.push((error as Error).message);
+    }
+  }
+  throw new Error(`Model output must contain JSON: ${errors[0] ?? "empty output"}`);
+}
+
+function extractFencedBlocks(text: string): string[] {
+  const blocks: string[] = [];
+  const pattern = /```[ \t]*(?:json)?[^\n\r`]*[\r\n]+([\s\S]*?)```/gi;
+  for (const match of text.matchAll(pattern)) {
+    const block = match[1]?.trim();
+    if (block) blocks.push(block);
+  }
+  return blocks;
+}
+
+function extractBalancedJsonObjects(text: string): string[] {
+  const objects: string[] = [];
+  for (let start = text.indexOf("{"); start >= 0; start = text.indexOf("{", start + 1)) {
+    const end = findBalancedJsonValueEnd(text, start, "{", "}");
+    if (end >= 0) objects.push(text.slice(start, end + 1).trim());
+  }
+  return objects;
+}
+
+function extractBalancedJsonArrays(text: string): string[] {
+  const arrays: string[] = [];
+  for (let start = text.indexOf("["); start >= 0; start = text.indexOf("[", start + 1)) {
+    const end = findBalancedJsonValueEnd(text, start, "[", "]");
+    if (end >= 0) arrays.push(text.slice(start, end + 1).trim());
+  }
+  return arrays;
+}
+
+function findBalancedJsonValueEnd(text: string, start: number, open: string, close: string): number {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === "\"") {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === "\"") {
+      inString = true;
+    } else if (char === open) {
+      depth += 1;
+    } else if (char === close) {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  return -1;
+}
+
+function uniqueStable(values: Iterable<string>): string[] {
+  const result: string[] = [];
+  const seen = new Set<string>();
+  for (const value of values) {
+    if (seen.has(value)) continue;
+    seen.add(value);
+    result.push(value);
+  }
+  return result;
+}
+
+function buildStrictHybridModelBundle(
+  nodeEvidenceBundle: HybridNodeEvidenceBundle,
+  edgeBundle: HybridEdgeBundle,
+  extractionTemplate?: ExtractionTemplate | null,
+): ModelBundle {
+  const normalized = normalizeHybridNodeEvidenceBundle(nodeEvidenceBundle);
+  const nodeIds = new Set(normalized.nodes.map((node) => stringValue(node.id)).filter(Boolean));
+  const evidenceAnchors = new Set(normalized.evidence_units.map((evidence) => stringValue(evidence.anchor)).filter(Boolean));
+  const allowedEdgeTypes = new Set(templatePreferredEdgeTypes(extractionTemplate));
+  const edges: RawRecord[] = [];
+  const seenEdges = new Set<string>();
+  let droppedEdges = 0;
+
+  for (const raw of asRecords(edgeBundle.edges)) {
+    const from = stringValue(raw.from || raw.source || raw.source_id).trim();
+    const to = stringValue(raw.to || raw.target || raw.target_id).trim();
+    const type = stringValue(raw.type || raw.relation || raw.predicate).trim();
+    const evidenceAnchor = stringValue(raw.evidence_anchor || raw.anchor || raw.evidence).trim();
+    if (!nodeIds.has(from) || !nodeIds.has(to) || !allowedEdgeTypes.has(type) || !evidenceAnchors.has(evidenceAnchor)) {
+      droppedEdges += 1;
+      continue;
+    }
+
+    const edgeKey = `${from}\u0000${type}\u0000${to}\u0000${evidenceAnchor}`;
+    if (seenEdges.has(edgeKey)) continue;
+    seenEdges.add(edgeKey);
+    edges.push({
+      from,
+      to,
+      type,
+      directionality: stringValue(raw.directionality || "directed"),
+      confidence: numberOrDefault(raw.confidence, 0.8),
+      evidence_anchor: evidenceAnchor,
+      properties: applyEdgeTemplateProperties(recordValue(raw.properties), extractionTemplate, type),
+      notes: stringValue(raw.notes).trim(),
+    });
+  }
+
+  return {
+    nodes: normalized.nodes,
+    evidence_units: normalized.evidence_units,
+    edges,
+    domain_profiles: [],
+    node_cards: [],
+    issues: trimmedStrings(nodeEvidenceBundle.issues).concat(
+      trimmedStrings(edgeBundle.issues),
+      normalized.issues,
+      droppedEdges > 0
+        ? [`Strict hybrid validator dropped ${droppedEdges} edge(s) with missing node ids, invalid relation types, or missing evidence anchors.`]
+        : [],
+    ),
+  };
+}
+
+function normalizeHybridNodeEvidenceBundle(bundle: HybridNodeEvidenceBundle): {
+  nodes: RawRecord[];
+  evidence_units: RawRecord[];
+  issues: string[];
+} {
+  const issues: string[] = [];
+  const nodes: RawRecord[] = [];
+  const seenNodeIds = new Set<string>();
+
+  for (const raw of asRecords(bundle.nodes)) {
+    const id = stringValue(raw.id || raw.node_id).trim();
+    if (!id || seenNodeIds.has(id)) continue;
+    const name = stringValue(raw.name || raw.label || raw.title || raw.term).trim();
+    if (!name) {
+      issues.push(`Hybrid stage 1 dropped node '${id}' because it had no name.`);
+      continue;
+    }
+
+    const kind = validOrDefault(stringValue(raw.kind || raw.node_kind).trim(), VALID_NODE_KINDS, "concept");
+    if (kind !== stringValue(raw.kind || raw.node_kind).trim()) {
+      issues.push(`Hybrid stage 1 normalized node kind for ${id}.`);
+    }
+    seenNodeIds.add(id);
+    nodes.push({
+      id,
+      name,
+      kind,
+      subkind: raw.subkind ?? null,
+      definition: stringValue(raw.definition || raw.description || name).trim(),
+      aliases: trimmedStrings(raw.aliases),
+      domains: validListOrDefault(raw.domains ?? raw.domain, VALID_DOMAINS, "general"),
+      knowledge_form: validListOrDefault(raw.knowledge_form, VALID_KNOWLEDGE_FORMS, "propositional"),
+      learning_mode: validListOrDefault(raw.learning_mode ?? raw.learning_dimension, VALID_LEARNING_MODES, "conceptual"),
+      scope: validOrDefault(stringValue(raw.scope).trim(), new Set(["universal", "domain-specific", "culture-specific"]), "domain-specific"),
+      properties: recordValue(raw.properties),
+      external_ids: recordValue(raw.external_ids),
+      tags: trimmedStrings(raw.tags),
+      notes: stringValue(raw.notes).trim(),
+    });
+  }
+
+  const nodeIds = new Set(nodes.map((node) => stringValue(node.id)));
+  const evidenceUnits: RawRecord[] = [];
+  const seenEvidenceAnchors = new Set<string>();
+  for (const [zeroIndex, raw] of asRecords(bundle.evidence_units).entries()) {
+    const fallbackAnchor = `ev${zeroIndex + 1}`;
+    const anchor = stringValue(raw.anchor || raw.evidence_anchor || raw.id || fallbackAnchor).trim();
+    const excerpt = stringValue(raw.excerpt || raw.quote || raw.text).trim();
+    if (!anchor || !excerpt || seenEvidenceAnchors.has(anchor)) continue;
+    seenEvidenceAnchors.add(anchor);
+    evidenceUnits.push({
+      anchor,
+      excerpt,
+      locator: stringValue(raw.locator || raw.source_locator || raw.location || "lesson-chunk").trim(),
+      modality: validOrDefault(stringValue(raw.modality || "text").trim(), new Set(["text", "image", "table", "equation"]), "text"),
+      node_ids: trimmedStrings(raw.node_ids).filter((nodeId) => nodeIds.has(nodeId)),
+    });
+  }
+
+  return {
+    nodes,
+    evidence_units: evidenceUnits,
+    issues,
+  };
 }
 
 export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPayloadInput, bundle: ModelBundle): ExtractionPayload {
@@ -386,35 +805,50 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
   const subject = input.subject ?? "computer-science";
   const schoolStage = input.schoolStage ?? "higher";
   const gradeBand = input.gradeBand ?? "university";
+  const extractionTemplate = input.extractionTemplate;
 
   const nodes: RawRecord[] = [];
   const nodeIds = new Set<string>();
+  const normalizationIssues: string[] = [];
   for (const raw of asRecords(bundle.nodes)) {
+    const rawId = stringValue(raw.id).trim();
+    const rawName = stringValue(raw.name).trim();
+    const rawDefinition = stringValue(raw.definition).trim();
+    const inferredName = inferNodeName(rawId, rawName, rawDefinition, raw);
+    if (!rawId || !inferredName) {
+      normalizationIssues.push(`Dropped model node with missing id/name: ${JSON.stringify({ id: rawId, name: rawName })}`);
+      continue;
+    }
     const node = {
-      id: stringValue(raw.id).trim(),
-      name: stringValue(raw.name).trim(),
+      id: rawId,
+      name: inferredName,
       kind: stringValue(raw.kind).trim(),
       subkind: raw.subkind ?? null,
-      definition: stringValue(raw.definition).trim(),
+      definition: rawDefinition || inferredName,
       aliases: trimmedStrings(raw.aliases),
       domains: trimmedStrings(raw.domains).length > 0 ? trimmedStrings(raw.domains) : ["general"],
       knowledge_form: trimmedStrings(raw.knowledge_form).length > 0 ? trimmedStrings(raw.knowledge_form) : ["propositional"],
       learning_mode: trimmedStrings(raw.learning_mode).length > 0 ? trimmedStrings(raw.learning_mode) : ["conceptual"],
       scope: stringValue(raw.scope || "domain-specific"),
-      properties: recordValue(raw.properties),
+      properties: applyNodeTemplateProperties(recordValue(raw.properties), extractionTemplate, stringValue(raw.kind).trim(), raw.subkind),
       external_ids: recordValue(raw.external_ids),
       tags: trimmedStrings(raw.tags),
       notes: stringValue(raw.notes).trim(),
       status: "draft",
       source_refs: [],
     };
-    if (!node.id || nodeIds.has(node.id)) continue;
+    if (!rawName) normalizationIssues.push(`Backfilled missing name for model node ${rawId}.`);
+    if (!rawDefinition) normalizationIssues.push(`Backfilled empty definition for model node ${rawId}.`);
+    if (nodeIds.has(node.id)) continue;
     nodeIds.add(node.id);
     nodes.push(node);
   }
 
   const evidence: RawRecord[] = [];
   const evidenceByAnchor = new Map<string, string>();
+  const modelExtractionMethod = (input as BuildModelExtractionRequestInput).apiMode === "responses"
+    ? "openai_responses"
+    : "openai_chat_completions";
   for (const [zeroIndex, raw] of asRecords(bundle.evidence_units).entries()) {
     const index = zeroIndex + 1;
     const anchor = stringValue(raw.anchor).trim();
@@ -433,9 +867,9 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       excerpt,
       locator: stringValue(raw.locator).trim(),
       modality: stringValue(raw.modality || "text"),
-      extraction_method: "openai_responses",
+      extraction_method: modelExtractionMethod,
       normalized_claims: [excerpt.slice(0, 120)],
-      properties: {},
+      properties: applyEvidenceTemplateProperties({}, extractionTemplate),
     });
   }
 
@@ -457,7 +891,10 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       modality: hint.modality,
       extraction_method: "markdown_hint",
       normalized_claims: [excerpt.slice(0, 120)],
-      properties: Object.fromEntries(Object.entries(hint).filter(([key]) => !["excerpt", "locator", "modality"].includes(key))),
+      properties: applyEvidenceTemplateProperties(
+        Object.fromEntries(Object.entries(hint).filter(([key]) => !["excerpt", "locator", "modality"].includes(key))),
+        extractionTemplate,
+      ),
     });
   }
 
@@ -477,7 +914,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       modality: "text",
       extraction_method: "model_missing_evidence_backfill",
       normalized_claims: [excerpt.slice(0, 120)],
-      properties: {},
+      properties: applyEvidenceTemplateProperties({}, extractionTemplate),
     });
   }
 
@@ -498,7 +935,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
         role: index === 1 ? "defines" : "focuses_on",
         source_refs: [evidenceId],
         confidence: 0.88,
-        properties: {},
+        properties: applyMentionTemplateProperties({}, extractionTemplate),
       });
     }
   }
@@ -518,12 +955,13 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       role: "mentions",
       source_refs: [backfillEvidenceId],
       confidence: 0.72,
-      properties: { backfilled: true },
+      properties: applyMentionTemplateProperties({ backfilled: true }, extractionTemplate),
     });
   }
 
   const edges: RawRecord[] = [];
   let droppedEdges = 0;
+  const allowedEdgeTypes = new Set(templatePreferredEdgeTypes(extractionTemplate));
   const nodeLookup = new Map<string, string>();
   for (const node of nodes) {
     const nodeId = stringValue(node.id);
@@ -542,7 +980,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
     const fromId = nodeLookup.get(rawFrom) ?? nodeLookup.get(normalizeTerm(rawFrom)) ?? rawFrom;
     const toId = nodeLookup.get(rawTo) ?? nodeLookup.get(normalizeTerm(rawTo)) ?? rawTo;
     const edgeType = stringValue(raw.type).trim();
-    if (!nodeIds.has(fromId) || !nodeIds.has(toId) || !VALID_EDGE_TYPES.has(edgeType)) {
+    if (!nodeIds.has(fromId) || !nodeIds.has(toId) || !allowedEdgeTypes.has(edgeType)) {
       droppedEdges += 1;
       continue;
     }
@@ -555,7 +993,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       directionality: stringValue(raw.directionality || "directed"),
       confidence: numberOrDefault(raw.confidence, 0.8),
       source_refs: evidenceId ? [evidenceId] : [],
-      properties: {},
+      properties: applyEdgeTemplateProperties(recordValue(raw.properties), extractionTemplate, edgeType),
       status: "draft",
       notes: stringValue(raw.notes).trim(),
     });
@@ -577,7 +1015,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       school_stages: trimmedStrings(raw.school_stages).length > 0 ? trimmedStrings(raw.school_stages) : [schoolStage],
       curriculum_roles: trimmedStrings(raw.curriculum_roles).length > 0 ? trimmedStrings(raw.curriculum_roles) : ["core"],
       source_refs: sourceRefs.length > 0 ? sourceRefs.slice(0, 1) : backfillEvidenceId ? [backfillEvidenceId] : [],
-      properties: isRecord(raw.properties) ? raw.properties : { subject, grade_band: gradeBand },
+      properties: applyProfileTemplateProperties(isRecord(raw.properties) ? raw.properties : { subject, grade_band: gradeBand }, extractionTemplate),
       status: "draft",
       notes: "",
     });
@@ -597,7 +1035,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       school_stages: [schoolStage],
       curriculum_roles: ["core"],
       source_refs: backfillEvidenceId ? [backfillEvidenceId] : [],
-      properties: { subject, grade_band: gradeBand, backfilled: true },
+      properties: applyProfileTemplateProperties({ subject, grade_band: gradeBand, backfilled: true }, extractionTemplate),
       status: "draft",
       notes: "Backfilled because the model omitted a domain profile.",
     });
@@ -624,7 +1062,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
         cardSection("misconception", "常见误解", "misconception", [stringValue(raw.misconception).trim()], evidenceId),
       ],
       source_refs: evidenceId ? [evidenceId] : [],
-      properties: {},
+      properties: applyCardTemplateProperties({}, extractionTemplate),
       status: "draft",
     });
   }
@@ -655,7 +1093,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
         cardSection("misconception", "常见误解", "misconception", ["需结合证据原文确认适用范围。"], backfillEvidenceId, { backfilled: true }),
       ],
       source_refs: refs,
-      properties: { backfilled: true },
+      properties: applyCardTemplateProperties({ backfilled: true }, extractionTemplate),
       status: "draft",
     });
   }
@@ -680,9 +1118,63 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       node_cards: nodeCards.length,
     },
     issues: trimmedStrings(bundle.issues).concat(
+      normalizationIssues,
       droppedEdges > 0 ? [`Dropped ${droppedEdges} edges that could not be resolved to valid node ids or relation types.`] : [],
     ),
   };
+}
+
+function applyNodeTemplateProperties(
+  properties: RawRecord,
+  extractionTemplate: ExtractionTemplate | null | undefined,
+  kind: string,
+  subkind: unknown,
+): RawRecord {
+  return applyTemplateProperties(properties, extractionTemplate, {
+    template_display: templateNodeDisplay(extractionTemplate, kind, stringValue(subkind || "").trim() || null),
+  });
+}
+
+function applyEdgeTemplateProperties(
+  properties: RawRecord,
+  extractionTemplate: ExtractionTemplate | null | undefined,
+  edgeType: string,
+): RawRecord {
+  return applyTemplateProperties(properties, extractionTemplate, {
+    template_display: templateEdgeDisplay(extractionTemplate, edgeType),
+  });
+}
+
+function applyEvidenceTemplateProperties(properties: RawRecord, extractionTemplate: ExtractionTemplate | null | undefined): RawRecord {
+  return applyTemplateProperties(properties, extractionTemplate, {});
+}
+
+function applyMentionTemplateProperties(properties: RawRecord, extractionTemplate: ExtractionTemplate | null | undefined): RawRecord {
+  return applyTemplateProperties(properties, extractionTemplate, {});
+}
+
+function applyProfileTemplateProperties(properties: RawRecord, extractionTemplate: ExtractionTemplate | null | undefined): RawRecord {
+  return applyTemplateProperties(properties, extractionTemplate, {});
+}
+
+function applyCardTemplateProperties(properties: RawRecord, extractionTemplate: ExtractionTemplate | null | undefined): RawRecord {
+  return applyTemplateProperties(properties, extractionTemplate, {});
+}
+
+function applyTemplateProperties(
+  properties: RawRecord,
+  extractionTemplate: ExtractionTemplate | null | undefined,
+  extra: RawRecord,
+): RawRecord {
+  const metadata = templateMetadata(extractionTemplate);
+  if (!metadata) return properties;
+  return Object.fromEntries(
+    Object.entries({
+      ...properties,
+      extraction_template: metadata,
+      ...extra,
+    }).filter(([, value]) => value !== null && value !== undefined),
+  );
 }
 
 export function makeExcerpt(lines: string[], limit = 1200): string {
@@ -907,6 +1399,24 @@ function recordValue(value: unknown): RawRecord {
   return isRecord(value) ? value : {};
 }
 
+function inferNodeName(rawId: string, rawName: string, rawDefinition: string, raw: RawRecord): string {
+  if (rawName) return rawName;
+  const explicit = stringValue(raw.title || raw.label || raw.term).trim();
+  if (explicit) return explicit;
+  const alias = trimmedStrings(raw.aliases)[0];
+  if (alias) return alias;
+  const fromDefinition = rawDefinition.split(/[。；;，,：:\n]/)[0]?.trim();
+  if (fromDefinition) return fromDefinition.length > 32 ? fromDefinition.slice(0, 32).trim() : fromDefinition;
+  return humanizeNodeId(rawId);
+}
+
+function humanizeNodeId(rawId: string): string {
+  return rawId
+    .replace(/^(node|n|concept|entity|property|prop|rule|method|representation|event|e|m|p)[:_-]+/i, "")
+    .replace(/[_-]+/g, " ")
+    .trim();
+}
+
 function trimmedStrings(value: unknown): string[] {
   if (!Array.isArray(value)) return typeof value === "string" && value.trim() ? [value.trim()] : [];
   return value.map(stringValue).map((item) => item.trim()).filter(Boolean);
@@ -921,6 +1431,15 @@ function uniqueStrings(values: Iterable<string>): string[] {
     result.push(value);
   }
   return result;
+}
+
+function validOrDefault(value: string, allowed: Set<string>, fallback: string): string {
+  return allowed.has(value) ? value : fallback;
+}
+
+function validListOrDefault(value: unknown, allowed: Set<string>, fallback: string): string[] {
+  const validValues = trimmedStrings(value).filter((item) => allowed.has(item));
+  return validValues.length > 0 ? uniqueStrings(validValues) : [fallback];
 }
 
 function numberOrDefault(value: unknown, defaultValue: number): number {

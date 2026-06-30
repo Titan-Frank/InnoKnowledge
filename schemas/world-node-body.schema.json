@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "World Node Body Schema V1.2",
+  "description": "Markdown body layer for a world knowledge node. This is the persistent rich-text part of the Unit view and must remain tied to evidence sources.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "node_id",
+    "format",
+    "content",
+    "source_refs",
+    "generated_from",
+    "status"
+  ],
+  "properties": {
+    "node_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9/_:-]+$"
+    },
+    "format": {
+      "type": "string",
+      "enum": [
+        "markdown"
+      ]
+    },
+    "content": {
+      "type": "string",
+      "minLength": 1
+    },
+    "media_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "id",
+          "modality"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "modality": {
+            "type": "string",
+            "enum": [
+              "image",
+              "audio",
+              "video",
+              "interactive"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1
+          },
+          "caption": {
+            "type": "string"
+          },
+          "evidence_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "default": []
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "generated_from": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "card_expansion",
+        "imported_unit",
+        "model_generation"
+      ]
+    },
+    "properties": {
+      "type": "object"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "deprecated"
+      ]
+    }
+  }
+}

@@ -9,6 +9,17 @@ const completeRows = {
   domain_profiles: [{ id: "p1", node_id: "n1", domain: "chemistry", school_stages_json: ["primary"], curriculum_roles_json: ["core"], source_refs_json: ["ev1"] }],
   mentions: [{ id: "m1", target_id: "n1", source_refs_json: ["ev1"] }],
   evidence: [{ id: "ev1" }],
+  node_bodies: [
+    {
+      node_id: "n1",
+      format: "markdown",
+      content: "Body content.",
+      media_refs_json: [],
+      source_refs_json: ["ev1"],
+      generated_from: "card_expansion",
+      status: "active",
+    },
+  ],
   node_cards: [
     {
       node_id: "n1",
@@ -29,6 +40,43 @@ test("passes complete strict QA rows", () => {
     errors: [],
     warnings: [],
   });
+});
+
+test("validates persisted node bodies when present", () => {
+  const result = runStrictQa({
+    ...completeRows,
+    node_bodies: [
+      {
+        node_id: "n1",
+        format: "html",
+        content: "",
+        media_refs_json: [],
+        source_refs_json: [],
+        generated_from: "bad-source",
+        status: "active",
+      },
+      {
+        node_id: "missing",
+        format: "markdown",
+        content: "![diagram](images/water.png)",
+        media_refs_json: [],
+        source_refs_json: ["missing-evidence"],
+        generated_from: "manual",
+        status: "active",
+      },
+    ],
+  });
+
+  assert.equal(result.status, "blocked");
+  assert.deepEqual(result.errors, [
+    { category: "node_body", id: "n1", message: "Invalid body format: html" },
+    { category: "node_body", id: "n1", message: "Missing body content" },
+    { category: "node_body", id: "n1", message: "Invalid generated_from: bad-source" },
+    { category: "node_body", id: "n1", message: "Missing evidence source references" },
+    { category: "node_body", id: "missing", message: "Missing node" },
+    { category: "node_body", id: "missing", message: "Missing evidence missing-evidence" },
+    { category: "node_body", id: "missing", message: "Missing media ref for image images/water.png" },
+  ]);
 });
 
 test("reports Python-compatible strict QA errors", () => {

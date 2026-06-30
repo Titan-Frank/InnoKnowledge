@@ -8,7 +8,7 @@
     "packages/pipeline"
   ],
   "scripts": {
-    "dev": "concurrently -n server,viewer -c blue,green \"npm run dev -w packages/server\" \"npm run dev -w packages/viewer\"",
+    "dev": "npm run build -w packages/viewer && concurrently -n server,viewer -c blue,green \"npm run dev -w packages/server\" \"npm run dev -w packages/viewer\"",
     "build": "npm run build -w packages/pipeline && npm run build -w packages/server && npm run build -w packages/viewer",
     "serve": "npm run build && npm run start -w packages/server",
     "check": "npm run check -w packages/types && npm run check -w packages/pipeline && npm run check -w packages/server && npm run check -w packages/viewer"

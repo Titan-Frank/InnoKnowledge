@@ -1,6 +1,6 @@
 import { useAppState } from '@/hooks/useAppState';
 import type { SearchHitMeta } from '@/core/graph/types';
-import { Sun, Moon, Search, Network, BarChart3, BookOpen } from '@/lib/lucide-icons';
+import { Sun, Moon, Search, Network, BarChart3, BookOpen, ClipboardList } from '@/lib/lucide-icons';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { searchNodes } from '@/services/backend-client';
 
@@ -111,6 +111,16 @@ export function Header() {
         >
           <BarChart3 className="h-3.5 w-3.5" />
           调试
+        </button>
+        <button
+          onClick={() => setWorkspace('annotation')}
+          aria-pressed={workspace === 'annotation'}
+          className={`flex items-center gap-1 px-2.5 py-1 text-xs transition-colors ${
+            workspace === 'annotation' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'
+          }`}
+        >
+          <ClipboardList className="h-3.5 w-3.5" />
+          标注
         </button>
       </div>
 

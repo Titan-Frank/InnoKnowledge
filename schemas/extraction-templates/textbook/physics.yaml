@@ -1,0 +1,105 @@
+id: textbook/physics
+version: 1
+name: 物理教材抽取模板
+description: 面向物理教材，强调物理量、过程、规律、公式、实验、图像和模型。
+selector:
+  subjects:
+    - physics
+  book_id_patterns:
+    - physics
+    - phys
+    - 物理
+prompt:
+  focus:
+    - 优先抽取物理量、物理概念、定律、公式、过程、实验装置、测量方法、图像和模型。
+    - 关系重点关注因果、影响、依赖、表征、使用、产出、组成和具有性质。
+    - 对公式、条件、适用范围、变量含义和单位要放入 properties.semantic_core。
+  node_rules:
+    - 物理量通常使用 property，公式、定律和守恒关系通常使用 rule。
+    - 实验步骤和测量方法使用 method，实验装置和器材使用 entity。
+    - 图像、示意图、矢量图、公式表达和数学模型使用 representation。
+  edge_rules:
+    - 公式表示物理量关系时，优先使用 represents 或 depends_on。
+    - 过程导致状态或物理量变化时，优先使用 causes 或 affects。
+    - 实验方法使用器材、产生数据或验证规律时，使用 uses、produces、represents。
+  evidence_rules:
+    - 公式、图像、表格、实验说明都可以作为 evidence，但必须保留 locator 和 modality。
+output:
+  node_fields:
+    - id
+    - name
+    - kind
+    - subkind
+    - definition
+    - aliases
+    - domains
+    - knowledge_form
+    - learning_mode
+    - properties.semantic_core.formal_expressions
+    - properties.semantic_core.conditions
+    - properties.semantic_core.boundaries
+    - tags
+  edge_fields:
+    - from
+    - to
+    - type
+    - directionality
+    - confidence
+    - evidence_anchor
+    - notes
+  evidence_fields:
+    - anchor
+    - excerpt
+    - locator
+    - modality
+    - node_ids
+  allowed_node_kinds:
+    - entity
+    - concept
+    - property
+    - process
+    - method
+    - rule
+    - representation
+  preferred_edge_types:
+    - has_property
+    - uses
+    - produces
+    - depends_on
+    - prerequisite_for
+    - causes
+    - affects
+    - represents
+    - part_of
+    - contains
+    - related_to
+identifiers:
+  node_id: "{kind}:{physics_role}:{normalized_name}"
+  relation_id: "{from}:{type}:{to}"
+  evidence_anchor: "ev{index}"
+display:
+  node_labels:
+    concept: 物理概念
+    property: 物理量
+    process: 物理过程
+    rule: 规律/公式
+    method: 实验/方法
+    representation: 图像/模型
+    entity: 装置/对象
+  edge_labels:
+    has_property: 具有物理量
+    uses: 使用
+    produces: 产生
+    depends_on: 依赖条件
+    prerequisite_for: 前置知识
+    causes: 导致
+    affects: 影响
+    represents: 表征
+    related_to: 相关
+  colors:
+    rule: "#8C55FF"
+    process: "#2BA876"
+    property: "#FFB400"
+    method: "#1EB478"
+    representation: "#5580CC"
+    entity: "#3782FF"

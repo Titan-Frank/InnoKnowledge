@@ -3,7 +3,7 @@ import { useAppState } from '@/hooks/useAppState';
 import { useG6 } from '@/hooks/useG6';
 import { okmKnowledgeGraphToG6 } from '@/lib/graph-adapter';
 import { getVisibleNodes } from '@/lib/visibility';
-import { getTypeLabel } from '@/core/graph/knowledge-data';
+import { getNodeTypeLabel } from '@/core/graph/knowledge-data';
 import { ZoomIn, ZoomOut, Maximize2, Play, Pause, RotateCcw } from '@/lib/lucide-icons';
 
 export function GraphCanvas() {
@@ -128,15 +128,15 @@ export function GraphCanvas() {
 
       {/* Selection info bar */}
       {selectedNodeId && knowledgeGraph && (
-        <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 animate-slide-up items-center gap-2 rounded-xl border border-accent/30 bg-accent/20 px-4 py-2 backdrop-blur-sm">
+        <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 animate-slide-up items-center gap-2 rounded-xl border border-accent/30 bg-accent/20 px-4 py-2.5 backdrop-blur-sm">
           <div className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-          <span className="font-mono text-sm text-text-primary">
+          <span className="font-mono text-base text-text-primary">
             {knowledgeGraph.nodeById.get(selectedNodeId)?.name ?? selectedNodeId}
           </span>
           {(() => {
             const node = knowledgeGraph.nodeById.get(selectedNodeId);
             if (!node) return null;
-            return <span className="text-xs text-text-muted">({getTypeLabel(node.nodeType)})</span>;
+            return <span className="text-sm text-text-muted">({getNodeTypeLabel(node)})</span>;
           })()}
           <button
             onClick={handleClearSelection}

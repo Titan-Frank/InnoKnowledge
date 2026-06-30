@@ -69,21 +69,7 @@ export function registerSearchRoutes(app: Hono, sql: Sql): void {
         )
       ORDER BY name
       LIMIT ${textLimit}
-    `.catch(() => sql<TextRow[]>`
-      SELECT id, canonical_name, node_kind, node_layer
-      FROM nodes
-      WHERE dataset_id = ${datasetId}
-        AND status != 'deprecated'
-        AND (
-          canonical_name LIKE ${pattern}
-          OR definition LIKE ${pattern}
-          OR EXISTS (
-            SELECT 1 FROM jsonb_array_elements_text(aliases_json) AS a WHERE a LIKE ${pattern}
-          )
-        )
-      ORDER BY canonical_name
-      LIMIT ${textLimit}
-    `.catch(() => [] as TextRow[]));
+    `.catch(() => [] as TextRow[]);
 
     // ── Vector search ──────────────────────────────────────
     const vectorPromise = (async (): Promise<{ rows: VectorRow[]; ok: boolean }> => {
@@ -105,16 +91,7 @@ export function registerSearchRoutes(app: Hono, sql: Sql): void {
             AND embedding IS NOT NULL
           ORDER BY embedding <=> ${vecStr}::vector
           LIMIT ${limitParam}
-        `.catch(() => sql<VectorRow[]>`
-          SELECT id, canonical_name, node_kind, node_layer,
-                 1 - (embedding <=> ${vecStr}::vector) AS similarity
-          FROM nodes
-          WHERE dataset_id = ${datasetId}
-            AND status != 'deprecated'
-            AND embedding IS NOT NULL
-          ORDER BY embedding <=> ${vecStr}::vector
-          LIMIT ${limitParam}
-        `);
+        `;
         return { rows, ok: true };
       } catch {
         return { rows: [], ok: false };

@@ -27,9 +27,9 @@ export interface BuildResult {
 }
 
 const NODE_SIZE_MAP: Record<string, number> = {
-  concept: 26, principle: 24, process: 21, substance: 20, entity: 20,
-  experiment: 18, activity: 18, method: 18, representation: 17, symbol: 17,
-  skill: 17, question: 16, event: 16, issue: 16, other: 16,
+  concept: 26, rule: 24, process: 21, entity: 20, property: 18,
+  method: 18, representation: 17, resource: 16, event: 16,
+  substance: 20, experiment: 18, symbol: 17, other: 16,
 };
 
 function getNodeSize(nodeType: string, nodeLayer: string | null | undefined): number {
@@ -145,7 +145,7 @@ export function okmKnowledgeGraphToG6(
 
   const nodes = visibleNodes.map((node) => {
     const communityId = communityMemberships.get(node.id);
-    const typeColor = getTypeColor(node.nodeType);
+    const typeColor = node.displayColor || getTypeColor(node.nodeType);
     const color = communityCount > 0 && communityId != null ? getCommunityColor(communityId, mode) : typeColor;
     const borderColor = lightenForBorder(color);
     const size = getNodeSize(node.nodeType, node.nodeLayer);
@@ -168,10 +168,10 @@ export function okmKnowledgeGraphToG6(
         labelText: node.name,
         labelFill: mode === 'light' ? '#1a1a2e' : '#e4e4ed',
         labelFontFamily: 'PingFang SC, Microsoft YaHei, Noto Sans SC, sans-serif',
-        labelFontSize: node.nodeLayer === 'backbone' ? 12 : 11,
+        labelFontSize: node.nodeLayer === 'backbone' ? 14 : 13,
         labelFontWeight: node.nodeLayer === 'backbone' ? 600 : 500,
         labelPlacement: 'right' as const,
-        labelOffsetX: 8,
+        labelOffsetX: 10,
         halo: node.nodeLayer === 'backbone',
         haloStroke: color,
         haloStrokeOpacity: mode === 'light' ? 0.18 : 0.24,
@@ -185,6 +185,7 @@ export function okmKnowledgeGraphToG6(
     .filter((edge) => visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to))
     .map((edge) => {
       const visual = resolveEdgeVisual(edge.edgeType);
+      const edgeColor = edge.displayColor || visual.stroke;
       edgePairs.push({ id: edge.id, source: edge.from, target: edge.to });
       return {
         id: edge.id,
@@ -193,10 +194,10 @@ export function okmKnowledgeGraphToG6(
         data: {
           edgeType: edge.edgeType,
           edgeLayer: edge.edgeLayer,
-          category: visual.category,
+          category: edge.displayCategory || edge.displayLabel || visual.category,
         },
         style: {
-          stroke: visual.stroke,
+          stroke: edgeColor,
           strokeOpacity: edge.edgeLayer === 'backbone' ? 0.62 : 0.38,
           lineWidth: edge.edgeLayer === 'backbone' ? 1.5 : 1,
           lineDash: visual.dashArray ? visual.dashArray.split(' ').map(Number) : undefined,

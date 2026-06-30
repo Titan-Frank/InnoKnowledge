@@ -1,12 +1,18 @@
+import { useEffect, useState } from 'react';
 import type { OKMNode } from '@/core/graph/types';
 import { useAppState } from '@/hooks/useAppState';
 import { useUnitLoader } from '@/hooks/useUnitLoader';
-import { Loader2 } from '@/lib/lucide-icons';
+import { Loader2, Maximize2, X } from '@/lib/lucide-icons';
 import { resolveEdgeVisual } from '@/lib/edge-styles';
 import { SCHOOL_STAGE_LABELS, CURRICULUM_ROLE_LABELS } from '@/lib/constants';
 import { MarkdownView } from '@/components/MarkdownView';
 
 type Row = Record<string, unknown>;
+type ExpandedFragment = {
+  title: string;
+  modalities: string[];
+  markdown: string;
+};
 
 function asRows(value: unknown): Row[] {
   return Array.isArray(value) ? (value as Row[]) : [];
@@ -16,26 +22,85 @@ function sourceRefs(value: unknown): string[] {
   return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
 }
 
+function uniqueValues(values: string[]): string[] {
+  return [...new Set(values.filter(Boolean))];
+}
+
 function text(value: unknown): string {
   return value == null ? '' : String(value);
 }
 
-function evidenceTitle(ev: Row): string {
-  const parts = [text(ev.source_id), ev.page_start != null ? `p.${text(ev.page_start)}` : ''].filter(Boolean);
-  return parts.join(' · ');
+function evidenceAnchorId(evidenceId: string): string {
+  return `evidence-${evidenceId.replace(/[^A-Za-z0-9_-]/g, '-')}`;
 }
 
-function fragmentTitle(fragment: Row): string {
-  const parts = [
-    text(fragment.source_id),
-    fragment.page_start != null ? `p.${text(fragment.page_start)}` : '',
-    text(fragment.anchor_ref),
-  ].filter(Boolean);
-  return parts.join(' · ');
+function evidenceIdsFromRows(rows: Row[]): string[] {
+  return uniqueValues(rows.map((row) => text(row.id)).filter(Boolean));
+}
+
+function evidenceIdsForFragment(fragment: Row, evidenceRows: Row[]): string[] {
+  const ids = evidenceIdsFromRows(asRows(fragment.excerpts));
+  const sourceId = text(fragment.source_id);
+  const anchorRef = text(fragment.anchor_ref);
+  if (!sourceId || !anchorRef) return ids;
+  const matchingEvidenceIds = evidenceRows
+    .filter((row) => text(row.source_id) === sourceId && text(row.anchor_ref) === anchorRef)
+    .map((row) => text(row.id))
+    .filter(Boolean);
+  return uniqueValues([...ids, ...matchingEvidenceIds]);
+}
+
+function fragmentTitle(fragment: Row, index: number): string {
+  const prefix = `课本片段 ${index + 1}`;
+  if (fragment.page_start != null && fragment.page_end != null && fragment.page_end !== fragment.page_start) {
+    return `${prefix} · 第 ${text(fragment.page_start)}-${text(fragment.page_end)} 页`;
+  }
+  if (fragment.page_start != null) return `${prefix} · 第 ${text(fragment.page_start)} 页`;
+  return prefix;
+}
+
+function modalityLabel(value: string): string {
+  const labels: Record<string, string> = {
+    text: '文本',
+    image: '图片',
+    equation: '公式',
+    table: '表格',
+  };
+  return labels[value] || value;
 }
 
 function relationLabel(type: string): string {
-  return type.replaceAll('_', ' ');
+  const labels: Record<string, string> = {
+    is_a: '属于',
+    instance_of: '实例',
+    prerequisite_for: '前置知识',
+    depends_on: '依赖',
+    part_of: '组成部分',
+    contains: '包含',
+    related_to: '相关',
+    same_as: '等同',
+    causes: '导致',
+    affects: '影响',
+    uses: '使用',
+    produces: '生成',
+    represents: '表征',
+    about: '关于',
+    has_property: '具有性质',
+  };
+  return labels[type] || '关联';
+}
+
+function relationDisplay(edge: Record<string, unknown>, fallbackType: string): { label: string; color?: string } {
+  const properties = edge.properties && typeof edge.properties === 'object' && !Array.isArray(edge.properties)
+    ? edge.properties as Record<string, unknown>
+    : {};
+  const templateDisplay = properties.template_display && typeof properties.template_display === 'object' && !Array.isArray(properties.template_display)
+    ? properties.template_display as Record<string, unknown>
+    : {};
+  return {
+    label: typeof templateDisplay.label === 'string' && templateDisplay.label.trim() ? templateDisplay.label : relationLabel(fallbackType),
+    color: typeof templateDisplay.color === 'string' && templateDisplay.color.trim() ? templateDisplay.color : undefined,
+  };
 }
 
 function normalizeAssetRef(value: string): string {
@@ -113,9 +178,56 @@ function sourceFragmentMarkdown(excerpts: Row[]): string {
   return lines.join('\n\n').trim() || '这个分块主要是图片证据。';
 }
 
+function SectionTitle({ title, meta }: { title: string; meta?: string }) {
+  return (
+    <div className="mb-2 flex items-center justify-between gap-3">
+      <div className="text-sm font-semibold text-text-primary">{title}</div>
+      {meta && <div className="shrink-0 text-xs text-text-muted">{meta}</div>}
+    </div>
+  );
+}
+
+function StatTile({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border border-border-subtle bg-elevated px-3 py-2 text-center">
+      <div className="text-base font-semibold tabular-nums text-text-primary">{value}</div>
+      <div className="mt-0.5 text-[11px] font-medium text-text-muted">{label}</div>
+    </div>
+  );
+}
+
+const detailMarkdownClass = [
+  'text-base leading-7 text-text-secondary',
+].join(' ');
+
+const evidenceMarkdownClass = [
+  'text-[15px] leading-7 text-text-secondary',
+].join(' ');
+
+const expandedFragmentMarkdownClass = [
+  'text-lg leading-9 text-text-secondary',
+].join(' ');
+
 export function DetailUnit({ node }: { node: OKMNode }) {
   const { unit, loading } = useUnitLoader(node);
   const { knowledgeGraph, setSelectedNodeId } = useAppState();
+  const [expandedFragment, setExpandedFragment] = useState<ExpandedFragment | null>(null);
+
+  useEffect(() => {
+    setExpandedFragment(null);
+  }, [node.id]);
+
+  useEffect(() => {
+    if (!expandedFragment) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopPropagation();
+      setExpandedFragment(null);
+    };
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [expandedFragment]);
 
   if (loading) {
     return (
@@ -128,9 +240,9 @@ export function DetailUnit({ node }: { node: OKMNode }) {
 
   if (!unit) {
     return (
-      <div>
-        <div className="mb-1 text-xs font-medium text-text-muted">知识单元</div>
-        <p className="text-sm leading-relaxed text-text-secondary">{node.description}</p>
+      <div className="rounded-lg border border-border-subtle bg-elevated p-4">
+        <SectionTitle title="知识单元" />
+        <p className="text-base leading-7 text-text-secondary">{node.description}</p>
       </div>
     );
   }
@@ -141,11 +253,24 @@ export function DetailUnit({ node }: { node: OKMNode }) {
   const evidence = asRows(unit.evidence);
   const media = asRows(unit.media);
   const sourceFragments = asRows(unit.source_fragments);
+  const visibleSourceFragments = sourceFragments.slice(0, 4);
+  const visibleEvidenceIds = new Set(
+    visibleSourceFragments.flatMap((fragment) => evidenceIdsForFragment(fragment, evidence)),
+  );
   const cardSections = Array.isArray(unit.card?.sections) ? unit.card.sections : [];
-  const body = unit.body?.content?.trim() || node.description;
+  const body = unit.body?.content?.trim() || '';
+  const bodySourceRefs = sourceRefs(unit.body?.source_refs);
+  const evidenceIndex = new Map<string, number>();
+  for (const evidenceId of bodySourceRefs) {
+    if (!evidenceIndex.has(evidenceId)) evidenceIndex.set(evidenceId, evidenceIndex.size + 1);
+  }
+  for (const item of evidence) {
+    const evidenceId = text(item.id);
+    if (evidenceId && !evidenceIndex.has(evidenceId)) evidenceIndex.set(evidenceId, evidenceIndex.size + 1);
+  }
   const related = [...outgoing, ...incoming].slice(0, 12);
   const resolveMarkdownImage = (src: string): string | undefined => {
-    if (/^(https?:|data:|blob:)/i.test(src)) return src;
+    if (/^(https?:|data:|blob:)/i.test(src) || src.startsWith('/api/source/')) return src;
     const normalized = normalizeAssetRef(src);
     const fileName = basename(src);
     const filePrefix = fileName.replace(/…$/, '');
@@ -161,59 +286,110 @@ export function DetailUnit({ node }: { node: OKMNode }) {
     });
     return match ? text(match.url) : undefined;
   };
+  const renderEvidenceRef = (evidenceId: string, key: string) => {
+    const index = evidenceIndex.get(evidenceId);
+    if (!index) {
+      return (
+        <sup key={key} className="ml-0.5 align-super text-[0.65em] font-semibold text-text-muted" title={evidenceId}>
+          [?]
+        </sup>
+      );
+    }
+    if (!visibleEvidenceIds.has(evidenceId)) {
+      return (
+        <sup key={key} className="ml-0.5 align-super text-[0.65em] font-semibold text-accent" title={evidenceId}>
+          [{index}]
+        </sup>
+      );
+    }
+    return (
+      <sup key={key} className="ml-0.5 align-super text-[0.65em] font-semibold">
+        <a
+          href={`#${evidenceAnchorId(evidenceId)}`}
+          className="rounded-sm px-0.5 text-accent transition-colors hover:bg-accent/15 hover:text-accent"
+          title={`查看证据 ${index}: ${evidenceId}`}
+          aria-label={`查看证据 ${index}`}
+        >
+          [{index}]
+        </a>
+      </sup>
+    );
+  };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <section>
-        <div className="mb-2 grid grid-cols-4 gap-2 text-center">
-          <div className="border border-border-subtle bg-surface-muted px-2 py-2">
-            <div className="text-sm font-semibold text-text-primary">{outgoing.length + incoming.length}</div>
-            <div className="text-[11px] text-text-muted">关系</div>
-          </div>
-          <div className="border border-border-subtle bg-surface-muted px-2 py-2">
-            <div className="text-sm font-semibold text-text-primary">{evidence.length}</div>
-            <div className="text-[11px] text-text-muted">证据</div>
-          </div>
-          <div className="border border-border-subtle bg-surface-muted px-2 py-2">
-            <div className="text-sm font-semibold text-text-primary">{profiles.length}</div>
-            <div className="text-[11px] text-text-muted">画像</div>
-          </div>
-          <div className="border border-border-subtle bg-surface-muted px-2 py-2">
-            <div className="text-sm font-semibold text-text-primary">{unit.mentions?.length ?? 0}</div>
-            <div className="text-[11px] text-text-muted">提及</div>
-          </div>
+        <div className="mb-3 grid grid-cols-4 gap-2">
+          <StatTile label="关系" value={outgoing.length + incoming.length} />
+          <StatTile label="证据" value={evidence.length} />
+          <StatTile label="画像" value={profiles.length} />
+          <StatTile label="提及" value={unit.mentions?.length ?? 0} />
         </div>
         {body && (
-          <>
-            <div className="mb-1 text-xs font-medium text-text-muted">节点说明</div>
-            <div className="max-h-72 overflow-y-auto whitespace-pre-wrap border-l border-border-subtle pl-3 text-sm leading-relaxed text-text-secondary scrollbar-thin">
-              <MarkdownView content={body} resolveImageUrl={resolveMarkdownImage} />
+          <div className="rounded-lg border border-border-subtle bg-elevated p-4">
+            <SectionTitle title="知识正文" />
+            <div className="max-h-[360px] overflow-y-auto rounded-md border border-border-subtle bg-surface px-3 py-3 scrollbar-thin">
+              <MarkdownView
+                content={body}
+                className={detailMarkdownClass}
+                resolveImageUrl={resolveMarkdownImage}
+                renderEvidenceRef={renderEvidenceRef}
+              />
             </div>
-          </>
+          </div>
         )}
       </section>
 
       {sourceFragments.length > 0 && (
-        <section>
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <div className="text-xs font-medium text-text-muted">课本原文</div>
-            <div className="text-[10px] text-text-muted">{sourceFragments.length} 个分块</div>
-          </div>
+        <section className="rounded-lg border border-border-subtle bg-elevated p-4">
+          <SectionTitle title="课本原文" meta={`${sourceFragments.length} 个分块`} />
           <div className="space-y-3">
-            {sourceFragments.slice(0, 4).map((fragment, index) => {
+            {visibleSourceFragments.map((fragment, index) => {
               const excerpts = asRows(fragment.excerpts);
               const modalities = sourceRefs(fragment.modalities);
+              const fragmentEvidenceIds = evidenceIdsForFragment(fragment, evidence);
               const markdown = sourceFragmentMarkdown(excerpts);
+              const title = fragmentTitle(fragment, index);
               return (
-                <div key={`${text(fragment.anchor_ref)}:${index}`} className="border border-border-subtle bg-elevated p-2.5">
-                  <div className="mb-1 flex flex-wrap items-center gap-2 text-[10px] text-text-muted">
-                    <span>{fragmentTitle(fragment)}</span>
-                    {modalities.map((item) => (
-                      <span key={item} className="bg-surface px-1 py-0.5">{item}</span>
-                    ))}
+                <div key={`${text(fragment.anchor_ref)}:${index}`} className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
+                  <div className="flex items-center gap-2 border-b border-border-subtle px-3 py-2 text-xs text-text-muted">
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+                      <span className="min-w-0 truncate font-medium text-text-secondary">{title}</span>
+                      {modalities.map((item) => (
+                        <span key={item} className="rounded-full bg-elevated px-2 py-0.5">{modalityLabel(item)}</span>
+                      ))}
+                      {fragmentEvidenceIds.map((evidenceId) => {
+                        const evidenceNumber = evidenceIndex.get(evidenceId);
+                        if (!evidenceNumber) return null;
+                        return (
+                          <span
+                            key={evidenceId}
+                            id={evidenceAnchorId(evidenceId)}
+                            className="scroll-mt-24 rounded-full bg-accent/10 px-2 py-0.5 font-medium text-accent"
+                            title={evidenceId}
+                          >
+                            证据 {evidenceNumber}
+                          </span>
+                        );
+                      })}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedFragment({ title, modalities, markdown })}
+                      className="flex h-7 shrink-0 items-center gap-1 rounded-md border border-border-subtle bg-elevated px-2 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+                      aria-label={`全屏查看${title}`}
+                    >
+                      <Maximize2 className="h-3.5 w-3.5" />
+                      全屏
+                    </button>
                   </div>
-                  <div className="max-h-72 overflow-y-auto text-xs leading-relaxed text-text-secondary scrollbar-thin">
-                    <MarkdownView content={markdown} resolveImageUrl={resolveMarkdownImage} />
+                  <div className="max-h-80 overflow-y-auto px-3 py-3 scrollbar-thin">
+                    <MarkdownView
+                      content={markdown}
+                      className={evidenceMarkdownClass}
+                      resolveImageUrl={resolveMarkdownImage}
+                      imageLayout="preview"
+                    />
                   </div>
                 </div>
               );
@@ -222,22 +398,72 @@ export function DetailUnit({ node }: { node: OKMNode }) {
         </section>
       )}
 
+      {expandedFragment && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-void/85 p-4 backdrop-blur-sm animate-fade-in">
+          <button
+            type="button"
+            className="absolute inset-0 cursor-default"
+            aria-label="关闭片段全屏"
+            onClick={() => setExpandedFragment(null)}
+          />
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="expanded-fragment-title"
+            className="relative flex max-h-[92vh] w-full max-w-5xl animate-slide-up flex-col overflow-hidden rounded-xl border border-border-subtle bg-surface shadow-2xl"
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-border-subtle bg-elevated px-5 py-4">
+              <div className="min-w-0">
+                <div id="expanded-fragment-title" className="truncate text-base font-semibold text-text-primary">
+                  {expandedFragment.title}
+                </div>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {expandedFragment.modalities.map((item) => (
+                    <span key={item} className="rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted">
+                      {modalityLabel(item)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setExpandedFragment(null)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border-subtle bg-surface text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+                aria-label="关闭片段全屏"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto bg-surface px-4 py-5 scrollbar-thin sm:px-8">
+              <article className="mx-auto min-w-0 max-w-[78ch] rounded-lg border border-border-subtle bg-elevated px-4 py-5 sm:px-6">
+                <MarkdownView
+                  content={expandedFragment.markdown}
+                  className={expandedFragmentMarkdownClass}
+                  resolveImageUrl={resolveMarkdownImage}
+                  imageLayout="reader"
+                />
+              </article>
+            </div>
+          </section>
+        </div>
+      )}
+
       {cardSections.length > 0 && (
-        <section>
-          <div className="mb-2 text-xs font-medium text-text-muted">结构化卡片</div>
+        <section className="rounded-lg border border-border-subtle bg-elevated p-4">
+          <SectionTitle title="结构化卡片" />
           <div className="space-y-3">
             {cardSections.map((section, index) => {
               const content = Array.isArray(section.content)
                 ? section.content.map(String).filter(Boolean)
                 : [text(section.content)].filter(Boolean);
               return (
-                <div key={section.id || index}>
+                <div key={section.id || index} className="rounded-md border border-border-subtle bg-surface p-3">
                   {section.title && (
-                    <div className="mb-1 text-xs font-medium text-text-secondary">{section.title}</div>
+                    <div className="mb-2 text-xs font-medium text-text-primary">{section.title}</div>
                   )}
                   <div className="space-y-3 text-sm leading-relaxed text-text-secondary">
                     {content.map((item, itemIndex) => (
-                      <MarkdownView key={itemIndex} content={item} resolveImageUrl={resolveMarkdownImage} />
+                      <MarkdownView key={itemIndex} content={item} className={detailMarkdownClass} resolveImageUrl={resolveMarkdownImage} />
                     ))}
                   </div>
                 </div>
@@ -247,31 +473,10 @@ export function DetailUnit({ node }: { node: OKMNode }) {
         </section>
       )}
 
-      {evidence.length > 0 && (
-        <section>
-          <div className="mb-2 text-xs font-medium text-text-muted">证据明细</div>
-          <div className="space-y-2">
-            {evidence.slice(0, 12).map((ev) => (
-              <div key={text(ev.id)} className="border border-border-subtle bg-elevated p-2.5">
-                <div className="mb-1 flex items-center gap-2 text-[10px] text-text-muted">
-                  <span>{evidenceTitle(ev)}</span>
-                  {text(ev.modality) && <span>{text(ev.modality)}</span>}
-                </div>
-                <MarkdownView
-                  content={text(ev.excerpt || ev.snippet)}
-                  className="line-clamp-4 text-xs leading-relaxed text-text-secondary"
-                  resolveImageUrl={resolveMarkdownImage}
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {related.length > 0 && (
-        <section>
-          <div className="mb-2 text-xs font-medium text-text-muted">关系</div>
-          <div className="space-y-1">
+        <section className="rounded-lg border border-border-subtle bg-elevated p-4">
+          <SectionTitle title="关系" meta={`${related.length} 条`} />
+          <div className="space-y-1.5">
             {related.map((edge) => {
               const fromId = text(edge.from_id);
               const toId = text(edge.to_id);
@@ -280,15 +485,17 @@ export function DetailUnit({ node }: { node: OKMNode }) {
               const otherNode = knowledgeGraph?.nodeById.get(otherId);
               const edgeType = text(edge.type || edge.edge_type);
               const visual = resolveEdgeVisual(edgeType);
+              const display = relationDisplay(edge, edgeType);
+              const edgeColor = display.color || visual.stroke;
               return (
                 <button
                   key={text(edge.id)}
                   onClick={() => otherId && setSelectedNodeId(otherId)}
-                  className="flex w-full items-center gap-2 px-2 py-1 text-left text-xs text-text-secondary transition-colors hover:bg-hover"
+                  className="flex w-full items-center gap-2 rounded-md border border-transparent bg-surface px-2.5 py-2 text-left text-sm text-text-secondary transition-colors hover:border-border-subtle hover:bg-hover"
                 >
-                  <div className="h-0.5 w-4 shrink-0" style={{ backgroundColor: visual.stroke }} />
+                  <div className="h-0.5 w-4 shrink-0" style={{ backgroundColor: edgeColor }} />
                   <span className="text-text-muted">{isOutgoing ? '→' : '←'}</span>
-                  <span className="shrink-0" style={{ color: visual.stroke }}>{relationLabel(edgeType)}</span>
+                  <span className="shrink-0" style={{ color: edgeColor }}>{display.label}</span>
                   <span className="truncate">{otherNode?.name ?? otherId}</span>
                 </button>
               );
@@ -298,23 +505,23 @@ export function DetailUnit({ node }: { node: OKMNode }) {
       )}
 
       {profiles.length > 0 && (
-        <section>
-          <div className="mb-2 text-xs font-medium text-text-muted">领域画像</div>
+        <section className="rounded-lg border border-border-subtle bg-elevated p-4">
+          <SectionTitle title="领域画像" meta={`${profiles.length} 个`} />
           <div className="space-y-2">
             {profiles.map((profile) => {
               const stages = sourceRefs(profile.school_stages);
               const roles = sourceRefs(profile.curriculum_roles);
               return (
-                <div key={text(profile.id)} className="border border-border-subtle bg-elevated p-2.5">
+                <div key={text(profile.id)} className="rounded-lg border border-border-subtle bg-surface p-3">
                   <div className="text-xs font-medium text-text-primary">{text(profile.domain)}</div>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {stages.map((stage) => (
-                      <span key={stage} className="bg-surface px-1 py-0.5 text-[10px] text-text-muted">
+                      <span key={stage} className="rounded-full bg-elevated px-2 py-0.5 text-[11px] text-text-muted">
                         {SCHOOL_STAGE_LABELS[stage] ?? stage}
                       </span>
                     ))}
                     {roles.map((role) => (
-                      <span key={role} className="bg-surface px-1 py-0.5 text-[10px] text-text-muted">
+                      <span key={role} className="rounded-full bg-elevated px-2 py-0.5 text-[11px] text-text-muted">
                         {CURRICULUM_ROLE_LABELS[role] ?? role}
                       </span>
                     ))}

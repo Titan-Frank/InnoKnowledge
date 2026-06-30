@@ -80,6 +80,9 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
     if (!VALID_EDGE_TYPES.has(edge.type)) {
       errors.push(`Edge ${edge.raw_edge_id} has invalid type ${edge.type}.`);
     }
+    if (edge.directionality !== "directed" && edge.directionality !== "undirected") {
+      errors.push(`Edge ${edge.raw_edge_id} has invalid directionality ${edge.directionality}.`);
+    }
     if (!nodeIds.has(edge.from_raw_node_id) || !nodeIds.has(edge.to_raw_node_id)) {
       errors.push(`Edge ${edge.raw_edge_id} references missing node endpoint.`);
     }
@@ -243,7 +246,15 @@ export function buildMarkBlockedStatements(datasetId: string, results: LessonSta
     sql: [
       "UPDATE world_lesson_runs",
       "SET status = 'blocked',",
-      "properties_json = jsonb_set(COALESCE(properties_json, '{}'::jsonb), '{quality_issues}', $1::jsonb, true),",
+      "properties_json = jsonb_set(",
+      "  CASE",
+      "    WHEN jsonb_typeof(COALESCE(properties_json, '{}'::jsonb)) = 'object' THEN COALESCE(properties_json, '{}'::jsonb)",
+      "    ELSE '{}'::jsonb",
+      "  END,",
+      "  '{quality_issues}',",
+      "  $1::jsonb,",
+      "  true",
+      "),",
       "updated_at = $2",
       "WHERE dataset_id = $3 AND lesson_run_id = $4",
     ].join("\n"),

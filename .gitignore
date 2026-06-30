@@ -1,5 +1,6 @@
 .DS_Store
 .env
+.codex/
 __pycache__/
 tmp/
 lesson1_*.txt
@@ -27,5 +28,6 @@ data
 
 # Generated artifacts
 .playwright-mcp/
+output/
 runs/
 tools/

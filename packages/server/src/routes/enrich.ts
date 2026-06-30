@@ -1,7 +1,6 @@
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
 import type { Hono } from 'hono';
-import { DATA_DIR } from '../utils/paths.js';
+import type { Sql } from '../db/connection.js';
+import { loadEnrichBookPayload, loadEnrichIndexPayload, resolveDatasetRow } from '../db/queries.js';
 
 type EnrichBookSummary = {
   path: string;
@@ -47,22 +46,6 @@ type EnrichNode = RawEnrichNode & {
   child_nodes: EnrichNode[];
 };
 
-const ENRICH_DIR = resolve(DATA_DIR, 'enrich');
-const ENRICH_INDEX_PATH = resolve(ENRICH_DIR, 'enrich_books_index.json');
-
-let indexCache: EnrichIndex | null = null;
-
-async function loadIndex(): Promise<EnrichIndex> {
-  if (indexCache) return indexCache;
-  const raw = await readFile(ENRICH_INDEX_PATH, 'utf8');
-  const parsed = JSON.parse(raw) as EnrichIndex;
-  indexCache = {
-    ...parsed,
-    books: Array.isArray(parsed.books) ? parsed.books : [],
-  };
-  return indexCache;
-}
-
 function normalizeNode(
   node: RawEnrichNode,
   orderPath: number[],
@@ -83,27 +66,18 @@ function normalizeNode(
   };
 }
 
-function bookTitle(book: EnrichBookSummary): string {
-  return [book.stage, book.grade, book.course, book.publisher, book.volume]
-    .filter(Boolean)
-    .join(' · ') || book.filename;
+function sourceKey(c: { req: { query: (name: string) => string | undefined } }): string {
+  return c.req.query('source') || 'main';
 }
 
-export function registerEnrichRoutes(app: Hono) {
+export function registerEnrichRoutes(app: Hono, sql: Sql) {
   app.get('/api/enrich/books', async (c) => {
     try {
-      const index = await loadIndex();
-      const books = (index.books || []).map((book) => ({
-        ...book,
-        title: bookTitle(book),
-      }));
-      return c.json({
-        generated_at: index.generated_at,
-        book_count: index.book_count ?? books.length,
-        subject_count: index.subject_count ?? new Set(books.map((book) => book.subject).filter(Boolean)).size,
-        node_count: index.node_count ?? books.reduce((sum, book) => sum + Number(book.node_count || 0), 0),
-        books,
-      });
+      const datasetRow = await resolveDatasetRow(sql, sourceKey(c));
+      if (!datasetRow) return c.json({ error: 'Unknown source' }, 404);
+      const index = await loadEnrichIndexPayload(sql, datasetRow.dataset_id) as EnrichIndex | null;
+      if (!index) return c.json({ generated_at: undefined, book_count: 0, subject_count: 0, node_count: 0, books: [] });
+      return c.json(index);
     } catch (error) {
       return c.json({ error: (error as Error).message || 'Failed to load enrich index' }, 500);
     }
@@ -114,22 +88,15 @@ export function registerEnrichRoutes(app: Hono) {
       const requestedPath = c.req.query('path');
       if (!requestedPath) return c.json({ error: 'Missing path' }, 400);
 
-      const index = await loadIndex();
-      const book = (index.books || []).find((item) => item.path === requestedPath);
-      if (!book) return c.json({ error: 'Unknown enrich book path' }, 404);
-
-      const resolved = resolve(DATA_DIR, requestedPath.replace(/^data\//, ''));
-      if (!resolved.startsWith(`${ENRICH_DIR}/`)) {
-        return c.json({ error: 'Invalid enrich book path' }, 400);
-      }
-
-      const raw = await readFile(resolved, 'utf8');
-      const parsed = JSON.parse(raw);
-      const roots = Array.isArray(parsed) ? parsed as RawEnrichNode[] : [];
+      const datasetRow = await resolveDatasetRow(sql, sourceKey(c));
+      if (!datasetRow) return c.json({ error: 'Unknown source' }, 404);
+      const payload = await loadEnrichBookPayload(sql, datasetRow.dataset_id, requestedPath) as { book: EnrichBookSummary; tree: RawEnrichNode[] } | null;
+      if (!payload) return c.json({ error: 'Unknown enrich book path' }, 404);
+      const roots = Array.isArray(payload.tree) ? payload.tree : [];
       const tree = roots.map((node, index) => normalizeNode(node, [index + 1], []));
 
       return c.json({
-        book: { ...book, title: bookTitle(book) },
+        book: payload.book,
         tree,
       });
     } catch (error) {

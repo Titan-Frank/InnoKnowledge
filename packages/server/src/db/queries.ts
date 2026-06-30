@@ -1,11 +1,14 @@
 import type { Sql } from './connection.js';
 import type {
-  ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit, ApiUnitMedia,
-  PipelineResponse,
+  ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit, ApiUnitBody, ApiUnitDomainProfile,
+  ApiUnitMedia, ApiUnitNode, ApiUnitRelation, ApiUnitSourceFragment,
+  OutlineData, OutlineItem, PipelineJobEvent, PipelineJobStage, PipelineJobStatusResponse, PipelineResponse,
+  PipelineWorkerState,
 } from '@okm/types';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { REPO_ROOT } from '../utils/paths.js';
+import { resolveEvidenceImagePath } from '../utils/markdown-image-paths.js';
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -42,32 +45,13 @@ export async function resolveDatasetRow(
   sql: Sql,
   key: string,
 ): Promise<DatasetRow | undefined> {
-  const worldTableCheck = await sql<{ regclass: string | null }[]>`
-    SELECT to_regclass('world_datasets') AS regclass
-  `;
-  if (worldTableCheck[0]?.regclass) {
-    const worldRows = await sql<DatasetRow[]>`
-      SELECT dataset_id, dataset_name AS version_key, COALESCE(root_path, '') AS root_path, is_active
-      FROM world_datasets
-      WHERE dataset_id = ${key} OR dataset_name = ${key}
-      ORDER BY is_active DESC, dataset_id ASC
-      LIMIT 1
-    `;
-    if (worldRows[0]) return worldRows[0];
-  }
-
-  const legacyTableCheck = await sql<{ regclass: string | null }[]>`
-    SELECT to_regclass('datasets') AS regclass
-  `;
-  if (!legacyTableCheck[0]?.regclass) return undefined;
-
   const rows = await sql<DatasetRow[]>`
-    SELECT dataset_id, version_key, root_path, is_active
-    FROM datasets
-    WHERE dataset_id = ${key} OR version_key = ${key}
+    SELECT dataset_id, dataset_name AS version_key, COALESCE(root_path, '') AS root_path, is_active
+    FROM world_datasets
+    WHERE dataset_id = ${key} OR dataset_name = ${key}
     ORDER BY is_active DESC, dataset_id ASC
     LIMIT 1
-  `;
+  `.catch(() => [] as DatasetRow[]);
   return rows[0];
 }
 
@@ -76,47 +60,38 @@ export async function resolveDatasetRow(
 export async function loadNodes(sql: Sql, datasetId: string): Promise<ApiNode[]> {
   const rows = await sql`
     SELECT * FROM world_nodes WHERE dataset_id = ${datasetId} ORDER BY id
-  `.catch(() => sql`
-    SELECT * FROM nodes WHERE dataset_id = ${datasetId} ORDER BY id
-  `);
+  `;
 
   return rows.map((row: Record<string, unknown>) => {
-    if ('name' in row || 'kind' in row) {
-      const parsed = worldJsonRow(row, [
-        'aliases', 'domains', 'knowledge_form', 'learning_mode',
-        'properties', 'external_ids', 'tags',
-      ]);
-      const properties = asRecord(parsed.properties);
-      return {
-        ...parsed,
-        canonical_name: textValue(parsed.name) || textValue(parsed.id),
-        node_kind: textValue(parsed.kind) || 'concept',
-        node_subkind: textValue(parsed.subkind) || null,
-        node_layer: textValue(properties.node_layer || properties.layer) || undefined,
-        learning_modes: Array.isArray(parsed.learning_mode) ? parsed.learning_mode : [],
-        bridge_tags: Array.isArray(parsed.tags) ? parsed.tags : [],
-        framework_refs: [],
-        profile_refs: [],
-        same_as_refs: [],
-        properties: {
-          ...properties,
-          domains: parsed.domains || [],
-          knowledge_form: parsed.knowledge_form || [],
-          scope: parsed.scope || '',
-          tags: parsed.tags || [],
-        },
-        community_id: null,
-        pca_x: null,
-        pca_y: null,
-      } as unknown as ApiNode;
-    }
-
-    const parsed = stripJsonSuffix(row, [
-      'aliases', 'learning_modes', 'bridge_tags', 'framework_refs',
-      'profile_refs', 'same_as_refs', 'properties',
+    const parsed = worldJsonRow(row, [
+      'aliases', 'domains', 'knowledge_form', 'learning_mode',
+      'properties', 'external_ids', 'tags',
     ]);
-    delete parsed.embedding;
-    return parsed as unknown as ApiNode;
+    const properties = asRecord(parsed.properties);
+    return {
+      ...parsed,
+      canonical_name: textValue(parsed.name) || textValue(parsed.id),
+      node_kind: textValue(parsed.kind) || 'concept',
+      node_subkind: textValue(parsed.subkind) || null,
+      node_layer: textValue(properties.node_layer || properties.layer) || undefined,
+      learning_modes: Array.isArray(parsed.learning_mode) ? parsed.learning_mode : [],
+      bridge_tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+      framework_refs: [],
+      profile_refs: [],
+      same_as_refs: [],
+      properties: {
+        ...properties,
+        domains: parsed.domains || [],
+        knowledge_form: parsed.knowledge_form || [],
+        learning_modes: Array.isArray(parsed.learning_mode) ? parsed.learning_mode : [],
+        scope: parsed.scope || '',
+        bridge_tags: parsed.tags || [],
+        tags: parsed.tags || [],
+      },
+      community_id: null,
+      pca_x: null,
+      pca_y: null,
+    } as unknown as ApiNode;
   });
 }
 
@@ -125,37 +100,21 @@ export async function loadNodes(sql: Sql, datasetId: string): Promise<ApiNode[]>
 export async function loadEdges(sql: Sql, datasetId: string): Promise<ApiEdge[]> {
   const rows = await sql`
     SELECT * FROM world_edges WHERE dataset_id = ${datasetId} ORDER BY id
-  `.catch(() => sql`
-    SELECT * FROM edges WHERE dataset_id = ${datasetId} ORDER BY id
-  `);
+  `;
 
   return rows.map((row: Record<string, unknown>) => {
-    if ('type' in row && !('edge_type' in row)) {
-      const parsed = worldJsonRow(row, ['source_refs', 'properties']);
-      const properties = asRecord(parsed.properties);
-      return {
-        ...parsed,
-        edge_type: textValue(parsed.type) || 'related_to',
-        edge_layer: textValue(properties.edge_layer || properties.layer) || undefined,
-        from: parsed.from_id,
-        to: parsed.to_id,
-        backbone_expand: typeof properties.backbone_expand === 'boolean'
-          ? properties.backbone_expand
-          : undefined,
-      } as unknown as ApiEdge;
-    }
-
-    const parsed = stripJsonSuffix(row, [
-      'framework_refs', 'profile_refs', 'source_refs', 'properties',
-    ]);
-    // Map DB column names to API field names
-    if ('from_id' in parsed) {
-      parsed.from = parsed.from_id;
-    }
-    if ('to_id' in parsed) {
-      parsed.to = parsed.to_id;
-    }
-    return parsed as unknown as ApiEdge;
+    const parsed = worldJsonRow(row, ['source_refs', 'properties']);
+    const properties = asRecord(parsed.properties);
+    return {
+      ...parsed,
+      edge_type: textValue(parsed.type) || 'related_to',
+      edge_layer: textValue(properties.edge_layer || properties.layer) || undefined,
+      from: parsed.from_id,
+      to: parsed.to_id,
+      backbone_expand: typeof properties.backbone_expand === 'boolean'
+        ? properties.backbone_expand
+        : undefined,
+    } as unknown as ApiEdge;
   });
 }
 
@@ -164,40 +123,31 @@ export async function loadEdges(sql: Sql, datasetId: string): Promise<ApiEdge[]>
 export async function loadProfiles(sql: Sql, datasetId: string): Promise<ApiProfile[]> {
   const rows = await sql`
     SELECT * FROM world_domain_profiles WHERE dataset_id = ${datasetId} ORDER BY id
-  `.catch(() => sql`
-    SELECT * FROM profiles WHERE dataset_id = ${datasetId} ORDER BY id
-  `);
+  `;
 
   return rows.map((row: Record<string, unknown>) => {
-    if ('domain' in row || 'school_stages_json' in row || 'curriculum_roles_json' in row) {
-      const parsed = worldJsonRow(row, [
-        'school_stages', 'curriculum_roles', 'source_refs', 'properties',
-      ]);
-      const properties = asRecord(parsed.properties);
-      const schoolStages = Array.isArray(parsed.school_stages) ? parsed.school_stages.map(String) : [];
-      const curriculumRoles = Array.isArray(parsed.curriculum_roles) ? parsed.curriculum_roles.map(String) : [];
-      const sourceRefs = Array.isArray(parsed.source_refs) ? parsed.source_refs.map(String) : [];
-      return {
-        ...parsed,
-        subject: textValue(properties.subject) || textValue(parsed.domain),
-        school_stage: schoolStages[0] || textValue(properties.school_stage),
-        grade_band: textValue(properties.grade_band) || schoolStages[0] || '',
-        context_key: textValue(properties.context_key) || `${parsed.domain || 'domain'}:${schoolStages[0] || 'unknown'}`,
-        curriculum_role: curriculumRoles[0] || textValue(properties.curriculum_role),
-        mastery_level: textValue(properties.mastery_level),
-        learning_objectives: Array.isArray(properties.learning_objectives) ? properties.learning_objectives : [],
-        framework_refs: Array.isArray(properties.framework_refs) ? properties.framework_refs : [],
-        textbook_refs: sourceRefs,
-        textbook_ids: Array.isArray(properties.textbook_ids) ? properties.textbook_ids : [],
-        assessment_signals: Array.isArray(properties.assessment_signals) ? properties.assessment_signals : [],
-        source_refs: sourceRefs,
-      } as unknown as ApiProfile;
-    }
-
-    return stripJsonSuffix(row, [
-      'learning_objectives', 'framework_refs', 'textbook_refs',
-      'textbook_ids', 'assessment_signals', 'source_refs', 'properties',
-    ]) as unknown as ApiProfile;
+    const parsed = worldJsonRow(row, [
+      'school_stages', 'curriculum_roles', 'source_refs', 'properties',
+    ]);
+    const properties = asRecord(parsed.properties);
+    const schoolStages = Array.isArray(parsed.school_stages) ? parsed.school_stages.map(String) : [];
+    const curriculumRoles = Array.isArray(parsed.curriculum_roles) ? parsed.curriculum_roles.map(String) : [];
+    const sourceRefs = Array.isArray(parsed.source_refs) ? parsed.source_refs.map(String) : [];
+    return {
+      ...parsed,
+      subject: textValue(properties.subject) || textValue(parsed.domain),
+      school_stage: schoolStages[0] || textValue(properties.school_stage),
+      grade_band: textValue(properties.grade_band) || schoolStages[0] || '',
+      context_key: textValue(properties.context_key) || `${parsed.domain || 'domain'}:${schoolStages[0] || 'unknown'}`,
+      curriculum_role: curriculumRoles[0] || textValue(properties.curriculum_role),
+      mastery_level: textValue(properties.mastery_level),
+      learning_objectives: Array.isArray(properties.learning_objectives) ? properties.learning_objectives : [],
+      framework_refs: Array.isArray(properties.framework_refs) ? properties.framework_refs : [],
+      textbook_refs: sourceRefs,
+      textbook_ids: Array.isArray(properties.textbook_ids) ? properties.textbook_ids : [],
+      assessment_signals: Array.isArray(properties.assessment_signals) ? properties.assessment_signals : [],
+      source_refs: sourceRefs,
+    } as unknown as ApiProfile;
   });
 }
 
@@ -206,9 +156,7 @@ export async function loadProfiles(sql: Sql, datasetId: string): Promise<ApiProf
 export async function loadMentions(sql: Sql, datasetId: string): Promise<ApiMention[]> {
   const rows = await sql`
     SELECT * FROM world_mentions WHERE dataset_id = ${datasetId}
-  `.catch(() => sql`
-    SELECT * FROM mentions WHERE dataset_id = ${datasetId}
-  `);
+  `;
 
   return rows.map((row: Record<string, unknown>) => {
     return stripJsonSuffix(row, ['source_refs', 'confidence_map', 'properties']) as unknown as ApiMention;
@@ -220,13 +168,11 @@ export async function loadMentions(sql: Sql, datasetId: string): Promise<ApiMent
 export async function loadEvidence(sql: Sql, datasetId: string): Promise<ApiEvidence[]> {
   const rows = await sql`
     SELECT * FROM world_evidence WHERE dataset_id = ${datasetId}
-  `.catch(() => sql`
-    SELECT * FROM evidence WHERE dataset_id = ${datasetId}
-  `);
+  `;
 
-  return rows.map((row: Record<string, unknown>) => {
-    return stripJsonSuffix(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence;
-  });
+  return rows
+    .map((row: Record<string, unknown>) => stripJsonSuffix(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence)
+    .filter((row) => !isHiddenImageEvidence(row as unknown as Record<string, unknown>));
 }
 
 // ── Node Card ─────────────────────────────────────────────
@@ -240,11 +186,7 @@ export async function loadNodeCard(
     SELECT * FROM world_node_cards
     WHERE dataset_id = ${datasetId} AND node_id = ${nodeId}
     LIMIT 1
-  `.catch(() => sql`
-    SELECT * FROM node_cards
-    WHERE dataset_id = ${datasetId} AND node_id = ${nodeId}
-    LIMIT 1
-  `);
+  `;
 
   if (!rows.length) return null;
 
@@ -274,33 +216,44 @@ function worldJsonRow(
   return parsed;
 }
 
-function renderCardBody(card: ApiNodeCard | null): ApiUnit['body'] {
-  if (!card || !Array.isArray(card.sections)) return null;
-  const lines: string[] = [];
-  if (card.summary) {
-    lines.push(card.summary);
-    lines.push('');
-  }
-  for (const section of card.sections) {
-    if (!section || typeof section !== 'object') continue;
-    if (section.title) {
-      lines.push(`## ${section.title}`);
-      lines.push('');
-    }
-    const content = Array.isArray(section.content)
-      ? section.content.map((item) => String(item)).filter(Boolean)
-      : [String(section.content ?? '')].filter(Boolean);
-    for (const item of content) {
-      lines.push(item);
-      lines.push('');
-    }
-  }
+async function loadNodeBody(
+  sql: Sql,
+  datasetId: string,
+  nodeId: string,
+): Promise<ApiUnitBody | null> {
+  const rows = await sql`
+    SELECT *
+    FROM world_node_bodies
+    WHERE dataset_id = ${datasetId}
+      AND node_id = ${nodeId}
+      AND status != 'deprecated'
+    LIMIT 1
+  `.catch(() => []);
+  if (!rows.length) return null;
+
+  const parsed = worldJsonRow(rows[0] as Record<string, unknown>, [
+    'media_refs', 'source_refs', 'properties',
+  ]);
+  const content = textValue(parsed.content);
+  if (!content) return null;
+  const generatedFrom = textValue(parsed.generated_from);
+  if (generatedFrom === 'node_card_fallback') return null;
   return {
+    node_id: textValue(parsed.node_id),
     format: 'markdown',
-    content: lines.join('\n').trim(),
-    media_refs: [],
-    source_refs: card.source_refs || [],
-    generated_from: 'node_card',
+    content,
+    media_refs: Array.isArray(parsed.media_refs) ? parsed.media_refs as Array<Record<string, unknown>> : [],
+    source_refs: Array.isArray(parsed.source_refs) ? parsed.source_refs.map(String).filter(Boolean) : [],
+    generated_from: (
+      generatedFrom === 'manual' ||
+      generatedFrom === 'card_expansion' ||
+      generatedFrom === 'imported_unit' ||
+      generatedFrom === 'model_generation'
+    ) ? generatedFrom : 'manual',
+    properties: asRecord(parsed.properties),
+    status: textValue(parsed.status) || 'active',
+    created_at: textValue(parsed.created_at) || null,
+    updated_at: textValue(parsed.updated_at) || null,
   };
 }
 
@@ -308,48 +261,21 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
 function textValue(value: unknown): string {
   return value == null ? '' : String(value).trim();
 }
 
-function firstImagePath(row: Record<string, unknown>): string {
-  const properties = asRecord(row.properties);
-  const candidates = [
-    properties.path,
-    properties.image_path,
-    properties.src,
-    row.locator,
-    row.excerpt,
-  ];
-  for (const candidate of candidates) {
-    const text = textValue(candidate);
-    if (!text) continue;
-    const markdown = text.match(/!\[[^\]]*\]\(([^)]+)\)/);
-    const value = markdown ? markdown[1] : text;
-    if (/\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(value)) return value;
-  }
-  return '';
+function numberValue(value: unknown, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function resolveImagePath(row: Record<string, unknown>): string {
-  const imagePath = firstImagePath(row);
-  if (!imagePath || /^https?:\/\//i.test(imagePath)) return imagePath;
-  const candidates: string[] = [];
-  if (path.isAbsolute(imagePath)) candidates.push(imagePath);
-  candidates.push(path.resolve(REPO_ROOT, imagePath));
-
-  const sourcePath = textValue(row.source_path);
-  if (sourcePath) {
-    const resolvedSource = path.isAbsolute(sourcePath)
-      ? sourcePath
-      : path.resolve(REPO_ROOT, sourcePath);
-    candidates.push(path.resolve(path.dirname(resolvedSource), imagePath));
-  }
-
-  for (const candidate of candidates) {
-    if (existsSync(candidate)) return candidate;
-  }
-  return candidates[candidates.length - 1] || imagePath;
+  return resolveEvidenceImagePath(row, markdownCache);
 }
 
 function mediaFromEvidence(rows: Record<string, unknown>[], sourceKey: string): ApiUnitMedia[] {
@@ -357,6 +283,7 @@ function mediaFromEvidence(rows: Record<string, unknown>[], sourceKey: string): 
   const media: ApiUnitMedia[] = [];
   for (const row of rows) {
     if (String(row.modality || '').toLowerCase() !== 'image') continue;
+    if (isHiddenImageEvidence(row)) continue;
     const resolvedPath = resolveImagePath(row);
     if (!resolvedPath) continue;
     const key = `${row.id}:${resolvedPath}`;
@@ -383,7 +310,291 @@ function mediaFromEvidence(rows: Record<string, unknown>[], sourceKey: string): 
   return media;
 }
 
-function sourceFragmentsFromEvidence(rows: Record<string, unknown>[]): Array<Record<string, unknown>> {
+function isHiddenImageEvidence(row: Record<string, unknown>): boolean {
+  if (String(row.modality || '').toLowerCase() !== 'image') return false;
+  const properties = Object.keys(asRecord(row.properties)).length > 0 ? asRecord(row.properties) : asRecord(row.properties_json);
+  const relevance = asRecord(properties.image_relevance);
+  const status = textValue(relevance.review_status);
+  const label = textValue(relevance.relevance);
+  if (relevance.keep === false || status === 'rejected') return true;
+  if (status === 'pending') return true;
+  if (!status && label === 'uncertain') return true;
+  return false;
+}
+
+const markdownCache = new Map<string, string[] | null>();
+
+function loadMarkdownLines(markdownPath: string): string[] | null {
+  if (!markdownPath) return null;
+  const cached = markdownCache.get(markdownPath);
+  if (cached !== undefined) return cached;
+
+  if (!existsSync(markdownPath)) {
+    markdownCache.set(markdownPath, null);
+    return null;
+  }
+
+  try {
+    const lines = readFileSync(markdownPath, 'utf-8').split(/\r?\n/);
+    markdownCache.set(markdownPath, lines);
+    return lines;
+  } catch {
+    markdownCache.set(markdownPath, null);
+    return null;
+  }
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
+
+function dashedSourceId(value: string): string {
+  return value.replace(/_/g, '-');
+}
+
+function sourceIdFromAnchor(anchorRef: string): string {
+  const match = anchorRef.match(/^struct:([^:]+):/);
+  return match?.[1] || '';
+}
+
+function sourceIdFromPath(sourcePath: string): string {
+  if (!sourcePath) return '';
+  const normalized = sourcePath.replace(/\\/g, '/');
+  const parts = normalized.split('/').filter(Boolean);
+  const fullIndex = parts.lastIndexOf('full.md');
+  if (fullIndex > 0) return parts[fullIndex - 1] || '';
+  return path.basename(path.dirname(normalized));
+}
+
+function outlineCandidatesForRow(row: Record<string, unknown>): string[] {
+  const sourceId = textValue(row.source_id);
+  const anchorSourceId = sourceIdFromAnchor(textValue(row.anchor_ref));
+  const pathSourceId = sourceIdFromPath(textValue(row.source_path));
+  return uniqueStrings([
+    sourceId,
+    dashedSourceId(sourceId),
+    anchorSourceId,
+    dashedSourceId(anchorSourceId),
+    pathSourceId,
+    dashedSourceId(pathSourceId),
+  ]);
+}
+
+function resolveRepoPath(value: string): string {
+  return path.isAbsolute(value) ? path.resolve(value) : path.resolve(REPO_ROOT, value);
+}
+
+function markdownPathCandidates(
+  row: Record<string, unknown>,
+  outline: OutlineData,
+  bookId: string,
+): string[] {
+  return uniqueStrings([
+    textValue(row.source_path),
+    textValue(outline.source_path),
+    `data/mineru/${bookId}/full.md`,
+  ]).map(resolveRepoPath);
+}
+
+function findOutlineMatch(
+  row: Record<string, unknown>,
+  outlines: Map<string, OutlineData>,
+): { bookId: string; outline: OutlineData; item: OutlineItem } | null {
+  const anchorRef = textValue(row.anchor_ref);
+  if (!anchorRef) return null;
+
+  for (const bookId of outlineCandidatesForRow(row)) {
+    const outline = outlines.get(bookId) ?? null;
+    const item = outline?.items?.find((candidate) => candidate.id === anchorRef);
+    if (outline && item) return { bookId, outline, item };
+  }
+
+  return null;
+}
+
+function assetUrlForPath(sourceKey: string, resolvedPath: string): string {
+  return `/api/source/${encodeURIComponent(sourceKey)}/assets/${encodeURIComponent(resolvedPath)}`;
+}
+
+function assetPathKey(resolvedPath: string): string {
+  return path.resolve(resolvedPath).replace(/\\/g, '/');
+}
+
+function resolveMarkdownAssetPath(markdownPath: string, assetRef: string): string | null {
+  const cleanRef = assetRef.trim();
+  if (!cleanRef || /^(https?:|data:|blob:|\/api\/)/i.test(cleanRef) || cleanRef.startsWith('#')) {
+    return null;
+  }
+
+  const withoutQuery = cleanRef.split(/[?#]/, 1)[0] || cleanRef;
+  const candidates = path.isAbsolute(withoutQuery)
+    ? [path.resolve(withoutQuery)]
+    : [
+      path.resolve(path.dirname(markdownPath), withoutQuery),
+      path.resolve(REPO_ROOT, withoutQuery),
+    ];
+
+  return candidates.find((candidate) => existsSync(candidate)) || null;
+}
+
+function visibleImageAssetPaths(rows: Record<string, unknown>[]): Set<string> {
+  const paths = new Set<string>();
+  for (const row of rows) {
+    if (String(row.modality || '').toLowerCase() !== 'image') continue;
+    if (isHiddenImageEvidence(row)) continue;
+    const resolvedPath = resolveImagePath(row);
+    if (!resolvedPath || /^https?:\/\//i.test(resolvedPath)) continue;
+    paths.add(assetPathKey(resolvedPath));
+  }
+  return paths;
+}
+
+function rewriteMarkdownImageUrls(
+  markdown: string,
+  markdownPath: string,
+  sourceKey: string,
+  allowedAssetPaths?: Set<string>,
+): string {
+  return markdown.replace(/!\[([^\]]*)\]\(([^)\n]+)\)/g, (match, alt: string, src: string) => {
+    const resolvedPath = resolveMarkdownAssetPath(markdownPath, src);
+    if (!resolvedPath) return match;
+    if (allowedAssetPaths && !allowedAssetPaths.has(assetPathKey(resolvedPath))) return '';
+    return `![${alt}](${assetUrlForPath(sourceKey, resolvedPath)})`;
+  });
+}
+
+function normalizeDetailsSummaries(markdown: string): string {
+  const labels: Record<string, string> = {
+    chemical: '化学图示',
+    equation: '公式说明',
+    flowchart: '流程图',
+    image: '图片说明',
+    natural_image: '实物图片',
+    table: '表格说明',
+    text: '文字说明',
+    text_image: '图片文字',
+  };
+
+  return markdown.replace(
+    /<summary>([^<]+)<\/summary>/g,
+    (_match, label: string) => `<summary>${labels[label.trim()] || label}</summary>`,
+  );
+}
+
+function modalitiesFromMarkdown(markdown: string, fallback: string[]): string[] {
+  const modalities = new Set(fallback.map((value) => value.trim()).filter(Boolean));
+  if (markdown.includes('![](') || /!\[[^\]]*\]\(/.test(markdown)) modalities.add('image');
+  if (/<table\b/i.test(markdown) || /\|.+\|/.test(markdown)) modalities.add('table');
+  if (/\$[^$\n]+\$/.test(markdown) || /\$\$[\s\S]+?\$\$/.test(markdown)) modalities.add('equation');
+  modalities.add('text');
+  return [...modalities];
+}
+
+function markdownFragmentFromOutline(
+  items: Record<string, unknown>[],
+  sourceKey: string,
+  outlines: Map<string, OutlineData>,
+): Record<string, unknown> | null {
+  const first = items[0] || {};
+  const match = findOutlineMatch(first, outlines);
+  if (!match) return null;
+
+  const { bookId, outline, item } = match;
+  const mdStart = Number(item.md_start);
+  const mdEnd = Number(item.md_end);
+  if (!Number.isFinite(mdStart) || !Number.isFinite(mdEnd) || mdStart <= 0 || mdEnd < mdStart) {
+    return null;
+  }
+
+  for (const markdownPath of markdownPathCandidates(first, outline, bookId)) {
+    const lines = loadMarkdownLines(markdownPath);
+    if (!lines) continue;
+
+    const markdown = lines.slice(mdStart - 1, Math.min(mdEnd, lines.length)).join('\n').trim();
+    if (!markdown) continue;
+
+    const normalizedMarkdown = normalizeDetailsSummaries(
+      rewriteMarkdownImageUrls(markdown, markdownPath, sourceKey, visibleImageAssetPaths(items)),
+    );
+    const fallbackModalities = uniqueStrings(items.map((row) => textValue(row.modality) || 'text'));
+    const pageStart = item.page_start ?? first.page_start;
+    const pageEnd = item.page_end ?? first.page_end ?? pageStart;
+
+    return {
+      source_id: textValue(first.source_id),
+      anchor_ref: textValue(first.anchor_ref),
+      source_path: markdownPath,
+      page_start: pageStart == null ? null : Number(pageStart),
+      page_end: pageEnd == null ? null : Number(pageEnd),
+      title: item.title || item.label || textValue(first.anchor_ref),
+      source_kind: 'outline_markdown',
+      is_full_source: true,
+      md_start: mdStart,
+      md_end: mdEnd,
+      excerpts: [{
+        id: `${textValue(first.source_id)}:${textValue(first.anchor_ref)}:source-markdown`,
+        modality: 'text',
+        locator: item.title || item.label || textValue(first.locator),
+        excerpt: normalizedMarkdown,
+        page_start: pageStart == null ? null : Number(pageStart),
+        page_end: pageEnd == null ? null : Number(pageEnd),
+        properties: {
+          source: 'outline_markdown',
+          outline_id: item.id,
+          outline_title: item.title,
+          md_start: mdStart,
+          md_end: mdEnd,
+        },
+      }],
+      text: normalizedMarkdown,
+      modalities: modalitiesFromMarkdown(normalizedMarkdown, fallbackModalities),
+    };
+  }
+
+  return null;
+}
+
+function evidenceFragment(items: Record<string, unknown>[]): Record<string, unknown> {
+  const first = items[0] || {};
+  const sorted = items.slice().sort((a, b) => {
+    const aLocator = textValue(a.locator);
+    const bLocator = textValue(b.locator);
+    return aLocator.localeCompare(bLocator, 'zh-CN', { numeric: true });
+  });
+  const excerpts = sorted
+    .map((item) => ({
+      id: textValue(item.id),
+      modality: textValue(item.modality) || 'text',
+      locator: textValue(item.locator),
+      excerpt: textValue(item.excerpt),
+      page_start: item.page_start == null ? null : Number(item.page_start),
+      page_end: item.page_end == null ? null : Number(item.page_end),
+      properties: asRecord(item.properties),
+    }))
+    .filter((item) => item.excerpt);
+
+  return {
+    source_id: textValue(first.source_id),
+    anchor_ref: textValue(first.anchor_ref),
+    source_path: textValue(first.source_path),
+    page_start: first.page_start == null ? null : Number(first.page_start),
+    page_end: first.page_end == null ? null : Number(first.page_end),
+    source_kind: 'evidence_excerpt',
+    is_full_source: false,
+    excerpts,
+    text: excerpts
+      .filter((item) => item.modality !== 'image')
+      .map((item) => item.excerpt)
+      .join('\n\n'),
+    modalities: [...new Set(excerpts.map((item) => item.modality))],
+  };
+}
+
+function sourceFragmentsFromEvidence(
+  rows: Record<string, unknown>[],
+  sourceKey: string,
+  outlines: Map<string, OutlineData>,
+): ApiUnitSourceFragment[] {
   const byAnchor = new Map<string, Record<string, unknown>[]>();
   for (const row of rows) {
     const key = `${textValue(row.source_id)}:${textValue(row.anchor_ref)}`;
@@ -391,39 +602,59 @@ function sourceFragmentsFromEvidence(rows: Record<string, unknown>[]): Array<Rec
     byAnchor.get(key)!.push(row);
   }
 
-  return Array.from(byAnchor.values()).map((items) => {
-    const first = items[0] || {};
-    const sorted = items.slice().sort((a, b) => {
-      const aLocator = textValue(a.locator);
-      const bLocator = textValue(b.locator);
-      return aLocator.localeCompare(bLocator, 'zh-CN', { numeric: true });
-    });
-    const excerpts = sorted
-      .map((item) => ({
-        id: textValue(item.id),
-        modality: textValue(item.modality) || 'text',
-        locator: textValue(item.locator),
-        excerpt: textValue(item.excerpt),
-        page_start: item.page_start == null ? null : Number(item.page_start),
-        page_end: item.page_end == null ? null : Number(item.page_end),
-        properties: asRecord(item.properties),
-      }))
-      .filter((item) => item.excerpt);
+  return Array.from(byAnchor.values()).map((items) => (
+    markdownFragmentFromOutline(items, sourceKey, outlines) || evidenceFragment(items)
+  ) as unknown as ApiUnitSourceFragment);
+}
 
-    return {
-      source_id: textValue(first.source_id),
-      anchor_ref: textValue(first.anchor_ref),
-      source_path: textValue(first.source_path),
-      page_start: first.page_start == null ? null : Number(first.page_start),
-      page_end: first.page_end == null ? null : Number(first.page_end),
-      excerpts,
-      text: excerpts
-        .filter((item) => item.modality !== 'image')
-        .map((item) => item.excerpt)
-        .join('\n\n'),
-      modalities: [...new Set(excerpts.map((item) => item.modality))],
-    };
-  });
+export async function loadTextbookOutlinePayload(
+  sql: Sql,
+  datasetId: string,
+  bookId: string,
+): Promise<Record<string, unknown> | null> {
+  const rows = await sql<{ outline_json: unknown }[]>`
+    SELECT outline_json
+    FROM world_textbook_outlines
+    WHERE dataset_id = ${datasetId}
+      AND book_id = ${bookId}
+    LIMIT 1
+  `.catch(() => []);
+  const outline = rows[0]?.outline_json;
+  return isRecord(outline) ? outline : null;
+}
+
+async function loadTextbookOutlines(
+  sql: Sql,
+  datasetId: string,
+  bookIds: string[],
+): Promise<Map<string, OutlineData>> {
+  const cleanBookIds = uniqueStrings(bookIds);
+  if (cleanBookIds.length === 0) return new Map();
+  const rows = await sql<{ book_id: string; outline_json: unknown }[]>`
+    SELECT book_id, outline_json
+    FROM world_textbook_outlines
+    WHERE dataset_id = ${datasetId}
+      AND book_id = ANY(${cleanBookIds})
+  `.catch(() => []);
+  const result = new Map<string, OutlineData>();
+  for (const row of rows) {
+    if (isRecord(row.outline_json)) {
+      result.set(row.book_id, normalizeOutlineRecord(row.outline_json));
+    }
+  }
+  return result;
+}
+
+function normalizeOutlineRecord(outline: Record<string, unknown>): OutlineData {
+  const rawItems = Array.isArray(outline.items)
+    ? outline.items
+    : Array.isArray(outline.structure)
+      ? outline.structure
+      : [];
+  return {
+    ...outline,
+    items: rawItems as OutlineItem[],
+  } as OutlineData;
 }
 
 export async function loadUnit(
@@ -478,25 +709,37 @@ export async function loadUnit(
   `;
 
   const card = await loadNodeCard(sql, datasetId, nodeId);
-  const evidence = evidenceRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence);
+  const body = await loadNodeBody(sql, datasetId, nodeId);
+  const evidence = evidenceRows
+    .map((row: Record<string, unknown>) => worldJsonRow(row, ['normalized_claims', 'properties']) as unknown as ApiEvidence)
+    .filter((row) => !isHiddenImageEvidence(row as unknown as Record<string, unknown>));
   const evidenceRecords = evidence as unknown as Record<string, unknown>[];
+  const outlines = await loadTextbookOutlines(
+    sql,
+    datasetId,
+    evidenceRecords.flatMap((row) => outlineCandidatesForRow(row)),
+  );
   return {
     node: worldJsonRow(nodeRows[0] as Record<string, unknown>, [
       'aliases', 'domains', 'knowledge_form', 'learning_mode', 'properties', 'external_ids', 'tags',
-    ]),
+    ]) as unknown as ApiUnitNode,
     relations: {
-      outgoing: outgoingRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['source_refs', 'properties'])),
-      incoming: incomingRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['source_refs', 'properties'])),
+      outgoing: outgoingRows.map((row: Record<string, unknown>) => (
+        worldJsonRow(row, ['source_refs', 'properties']) as unknown as ApiUnitRelation
+      )),
+      incoming: incomingRows.map((row: Record<string, unknown>) => (
+        worldJsonRow(row, ['source_refs', 'properties']) as unknown as ApiUnitRelation
+      )),
     },
     domain_profiles: profileRows.map((row: Record<string, unknown>) => worldJsonRow(row, [
       'school_stages', 'curriculum_roles', 'source_refs', 'properties',
-    ])),
+    ]) as unknown as ApiUnitDomainProfile),
     mentions: mentionRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['source_refs', 'properties']) as unknown as ApiMention),
     evidence,
     media: mediaFromEvidence(evidenceRecords, sourceKey),
-    source_fragments: sourceFragmentsFromEvidence(evidenceRecords),
+    source_fragments: sourceFragmentsFromEvidence(evidenceRecords, sourceKey, outlines),
     card,
-    body: renderCardBody(card),
+    body,
   };
 }
 
@@ -577,32 +820,277 @@ export async function loadPipelinePayload(
   };
 }
 
+interface PipelineJobRow {
+  job_id: string;
+  book_id: string;
+  status: string;
+  current_stage_id: string | null;
+  progress_json: unknown;
+  log_path: string | null;
+  updated_at: string | null;
+  completed_at: string | null;
+  error: string | null;
+}
+
+interface PipelineStageRow {
+  stage_id: string;
+  status: string;
+  label: string;
+  progress_json: unknown;
+  error: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  updated_at: string | null;
+}
+
+interface PipelineWorkerRow {
+  worker_slot: number;
+  stage_id: string;
+  status: string;
+  lesson_run_id: string | null;
+  batch_anchor: string | null;
+  error: string | null;
+  data_json: unknown;
+  started_at: string | null;
+  completed_at: string | null;
+  updated_at: string | null;
+}
+
+interface PipelineEventRow {
+  event_id: string;
+  stage_id: string;
+  event_type: string;
+  status: string | null;
+  worker_slot: number | null;
+  lesson_run_id: string | null;
+  batch_anchor: string | null;
+  detail: string | null;
+  data_json: unknown;
+  created_at: string | null;
+}
+
+export async function loadPipelineJobStatusPayload(
+  sql: Sql,
+  datasetId: string,
+  jobId: string,
+): Promise<PipelineJobStatusResponse> {
+  const jobRows = await sql<PipelineJobRow[]>`
+    SELECT job_id, book_id, status, current_stage_id, progress_json, log_path, updated_at, completed_at, error
+    FROM world_pipeline_jobs
+    WHERE dataset_id = ${datasetId} AND job_id = ${jobId}
+    LIMIT 1
+  `;
+
+  if (!jobRows.length) {
+    return {
+      job_id: jobId,
+      book_id: '',
+      status: 'unknown',
+      log_path: '',
+      progress: {},
+      stages: [],
+      current_stage: null,
+      worker_states: [],
+      recent_events: [],
+      updated_at: null,
+      completed_at: null,
+      error: null,
+    };
+  }
+
+  const [stageRows, workerRows, eventRows] = await Promise.all([
+    sql<PipelineStageRow[]>`
+      SELECT stage_id, status, label, progress_json, error, started_at, completed_at, updated_at
+      FROM world_pipeline_job_stages
+      WHERE dataset_id = ${datasetId} AND job_id = ${jobId}
+      ORDER BY sort_order ASC, updated_at ASC
+    `,
+    sql<PipelineWorkerRow[]>`
+      SELECT worker_slot, stage_id, status, lesson_run_id, batch_anchor, error, data_json, started_at, completed_at, updated_at
+      FROM world_pipeline_worker_states
+      WHERE dataset_id = ${datasetId} AND job_id = ${jobId}
+      ORDER BY worker_slot ASC
+    `,
+    sql<PipelineEventRow[]>`
+      SELECT event_id, stage_id, event_type, status, worker_slot, lesson_run_id, batch_anchor, detail, data_json, created_at
+      FROM world_pipeline_job_events
+      WHERE dataset_id = ${datasetId} AND job_id = ${jobId}
+      ORDER BY created_at DESC
+      LIMIT 80
+    `,
+  ]);
+
+  const job = jobRows[0]!;
+  const stages: PipelineJobStage[] = stageRows.map((row) => ({
+    id: row.stage_id,
+    status: row.status,
+    label: row.label,
+    progress: asRecord(row.progress_json),
+    error: row.error ?? undefined,
+    started_at: row.started_at ?? null,
+    completed_at: row.completed_at ?? null,
+    updated_at: row.updated_at ?? null,
+  }));
+  const currentStage = stages.find((stage) => stage.id === job.current_stage_id)
+    ?? stages.find((stage) => stage.status === 'running')
+    ?? stages.find((stage) => stage.status === 'blocked')
+    ?? stages.at(-1)
+    ?? null;
+  const status: PipelineJobStatusResponse['status'] =
+    job.status === 'completed' || job.status === 'blocked' || job.status === 'running'
+      ? job.status
+      : 'unknown';
+
+  return {
+    job_id: job.job_id,
+    book_id: job.book_id,
+    status,
+    log_path: job.log_path ?? '',
+    progress: asRecord(job.progress_json),
+    stages,
+    current_stage: currentStage,
+    worker_states: workerRows.map((row): PipelineWorkerState => ({
+      worker_slot: Number(row.worker_slot),
+      stage_id: row.stage_id,
+      status: row.status,
+      lesson_run_id: row.lesson_run_id ?? null,
+      batch_anchor: row.batch_anchor ?? null,
+      error: row.error ?? null,
+      data: asRecord(row.data_json),
+      started_at: row.started_at ?? null,
+      completed_at: row.completed_at ?? null,
+      updated_at: row.updated_at ?? null,
+    })),
+    recent_events: eventRows.map((row): PipelineJobEvent => ({
+      event_id: row.event_id,
+      stage_id: row.stage_id,
+      event_type: row.event_type,
+      status: row.status ?? null,
+      worker_slot: row.worker_slot == null ? null : Number(row.worker_slot),
+      lesson_run_id: row.lesson_run_id ?? null,
+      batch_anchor: row.batch_anchor ?? null,
+      detail: row.detail ?? null,
+      data: asRecord(row.data_json),
+      created_at: row.created_at ?? null,
+    })),
+    updated_at: job.updated_at ?? null,
+    completed_at: job.completed_at ?? null,
+    error: job.error ?? null,
+  };
+}
+
+type EnrichBookSummaryRow = {
+  path: string;
+  filename: string;
+  title: string | null;
+  subject: string | null;
+  stage: string | null;
+  grade: string | null;
+  course: string | null;
+  publisher: string | null;
+  volume: string | null;
+  root_count: number;
+  node_count: number;
+  max_depth: number;
+};
+
+export async function loadEnrichIndexPayload(
+  sql: Sql,
+  datasetId: string,
+): Promise<Record<string, unknown> | null> {
+  const libraryRows = await sql<{
+    generated_at: string | null;
+    book_count: number;
+    subject_count: number;
+    node_count: number;
+  }[]>`
+    SELECT generated_at, book_count, subject_count, node_count
+    FROM world_enrich_library
+    WHERE dataset_id = ${datasetId}
+    LIMIT 1
+  `.catch(() => []);
+  const bookRows = await sql<EnrichBookSummaryRow[]>`
+    SELECT path, filename, title, subject, stage, grade, course, publisher, volume,
+           root_count, node_count, max_depth
+    FROM world_enrich_books
+    WHERE dataset_id = ${datasetId}
+    ORDER BY subject NULLS LAST, stage NULLS LAST, grade NULLS LAST, title ASC, path ASC
+  `.catch(() => []);
+  if (!libraryRows[0] && bookRows.length === 0) return null;
+
+  const books = bookRows.map((row) => enrichBookSummary(row));
+  const library = libraryRows[0];
+  return {
+    generated_at: library?.generated_at ?? undefined,
+    book_count: numberValue(library?.book_count, books.length),
+    subject_count: numberValue(
+      library?.subject_count,
+      new Set(books.map((book) => textValue(book.subject)).filter(Boolean)).size,
+    ),
+    node_count: numberValue(
+      library?.node_count,
+      books.reduce((sum, book) => sum + numberValue(book.node_count, 0), 0),
+    ),
+    books,
+  };
+}
+
+export async function loadEnrichBookPayload(
+  sql: Sql,
+  datasetId: string,
+  bookPath: string,
+): Promise<Record<string, unknown> | null> {
+  const rows = await sql<(EnrichBookSummaryRow & { metadata_json: unknown; tree_json: unknown })[]>`
+    SELECT path, filename, title, subject, stage, grade, course, publisher, volume,
+           root_count, node_count, max_depth, metadata_json, tree_json
+    FROM world_enrich_books
+    WHERE dataset_id = ${datasetId}
+      AND path = ${bookPath}
+    LIMIT 1
+  `.catch(() => []);
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    book: enrichBookSummary(row),
+    tree: Array.isArray(row.tree_json) ? row.tree_json : [],
+  };
+}
+
+function enrichBookSummary(row: EnrichBookSummaryRow): Record<string, unknown> {
+  const title = textValue(row.title) || [
+    row.stage,
+    row.grade,
+    row.course,
+    row.publisher,
+    row.volume,
+  ].map(textValue).filter(Boolean).join(' · ') || row.filename;
+  return {
+    path: row.path,
+    filename: row.filename,
+    title,
+    subject: row.subject ?? undefined,
+    stage: row.stage ?? undefined,
+    grade: row.grade ?? undefined,
+    course: row.course ?? undefined,
+    publisher: row.publisher ?? undefined,
+    volume: row.volume ?? undefined,
+    root_count: numberValue(row.root_count, 0),
+    node_count: numberValue(row.node_count, 0),
+    max_depth: numberValue(row.max_depth, 0),
+  };
+}
+
 // ── Book IDs ──────────────────────────────────────────────
 
 export async function loadBookIds(sql: Sql, datasetId: string): Promise<string[]> {
-  const worldTableCheck = await sql<{ regclass: string | null }[]>`
-    SELECT to_regclass('world_evidence') AS regclass
-  `;
-  if (worldTableCheck[0]?.regclass) {
-    const rows = await sql<{ source_id: string }[]>`
-      SELECT DISTINCT source_id FROM world_evidence
-      WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
-      UNION
-      SELECT DISTINCT source_id FROM world_mentions
-      WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
-      ORDER BY source_id
-    `.catch(() => [] as { source_id: string }[]);
-    return rows.map((r) => r.source_id);
-  }
-
   const rows = await sql<{ source_id: string }[]>`
-    SELECT DISTINCT source_id FROM evidence
+    SELECT DISTINCT source_id FROM world_evidence
     WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
     UNION
-    SELECT DISTINCT source_id FROM mentions
+    SELECT DISTINCT source_id FROM world_mentions
     WHERE dataset_id = ${datasetId} AND source_type = 'textbook'
     ORDER BY source_id
-  `;
+  `.catch(() => [] as { source_id: string }[]);
 
   return rows.map((r) => r.source_id);
 }
@@ -683,63 +1171,20 @@ export async function buildSourcesPayload(sql: Sql): Promise<SourcesPayload> {
     };
   }
 
-  const tableCheck = await sql<{ regclass: string | null }[]>`
-    SELECT to_regclass('datasets') AS regclass
-  `;
-
-  if (!tableCheck[0]?.regclass) {
-    return {
-      active_source: 'main',
-      sources: [
-        {
-          key: 'main',
-          label: 'MAIN',
-          description: 'Default world knowledge dataset',
-          has_profiles: false,
-          book_count: 0,
-          books: [],
-          is_active: false,
-          root_path: 'data/main',
-        },
-      ],
-    };
-  }
-
-  const datasets = await sql<DatasetRow[]>`
-    SELECT dataset_id, version_key, root_path, is_active
-    FROM datasets
-    ORDER BY is_active DESC, dataset_id ASC
-  `;
-
-  let activeSource: string | null = null;
-  const sources = await Promise.all(
-    datasets.map(async (row) => {
-      const bookIds = await loadBookIds(sql, row.dataset_id);
-      const profileRows = await sql<{ count: number }[]>`
-        SELECT COUNT(*) AS count FROM world_domain_profiles WHERE dataset_id = ${row.dataset_id}
-      `.catch(() => sql<{ count: number }[]>`
-        SELECT COUNT(*) AS count FROM profiles WHERE dataset_id = ${row.dataset_id}
-      `);
-      const profileCount = profileRows[0].count;
-
-      if (row.is_active) activeSource = row.dataset_id;
-
-      return {
-        key: row.dataset_id,
-        label: row.version_key.toUpperCase(),
-        description: `PostgreSQL dataset ${row.dataset_id}`,
-        has_profiles: profileCount > 0,
-        book_count: bookIds.length,
-        books: bookIds.map((bookId) => ({ book_id: bookId })),
-        is_active: Boolean(row.is_active),
-        root_path: row.root_path,
-      };
-    }),
-  );
-
   return {
-    active_source: activeSource || (sources[0]?.key ?? null),
-    sources,
+    active_source: 'main',
+    sources: [
+      {
+        key: 'main',
+        label: 'MAIN',
+        description: 'Default world knowledge dataset',
+        has_profiles: false,
+        book_count: 0,
+        books: [],
+        is_active: false,
+        root_path: 'data/main',
+      },
+    ],
   };
 }
 
@@ -772,17 +1217,14 @@ export async function buildBundlePayload(
   datasetId: string,
   framework: Record<string, unknown> | null,
   patterns: Record<string, unknown> | null,
-  outlineLoader: (bookId: string) => Record<string, unknown> | null,
 ): Promise<BundlePayload> {
   const datasetRow = await resolveDatasetRow(sql, datasetId);
   if (!datasetRow) throw new Error(`Unknown dataset: ${datasetId}`);
 
   const profileRows = await sql<{ count: number }[]>`
     SELECT COUNT(*) AS count FROM world_domain_profiles WHERE dataset_id = ${datasetRow.dataset_id}
-  `.catch(() => sql<{ count: number }[]>`
-    SELECT COUNT(*) AS count FROM profiles WHERE dataset_id = ${datasetRow.dataset_id}
-  `);
-  const profileCount = profileRows[0].count;
+  `.catch(() => [{ count: 0 }]);
+  const profileCount = Number(profileRows[0]?.count ?? 0);
 
   const allMentions = await loadMentions(sql, datasetRow.dataset_id);
   const allEvidence = await loadEvidence(sql, datasetRow.dataset_id);
@@ -794,10 +1236,11 @@ export async function buildBundlePayload(
   const evidenceByBook = groupBy(textbookEvidence, 'source_id');
 
   const bookIds = sortedUnion(Object.keys(mentionsByBook), Object.keys(evidenceByBook));
+  const outlines = await loadTextbookOutlines(sql, datasetRow.dataset_id, bookIds);
 
   const books = bookIds.map((bookId) => ({
     bookId,
-    outline: outlineLoader(bookId),
+    outline: outlines.get(bookId) ?? null,
     mentions: mentionsByBook[bookId] ?? [],
     evidence: evidenceByBook[bookId] ?? [],
   }));

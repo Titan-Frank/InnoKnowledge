@@ -21,6 +21,20 @@ const tocText = `
 附   录   … …………………………………………………………………………… 98
 `;
 
+const chineseSectionTocText = `
+目
+录
+
+第九章·静电场 / 1
+
+第一节   静电现象       电荷 / 2
+第二节   电荷的相互作用         库仑定律 / 7
+
+第十章·电路及其应用 / 48
+
+第一节   简单串联、并联组合电路 / 49
+`;
+
 test("parses PDF TOC text into Python-compatible outline items", () => {
   const outline = parsePdfTocText({
     bookId: "chem-book",
@@ -57,6 +71,43 @@ test("parses PDF TOC text into Python-compatible outline items", () => {
     raw_line: "1.3 元素周期律",
   });
   assert.equal(outline.items.at(-1)?.page_end, 97);
+});
+
+test("parses Chinese chapter and section TOC lines with slash page markers", () => {
+  const outline = parsePdfTocText({
+    bookId: "physics-book",
+    title: "物理",
+    sourcePath: "data/mineru/physics-book/full.md",
+    tocText: chineseSectionTocText,
+    tocStart: 1,
+    tocEnd: 4,
+    generatedAt: "2026-06-26T00:00:00.000Z",
+  });
+
+  assert.deepEqual(outline.items[0], {
+    id: "struct:physics-book:theme:9",
+    kind: "theme",
+    label: "第 9 章",
+    title: "静电场",
+    page_start: 1,
+    page_end: 47,
+    level: 1,
+    order_path: "9",
+    raw_line: "第 9 章 静电场",
+  });
+  assert.deepEqual(outline.items[1], {
+    id: "struct:physics-book:lesson:9-1",
+    kind: "lesson",
+    label: "第1节",
+    title: "静电现象 电荷",
+    page_start: 2,
+    page_end: 6,
+    level: 3,
+    order_path: "9.1",
+    parent_id: "struct:physics-book:theme:9",
+    raw_line: "第1节 静电现象 电荷",
+  });
+  assert.equal(outline.items.at(-1)?.order_path, "10.1");
 });
 
 test("keeps TOC boundary rows for page_end calculation without including them", () => {

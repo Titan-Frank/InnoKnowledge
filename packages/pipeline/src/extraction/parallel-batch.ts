@@ -45,15 +45,25 @@ export type TsModelExtractionCommandOptions = {
   datasetId?: string;
   model?: string;
   prompt?: string;
+  bookTitle?: string;
   subject?: string;
   schoolStage?: string;
   gradeBand?: string;
   textbookId?: string;
   apiMode?: "responses" | "chat_completions";
+  extractionTemplate?: string;
+  modelRetryCount?: number;
   baseUrl?: string;
   apiKeyEnv?: string;
   reasoningEffort?: string;
   timeoutSeconds?: number;
+  vlmApiUrl?: string;
+  vlmApiKeyEnv?: string;
+  vlmCacheDir?: string;
+  vlmConcurrency?: number;
+  vlmModel?: string;
+  enrichContext?: boolean;
+  enrichContextLimit?: number;
 };
 
 export function chunked<T>(items: T[], size: number): T[][] {
@@ -173,15 +183,27 @@ function buildTsModelExtractionCommand(item: ParallelLessonRun, options: TsModel
   pushOptional(command, "--dataset-id", options.datasetId);
   pushOptional(command, "--model", options.model);
   pushOptional(command, "--prompt", options.prompt);
+  pushOptional(command, "--book-title", options.bookTitle);
   pushOptional(command, "--subject", options.subject);
   pushOptional(command, "--school-stage", options.schoolStage);
   pushOptional(command, "--grade-band", options.gradeBand);
   pushOptional(command, "--textbook-id", options.textbookId);
   pushOptional(command, "--api-mode", options.apiMode);
+  pushOptional(command, "--extraction-template", options.extractionTemplate);
+  if (options.modelRetryCount !== undefined) pushOptional(command, "--model-retry-count", String(options.modelRetryCount));
   pushOptional(command, "--base-url", options.baseUrl);
   pushOptional(command, "--api-key-env", options.apiKeyEnv);
   pushOptional(command, "--reasoning-effort", options.reasoningEffort);
   if (options.timeoutSeconds !== undefined) pushOptional(command, "--timeout", String(options.timeoutSeconds));
+  pushOptional(command, "--vlm-api-url", options.vlmApiUrl);
+  pushOptional(command, "--vlm-api-key-env", options.vlmApiKeyEnv);
+  pushOptional(command, "--vlm-cache-dir", options.vlmCacheDir);
+  if (options.vlmConcurrency !== undefined) pushOptional(command, "--vlm-concurrency", String(options.vlmConcurrency));
+  pushOptional(command, "--vlm-model", options.vlmModel);
+  if (options.enrichContext) {
+    command.push("--enrich-context");
+    if (options.enrichContextLimit !== undefined) command.push("--enrich-context-limit", String(options.enrichContextLimit));
+  }
   return command;
 }
 

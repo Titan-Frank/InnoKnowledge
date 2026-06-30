@@ -52,6 +52,15 @@ export type StrictQaRows = {
     source_refs_json?: unknown;
     sections_json?: unknown;
   }>;
+  node_bodies?: Array<{
+    node_id: string;
+    format: string;
+    content?: string | null;
+    media_refs_json?: unknown;
+    source_refs_json?: unknown;
+    generated_from?: string | null;
+    status?: string | null;
+  }>;
 };
 
 export type StrictQaResult = {
@@ -61,6 +70,7 @@ export type StrictQaResult = {
 };
 
 const REQUIRED_CARD_SECTIONS = new Set(["definition", "essence", "key_points", "example", "application", "misconception"]);
+const VALID_BODY_GENERATED_FROM = new Set(["manual", "card_expansion", "imported_unit", "model_generation"]);
 
 export function runStrictQa(rows: StrictQaRows): StrictQaResult {
   const qa = new StrictQaRunner(rows);
@@ -94,6 +104,7 @@ class StrictQaRunner {
     this.validateDomainProfiles();
     this.validateMentionsAndEvidence();
     this.validateNodeCards();
+    this.validateNodeBodies();
     return { errors: this.errors, warnings: this.warnings };
   }
 
@@ -189,6 +200,44 @@ class StrictQaRunner {
       }
     }
   }
+
+  private validateNodeBodies(): void {
+    for (const row of this.rows.node_bodies ?? []) {
+      if (!this.nodeIds.has(row.node_id)) this.error("node_body", row.node_id, "Missing node");
+      if (row.format !== "markdown") this.error("node_body", row.node_id, `Invalid body format: ${row.format}`);
+      if (!row.content || !row.content.trim()) this.error("node_body", row.node_id, "Missing body content");
+      if (row.generated_from && !VALID_BODY_GENERATED_FROM.has(row.generated_from)) {
+        this.error("node_body", row.node_id, `Invalid generated_from: ${row.generated_from}`);
+      }
+      this.validateSourceRefs("node_body", row.node_id, row.source_refs_json);
+      this.validateBodyMediaRefs(row);
+    }
+  }
+
+  private validateBodyMediaRefs(row: NonNullable<StrictQaRows["node_bodies"]>[number]): void {
+    const refs = markdownImageRefs(row.content ?? "");
+    if (refs.length === 0) return;
+    const mediaRefs = Array.isArray(row.media_refs_json) ? row.media_refs_json : null;
+    if (!mediaRefs) {
+      this.error("node_body", row.node_id, "media_refs_json must be an array when body contains images");
+      return;
+    }
+    const mediaKeys = new Set<string>();
+    for (const mediaRef of mediaRefs) {
+      if (!isRecord(mediaRef)) continue;
+      for (const key of ["id", "path", "url", "src", "evidence_id"]) {
+        const value = mediaRef[key];
+        if (typeof value === "string" && value.trim()) mediaKeys.add(normalizeAssetRef(value));
+      }
+    }
+    for (const ref of refs) {
+      if (isExternalImageRef(ref)) continue;
+      const normalized = normalizeAssetRef(ref);
+      const fileName = normalized.split("/").filter(Boolean).pop() ?? normalized;
+      const declared = [...mediaKeys].some((key) => key === normalized || key.endsWith(`/${normalized}`) || key.endsWith(`/${fileName}`));
+      if (!declared) this.error("node_body", row.node_id, `Missing media ref for image ${ref}`);
+    }
+  }
 }
 
 function formatPythonStringList(values: unknown[]): string {
@@ -197,4 +246,21 @@ function formatPythonStringList(values: unknown[]): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function markdownImageRefs(markdown: string): string[] {
+  return Array.from(markdown.matchAll(/!\[[^\]]*\]\(([^)\n]+)\)/g)).map((match) => match[1]!.trim()).filter(Boolean);
+}
+
+function isExternalImageRef(value: string): boolean {
+  return /^(https?:|data:|blob:|\/api\/source\/)/i.test(value.trim());
+}
+
+function normalizeAssetRef(value: string): string {
+  const clean = value.trim().split(/[?#]/, 1)[0] ?? "";
+  try {
+    return decodeURIComponent(clean).replace(/\\/g, "/").toLowerCase();
+  } catch {
+    return clean.replace(/\\/g, "/").toLowerCase();
+  }
 }

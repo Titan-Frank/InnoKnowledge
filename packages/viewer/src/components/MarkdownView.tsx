@@ -4,7 +4,9 @@ type MarkdownViewProps = {
   content: string;
   className?: string;
   resolveImageUrl?: (src: string) => string | undefined;
+  renderEvidenceRef?: (evidenceId: string, key: string) => ReactNode;
   hideDecorativeImages?: boolean;
+  imageLayout?: 'inline' | 'preview' | 'reader';
 };
 
 const IMAGE_RE = /!\[([^\]]*)\]\(([^)]+)\)/g;
@@ -23,12 +25,14 @@ function MarkdownImage({
   src,
   alt,
   className,
+  figureClassName = '',
   framed = false,
   hideDecorative = true,
 }: {
   src: string;
   alt: string;
   className: string;
+  figureClassName?: string;
   framed?: boolean;
   hideDecorative?: boolean;
 }) {
@@ -51,7 +55,7 @@ function MarkdownImage({
   if (!framed) return image;
 
   return (
-    <figure className="overflow-hidden border border-border-subtle bg-elevated">
+    <figure className={`overflow-hidden border border-border-subtle bg-elevated ${figureClassName}`.trim()}>
       {image}
       {alt === '教材图片' ? null : (
         <figcaption className="border-t border-border-subtle px-2 py-1 text-[10px] text-text-muted">
@@ -205,13 +209,14 @@ function renderMathNodes(value: string, keyPrefix: string): ReactNode[] {
       const isSubscript = char === '_';
       let script = '';
       i += 1;
-      const group = readBraceGroup(value, i);
+      const scriptStart = skipSpaces(value, i);
+      const group = readBraceGroup(value, scriptStart);
       if (group) {
         script = group.content;
         i = group.end;
       } else {
-        script = value[i] ?? '';
-        i += 1;
+        script = value[scriptStart] ?? '';
+        i = scriptStart + 1;
       }
       flushText();
       const Tag = isSubscript ? 'sub' : 'sup';
@@ -329,6 +334,7 @@ function renderTableBlock(
   rows: string[][],
   key: string,
   resolveImageUrl?: (src: string) => string | undefined,
+  renderEvidenceRef?: MarkdownViewProps['renderEvidenceRef'],
 ): ReactNode {
   return (
     <div key={key} className="overflow-x-auto">
@@ -337,7 +343,7 @@ function renderTableBlock(
           <tr>
             {header.map((cell, index) => (
               <th key={index} className="border border-border-subtle bg-surface px-2 py-1 font-medium text-text-primary">
-                {renderInline(cell, `${key}:th:${index}`, resolveImageUrl)}
+                {renderInline(cell, `${key}:th:${index}`, resolveImageUrl, 'inline', renderEvidenceRef)}
               </th>
             ))}
           </tr>
@@ -347,7 +353,7 @@ function renderTableBlock(
             <tr key={rowIndex}>
               {row.map((cell, cellIndex) => (
                 <td key={cellIndex} className="border border-border-subtle px-2 py-1 align-top text-text-secondary">
-                  {renderInline(cell, `${key}:td:${rowIndex}:${cellIndex}`, resolveImageUrl)}
+                  {renderInline(cell, `${key}:td:${rowIndex}:${cellIndex}`, resolveImageUrl, 'inline', renderEvidenceRef)}
                 </td>
               ))}
             </tr>
@@ -358,25 +364,32 @@ function renderTableBlock(
   );
 }
 
-function renderHtmlTable(markup: string, key: string, resolveImageUrl?: (src: string) => string | undefined): ReactNode {
+function renderHtmlTable(
+  markup: string,
+  key: string,
+  resolveImageUrl?: (src: string) => string | undefined,
+  renderEvidenceRef?: MarkdownViewProps['renderEvidenceRef'],
+): ReactNode {
   const rows = parseHtmlTable(markup);
   if (rows.length === 0) {
     return (
       <p key={key} className="whitespace-pre-line">
-        {renderInline(cleanHtmlTableCell(markup), `${key}:fallback`, resolveImageUrl)}
+        {renderInline(cleanHtmlTableCell(markup), `${key}:fallback`, resolveImageUrl, 'inline', renderEvidenceRef)}
       </p>
     );
   }
 
   const [header, ...bodyRows] = rows;
-  return renderTableBlock(header, bodyRows, key, resolveImageUrl);
+  return renderTableBlock(header, bodyRows, key, resolveImageUrl, renderEvidenceRef);
 }
 
 function renderHtmlDetails(
   markup: string,
   key: string,
   resolveImageUrl?: (src: string) => string | undefined,
+  renderEvidenceRef?: MarkdownViewProps['renderEvidenceRef'],
   hideDecorativeImages = true,
+  imageLayout: MarkdownViewProps['imageLayout'] = 'inline',
 ): ReactNode {
   const summaryMatch = markup.match(/<summary\b[^>]*>([\s\S]*?)<\/summary>/i);
   const summary = summaryMatch ? cleanHtmlTableCell(summaryMatch[1]) : '详情';
@@ -389,14 +402,16 @@ function renderHtmlDetails(
   return (
     <details key={key} className="border border-border-subtle bg-surface">
       <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-text-primary">
-        {renderInline(summary, `${key}:summary`, resolveImageUrl)}
+        {renderInline(summary, `${key}:summary`, resolveImageUrl, 'inline', renderEvidenceRef)}
       </summary>
       {body ? (
         <div className="border-t border-border-subtle px-3 py-2">
           <MarkdownView
             content={body}
             resolveImageUrl={resolveImageUrl}
+            renderEvidenceRef={renderEvidenceRef}
             hideDecorativeImages={hideDecorativeImages}
+            imageLayout={imageLayout}
           />
         </div>
       ) : null}
@@ -404,9 +419,33 @@ function renderHtmlDetails(
   );
 }
 
-function renderInline(text: string, keyPrefix: string, resolveImageUrl?: (src: string) => string | undefined): ReactNode[] {
+function inlineImageClass(imageLayout: MarkdownViewProps['imageLayout']): string {
+  if (imageLayout === 'reader') return 'my-4 max-h-[60vh] w-full rounded-md border border-border-subtle bg-elevated object-contain';
+  if (imageLayout === 'preview') return 'my-3 mx-auto max-h-56 w-auto max-w-full rounded-md border border-border-subtle bg-elevated object-contain';
+  return 'my-2 max-h-72 w-full border border-border-subtle bg-surface object-contain';
+}
+
+function blockImageClass(imageLayout: MarkdownViewProps['imageLayout']): string {
+  if (imageLayout === 'reader') return 'max-h-[68vh] w-full bg-elevated object-contain';
+  if (imageLayout === 'preview') return 'mx-auto max-h-56 w-auto max-w-full bg-elevated object-contain';
+  return 'max-h-80 w-full bg-surface object-contain';
+}
+
+function blockFigureClass(imageLayout: MarkdownViewProps['imageLayout']): string {
+  if (imageLayout === 'reader') return 'rounded-lg bg-elevated p-3';
+  if (imageLayout === 'preview') return 'rounded-md bg-elevated p-2';
+  return '';
+}
+
+function renderInline(
+  text: string,
+  keyPrefix: string,
+  resolveImageUrl?: (src: string) => string | undefined,
+  imageLayout: MarkdownViewProps['imageLayout'] = 'inline',
+  renderEvidenceRef?: MarkdownViewProps['renderEvidenceRef'],
+): ReactNode[] {
   const nodes: ReactNode[] = [];
-  const tokenRe = /!\[([^\]]*)\]\(([^)\n]+)\)|!\[([^\]]*)\]\(([^)\s]+…)|\$\$\s*([^$]+?)\s*\$\$|\$([^$\n]+)\$|`([^`]+)`|\*\*([^*]+)\*\*/g;
+  const tokenRe = /!\[([^\]]*)\]\(([^)\n]+)\)|!\[([^\]]*)\]\(([^)\s]+…)|\$\$\s*([^$]+?)\s*\$\$|\$([^$\n]+)\$|`?\[(evidence:[^\]\s`]+)\]`?|`([^`]+)`|\*\*([^*]+)\*\*/g;
   let lastIndex = 0;
   let index = 0;
   let match: RegExpExecArray | null;
@@ -424,7 +463,7 @@ function renderInline(text: string, keyPrefix: string, resolveImageUrl?: (src: s
             key={`${keyPrefix}:img:${index}`}
             src={resolved}
             alt={alt}
-            className="my-2 max-h-72 w-full border border-border-subtle bg-surface object-contain"
+            className={inlineImageClass(imageLayout)}
           />,
         );
       } else if (!src.includes('…')) {
@@ -437,15 +476,26 @@ function renderInline(text: string, keyPrefix: string, resolveImageUrl?: (src: s
     } else if (match[5] != null || match[6] != null) {
       nodes.push(renderMath(match[5] || match[6], `${keyPrefix}:math:${index}`));
     } else if (match[7] != null) {
+      const evidenceId = match[7];
       nodes.push(
-        <code key={`${keyPrefix}:code:${index}`} className="bg-surface px-1 py-0.5 font-mono text-[0.95em] text-text-primary">
-          {match[7]}
-        </code>,
+        renderEvidenceRef
+          ? renderEvidenceRef(evidenceId, `${keyPrefix}:evidence:${index}`)
+          : (
+            <sup key={`${keyPrefix}:evidence:${index}`} className="align-super text-[0.68em] font-medium text-text-muted">
+              [证据]
+            </sup>
+          ),
       );
     } else if (match[8] != null) {
       nodes.push(
-        <strong key={`${keyPrefix}:strong:${index}`} className="font-semibold text-text-primary">
+        <code key={`${keyPrefix}:code:${index}`} className="bg-surface px-1 py-0.5 font-mono text-[0.95em] text-text-primary">
           {match[8]}
+        </code>,
+      );
+    } else if (match[9] != null) {
+      nodes.push(
+        <strong key={`${keyPrefix}:strong:${index}`} className="font-semibold text-text-primary">
+          {match[9]}
         </strong>,
       );
     }
@@ -463,6 +513,7 @@ function renderImageLine(
   key: string,
   resolveImageUrl?: (src: string) => string | undefined,
   hideDecorativeImages = true,
+  imageLayout: MarkdownViewProps['imageLayout'] = 'inline',
 ): ReactNode {
   const images = Array.from(line.matchAll(IMAGE_RE));
   IMAGE_RE.lastIndex = 0;
@@ -471,13 +522,21 @@ function renderImageLine(
       {images.map((image, index) => {
         const alt = image[1] || '教材图片';
         const src = image[2].trim();
-        const resolved = resolveImageUrl?.(src) ?? src;
+        const resolved = resolveImageUrl ? resolveImageUrl(src) : src;
+        if (!resolved) {
+          return src.includes('…') ? null : (
+            <span key={`${key}:missing-img:${index}`} className="text-sm text-text-muted">
+              [图片未找到]
+            </span>
+          );
+        }
         return (
           <MarkdownImage
             key={`${key}:figure:${index}`}
             src={resolved}
             alt={alt}
-            className="max-h-80 w-full bg-surface object-contain"
+            className={blockImageClass(imageLayout)}
+            figureClassName={blockFigureClass(imageLayout)}
             framed
             hideDecorative={hideDecorativeImages}
           />
@@ -491,7 +550,9 @@ export function MarkdownView({
   content,
   className = '',
   resolveImageUrl,
+  renderEvidenceRef,
   hideDecorativeImages = true,
+  imageLayout = 'inline',
 }: MarkdownViewProps) {
   const lines = content.replace(/\r\n/g, '\n').split('\n');
   const blocks: ReactNode[] = [];
@@ -536,7 +597,7 @@ export function MarkdownView({
       const Tag = `h${level + 2}` as 'h3' | 'h4' | 'h5' | 'h6';
       blocks.push(
         <Tag key={`h:${i}`} className="mt-3 font-semibold leading-snug text-text-primary first:mt-0">
-          {renderInline(heading[2], `h:${i}`, resolveImageUrl)}
+          {renderInline(heading[2], `h:${i}`, resolveImageUrl, imageLayout, renderEvidenceRef)}
         </Tag>,
       );
       i += 1;
@@ -554,7 +615,7 @@ export function MarkdownView({
         tableLines.push(lines[i]);
         i += 1;
       }
-      blocks.push(renderHtmlTable(tableLines.join('\n'), `html-table:${i}`, resolveImageUrl));
+      blocks.push(renderHtmlTable(tableLines.join('\n'), `html-table:${i}`, resolveImageUrl, renderEvidenceRef));
       continue;
     }
 
@@ -569,7 +630,7 @@ export function MarkdownView({
         detailsLines.push(lines[i]);
         i += 1;
       }
-      blocks.push(renderHtmlDetails(detailsLines.join('\n'), `html-details:${i}`, resolveImageUrl, hideDecorativeImages));
+      blocks.push(renderHtmlDetails(detailsLines.join('\n'), `html-details:${i}`, resolveImageUrl, renderEvidenceRef, hideDecorativeImages, imageLayout));
       continue;
     }
 
@@ -581,7 +642,7 @@ export function MarkdownView({
         rows.push(splitTableRow(lines[i]));
         i += 1;
       }
-      blocks.push(renderTableBlock(header, rows, `table:${i}`, resolveImageUrl));
+      blocks.push(renderTableBlock(header, rows, `table:${i}`, resolveImageUrl, renderEvidenceRef));
       continue;
     }
 
@@ -594,7 +655,7 @@ export function MarkdownView({
       blocks.push(
         <ul key={`ul:${i}`} className="list-disc space-y-1 pl-5">
           {items.map((item, index) => (
-            <li key={index}>{renderInline(item, `ul:${i}:${index}`, resolveImageUrl)}</li>
+            <li key={index}>{renderInline(item, `ul:${i}:${index}`, resolveImageUrl, imageLayout, renderEvidenceRef)}</li>
           ))}
         </ul>,
       );
@@ -610,7 +671,7 @@ export function MarkdownView({
       blocks.push(
         <ol key={`ol:${i}`} className="list-decimal space-y-1 pl-5">
           {items.map((item, index) => (
-            <li key={index}>{renderInline(item, `ol:${i}:${index}`, resolveImageUrl)}</li>
+            <li key={index}>{renderInline(item, `ol:${i}:${index}`, resolveImageUrl, imageLayout, renderEvidenceRef)}</li>
           ))}
         </ol>,
       );
@@ -618,7 +679,7 @@ export function MarkdownView({
     }
 
     if (isImageOnly(line)) {
-      blocks.push(renderImageLine(line, `img:${i}`, resolveImageUrl, hideDecorativeImages));
+      blocks.push(renderImageLine(line, `img:${i}`, resolveImageUrl, hideDecorativeImages, imageLayout));
       i += 1;
       continue;
     }
@@ -630,7 +691,7 @@ export function MarkdownView({
     }
     blocks.push(
       <p key={`p:${i}`} className="whitespace-pre-line">
-        {renderInline(paragraph.join('\n'), `p:${i}`, resolveImageUrl)}
+        {renderInline(paragraph.join('\n'), `p:${i}`, resolveImageUrl, imageLayout, renderEvidenceRef)}
       </p>,
     );
   }

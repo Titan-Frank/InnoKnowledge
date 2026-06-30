@@ -22,6 +22,7 @@ test("runs strict QA from canonical database rows", async () => {
     "select-strict-qa-mentions",
     "select-strict-qa-evidence",
     "select-strict-qa-node-cards",
+    "select-strict-qa-node-bodies",
   ]);
 });
 
@@ -100,6 +101,18 @@ function qaRowsForStatement(name: string): Array<Record<string, unknown>> {
             section_type: sectionType,
             source_refs: ["ev1"],
           })),
+        },
+      ];
+    case "select-strict-qa-node-bodies":
+      return [
+        {
+          node_id: "node:water",
+          format: "markdown",
+          content: "Water body.",
+          media_refs_json: [],
+          source_refs_json: ["ev1"],
+          generated_from: "card_expansion",
+          status: "active",
         },
       ];
     default:

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "World Domain Profile Schema V1.2",
-  "description": "Domain-specific extension profile for a world knowledge node, used to project the same node into school stages and curriculum roles.",
+  "description": "Domain-specific extension profile for a world knowledge node, used to project the same node into school stages, curriculum roles, and optional pedagogical profile details.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -75,7 +75,75 @@
       }
     },
     "properties": {
-      "type": "object"
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "pedagogical_profile": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Teaching projection details for this node in this domain and stage context.",
+          "properties": {
+            "learning_objectives": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "difficulty_level": {
+              "type": "string",
+              "enum": [
+                "introductory",
+                "basic",
+                "intermediate",
+                "advanced",
+                "expert"
+              ]
+            },
+            "diagnostic_questions": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "common_errors": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "assessment_tasks": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "remediation_suggestions": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "extension_suggestions": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
     },
     "status": {
       "type": "string",

@@ -5,6 +5,8 @@ export interface OKMNode {
   name: string;
   description: string;
   nodeType: string;        // display type derived from node_kind/node_subkind
+  displayTypeLabel: string | null;
+  displayColor: string | null;
   nodeKind: string;
   nodeSubkind: string | null;
   nodeLayer: 'backbone' | 'support';
@@ -24,6 +26,9 @@ export interface OKMEdge {
   from: string;
   to: string;
   edgeType: string;
+  displayLabel: string | null;
+  displayCategory: string | null;
+  displayColor: string | null;
   edgeLayer: 'backbone' | 'support';
   backboneExpand: boolean;
   properties: Record<string, unknown>;

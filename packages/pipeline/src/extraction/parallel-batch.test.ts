@@ -83,6 +83,8 @@ test("plans TypeScript model extraction commands for parallel workers", () => {
     schoolStage: "senior-secondary",
     gradeBand: "grade-8",
     apiMode: "responses",
+    extractionTemplate: "textbook/chemistry",
+    modelRetryCount: 2,
     timeoutSeconds: 90,
   });
 
@@ -110,6 +112,10 @@ test("plans TypeScript model extraction commands for parallel workers", () => {
     "grade-8",
     "--api-mode",
     "responses",
+    "--extraction-template",
+    "textbook/chemistry",
+    "--model-retry-count",
+    "2",
     "--timeout",
     "90",
   ]);

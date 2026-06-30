@@ -6,12 +6,18 @@ import test from "node:test";
 
 import {
   buildExtractionPayloadFromModelBundle,
-  buildModelExtractionRequest,
+  buildHybridEdgeExtractionRequest,
+  buildHybridEdgeResponseSchema,
+  buildHybridExtractionPayloadFromModelBundles,
+  buildHybridNodeEvidenceExtractionRequest,
+  buildHybridNodeEvidenceResponseSchema,
   buildModelLessonPayload,
   buildRetrievalQueries,
   buildResponseSchema,
   extractMarkdownEvidenceHints,
+  parseModelBundleFromResponse,
 } from "./model-lesson-extraction.js";
+import { resolveExtractionTemplate } from "./extraction-template.js";
 
 const bookId = "model-book";
 const canonicalAnchor = "struct:model-book:chunk:1-1-a";
@@ -53,45 +59,176 @@ test("builds a model lesson payload from one chunk, not a local extractor payloa
       ],
     );
     assert.deepEqual(payload.lesson_context.retrieval_candidates, [{ node_id: "node:known", name: "Known", kind: "concept", score: 0.9 }]);
+    assert.deepEqual(payload.lesson_context.enrich_hints, []);
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }
 });
 
-test("builds OpenAI Responses and Chat Completions requests with the same schema intent as Python", () => {
+test("builds two-stage model requests with chat completions as the default API", () => {
   const repo = makeFixtureRepo();
   try {
-    const responses = buildModelExtractionRequest({
+    const request = buildHybridNodeEvidenceExtractionRequest({
       bookId,
       batchAnchor: canonicalAnchor,
       repoRoot: repo.root,
       model: "gpt-test",
       prompt: "只保留证据充分的节点。",
       reasoningEffort: "medium",
+      extractionTemplate: resolveExtractionTemplate({ templateId: "physics" }),
     });
-    assert.equal(responses.api_mode, "responses");
-    assert.equal(responses.endpoint, "https://api.openai.com/v1/responses");
-    assert.equal(responses.body.model, "gpt-test");
-    assert.deepEqual(responses.body.reasoning, { effort: "medium" });
-    assert.equal(((responses.body.text as Record<string, unknown>).format as Record<string, unknown>).name, "world_knowledge_lesson_bundle");
-    assert.match(responses.user_payload, /"lesson_context"/);
+    assert.equal(request.api_mode, "chat_completions");
+    assert.equal(request.endpoint, "https://api.openai.com/v1/chat/completions");
+    assert.equal(request.body.model, "gpt-test");
+    assert.equal((request.body.response_format as Record<string, unknown>).type, "json_schema");
+    assert.equal(((request.body.response_format as Record<string, Record<string, unknown>>).json_schema).name, "world_knowledge_node_evidence_bundle");
+    assert.match(request.user_payload, /"lesson_context"/);
+    assert.match(request.user_payload, /"extraction_template"/);
+    assert.match(request.instructions, /物理教材抽取模板/);
+    assert.match(request.instructions, /第一阶段/);
+    assert.match(request.instructions, /不能作为节点证据/);
+    assert.doesNotMatch(request.instructions, /- edges:/);
+    assert.doesNotMatch(request.instructions, /关系规则：/);
 
-    const chat = buildModelExtractionRequest({
+    const responses = buildHybridNodeEvidenceExtractionRequest({
       bookId,
       batchAnchor: "chunk:1-1-a",
       repoRoot: repo.root,
-      apiMode: "chat_completions",
+      apiMode: "responses",
       baseUrl: "https://example.test/v1/",
     });
-    assert.equal(chat.endpoint, "https://example.test/v1/chat/completions");
-    assert.equal((chat.body.response_format as Record<string, unknown>).type, "json_schema");
-    assert.equal(((chat.body.response_format as Record<string, Record<string, unknown>>).json_schema).name, "world_knowledge_lesson_bundle");
+    assert.equal(responses.endpoint, "https://example.test/v1/responses");
+    assert.equal(((responses.body.text as Record<string, unknown>).format as Record<string, unknown>).name, "world_knowledge_node_evidence_bundle");
 
     const schema = buildResponseSchema();
     assert.equal(schema.name, "world_knowledge_lesson_bundle");
+    assert.equal(buildHybridNodeEvidenceResponseSchema().name, "world_knowledge_node_evidence_bundle");
+    assert.equal(buildHybridEdgeResponseSchema().name, "world_knowledge_edge_bundle");
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }
+});
+
+test("builds the hybrid edge request from first-stage nodes and evidence only", () => {
+  const repo = makeFixtureRepo();
+  try {
+    const request = buildHybridEdgeExtractionRequest(
+      {
+        bookId,
+        batchAnchor: canonicalAnchor,
+        repoRoot: repo.root,
+        subject: "chemistry",
+        schoolStage: "senior-secondary",
+        gradeBand: "grade-11",
+        extractionTemplate: resolveExtractionTemplate({ templateId: "chemistry" }),
+      },
+      {
+        nodes: [{ id: "node:map", label: "知识图谱", kind: "concept", definition: "结构化表示知识。" }],
+        evidence_units: [{ anchor: "ev1", excerpt: "知识图谱是一种表示方法", source_locator: "line:2", node_ids: ["node:map"] }],
+        issues: [],
+      },
+    );
+
+    const userPayload = JSON.parse(request.user_payload) as {
+      markdown_lines?: unknown;
+      candidate_nodes: Array<{ id: string; name: string }>;
+      evidence_units: Array<{ anchor: string }>;
+      allowed_edge_types: string[];
+    };
+    assert.equal(userPayload.markdown_lines, undefined);
+    assert.deepEqual(userPayload.candidate_nodes, [
+      { id: "node:map", name: "知识图谱", kind: "concept", aliases: [], definition: "结构化表示知识。" },
+    ]);
+    assert.deepEqual(userPayload.evidence_units.map((item) => item.anchor), ["ev1"]);
+    assert.ok(userPayload.allowed_edge_types.includes("produces"));
+    assert.ok(!userPayload.allowed_edge_types.includes("same_as"));
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("strictly keeps hybrid edges only when nodes and evidence anchors exist", () => {
+  const repo = makeFixtureRepo();
+  try {
+    const payload = buildHybridExtractionPayloadFromModelBundles(
+      {
+        bookId,
+        batchAnchor: canonicalAnchor,
+        repoRoot: repo.root,
+        subject: "chemistry",
+        schoolStage: "senior-secondary",
+        gradeBand: "grade-11",
+      },
+      {
+        nodes: [
+          { id: "node:map", label: "知识图谱", kind: "concept", definition: "以节点和关系表示知识。", domain: "chemistry" },
+          { id: "node:repr", name: "表示方法", kind: "method", definition: "表达对象和关系的方法。", learning_dimension: ["procedural"] },
+        ],
+        evidence_units: [
+          { anchor: "ev1", excerpt: "知识图谱是一种表示方法", locator: "line:2", modality: "text", node_ids: ["node:map", "node:repr"] },
+        ],
+        issues: ["stage1"],
+      },
+      {
+        edges: [
+          { source: "node:map", target: "node:repr", type: "uses", confidence: 0.9, evidence_anchor: "ev1", notes: "" },
+          { from: "node:map", to: "missing", type: "uses", confidence: 0.9, evidence_anchor: "ev1", notes: "" },
+          { from: "node:map", to: "node:repr", type: "uses", confidence: 0.9, evidence_anchor: "missing", notes: "" },
+        ],
+        issues: ["stage2"],
+      },
+    );
+
+    assert.equal(payload.counts.nodes, 2);
+    assert.equal(payload.counts.edges, 1);
+    assert.equal(payload.edges[0]?.from, "node:map");
+    assert.equal(payload.edges[0]?.to, "node:repr");
+    assert.ok(payload.issues.includes("stage1"));
+    assert.ok(payload.issues.includes("stage2"));
+    assert.ok(payload.issues.some((issue) => issue.includes("Strict hybrid validator dropped 2 edge")));
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("parses model JSON when providers wrap it in a Markdown code fence", () => {
+  const bundle = parseModelBundleFromResponse({
+    choices: [
+      {
+        message: {
+          content: [
+            "",
+            "```json",
+            JSON.stringify({ nodes: [], edges: [], evidence_units: [], domain_profiles: [], node_cards: [], issues: [] }, null, 2),
+            "```",
+          ].join("\n"),
+        },
+      },
+    ],
+  });
+
+  assert.deepEqual(bundle.nodes, []);
+  assert.deepEqual(bundle.issues, []);
+});
+
+test("parses model JSON from a fenced block with surrounding provider text", () => {
+  const bundle = parseModelBundleFromResponse({
+    choices: [
+      {
+        message: {
+          content: [
+            "下面是抽取结果：",
+            "```json",
+            JSON.stringify({ nodes: [], edges: [], evidence_units: [], domain_profiles: [], node_cards: [], issues: ["ok"] }, null, 2),
+            "```",
+            "请查收。",
+          ].join("\n"),
+        },
+      },
+    ],
+  });
+
+  assert.deepEqual(bundle.issues, ["ok"]);
 });
 
 test("converts a model bundle into Python-compatible staging artifacts", () => {
@@ -175,12 +312,173 @@ test("converts a model bundle into Python-compatible staging artifacts", () => {
       node_cards: 2,
     });
     assert.equal(payload.edges[0]?.from, "node:map");
-    assert.equal(payload.evidence[0]?.extraction_method, "openai_responses");
+    assert.equal(payload.evidence[0]?.extraction_method, "openai_chat_completions");
     assert.equal(payload.evidence[1]?.extraction_method, "markdown_hint");
     assert.equal(payload.mentions[1]?.role, "mentions");
     assert.equal(payload.domain_profiles[1]?.notes, "Backfilled because the model omitted a domain profile.");
     assert.equal(payload.node_cards[0]?.summary, "以节点和关系表示知识。");
     assert.match(payload.issues.at(-1) ?? "", /Dropped 1 edges/);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("attaches extraction template metadata and display rules to staging artifacts", () => {
+  const repo = makeFixtureRepo();
+  try {
+    const payload = buildExtractionPayloadFromModelBundle(
+      {
+        bookId,
+        batchAnchor: canonicalAnchor,
+        repoRoot: repo.root,
+        subject: "physics",
+        schoolStage: "senior-secondary",
+        gradeBand: "grade-11",
+        extractionTemplate: resolveExtractionTemplate({ templateId: "physics" }),
+      },
+      {
+        nodes: [
+          {
+            id: "node:force",
+            name: "力",
+            kind: "property",
+            subkind: null,
+            definition: "物体间的相互作用。",
+            aliases: [],
+            domains: ["physics"],
+            knowledge_form: ["propositional"],
+            learning_mode: ["conceptual"],
+            scope: "domain-specific",
+            properties: {},
+            external_ids: {},
+            tags: [],
+            notes: "",
+          },
+          {
+            id: "node:model",
+            name: "力的示意图",
+            kind: "representation",
+            subkind: null,
+            definition: "用箭头表示力的图。",
+            aliases: [],
+            domains: ["physics"],
+            knowledge_form: ["representational"],
+            learning_mode: ["conceptual"],
+            scope: "domain-specific",
+            properties: {},
+            external_ids: {},
+            tags: [],
+            notes: "",
+          },
+        ],
+        edges: [
+          { from: "node:model", to: "node:force", type: "represents", directionality: "directed", confidence: 0.92, evidence_anchor: "ev1", notes: "" },
+        ],
+        evidence_units: [{ anchor: "ev1", excerpt: "力的示意图可以表示力的方向。", locator: "line:2", modality: "text", node_ids: ["node:force"] }],
+        domain_profiles: [],
+        node_cards: [],
+        issues: [],
+      },
+    );
+
+    const nodeProperties = payload.nodes[0]?.properties as Record<string, unknown>;
+    const nodeTemplate = nodeProperties.extraction_template as Record<string, unknown>;
+    const nodeDisplay = nodeProperties.template_display as Record<string, unknown>;
+    assert.equal(nodeTemplate.id, "textbook/physics");
+    assert.equal(nodeDisplay.label, "物理量");
+    assert.equal(nodeDisplay.color, "#FFB400");
+
+    const edgeProperties = payload.edges[0]?.properties as Record<string, unknown>;
+    const edgeDisplay = edgeProperties.template_display as Record<string, unknown>;
+    assert.equal((edgeProperties.extraction_template as Record<string, unknown>).id, "textbook/physics");
+    assert.equal(edgeDisplay.label, "表征");
+    assert.equal((payload.evidence[0]?.properties as Record<string, Record<string, unknown>>).extraction_template.id, "textbook/physics");
+    assert.equal((payload.mentions[0]?.properties as Record<string, Record<string, unknown>>).extraction_template.id, "textbook/physics");
+    assert.equal((payload.domain_profiles[0]?.properties as Record<string, Record<string, unknown>>).extraction_template.id, "textbook/physics");
+    assert.equal((payload.node_cards[0]?.properties as Record<string, Record<string, unknown>>).extraction_template.id, "textbook/physics");
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("backfills missing model node names and empty definitions", () => {
+  const repo = makeFixtureRepo();
+  try {
+    const payload = buildExtractionPayloadFromModelBundle(
+      {
+        bookId,
+        batchAnchor: canonicalAnchor,
+        repoRoot: repo.root,
+        subject: "chemistry",
+        schoolStage: "senior-secondary",
+        gradeBand: "grade-11",
+      },
+      {
+        nodes: [
+          {
+            id: "node:bad",
+            name: "",
+            kind: "concept",
+            subkind: null,
+            definition: "没有名称的节点应被丢弃。",
+            aliases: [],
+            domains: ["chemistry"],
+            knowledge_form: ["propositional"],
+            learning_mode: ["conceptual"],
+            scope: "domain-specific",
+            properties: {},
+            external_ids: {},
+            tags: [],
+            notes: "",
+          },
+          {
+            id: "",
+            name: "",
+            kind: "concept",
+            subkind: null,
+            definition: "",
+            aliases: [],
+            domains: ["chemistry"],
+            knowledge_form: ["propositional"],
+            learning_mode: ["conceptual"],
+            scope: "domain-specific",
+            properties: {},
+            external_ids: {},
+            tags: [],
+            notes: "",
+          },
+          {
+            id: "node:energy",
+            name: "能量",
+            kind: "concept",
+            subkind: null,
+            definition: "",
+            aliases: [],
+            domains: ["chemistry"],
+            knowledge_form: ["propositional"],
+            learning_mode: ["conceptual"],
+            scope: "domain-specific",
+            properties: {},
+            external_ids: {},
+            tags: [],
+            notes: "",
+          },
+        ],
+        edges: [{ from: "node:bad", to: "node:energy", type: "related_to", directionality: "directed", confidence: 0.8, evidence_anchor: "ev1", notes: "" }],
+        evidence_units: [{ anchor: "ev1", excerpt: "能量是重要概念。", locator: "line:1", modality: "text", node_ids: ["node:bad", "node:energy"] }],
+        domain_profiles: [],
+        node_cards: [],
+        issues: [],
+      },
+    );
+
+    assert.deepEqual(payload.nodes.map((node) => node.id), ["node:bad", "node:energy"]);
+    assert.equal(payload.nodes[0]?.name, "没有名称的节点应被丢弃");
+    assert.equal(payload.nodes[1]?.definition, "能量");
+    assert.equal(payload.edges.length, 1);
+    assert.ok(payload.issues.some((issue) => issue.includes("Dropped model node")));
+    assert.ok(payload.issues.some((issue) => issue.includes("Backfilled missing name")));
+    assert.ok(payload.issues.some((issue) => issue.includes("Backfilled empty definition")));
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }

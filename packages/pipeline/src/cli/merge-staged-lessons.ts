@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { runMergeStagedLessonsFromDatabase } from "../merge/merge-staged-lessons-runner.js";
-import { preparePostgresParams } from "../shared/postgres-executor.js";
+import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
 async function main(argv: string[]): Promise<number> {
@@ -104,16 +104,7 @@ function parseOptionalNumber(value: string | undefined, name: string): number | 
 }
 
 function preparePostgresParamsForStatement(statement: SqlStatement): unknown[] {
-  return statement.params.map((param, index) => {
-    if (placeholderCastsToJsonb(statement.sql, index + 1)) {
-      return preparePostgresParams([param])[0];
-    }
-    return param;
-  });
-}
-
-function placeholderCastsToJsonb(sql: string, index: number): boolean {
-  return new RegExp(`\\$${index}\\s*::\\s*jsonb`, "i").test(sql);
+  return preparePostgresJsParams(statement.params);
 }
 
 function assertSelectStatement(statement: SqlStatement): void {

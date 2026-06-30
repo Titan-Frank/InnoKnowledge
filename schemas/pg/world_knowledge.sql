@@ -72,6 +72,30 @@ CREATE INDEX IF NOT EXISTS idx_world_nodes_status
 ON world_nodes(dataset_id, status);
 
 -------------------------------------------------------------------
+-- world_node_bodies
+-------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS world_node_bodies (
+  dataset_id TEXT NOT NULL,
+  node_id TEXT NOT NULL,
+  format TEXT NOT NULL CHECK (format IN ('markdown')),
+  content TEXT NOT NULL,
+  media_refs_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  source_refs_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  generated_from TEXT NOT NULL CHECK (
+    generated_from IN ('manual', 'card_expansion', 'imported_unit', 'model_generation')
+  ),
+  properties_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  status TEXT NOT NULL CHECK (status IN ('draft', 'active', 'deprecated')),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, node_id),
+  FOREIGN KEY (dataset_id, node_id) REFERENCES world_nodes(dataset_id, id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_world_node_bodies_status
+ON world_node_bodies(dataset_id, status);
+
+-------------------------------------------------------------------
 -- world_node_terms
 -------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS world_node_terms (

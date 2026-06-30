@@ -1,6 +1,8 @@
 # World Knowledge Standard V1.2
 
-这是当前项目的统一世界知识分类标准。
+状态说明：本文是当前代码和数据库正在执行的 `world-v1.2` 工程 schema 基线说明，不是项目顶层标准版本。当前顶层标准是 `ai-nks-v0.1`，以 `docs/ai-nks-v0.1.md` 为准。
+
+这是当前项目的底层统一世界知识分类标准。
 
 它的目标不是“为某一本教材做标注”，而是建立一套能够稳定承载世界知识、同时可先在 K12 范围内完成验证的最小标准。
 
@@ -95,6 +97,17 @@
 - 检索辅助由 `tags` 决定
 
 它们不能互相替代。
+
+如果一个知识对象需要更完整的语义核心，不增加 `world_nodes` 主表字段，先放进 `properties.semantic_core`：
+
+- `core_claims`：核心命题或关键结论
+- `formal_expressions`：公式、符号表达、结构化表达
+- `conditions`：成立前提
+- `boundaries`：适用边界
+- `counterexamples`：反例
+- `misconceptions`：常见误解
+
+`definition` 应保持短定义，只回答“它是什么”。公式、边界、反例、常见误解不应全部塞进 `definition`。
 
 ## 五、关系层：只保留 15 类稳定关系
 
@@ -199,6 +212,16 @@
 
 这与 UNESCO/ISCED 一类教育分类标准的做法一致：对象本身和教育编排层面应分离。
 
+领域扩展层中，`school_stages` 和 `curriculum_roles` 只说明教学位置。如果需要描述怎么教、怎么诊断、怎么评价，先放入 `world_domain_profiles.properties.pedagogical_profile`：
+
+- `learning_objectives`：学习目标
+- `difficulty_level`：难度层级
+- `diagnostic_questions`：前置诊断问题
+- `common_errors`：常见错误
+- `assessment_tasks`：评价任务
+- `remediation_suggestions`：补救建议
+- `extension_suggestions`：拓展建议
+
 ### 4. 知识形式依据：Ryle 与 Polanyi
 
 `knowledge_form` 只保留两类：
@@ -262,9 +285,9 @@
 5. 领域投影一致性
    看同一节点在不同学科、学段中的 profile 是否稳定
 
-## 十、当前版本的研究主张
+## 十、当前工程基线的研究主张
 
-当前 V1.2 的核心主张可以表述为：
+当前工程基线的核心主张可以表述为：
 
 1. 世界知识图谱的顶层分类不应直接等同于教材章节或标签体系
 2. 统一知识标准至少应把本体分类、受控分类表、事实关系、领域扩展分开

@@ -3,7 +3,7 @@
 import { existsSync, readFileSync } from "node:fs";
 
 import { DEFAULT_EMBEDDING_MODEL, DEFAULT_EMBEDDING_URL, embedTextsOpenAICompatible } from "../shared/embeddings.js";
-import { preparePostgresParams } from "../shared/postgres-executor.js";
+import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import { loadRetrievalQueries, type RetrievalMode, type RetrievalQuery } from "../retrieval/retrieve-candidates.js";
 import { runRetrieveCandidatesFromDatabase } from "../retrieval/retrieve-candidates-store.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
@@ -51,12 +51,12 @@ async function runDatabaseMode(
       replace: flags.has("replace"),
       query: async (statement) => {
         assertSelectStatement(statement);
-        const rows = await sql.unsafe(statement.sql, preparePostgresParams(statement.params) as never[]);
+        const rows = await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
         return Array.isArray(rows) ? rows.filter(isRecord) : [];
       },
       executeStatement: async (statement) => {
         assertAllowedRetrievalWriteStatement(statement);
-        await sql.unsafe(statement.sql, preparePostgresParams(statement.params) as never[]);
+        await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
       },
       embedQuery:
         mode === "local"

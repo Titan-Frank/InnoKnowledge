@@ -11,6 +11,24 @@ type RawRecord = Record<string, unknown>;
 
 export type SqlExecutor = (statement: SqlStatement) => Promise<void> | void;
 
+const BEGIN_STAGING_TRANSACTION: SqlStatement = {
+  name: "begin-staging-transaction",
+  sql: "BEGIN",
+  params: [],
+};
+
+const COMMIT_STAGING_TRANSACTION: SqlStatement = {
+  name: "commit-staging-transaction",
+  sql: "COMMIT",
+  params: [],
+};
+
+const ROLLBACK_STAGING_TRANSACTION: SqlStatement = {
+  name: "rollback-staging-transaction",
+  sql: "ROLLBACK",
+  params: [],
+};
+
 export type StoreStagingResult = {
   status: "success" | "blocked";
   lesson_run_id: string;
@@ -32,11 +50,7 @@ export async function storeStagingRows(rows: StagingTableRows, execute: SqlExecu
   }
 
   const plan = buildStagingSqlPlan(rows);
-  const executedStatements: string[] = [];
-  for (const statement of plan.statements) {
-    await execute(statement);
-    executedStatements.push(statement.name);
-  }
+  const executedStatements = await executeStatementsInTransaction(plan.statements, execute);
 
   return {
     status: "success",
@@ -116,7 +130,7 @@ export async function runStoreStaging(input: StoreStagingInput): Promise<StoreSt
 
   if (input.skipIntegrityCheck) {
     const plan = buildStagingSqlPlan(rows);
-    const executedStatements = await executeStatements(plan.statements, input.executeStatement);
+    const executedStatements = await executeStatementsInTransaction(plan.statements, input.executeStatement);
     return {
       status: "success",
       dataset_id: datasetId,
@@ -140,11 +154,25 @@ export async function runStoreStaging(input: StoreStagingInput): Promise<StoreSt
   };
 }
 
-async function executeStatements(statements: SqlStatement[], execute: SqlExecutor): Promise<string[]> {
+async function executeStatementsInTransaction(statements: SqlStatement[], execute: SqlExecutor): Promise<string[]> {
   const executedStatements: string[] = [];
-  for (const statement of statements) {
-    await execute(statement);
-    executedStatements.push(statement.name);
+  await execute(BEGIN_STAGING_TRANSACTION);
+  try {
+    for (const statement of statements) {
+      await execute(statement);
+      executedStatements.push(statement.name);
+    }
+    await execute(COMMIT_STAGING_TRANSACTION);
+  } catch (error) {
+    try {
+      await execute(ROLLBACK_STAGING_TRANSACTION);
+    } catch (rollbackError) {
+      throw new Error(
+        `Staging transaction failed: ${(error as Error).message}; rollback also failed: ${(rollbackError as Error).message}`,
+        { cause: error },
+      );
+    }
+    throw error;
   }
   return executedStatements;
 }

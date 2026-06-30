@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createPostgresJsStatementExecutor, createPostgresStatementExecutor, preparePostgresParams } from "./postgres-executor.js";
+import { createPostgresJsStatementExecutor, createPostgresStatementExecutor, preparePostgresJsParams, preparePostgresParams } from "./postgres-executor.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
 test("prepares JSON-compatible params for PostgreSQL jsonb placeholders", () => {
@@ -15,6 +15,10 @@ test("prepares JSON-compatible params for PostgreSQL jsonb placeholders", () => 
     "{\"y\":2}",
     buffer,
   ]);
+});
+
+test("prepares postgres.js params without stringifying jsonb values", () => {
+  assert.deepEqual(preparePostgresJsParams(["a", ["x"], { y: 2 }, undefined]), ["a", ["x"], { y: 2 }, null]);
 });
 
 test("creates an executor that forwards SQL and prepared params", async () => {
@@ -47,10 +51,10 @@ test("adapts a postgres.js unsafe client without creating a connection", async (
   });
 
   await executor({
-    name: "delete-test",
-    sql: "DELETE FROM t WHERE id = $1",
-    params: ["n1"],
+    name: "insert-test",
+    sql: "INSERT INTO t (payload) VALUES ($1::jsonb)",
+    params: [{ ok: true }],
   });
 
-  assert.deepEqual(calls, [{ sql: "DELETE FROM t WHERE id = $1", params: ["n1"] }]);
+  assert.deepEqual(calls, [{ sql: "INSERT INTO t (payload) VALUES ($1::jsonb)", params: [{ ok: true }] }]);
 });

@@ -1,0 +1,103 @@
+id: textbook/general
+version: 1
+name: 通用教材抽取模板
+description: 适用于未明确归入物理、化学、生物等学科的教材，保持 world-v1.2 通用抽取口径。
+selector:
+  subjects:
+    - general
+  book_id_patterns:
+    - general
+prompt:
+  focus:
+    - 抽取有明确教材证据支撑的概念、对象、属性、过程、方法、规则和表征。
+    - 优先保留对后续学习有解释价值的知识对象。
+  node_rules:
+    - 节点名称使用教材中的规范术语，避免章节号、题号、栏目名成为节点。
+    - definition 只写短定义，扩展解释放入 properties.semantic_core。
+  edge_rules:
+    - 只抽取证据能直接支持的关系。
+    - 无法确定方向时使用 related_to，避免编造因果。
+  evidence_rules:
+    - evidence excerpt 保留最能支持节点或关系的一小段教材原文。
+output:
+  node_fields:
+    - id
+    - name
+    - kind
+    - subkind
+    - definition
+    - aliases
+    - domains
+    - knowledge_form
+    - learning_mode
+    - scope
+    - properties.semantic_core
+    - tags
+  edge_fields:
+    - from
+    - to
+    - type
+    - directionality
+    - confidence
+    - evidence_anchor
+    - notes
+  evidence_fields:
+    - anchor
+    - excerpt
+    - locator
+    - modality
+    - node_ids
+  allowed_node_kinds:
+    - entity
+    - concept
+    - property
+    - process
+    - event
+    - method
+    - rule
+    - representation
+    - resource
+  preferred_edge_types:
+    - is_a
+    - instance_of
+    - part_of
+    - contains
+    - has_property
+    - uses
+    - produces
+    - depends_on
+    - prerequisite_for
+    - causes
+    - affects
+    - represents
+    - about
+    - same_as
+    - related_to
+identifiers:
+  node_id: "{kind}:{normalized_name}"
+  relation_id: "{from}:{type}:{to}"
+  evidence_anchor: "ev{index}"
+display:
+  node_labels:
+    concept: 概念
+    entity: 实体
+    property: 属性
+    process: 过程
+    method: 方法
+    rule: 规则
+    representation: 表征
+  edge_labels:
+    is_a: 属于
+    part_of: 组成
+    has_property: 具有性质
+    causes: 导致
+    affects: 影响
+    related_to: 相关
+  colors:
+    concept: "#8C55FF"
+    entity: "#3782FF"
+    property: "#FFB400"
+    process: "#2BA876"
+    method: "#1EB478"
+    rule: "#5580CC"
+    representation: "#6366F1"
