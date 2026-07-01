@@ -20,6 +20,12 @@ type ImportSummary = {
   mineru_sources: number;
 };
 
+type ImportAssetDirs = {
+  outlineDir?: string;
+  enrichDir?: string;
+  mineruDir?: string;
+};
+
 async function main(argv: string[]): Promise<number> {
   try {
     const flags = parseFlags(argv);
@@ -41,13 +47,14 @@ export async function importFileAssets(input: {
   repoRoot?: string;
 }): Promise<ImportSummary> {
   const repoRoot = resolve(input.repoRoot ?? REPO_ROOT);
+  const assetDirs = resolveImportAssetDirs(repoRoot);
   const sql = postgres(input.dbUrl, { max: 2 });
   const assetStore = createPostgresPipelineAssetStore(input.dbUrl);
   try {
     await ensureDataset(sql, input.datasetId, repoRoot);
-    const outlines = await importOutlines({ datasetId: input.datasetId, repoRoot, assetStore });
-    const enrichBooks = await importEnrich({ sql, datasetId: input.datasetId, repoRoot });
-    const mineruSources = await importMineru({ datasetId: input.datasetId, repoRoot, assetStore });
+    const outlines = await importOutlines({ datasetId: input.datasetId, repoRoot, outlineDir: assetDirs.outlineDir, assetStore });
+    const enrichBooks = await importEnrich({ sql, datasetId: input.datasetId, repoRoot, enrichDir: assetDirs.enrichDir });
+    const mineruSources = await importMineru({ datasetId: input.datasetId, repoRoot, mineruDir: assetDirs.mineruDir, assetStore });
     return {
       dataset_id: input.datasetId,
       outlines,
@@ -58,6 +65,15 @@ export async function importFileAssets(input: {
     await assetStore.close();
     await sql.end({ timeout: 1 });
   }
+}
+
+export function resolveImportAssetDirs(repoRoot: string): ImportAssetDirs {
+  const root = resolve(repoRoot);
+  return {
+    outlineDir: firstDirWith(root, [["data", "outlines"], ["examples", "sample-data", "outlines"]], hasOutlineFiles),
+    enrichDir: firstDirWith(root, [["data", "enrich"], ["examples", "sample-data", "enrich"]], hasEnrichIndex),
+    mineruDir: firstDirWith(root, [["data", "mineru"], ["examples", "sample-data", "mineru"]], hasMineruSources),
+  };
 }
 
 async function ensureDataset(sql: postgres.Sql, datasetId: string, repoRoot: string): Promise<void> {
@@ -78,10 +94,11 @@ async function ensureDataset(sql: postgres.Sql, datasetId: string, repoRoot: str
 async function importOutlines(input: {
   datasetId: string;
   repoRoot: string;
+  outlineDir?: string;
   assetStore: ReturnType<typeof createPostgresPipelineAssetStore>;
 }): Promise<number> {
-  const outlineDir = resolve(input.repoRoot, "data", "outlines");
-  if (!existsSync(outlineDir)) return 0;
+  const outlineDir = input.outlineDir;
+  if (!outlineDir || !existsSync(outlineDir)) return 0;
   let count = 0;
   for (const filename of readdirSync(outlineDir).sort()) {
     if (!filename.endsWith(".outline.json")) continue;
@@ -108,8 +125,10 @@ async function importEnrich(input: {
   sql: postgres.Sql;
   datasetId: string;
   repoRoot: string;
+  enrichDir?: string;
 }): Promise<number> {
-  const enrichDir = resolve(input.repoRoot, "data", "enrich");
+  const enrichDir = input.enrichDir;
+  if (!enrichDir) return 0;
   const indexPath = join(enrichDir, "enrich_books_index.json");
   if (!existsSync(indexPath)) return 0;
   const index = readJsonRecord(indexPath);
@@ -184,10 +203,11 @@ async function importEnrich(input: {
 async function importMineru(input: {
   datasetId: string;
   repoRoot: string;
+  mineruDir?: string;
   assetStore: ReturnType<typeof createPostgresPipelineAssetStore>;
 }): Promise<number> {
-  const mineruDir = resolve(input.repoRoot, "data", "mineru");
-  if (!existsSync(mineruDir)) return 0;
+  const mineruDir = input.mineruDir;
+  if (!mineruDir || !existsSync(mineruDir)) return 0;
   let count = 0;
   for (const dirname of readdirSync(mineruDir).sort()) {
     const bookDir = join(mineruDir, dirname);
@@ -205,6 +225,30 @@ async function importMineru(input: {
     count += 1;
   }
   return count;
+}
+
+function firstDirWith(root: string, candidates: string[][], predicate: (dir: string) => boolean): string | undefined {
+  for (const parts of candidates) {
+    const dir = resolve(root, ...parts);
+    if (existsSync(dir) && predicate(dir)) return dir;
+  }
+  return undefined;
+}
+
+function hasOutlineFiles(dir: string): boolean {
+  return readdirSync(dir).some((filename) => filename.endsWith(".outline.json") && statSync(join(dir, filename)).isFile());
+}
+
+function hasEnrichIndex(dir: string): boolean {
+  return existsSync(join(dir, "enrich_books_index.json"));
+}
+
+function hasMineruSources(dir: string): boolean {
+  return readdirSync(dir).some((dirname) => {
+    const bookDir = join(dir, dirname);
+    if (!statSync(bookDir).isDirectory()) return false;
+    return existsSync(join(bookDir, "mineru-result.json")) || existsSync(join(bookDir, "full.md"));
+  });
 }
 
 function mineruRecordFromManifest(input: {
