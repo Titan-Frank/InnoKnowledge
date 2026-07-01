@@ -8,6 +8,7 @@ import type {
 import type { SearchHitMeta } from '@/core/graph/types';
 import { useAppState } from '@/hooks/useAppState';
 import { generateGroundedAnswer, searchApiUnits } from '@/services/backend-client';
+import { resolveExpandedBackboneNodeId } from '@/lib/visibility';
 import {
   AlertCircle,
   Check,
@@ -31,7 +32,10 @@ export function GraphSearchPanel() {
   const {
     selectedSourceKey,
     knowledgeGraph,
+    selectedTypes,
+    selectedBook,
     layerMode,
+    expandedBackboneNodeId,
     setSelectedNodeId,
     setExpandedBackboneNodeId,
     setHoverNodeId,
@@ -135,12 +139,22 @@ export function GraphSearchPanel() {
   }
 
   function focusNode(nodeId: string) {
+    if (knowledgeGraph && layerMode === 'backbone-expand') {
+      const backboneNodeId = resolveExpandedBackboneNodeId(nodeId, {
+        knowledgeGraph,
+        selectedTypes,
+        selectedBook,
+        layerMode,
+        expandedBackboneNodeId,
+        focusConnected: false,
+        selectedNodeId: nodeId,
+        searchTerm: '',
+        serverSearchHits: new Map(),
+      });
+      if (backboneNodeId) setExpandedBackboneNodeId(backboneNodeId);
+    }
     setSelectedNodeId(nodeId);
     setHoverNodeId(null);
-    const node = knowledgeGraph?.nodeById.get(nodeId);
-    if (node && node.nodeLayer === 'backbone' && layerMode === 'backbone-expand') {
-      setExpandedBackboneNodeId(nodeId);
-    }
   }
 
   if (!open) {
