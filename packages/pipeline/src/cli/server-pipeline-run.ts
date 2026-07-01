@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,7 +16,7 @@ import {
   outlineItemsFromRecord,
   type PipelineAssetStore,
 } from "../shared/pg-assets.js";
-import { REPO_ROOT, outlinePathForBook, safePathToken } from "../shared/pathing.js";
+import { REPO_ROOT, outlinePathForBook, readableOutlinePathForBook, safePathToken } from "../shared/pathing.js";
 import {
   createPostgresPipelineProgressStore,
   type PipelineProgressStore,
@@ -196,6 +196,15 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
         },
       });
       await recordStage(result, progressStore, { id: "mineru_source_markdown", status: "completed", output: mineruStage });
+    }
+
+    if (!existsSync(outlinePath) && !sourceMarkdownPath.trim()) {
+      const sampleOutlinePath = readableOutlinePathForBook(options.bookId);
+      if (sampleOutlinePath !== outlinePath && existsSync(sampleOutlinePath)) {
+        materializeOutlineFromSample(outlinePath, sampleOutlinePath);
+        outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
+        if (outlineRecord) sourceMarkdownPath = stringValue(outlineRecord.source_path);
+      }
     }
 
     if (!existsSync(outlinePath) && !sourceMarkdownPath.trim()) {
@@ -1023,6 +1032,11 @@ function materializeOutlineFromPg(outlinePath: string, outline: RawRecord): void
   if (!existsSync(outlinePath) || readFileSync(outlinePath, "utf8") !== body) {
     writeFileSync(outlinePath, body, "utf8");
   }
+}
+
+function materializeOutlineFromSample(outlinePath: string, sampleOutlinePath: string): void {
+  mkdirSync(dirname(outlinePath), { recursive: true });
+  copyFileSync(sampleOutlinePath, outlinePath);
 }
 
 function readJsonRecord(path: string): RawRecord {
