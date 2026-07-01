@@ -405,6 +405,7 @@ interface ApiUnit {
   source_fragments: ApiUnitSourceFragment[];
   card: ApiNodeCard | null;
   body: ApiUnitBody | null;
+  completeness: ApiUnitCompleteness;
 }
 ```
 
@@ -421,8 +422,11 @@ interface ApiUnit {
 | `source_fragments` | 从证据和原文 Markdown 解析 |
 | `card` | `world_node_cards` |
 | `body` | 只读取 `world_node_bodies`；没有持久化正文时返回空 |
+| `completeness` | 服务端按 `ApiUnit` 聚合结果计算 |
 
 这就是当前项目里“知识点”的消费侧定义：不是一个孤立节点，而是以节点为身份核心聚合出来的完整知识单元。
+
+`completeness` 当前检查定义、语义核心、关系、证据、原文片段、领域画像、正文引用、结构化卡片和来源提及。它用于让前端、导出和未来 Runtime 判断知识单元是否足够可用，不改变底层表结构。
 
 ## 八、前端 viewer
 
@@ -433,13 +437,14 @@ interface ApiUnit {
 - `packages/viewer/src/App.tsx`
 - `packages/viewer/src/main.tsx`
 
-当前有三个主要工作区：
+当前有四个主要工作区：
 
 | 工作区 | 主要组件 | 职责 |
 |---|---|---|
-| 图谱浏览 | `GraphCanvas`、`FilterPanel`、`DetailPanel` | 浏览知识图谱、筛选节点、查看详情 |
+| 图谱浏览 | `GraphCanvas`、`FilterPanel`、`DetailPanel`、`GraphSearchPanel` | 浏览知识图谱、筛选节点、查看详情，并在展示页内完成对象检索和带引用回答 |
 | 流水线调试 | `PipelineDebugPage` | 查看 pipeline 状态、启动抽取、复核图片 |
 | 教材工作台 | `TextbookTreePage` | 查看教材树和教材相关内容 |
+| 标注工作台 | `AnnotationWorkbench` | 查看教材原文并手工补充节点、边和证据 |
 
 前端启动时会先请求：
 
@@ -451,6 +456,15 @@ interface ApiUnit {
 ```text
 GET /api/source/:key/unit/:node_id
 ```
+
+展示页内的检索浮窗会调用：
+
+```text
+GET /api/source/:key/units/search
+POST /api/source/:key/grounded-generate
+```
+
+命中对象会同步到图谱样式层，用于高亮检索结果；点击命中对象或引用会选中并定位到对应节点。
 
 然后在右侧详情面板中展示：
 

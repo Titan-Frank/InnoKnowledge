@@ -17,6 +17,8 @@ interface UseG6Options {
   onStageClick?: () => void;
   onLayoutRunningChange?: (running: boolean) => void;
   selectedNodeId: string | null;
+  searchHitIds: Set<string>;
+  previewNodeId: string | null;
   themeMode: ThemeMode;
   showLabels: boolean;
 }
@@ -123,6 +125,8 @@ export function useG6(options: UseG6Options) {
     onLayoutRunningChange: options.onLayoutRunningChange,
   });
   const selectedNodeRef = useRef<string | null>(options.selectedNodeId);
+  const searchHitIdsRef = useRef<Set<string>>(options.searchHitIds);
+  const previewNodeIdRef = useRef<string | null>(options.previewNodeId);
   const suppressStageClickUntilRef = useRef(0);
   const nodePointerDownAtRef = useRef(0);
   const pointerGestureRef = useRef<PointerGesture>({
@@ -179,6 +183,14 @@ export function useG6(options: UseG6Options) {
   }, [options.selectedNodeId]);
 
   useEffect(() => {
+    searchHitIdsRef.current = options.searchHitIds;
+  }, [options.searchHitIds]);
+
+  useEffect(() => {
+    previewNodeIdRef.current = options.previewNodeId;
+  }, [options.previewNodeId]);
+
+  useEffect(() => {
     showLabelsRef.current = options.showLabels;
   }, [options.showLabels]);
 
@@ -198,7 +210,11 @@ export function useG6(options: UseG6Options) {
     return () => observer.disconnect();
   }, []);
 
-  const applySelectionStyle = useCallback((selectedNodeId: string | null) => {
+  const applySelectionStyle = useCallback((
+    selectedNodeId: string | null,
+    searchHitIds: Set<string>,
+    previewNodeId: string | null,
+  ) => {
     const version = selectionVersionRef.current + 1;
     selectionVersionRef.current = version;
 
@@ -217,10 +233,15 @@ export function useG6(options: UseG6Options) {
       const edgeUpdates: Array<{ id: string; style: ElementStyle }> = [];
       const relatedNodeIds = new Set<string>();
       const activeNodeId = selectedNodeId && payload.nodeIds.includes(selectedNodeId) ? selectedNodeId : null;
+      const activePreviewNodeId = previewNodeId && payload.nodeIds.includes(previewNodeId) ? previewNodeId : null;
+      const visibleSearchHitIds = new Set(payload.nodeIds.filter((nodeId) => searchHitIds.has(nodeId)));
+      const hasSearchHits = visibleSearchHitIds.size > 0;
 
       if (activeNodeId) {
         for (const edge of payload.edgePairs) {
           const baseStyle = getBaseEdgeStyle(snapshot, edge.id);
+          const sourceHit = visibleSearchHitIds.has(edge.source);
+          const targetHit = visibleSearchHitIds.has(edge.target);
           if (edge.source === activeNodeId) {
             relatedNodeIds.add(edge.target);
             edgeUpdates.push({
@@ -244,12 +265,14 @@ export function useG6(options: UseG6Options) {
               },
             });
           } else {
+            const searchStrokeOpacity = sourceHit && targetHit ? 0.34 : sourceHit || targetHit ? 0.18 : 0.08;
             edgeUpdates.push({
               id: edge.id,
               style: {
                 ...baseStyle,
-                strokeOpacity: 0.08,
-                zIndex: 0,
+                lineWidth: sourceHit && targetHit ? 2 : baseStyle.lineWidth,
+                strokeOpacity: searchStrokeOpacity,
+                zIndex: sourceHit || targetHit ? 4 : 0,
               },
             });
           }
@@ -257,6 +280,8 @@ export function useG6(options: UseG6Options) {
 
         for (const nodeId of payload.nodeIds) {
           const baseStyle = getBaseNodeStyle(snapshot, nodeId, showLabelsRef.current);
+          const isHit = visibleSearchHitIds.has(nodeId);
+          const isPreview = nodeId === activePreviewNodeId;
           if (nodeId === activeNodeId) {
             nodeUpdates.push({
               id: nodeId,
@@ -281,12 +306,104 @@ export function useG6(options: UseG6Options) {
                 zIndex: 12,
               },
             });
+          } else if (isHit) {
+            nodeUpdates.push({
+              id: nodeId,
+              style: {
+                ...baseStyle,
+                opacity: isPreview ? 0.92 : 0.62,
+                labelOpacity: showLabelsRef.current ? (isPreview ? 1 : 0.78) : 0,
+                lineWidth: isPreview ? 4 : 2.5,
+                halo: true,
+                haloLineWidth: isPreview ? 13 : 8,
+                haloStrokeOpacity: isPreview ? 0.28 : 0.17,
+                zIndex: isPreview ? 18 : 8,
+              },
+            });
           } else {
             nodeUpdates.push({
               id: nodeId,
               style: {
                 ...baseStyle,
                 opacity: 0.22,
+                labelOpacity: 0,
+                zIndex: 1,
+              },
+            });
+          }
+        }
+      } else if (hasSearchHits) {
+        const previewNeighborIds = new Set<string>();
+        for (const edge of payload.edgePairs) {
+          const baseStyle = getBaseEdgeStyle(snapshot, edge.id);
+          const sourceHit = visibleSearchHitIds.has(edge.source);
+          const targetHit = visibleSearchHitIds.has(edge.target);
+          const touchesPreview = Boolean(activePreviewNodeId && (edge.source === activePreviewNodeId || edge.target === activePreviewNodeId));
+          if (touchesPreview) {
+            previewNeighborIds.add(edge.source === activePreviewNodeId ? edge.target : edge.source);
+          }
+          edgeUpdates.push({
+            id: edge.id,
+            style: {
+              ...baseStyle,
+              lineWidth: touchesPreview || (sourceHit && targetHit) ? 2.5 : sourceHit || targetHit ? 1.8 : baseStyle.lineWidth,
+              strokeOpacity: touchesPreview ? 0.7 : sourceHit && targetHit ? 0.44 : sourceHit || targetHit ? 0.22 : 0.06,
+              zIndex: touchesPreview ? 12 : sourceHit || targetHit ? 6 : 0,
+            },
+          });
+        }
+
+        for (const nodeId of payload.nodeIds) {
+          const baseStyle = getBaseNodeStyle(snapshot, nodeId, showLabelsRef.current);
+          const isHit = visibleSearchHitIds.has(nodeId);
+          const isPreview = nodeId === activePreviewNodeId;
+          const isPreviewNeighbor = previewNeighborIds.has(nodeId);
+          if (isPreview) {
+            nodeUpdates.push({
+              id: nodeId,
+              style: {
+                ...baseStyle,
+                lineWidth: 4,
+                halo: true,
+                haloLineWidth: 16,
+                haloStrokeOpacity: 0.34,
+                zIndex: 20,
+              },
+            });
+          } else if (isHit) {
+            nodeUpdates.push({
+              id: nodeId,
+              style: {
+                ...baseStyle,
+                opacity: 0.95,
+                labelOpacity: showLabelsRef.current ? 1 : 0,
+                lineWidth: 3,
+                halo: true,
+                haloLineWidth: 11,
+                haloStrokeOpacity: 0.24,
+                zIndex: 14,
+              },
+            });
+          } else if (isPreviewNeighbor) {
+            nodeUpdates.push({
+              id: nodeId,
+              style: {
+                ...baseStyle,
+                opacity: 0.72,
+                labelOpacity: showLabelsRef.current ? 0.7 : 0,
+                lineWidth: 2,
+                halo: true,
+                haloLineWidth: 7,
+                haloStrokeOpacity: 0.12,
+                zIndex: 7,
+              },
+            });
+          } else {
+            nodeUpdates.push({
+              id: nodeId,
+              style: {
+                ...baseStyle,
+                opacity: 0.26,
                 labelOpacity: 0,
                 zIndex: 1,
               },
@@ -442,12 +559,14 @@ export function useG6(options: UseG6Options) {
       id,
       style: { label: options.showLabels },
     })));
-    void graph.draw();
-  }, [options.showLabels]);
+    void graph.draw().then(() => {
+      applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
+    });
+  }, [applySelectionStyle, options.showLabels]);
 
   useEffect(() => {
-    applySelectionStyle(options.selectedNodeId);
-  }, [applySelectionStyle, options.selectedNodeId]);
+    applySelectionStyle(options.selectedNodeId, options.searchHitIds, options.previewNodeId);
+  }, [applySelectionStyle, options.selectedNodeId, options.searchHitIds, options.previewNodeId]);
 
   const setGraph = useCallback(async (payload: SetGraphPayload) => {
     const graph = graphRef.current;
@@ -463,7 +582,7 @@ export function useG6(options: UseG6Options) {
     try {
       await graph.render();
       if (token !== renderTokenRef.current) return;
-      applySelectionStyle(selectedNodeRef.current);
+      applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
     } finally {
       if (token === renderTokenRef.current) callbacksRef.current.onLayoutRunningChange?.(false);
     }
@@ -493,7 +612,7 @@ export function useG6(options: UseG6Options) {
     callbacksRef.current.onLayoutRunningChange?.(true);
     try {
       await graph.layout(DEFAULT_LAYOUT);
-      applySelectionStyle(selectedNodeRef.current);
+      applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
     } finally {
       callbacksRef.current.onLayoutRunningChange?.(false);
     }

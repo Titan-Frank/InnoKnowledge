@@ -1,5 +1,6 @@
 import type {
   ApiNodeCard, ApiUnit, MetaResponse, BundleResponse, SearchResponse,
+  GroundedGenerationRequest, GroundedGenerationResponse, UnitRetrievalMode, UnitRetrievalResponse,
   AnnotationLessonTextResponse, AnnotationTextbookListResponse,
   PipelineJobStatusResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
@@ -164,6 +165,30 @@ export async function searchNodes(
   } catch {
     return null;
   }
+}
+
+export async function searchApiUnits(
+  sourceKey: string,
+  query: string,
+  limit?: number,
+  mode?: UnitRetrievalMode,
+): Promise<UnitRetrievalResponse> {
+  const params = new URLSearchParams({ q: query });
+  if (limit) params.set('limit', String(limit));
+  if (mode) params.set('mode', mode);
+  return fetchJson<UnitRetrievalResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/units/search?${params}`,
+  );
+}
+
+export async function generateGroundedAnswer(
+  sourceKey: string,
+  payload: GroundedGenerationRequest,
+): Promise<GroundedGenerationResponse> {
+  return postJson<GroundedGenerationResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/grounded-generate`,
+    payload,
+  );
 }
 
 export async function loadPipeline(sourceKey: string): Promise<PipelineResponse | null> {

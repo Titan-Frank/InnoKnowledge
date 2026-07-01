@@ -1,9 +1,12 @@
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { loadDotenvIntoProcess } from './env.js';
 
 export const __dirname = dirname(fileURLToPath(import.meta.url));
 // From src/utils/ or dist/utils/, go up 4 levels to reach repo root
 export const REPO_ROOT = resolve(__dirname, '../../../..');
+
+loadDotenvIntoProcess(REPO_ROOT);
 
 export const DEFAULT_DATABASE_URL =
   process.env.DATABASE_URL || 'postgresql://okm:okm@localhost:5432/knowledge';

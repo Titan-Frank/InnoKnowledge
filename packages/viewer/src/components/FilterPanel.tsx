@@ -1,5 +1,4 @@
 import { useAppState } from '@/hooks/useAppState';
-import { getSearchMatches } from '@/lib/visibility';
 import { TYPE_META, LAYER_MODE_OPTIONS } from '@/lib/constants';
 import { BookOpen, Layers, Eye, EyeOff, ChevronDown, ChevronRight, Search, X } from '@/lib/lucide-icons';
 import { useMemo, useState, useCallback } from 'react';
@@ -104,35 +103,16 @@ function compareTypes(a: string, b: string): number {
 export function FilterPanel() {
   const appState = useAppState();
   const {
-    knowledgeGraph, selectedNodeId, selectedTypes, selectedBook,
+    knowledgeGraph, selectedTypes, selectedBook,
     layerMode, focusConnected, showLabels,
-    setSelectedNodeId, setExpandedBackboneNodeId,
     toggleType, resetTypes, setSelectedTypes,
     setSelectedBook, setLayerMode, setFocusConnected,
     setShowLabels, sourceConfigs, switchSource,
-    searchTerm,
   } = appState;
 
   const [typeSectionOpen, setTypeSectionOpen] = useState(true);
   const [typeQuery, setTypeQuery] = useState('');
   const [openTypeGroupIds, setOpenTypeGroupIds] = useState<Set<string>>(() => new Set(['object']));
-
-  const visibilityState = useMemo(() => ({
-    knowledgeGraph,
-    selectedTypes,
-    selectedBook,
-    layerMode,
-    expandedBackboneNodeId: appState.expandedBackboneNodeId,
-    focusConnected,
-    selectedNodeId,
-    searchTerm,
-    serverSearchHits: appState.serverSearchHits,
-  }), [knowledgeGraph, selectedTypes, selectedBook, layerMode, appState.expandedBackboneNodeId, focusConnected, selectedNodeId, searchTerm, appState.serverSearchHits]);
-
-  const searchMatches = useMemo(() => {
-    if (!knowledgeGraph) return [];
-    return getSearchMatches(visibilityState);
-  }, [visibilityState, knowledgeGraph]);
 
   const books = useMemo(() => {
     if (!knowledgeGraph) return [];
@@ -189,14 +169,6 @@ export function FilterPanel() {
     });
   }, []);
 
-  const handleSelectNode = useCallback((nodeId: string) => {
-    setSelectedNodeId(nodeId);
-    const node = knowledgeGraph?.nodeById.get(nodeId);
-    if (node && node.nodeLayer === 'backbone' && layerMode === 'backbone-expand') {
-      setExpandedBackboneNodeId(nodeId);
-    }
-  }, [knowledgeGraph, layerMode, setSelectedNodeId, setExpandedBackboneNodeId]);
-
   if (!knowledgeGraph) return null;
 
   return (
@@ -215,33 +187,6 @@ export function FilterPanel() {
                 <option key={key} value={key}>{config.label}</option>
               ))}
             </select>
-          </section>
-        )}
-
-        {/* Search results */}
-        {searchTerm && (
-          <section>
-            <div className="mb-1.5 text-xs font-medium text-text-muted">搜索结果 ({searchMatches.length})</div>
-            <div className="space-y-0.5 max-h-48 overflow-y-auto scrollbar-thin">
-              {searchMatches.map((node) => (
-                <button
-                  key={node.id}
-                  onClick={() => handleSelectNode(node.id)}
-                  aria-pressed={selectedNodeId === node.id}
-                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors ${
-                    selectedNodeId === node.id
-                      ? 'bg-accent/20 text-text-primary'
-                      : 'text-text-secondary hover:bg-hover'
-                  }`}
-                >
-                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: TYPE_META[node.nodeType]?.color ?? '#9A9AB0' }} />
-                  <span className="truncate">{node.name}</span>
-                </button>
-              ))}
-              {searchMatches.length === 0 && (
-                <div className="px-2 py-2 text-xs text-text-muted">未找到匹配节点</div>
-              )}
-            </div>
           </section>
         )}
 

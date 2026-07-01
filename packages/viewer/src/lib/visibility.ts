@@ -166,7 +166,7 @@ export function resolveExpandedBackboneNodeId(nodeId: string | null, state: Visi
     }
   }
 
-  return getBackboneNeighbors(node.id, state)[0]?.id || state.expandedBackboneNodeId || null;
+  return getBackboneNeighbors(node.id, state)[0]?.id || null;
 }
 
 export function getVisibleMentions(node: OKMNode, state: VisibilityState) {

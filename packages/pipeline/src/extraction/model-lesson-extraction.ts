@@ -263,9 +263,11 @@ function buildHybridNodeEvidenceInstructions(input: { prompt?: string; extractio
 5. node.id 必须稳定、唯一，后续关系阶段会直接引用这些 id。
 6. 节点主类只能使用 9 类：entity/concept/property/process/event/method/rule/representation/resource。
 7. 不要把章节编号、复习题、术语表、小结当成正式知识节点。
-8. lesson_context.enrich_hints 只是对应教材位置的辅助判断材料，只能帮助判断术语边界、命名和粒度，不能作为节点证据。
-9. 如果 enrich_hints 和当前 lesson/chunk 证据冲突，以当前 lesson/chunk 的证据为准。
-10. 输出必须严格符合 JSON schema。
+8. 课标是边界，教材是证据，考点是评价，目录是线索；不要把它们直接等同于知识节点。
+9. 正式候选节点应具备稳定知识身份、证据锚点、关系潜力、教学用途和未来复用性。
+10. lesson_context.enrich_hints 只是对应教材位置的辅助判断材料，只能帮助判断术语边界、命名和粒度，不能作为节点证据。
+11. 如果 enrich_hints 和当前 lesson/chunk 证据冲突，以当前 lesson/chunk 的证据为准。
+12. 输出必须严格符合 JSON schema。
   `.trim();
   return appendPromptBlocks(base, input.prompt, input.extractionTemplate, "node_evidence");
 }

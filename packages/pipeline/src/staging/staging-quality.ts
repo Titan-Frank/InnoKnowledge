@@ -15,6 +15,17 @@ type RawRecord = Record<string, unknown>;
 
 export const REQUIRED_CARD_SECTIONS = new Set(["definition", "essence", "key_points", "example", "application", "misconception"]);
 
+const STRUCTURAL_TITLE_PATTERNS = [
+  /^第[\d一二三四五六七八九十百千万]+[章节课单元]/,
+  /^(本节小结|章末小结|单元小结|复习|练习|习题|单元检测|实验活动|探究活动|活动与探究|观察与思考|思考与讨论|资料卡片|阅读材料|科学史话|你知道吗)/,
+  /^(chapter|unit|section|lesson|review|exercise)\b/i,
+];
+
+const ASSESSMENT_TITLE_PATTERNS = [
+  /^(考点|题型|专题|中考|高考|选择题|填空题|判断题|实验题|计算题|综合题|易错题)/,
+  /^(exam point|question type|exercise type)\b/i,
+];
+
 export type LessonStagingQualityResult = {
   lesson_run_id: string;
   status: "success" | "blocked";
@@ -38,6 +49,12 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
   const profileNodeIds = new Set(rows.domain_profiles.map((row) => row.raw_node_id));
   const cardByNode = new Map(rows.node_cards.map((row) => [row.raw_node_id, row]));
   const mentionByTarget = new Map<string, typeof rows.mentions>();
+  const connectedNodeIds = new Set<string>();
+
+  for (const edge of rows.edges) {
+    connectedNodeIds.add(edge.from_raw_node_id);
+    connectedNodeIds.add(edge.to_raw_node_id);
+  }
 
   for (const mention of rows.mentions) {
     const mentions = mentionByTarget.get(mention.target_raw_id) ?? [];
@@ -74,6 +91,8 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
     if (node.source_refs_json.length === 0 && mentionRefs.length === 0) {
       errors.push(`Node ${nodeId} has no evidence-backed source reference.`);
     }
+
+    warnings.push(...nodeAdmissionWarnings(node, connectedNodeIds, rows.edges.length));
   }
 
   for (const edge of rows.edges) {
@@ -141,6 +160,24 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
 
 function formatPythonStringList(values: string[]): string {
   return `[${values.map((value) => `'${value}'`).join(", ")}]`;
+}
+
+function nodeAdmissionWarnings(node: StagingNodeRow, connectedNodeIds: Set<string>, edgeCount: number): string[] {
+  const warnings: string[] = [];
+  const name = node.name.trim();
+  if (name.length <= 1) {
+    warnings.push(`Node ${node.raw_node_id} name is too short to be a stable knowledge identity.`);
+  }
+  if (STRUCTURAL_TITLE_PATTERNS.some((pattern) => pattern.test(name))) {
+    warnings.push(`Node ${node.raw_node_id} looks like a directory heading or textbook column; review node admission policy.`);
+  }
+  if (ASSESSMENT_TITLE_PATTERNS.some((pattern) => pattern.test(name))) {
+    warnings.push(`Node ${node.raw_node_id} looks like an assessment label rather than a knowledge object; review node admission policy.`);
+  }
+  if (edgeCount > 0 && !connectedNodeIds.has(node.raw_node_id)) {
+    warnings.push(`Node ${node.raw_node_id} has no staged relations; review relation potential before activation.`);
+  }
+  return warnings;
 }
 
 export type StagingQualityQueryExecutor = (statement: SqlStatement) => Promise<RawRecord[]> | RawRecord[];

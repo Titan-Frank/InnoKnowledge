@@ -6,7 +6,9 @@ export type {
   SemanticCoreProperties, NodeProperties,
   PedagogicalProfileProperties, DomainProfileProperties,
   ApiUnitBody, ApiUnitMedia, ApiUnitNode, ApiUnitRelation,
-  ApiUnitDomainProfile, ApiUnitSourceFragment, ApiUnit,
+  ApiUnitDomainProfile, ApiUnitSourceFragment,
+  ApiUnitCompletenessSeverity, ApiUnitCompletenessSignal, ApiUnitCompleteness,
+  ApiUnit,
 } from './models.js';
 
 export type {
@@ -14,6 +16,8 @@ export type {
   BundleSourceInfo, ApiBookBundle, BundleResponse,
   AnnotationLessonSummary, AnnotationTextbookSummary, AnnotationTextbookListResponse, AnnotationLessonTextResponse,
   NodeCardResponse, UnitResponse, SearchHit, SearchResponse, ApiErrorResponse,
+  UnitRetrievalMode, UnitRetrievalExecutionMode, UnitRetrievalHit, UnitRetrievalResponse,
+  GroundedGenerationRequest, GroundedGenerationCitation, GroundedGenerationInvalidCitation, GroundedGenerationResponse,
   PipelineLessonRun, PipelineMergeRun, PipelineReviewItem, PipelineResponse,
   PipelineQualityLessonRow, PipelineQualityDashboardResponse,
   PipelineLessonBackendKind, PipelineExtractionTemplateId, PipelineStartRequest, PipelineStartResponse,

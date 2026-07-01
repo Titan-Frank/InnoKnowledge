@@ -9,6 +9,7 @@
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "build": "npm run clean && tsc",
     "backfill-embeddings": "npm run build && node dist/cli/backfill-embeddings.js",
+    "backfill-unit-embeddings": "npm run build && node dist/cli/backfill-unit-embeddings.js",
     "check": "tsc --noEmit",
     "check-postgres": "npm run build && node dist/cli/check-postgres.js",
     "chunk-outline": "npm run build && node dist/cli/chunk-outline.js",

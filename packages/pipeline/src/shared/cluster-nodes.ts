@@ -1,6 +1,6 @@
 import type { SqlStatement } from "../staging/staging-sql.js";
 
-export const EMBEDDING_DIMENSION = 2560;
+export const EMBEDDING_DIMENSION = 1024;
 
 export type ClusterNodeRow = {
   id: string;

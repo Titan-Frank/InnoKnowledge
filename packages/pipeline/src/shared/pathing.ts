@@ -15,7 +15,13 @@ export type OutlineItem = {
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = resolve(MODULE_DIR, "../../../..");
 export const OUTLINES_DIR = resolve(REPO_ROOT, "data/outlines");
+export const SAMPLE_OUTLINES_DIR = resolve(REPO_ROOT, "examples/sample-data/outlines");
 const ANCHOR_ID_PATTERN = /^struct:(?<bookId>[^:]+):(?<kind>[^:]+):(?<local>.+)$/;
+
+export type OutlinePathOptions = {
+  outlinesDir?: string;
+  sampleOutlinesDir?: string;
+};
 
 export function loadJson(path: string): unknown {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -74,8 +80,21 @@ export function uniqueStable<T>(values: Iterable<T>): T[] {
   return result;
 }
 
-export function outlinePathForBook(bookId: string): string {
-  return resolve(OUTLINES_DIR, `${bookId}.outline.json`);
+export function outlinePathForBook(bookId: string, options: OutlinePathOptions = {}): string {
+  return resolve(options.outlinesDir ?? OUTLINES_DIR, `${bookId}.outline.json`);
+}
+
+export function sampleOutlinePathForBook(bookId: string, options: OutlinePathOptions = {}): string {
+  return resolve(options.sampleOutlinesDir ?? SAMPLE_OUTLINES_DIR, `${bookId}.outline.json`);
+}
+
+export function outlinePathCandidatesForBook(bookId: string, options: OutlinePathOptions = {}): string[] {
+  return uniqueStable([outlinePathForBook(bookId, options), sampleOutlinePathForBook(bookId, options)]);
+}
+
+export function readableOutlinePathForBook(bookId: string, options: OutlinePathOptions = {}): string {
+  const candidates = outlinePathCandidatesForBook(bookId, options);
+  return candidates.find((candidate) => existsSync(candidate)) ?? candidates[0]!;
 }
 
 export function iterOutlineItems(items: Iterable<OutlineItem>): OutlineItem[] {
@@ -92,8 +111,8 @@ export function iterOutlineItems(items: Iterable<OutlineItem>): OutlineItem[] {
   return result;
 }
 
-export function loadOutlineItems(bookId: string): OutlineItem[] {
-  const outlinePath = outlinePathForBook(bookId);
+export function loadOutlineItems(bookId: string, options: OutlinePathOptions = {}): OutlineItem[] {
+  const outlinePath = readableOutlinePathForBook(bookId, options);
   if (!existsSync(outlinePath)) return [];
   const outline = loadJson(outlinePath);
   const items =
@@ -118,7 +137,7 @@ export function resolveOutlineAnchor(bookId: string, anchor: string, options: { 
   const items = loadOutlineItems(bookId);
   if (items.length === 0) {
     if (options.strict) {
-      throw new Error(`Outline not found for book '${bookId}': ${outlinePathForBook(bookId)}`);
+      throw new Error(`Outline not found for book '${bookId}'. Tried: ${outlinePathCandidatesForBook(bookId).join(", ")}`);
     }
     return anchor;
   }

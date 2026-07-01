@@ -1,8 +1,12 @@
 import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 
 import {
   anchorTokenVariants,
+  loadOutlineItems,
   makeDomainProfileId,
   makeEdgeId,
   makeLessonRunId,
@@ -10,6 +14,8 @@ import {
   makeProfileId,
   makeStableSuffixWithLength,
   normalizeTerm,
+  outlinePathForBook,
+  readableOutlinePathForBook,
   safePathToken,
   uniqueStable,
 } from "./pathing.js";
@@ -37,4 +43,41 @@ test("anchor token variants preserve order and remove duplicates", () => {
     "1-1-1",
   ]);
   assert.deepEqual(uniqueStable(["a", "b", "a", "c", "b"]), ["a", "b", "c"]);
+});
+
+test("outline loading falls back to sample outlines when the canonical file is absent", () => {
+  const root = mkdtempSync(join(tmpdir(), "okm-outline-"));
+  try {
+    const outlinesDir = join(root, "data", "outlines");
+    const sampleOutlinesDir = join(root, "examples", "sample-data", "outlines");
+    mkdirSync(outlinesDir, { recursive: true });
+    mkdirSync(sampleOutlinesDir, { recursive: true });
+    const samplePath = join(sampleOutlinesDir, "sample-book.outline.json");
+    writeFileSync(
+      samplePath,
+      `${JSON.stringify(
+        {
+          items: [
+            {
+              id: "struct:sample-book:lesson:1",
+              kind: "lesson",
+              children: [{ id: "struct:sample-book:chunk:1-a", kind: "chunk" }],
+            },
+          ],
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+
+    assert.equal(outlinePathForBook("sample-book", { outlinesDir }), join(outlinesDir, "sample-book.outline.json"));
+    assert.equal(readableOutlinePathForBook("sample-book", { outlinesDir, sampleOutlinesDir }), samplePath);
+    assert.deepEqual(
+      loadOutlineItems("sample-book", { outlinesDir, sampleOutlinesDir }).map((item) => item.id),
+      ["struct:sample-book:lesson:1", "struct:sample-book:chunk:1-a"],
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });

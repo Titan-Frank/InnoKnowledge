@@ -1,10 +1,12 @@
 # AI-NKS v0.1
 
-更新日期：2026-06-27
+更新日期：2026-06-30
 
 状态：当前项目顶层标准草案。
 
 本文把 OKM 当前最新想法收束为 `ai-nks-v0.1`。它不是一次数据库迁移，也不是要立刻替换所有 `world-v1.2` 文件名。它定义的是当前项目的顶层知识系统口径：OKM 不只是教材知识图谱抽取工具，而是面向 AI 使用的知识基础设施原型。
+
+理论边界以 `docs/theory-decision-record.md` 为准。本文承接该理论决策记录，继续说明 AI-NKS 的系统结构、工程映射和升级规则。
 
 ## 一、版本定位
 
@@ -116,6 +118,7 @@ interface ApiUnit {
   source_fragments: ApiUnitSourceFragment[];
   card: ApiNodeCard | null;
   body: ApiUnitBody | null;
+  completeness: ApiUnitCompleteness;
 }
 ```
 
@@ -165,7 +168,7 @@ Knowledge Runtime 是 AI-NKS 和普通知识图谱最大的区别。
 | 能力 | 当前状态 | 说明 |
 |---|---|---|
 | 对象级检索 | 部分具备 | server search 已支持文本和向量融合，但返回还主要是节点 |
-| 知识单元读取 | 已具备雏形 | `GET /api/source/:key/unit/:node_id` 返回 `ApiUnit` |
+| 知识单元读取 | 已具备 | `GET /api/source/:key/unit/:node_id` 返回 `ApiUnit`，并包含完整度评分 |
 | 语义规划 | 未实现 | 应输出知识单元和关系路径，而不是长篇自由推理 |
 | Grounded 生成 | 未实现 | 回答应引用知识单元、正文片段和证据 |
 | AI Tutor | 未实现 | 应围绕学习目标、诊断题、常见错误和评价任务运行 |
@@ -291,12 +294,13 @@ AI-NKS v0.1 要推进到对象级检索：
 
 当前文档优先级如下：
 
-1. `docs/ai-nks-v0.1.md`：顶层系统标准。
-2. `docs/current-system-architecture.md`：当前工程架构。
-3. `docs/knowledge-unit-contract.md`：当前知识单元公开契约。
-4. `docs/prompt-inventory.md`：当前模型调用契约。
-5. `schemas/*`：当前可执行工程 schema。
-6. `docs/ai_nks_technical_report_v0_2.md` 和 `docs/discussion.md`：研究背景和思想来源。
+1. `docs/theory-decision-record.md`：理论边界和术语边界。
+2. `docs/ai-nks-v0.1.md`：顶层系统标准。
+3. `docs/current-system-architecture.md`：当前工程架构。
+4. `docs/knowledge-unit-contract.md`：当前知识单元公开契约。
+5. `docs/prompt-inventory.md`：当前模型调用契约。
+6. `schemas/*`：当前可执行工程 schema。
+7. `docs/ai_nks_technical_report_v0_2.md` 和 `docs/discussion.md`：研究背景和思想来源。
 
 ## 十、升级规则
 

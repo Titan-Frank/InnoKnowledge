@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,7 +16,7 @@ import {
   outlineItemsFromRecord,
   type PipelineAssetStore,
 } from "../shared/pg-assets.js";
-import { REPO_ROOT, outlinePathForBook, safePathToken } from "../shared/pathing.js";
+import { REPO_ROOT, outlinePathForBook, readableOutlinePathForBook, safePathToken } from "../shared/pathing.js";
 import {
   createPostgresPipelineProgressStore,
   type PipelineProgressStore,
@@ -98,6 +98,9 @@ type RunnerOptions = {
   nodeBodyLimit?: number;
   nodeBodyMaxEvidence?: number;
   overwriteNodeBodies?: boolean;
+  skipEmbeddings?: boolean;
+  nodeEmbeddingBatchSize?: number;
+  unitEmbeddingBatchSize?: number;
   progressStore?: PipelineProgressStore;
   assetStore?: PipelineAssetStore;
   commandRunner?: CommandRunner;
@@ -193,6 +196,15 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
         },
       });
       await recordStage(result, progressStore, { id: "mineru_source_markdown", status: "completed", output: mineruStage });
+    }
+
+    if (!existsSync(outlinePath) && !sourceMarkdownPath.trim()) {
+      const sampleOutlinePath = readableOutlinePathForBook(options.bookId);
+      if (sampleOutlinePath !== outlinePath && existsSync(sampleOutlinePath)) {
+        materializeOutlineFromSample(outlinePath, sampleOutlinePath);
+        outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
+        if (outlineRecord) sourceMarkdownPath = stringValue(outlineRecord.source_path);
+      }
     }
 
     if (!existsSync(outlinePath) && !sourceMarkdownPath.trim()) {
@@ -391,6 +403,27 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
         "Node body generation command failed.",
       );
       if (!nodeBodiesOk) return result;
+    }
+    if (!options.skipEmbeddings) {
+      const nodeEmbeddingsOk = await runPipelineCommandStage(
+        result,
+        progressStore,
+        options,
+        "node_embeddings",
+        buildNodeEmbeddingsCommand(options),
+        "Node embedding backfill command failed.",
+      );
+      if (!nodeEmbeddingsOk) return result;
+
+      const unitEmbeddingsOk = await runPipelineCommandStage(
+        result,
+        progressStore,
+        options,
+        "unit_embeddings",
+        buildUnitEmbeddingsCommand(options),
+        "Unit embedding backfill command failed.",
+      );
+      if (!unitEmbeddingsOk) return result;
     }
     const qaOk = await runPipelineCommandStage(result, progressStore, options, "strict_qa", buildStrictQaCommand(options), "Strict QA command failed.");
     if (!qaOk) return result;
@@ -675,6 +708,36 @@ function buildNodeBodiesCommand(options: RunnerOptions): string[] {
   return command;
 }
 
+function buildNodeEmbeddingsCommand(options: RunnerOptions): string[] {
+  return [
+    "node",
+    resolve(CLI_DIR, "backfill-embeddings.js"),
+    "--dataset-id",
+    options.datasetId,
+    "--db",
+    options.dbUrl,
+    "--table",
+    "world_nodes",
+    "--batch-size",
+    String(options.nodeEmbeddingBatchSize ?? 8),
+    "--sleep-between-batches-ms",
+    "200",
+  ];
+}
+
+function buildUnitEmbeddingsCommand(options: RunnerOptions): string[] {
+  return [
+    "node",
+    resolve(CLI_DIR, "backfill-unit-embeddings.js"),
+    "--dataset-id",
+    options.datasetId,
+    "--db",
+    options.dbUrl,
+    "--batch-size",
+    String(options.unitEmbeddingBatchSize ?? 8),
+  ];
+}
+
 function buildStrictQaCommand(options: RunnerOptions): string[] {
   return ["node", resolve(CLI_DIR, "strict-qa.js"), "--dataset-id", options.datasetId, "--db", options.dbUrl];
 }
@@ -743,11 +806,26 @@ async function runPipelineCommandStage(
 }
 
 function stageFailureFromOutput(stageId: string, stdout: string): string | null {
-  if (stageId !== "node_bodies") return null;
   const output = parseJsonObjectFromOutput(stdout);
   if (!output) return null;
-  const failed = numberValue(output.failed_model_generation) ?? 0;
-  if (failed > 0) return `${failed} node body generation request(s) failed.`;
+  if (stageId === "node_bodies") {
+    const failed = numberValue(output.failed_model_generation) ?? 0;
+    if (failed > 0) return `${failed} node body generation request(s) failed.`;
+  }
+  if (stageId === "node_embeddings") {
+    const selected = numberValue(output.selected) ?? 0;
+    const updated = numberValue(output.updated) ?? 0;
+    if (selected > 0 && updated < selected) {
+      return `Node embedding backfill updated ${updated}/${selected} selected node(s).`;
+    }
+  }
+  if (stageId === "unit_embeddings") {
+    const pending = numberValue(output.pending) ?? 0;
+    const updated = numberValue(output.updated) ?? 0;
+    if (pending > 0 && updated < pending) {
+      return `Unit embedding backfill updated ${updated}/${pending} pending unit(s).`;
+    }
+  }
   return null;
 }
 
@@ -956,6 +1034,11 @@ function materializeOutlineFromPg(outlinePath: string, outline: RawRecord): void
   }
 }
 
+function materializeOutlineFromSample(outlinePath: string, sampleOutlinePath: string): void {
+  mkdirSync(dirname(outlinePath), { recursive: true });
+  copyFileSync(sampleOutlinePath, outlinePath);
+}
+
 function readJsonRecord(path: string): RawRecord {
   const value = JSON.parse(readFileSync(path, "utf8")) as unknown;
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -1100,6 +1183,8 @@ function stageSortOrder(stageId: string, fallback: number): number {
     "canonical_commit",
     "normalize",
     "node_bodies",
+    "node_embeddings",
+    "unit_embeddings",
     "strict_qa",
     "graph_integrity",
     "quality_dashboard",
@@ -1125,6 +1210,8 @@ function stageLabel(stageId: string): string {
     canonical_commit: "合并入正式图谱",
     normalize: "归一化知识对象",
     node_bodies: "生成知识正文",
+    node_embeddings: "生成节点向量",
+    unit_embeddings: "生成单元向量",
     strict_qa: "严格质检",
     graph_integrity: "图谱完整性检查",
     quality_dashboard: "生成质量仪表盘",
@@ -1240,6 +1327,9 @@ function parseOptions(argv: string[]): RunnerOptions {
     nodeBodyLimit: parseNonNegativeInteger(flags.get("node-body-limit"), 0),
     nodeBodyMaxEvidence: parseInteger(flags.get("node-body-max-evidence"), 8),
     overwriteNodeBodies: flags.has("overwrite-node-bodies"),
+    skipEmbeddings: flags.has("skip-embeddings"),
+    nodeEmbeddingBatchSize: parseInteger(flags.get("node-embedding-batch-size") ?? flags.get("embedding-batch-size"), 8),
+    unitEmbeddingBatchSize: parseInteger(flags.get("unit-embedding-batch-size") ?? flags.get("embedding-batch-size"), 8),
   };
 }
 

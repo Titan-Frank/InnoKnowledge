@@ -189,10 +189,12 @@ Chat Completions：
 1. 只处理当前一个 lesson/chunk。
 2. 先证据后知识对象：每个节点和关系都必须能落到当前 lesson 的 evidence anchor。
 3. 不要把章节编号、复习题、术语表、小结当成正式知识节点。
-4. 节点主类只能使用 9 类：entity/concept/property/process/event/method/rule/representation/resource。
-5. tag 只是辅助检索，不承担主分类；主分类靠 kind、domain、relation。
-6. 关系只允许使用 schema 合法 type，证据不足就不要编造。
-7. 输出必须严格符合 JSON schema。
+4. 课标是边界，教材是证据，考点是评价，目录是线索；不要把它们直接等同于知识节点。
+5. 正式候选节点应具备稳定知识身份、证据锚点、关系潜力、教学用途和未来复用性。
+6. 节点主类只能使用 9 类：entity/concept/property/process/event/method/rule/representation/resource。
+7. tag 只是辅助检索，不承担主分类；主分类靠 kind、domain、relation。
+8. 关系只允许使用 schema 合法 type，证据不足就不要编造。
+9. 输出必须严格符合 JSON schema。
 
 主类判断：
 - entity：具体对象、物质、人物、地点、设备、样本。

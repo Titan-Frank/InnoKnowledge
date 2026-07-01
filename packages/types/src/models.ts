@@ -292,6 +292,23 @@ export interface ApiUnitSourceFragment {
   excerpts: ApiEvidence[];
 }
 
+export type ApiUnitCompletenessSeverity = 'required' | 'recommended';
+
+export interface ApiUnitCompletenessSignal {
+  key: string;
+  label: string;
+  passed: boolean;
+  severity: ApiUnitCompletenessSeverity;
+  message: string;
+}
+
+export interface ApiUnitCompleteness {
+  score: number;
+  passed: number;
+  total: number;
+  signals: ApiUnitCompletenessSignal[];
+}
+
 export interface ApiUnit {
   node: ApiUnitNode;
   relations: {
@@ -305,4 +322,5 @@ export interface ApiUnit {
   source_fragments: ApiUnitSourceFragment[];
   card: ApiNodeCard | null;
   body: ApiUnitBody | null;
+  completeness: ApiUnitCompleteness;
 }

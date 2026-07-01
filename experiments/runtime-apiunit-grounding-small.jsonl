@@ -1,0 +1,5 @@
+{"id":"electric-field-strength","question":"电场强度表示什么？","expected_node_ids":["property/field_strength:auto-f71a3aa58e3b"],"expected_terms":["电场","强弱","方向","电荷","电场力"]}
+{"id":"capacitor-function","question":"电容器的作用是什么？","expected_node_ids":["concept/device:auto-a0df6120d2ae"],"expected_terms":["储存电荷","电能","导体","绝缘"]}
+{"id":"parallel-plate-capacitor","question":"平行板电容器由什么组成？","expected_node_ids":["concept/device:auto-5617feae65d9"],"expected_terms":["平行金属板","电介质","电容器"]}
+{"id":"electromagnetic-wave-light","question":"电磁波和光有什么关系？","expected_node_ids":["concept/wave:auto-9c9e56da3d9e"],"expected_terms":["电磁波","光","传播速度","麦克斯韦"]}
+{"id":"photon-definition","question":"什么是光子？","expected_node_ids":["concept/particle:auto-e58ea245f4cd"],"expected_terms":["光能量","不连续","粒子"]}
