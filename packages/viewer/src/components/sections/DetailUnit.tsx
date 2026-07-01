@@ -74,6 +74,10 @@ function fragmentTitle(fragment: Row, index: number): string {
   return prefix;
 }
 
+function sourceFragmentKey(fragment: Row, index: number): string {
+  return `${text(fragment.source_id)}:${text(fragment.anchor_ref)}:${index}`;
+}
+
 function modalityLabel(value: string): string {
   const labels: Record<string, string> = {
     text: '文本',
@@ -351,6 +355,13 @@ export function DetailUnit({ node }: { node: OKMNode }) {
   const visibleEvidenceIds = new Set(
     visibleSourceFragments.flatMap((fragment) => evidenceIdsForFragment(fragment, evidence)),
   );
+  const visibleEvidenceAnchorOwners = new Map<string, string>();
+  visibleSourceFragments.forEach((fragment, index) => {
+    const fragmentKey = sourceFragmentKey(fragment, index);
+    for (const evidenceId of evidenceIdsForFragment(fragment, evidence)) {
+      if (!visibleEvidenceAnchorOwners.has(evidenceId)) visibleEvidenceAnchorOwners.set(evidenceId, fragmentKey);
+    }
+  });
   const cardSections = Array.isArray(unit.card?.sections) ? unit.card.sections : [];
   const body = unit.body?.content?.trim() || '';
   const bodySourceRefs = sourceRefs(unit.body?.source_refs);
@@ -482,11 +493,23 @@ export function DetailUnit({ node }: { node: OKMNode }) {
               const fragmentEvidenceIds = evidenceIdsForFragment(fragment, evidence);
               const markdown = sourceFragmentMarkdown(excerpts);
               const title = fragmentTitle(fragment, index);
-              const fragmentKey = `${text(fragment.source_id)}:${text(fragment.anchor_ref)}:${index}`;
+              const fragmentKey = sourceFragmentKey(fragment, index);
               const evidenceExpanded = expandedEvidenceKeys.has(fragmentKey);
               return (
                 <div key={fragmentKey} className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
                   <div className="border-b border-border-subtle px-3 py-2 text-xs text-text-muted">
+                    {fragmentEvidenceIds.map((evidenceId) => (
+                      visibleEvidenceAnchorOwners.get(evidenceId) === fragmentKey
+                        ? (
+                          <span
+                            key={`anchor:${evidenceId}`}
+                            id={evidenceAnchorId(evidenceId)}
+                            className="block h-0 scroll-mt-24"
+                            aria-hidden="true"
+                          />
+                        )
+                        : null
+                    ))}
                     <div className="flex items-center gap-2">
                       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                         <span className="min-w-0 truncate font-medium text-text-secondary">{title}</span>
@@ -529,7 +552,6 @@ export function DetailUnit({ node }: { node: OKMNode }) {
                             <button
                               type="button"
                               key={evidenceId}
-                              id={evidenceAnchorId(evidenceId)}
                               onClick={() => setExpandedFragment({ title, modalities, markdown })}
                               className="scroll-mt-24 cursor-pointer rounded-md border border-accent/20 bg-accent/10 px-2.5 py-1.5 text-left transition-colors hover:border-accent/45 hover:bg-accent/15 focus-visible:border-accent focus-visible:outline-none"
                               title={summary.title}

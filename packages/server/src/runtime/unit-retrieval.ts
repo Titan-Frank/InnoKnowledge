@@ -28,7 +28,11 @@ interface CandidateRow {
   reasons: string[];
 }
 
-interface VectorRow extends Omit<CandidateRow, 'reasons'> {
+export interface VectorRow {
+  id: string;
+  canonical_name: string;
+  node_kind: string;
+  node_layer: string;
   similarity: number;
   reason?: string;
 }
@@ -279,10 +283,25 @@ async function runVectorSearch(
         AND u.embedding IS NOT NULL
       ORDER BY u.embedding <=> ${vecStr}::vector
       LIMIT ${limit}
-    `.catch(() => [] as VectorRow[]);
-    if (unitRows.length > 0) return { rows: unitRows, ok: true };
+    `.catch(() => null);
 
-    const rows = await sql<VectorRow[]>`
+    const nodeRows = unitRows === null
+      ? await sql<VectorRow[]>`
+        SELECT
+          id,
+          name AS canonical_name,
+          kind AS node_kind,
+          COALESCE(properties_json->>'node_layer', properties_json->>'layer', '') AS node_layer,
+          1 - (embedding <=> ${vecStr}::vector) AS similarity,
+          'node_embedding' AS reason
+        FROM world_nodes
+        WHERE dataset_id = ${datasetId}
+          AND status != 'deprecated'
+          AND embedding IS NOT NULL
+        ORDER BY embedding <=> ${vecStr}::vector
+        LIMIT ${limit}
+      `.catch(() => null)
+      : await sql<VectorRow[]>`
       SELECT
         id,
         name AS canonical_name,
@@ -294,13 +313,45 @@ async function runVectorSearch(
       WHERE dataset_id = ${datasetId}
         AND status != 'deprecated'
         AND embedding IS NOT NULL
+        AND NOT EXISTS (
+          SELECT 1
+          FROM world_unit_embeddings u
+          WHERE u.dataset_id = world_nodes.dataset_id
+            AND u.node_id = world_nodes.id
+        )
       ORDER BY embedding <=> ${vecStr}::vector
       LIMIT ${limit}
-    `;
-    return { rows, ok: true };
+    `.catch(() => null);
+
+    if (unitRows === null && nodeRows === null) return { rows: [], ok: false };
+    return {
+      rows: mergeVectorRows(unitRows ?? [], nodeRows ?? [], limit),
+      ok: true,
+    };
   } catch {
     return { rows: [], ok: false };
   }
+}
+
+export function mergeVectorRows(unitRows: VectorRow[], nodeRows: VectorRow[], limit: number): VectorRow[] {
+  const byId = new Map<string, VectorRow>();
+
+  for (const row of [...unitRows, ...nodeRows]) {
+    const existing = byId.get(row.id);
+    if (!existing || row.similarity > existing.similarity) byId.set(row.id, row);
+  }
+
+  return [...byId.values()]
+    .sort((a, b) => (
+      b.similarity - a.similarity
+      || reasonRank(a.reason) - reasonRank(b.reason)
+      || a.canonical_name.localeCompare(b.canonical_name, 'zh-CN')
+    ))
+    .slice(0, limit);
+}
+
+function reasonRank(reason: string | undefined): number {
+  return reason === 'apiunit_embedding' ? 0 : 1;
 }
 
 function fuseCandidates(

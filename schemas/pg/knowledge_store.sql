@@ -172,6 +172,21 @@ ON world_nodes(dataset_id, subkind);
 CREATE INDEX IF NOT EXISTS idx_world_nodes_status
 ON world_nodes(dataset_id, status);
 
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_attribute
+    WHERE attrelid = 'world_nodes'::regclass
+      AND attname = 'embedding'
+      AND NOT attisdropped
+      AND format_type(atttypid, atttypmod) <> 'vector(1024)'
+  ) THEN
+    ALTER TABLE world_nodes
+      ALTER COLUMN embedding TYPE vector(1024) USING NULL;
+  END IF;
+END $$;
+
 -------------------------------------------------------------------
 -- world_node_terms
 -------------------------------------------------------------------
@@ -602,6 +617,21 @@ CREATE TABLE IF NOT EXISTS world_staging_nodes (
   PRIMARY KEY (dataset_id, lesson_run_id, raw_node_id),
   FOREIGN KEY (dataset_id, lesson_run_id) REFERENCES world_lesson_runs(dataset_id, lesson_run_id) ON DELETE CASCADE
 );
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_attribute
+    WHERE attrelid = 'world_staging_nodes'::regclass
+      AND attname = 'embedding'
+      AND NOT attisdropped
+      AND format_type(atttypid, atttypmod) <> 'vector(1024)'
+  ) THEN
+    ALTER TABLE world_staging_nodes
+      ALTER COLUMN embedding TYPE vector(1024) USING NULL;
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS world_staging_edges (
   dataset_id TEXT NOT NULL,

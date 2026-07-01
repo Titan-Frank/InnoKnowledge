@@ -234,13 +234,14 @@ export function useG6(options: UseG6Options) {
       const relatedNodeIds = new Set<string>();
       const activeNodeId = selectedNodeId && payload.nodeIds.includes(selectedNodeId) ? selectedNodeId : null;
       const activePreviewNodeId = previewNodeId && payload.nodeIds.includes(previewNodeId) ? previewNodeId : null;
-      const hasSearchHits = searchHitIds.size > 0;
+      const visibleSearchHitIds = new Set(payload.nodeIds.filter((nodeId) => searchHitIds.has(nodeId)));
+      const hasSearchHits = visibleSearchHitIds.size > 0;
 
       if (activeNodeId) {
         for (const edge of payload.edgePairs) {
           const baseStyle = getBaseEdgeStyle(snapshot, edge.id);
-          const sourceHit = searchHitIds.has(edge.source);
-          const targetHit = searchHitIds.has(edge.target);
+          const sourceHit = visibleSearchHitIds.has(edge.source);
+          const targetHit = visibleSearchHitIds.has(edge.target);
           if (edge.source === activeNodeId) {
             relatedNodeIds.add(edge.target);
             edgeUpdates.push({
@@ -279,7 +280,7 @@ export function useG6(options: UseG6Options) {
 
         for (const nodeId of payload.nodeIds) {
           const baseStyle = getBaseNodeStyle(snapshot, nodeId, showLabelsRef.current);
-          const isHit = searchHitIds.has(nodeId);
+          const isHit = visibleSearchHitIds.has(nodeId);
           const isPreview = nodeId === activePreviewNodeId;
           if (nodeId === activeNodeId) {
             nodeUpdates.push({
@@ -335,8 +336,8 @@ export function useG6(options: UseG6Options) {
         const previewNeighborIds = new Set<string>();
         for (const edge of payload.edgePairs) {
           const baseStyle = getBaseEdgeStyle(snapshot, edge.id);
-          const sourceHit = searchHitIds.has(edge.source);
-          const targetHit = searchHitIds.has(edge.target);
+          const sourceHit = visibleSearchHitIds.has(edge.source);
+          const targetHit = visibleSearchHitIds.has(edge.target);
           const touchesPreview = Boolean(activePreviewNodeId && (edge.source === activePreviewNodeId || edge.target === activePreviewNodeId));
           if (touchesPreview) {
             previewNeighborIds.add(edge.source === activePreviewNodeId ? edge.target : edge.source);
@@ -354,7 +355,7 @@ export function useG6(options: UseG6Options) {
 
         for (const nodeId of payload.nodeIds) {
           const baseStyle = getBaseNodeStyle(snapshot, nodeId, showLabelsRef.current);
-          const isHit = searchHitIds.has(nodeId);
+          const isHit = visibleSearchHitIds.has(nodeId);
           const isPreview = nodeId === activePreviewNodeId;
           const isPreviewNeighbor = previewNeighborIds.has(nodeId);
           if (isPreview) {
