@@ -21,6 +21,7 @@ interface NodeRow {
 interface ExistingRow {
   node_id: string;
   content_hash: string;
+  embedding_model: string;
 }
 
 interface UnitEmbeddingJob {
@@ -45,12 +46,13 @@ async function main(argv: string[]): Promise<number> {
       ORDER BY id
       ${flags.limit ? sql`LIMIT ${flags.limit}` : sql``}
     `;
+    const embeddingModel = process.env.EMBEDDING_MODEL ?? 'unknown';
     const existingRows = await sql<ExistingRow[]>`
-      SELECT node_id, content_hash
+      SELECT node_id, content_hash, embedding_model
       FROM world_unit_embeddings
       WHERE dataset_id = ${dataset.dataset_id}
     `.catch(() => [] as ExistingRow[]);
-    const existing = new Map(existingRows.map((row) => [row.node_id, row.content_hash]));
+    const existing = new Map(existingRows.map((row) => [row.node_id, row]));
 
     const jobs: UnitEmbeddingJob[] = [];
     for (const node of nodes) {
@@ -59,7 +61,14 @@ async function main(argv: string[]): Promise<number> {
       const text = composeApiUnitEmbeddingText(unit);
       if (!text) continue;
       const hash = hashApiUnitEmbeddingText(text);
-      if (!flags.force && existing.get(node.id) === hash) continue;
+      const existingEmbedding = existing.get(node.id);
+      if (
+        !flags.force &&
+        existingEmbedding?.content_hash === hash &&
+        existingEmbedding.embedding_model === embeddingModel
+      ) {
+        continue;
+      }
       jobs.push({ nodeId: node.id, unit, text, hash });
     }
 
@@ -87,7 +96,7 @@ async function main(argv: string[]): Promise<number> {
             ${formatVector(vector)}::vector,
             ${job.hash},
             ${job.text},
-            ${process.env.EMBEDDING_MODEL ?? 'unknown'},
+            ${embeddingModel},
             ${new Date().toISOString()}
           )
           ON CONFLICT (dataset_id, node_id) DO UPDATE SET

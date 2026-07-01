@@ -109,7 +109,11 @@ test("runs unit embedding backfill only for changed units", async () => {
             },
           ];
         case "select-existing-unit-embeddings":
-          return [{ node_id: "node:unchanged", content_hash: hashUnitEmbeddingText(unchangedText) }];
+          return [{
+            node_id: "node:unchanged",
+            content_hash: hashUnitEmbeddingText(unchangedText),
+            embedding_model: "test-model",
+          }];
         default:
           throw new Error(`Unexpected query ${statement.name}`);
       }
@@ -131,5 +135,71 @@ test("runs unit embedding backfill only for changed units", async () => {
   assert.equal(output.pending, 1);
   assert.equal(output.updated, 1);
   assert.equal(output.skipped, 1);
+  assert.deepEqual(executed, ["upsert-world-unit-embedding"]);
+});
+
+test("rebuilds unit embeddings when the embedding model changes", async () => {
+  const unchangedText = composeUnitEmbeddingText({
+    node: {
+      id: "node:unchanged",
+      name: "Unchanged",
+      kind: "concept",
+      definition: "Same text, new model.",
+      aliases: [],
+      domains: [],
+      semanticCore: undefined,
+    },
+    card: null,
+    body: null,
+    evidence: [],
+  });
+  const executed: string[] = [];
+
+  const output = await runUnitEmbeddingBackfillFromDatabase({
+    datasetId: "main",
+    batchSize: 4,
+    embeddingModel: "new-model",
+    query: (statement) => {
+      switch (statement.name) {
+        case "select-unit-embedding-nodes":
+          return [{
+            id: "node:unchanged",
+            name: "Unchanged",
+            kind: "concept",
+            definition: "Same text, new model.",
+            aliases_json: [],
+            domains_json: [],
+            properties_json: {},
+          }];
+        case "select-unit-embedding-cards":
+        case "select-unit-embedding-bodies":
+        case "select-unit-embedding-evidence":
+          return [];
+        case "select-existing-unit-embeddings":
+          return [{
+            node_id: "node:unchanged",
+            content_hash: hashUnitEmbeddingText(unchangedText),
+            embedding_model: "old-model",
+          }];
+        default:
+          throw new Error(`Unexpected query ${statement.name}`);
+      }
+    },
+    executeStatement: (statement) => {
+      executed.push(statement.name);
+      assert.equal(statement.params[1], "node:unchanged");
+      assert.equal(statement.params[5], "new-model");
+    },
+    embedTexts: (texts) => {
+      assert.equal(texts.length, 1);
+      assert.match(texts[0] ?? "", /Same text, new model/);
+      return [[1, 2, 3]];
+    },
+  });
+
+  assert.equal(output.selected, 1);
+  assert.equal(output.pending, 1);
+  assert.equal(output.updated, 1);
+  assert.equal(output.skipped, 0);
   assert.deepEqual(executed, ["upsert-world-unit-embedding"]);
 });

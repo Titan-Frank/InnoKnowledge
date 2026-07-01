@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import type {
   GroundedGenerationResponse,
   UnitRetrievalHit,
@@ -46,12 +46,24 @@ export function GraphSearchPanel() {
   const [generation, setGeneration] = useState<GroundedGenerationResponse | null>(null);
   const [loading, setLoading] = useState<'search' | 'generate' | null>(null);
   const [error, setError] = useState('');
+  const activeSourceKeyRef = useRef(selectedSourceKey);
 
   const disabled = !selectedSourceKey || loading !== null || !query.trim();
   const status = useMemo(
     () => generation ? groundingStatusLabel(generation.grounding.status) : null,
     [generation],
   );
+
+  useEffect(() => {
+    activeSourceKeyRef.current = selectedSourceKey;
+    setRetrieval(null);
+    setGeneration(null);
+    setLoading(null);
+    setError('');
+    setSearchTerm('');
+    setServerSearchHits(new Map());
+    setHoverNodeId(null);
+  }, [selectedSourceKey, setHoverNodeId, setSearchTerm, setServerSearchHits]);
 
   function publishHits(response: UnitRetrievalResponse, activeQuery: string) {
     const hits = new Map<string, SearchHitMeta>();
@@ -70,39 +82,45 @@ export function GraphSearchPanel() {
   async function handleSearch(event?: FormEvent) {
     event?.preventDefault();
     if (!selectedSourceKey || !query.trim()) return;
+    const activeSourceKey = selectedSourceKey;
     const activeQuery = query.trim();
     setLoading('search');
     setError('');
     setGeneration(null);
     try {
-      const response = await searchApiUnits(selectedSourceKey, activeQuery, limit, mode);
+      const response = await searchApiUnits(activeSourceKey, activeQuery, limit, mode);
+      if (activeSourceKeyRef.current !== activeSourceKey) return;
       setRetrieval(response);
       publishHits(response, activeQuery);
     } catch (err) {
+      if (activeSourceKeyRef.current !== activeSourceKey) return;
       setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setLoading(null);
+      if (activeSourceKeyRef.current === activeSourceKey) setLoading(null);
     }
   }
 
   async function handleGenerate() {
     if (!selectedSourceKey || !query.trim()) return;
+    const activeSourceKey = selectedSourceKey;
     const activeQuery = query.trim();
     setLoading('generate');
     setError('');
     try {
-      const response = await generateGroundedAnswer(selectedSourceKey, {
+      const response = await generateGroundedAnswer(activeSourceKey, {
         question: activeQuery,
         limit,
         retrieval_mode: mode,
       });
+      if (activeSourceKeyRef.current !== activeSourceKey) return;
       setRetrieval(response.retrieval);
       setGeneration(response);
       publishHits(response.retrieval, activeQuery);
     } catch (err) {
+      if (activeSourceKeyRef.current !== activeSourceKey) return;
       setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setLoading(null);
+      if (activeSourceKeyRef.current === activeSourceKey) setLoading(null);
     }
   }
 

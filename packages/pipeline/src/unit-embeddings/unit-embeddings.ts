@@ -38,6 +38,11 @@ type UnitEmbeddingJob = {
   hash: string;
 };
 
+type ExistingUnitEmbedding = {
+  contentHash: string;
+  embeddingModel: string;
+};
+
 export type UnitEmbeddingDatabaseOutput = {
   status: "success";
   dataset_id: string;
@@ -91,7 +96,13 @@ export async function runUnitEmbeddingBackfillFromDatabase(input: {
   const cardsByNodeId = firstByNodeId(cardRows.map(toCardRecord));
   const bodiesByNodeId = firstByNodeId(bodyRows.map(toBodyRecord).filter((body) => body.generatedFrom !== "node_card_fallback"));
   const evidenceByNodeId = groupEvidenceByNodeId(evidenceRows);
-  const existingHashes = new Map(existingRows.map((row) => [stringValue(row.node_id), stringValue(row.content_hash)]));
+  const existing = new Map(existingRows.map((row): [string, ExistingUnitEmbedding] => [
+    stringValue(row.node_id),
+    {
+      contentHash: stringValue(row.content_hash),
+      embeddingModel: stringValue(row.embedding_model),
+    },
+  ]));
 
   const jobs: UnitEmbeddingJob[] = [];
   for (const row of nodeRows) {
@@ -104,7 +115,14 @@ export async function runUnitEmbeddingBackfillFromDatabase(input: {
     });
     if (!text) continue;
     const hash = hashUnitEmbeddingText(text);
-    if (!input.force && existingHashes.get(node.id) === hash) continue;
+    const existingEmbedding = existing.get(node.id);
+    if (
+      !input.force &&
+      existingEmbedding?.contentHash === hash &&
+      existingEmbedding.embeddingModel === input.embeddingModel
+    ) {
+      continue;
+    }
     jobs.push({ nodeId: node.id, text, hash });
   }
 
@@ -215,7 +233,7 @@ export function buildSelectExistingUnitEmbeddingsStatement(datasetId: string): S
   return {
     name: "select-existing-unit-embeddings",
     sql: [
-      "SELECT node_id, content_hash",
+      "SELECT node_id, content_hash, embedding_model",
       "FROM world_unit_embeddings",
       "WHERE dataset_id = $1",
     ].join("\n"),
