@@ -455,7 +455,7 @@ export function TextbookTreePage() {
       })
       .catch((error) => {
         if (cancelled) return;
-        setEnrichIndexError((error as Error).message || 'Enrich 索引加载失败');
+        setEnrichIndexError((error as Error).message || '富化教材索引加载失败');
       });
     return () => { cancelled = true; };
   }, []);
@@ -696,7 +696,7 @@ export function TextbookTreePage() {
 
     if (enrichIndexError) return <div className="p-4 text-sm text-text-muted">{enrichIndexError}</div>;
     if (!enrichIndex) return <div className="p-4 text-sm text-text-muted">正在加载 Enrich 教材库。</div>;
-    if (!filteredEnrichBooks.length) return <div className="p-4 text-sm text-text-muted">没有匹配的 Enrich 教材。</div>;
+    if (!filteredEnrichBooks.length) return <div className="p-4 text-sm text-text-muted">没有匹配的富化教材。</div>;
 
     return filteredEnrichBooks.slice(0, 500).map((book) => {
       const active = selectedEnrichPath === book.path;
@@ -849,7 +849,7 @@ export function TextbookTreePage() {
           viewBox={`0 0 ${width} ${height}`}
           role="img"
           aria-label="教材目录树图"
-          className="min-w-full rounded-md border border-border-subtle bg-elevated"
+          className="min-w-full rounded-lg border border-border-subtle bg-surface shadow-panel"
         >
           {graphNodes}
         </svg>
@@ -873,11 +873,11 @@ export function TextbookTreePage() {
       ] as const;
       return (
         <div className="space-y-4 p-4">
-          <section className="border border-border-subtle bg-surface">
-            <div className="border-b border-border-subtle p-4">
+          <section className="overflow-hidden rounded-lg border border-border-subtle bg-elevated shadow-panel">
+            <div className="border-b border-border-subtle bg-surface p-4">
               <div className="mb-2 text-[10px] text-text-muted">{node.title_path.concat(node.title || '').filter(Boolean).join(' > ')}</div>
               <h2 className="text-lg font-semibold text-text-primary">{selectedNode.title}</h2>
-              <div className="mt-3 grid grid-cols-3 border border-border-subtle bg-elevated text-center">
+              <div className="mt-3 grid grid-cols-3 rounded-lg border border-border-subtle bg-elevated text-center">
                 <StatCell label="层级" value={node.depth + 1} />
                 <StatCell label="序号" value={node.order_path} />
                 <StatCell label="子节点" value={node.child_count} />
@@ -898,14 +898,14 @@ export function TextbookTreePage() {
 
     return (
       <div className="space-y-4 p-4">
-        <section className="border border-border-subtle bg-surface p-4">
+        <section className="rounded-lg border border-border-subtle bg-elevated p-4 shadow-panel">
           <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] text-text-muted">
             <span>{selectedNode.outline?.kind || 'item'}</span>
             {selectedNode.outline && pageLabel(selectedNode.outline) && <span>{pageLabel(selectedNode.outline)}</span>}
             {selectedNode.outline?.md_start != null && <span>md {selectedNode.outline.md_start}-{selectedNode.outline.md_end}</span>}
           </div>
           <h2 className="text-lg font-semibold text-text-primary">{selectedNode.title}</h2>
-          <div className="mt-3 grid grid-cols-4 border border-border-subtle bg-elevated text-center">
+          <div className="mt-3 grid grid-cols-4 rounded-lg border border-border-subtle bg-surface text-center">
             <StatCell label="节点提及" value={selectedMentions.length} />
             <StatCell label="证据" value={selectedEvidence.length} />
             <StatCell label="图片" value={selectedEvidence.filter((item) => item.modality === 'image').length} />
@@ -913,7 +913,7 @@ export function TextbookTreePage() {
           </div>
         </section>
 
-        <section className="border border-border-subtle bg-surface p-4">
+        <section className="rounded-lg border border-border-subtle bg-elevated p-4 shadow-panel">
           <div className="mb-3 flex items-center gap-2 text-xs font-medium text-text-muted">
             <Network className="h-3.5 w-3.5" />
             关联知识节点
@@ -922,7 +922,7 @@ export function TextbookTreePage() {
             )}
           </div>
           {selectedKnowledgeNodes.length ? (
-            <div className="divide-y divide-border-subtle border border-border-subtle bg-elevated">
+            <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
               {selectedKnowledgeNodes.map((node) => {
                 const unitState = selectedSourceKey
                   ? relatedUnitCache.get(relatedUnitCacheKey(selectedSourceKey, node.id))
@@ -956,7 +956,7 @@ export function TextbookTreePage() {
                           setSelectedNodeId(node.id);
                           setWorkspace('graph');
                         }}
-                        className="m-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border-subtle bg-surface text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
+                        className="m-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border-subtle bg-elevated text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
                       >
                         <Network className="h-3.5 w-3.5" />
                       </button>
@@ -990,12 +990,12 @@ export function TextbookTreePage() {
           )}
         </section>
 
-        <section className="border border-border-subtle bg-surface p-4">
+        <section className="rounded-lg border border-border-subtle bg-elevated p-4 shadow-panel">
           <div className="mb-3 text-xs font-medium text-text-muted">教材证据</div>
           {selectedEvidence.length ? (
             <div className="space-y-2">
               {selectedEvidence.slice(0, 80).map((item) => (
-                <div key={item.id} className="border border-border-subtle bg-elevated p-3">
+                <div key={item.id} className="rounded-md border border-border-subtle bg-surface p-3">
                   <div className="mb-1 flex flex-wrap gap-2 text-[10px] text-text-muted">
                     <span>{item.id}</span>
                     <span>{modalityLabel(item.modality)}</span>
@@ -1020,27 +1020,26 @@ export function TextbookTreePage() {
   };
 
   const activeTitle = sourceMode === 'enrich'
-    ? activeEnrichBook?.title || 'Enrich 教材库'
+    ? activeEnrichBook?.title || '富化教材库'
     : activeDatasetBook?.bookId || '当前数据源教材';
   const activeMeta = sourceMode === 'enrich'
-    ? activeEnrichBook ? describeBook(activeEnrichBook) : '从 data/enrich 读取富化教材树'
+    ? activeEnrichBook ? describeBook(activeEnrichBook) : '从富化教材记录读取'
     : activeDatasetBook ? `${activeDatasetBook.mentions.length} 提及 · ${activeDatasetBook.evidence.length} 证据` : '从当前知识图数据源读取';
 
   return (
     <main
-      className="grid min-h-0 flex-1 grid-cols-[320px_minmax(420px,1fr)_420px] bg-void max-xl:grid-cols-[300px_minmax(420px,1fr)] max-lg:flex max-lg:flex-col max-lg:overflow-y-auto"
+      className="grid min-h-0 flex-1 grid-cols-[320px_minmax(420px,1fr)_420px] bg-deep max-xl:grid-cols-[300px_minmax(420px,1fr)] max-lg:flex max-lg:flex-col max-lg:overflow-y-auto"
       style={isWideLayout ? { gridTemplateColumns: `320px minmax(420px,1fr) ${detailPanelWidth}px` } : undefined}
     >
-      <aside className="flex min-h-0 flex-col border-r border-border-subtle bg-surface max-lg:min-h-[260px] max-lg:max-h-[34vh] max-lg:border-b max-lg:border-r-0">
+      <aside className="flex min-h-0 flex-col border-r border-border-subtle bg-surface/95 shadow-panel max-lg:min-h-[260px] max-lg:max-h-[34vh] max-lg:border-b max-lg:border-r-0">
         <div className="border-b border-border-subtle p-3">
           <div className="mb-3 flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-accent" />
             <div>
               <div className="text-sm font-semibold text-text-primary">教材工作台</div>
-              <div className="text-[10px] text-text-muted">目录、富化内容和知识图联动</div>
             </div>
           </div>
-          <div className="grid grid-cols-2 border border-border-subtle bg-elevated">
+          <div className="grid grid-cols-2 rounded-lg border border-border-subtle bg-elevated p-0.5">
             <button
               type="button"
               onClick={() => {
@@ -1048,7 +1047,7 @@ export function TextbookTreePage() {
                 setSelectedTreeId(null);
                 setTreeQuery('');
               }}
-              className={`px-2 py-1.5 text-xs transition-colors ${sourceMode === 'dataset' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'}`}
+              className={`rounded-md px-2 py-1.5 text-xs transition-colors ${sourceMode === 'dataset' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
             >
               当前数据源
             </button>
@@ -1059,9 +1058,9 @@ export function TextbookTreePage() {
                 setSelectedTreeId(null);
                 setTreeQuery('');
               }}
-              className={`px-2 py-1.5 text-xs transition-colors ${sourceMode === 'enrich' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'}`}
+              className={`rounded-md px-2 py-1.5 text-xs transition-colors ${sourceMode === 'enrich' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
             >
-              Enrich
+              富化库
             </button>
           </div>
           <div className="mt-3 grid gap-2">
@@ -1069,7 +1068,7 @@ export function TextbookTreePage() {
               <select
                 value={subjectFilter}
                 onChange={(event) => setSubjectFilter(event.target.value)}
-                className="w-full rounded-md border border-border-subtle bg-elevated px-2 py-1.5 text-xs text-text-secondary outline-none focus:border-accent"
+                className="w-full rounded-md border border-border-subtle bg-elevated px-2 py-1.5 text-xs text-text-secondary outline-none transition-colors focus:border-accent"
               >
                 <option value="">全部学科</option>
                 {enrichSubjects.map((subject) => (
@@ -1077,7 +1076,7 @@ export function TextbookTreePage() {
                 ))}
               </select>
             )}
-            <label className="flex items-center gap-2 rounded-md border border-border-subtle bg-elevated px-2 py-1.5">
+            <label className="flex items-center gap-2 rounded-md border border-border-subtle bg-elevated px-2 py-1.5 transition-colors focus-within:border-accent">
               <Search className="h-3.5 w-3.5 text-text-muted" />
               <input
                 value={bookQuery}
@@ -1099,18 +1098,18 @@ export function TextbookTreePage() {
         </div>
       </aside>
 
-      <section className="flex min-h-0 min-w-0 flex-col bg-void max-lg:min-h-[420px]">
-        <div className="border-b border-border-subtle bg-surface p-3">
+      <section className="flex min-h-0 min-w-0 flex-col bg-deep max-lg:min-h-[420px]">
+        <div className="border-b border-border-subtle bg-surface/95 p-3 shadow-panel">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <h1 className="truncate text-base font-semibold text-text-primary">{activeTitle}</h1>
               <div className="mt-1 truncate text-xs text-text-muted">{activeMeta}</div>
             </div>
-            <div className="flex shrink-0 border border-border-subtle bg-elevated">
+            <div className="flex shrink-0 rounded-lg border border-border-subtle bg-elevated p-0.5">
               <button
                 type="button"
                 onClick={() => setTreeMode('graph')}
-                className={`flex items-center gap-1 px-2.5 py-1 text-xs transition-colors ${treeMode === 'graph' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'}`}
+                className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs transition-colors ${treeMode === 'graph' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
               >
                 <Layers className="h-3.5 w-3.5" />
                 图形
@@ -1118,14 +1117,14 @@ export function TextbookTreePage() {
               <button
                 type="button"
                 onClick={() => setTreeMode('list')}
-                className={`px-2.5 py-1 text-xs transition-colors ${treeMode === 'list' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'}`}
+                className={`rounded-md px-2.5 py-1 text-xs transition-colors ${treeMode === 'list' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
               >
                 列表
               </button>
             </div>
           </div>
           <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2 max-sm:grid-cols-2">
-            <label className="flex min-w-0 items-center gap-2 rounded-md border border-border-subtle bg-elevated px-2 py-1.5 max-sm:col-span-2">
+            <label className="flex min-w-0 items-center gap-2 rounded-md border border-border-subtle bg-elevated px-2 py-1.5 transition-colors focus-within:border-accent max-sm:col-span-2">
               <Search className="h-3.5 w-3.5 text-text-muted" />
               <input
                 value={treeQuery}
@@ -1164,7 +1163,7 @@ export function TextbookTreePage() {
         </div>
       </section>
 
-      <aside className="relative flex min-h-0 flex-col border-l border-border-subtle bg-surface max-xl:col-span-2 max-xl:min-h-[420px] max-xl:border-l-0 max-xl:border-t max-lg:col-span-1 max-lg:min-h-[360px]">
+      <aside className="relative flex min-h-0 flex-col border-l border-border-subtle bg-surface/95 shadow-panel max-xl:col-span-2 max-xl:min-h-[420px] max-xl:border-l-0 max-xl:border-t max-lg:col-span-1 max-lg:min-h-[360px]">
         {isWideLayout && (
           <div
             role="separator"
@@ -1189,11 +1188,8 @@ export function TextbookTreePage() {
             <span className="absolute left-1/2 top-1/2 h-12 w-0.5 -translate-x-1/2 -translate-y-1/2 bg-border-strong" />
           </div>
         )}
-        <div className="border-b border-border-subtle p-3">
+        <div className="border-b border-border-subtle bg-elevated p-3">
           <div className="text-sm font-semibold text-text-primary">节点详情</div>
-          <div className="mt-1 text-xs text-text-muted">
-            {sourceMode === 'enrich' ? '查看富化字段' : '查看证据和关联知识节点'}
-          </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
           {renderDetails()}

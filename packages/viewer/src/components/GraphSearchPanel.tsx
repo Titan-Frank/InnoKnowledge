@@ -42,7 +42,7 @@ export function GraphSearchPanel() {
     setSearchTerm,
     setServerSearchHits,
   } = useAppState();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(DEFAULT_QUERY);
   const [mode, setMode] = useState<UnitRetrievalMode>('hybrid');
   const [limit, setLimit] = useState(8);
@@ -162,18 +162,18 @@ export function GraphSearchPanel() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="absolute bottom-4 left-4 z-30 flex h-10 cursor-pointer items-center gap-2 rounded-md border border-border-subtle bg-elevated/95 px-3 text-xs font-medium text-text-primary shadow-lg backdrop-blur transition-colors hover:bg-hover"
+        className="absolute bottom-4 left-4 z-30 flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-border-subtle bg-elevated/95 px-3 text-xs font-semibold text-text-primary shadow-panel backdrop-blur transition-colors hover:bg-hover"
         aria-label="打开检索浮窗"
       >
         <MessageSquareText className="h-4 w-4 text-accent" />
-        检索
+        问知识地图
       </button>
     );
   }
 
   return (
-    <section className="absolute bottom-3 left-3 right-3 z-30 flex max-h-[78vh] flex-col overflow-hidden rounded-md border border-border-subtle bg-elevated/95 shadow-2xl backdrop-blur sm:bottom-4 sm:left-4 sm:right-auto sm:w-[28rem]">
-      <header className="flex min-h-10 items-center justify-between border-b border-border-subtle px-3">
+    <section className="absolute bottom-3 left-3 right-3 z-30 flex max-h-[78vh] flex-col overflow-hidden rounded-lg border border-border-subtle bg-elevated/98 shadow-panel backdrop-blur sm:bottom-4 sm:left-4 sm:right-auto sm:w-[30rem]">
+      <header className="flex min-h-11 items-center justify-between border-b border-border-subtle bg-surface px-3">
         <div className="flex min-w-0 items-center gap-2">
           <MessageSquareText className="h-4 w-4 shrink-0 text-accent" />
           <div className="min-w-0">
@@ -209,7 +209,7 @@ export function GraphSearchPanel() {
         </div>
       </header>
 
-      <form onSubmit={handleSearch} className="border-b border-border-subtle p-3">
+      <form onSubmit={handleSearch} className="border-b border-border-subtle bg-elevated p-3">
         <label htmlFor="graph-search-query" className="mb-1 block text-[11px] font-medium text-text-muted">
           问题或知识对象
         </label>
@@ -226,14 +226,14 @@ export function GraphSearchPanel() {
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <div className="flex h-8 overflow-hidden rounded-md border border-border-subtle bg-surface">
+          <div className="flex h-8 overflow-hidden rounded-md border border-border-subtle bg-surface p-0.5">
             {MODE_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => setMode(option.value)}
-                className={`cursor-pointer px-2.5 text-xs transition-colors ${
-                  mode === option.value ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover'
+                className={`cursor-pointer rounded px-2.5 text-xs transition-colors ${
+                  mode === option.value ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'
                 }`}
                 aria-pressed={mode === option.value}
               >
@@ -275,7 +275,7 @@ export function GraphSearchPanel() {
         </div>
 
         {error && (
-          <div className="mt-2 flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-2 text-xs leading-5 text-red-200">
+          <div className="mt-2 flex items-start gap-2 rounded-md border border-node-event/40 bg-node-event/10 px-2.5 py-2 text-xs leading-5 text-node-event">
             <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>{error}</span>
           </div>
@@ -341,7 +341,7 @@ export function GraphSearchPanel() {
                     onClick={() => focusNode(citation.node_id)}
                     onMouseEnter={() => setHoverNodeId(citation.node_id)}
                     onMouseLeave={() => setHoverNodeId(null)}
-                    className="block w-full cursor-pointer rounded-md border border-border-subtle bg-surface px-2.5 py-2 text-left transition-colors hover:bg-hover"
+                    className="block w-full cursor-pointer rounded-md border border-border-subtle bg-surface px-2.5 py-2 text-left transition-colors hover:border-accent/40 hover:bg-hover"
                   >
                     <div className="break-all font-mono text-[11px] text-accent">{citation.node_id}</div>
                     <div className="mt-0.5 break-all font-mono text-[10px] text-text-muted">{citation.evidence_id}</div>
@@ -374,7 +374,7 @@ function UnitHitItem({
     <article
       onMouseEnter={() => onPreview(true)}
       onMouseLeave={() => onPreview(false)}
-      className="rounded-md border border-border-subtle bg-surface p-2.5 transition-colors hover:border-accent/40"
+      className="rounded-md border border-border-subtle bg-surface p-2.5 transition-colors hover:border-accent/40 hover:bg-hover"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -396,10 +396,10 @@ function UnitHitItem({
       {definition && <p className="mt-2 line-clamp-2 text-xs leading-5 text-text-secondary">{definition}</p>}
 
       <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] text-text-muted">
-        <span className="rounded border border-border-subtle px-1.5 py-0.5">{hit.node_kind}</span>
-        <span className="rounded border border-border-subtle px-1.5 py-0.5">分数 {formatScore(hit.score)}</span>
-        <span className="rounded border border-border-subtle px-1.5 py-0.5">证据 {hit.unit.evidence.length}</span>
-        <span className="rounded border border-border-subtle px-1.5 py-0.5">
+        <span className="rounded border border-border-subtle bg-elevated px-1.5 py-0.5">{hit.node_kind}</span>
+        <span className="rounded border border-border-subtle bg-elevated px-1.5 py-0.5">分数 {formatScore(hit.score)}</span>
+        <span className="rounded border border-border-subtle bg-elevated px-1.5 py-0.5">证据 {hit.unit.evidence.length}</span>
+        <span className="rounded border border-border-subtle bg-elevated px-1.5 py-0.5">
           完整度 {Math.round((hit.unit.completeness?.score ?? 0) * 100)}%
         </span>
       </div>
@@ -428,7 +428,7 @@ function Metric({ label, value }: { label: string; value: number }) {
 
 function EmptyState({ label }: { label: string }) {
   return (
-    <div className="rounded-md border border-dashed border-border-subtle px-3 py-5 text-center text-xs text-text-muted">
+    <div className="rounded-md border border-dashed border-border-default bg-surface px-3 py-5 text-center text-xs text-text-muted">
       {label}
     </div>
   );

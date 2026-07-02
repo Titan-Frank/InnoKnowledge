@@ -1,12 +1,11 @@
 import { useAppState } from '@/hooks/useAppState';
 import { TYPE_META, LAYER_MODE_OPTIONS } from '@/lib/constants';
-import { BookOpen, Layers, Eye, EyeOff, ChevronDown, ChevronRight, Search, X } from '@/lib/lucide-icons';
+import { BookOpen, Layers, Eye, EyeOff, ChevronDown, ChevronRight, Search, X, Filter } from '@/lib/lucide-icons';
 import { useMemo, useState, useCallback } from 'react';
 
 type TypeFilterGroup = {
   id: string;
   label: string;
-  description: string;
   types: string[];
 };
 
@@ -70,27 +69,23 @@ function groupType(type: string): Omit<TypeFilterGroup, 'types'> {
     return {
       id: 'object',
       label: '知识对象类型',
-      description: '统一知识标准中的顶层对象类型',
     };
   }
   if (CHEM_DOMAIN_TYPES.has(type)) {
     return {
       id: 'chem',
       label: '化学领域分类',
-      description: '教材抽取出的化学主题和对象分类',
     };
   }
   if (PROPERTY_RULE_TYPES.has(type)) {
     return {
       id: 'rules',
       label: '性质、规则与参量',
-      description: '性质、规则、结构参量和趋势类细分标签',
     };
   }
   return {
     id: 'other',
     label: '其他类型',
-    description: '暂未归入固定分组的类型',
   };
 }
 
@@ -107,7 +102,7 @@ export function FilterPanel() {
     layerMode, focusConnected, showLabels,
     toggleType, resetTypes, setSelectedTypes,
     setSelectedBook, setLayerMode, setFocusConnected,
-    setShowLabels, sourceConfigs, switchSource,
+    setShowLabels,
   } = appState;
 
   const [typeSectionOpen, setTypeSectionOpen] = useState(true);
@@ -172,37 +167,33 @@ export function FilterPanel() {
   if (!knowledgeGraph) return null;
 
   return (
-    <aside className="order-2 flex max-h-[38vh] w-full shrink-0 flex-col overflow-hidden border-t border-border-subtle bg-surface lg:order-none lg:max-h-none lg:w-72 lg:border-r lg:border-t-0">
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-3 space-y-4">
-        {/* Source selector */}
-        {sourceConfigs.size > 1 && (
-          <section>
-            <select
-              value={appState.selectedSourceKey || ''}
-              onChange={(e) => switchSource(e.target.value)}
-              aria-label="选择数据源"
-              className="w-full rounded-md border border-border-subtle bg-elevated px-2 py-1.5 text-xs text-text-secondary outline-none focus:border-accent"
-            >
-              {Array.from(sourceConfigs.entries()).map(([key, config]) => (
-                <option key={key} value={key}>{config.label}</option>
-              ))}
-            </select>
-          </section>
-        )}
+    <aside className="order-2 flex max-h-[42vh] w-full shrink-0 flex-col overflow-hidden border-t border-border-subtle bg-surface/95 shadow-panel lg:order-none lg:max-h-none lg:w-80 lg:border-r lg:border-t-0">
+      <div className="flex items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-accent" />
+          <div className="text-sm font-semibold text-text-primary">图谱筛选</div>
+        </div>
+        <div className="rounded-full border border-border-subtle bg-elevated px-2 py-0.5 text-[11px] text-text-muted">
+          {selectedTypes.size}/{knowledgeGraph.availableTypes.length}
+        </div>
+      </div>
+
+      <div className="flex-1 space-y-4 overflow-y-auto p-3 scrollbar-thin">
 
         {/* Book filter */}
         {books.length > 1 && (
-          <section>
+          <section className="rounded-lg border border-border-subtle bg-elevated p-3">
             <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-text-muted">
               <BookOpen className="h-3.5 w-3.5" />
               教材筛选
             </div>
-            <div className="flex flex-wrap gap-1">
+            <div className="max-h-28 overflow-y-auto pr-1 scrollbar-thin">
+              <div className="flex flex-wrap gap-1">
               <button
                 onClick={() => setSelectedBook('all')}
                 aria-pressed={selectedBook === 'all'}
                 className={`rounded-md px-2 py-1 text-xs transition-colors ${
-                  selectedBook === 'all' ? 'bg-accent/20 text-accent' : 'bg-elevated text-text-secondary hover:bg-hover'
+                  selectedBook === 'all' ? 'bg-accent text-white' : 'border border-border-subtle bg-surface text-text-secondary hover:bg-hover hover:text-text-primary'
                 }`}
               >
                 全部
@@ -213,30 +204,31 @@ export function FilterPanel() {
                   onClick={() => setSelectedBook(bookId)}
                   aria-pressed={selectedBook === bookId}
                   className={`rounded-md px-2 py-1 text-xs transition-colors ${
-                    selectedBook === bookId ? 'bg-accent/20 text-accent' : 'bg-elevated text-text-secondary hover:bg-hover'
+                    selectedBook === bookId ? 'bg-accent text-white' : 'border border-border-subtle bg-surface text-text-secondary hover:bg-hover hover:text-text-primary'
                   }`}
                 >
                   {bookId}
                 </button>
               ))}
+              </div>
             </div>
           </section>
         )}
 
         {/* Layer mode */}
-        <section>
+        <section className="rounded-lg border border-border-subtle bg-elevated p-3">
           <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-text-muted">
             <Layers className="h-3.5 w-3.5" />
             显示模式
           </div>
-          <div className="flex gap-1">
+          <div className="grid grid-cols-3 gap-1 rounded-lg border border-border-subtle bg-surface p-1">
             {LAYER_MODE_OPTIONS.map((option) => (
               <button
                 key={option.id}
                 onClick={() => setLayerMode(option.id)}
                 aria-pressed={layerMode === option.id}
                 className={`flex-1 rounded-md px-2 py-1.5 text-xs transition-colors ${
-                  layerMode === option.id ? 'bg-accent/20 text-accent' : 'bg-elevated text-text-secondary hover:bg-hover'
+                  layerMode === option.id ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'
                 }`}
                 title={option.description}
               >
@@ -249,8 +241,8 @@ export function FilterPanel() {
             <button
               onClick={() => setFocusConnected(!focusConnected)}
               aria-pressed={focusConnected}
-              className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
-                focusConnected ? 'bg-accent/20 text-accent' : 'bg-elevated text-text-secondary hover:bg-hover'
+              className={`flex flex-1 items-center justify-center gap-1 rounded-md border px-2 py-1.5 text-xs transition-colors ${
+                focusConnected ? 'border-accent/50 bg-accent/15 text-accent' : 'border-border-subtle bg-surface text-text-secondary hover:bg-hover hover:text-text-primary'
               }`}
             >
               {focusConnected ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
@@ -259,8 +251,8 @@ export function FilterPanel() {
             <button
               onClick={() => setShowLabels(!showLabels)}
               aria-pressed={showLabels}
-              className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
-                showLabels ? 'bg-accent/20 text-accent' : 'bg-elevated text-text-secondary hover:bg-hover'
+              className={`flex flex-1 items-center justify-center gap-1 rounded-md border px-2 py-1.5 text-xs transition-colors ${
+                showLabels ? 'border-accent/50 bg-accent/15 text-accent' : 'border-border-subtle bg-surface text-text-secondary hover:bg-hover hover:text-text-primary'
               }`}
             >
               {showLabels ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
@@ -270,10 +262,10 @@ export function FilterPanel() {
         </section>
 
         {/* Type filter */}
-        <section>
+        <section className="rounded-lg border border-border-subtle bg-elevated p-3">
           <button
             onClick={() => setTypeSectionOpen(!typeSectionOpen)}
-            className="mb-1.5 flex w-full items-center justify-between text-xs font-medium text-text-muted"
+            className="mb-2 flex w-full items-center justify-between text-xs font-medium text-text-muted transition-colors hover:text-text-primary"
           >
             <span>类型筛选 ({selectedTypes.size}/{knowledgeGraph.availableTypes.length})</span>
             {typeSectionOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -281,15 +273,15 @@ export function FilterPanel() {
           {typeSectionOpen && (
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <div className="text-xs text-text-muted">按知识层级和化学细类分组</div>
+                <div className="text-xs text-text-muted">类型分组</div>
                 <button
                   onClick={resetTypes}
-                  className="shrink-0 rounded-md px-2 py-1 text-xs text-text-muted transition-colors hover:bg-hover"
+                  className="shrink-0 rounded-md border border-border-subtle bg-surface px-2 py-1 text-xs text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
                 >
                   全选
                 </button>
               </div>
-              <label className="flex items-center gap-2 rounded-md border border-border-subtle bg-elevated px-2 py-1.5">
+              <label className="flex items-center gap-2 rounded-md border border-border-subtle bg-surface px-2 py-1.5 transition-colors focus-within:border-accent">
                 <Search className="h-3.5 w-3.5 shrink-0 text-text-muted" />
                 <input
                   value={typeQuery}
@@ -310,7 +302,7 @@ export function FilterPanel() {
                 )}
               </label>
               {visibleTypeGroups.length === 0 && (
-                <div className="rounded-md border border-border-subtle bg-elevated px-3 py-2 text-xs text-text-muted">
+                <div className="rounded-md border border-border-subtle bg-surface px-3 py-2 text-xs text-text-muted">
                   没有匹配的类型
                 </div>
               )}
@@ -319,31 +311,30 @@ export function FilterPanel() {
                 const allSelected = selectedCount === group.types.length;
                 const expanded = typeQuery.trim() ? true : openTypeGroupIds.has(group.id);
                 return (
-                  <div key={group.id} className="rounded-md border border-border-subtle bg-elevated/45">
+                  <div key={group.id} className="overflow-hidden rounded-md border border-border-subtle bg-surface">
                     <div className="flex items-center justify-between gap-2">
                       <button
                         type="button"
                         onClick={() => toggleTypeGroupOpen(group.id)}
                         aria-expanded={expanded}
-                        className="flex min-w-0 flex-1 items-start gap-1.5 rounded-md px-2 py-2 text-left transition-colors hover:bg-hover"
+                        className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-2 text-left transition-colors hover:bg-hover"
                       >
-                        {expanded ? <ChevronDown className="mt-0.5 h-3.5 w-3.5 shrink-0 text-text-muted" /> : <ChevronRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-text-muted" />}
+                        {expanded ? <ChevronDown className="h-3.5 w-3.5 shrink-0 text-text-muted" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0 text-text-muted" />}
                         <span className="min-w-0">
                           <span className="block text-xs font-medium text-text-secondary">
                             {group.label} ({selectedCount}/{group.types.length})
                           </span>
-                          <span className="mt-0.5 block text-[11px] leading-snug text-text-muted">{group.description}</span>
                         </span>
                       </button>
                       <button
                         onClick={() => toggleTypeGroup(group.types)}
-                        className="mr-2 shrink-0 rounded-md px-2 py-1 text-xs text-text-muted transition-colors hover:bg-hover"
+                        className="mr-2 shrink-0 rounded-md px-2 py-1 text-xs text-text-muted transition-colors hover:bg-hover hover:text-text-primary"
                       >
                         {allSelected ? '清空' : '全选'}
                       </button>
                     </div>
                     {expanded && (
-                      <div className="flex flex-wrap gap-1 border-t border-border-subtle p-2">
+                      <div className="flex flex-wrap gap-1 border-t border-border-subtle bg-elevated/60 p-2">
                         {group.types.map((type) => (
                           <button
                             key={type}
@@ -352,8 +343,8 @@ export function FilterPanel() {
                             aria-pressed={selectedTypes.has(type)}
                             className={`flex max-w-full items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
                               selectedTypes.has(type)
-                                ? 'bg-surface text-text-primary'
-                                : 'bg-surface/50 text-text-muted line-through'
+                                ? 'bg-surface text-text-primary shadow-sm'
+                                : 'bg-surface/60 text-text-muted line-through hover:text-text-secondary'
                             }`}
                           >
                             <div className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: TYPE_META[type]?.color ?? '#9A9AB0' }} />

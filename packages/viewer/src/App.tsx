@@ -16,7 +16,7 @@ function AppContent() {
   const { workspace } = useAppState();
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-void text-text-primary">
+    <div className="okm-app-shell flex h-screen flex-col overflow-hidden text-text-primary">
       <Header />
       {workspace === 'pipeline' ? (
         <PipelineDebugPage />

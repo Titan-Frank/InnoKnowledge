@@ -2,21 +2,21 @@
 
 @theme {
   /* Backgrounds */
-  --color-void: #06060a;
-  --color-deep: #0a0a10;
-  --color-surface: #101018;
-  --color-elevated: #16161f;
-  --color-hover: #1c1c28;
+  --color-void: #0f1115;
+  --color-deep: #15171d;
+  --color-surface: #191c22;
+  --color-elevated: #20242b;
+  --color-hover: #2b3038;
 
   /* Borders */
-  --color-border-subtle: #1e1e2a;
-  --color-border-default: #2a2a3a;
-  --color-border-strong: #3a3a4a;
+  --color-border-subtle: #303640;
+  --color-border-default: #3e4652;
+  --color-border-strong: #596273;
 
   /* Text */
-  --color-text-primary: #e4e4ed;
-  --color-text-secondary: #8888a0;
-  --color-text-muted: #5a5a70;
+  --color-text-primary: #f2f5f7;
+  --color-text-secondary: #c0c7d0;
+  --color-text-muted: #7b8492;
 
   /* Accent */
   --color-accent: #2563eb;
@@ -60,6 +60,7 @@
   /* Shadows */
   --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.35);
   --shadow-glow-soft: 0 0 40px rgba(37, 99, 235, 0.12);
+  --shadow-panel: 0 12px 36px rgba(0, 0, 0, 0.24);
 }
 
 @keyframes fade-in {
@@ -99,25 +100,78 @@
 
 /* Light theme overrides */
 [data-theme="light"] {
-  --color-void: #f8f8fb;
-  --color-deep: #f0f0f5;
-  --color-surface: #e8e8f0;
-  --color-elevated: #ffffff;
-  --color-hover: #d8d8e4;
+  --color-void: #f6f7f9;
+  --color-deep: #eef1f4;
+  --color-surface: #ffffff;
+  --color-elevated: #f9fafb;
+  --color-hover: #eef2f6;
 
-  --color-border-subtle: #d0d0dc;
-  --color-border-default: #b8b8c8;
-  --color-border-strong: #9090a8;
+  --color-border-subtle: #d9e0e7;
+  --color-border-default: #c3ccd7;
+  --color-border-strong: #8c98a8;
 
-  --color-text-primary: #1a1a2e;
-  --color-text-secondary: #5a5a78;
-  --color-text-muted: #8888a0;
+  --color-text-primary: #17202a;
+  --color-text-secondary: #485566;
+  --color-text-muted: #6c7787;
 
   --color-accent: #2563eb;
   --color-accent-dim: #1d4ed8;
 
   --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.18);
   --shadow-glow-soft: 0 0 40px rgba(37, 99, 235, 0.08);
+  --shadow-panel: 0 12px 32px rgba(15, 23, 42, 0.10);
+}
+
+:root {
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-void);
+  color: var(--color-text-primary);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 34%, transparent);
+  color: var(--color-text-primary);
+}
+
+.okm-app-shell {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-elevated) 64%, var(--color-void)) 0%, var(--color-void) 42%, var(--color-deep) 100%);
+}
+
+.okm-canvas-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 42%, transparent), transparent 52%),
+    var(--color-void);
+}
+
+.okm-canvas-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-border-default) 34%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-border-default) 34%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.18));
 }
 
 /* Graph canvas */
