@@ -162,20 +162,23 @@ export function GraphSearchPanel() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="absolute bottom-4 left-4 z-30 flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-border-subtle bg-elevated/95 px-3 text-xs font-semibold text-text-primary shadow-panel backdrop-blur transition-colors hover:bg-hover"
+        className="okm-assistant-trigger absolute bottom-4 left-4 z-30 flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-border-subtle bg-elevated/95 px-3 text-xs font-semibold text-text-primary shadow-panel backdrop-blur transition-colors hover:bg-hover"
         aria-label="打开检索浮窗"
       >
         <MessageSquareText className="h-4 w-4 text-accent" />
-        问知识地图
+        <span>{retrieval ? `${retrieval.hits.length} 个命中` : '问知识地图'}</span>
+        <span className="okm-live-dot" aria-hidden="true" />
       </button>
     );
   }
 
   return (
-    <section className="absolute bottom-3 left-3 right-3 z-30 flex max-h-[78vh] flex-col overflow-hidden rounded-lg border border-border-subtle bg-elevated/98 shadow-panel backdrop-blur sm:bottom-4 sm:left-4 sm:right-auto sm:w-[30rem]">
+    <section className="okm-assistant-panel absolute bottom-3 left-3 right-3 z-30 flex max-h-[78vh] animate-slide-up flex-col overflow-hidden rounded-lg border border-border-subtle bg-elevated/98 shadow-panel backdrop-blur sm:bottom-4 sm:left-4 sm:right-auto sm:w-[30rem]">
       <header className="flex min-h-11 items-center justify-between border-b border-border-subtle bg-surface px-3">
         <div className="flex min-w-0 items-center gap-2">
-          <MessageSquareText className="h-4 w-4 shrink-0 text-accent" />
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-accent/35 bg-accent/10 text-accent">
+            <MessageSquareText className="h-4 w-4" />
+          </div>
           <div className="min-w-0">
             <h2 className="truncate text-sm font-semibold text-text-primary">问知识地图</h2>
             {retrieval && (
@@ -213,7 +216,7 @@ export function GraphSearchPanel() {
         <label htmlFor="graph-search-query" className="mb-1 block text-[11px] font-medium text-text-muted">
           问题或知识对象
         </label>
-        <div className="flex min-h-10 items-center gap-2 rounded-md border border-border-subtle bg-surface px-2.5 transition-colors focus-within:border-accent">
+        <div className="flex min-h-10 items-center gap-2 rounded-md border border-border-subtle bg-surface px-2.5 transition-colors focus-within:border-accent focus-within:shadow-glow-soft">
           <Search className="h-4 w-4 shrink-0 text-text-muted" />
           <input
             id="graph-search-query"
@@ -270,7 +273,7 @@ export function GraphSearchPanel() {
             className="flex h-8 cursor-pointer items-center gap-1.5 rounded-md bg-accent px-2.5 text-xs font-medium text-white transition-colors hover:bg-accent-dim disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted"
           >
             {loading === 'generate' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MessageSquareText className="h-3.5 w-3.5" />}
-            回答
+            生成回答
           </button>
         </div>
 
@@ -283,6 +286,13 @@ export function GraphSearchPanel() {
       </form>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-thin">
+        {retrieval && (
+          <div className="mb-3 grid grid-cols-3 gap-2">
+            <Metric label="命中" value={retrieval.hits.length} />
+            <Metric label="数量" value={limit} />
+            <Metric label="方式" value={modeText(modeLabel(retrieval))} />
+          </div>
+        )}
         <section>
           <div className="mb-2 flex items-center justify-between">
             <h3 className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
@@ -374,7 +384,7 @@ function UnitHitItem({
     <article
       onMouseEnter={() => onPreview(true)}
       onMouseLeave={() => onPreview(false)}
-      className="rounded-md border border-border-subtle bg-surface p-2.5 transition-colors hover:border-accent/40 hover:bg-hover"
+      className="okm-result-card rounded-md border border-border-subtle bg-surface p-2.5 transition-colors hover:border-accent/40 hover:bg-hover"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -387,7 +397,7 @@ function UnitHitItem({
         <button
           type="button"
           onClick={onOpen}
-          className="shrink-0 cursor-pointer rounded-md px-2 py-1 text-xs text-accent transition-colors hover:bg-accent/10"
+          className="shrink-0 cursor-pointer rounded-md border border-accent/25 bg-accent/10 px-2 py-1 text-xs text-accent transition-colors hover:bg-accent/15"
         >
           定位
         </button>
@@ -417,11 +427,11 @@ function UnitHitItem({
   );
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
+function Metric({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-md border border-border-subtle bg-surface px-2.5 py-1.5">
       <div className="text-[10px] text-text-muted">{label}</div>
-      <div className="mt-0.5 text-sm font-semibold text-text-primary">{value}</div>
+      <div className="mt-0.5 truncate text-sm font-semibold text-text-primary">{value}</div>
     </div>
   );
 }
@@ -451,6 +461,10 @@ function modeLabel(response: UnitRetrievalResponse): string {
   if (response.requested_mode === 'vector') return response.mode === 'full' ? '向量' : '文本回退';
   if (response.requested_mode === 'hybrid') return response.mode === 'full' ? '混合' : '文本回退';
   return '文本';
+}
+
+function modeText(value: string): string {
+  return value.length > 4 ? value.slice(0, 4) : value;
 }
 
 function groundingStatusLabel(value: GroundedGenerationResponse['grounding']['status']): { label: string; ok: boolean } {

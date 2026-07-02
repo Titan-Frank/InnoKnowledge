@@ -144,6 +144,8 @@ export function FilterPanel() {
       }))
       .filter((group) => group.types.length > 0);
   }, [typeGroups, typeQuery]);
+  const selectedModeLabel = LAYER_MODE_OPTIONS.find((option) => option.id === layerMode)?.label ?? '当前';
+  const visibleTypeCount = selectedTypes.size;
 
   const toggleTypeGroup = useCallback((types: string[]) => {
     const allSelected = types.every((type) => selectedTypes.has(type));
@@ -167,7 +169,7 @@ export function FilterPanel() {
   if (!knowledgeGraph) return null;
 
   return (
-    <aside className="order-2 flex max-h-[42vh] w-full shrink-0 flex-col overflow-hidden border-t border-border-subtle bg-surface/95 shadow-panel lg:order-none lg:max-h-none lg:w-80 lg:border-r lg:border-t-0">
+    <aside className="order-2 flex max-h-[30vh] w-full shrink-0 flex-col overflow-hidden border-t border-border-subtle bg-surface/95 shadow-panel backdrop-blur sm:max-h-[36vh] lg:order-none lg:max-h-none lg:w-80 lg:border-r lg:border-t-0">
       <div className="flex items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-accent" />
@@ -178,11 +180,17 @@ export function FilterPanel() {
         </div>
       </div>
 
+      <div className="grid grid-cols-3 gap-2 border-b border-border-subtle bg-elevated/45 px-3 py-2">
+        <FilterStat label="类型" value={String(visibleTypeCount)} />
+        <FilterStat label="教材" value={selectedBook === 'all' ? '全部' : selectedBook} />
+        <FilterStat label="模式" value={selectedModeLabel} />
+      </div>
+
       <div className="flex-1 space-y-4 overflow-y-auto p-3 scrollbar-thin">
 
         {/* Book filter */}
         {books.length > 1 && (
-          <section className="rounded-lg border border-border-subtle bg-elevated p-3">
+          <section className="okm-panel-card rounded-lg border border-border-subtle bg-elevated p-3">
             <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-text-muted">
               <BookOpen className="h-3.5 w-3.5" />
               教材筛选
@@ -216,7 +224,7 @@ export function FilterPanel() {
         )}
 
         {/* Layer mode */}
-        <section className="rounded-lg border border-border-subtle bg-elevated p-3">
+        <section className="okm-panel-card rounded-lg border border-border-subtle bg-elevated p-3">
           <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-text-muted">
             <Layers className="h-3.5 w-3.5" />
             显示模式
@@ -262,7 +270,7 @@ export function FilterPanel() {
         </section>
 
         {/* Type filter */}
-        <section className="rounded-lg border border-border-subtle bg-elevated p-3">
+        <section className="okm-panel-card rounded-lg border border-border-subtle bg-elevated p-3">
           <button
             onClick={() => setTypeSectionOpen(!typeSectionOpen)}
             className="mb-2 flex w-full items-center justify-between text-xs font-medium text-text-muted transition-colors hover:text-text-primary"
@@ -361,5 +369,14 @@ export function FilterPanel() {
         </section>
       </div>
     </aside>
+  );
+}
+
+function FilterStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-md border border-border-subtle bg-surface px-2 py-1.5">
+      <div className="text-[10px] text-text-muted">{label}</div>
+      <div className="mt-0.5 truncate text-xs font-semibold text-text-primary">{value}</div>
+    </div>
   );
 }

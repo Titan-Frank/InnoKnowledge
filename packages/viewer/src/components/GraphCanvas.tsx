@@ -63,6 +63,12 @@ export function GraphCanvas() {
   }, [setSelectedNodeId, setHoverNodeId]);
 
   const searchHitIds = useMemo(() => new Set(serverSearchHits.keys()), [serverSearchHits]);
+  const selectedNode = selectedNodeId && knowledgeGraph ? knowledgeGraph.nodeById.get(selectedNodeId) ?? null : null;
+  const canvasSummary = selectedNode
+    ? getNodeTypeLabel(selectedNode)
+    : searchHitIds.size > 0
+      ? `${searchHitIds.size} 个检索命中`
+      : `${visibleNodeIds.size} 个可见节点`;
 
   const {
     containerRef, setGraph, zoomIn, zoomOut, fitToScreen,
@@ -109,12 +115,48 @@ export function GraphCanvas() {
   return (
     <div className="relative h-full w-full bg-void">
       <div className="okm-canvas-grid" />
+      <div className="okm-canvas-spotlight" />
 
       {/* G6 container */}
       <div
         ref={containerRef}
         className="g6-container h-full w-full cursor-grab active:cursor-grabbing"
       />
+
+      <div className="absolute left-4 top-4 z-20 flex max-w-[min(660px,calc(100%-2rem))] animate-slide-up items-center gap-2 rounded-lg border border-border-subtle bg-elevated/95 px-3 py-2 shadow-panel backdrop-blur-sm">
+        <div className={`h-2.5 w-2.5 shrink-0 rounded-full ${selectedNode ? 'bg-accent shadow-glow' : 'bg-node-process'}`} />
+        <div className="min-w-0">
+          <span className="block truncate text-sm font-semibold text-text-primary">
+            {selectedNode?.name ?? '图谱画布'}
+          </span>
+          <span className="block truncate text-[11px] text-text-muted">{canvasSummary}</span>
+        </div>
+        <div className="ml-1 flex shrink-0 items-center gap-1">
+          {selectedNode ? (
+            <>
+              <button
+                onClick={handleFocusSelected}
+                className="rounded-md border border-border-subtle bg-surface px-2 py-1 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+              >
+                聚焦
+              </button>
+              <button
+                onClick={handleClearSelection}
+                className="rounded-md border border-border-subtle bg-surface px-2 py-1 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+              >
+                清除
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={fitToScreen}
+              className="rounded-md border border-border-subtle bg-surface px-2 py-1 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+            >
+              适应
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Hovered node tooltip */}
       {hoveredNodeName && !selectedNodeId && (
@@ -123,31 +165,17 @@ export function GraphCanvas() {
         </div>
       )}
 
-      {/* Selection info bar */}
-      {selectedNodeId && knowledgeGraph && (
-        <div className="absolute left-4 top-4 z-20 flex max-w-[min(640px,calc(100%-2rem))] animate-slide-up items-center gap-2 rounded-lg border border-accent/30 bg-elevated/95 px-3 py-2 shadow-panel backdrop-blur-sm">
-          <div className="h-2 w-2 shrink-0 rounded-full bg-accent" />
-          <div className="min-w-0">
-            <span className="block truncate font-mono text-sm font-semibold text-text-primary">
-              {knowledgeGraph.nodeById.get(selectedNodeId)?.name ?? selectedNodeId}
-            </span>
-            {(() => {
-              const node = knowledgeGraph.nodeById.get(selectedNodeId);
-              if (!node) return null;
-              return <span className="block truncate text-[11px] text-text-muted">{getNodeTypeLabel(node)}</span>;
-            })()}
+      {knowledgeGraph && visibleNodeIds.size === 0 && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
+          <div className="max-w-sm rounded-lg border border-border-subtle bg-elevated/95 px-4 py-3 text-center shadow-panel backdrop-blur-sm">
+            <div className="text-sm font-semibold text-text-primary">没有可见节点</div>
+            <div className="mt-1 text-xs leading-5 text-text-muted">调整左侧筛选条件后会重新显示图谱</div>
           </div>
-          <button
-            onClick={handleClearSelection}
-            className="ml-1 shrink-0 rounded-md border border-border-subtle bg-surface px-2 py-1 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
-          >
-            清除
-          </button>
         </div>
       )}
 
       {/* Graph Controls - Bottom Right */}
-      <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-1 rounded-lg border border-border-subtle bg-elevated/95 p-1 shadow-panel backdrop-blur-sm">
+      <div className="okm-tool-dock absolute bottom-4 right-4 z-10 flex flex-col gap-1 rounded-lg border border-border-subtle bg-elevated/95 p-1 shadow-panel backdrop-blur-sm">
         <button onClick={zoomIn} aria-label="放大图谱" className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary" title="放大">
           <ZoomIn className="h-4 w-4" />
         </button>

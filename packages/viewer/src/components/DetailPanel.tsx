@@ -53,7 +53,7 @@ function DetailContentSkeleton() {
 }
 
 export function DetailPanel() {
-  const { knowledgeGraph, selectedNodeId, selectedBook } = useAppState();
+  const { knowledgeGraph, selectedNodeId, selectedBook, setSelectedNodeId } = useAppState();
   const [width, setWidth] = useState(readPanelWidth);
   const [isResizing, setIsResizing] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -115,7 +115,7 @@ export function DetailPanel() {
   const panelMotionClass = isClosing
     ? 'pointer-events-none animate-detail-panel-down lg:animate-detail-panel-out'
     : 'animate-detail-panel-up lg:animate-detail-panel-in';
-  const panelClass = `relative z-30 order-3 flex max-h-[45vh] w-full shrink-0 flex-col overflow-hidden border-t border-border-subtle bg-surface/95 shadow-panel ${panelMotionClass} lg:absolute lg:bottom-0 lg:right-0 lg:top-0 lg:order-none lg:max-h-none lg:w-auto lg:border-l lg:border-t-0`;
+  const panelClass = `absolute bottom-0 left-0 right-0 z-30 flex max-h-[56vh] w-full shrink-0 flex-col overflow-hidden border-t border-border-subtle bg-surface/95 shadow-panel backdrop-blur ${panelMotionClass} lg:left-auto lg:top-0 lg:max-h-none lg:w-auto lg:border-l lg:border-t-0`;
   const resizeHandle = (
     <div
       role="separator"
@@ -213,20 +213,31 @@ export function DetailPanel() {
         aria-hidden={expanded || isClosing}
       >
         {maybeResizeHandle}
-        <div className="flex items-center justify-between border-b border-border-subtle bg-elevated px-4 py-3">
+        <div className="flex items-center justify-between gap-3 border-b border-border-subtle bg-elevated px-4 py-3">
           <div>
             <div className="text-sm font-semibold text-text-primary">节点详情</div>
             <div className="mt-0.5 max-w-[14rem] truncate text-[11px] text-text-muted">{detailNode.name}</div>
           </div>
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            className="flex h-8 items-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-2.5 text-sm text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
-            aria-label="放大查看节点详情"
-          >
-            <Maximize2 className="h-3.5 w-3.5" />
-            放大
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="flex h-8 items-center gap-1.5 rounded-md border border-border-subtle bg-surface px-2.5 text-sm text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+              aria-label="放大查看节点详情"
+            >
+              <Maximize2 className="h-3.5 w-3.5" />
+              放大
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedNodeId(null)}
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-border-subtle bg-surface text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+              aria-label="关闭节点详情"
+              title="关闭"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto p-4 scrollbar-thin">
           <DetailHeader node={detailNode} />

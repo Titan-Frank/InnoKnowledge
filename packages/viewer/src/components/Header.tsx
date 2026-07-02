@@ -25,6 +25,8 @@ export function Header() {
   const [searchFocused, setSearchFocused] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sourceLabel = selectedSourceKey ? sourceConfigs.get(selectedSourceKey)?.label : null;
+  const currentWorkspace = WORKSPACE_ITEMS.find((item) => item.id === workspace);
 
   const handleThemeToggle = useCallback(() => {
     setThemeMode(themeMode === 'dark' ? 'light' : 'dark');
@@ -72,20 +74,32 @@ export function Header() {
   }, []);
 
   return (
-    <header className="border-b border-border-subtle bg-surface/95 px-3 py-3 shadow-panel backdrop-blur sm:px-4">
-      <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-center">
+    <header className="okm-topbar border-b border-border-subtle bg-surface/90 px-3 py-2.5 shadow-panel backdrop-blur-xl sm:px-4">
+      <div className="flex min-w-0 flex-col gap-3 xl:grid xl:grid-cols-[minmax(220px,auto)_minmax(420px,1fr)_auto] xl:items-center">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-accent/30 bg-accent/10 text-accent">
+          <div className="okm-brand-mark flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-accent/35 bg-accent/10 text-accent shadow-glow-soft">
             <Network className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <div className="truncate text-sm font-semibold tracking-tight text-text-primary">知识地图</div>
+            <div className="flex items-center gap-2">
+              <div className="truncate text-sm font-semibold tracking-tight text-text-primary">知识地图</div>
+              <span className="okm-live-dot" aria-hidden="true" />
+            </div>
+            <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[11px] text-text-muted">
+              <span className="truncate">{sourceLabel ?? '等待数据源'}</span>
+              {currentWorkspace && (
+                <>
+                  <span className="h-1 w-1 rounded-full bg-border-strong" />
+                  <span className="shrink-0">{currentWorkspace.label}</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 lg:flex-nowrap">
           {sourceConfigs.size > 1 && (
-            <label className="flex h-9 min-w-0 items-center gap-2 rounded-lg border border-border-subtle bg-elevated px-2.5 text-xs text-text-secondary transition-colors focus-within:border-accent">
+            <label className="okm-control-surface flex h-9 min-w-0 items-center gap-2 rounded-lg border border-border-subtle bg-elevated/90 px-2.5 text-xs text-text-secondary transition-colors focus-within:border-accent">
               <Database className="h-3.5 w-3.5 shrink-0 text-text-muted" />
               <select
                 value={selectedSourceKey || ''}
@@ -103,7 +117,7 @@ export function Header() {
             </label>
           )}
 
-          <nav className="flex h-9 overflow-hidden rounded-lg border border-border-subtle bg-elevated p-0.5" aria-label="工作区">
+          <nav className="okm-control-surface flex h-9 overflow-hidden rounded-lg border border-border-subtle bg-elevated/90 p-0.5" aria-label="工作区">
             {WORKSPACE_ITEMS.map((item) => {
               const Icon = item.icon;
               const active = workspace === item.id;
@@ -114,7 +128,7 @@ export function Header() {
                   aria-pressed={active}
                   className={`flex min-w-16 items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors ${
                     active
-                      ? 'bg-accent text-white shadow-sm'
+                      ? 'bg-accent text-white shadow-glow-soft'
                       : 'text-text-secondary hover:bg-hover hover:text-text-primary'
                   }`}
                 >
@@ -127,9 +141,9 @@ export function Header() {
 
           <div className="min-w-0 flex-1" />
 
-          <label className={`order-3 flex h-9 w-full min-w-0 items-center gap-2 rounded-lg border px-3 transition-colors sm:order-none sm:w-72 lg:w-80 ${
+          <label className={`okm-control-surface order-3 flex h-9 w-full min-w-0 items-center gap-2 rounded-lg border px-3 transition-colors sm:order-none sm:w-72 lg:w-80 ${
             searchFocused
-              ? 'border-accent bg-elevated'
+              ? 'border-accent bg-elevated shadow-glow-soft'
               : serverSearchError
                 ? 'border-node-event/60 bg-elevated'
                 : 'border-border-subtle bg-elevated'
@@ -152,7 +166,7 @@ export function Header() {
           </label>
 
           {knowledgeGraph && (
-            <div className="hidden items-center gap-2 rounded-lg border border-border-subtle bg-elevated px-2.5 py-1.5 text-[11px] text-text-muted md:flex">
+            <div className="okm-control-surface hidden items-center gap-2 rounded-lg border border-border-subtle bg-elevated/90 px-2.5 py-1.5 text-[11px] text-text-muted md:flex">
               <span className="font-medium text-text-secondary">{knowledgeGraph.nodeCount}</span>
               <span>节点</span>
               <span className="h-3 w-px bg-border-subtle" />
@@ -164,7 +178,7 @@ export function Header() {
           <button
             onClick={handleThemeToggle}
             aria-label={themeMode === 'dark' ? '切换到亮色' : '切换到暗色'}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border-subtle bg-elevated text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+            className="okm-control-surface flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border-subtle bg-elevated/90 text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
             title={themeMode === 'dark' ? '切换到亮色' : '切换到暗色'}
           >
             {themeMode === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
