@@ -96,7 +96,7 @@ export async function runGraphIntegrityFromDatabase(input: {
 export function buildSelectQaNodesQuery(datasetId: string): SqlStatement {
   return {
     name: "select-strict-qa-nodes",
-    sql: "SELECT id, kind, name, definition, domains_json, learning_mode_json FROM world_nodes WHERE dataset_id = $1 ORDER BY id",
+    sql: "SELECT id, kind, name, definition, domains_json, learning_mode_json FROM world_nodes WHERE dataset_id = $1 AND status != 'deprecated' ORDER BY id",
     params: [datasetId],
   };
 }
@@ -104,7 +104,7 @@ export function buildSelectQaNodesQuery(datasetId: string): SqlStatement {
 export function buildSelectQaEdgesQuery(datasetId: string): SqlStatement {
   return {
     name: "select-strict-qa-edges",
-    sql: "SELECT id, type, directionality, from_id, to_id, source_refs_json FROM world_edges WHERE dataset_id = $1 ORDER BY id",
+    sql: "SELECT id, type, directionality, from_id, to_id, source_refs_json FROM world_edges WHERE dataset_id = $1 AND status != 'deprecated' ORDER BY id",
     params: [datasetId],
   };
 }
@@ -112,7 +112,7 @@ export function buildSelectQaEdgesQuery(datasetId: string): SqlStatement {
 export function buildSelectQaDomainProfilesQuery(datasetId: string): SqlStatement {
   return {
     name: "select-strict-qa-domain-profiles",
-    sql: "SELECT id, node_id, domain, school_stages_json, curriculum_roles_json, source_refs_json FROM world_domain_profiles WHERE dataset_id = $1 ORDER BY id",
+    sql: "SELECT id, node_id, domain, school_stages_json, curriculum_roles_json, source_refs_json FROM world_domain_profiles WHERE dataset_id = $1 AND status != 'deprecated' ORDER BY id",
     params: [datasetId],
   };
 }
@@ -136,7 +136,7 @@ export function buildSelectQaEvidenceQuery(datasetId: string): SqlStatement {
 export function buildSelectQaNodeCardsQuery(datasetId: string): SqlStatement {
   return {
     name: "select-strict-qa-node-cards",
-    sql: "SELECT node_id, summary, source_refs_json, sections_json FROM world_node_cards WHERE dataset_id = $1 ORDER BY node_id",
+    sql: "SELECT node_id, summary, source_refs_json, sections_json FROM world_node_cards WHERE dataset_id = $1 AND status != 'deprecated' ORDER BY node_id",
     params: [datasetId],
   };
 }
@@ -144,7 +144,7 @@ export function buildSelectQaNodeCardsQuery(datasetId: string): SqlStatement {
 export function buildSelectQaNodeBodiesQuery(datasetId: string): SqlStatement {
   return {
     name: "select-strict-qa-node-bodies",
-    sql: "SELECT node_id, format, content, media_refs_json, source_refs_json, generated_from, status FROM world_node_bodies WHERE dataset_id = $1 ORDER BY node_id",
+    sql: "SELECT node_id, format, content, media_refs_json, source_refs_json, generated_from, status FROM world_node_bodies WHERE dataset_id = $1 AND status != 'deprecated' ORDER BY node_id",
     params: [datasetId],
   };
 }

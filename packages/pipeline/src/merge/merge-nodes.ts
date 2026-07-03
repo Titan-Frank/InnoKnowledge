@@ -1,4 +1,5 @@
 import { cosineSimilarity, makeCanonicalNodeId, makeEvidenceId, makeMentionId, mergeJsonObjects, mergeTextBlocks, mergeUniqueStrings } from "../shared/knowledge.js";
+import { addNodeSubkindClassification, choosePrimarySubkind, mergeNodeSubkindClassifications, normalizeNodeSubkind } from "../shared/node-subkind.js";
 import { makeDomainProfileId, makeEdgeId, normalizeTerm } from "../shared/pathing.js";
 
 export type CanonicalNodeCandidate = {
@@ -121,15 +122,16 @@ export function scoreNodeMatch(staged: Record<string, unknown>, candidate: Canon
   if (payload.kind !== staged.kind) {
     return { score: 0, lexical: 0, semantic: 0, embedding: 0, rationale: { reason: "kind_mismatch" } };
   }
-  if (payload.subkind && staged.subkind && payload.subkind !== staged.subkind) {
-    return { score: 0, lexical: 0, semantic: 0, embedding: 0, rationale: { reason: "subkind_mismatch" } };
-  }
+  const payloadSubkind = normalizeNodeSubkind(String(payload.kind ?? ""), payload.subkind).primary;
+  const stagedSubkind = normalizeNodeSubkind(String(staged.kind ?? ""), staged.subkind).primary;
+  const subkindMatch = !payloadSubkind || !stagedSubkind || payloadSubkind === stagedSubkind;
 
   const lexical = lexicalSimilarity(normalizedTerms(staged), candidate.terms);
   const semantic = staged.semantic_key && staged.semantic_key === candidate.semantic_key ? 1 : 0;
   const stagedEmbedding = parseEmbedding(staged.embedding);
   const embedding = stagedEmbedding.length > 0 && candidate.embedding.length > 0 ? cosineSimilarity(stagedEmbedding, candidate.embedding) : 0;
   let weighted = lexical * 0.45 + semantic * 0.35 + embedding * 0.2;
+  if (!subkindMatch && lexical < 0.98 && semantic < 1) weighted *= 0.85;
   if (lexical >= 0.98 || semantic >= 1) weighted = Math.max(weighted, 0.94);
   if (embedding >= embeddingThreshold && lexical >= 0.65) weighted = Math.max(weighted, 0.9);
 
@@ -144,19 +146,27 @@ export function scoreNodeMatch(staged: Record<string, unknown>, candidate: Canon
       embedding,
       embedding_threshold: embeddingThreshold,
       candidate_id: payload.id,
+      subkind_match: subkindMatch,
+      candidate_subkind: payloadSubkind,
+      staged_subkind: stagedSubkind,
     },
   };
 }
 
 export function mergeNodePayload(existing: Record<string, unknown>, staged: Record<string, unknown>): Record<string, unknown> {
-  const properties = mergeJsonObjects(asRecord(existing.properties), asRecord(staged.properties));
+  let properties = mergeJsonObjects(asRecord(existing.properties), asRecord(staged.properties));
   if (staged.semantic_key) properties.semantic_key = staged.semantic_key;
+  properties = mergeNodeSubkindClassifications({
+    properties,
+    subkinds: [existing.subkind, staged.subkind],
+    rawSubkinds: rawSubkindLabels(existing.subkind, staged.subkind),
+  });
 
   return {
     id: existing.id,
     name: String(existing.name ?? "").length <= String(staged.name ?? "").length ? existing.name : staged.name,
     kind: existing.kind,
-    subkind: pythonOr(existing.subkind, staged.subkind),
+    subkind: choosePrimarySubkind(existing.subkind, staged.subkind),
     definition: mergeTextBlocks(asString(existing.definition), asString(staged.definition)),
     aliases: mergeUniqueStrings(asArray(existing.aliases), asArray(staged.aliases), [existing.name, staged.name]),
     domains: mergeUniqueStrings(asArray(existing.domains), asArray(staged.domains)),
@@ -175,8 +185,9 @@ export function mergeNodePayload(existing: Record<string, unknown>, staged: Reco
 }
 
 export function makeCanonicalCandidate(row: Record<string, unknown>): CanonicalNodeCandidate {
+  const normalizedSubkind = normalizeNodeSubkind(String(row.kind ?? ""), row.subkind).primary;
   return {
-    payload: { ...row },
+    payload: { ...row, subkind: normalizedSubkind },
     terms: normalizedTerms(row),
     semantic_key: asRecord(row.properties_json).semantic_key as string | null | undefined,
     embedding: parseEmbedding(row.embedding),
@@ -629,21 +640,25 @@ function requiredString(value: unknown, name: string): string {
 }
 
 function makeStagedNodePayload(row: Record<string, unknown>, now: string): Record<string, unknown> {
+  const normalizedSubkind = normalizeNodeSubkind(String(row.kind ?? ""), row.subkind);
+  let properties = addNodeSubkindClassification(asRecord(pythonOr(row.properties_json, {})), normalizedSubkind);
+  const semanticKey = asOptionalString(row.semantic_key);
+  if (semanticKey) properties.semantic_key = semanticKey;
   return {
     id: row.raw_node_id,
     name: row.name,
     kind: row.kind,
-    subkind: row.subkind,
+    subkind: normalizedSubkind.primary,
     definition: row.definition,
     aliases: asArray(pythonOr(row.aliases_json, [])),
     domains: asArray(pythonOr(row.domains_json, [])),
     knowledge_form: asArray(pythonOr(row.knowledge_form_json, [])),
     learning_mode: asArray(pythonOr(row.learning_mode_json, [])),
     scope: row.scope,
-    properties: asRecord(pythonOr(row.properties_json, {})),
+    properties,
     external_ids: asRecord(pythonOr(row.external_ids_json, {})),
     tags: asArray(pythonOr(row.tags_json, [])),
-    semantic_key: row.semantic_key,
+    semantic_key: semanticKey,
     embedding: parseEmbedding(row.embedding),
     status: "active",
     created_at: row.created_at,
@@ -653,24 +668,37 @@ function makeStagedNodePayload(row: Record<string, unknown>, now: string): Recor
 }
 
 function makeExistingNodePayload(row: Record<string, unknown>, now: string): Record<string, unknown> {
+  const normalizedSubkind = normalizeNodeSubkind(String(row.kind ?? ""), row.subkind);
+  const properties = addNodeSubkindClassification(asRecord(row.properties_json), normalizedSubkind);
   return {
     id: row.id,
     name: row.name,
     kind: row.kind,
-    subkind: row.subkind,
+    subkind: normalizedSubkind.primary,
     definition: row.definition,
     aliases: asArray(row.aliases_json),
     domains: asArray(row.domains_json),
     knowledge_form: asArray(row.knowledge_form_json),
     learning_mode: asArray(row.learning_mode_json),
     scope: row.scope,
-    properties: asRecord(row.properties_json),
+    properties,
     external_ids: asRecord(row.external_ids_json),
     tags: asArray(row.tags_json),
     embedding: parseEmbedding(row.embedding),
     created_at: pythonGet(row, "created_at", now),
     notes: pythonGet(row, "notes", ""),
   };
+}
+
+function rawSubkindLabels(...values: unknown[]): string[] {
+  const result: string[] = [];
+  for (const value of values) {
+    const raw = asString(value).trim();
+    if (!raw) continue;
+    const normalized = normalizeNodeSubkind(null, raw).primary;
+    if (normalized !== raw) result.push(raw);
+  }
+  return result;
 }
 
 function pythonGet(record: Record<string, unknown>, key: string, defaultValue: unknown): unknown {

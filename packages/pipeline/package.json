@@ -14,6 +14,7 @@
     "check-postgres": "npm run build && node dist/cli/check-postgres.js",
     "chunk-outline": "npm run build && node dist/cli/chunk-outline.js",
     "cluster-nodes": "npm run build && node dist/cli/cluster-nodes.js",
+    "dedupe-nodes": "npm run build && node dist/cli/dedupe-nodes.js",
     "extract-pdf-outline": "npm run build && node dist/cli/extract-pdf-outline.js",
     "extract-lesson-openai": "npm run build && node dist/cli/extract-lesson-openai.js",
     "generate-node-bodies": "npm run build && node dist/cli/generate-node-bodies.js",

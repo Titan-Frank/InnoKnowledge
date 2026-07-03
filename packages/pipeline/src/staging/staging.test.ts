@@ -222,6 +222,28 @@ test("normalizes a full lesson artifact bundle with Python-compatible count keys
   assert.equal(result.evidence[0]?.anchor_ref, anchor);
 });
 
+test("normalizes node subkind labels before staging", () => {
+  const nodes = normalizeNodes([
+    {
+      id: "n-law",
+      name: "闭合电路欧姆定律",
+      kind: "rule",
+      subkind: "物理定律",
+      definition: "描述闭合电路中的电流规律。",
+      properties: { semantic_core: { formal_expressions: ["I = E / (R + r)"] } },
+    },
+  ]);
+
+  assert.equal(nodes[0]?.subkind, "physical_law");
+  assert.deepEqual(nodes[0]?.properties_json, {
+    semantic_core: { formal_expressions: ["I = E / (R + r)"] },
+    classifications: {
+      subkinds: ["physical_law"],
+      raw_subkinds: ["物理定律"],
+    },
+  });
+});
+
 test("deduplicates mentions by raw id before staging counts and inserts", () => {
   const result = normalizeLessonArtifacts(
     {

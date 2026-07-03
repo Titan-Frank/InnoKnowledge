@@ -112,6 +112,7 @@ export function buildTemplateInstructionBlock(template: ExtractionTemplate, stag
       `- nodes: ${template.output.node_fields.join(", ")}`,
       `- evidence_units: ${template.output.evidence_fields.join(", ")}`,
       `- allowed_node_kinds: ${template.output.allowed_node_kinds.join(", ")}`,
+      "- subkind 是机器可读细分类代码，只能使用小写英文字母、数字和下划线；中文说明请放入 name、tags 或 properties.semantic_core。",
       "",
       "标识符规则：",
       `- node.id: ${template.identifiers.node_id}`,
