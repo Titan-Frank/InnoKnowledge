@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
 import { mergeJsonObjects, mergeTextBlocks, mergeUniqueStrings, utcNow } from "../shared/knowledge.js";
+import { buildNodeTermsUpsertStatement, planNodeTerms } from "../shared/node-terms.js";
 import { addNodeSubkindClassification, choosePrimarySubkind, isGenericSubkind, normalizeNodeSubkind } from "../shared/node-subkind.js";
 import { makeNodeCardId } from "../shared/pathing.js";
+import type { SqlStatement } from "../staging/staging-sql.js";
 
 type RawRecord = Record<string, unknown>;
 
@@ -194,8 +196,11 @@ async function repairDuplicateGroup(
   await sql.unsafe("DELETE FROM world_unit_embeddings WHERE dataset_id = $1 AND node_id = ANY($2::text[])", [datasetId, allIds]);
   await sql.unsafe("DELETE FROM retrieval_candidates WHERE dataset_id = $1 AND candidate_node_id = ANY($2::text[])", [datasetId, duplicateIds]);
   await sql.unsafe("DELETE FROM world_node_terms WHERE dataset_id = $1 AND node_id = ANY($2::text[])", [datasetId, allIds]);
+  await rebuildCanonicalNodeTerms(sql, datasetId, merged);
   await sql.unsafe("UPDATE world_edges SET from_id = $1, updated_at = $2 WHERE dataset_id = $3 AND from_id = ANY($4::text[])", [canonical.id, now, datasetId, duplicateIds]);
   await sql.unsafe("UPDATE world_edges SET to_id = $1, updated_at = $2 WHERE dataset_id = $3 AND to_id = ANY($4::text[])", [canonical.id, now, datasetId, duplicateIds]);
+  await executeStatement(sql, buildDeprecateRemappedSelfLoopEdgesStatement(datasetId, canonical.id, now));
+  await executeStatement(sql, buildDeprecateDuplicateRemappedEdgesStatement(datasetId, canonical.id, now));
   await sql.unsafe("UPDATE world_domain_profiles SET node_id = $1, updated_at = $2 WHERE dataset_id = $3 AND node_id = ANY($4::text[])", [canonical.id, now, datasetId, duplicateIds]);
   await sql.unsafe("UPDATE world_mentions SET target_id = $1, updated_at = $2 WHERE dataset_id = $3 AND target_type = 'node' AND target_id = ANY($4::text[])", [
     canonical.id,
@@ -217,6 +222,65 @@ async function repairDuplicateGroup(
     canonical_node_id: canonical.id,
     duplicate_node_ids: duplicateIds,
   };
+}
+
+async function rebuildCanonicalNodeTerms(sql: SqlClient, datasetId: string, node: NodeRow): Promise<void> {
+  await executeOptionalStatement(sql, buildCanonicalNodeTermsUpsertStatement(datasetId, node));
+}
+
+export function buildCanonicalNodeTermsUpsertStatement(datasetId: string, node: Record<string, unknown>): SqlStatement | null {
+  return buildNodeTermsUpsertStatement(planNodeTerms(datasetId, [node]).rows);
+}
+
+export function buildDeprecateRemappedSelfLoopEdgesStatement(datasetId: string, canonicalNodeId: string, now: string): SqlStatement {
+  return {
+    name: "deprecate-remapped-self-loop-edges",
+    sql: [
+      "UPDATE world_edges",
+      "SET status = 'deprecated', updated_at = $1",
+      "WHERE dataset_id = $2",
+      "  AND status != 'deprecated'",
+      "  AND from_id = $3",
+      "  AND to_id = $3",
+    ].join("\n"),
+    params: [now, datasetId, canonicalNodeId],
+  };
+}
+
+export function buildDeprecateDuplicateRemappedEdgesStatement(datasetId: string, canonicalNodeId: string, now: string): SqlStatement {
+  return {
+    name: "deprecate-remapped-duplicate-edges",
+    sql: [
+      "WITH ranked AS (",
+      "  SELECT id,",
+      "    row_number() OVER (",
+      "      PARTITION BY type, directionality,",
+      "        CASE WHEN directionality = 'undirected' THEN LEAST(from_id, to_id) ELSE from_id END,",
+      "        CASE WHEN directionality = 'undirected' THEN GREATEST(from_id, to_id) ELSE to_id END",
+      "      ORDER BY created_at, id",
+      "    ) AS duplicate_rank",
+      "  FROM world_edges",
+      "  WHERE dataset_id = $1",
+      "    AND status != 'deprecated'",
+      "    AND (from_id = $2 OR to_id = $2)",
+      ")",
+      "UPDATE world_edges AS edge",
+      "SET status = 'deprecated', updated_at = $3",
+      "FROM ranked",
+      "WHERE edge.dataset_id = $1",
+      "  AND edge.id = ranked.id",
+      "  AND ranked.duplicate_rank > 1",
+    ].join("\n"),
+    params: [datasetId, canonicalNodeId, now],
+  };
+}
+
+async function executeStatement(sql: SqlClient, statement: SqlStatement): Promise<void> {
+  await sql.unsafe(statement.sql, statement.params);
+}
+
+async function executeOptionalStatement(sql: SqlClient, statement: SqlStatement | null): Promise<void> {
+  if (statement) await executeStatement(sql, statement);
 }
 
 function mergeNodes(canonical: NodeRow, nodes: NodeRow[], now: string): NodeRow {
