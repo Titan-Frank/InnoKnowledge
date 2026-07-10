@@ -16,7 +16,7 @@ function AppContent() {
   const { workspace } = useAppState();
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-void text-text-primary">
+    <div className="okm-app-shell flex h-screen flex-col overflow-hidden text-text-primary">
       <Header />
       {workspace === 'pipeline' ? (
         <PipelineDebugPage />
@@ -25,9 +25,9 @@ function AppContent() {
       ) : workspace === 'annotation' ? (
         <AnnotationWorkbench />
       ) : (
-        <main className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
+        <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
           <FilterPanel />
-          <div className="relative order-1 min-h-[360px] min-w-0 flex-1 lg:order-none lg:min-h-0">
+          <div className="relative order-1 min-h-[220px] min-w-0 flex-1 sm:min-h-[320px] lg:order-none lg:min-h-0">
             <GraphCanvas />
             <GraphSearchPanel />
           </div>
