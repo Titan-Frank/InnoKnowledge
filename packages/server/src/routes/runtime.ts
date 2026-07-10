@@ -1,8 +1,17 @@
 import type { Hono } from 'hono';
-import type { GroundedGenerationRequest, UnitRetrievalMode } from '@okm/types';
+import type {
+  GroundedGenerationRequest,
+  GroundedGenerationStreamEvent,
+  UnitRetrievalMode,
+} from '@okm/types';
 import type { Sql } from '../db/connection.js';
+import { streamSSE } from 'hono/streaming';
 import { resolveDatasetRow } from '../db/queries.js';
-import { generateGroundedAnswer, MissingModelConfigurationError } from '../runtime/grounded-generation.js';
+import {
+  generateGroundedAnswer,
+  generateGroundedAnswerStream,
+  MissingModelConfigurationError,
+} from '../runtime/grounded-generation.js';
 import { retrieveApiUnits } from '../runtime/unit-retrieval.js';
 
 const DEFAULT_RETRIEVAL_LIMIT = 8;
@@ -67,6 +76,59 @@ export function registerRuntimeRoutes(app: Hono, sql: Sql): void {
       return c.json({ error: `Grounded generation failed: ${message}` }, 502);
     }
   });
+
+  app.post('/api/source/:key/grounded-generate/stream', async (c) => {
+    const key = c.req.param('key');
+    const body = await c.req.json().catch(() => ({})) as Partial<GroundedGenerationRequest>;
+    const question = typeof body.question === 'string' ? body.question.trim() : '';
+    const limit = parseLimit(body.limit);
+    const retrievalMode = parseRetrievalMode(body.retrieval_mode);
+
+    if (!question) {
+      return c.json({ error: 'Missing request field "question"' }, 400);
+    }
+
+    const dataset = await resolveDatasetRow(sql, key);
+    if (!dataset) {
+      return c.json({ error: `Source "${key}" not found` }, 404);
+    }
+
+    return streamSSE(c, async (stream) => {
+      const controller = new AbortController();
+      stream.onAbort(() => controller.abort());
+
+      const writeEvent = async (event: GroundedGenerationStreamEvent) => {
+        if (stream.aborted || stream.closed) return;
+        await stream.writeSSE({ event: event.type, data: JSON.stringify(event) });
+      };
+
+      try {
+        const response = await generateGroundedAnswerStream(sql, {
+          datasetId: dataset.dataset_id,
+          sourceKey: key,
+          question,
+          limit,
+          retrievalMode,
+        }, {
+          signal: controller.signal,
+          onRetrieval: (retrieval) => writeEvent({ type: 'retrieval', retrieval }),
+          onAnswerDelta: (delta) => writeEvent({ type: 'answer_delta', delta }),
+        });
+        await writeEvent({ type: 'complete', response });
+      } catch (error) {
+        if (controller.signal.aborted || stream.aborted) return;
+        await writeEvent({ type: 'error', error: generationErrorMessage(error) });
+      }
+    });
+  });
+}
+
+function generationErrorMessage(error: unknown): string {
+  if (error instanceof MissingModelConfigurationError) {
+    return 'OPENAI_API_KEY is not configured for grounded generation.';
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  return `Grounded generation failed: ${message}`;
 }
 
 function parseLimit(value: unknown): number {

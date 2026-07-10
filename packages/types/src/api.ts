@@ -187,6 +187,24 @@ export interface GroundedGenerationResponse {
   model: string;
 }
 
+export type GroundedGenerationStreamEvent =
+  | {
+      type: 'retrieval';
+      retrieval: UnitRetrievalResponse;
+    }
+  | {
+      type: 'answer_delta';
+      delta: string;
+    }
+  | {
+      type: 'complete';
+      response: GroundedGenerationResponse;
+    }
+  | {
+      type: 'error';
+      error: string;
+    };
+
 // ── GET /api/source/:key/pipeline ────────────────────────
 
 export interface PipelineLessonRun {

@@ -1,6 +1,7 @@
 import type {
   ApiNodeCard, ApiUnit, MetaResponse, BundleResponse, SearchResponse,
-  GroundedGenerationRequest, GroundedGenerationResponse, UnitRetrievalMode, UnitRetrievalResponse,
+  GroundedGenerationRequest, GroundedGenerationResponse, GroundedGenerationStreamEvent,
+  UnitRetrievalMode, UnitRetrievalResponse,
   AnnotationLessonTextResponse, AnnotationTextbookListResponse,
   PipelineJobStatusResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
@@ -189,6 +190,99 @@ export async function generateGroundedAnswer(
     `/api/source/${encodeURIComponent(sourceKey)}/grounded-generate`,
     payload,
   );
+}
+
+export async function generateGroundedAnswerStream(
+  sourceKey: string,
+  payload: GroundedGenerationRequest,
+  handlers: {
+    onRetrieval?: (retrieval: UnitRetrievalResponse) => void;
+    onAnswerDelta?: (delta: string) => void;
+  } = {},
+  signal?: AbortSignal,
+): Promise<GroundedGenerationResponse> {
+  const path = `/api/source/${encodeURIComponent(sourceKey)}/grounded-generate/stream`;
+  const response = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal,
+  });
+  if (!response.ok) {
+    throw new BackendError(await backendErrorMessage(response, `Failed to post ${path}`), response.status, 'server');
+  }
+  if (!response.body) {
+    throw new BackendError('生成接口没有返回流数据。', 502, 'stream');
+  }
+
+  let completedResponse: GroundedGenerationResponse | null = null;
+  await readSseEvents(response.body, (event) => {
+    switch (event.type) {
+      case 'retrieval':
+        handlers.onRetrieval?.(event.retrieval);
+        break;
+      case 'answer_delta':
+        handlers.onAnswerDelta?.(event.delta);
+        break;
+      case 'complete':
+        completedResponse = event.response;
+        break;
+      case 'error':
+        throw new BackendError(event.error, 502, 'stream');
+    }
+  });
+
+  if (!completedResponse) {
+    throw new BackendError('生成流提前结束，没有收到完整结果。', 502, 'stream');
+  }
+  return completedResponse;
+}
+
+async function readSseEvents(
+  body: ReadableStream<Uint8Array>,
+  onEvent: (event: GroundedGenerationStreamEvent) => void,
+): Promise<void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value, { stream: !done });
+    let boundary = findSseBoundary(buffer);
+    while (boundary) {
+      const block = buffer.slice(0, boundary.index);
+      buffer = buffer.slice(boundary.index + boundary.length);
+      dispatchSseBlock(block, onEvent);
+      boundary = findSseBoundary(buffer);
+    }
+    if (done) break;
+  }
+
+  if (buffer.trim()) dispatchSseBlock(buffer, onEvent);
+}
+
+function findSseBoundary(value: string): { index: number; length: number } | null {
+  const match = /\r?\n\r?\n/.exec(value);
+  return match ? { index: match.index, length: match[0].length } : null;
+}
+
+function dispatchSseBlock(
+  block: string,
+  onEvent: (event: GroundedGenerationStreamEvent) => void,
+): void {
+  const data = block
+    .split(/\r?\n/)
+    .filter((line) => line.startsWith('data:'))
+    .map((line) => line.slice(5).replace(/^ /, ''))
+    .join('\n');
+  if (!data) return;
+  try {
+    onEvent(JSON.parse(data) as GroundedGenerationStreamEvent);
+  } catch (error) {
+    if (error instanceof BackendError) throw error;
+    throw new BackendError('生成接口返回了无法解析的流数据。', 502, 'stream');
+  }
 }
 
 export async function loadPipeline(sourceKey: string): Promise<PipelineResponse | null> {

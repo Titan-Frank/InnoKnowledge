@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { ApiUnit, UnitRetrievalResponse } from '@okm/types';
-import { normalizeModelJson, validateCitations } from './grounded-generation.js';
+import {
+  extractStreamingJsonStringField,
+  normalizeModelJson,
+  validateCitations,
+} from './grounded-generation.js';
 
 test('normalizeModelJson keeps only structured grounded-generation fields', () => {
   const parsed = normalizeModelJson({
@@ -47,4 +51,33 @@ test('validateCitations rejects evidence outside retrieved ApiUnits', () => {
 
   assert.deepEqual(result.valid, [{ node_id: 'n1', evidence_id: 'e1', note: undefined }]);
   assert.equal(result.invalid.length, 2);
+});
+
+test('extractStreamingJsonStringField decodes partial answer content', () => {
+  assert.deepEqual(
+    extractStreamingJsonStringField('{"answer":"电场\\n是', 'answer'),
+    { value: '电场\n是', complete: false },
+  );
+  assert.deepEqual(
+    extractStreamingJsonStringField('{"answer":"电场\\n是一种场"', 'answer'),
+    { value: '电场\n是一种场', complete: true },
+  );
+});
+
+test('extractStreamingJsonStringField waits for complete unicode escape pairs', () => {
+  assert.deepEqual(
+    extractStreamingJsonStringField('{"answer":"A\\u4e2d\\uD83D', 'answer'),
+    { value: 'A中', complete: false },
+  );
+  assert.deepEqual(
+    extractStreamingJsonStringField('{"answer":"A\\u4e2d\\uD83D\\uDE80"}', 'answer'),
+    { value: 'A中🚀', complete: true },
+  );
+});
+
+test('extractStreamingJsonStringField keeps escaped quotes inside the answer', () => {
+  assert.deepEqual(
+    extractStreamingJsonStringField('{"answer":"他说\\"电场\\"。","citations":[]}', 'answer'),
+    { value: '他说"电场"。', complete: true },
+  );
 });

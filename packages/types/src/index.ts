@@ -18,6 +18,7 @@ export type {
   NodeCardResponse, UnitResponse, SearchHit, SearchResponse, ApiErrorResponse,
   UnitRetrievalMode, UnitRetrievalExecutionMode, UnitRetrievalHit, UnitRetrievalResponse,
   GroundedGenerationRequest, GroundedGenerationCitation, GroundedGenerationInvalidCitation, GroundedGenerationResponse,
+  GroundedGenerationStreamEvent,
   PipelineLessonRun, PipelineMergeRun, PipelineReviewItem, PipelineResponse,
   PipelineQualityLessonRow, PipelineQualityDashboardResponse,
   PipelineLessonBackendKind, PipelineExtractionTemplateId, PipelineStartRequest, PipelineStartResponse,
