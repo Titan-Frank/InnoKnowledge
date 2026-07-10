@@ -55,12 +55,16 @@ export function buildNodeTermsSqlPlan(datasetId: string, rows: NodeTermRow[]): N
     sql: "DELETE FROM world_node_terms WHERE dataset_id = $1",
     params: [datasetId],
   };
-  const insertStatement = rows.length > 0 ? buildNodeTermsInsertStatement(rows) : null;
+  const insertStatement = buildNodeTermsUpsertStatement(rows);
   return {
     delete: deleteStatement,
     insert: insertStatement,
     statements: insertStatement ? [deleteStatement, insertStatement] : [deleteStatement],
   };
+}
+
+export function buildNodeTermsUpsertStatement(rows: NodeTermRow[]): SqlStatement | null {
+  return rows.length > 0 ? buildNodeTermsInsertStatement(rows) : null;
 }
 
 export function buildSelectNodesForNodeTermsQuery(datasetId: string): SqlStatement {

@@ -7,6 +7,7 @@ import {
   normalizeLearningModes,
   requireValidEdgeType,
 } from "../shared/knowledge.js";
+import { addNodeSubkindClassification, normalizeNodeSubkind } from "../shared/node-subkind.js";
 import { normalizeTerm, uniqueStable } from "../shared/pathing.js";
 
 type RawRecord = Record<string, unknown>;
@@ -233,18 +234,20 @@ export function normalizeNodes(nodes: RawRecord[]): NormalizedNode[] {
     let domains = uniqueEnum(node.domains, VALID_DOMAINS);
     if (domains.length === 0) domains = ["general"];
 
+    const normalizedSubkind = normalizeNodeSubkind(kind, pickPythonOr(node.subkind, node.node_subkind));
+    const properties = addNodeSubkindClassification(recordValue(node.properties), normalizedSubkind);
     return {
       raw_node_id: rawNodeId,
       name,
       kind,
-      subkind: stringValue(pickPythonOr(node.subkind, node.node_subkind)).trim() || null,
+      subkind: normalizedSubkind.primary,
       definition,
       aliases_json: uniqueStrings(node.aliases),
       domains_json: domains,
       knowledge_form_json: uniqueEnum(node.knowledge_form, VALID_KNOWLEDGE_FORMS),
       learning_mode_json: normalizeLearningModes(toStringList(node.learning_mode), kind),
       scope: stringValue(node.scope).trim() || "domain-specific",
-      properties_json: recordValue(node.properties),
+      properties_json: properties,
       external_ids_json: recordValue(node.external_ids),
       tags_json: uniqueStrings(node.tags),
       semantic_key: stringValue(pickPythonOr(node.semantic_key, normalizeTerm(name))),

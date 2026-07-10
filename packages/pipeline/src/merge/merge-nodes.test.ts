@@ -60,13 +60,10 @@ test("scores node matches like Python score_node_match", () => {
     embedding: 0,
     rationale: { reason: "kind_mismatch" },
   });
-  assert.deepEqual(scoreNodeMatch({ kind: "concept", subkind: "other", name: "Water Cycle" }, candidate), {
-    score: 0,
-    lexical: 0,
-    semantic: 0,
-    embedding: 0,
-    rationale: { reason: "subkind_mismatch" },
-  });
+  const subkindMismatch = scoreNodeMatch({ kind: "concept", subkind: "other", name: "Water Cycle" }, candidate);
+  assert.equal(subkindMismatch.score, 0.94);
+  assert.equal(subkindMismatch.lexical, 1);
+  assert.equal(subkindMismatch.rationale.subkind_match, false);
 
   const exact = scoreNodeMatch(
     {
@@ -84,6 +81,7 @@ test("scores node matches like Python score_node_match", () => {
   assert.equal(exact.semantic, 1);
   assert.equal(exact.embedding, 1);
   assert.equal(exact.rationale.candidate_id, "concept:auto-water");
+  assert.equal(exact.rationale.subkind_match, true);
 
   const aliasOnly = scoreNodeMatch({ kind: "concept", subkind: "science", name: "Different", aliases: ["水循环"] }, candidate);
   assert.equal(aliasOnly.lexical < 0.98, true);
@@ -155,7 +153,7 @@ test("merges node payloads like Python merge_node_payload", () => {
       knowledge_form: ["propositional"],
       learning_mode: ["conceptual"],
       scope: "domain-specific",
-      properties: { old: "yes", semantic_key: "chem:water" },
+      properties: { old: "yes", semantic_key: "chem:water", classifications: { subkinds: ["substance"] } },
       external_ids: { wikidata: "Q1", other: "x" },
       tags: ["liquid", "molecule"],
       embedding: [1, 0],
@@ -229,13 +227,16 @@ test("plans staged node merge when an existing canonical node matches", () => {
     canonical_node_id: "concept:auto-water",
     resolution: "matched",
     similarity: 1,
-    rationale_json: {
-      lexical: 1,
-      semantic_key: 1,
-      embedding: 1,
-      embedding_threshold: 0.92,
-      candidate_id: "concept:auto-water",
-    },
+      rationale_json: {
+        lexical: 1,
+        semantic_key: 1,
+        embedding: 1,
+        embedding_threshold: 0.92,
+        candidate_id: "concept:auto-water",
+        subkind_match: true,
+        candidate_subkind: "science",
+        staged_subkind: "science",
+      },
     created_at: "now",
   });
   assert.deepEqual(plan.node_payload, {
@@ -249,7 +250,7 @@ test("plans staged node merge when an existing canonical node matches", () => {
     knowledge_form: ["propositional"],
     learning_mode: ["conceptual"],
     scope: "domain-specific",
-    properties: { semantic_key: "chem:water-cycle", old: true, new: true },
+    properties: { semantic_key: "chem:water-cycle", old: true, classifications: { subkinds: ["science"] }, new: true },
     external_ids: { local: "x" },
     tags: ["existing", "new"],
     embedding: [1, 0],
@@ -379,7 +380,7 @@ test("plans staged node review when best score is below merge threshold", () => 
   assert.equal(plan.canonical_node_map_payload.similarity, 0.432);
 });
 
-test("plans staged node creation when kind or subkind mismatches block matching", () => {
+test("plans staged node creation when kind mismatches block matching", () => {
   const entityCandidate = makeCanonicalCandidate({
     id: "entity:auto-water-cycle",
     name: "Water Cycle",
@@ -388,44 +389,92 @@ test("plans staged node creation when kind or subkind mismatches block matching"
     properties_json: {},
     embedding: [],
   });
-  const subkindCandidate = makeCanonicalCandidate({
-    id: "concept:auto-water-cycle",
-    name: "Water Cycle",
-    kind: "concept",
-    subkind: "history",
-    aliases_json: [],
-    properties_json: {},
-    embedding: [],
+
+  const plan = planStagedNodeMerge({
+    datasetId: "main",
+    mergeRunId: "merge:1",
+    lessonRunId: "lesson-run:1",
+    staged: {
+      raw_node_id: "raw-water-cycle",
+      name: "Water Cycle",
+      kind: "concept",
+      subkind: "science",
+      aliases_json: [],
+      domains_json: [],
+      knowledge_form_json: [],
+      learning_mode_json: [],
+      properties_json: {},
+      external_ids_json: {},
+      tags_json: [],
+      created_at: "created",
+    },
+    canonicalNodes: [entityCandidate],
+    reviewThreshold: 0,
+    now: "now",
   });
 
-  for (const candidate of [entityCandidate, subkindCandidate]) {
-    const plan = planStagedNodeMerge({
-      datasetId: "main",
-      mergeRunId: "merge:1",
-      lessonRunId: "lesson-run:1",
-      staged: {
-        raw_node_id: "raw-water-cycle",
-        name: "Water Cycle",
-        kind: "concept",
-        subkind: "science",
-        aliases_json: [],
-        domains_json: [],
-        knowledge_form_json: [],
-        learning_mode_json: [],
-        properties_json: {},
-        external_ids_json: {},
-        tags_json: [],
-        created_at: "created",
-      },
-      canonicalNodes: [candidate],
-      reviewThreshold: 0,
-      now: "now",
-    });
+  assert.equal(plan.resolution, "created");
+  assert.equal(plan.score.score, 0);
+  assert.deepEqual(plan.score.rationale, {});
+});
 
-    assert.equal(plan.resolution, "created");
-    assert.equal(plan.score.score, 0);
-    assert.deepEqual(plan.score.rationale, {});
-  }
+test("plans staged node merge when exact names have different subkinds", () => {
+  const candidate = makeCanonicalCandidate({
+    id: "rule/circuit_law:auto-existing",
+    name: "闭合电路欧姆定律",
+    kind: "rule",
+    subkind: "circuit_law",
+    definition: "描述闭合电路中电源电动势、外电压、电流和内阻之间的关系。",
+    aliases_json: ["全电路欧姆定律"],
+    domains_json: ["physics"],
+    knowledge_form_json: ["propositional"],
+    learning_mode_json: ["conceptual"],
+    scope: "domain-specific",
+    properties_json: { semantic_key: "闭合电路欧姆定律" },
+    external_ids_json: {},
+    tags_json: [],
+    embedding: [],
+    created_at: "old",
+    notes: "",
+  });
+
+  const plan = planStagedNodeMerge({
+    datasetId: "main",
+    mergeRunId: "merge:1",
+    lessonRunId: "lesson-run:1",
+    staged: {
+      raw_node_id: "rule:physical_law:closed-circuit-ohm-law",
+      name: "闭合电路欧姆定律",
+      kind: "rule",
+      subkind: "物理定律",
+      definition: "在闭合电路中，电流与电源电动势成正比。",
+      aliases_json: ["全电路欧姆定律"],
+      domains_json: ["physics"],
+      knowledge_form_json: ["propositional"],
+      learning_mode_json: ["conceptual"],
+      scope: "domain-specific",
+      properties_json: {},
+      external_ids_json: {},
+      tags_json: [],
+      semantic_key: "闭合电路欧姆定律",
+      embedding: [],
+      created_at: "new",
+    },
+    canonicalNodes: [candidate],
+    now: "now",
+  });
+
+  assert.equal(plan.resolution, "matched");
+  assert.equal(plan.canonical_node_id, "rule/circuit_law:auto-existing");
+  assert.equal(plan.score.rationale.subkind_match, false);
+  assert.equal(plan.node_payload.subkind, "circuit_law");
+  assert.deepEqual(plan.node_payload.properties, {
+    semantic_key: "闭合电路欧姆定律",
+    classifications: {
+      subkinds: ["circuit_law", "physical_law"],
+      raw_subkinds: ["物理定律"],
+    },
+  });
 });
 
 test("remaps source refs like Python remap_source_refs", () => {

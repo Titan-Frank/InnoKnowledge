@@ -372,7 +372,7 @@ export function buildResponseSchema(extractionTemplate?: ExtractionTemplate | nu
       id: { type: "string" },
       name: { type: "string" },
       kind: { type: "string", enum: templateAllowedNodeKinds(extractionTemplate) },
-      subkind: { type: ["string", "null"] },
+      subkind: { type: ["string", "null"], pattern: "^[a-z0-9_]+$" },
       definition: { type: "string" },
       aliases: { type: "array", items: { type: "string" } },
       domains: { type: "array", items: { type: "string", enum: sortedSet(VALID_DOMAINS) } },
