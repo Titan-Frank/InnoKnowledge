@@ -635,9 +635,10 @@ function buildStagingQualityRetryPrompt(result: RawRecord, retryNumber: number, 
   return [
     `这是第 ${retryNumber} 次质量失败后的自动重抽。`,
     `上一轮问题：${issueText}`,
-    `请不要只返回证据。必须从当前 chunk 抽取与${subjectContext}对应的核心知识对象，并为每个节点补齐 definition、domain_profile、mention、node_card 和 evidence source_refs。`,
-    "即使当前文本以习题、探究、小结或图示为主，也要从题干、公式、图、表和说明中抽取概念、对象、属性、方法、规则、表示、过程、案例、材料或活动。",
-    "节点、提及、卡片和领域画像不能为空；证据不足的关系可以少，但不要让节点数为 0。",
+    `请重新核对当前 chunk 是否包含与${subjectContext}对应、且有直接教材证据支撑的知识对象。`,
+    "第一阶段只按当前 schema 返回 lesson_disposition、no_knowledge_reason、nodes、evidence_units 和 issues；不要要求或输出当前阶段不支持的画像、提及或卡片字段。",
+    "如果存在合格知识对象，lesson_disposition 设为 extracted，并让每个节点通过 evidence_units.node_ids 绑定自己的证据；如果确实没有合格知识对象，lesson_disposition 设为 no_knowledge，所有知识产物保持为空，并明确填写 no_knowledge_reason。",
+    "第二阶段只为第一阶段的节点抽取证据充分的关系；证据不足时允许关系为空，不要为了通过检查而制造节点或关系。",
   ].join("\n");
 }
 

@@ -138,3 +138,53 @@ test("writes staging rows while surfacing quality failures for the later quality
   assert.ok(output.quality.errors.includes("Node card c1 is missing summary."));
   assert.deepEqual(output.quality.warnings, ["Domain profile p1 has no source_refs."]);
 });
+
+test("writes an explicit no_knowledge lesson with empty artifacts", async () => {
+  const executed: SqlStatement[] = [];
+  const output = await runStoreStaging({
+    ...baseInput,
+    lessonDisposition: "no_knowledge",
+    noKnowledgeReason: "当前课时只有目录导航，没有可抽取的知识对象。",
+    nodesJson: "[]",
+    edgesJson: "[]",
+    domainProfilesJson: "[]",
+    mentionsJson: "[]",
+    evidenceJson: "[]",
+    nodeCardsJson: "[]",
+    executeStatement: (statement) => {
+      executed.push(statement);
+    },
+  });
+
+  assert.equal(output.status, "success");
+  assert.equal(output.quality.status, "success");
+  assert.deepEqual(output.quality.errors, []);
+  assert.deepEqual(output.counts, {
+    nodes: 0,
+    edges: 0,
+    domain_profiles: 0,
+    mentions: 0,
+    evidence: 0,
+    node_cards: 0,
+  });
+  const lessonRunStatement = executed.find((statement) => statement.name === "upsert-world-lesson-run");
+  assert.deepEqual(lessonRunStatement?.params[6], {
+    lesson_disposition: "no_knowledge",
+    no_knowledge_reason: "当前课时只有目录导航，没有可抽取的知识对象。",
+  });
+});
+
+test("rejects an invalid lesson disposition before writing", async () => {
+  const executed: SqlStatement[] = [];
+  await assert.rejects(
+    () => runStoreStaging({
+      ...baseInput,
+      lessonDisposition: "empty",
+      executeStatement: (statement) => {
+        executed.push(statement);
+      },
+    }),
+    /Invalid --lesson-disposition 'empty'. Expected extracted or no_knowledge/,
+  );
+  assert.deepEqual(executed, []);
+});

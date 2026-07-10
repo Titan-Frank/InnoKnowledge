@@ -1,6 +1,6 @@
 # 当前系统架构
 
-更新日期：2026-06-27
+更新日期：2026-07-10
 
 本文说明 Open Knowledge Map 当前代码仓库的系统架构。它描述的是现在已经落到代码和数据库里的工程结构，不是远期设想。
 
@@ -27,7 +27,8 @@ flowchart TD
   D --> E["lesson/chunk 抽取 worker"]
   E --> F["模型文本抽取"]
   E --> G["视觉模型图片判断"]
-  F --> H["world_lesson_runs 与 world_staging_*"]
+  F --> R["lesson_disposition: extracted / no_knowledge"]
+  R --> H["world_lesson_runs 与 world_staging_*"]
   G --> H
   H --> I["staging_quality"]
   I --> J["merge-staged-lessons"]
@@ -219,7 +220,15 @@ world_textbook_outlines.outline_json
 1. 提示词：告诉模型要抽取节点、关系、证据、领域画像和节点卡片。
 2. JSON Schema：通过 API 请求体约束模型必须返回指定 JSON 结构。
 
-输出不是直接写入正式表，而是先规范化成 staging 行。
+输出不是直接写入正式表，而是先规范化成 staging 行。每个课时还必须给出显式抽取结论：
+
+| 字段 | 含义 |
+|---|---|
+| `lesson_disposition=extracted` | 当前课时抽取出了可进入后续质量检查的候选知识对象 |
+| `lesson_disposition=no_knowledge` | 当前课时没有符合节点准入规则的知识对象；这是合法结果，不是模型调用失败 |
+| `no_knowledge_reason` | 当结果为 `no_knowledge` 时，记录为何没有可抽取知识，例如只有目录、页眉页脚、练习编号或上下文不足 |
+
+`no_knowledge` 课时允许节点、关系和证据数组为空，仍会保留课时运行记录。模型调用失败、JSON 解析失败，以及没有显式声明 `no_knowledge` 的异常空结果，不能伪装成合法空课时。
 
 ### 4. 图片判断
 
@@ -278,6 +287,20 @@ staging 写入后，系统会执行：
 4. `strict-qa`：检查 schema 合法性。
 5. `graph-integrity`：检查图结构完整性，并可标记 QA 通过。
 
+质量检查把错误和警告分开处理：
+
+1. 显式声明 `lesson_disposition=no_knowledge` 且提供 `no_knowledge_reason` 的空课时属于合法空结果，不因节点数为零自动阻断。
+2. 需要人工判断但不必立即阻断的事项写入 `world_lesson_runs.properties_json.quality_warnings`；同时写入 `quality_review_required=true` 和相关的 `review_node_ids`。
+3. 上述警告不是一次性日志。质量仪表盘会把它们计入“人工待处理”，直到对应问题完成复核。
+4. 为保留追溯链而由程序补出的合成证据必须带上 `properties.synthetic=true`、`properties.quality_excluded=true`、`properties.review_status=pending`。它可以进入待复核列表，但不计入正式证据覆盖率，不能借此把证据不足包装成质量通过。
+
+正式数据写入也有明确事务边界：
+
+1. `merge-staged-lessons` 和 `normalize` 使用同一个数据集级事务锁。同一数据集上的归并与规范化必须串行执行，不同数据集仍可并行处理。
+2. 两条流程都在取得数据集锁后读取最新已提交数据，并把读取、计划生成和正式写入放在同一事务中。任一步失败时整体回滚，不能留下半次归并或半次规范化结果。
+3. 事务使用 PostgreSQL 默认的 `READ COMMITTED` 隔离级别。数据集锁负责防止正式知识表上的同数据集并发写入，也避免任务等待锁后继续使用等待前的旧快照。
+4. 事务与锁只保证处理一致性，不替代质量判断。合法空课时、待复核警告和合成证据仍按上述规则单独治理。
+
 核心代码：
 
 - `packages/pipeline/src/staging/staging-quality.ts`
@@ -331,7 +354,7 @@ schemas/pg/knowledge_store.sql
 
 | 表 | 职责 |
 |---|---|
-| `world_lesson_runs` | 每个 lesson/chunk 抽取任务的状态、统计和质量问题 |
+| `world_lesson_runs` | 每个 lesson/chunk 抽取任务的状态、`lesson_disposition`、统计、质量警告和人工复核信息 |
 | `world_staging_nodes` | 单课时候选节点 |
 | `world_staging_edges` | 单课时候选关系 |
 | `world_staging_domain_profiles` | 单课时候选领域画像 |
@@ -349,7 +372,7 @@ schemas/pg/knowledge_store.sql
 1. `data`、`runs`、`storage`、`tmp` 是生成物或本地运行产物，不是权威源。
 2. PostgreSQL 是唯一主存储。
 3. lesson worker 只写 staging 表。
-4. reducer 和 normalize 才能写正式知识表。
+4. reducer 和 normalize 才能写正式知识表，并且读取、计划生成与正式写入必须在同一个受数据集锁保护的事务中完成。
 5. 前端不要直接拼数据库表，应该通过 API 消费服务端组装好的结构。
 
 ## 六、服务端 API
@@ -547,6 +570,10 @@ npm run dev
 ### 5. server 是前端的唯一数据组装层
 
 viewer 不应该自己理解数据库表结构。它应该消费 `BundleResponse`、`ApiUnit`、`PipelineResponse` 等公开 API 结构。
+
+### 6. 合法空课时和质量警告必须显式保存
+
+`lesson_disposition=no_knowledge` 表示“当前课时确实没有符合准入规则的知识”，不是抽取失败的兜底值。需要人工判断的质量警告和合成证据必须持久化进入复核流程；它们不能只出现在运行日志中，也不能计入正式证据覆盖率。
 
 ## 十二、当前还可以继续加强的点
 

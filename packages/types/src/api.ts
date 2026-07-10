@@ -249,8 +249,12 @@ export interface PipelineQualityLessonRow {
   disconnected_components: number;
   image_review_count: number;
   merge_review_count: number;
+  quality_review_count: number;
   manual_pending_items: number;
   quality_issues: string[];
+  quality_warnings: string[];
+  quality_review_required: boolean;
+  review_node_ids: string[];
   updated_at: string | null;
 }
 
@@ -268,6 +272,7 @@ export interface PipelineQualityDashboardResponse {
     disconnected_components: number;
     image_review_count: number;
     merge_review_count: number;
+    quality_review_count: number;
     blocked_lesson_count: number;
     manual_pending_items: number;
   };

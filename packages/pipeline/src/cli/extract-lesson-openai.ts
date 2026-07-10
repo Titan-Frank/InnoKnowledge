@@ -136,12 +136,20 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
       const nodeEvidenceRequest = buildHybridNodeEvidenceExtractionRequest(requestInput);
       const nodeEvidenceBody = await callModelExtractionRequestWithRetries(nodeEvidenceRequest, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
       const nodeEvidenceBundle = parseHybridNodeEvidenceBundleFromResponse(nodeEvidenceBody);
-      const edgeRequest = buildHybridEdgeExtractionRequest(requestInput, nodeEvidenceBundle);
-      const edgeBody = await callModelExtractionRequestWithRetries(edgeRequest, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
+      const edgeBundle = nodeEvidenceBundle.lesson_disposition === "no_knowledge"
+        ? { edges: [], issues: [] }
+        : parseHybridEdgeBundleFromResponse(
+          await callModelExtractionRequestWithRetries(
+            buildHybridEdgeExtractionRequest(requestInput, nodeEvidenceBundle),
+            apiKey,
+            deps.fetchImpl ?? fetch,
+            modelRetryCount,
+          ),
+        );
       let payload: RawRecord = buildHybridExtractionPayloadFromModelBundles(
         requestInput,
         nodeEvidenceBundle,
-        parseHybridEdgeBundleFromResponse(edgeBody),
+        edgeBundle,
       );
       if (!flags.has("no-image-filter")) {
         const vlmConcurrency = parsePositiveInteger(flags.get("vlm-concurrency") ?? env.VLM_CONCURRENCY, "vlm-concurrency") ?? 3;
@@ -457,6 +465,8 @@ async function writeStagingPayload(input: {
         bookId,
         batchAnchor,
         now: utcNow(),
+        lessonDisposition: parseLessonDisposition(input.payload.lesson_disposition),
+        noKnowledgeReason: stringValue(input.payload.no_knowledge_reason).trim(),
       },
       artifacts,
     );
@@ -477,6 +487,10 @@ async function writeStagingPayload(input: {
   } finally {
     await ownedExecutor?.close();
   }
+}
+
+function parseLessonDisposition(value: unknown): "extracted" | "no_knowledge" {
+  return value === "no_knowledge" ? "no_knowledge" : "extracted";
 }
 
 async function createExplicitPostgresStagingExecutor(dbUrl: string | undefined): Promise<

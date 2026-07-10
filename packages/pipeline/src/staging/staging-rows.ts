@@ -15,6 +15,8 @@ export type StagingWriteContext = {
   bookId: string;
   batchAnchor: string;
   now: string;
+  lessonDisposition?: "extracted" | "no_knowledge";
+  noKnowledgeReason?: string;
 };
 
 export type LessonRunRow = {
@@ -24,7 +26,7 @@ export type LessonRunRow = {
   batch_anchor: string;
   status: "staged";
   counts_json: NormalizedLessonArtifacts["counts"];
-  properties_json: Record<string, never>;
+  properties_json: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 };
@@ -173,7 +175,10 @@ export function buildLessonRunRow(context: StagingWriteContext, counts: Normaliz
     batch_anchor: context.batchAnchor,
     status: "staged",
     counts_json: counts,
-    properties_json: {},
+    properties_json: {
+      ...(context.lessonDisposition ? { lesson_disposition: context.lessonDisposition } : {}),
+      ...(context.noKnowledgeReason ? { no_knowledge_reason: context.noKnowledgeReason } : {}),
+    },
     created_at: context.now,
     updated_at: context.now,
   };

@@ -31,6 +31,8 @@ export type LessonStagingQualityResult = {
   status: "success" | "blocked";
   errors: string[];
   warnings: string[];
+  quality_review_required: boolean;
+  review_node_ids: string[];
   counts: {
     nodes: number;
     edges: number;
@@ -44,8 +46,10 @@ export type LessonStagingQualityResult = {
 export function checkLessonStagingQuality(rows: StagingTableRows): LessonStagingQualityResult {
   const errors: string[] = [];
   const warnings: string[] = [];
+  const reviewNodeIds = new Set<string>();
   const nodeIds = new Set(rows.nodes.map((row) => row.raw_node_id));
   const evidenceIds = new Set(rows.evidence.map((row) => row.raw_evidence_id));
+  const qualityEvidenceIds = new Set(rows.evidence.filter((row) => !isQualityExcludedEvidence(row)).map((row) => row.raw_evidence_id));
   const profileNodeIds = new Set(rows.domain_profiles.map((row) => row.raw_node_id));
   const cardByNode = new Map(rows.node_cards.map((row) => [row.raw_node_id, row]));
   const mentionByTarget = new Map<string, typeof rows.mentions>();
@@ -62,11 +66,37 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
     mentionByTarget.set(mention.target_raw_id, mentions);
   }
 
-  if (rows.nodes.length === 0) {
-    errors.push("Lesson produced no staged nodes.");
+  const lessonProperties = rows.lesson_run.properties_json ?? {};
+  const lessonDisposition = typeof lessonProperties.lesson_disposition === "string" ? lessonProperties.lesson_disposition : "";
+  const noKnowledgeReason = typeof lessonProperties.no_knowledge_reason === "string" ? lessonProperties.no_knowledge_reason.trim() : "";
+  const artifactCount = rows.nodes.length
+    + rows.edges.length
+    + rows.domain_profiles.length
+    + rows.mentions.length
+    + rows.evidence.length
+    + rows.node_cards.length;
+  if (lessonDisposition === "no_knowledge") {
+    if (!noKnowledgeReason) {
+      errors.push("Lesson marked no_knowledge is missing no_knowledge_reason.");
+    }
+    if (artifactCount > 0) {
+      errors.push("Lesson marked no_knowledge must have no staged knowledge artifacts.");
+    }
+  } else {
+    if (lessonDisposition && lessonDisposition !== "extracted") {
+      errors.push(`Lesson has invalid lesson_disposition ${lessonDisposition}.`);
+    }
+    if (rows.nodes.length === 0) {
+      errors.push("Lesson produced no staged nodes.");
+    }
+    if (rows.evidence.length === 0) {
+      errors.push("Lesson produced no staged evidence.");
+    }
   }
-  if (rows.evidence.length === 0) {
-    errors.push("Lesson produced no staged evidence.");
+
+  for (const evidence of rows.evidence) {
+    if (!isQualityExcludedEvidence(evidence)) continue;
+    warnings.push(`Evidence ${evidence.raw_evidence_id} is synthetic or quality-excluded and requires review.`);
   }
 
   for (const node of rows.nodes) {
@@ -88,11 +118,15 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
     }
 
     const mentionRefs = (mentionByTarget.get(nodeId) ?? []).flatMap((mention) => mention.source_refs_json ?? []);
-    if (node.source_refs_json.length === 0 && mentionRefs.length === 0) {
+    const nodeEvidenceRefs = [...node.source_refs_json, ...mentionRefs];
+    if (!hasQualityEvidenceRef(nodeEvidenceRefs, qualityEvidenceIds)) {
       errors.push(`Node ${nodeId} has no evidence-backed source reference.`);
     }
+    if (nodeEvidenceRefs.some((ref) => evidenceIds.has(ref) && !qualityEvidenceIds.has(ref))) reviewNodeIds.add(nodeId);
 
-    warnings.push(...nodeAdmissionWarnings(node, connectedNodeIds, rows.edges.length));
+    const admissionWarnings = nodeAdmissionWarnings(node, connectedNodeIds, rows.edges.length);
+    warnings.push(...admissionWarnings);
+    if (admissionWarnings.length > 0) reviewNodeIds.add(nodeId);
   }
 
   for (const edge of rows.edges) {
@@ -105,8 +139,12 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
     if (!nodeIds.has(edge.from_raw_node_id) || !nodeIds.has(edge.to_raw_node_id)) {
       errors.push(`Edge ${edge.raw_edge_id} references missing node endpoint.`);
     }
-    if (edge.source_refs_json.length === 0) {
+    if (!hasQualityEvidenceRef(edge.source_refs_json, qualityEvidenceIds)) {
       errors.push(`Edge ${edge.raw_edge_id} has no evidence source_refs.`);
+    }
+    if (edge.source_refs_json.some((ref) => evidenceIds.has(ref) && !qualityEvidenceIds.has(ref))) {
+      reviewNodeIds.add(edge.from_raw_node_id);
+      reviewNodeIds.add(edge.to_raw_node_id);
     }
   }
 
@@ -116,6 +154,10 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
     }
     if (profile.source_refs_json.length === 0) {
       warnings.push(`Domain profile ${profile.raw_profile_id} has no source_refs.`);
+      reviewNodeIds.add(profile.raw_node_id);
+    } else if (!hasQualityEvidenceRef(profile.source_refs_json, qualityEvidenceIds)) {
+      warnings.push(`Domain profile ${profile.raw_profile_id} has no quality-eligible source_refs.`);
+      reviewNodeIds.add(profile.raw_node_id);
     }
   }
 
@@ -126,6 +168,9 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
     for (const ref of mention.source_refs_json) {
       if (!evidenceIds.has(ref)) {
         errors.push(`Mention ${mention.raw_mention_id} references missing evidence ${ref}.`);
+      } else if (!qualityEvidenceIds.has(ref)) {
+        errors.push(`Mention ${mention.raw_mention_id} references quality-excluded evidence ${ref}.`);
+        if (mention.target_type === "node") reviewNodeIds.add(mention.target_raw_id);
       }
     }
   }
@@ -145,6 +190,9 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
     for (const section of card.sections_json) {
       if (section.source_refs.length === 0) {
         errors.push(`Node card ${card.raw_card_id} section ${section.id} has no evidence source_refs.`);
+      } else if (!hasQualityEvidenceRef(section.source_refs, qualityEvidenceIds)) {
+        errors.push(`Node card ${card.raw_card_id} section ${section.id} has no quality-eligible evidence source_refs.`);
+        reviewNodeIds.add(card.raw_node_id);
       }
     }
   }
@@ -154,8 +202,19 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
     status: errors.length > 0 ? "blocked" : "success",
     errors,
     warnings,
+    quality_review_required: warnings.length > 0,
+    review_node_ids: [...reviewNodeIds].sort(),
     counts: rows.lesson_run.counts_json,
   };
+}
+
+function isQualityExcludedEvidence(row: StagingEvidenceRow): boolean {
+  const properties = row.properties_json ?? {};
+  return properties.synthetic === true || properties.quality_excluded === true;
+}
+
+function hasQualityEvidenceRef(refs: string[], qualityEvidenceIds: Set<string>): boolean {
+  return refs.some((ref) => qualityEvidenceIds.has(ref));
 }
 
 function formatPythonStringList(values: string[]): string {
@@ -225,7 +284,14 @@ export async function runStagingQualityFromDatabase(input: {
   }
 
   const blockedResults = results.filter((result) => result.status === "blocked");
-  const statements = !input.warnOnly && blockedResults.length > 0 ? buildMarkBlockedStatements(input.datasetId, blockedResults, input.now ?? defaultNow()) : [];
+  const successfulResults = results.filter((result) => result.status === "success");
+  const now = input.now ?? defaultNow();
+  const statements = input.warnOnly
+    ? []
+    : [
+      ...buildPersistQualityStatements(input.datasetId, successfulResults, now),
+      ...buildMarkBlockedStatements(input.datasetId, blockedResults, now),
+    ];
   const executedStatements: string[] = [];
   if (statements.length > 0) {
     if (!input.executeStatement) throw new Error("Executing staging quality updates requires an executeStatement executor.");
@@ -283,20 +349,54 @@ export function buildMarkBlockedStatements(datasetId: string, results: LessonSta
     sql: [
       "UPDATE world_lesson_runs",
       "SET status = 'blocked',",
-      "properties_json = jsonb_set(",
-      "  CASE",
-      "    WHEN jsonb_typeof(COALESCE(properties_json, '{}'::jsonb)) = 'object' THEN COALESCE(properties_json, '{}'::jsonb)",
-      "    ELSE '{}'::jsonb",
-      "  END,",
-      "  '{quality_issues}',",
-      "  $1::jsonb,",
-      "  true",
-      "),",
-      "updated_at = $2",
-      "WHERE dataset_id = $3 AND lesson_run_id = $4",
+      ...buildQualityPropertiesAssignment(),
+      "updated_at = $5",
+      "WHERE dataset_id = $6 AND lesson_run_id = $7",
     ].join("\n"),
-    params: [result.errors, now, datasetId, result.lesson_run_id],
+    params: qualityStatementParams(result, now, datasetId),
   }));
+}
+
+export function buildPersistQualityStatements(datasetId: string, results: LessonStagingQualityResult[], now: string): SqlStatement[] {
+  return results.map((result) => ({
+    name: `persist-staging-quality-${result.lesson_run_id}`,
+    sql: [
+      "UPDATE world_lesson_runs",
+      "SET",
+      ...buildQualityPropertiesAssignment(),
+      "updated_at = $5",
+      "WHERE dataset_id = $6 AND lesson_run_id = $7",
+    ].join("\n"),
+    params: qualityStatementParams(result, now, datasetId),
+  }));
+}
+
+function buildQualityPropertiesAssignment(): string[] {
+  return [
+    "properties_json = (",
+    "  CASE",
+    "    WHEN jsonb_typeof(COALESCE(properties_json, '{}'::jsonb)) = 'object' THEN COALESCE(properties_json, '{}'::jsonb)",
+    "    ELSE '{}'::jsonb",
+    "  END",
+    ") || jsonb_build_object(",
+    "  'quality_issues', $1::jsonb,",
+    "  'quality_warnings', $2::jsonb,",
+    "  'quality_review_required', $3::boolean,",
+    "  'review_node_ids', $4::jsonb",
+    "),",
+  ];
+}
+
+function qualityStatementParams(result: LessonStagingQualityResult, now: string, datasetId: string): unknown[] {
+  return [
+    JSON.stringify(result.errors),
+    JSON.stringify(result.warnings),
+    result.quality_review_required,
+    JSON.stringify(result.review_node_ids),
+    now,
+    datasetId,
+    result.lesson_run_id,
+  ];
 }
 
 type StagingQualityTable =
@@ -347,7 +447,7 @@ function toLessonRunRow(row: RawRecord, counts: LessonRunRow["counts_json"]): Le
     batch_anchor: requiredString(row.batch_anchor, "batch_anchor"),
     status: "staged",
     counts_json: counts,
-    properties_json: {},
+    properties_json: isRecord(row.properties_json) ? row.properties_json : {},
     created_at: optionalString(row.created_at),
     updated_at: optionalString(row.updated_at),
   };

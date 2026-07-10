@@ -18,8 +18,12 @@ export type PipelineQualityLessonRow = {
   disconnected_components: number;
   image_review_count: number;
   merge_review_count: number;
+  quality_review_count: number;
   manual_pending_items: number;
   quality_issues: string[];
+  quality_warnings: string[];
+  quality_review_required: boolean;
+  review_node_ids: string[];
   updated_at: string | null;
 };
 
@@ -38,6 +42,7 @@ export type PipelineQualityDashboardOutput = {
     disconnected_components: number;
     image_review_count: number;
     merge_review_count: number;
+    quality_review_count: number;
     blocked_lesson_count: number;
     manual_pending_items: number;
   };
@@ -114,7 +119,10 @@ export async function runQualityDashboardFromDatabase(input: {
     stagingNodeRows: (await query(buildSelectQualityStagingNodesQuery(input.datasetId))).map(toStagingNodeRow),
     stagingEdgeRows: (await query(buildSelectQualityStagingEdgesQuery(input.datasetId))).map(toStagingEdgeRow),
     stagingEvidenceRows: (await query(buildSelectQualityStagingEvidenceQuery(input.datasetId))).map(toStagingEvidenceRow),
-    reviewRows: (await query(buildSelectQualityReviewItemsQuery(input.datasetId))).map((row) => ({ lesson_run_id: requiredString(row.lesson_run_id, "lesson_run_id") })),
+    reviewRows: (await query(buildSelectQualityReviewItemsQuery(input.datasetId))).map((row) => ({
+      lesson_run_id: requiredString(row.lesson_run_id, "lesson_run_id"),
+      raw_node_id: requiredString(row.raw_node_id, "raw_node_id"),
+    })),
     canonicalNodeRows: (await query(buildSelectQualityCanonicalNodesQuery(input.datasetId))).map(toCanonicalNodeRow),
     canonicalEdgeRows: (await query(buildSelectQualityCanonicalEdgesQuery(input.datasetId))).map(toCanonicalEdgeRow),
     canonicalEvidenceRows: (await query(buildSelectQualityCanonicalEvidenceQuery(input.datasetId))).map(toCanonicalEvidenceRow),
@@ -167,7 +175,7 @@ export function buildSelectQualityStagingEvidenceQuery(datasetId: string): SqlSt
 export function buildSelectQualityReviewItemsQuery(datasetId: string): SqlStatement {
   return {
     name: "select-quality-review-items",
-    sql: "SELECT lesson_run_id FROM world_canonical_node_map WHERE dataset_id = $1 AND resolution = 'review'",
+    sql: "SELECT lesson_run_id, raw_node_id FROM world_canonical_node_map WHERE dataset_id = $1 AND resolution = 'review'",
     params: [datasetId],
   };
 }
@@ -203,7 +211,7 @@ function buildQualityDashboard(input: {
   stagingNodeRows: StagingNodeRow[];
   stagingEdgeRows: StagingEdgeRow[];
   stagingEvidenceRows: StagingEvidenceRow[];
-  reviewRows: Array<{ lesson_run_id: string }>;
+  reviewRows: Array<{ lesson_run_id: string; raw_node_id: string }>;
   canonicalNodeRows: CanonicalNodeRow[];
   canonicalEdgeRows: CanonicalEdgeRow[];
   canonicalEvidenceRows: CanonicalEvidenceRow[];
@@ -212,7 +220,7 @@ function buildQualityDashboard(input: {
   const edgesByLesson = groupByLesson(input.stagingEdgeRows);
   const evidenceByLesson = groupByLesson(input.stagingEvidenceRows);
   const canonicalEvidenceByLesson = groupCanonicalEvidenceByLesson(input.canonicalEvidenceRows);
-  const reviewCountByLesson = countBy(input.reviewRows, (row) => row.lesson_run_id);
+  const mergeReviewNodeIdsByLesson = groupReviewNodeIds(input.reviewRows);
   let supportedObjects = 0;
   let supportableObjects = 0;
 
@@ -220,7 +228,8 @@ function buildQualityDashboard(input: {
     const nodes = activeRows(nodesByLesson.get(lesson.lesson_run_id) ?? []);
     const edges = activeRows(edgesByLesson.get(lesson.lesson_run_id) ?? []);
     const evidence = evidenceByLesson.get(lesson.lesson_run_id) ?? [];
-    const evidenceIds = new Set(evidence.map((row) => row.raw_evidence_id).filter(Boolean));
+    const qualityEvidence = evidence.filter(isQualityEligibleEvidence);
+    const evidenceIds = new Set(qualityEvidence.map((row) => row.raw_evidence_id).filter(Boolean));
     const denominator = nodes.length + edges.length;
     const covered = [
       ...nodes.map((row) => hasValidEvidenceRef(row.source_refs_json, evidenceIds)),
@@ -237,8 +246,16 @@ function buildQualityDashboard(input: {
       stagingEvidenceRows: evidence,
       canonicalEvidenceRows: canonicalEvidenceByLesson.get(lessonKey(lesson)) ?? [],
     });
-    const mergeReviewCount = reviewCountByLesson.get(lesson.lesson_run_id) ?? 0;
-    const blockedItem = lesson.status === "blocked" ? 1 : 0;
+    const mergeReviewNodeIds = mergeReviewNodeIdsByLesson.get(lesson.lesson_run_id) ?? new Set<string>();
+    const mergeReviewCount = mergeReviewNodeIds.size;
+    const qualityWarningsForLesson = qualityWarnings(lesson.properties_json);
+    const reviewNodeIds = qualityReviewNodeIds(lesson.properties_json);
+    const qualityReviewRequired = qualityReviewRequiredValue(lesson.properties_json);
+    const qualityReviewNodeIdsForLesson = qualityReviewRequired ? reviewNodeIds : [];
+    const qualityReviewCount = qualityReviewRequired ? Math.max(1, qualityReviewNodeIdsForLesson.length) : 0;
+    const reviewedNodeIds = new Set([...mergeReviewNodeIds, ...qualityReviewNodeIdsForLesson]);
+    const unscopedQualityReviewItem = qualityReviewRequired && qualityReviewNodeIdsForLesson.length === 0 ? 1 : 0;
+    const blockedItem = lesson.status === "blocked" && !qualityReviewRequired ? 1 : 0;
     return {
       lesson_run_id: lesson.lesson_run_id,
       book_id: lesson.book_id,
@@ -246,15 +263,19 @@ function buildQualityDashboard(input: {
       status: lesson.status,
       node_count: nodes.length || countValue(lesson.counts_json, "nodes"),
       relation_count: edges.length || countValue(lesson.counts_json, "edges"),
-      evidence_count: evidence.length || countValue(lesson.counts_json, "evidence"),
+      evidence_count: evidence.length > 0 ? qualityEvidence.length : countValue(lesson.counts_json, "evidence"),
       evidence_coverage: denominator > 0 ? covered / denominator : 0,
       isolated_node_count: nodes.length > 0 ? graph.isolatedCount : 0,
       isolated_node_ratio: nodes.length > 0 ? graph.isolatedCount / nodes.length : 0,
       disconnected_components: nodes.length > 0 ? graph.componentCount : 0,
       image_review_count: imageReviewCount,
       merge_review_count: mergeReviewCount,
-      manual_pending_items: imageReviewCount + mergeReviewCount + blockedItem,
+      quality_review_count: qualityReviewCount,
+      manual_pending_items: imageReviewCount + reviewedNodeIds.size + unscopedQualityReviewItem + blockedItem,
       quality_issues: qualityIssues(lesson.properties_json),
+      quality_warnings: qualityWarningsForLesson,
+      quality_review_required: qualityReviewRequired,
+      review_node_ids: reviewNodeIds,
       updated_at: lesson.updated_at,
     };
   });
@@ -273,8 +294,11 @@ function buildQualityDashboard(input: {
   const imageReviewCount = input.canonicalEvidenceRows.length > 0
     ? input.canonicalEvidenceRows.filter((row) => isPendingImageReview(row.modality, row.properties_json)).length
     : lessons.reduce((sum, row) => sum + row.image_review_count, 0);
-  const mergeReviewCount = input.reviewRows.length;
+  const mergeReviewCount = lessons.reduce((sum, row) => sum + row.merge_review_count, 0);
+  const qualityReviewCount = lessons.reduce((sum, row) => sum + row.quality_review_count, 0);
   const blockedLessonCount = lessons.filter((row) => row.status === "blocked").length;
+  const canonicalQualityEvidence = input.canonicalEvidenceRows.filter(isQualityEligibleEvidence);
+  const manualPendingItems = lessons.reduce((sum, row) => sum + row.manual_pending_items, 0);
 
   return {
     dataset_id: input.datasetId,
@@ -283,15 +307,16 @@ function buildQualityDashboard(input: {
       lesson_count: lessons.length,
       node_count: nodeCount,
       relation_count: relationCount,
-      evidence_count: input.canonicalEvidenceRows.length || lessons.reduce((sum, row) => sum + row.evidence_count, 0),
+      evidence_count: input.canonicalEvidenceRows.length > 0 ? canonicalQualityEvidence.length : lessons.reduce((sum, row) => sum + row.evidence_count, 0),
       evidence_coverage: supportableObjects > 0 ? supportedObjects / supportableObjects : 0,
       isolated_node_count: isolatedNodeCount,
       isolated_node_ratio: nodeCount > 0 ? isolatedNodeCount / nodeCount : 0,
       disconnected_components: canonicalNodes.length > 0 ? canonicalGraph.componentCount : lessons.reduce((sum, row) => sum + row.disconnected_components, 0),
       image_review_count: imageReviewCount,
       merge_review_count: mergeReviewCount,
+      quality_review_count: qualityReviewCount,
       blocked_lesson_count: blockedLessonCount,
-      manual_pending_items: imageReviewCount + mergeReviewCount + blockedLessonCount,
+      manual_pending_items: manualPendingItems,
     },
     lessons,
   };
@@ -397,13 +422,14 @@ function usesCanonicalEvidenceForReviews(status: string): boolean {
   return status === "merged" || status === "qa_passed";
 }
 
-function countBy<T>(rows: T[], keyFor: (row: T) => string): Map<string, number> {
-  const counts = new Map<string, number>();
+function groupReviewNodeIds(rows: Array<{ lesson_run_id: string; raw_node_id: string }>): Map<string, Set<string>> {
+  const grouped = new Map<string, Set<string>>();
   for (const row of rows) {
-    const key = keyFor(row);
-    counts.set(key, (counts.get(key) ?? 0) + 1);
+    const nodeIds = grouped.get(row.lesson_run_id) ?? new Set<string>();
+    nodeIds.add(row.raw_node_id);
+    grouped.set(row.lesson_run_id, nodeIds);
   }
-  return counts;
+  return grouped;
 }
 
 function activeRows<T extends { status?: string | null }>(rows: T[]): T[] {
@@ -420,6 +446,11 @@ function stringArray(value: unknown): string[] {
 
 function hasValidEvidenceRef(value: unknown, evidenceIds: Set<string>): boolean {
   return stringArray(value).some((ref) => evidenceIds.has(ref));
+}
+
+function isQualityEligibleEvidence(row: { properties_json: unknown }): boolean {
+  const properties = asRecord(row.properties_json);
+  return properties.synthetic !== true && properties.quality_excluded !== true;
 }
 
 function isPendingImageReview(modality: unknown, propertiesValue: unknown): boolean {
@@ -474,6 +505,19 @@ function countValue(value: unknown, key: string): number {
 function qualityIssues(value: unknown): string[] {
   const issues = asRecord(value).quality_issues;
   return Array.isArray(issues) ? issues.map(String).filter(Boolean) : [];
+}
+
+function qualityWarnings(value: unknown): string[] {
+  const warnings = asRecord(value).quality_warnings;
+  return Array.isArray(warnings) ? warnings.map(String).filter(Boolean) : [];
+}
+
+function qualityReviewRequiredValue(value: unknown): boolean {
+  return asRecord(value).quality_review_required === true;
+}
+
+function qualityReviewNodeIds(value: unknown): string[] {
+  return [...new Set(stringArray(asRecord(value).review_node_ids))].sort();
 }
 
 function requiredString(value: unknown, name: string): string {

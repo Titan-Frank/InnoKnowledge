@@ -108,9 +108,12 @@ function assertSelectStatement(statement: SqlStatement): void {
 function assertAllowedStagingQualityWriteStatement(statement: SqlStatement): void {
   const trimmed = statement.sql.trim();
   const allowed =
-    /^UPDATE\s+world_lesson_runs\s+SET\s+status\s*=\s*'blocked'\s*,/is.test(trimmed) &&
-    /\bproperties_json\s*=\s*jsonb_set\(/is.test(trimmed) &&
-    /\{quality_issues\}/.test(trimmed);
+    /^UPDATE\s+world_lesson_runs\s+SET\b/is.test(trimmed) &&
+    /\bproperties_json\s*=/is.test(trimmed) &&
+    /'quality_issues'/.test(trimmed) &&
+    /'quality_warnings'/.test(trimmed) &&
+    /'quality_review_required'/.test(trimmed) &&
+    /'review_node_ids'/.test(trimmed);
   if (!allowed) {
     throw new Error(`Staging quality executor refuses statement '${statement.name}' outside quality status updates.`);
   }
