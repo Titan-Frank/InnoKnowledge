@@ -226,6 +226,10 @@ test("server pipeline retries chunks that fail staging quality", async () => {
   assert.match(retryPrompt, /computer-science/);
   assert.match(retryPrompt, /higher/);
   assert.match(retryPrompt, /university/);
+  assert.match(retryPrompt, /lesson_disposition/);
+  assert.match(retryPrompt, /no_knowledge_reason/);
+  assert.doesNotMatch(retryPrompt, /不要让节点数为 0/);
+  assert.doesNotMatch(retryPrompt, /domain_profile|node_card/);
   assert.doesNotMatch(retryPrompt, /高中物理|物理量/);
   assert.equal(commands.filter(isExtractionCommand).length, 38);
   assert.equal(result.stages.find((stage) => stage.id === "lesson_staging_retry_1")?.status, "completed");

@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { runQualityDashboardFromDatabase } from "./quality-dashboard.js";
+import { buildSelectQualityReviewItemsQuery, runQualityDashboardFromDatabase } from "./quality-dashboard.js";
+
+test("loads merge review node ids for per-node deduplication", () => {
+  const statement = buildSelectQualityReviewItemsQuery("main");
+  assert.match(statement.sql, /SELECT lesson_run_id, raw_node_id/);
+});
 
 test("builds lesson and global quality dashboard metrics", async () => {
   const result = await runQualityDashboardFromDatabase({
@@ -32,6 +37,7 @@ test("builds lesson and global quality dashboard metrics", async () => {
     disconnected_components: 3,
     image_review_count: 1,
     merge_review_count: 1,
+    quality_review_count: 2,
     blocked_lesson_count: 1,
     manual_pending_items: 3,
   });
@@ -45,10 +51,14 @@ test("builds lesson and global quality dashboard metrics", async () => {
   assert.equal(first.disconnected_components, 2);
   assert.equal(first.image_review_count, 1);
   assert.equal(first.merge_review_count, 1);
+  assert.equal(first.quality_review_count, 1);
   assert.equal(first.manual_pending_items, 2);
+  assert.deepEqual(first.quality_warnings, ["Node n3 requires review.", "Node n3 has a second warning."]);
+  assert.deepEqual(first.review_node_ids, ["n3"]);
 
   const second = result.lessons[1]!;
   assert.equal(second.status, "blocked");
+  assert.equal(second.quality_review_count, 1);
   assert.equal(second.manual_pending_items, 1);
   assert.deepEqual(second.quality_issues, ["Lesson produced no staged edges."]);
 });
@@ -67,6 +77,18 @@ test("uses canonical image review state after a lesson has been merged", async (
   assert.equal(result.summary.manual_pending_items, 2);
 });
 
+test("excludes synthetic pending evidence from coverage and evidence counts", async () => {
+  const result = await runQualityDashboardFromDatabase({
+    datasetId: "main",
+    now: "2026-06-29T00:00:00.000Z",
+    query: (statement) => rowsForSyntheticEvidence(statement.name),
+  });
+
+  assert.equal(result.lessons[0]?.evidence_count, 0);
+  assert.equal(result.lessons[0]?.evidence_coverage, 0);
+  assert.equal(result.summary.evidence_count, 1);
+});
+
 function rowsFor(name: string): Array<Record<string, unknown>> {
   switch (name) {
     case "select-quality-lesson-runs":
@@ -77,7 +99,11 @@ function rowsFor(name: string): Array<Record<string, unknown>> {
           batch_anchor: "struct:book-a:1",
           status: "qa_passed",
           counts_json: { nodes: 99, edges: 99, evidence: 99 },
-          properties_json: {},
+          properties_json: {
+            quality_warnings: ["Node n3 requires review.", "Node n3 has a second warning."],
+            quality_review_required: true,
+            review_node_ids: ["n3"],
+          },
           updated_at: "2026-06-28T01:00:00Z",
         },
         {
@@ -86,7 +112,12 @@ function rowsFor(name: string): Array<Record<string, unknown>> {
           batch_anchor: "struct:book-a:2",
           status: "blocked",
           counts_json: { nodes: 1, edges: 0, evidence: 1 },
-          properties_json: { quality_issues: ["Lesson produced no staged edges."] },
+          properties_json: {
+            quality_issues: ["Lesson produced no staged edges."],
+            quality_warnings: ["Node m1 requires review."],
+            quality_review_required: true,
+            review_node_ids: ["m1"],
+          },
           updated_at: "2026-06-28T02:00:00Z",
         },
       ];
@@ -112,7 +143,10 @@ function rowsFor(name: string): Array<Record<string, unknown>> {
         { lesson_run_id: "lesson-2", raw_evidence_id: "ev2", modality: "text", properties_json: {} },
       ];
     case "select-quality-review-items":
-      return [{ lesson_run_id: "lesson-1" }];
+      return [
+        { lesson_run_id: "lesson-1", raw_node_id: "n3" },
+        { lesson_run_id: "lesson-1", raw_node_id: "n3" },
+      ];
     case "select-quality-canonical-nodes":
       return [
         { id: "n1", status: "active" },
@@ -130,6 +164,16 @@ function rowsFor(name: string): Array<Record<string, unknown>> {
     default:
       return [];
   }
+}
+
+function rowsForSyntheticEvidence(name: string): Array<Record<string, unknown>> {
+  if (name === "select-quality-staging-evidence") {
+    return rowsFor(name).map((row) => row.raw_evidence_id === "ev1"
+      ? { ...row, properties_json: { synthetic: true, quality_excluded: true, review_status: "pending" } }
+      : row);
+  }
+  if (name.startsWith("select-quality-canonical-")) return [];
+  return rowsFor(name);
 }
 
 function rowsForCanonicalApproved(name: string): Array<Record<string, unknown>> {

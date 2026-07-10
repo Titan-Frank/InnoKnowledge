@@ -1081,7 +1081,7 @@ function QualityDashboardPanel({
             label="人工待处理"
             value={summary?.manual_pending_items ?? '暂无'}
             tone={summary && summary.manual_pending_items > 0 ? 'warn' : 'ok'}
-            detail={summary ? `图片 ${summary.image_review_count}，合并 ${summary.merge_review_count}` : '等待统计'}
+            detail={summary ? `图片 ${summary.image_review_count}，合并 ${summary.merge_review_count}，质量 ${summary.quality_review_count}` : '等待统计'}
           />
         </div>
 
@@ -1116,8 +1116,8 @@ function QualityDashboardPanel({
                       <td className="px-3 py-2"><StatusPill status={row.status} /></td>
                       <td className="max-w-[300px] px-3 py-2">
                         <div className="truncate font-medium text-text-primary" title={row.batch_anchor}>{row.batch_anchor}</div>
-                        {row.quality_issues.length > 0 && (
-                          <div className="mt-1 truncate text-[10px] text-node-event">{row.quality_issues[0]}</div>
+                        {(row.quality_issues.length > 0 || row.quality_warnings.length > 0) && (
+                          <div className="mt-1 truncate text-[10px] text-node-event">{row.quality_issues[0] ?? row.quality_warnings[0]}</div>
                         )}
                       </td>
                       <td className="px-3 py-2 tabular-nums text-text-secondary">{row.node_count}</td>

@@ -4,6 +4,7 @@ import test from "node:test";
 import { buildStagingTableRows } from "./staging-rows.js";
 import {
   buildMarkBlockedStatements,
+  buildPersistQualityStatements,
   buildSelectStagedLessonRunsQuery,
   buildSelectStagingRowsQuery,
   runStagingQualityFromDatabase,
@@ -71,19 +72,23 @@ test("builds staged table row query for one lesson", () => {
 
 test("returns success for complete staged lesson rows from database", async () => {
   const queried: string[] = [];
+  const executed: string[] = [];
   const result = await runStagingQualityFromDatabase({
     datasetId: "main",
     query: (statement) => {
       queried.push(statement.name);
       return rowsForCompleteLesson(statement.name);
     },
+    executeStatement: (statement) => {
+      executed.push(statement.name);
+    },
   });
 
   assert.equal(result.status, "success");
   assert.equal(result.checked, 1);
   assert.equal(result.blocked, 0);
-  assert.deepEqual(result.statements, []);
-  assert.deepEqual(result.executedStatements, []);
+  assert.deepEqual(result.statements, ["persist-staging-quality-lesson-run:1"]);
+  assert.deepEqual(result.executedStatements, executed);
   assert.deepEqual(result.results[0]?.counts, {
     nodes: 1,
     edges: 1,
@@ -162,19 +167,35 @@ test("executes blocked lesson status updates in plan order", async () => {
   assert.deepEqual(result.executedStatements, executed);
 });
 
-test("builds quality blocked update statements", () => {
+test("builds quality metadata update statements", () => {
+  const result = {
+    lesson_run_id: "lesson-run:1",
+    status: "blocked" as const,
+    errors: ["bad"],
+    warnings: ["review"],
+    quality_review_required: true,
+    review_node_ids: ["n1"],
+    counts: completeRows.lesson_run.counts_json,
+  };
   const statements = buildMarkBlockedStatements(
     "main",
-    [{ lesson_run_id: "lesson-run:1", status: "blocked", errors: ["bad"], warnings: [], counts: completeRows.lesson_run.counts_json }],
+    [result],
     context.now,
   );
 
   assert.deepEqual(statements.map((statement) => statement.name), ["mark-staging-quality-blocked-lesson-run:1"]);
   assert.match(statements[0]!.sql, /UPDATE world_lesson_runs/);
   assert.match(statements[0]!.sql, /quality_issues/);
+  assert.match(statements[0]!.sql, /quality_warnings/);
+  assert.match(statements[0]!.sql, /quality_review_required/);
+  assert.match(statements[0]!.sql, /review_node_ids/);
   assert.match(statements[0]!.sql, /jsonb_typeof/);
   assert.match(statements[0]!.sql, /ELSE '\{\}'::jsonb/);
-  assert.deepEqual(statements[0]!.params, [["bad"], context.now, "main", "lesson-run:1"]);
+  assert.deepEqual(statements[0]!.params, ["[\"bad\"]", "[\"review\"]", true, "[\"n1\"]", context.now, "main", "lesson-run:1"]);
+
+  const successStatements = buildPersistQualityStatements("main", [{ ...result, status: "success" }], context.now);
+  assert.deepEqual(successStatements.map((statement) => statement.name), ["persist-staging-quality-lesson-run:1"]);
+  assert.doesNotMatch(successStatements[0]!.sql, /status = 'blocked'/);
 });
 
 function rowsForCompleteLesson(name: string): Array<Record<string, unknown>> {

@@ -30,6 +30,8 @@ async function main(argv: string[]): Promise<number> {
       root: required(flags, "root"),
       bookId: required(flags, "book-id"),
       batchAnchor: required(flags, "batch-anchor"),
+      lessonDisposition: flags.get("lesson-disposition"),
+      noKnowledgeReason: flags.get("no-knowledge-reason"),
       lessonRunId: flags.get("lesson-run-id"),
       datasetId: flags.get("dataset-id"),
       nodesJson: required(flags, "nodes-json"),

@@ -10,6 +10,11 @@ import {
 } from "./merge-staged-lessons-query.js";
 import { buildMergeRowsPlanInput, evidenceIdsFromRows, indexRowsByStringKey, type MergeFetchedStagingRows } from "./merge-staged-lessons-rows.js";
 import { buildMergeStagedLessonsSqlPlan } from "./merge-staged-lessons-sql.js";
+import {
+  buildDatasetAdvisoryLockStatement,
+  DATASET_TRANSACTION_BEGIN_SQL,
+  rollbackTransaction,
+} from "../shared/dataset-transaction.js";
 import { planNodeTerms, type NodeTermRow, type NodeTermsPlan } from "../shared/node-terms.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
@@ -66,6 +71,42 @@ const STAGED_KEY_BY_TABLE: Record<MergeStagingTable, keyof MergeFetchedStagingRo
   world_staging_node_cards: "node_cards",
 };
 
+const BEGIN_MERGE_TRANSACTION: SqlStatement = {
+  name: "begin-merge-transaction",
+  sql: "BEGIN",
+  params: [],
+};
+
+const COMMIT_MERGE_TRANSACTION: SqlStatement = {
+  name: "commit-merge-transaction",
+  sql: "COMMIT",
+  params: [],
+};
+
+const ROLLBACK_MERGE_TRANSACTION: SqlStatement = {
+  name: "rollback-merge-transaction",
+  sql: "ROLLBACK",
+  params: [],
+};
+
+const BEGIN_MERGE_RUN_TRANSACTION: SqlStatement = {
+  name: "begin-merge-run-transaction",
+  sql: DATASET_TRANSACTION_BEGIN_SQL,
+  params: [],
+};
+
+const COMMIT_MERGE_RUN_TRANSACTION: SqlStatement = {
+  name: "commit-merge-run-transaction",
+  sql: "COMMIT",
+  params: [],
+};
+
+const ROLLBACK_MERGE_RUN_TRANSACTION: SqlStatement = {
+  name: "rollback-merge-run-transaction",
+  sql: "ROLLBACK",
+  params: [],
+};
+
 export async function storeMergedLessons(
   plan: StagedLessonsMergePlan,
   options: {
@@ -80,11 +121,7 @@ export async function storeMergedLessons(
     now: options.now,
     nodeTermRows: options.nodeTermRows,
   });
-  const executedStatements: string[] = [];
-  for (const statement of sqlPlan.statements) {
-    await options.execute(statement);
-    executedStatements.push(statement.name);
-  }
+  const executedStatements = await executeMergeStatementsInTransaction(sqlPlan.statements, options.execute);
   return {
     status: "success",
     merge_run_id: plan.merge_run_id,
@@ -92,6 +129,32 @@ export async function storeMergedLessons(
     stats: plan.stats,
     executedStatements,
   };
+}
+
+async function executeMergeStatementsInTransaction(
+  statements: SqlStatement[],
+  execute: MergeSqlExecutor,
+): Promise<string[]> {
+  if (statements.length === 0) return [];
+
+  const executedStatements: string[] = [];
+  await execute(BEGIN_MERGE_TRANSACTION);
+  try {
+    executedStatements.push(...await executeMergeStatements(statements, execute));
+    await execute(COMMIT_MERGE_TRANSACTION);
+  } catch (error) {
+    return rollbackTransaction(execute, ROLLBACK_MERGE_TRANSACTION, error, "Merge");
+  }
+  return executedStatements;
+}
+
+async function executeMergeStatements(statements: SqlStatement[], execute: MergeSqlExecutor): Promise<string[]> {
+  const executedStatements: string[] = [];
+  for (const statement of statements) {
+    await execute(statement);
+    executedStatements.push(statement.name);
+  }
+  return executedStatements;
 }
 
 export async function runMergeStagedLessonsFromDatabase(input: RunMergeStagedLessonsFromDatabaseInput): Promise<RunMergeStagedLessonsFromDatabaseOutput> {
@@ -106,6 +169,23 @@ export async function runMergeStagedLessonsFromDatabase(input: RunMergeStagedLes
     return rows;
   };
 
+  await input.executeStatement(BEGIN_MERGE_RUN_TRANSACTION);
+  try {
+    await query(buildDatasetAdvisoryLockStatement(input.datasetId));
+    const output = await runMergeStagedLessonsWithinTransaction(input, now, readStatements, query);
+    await input.executeStatement(COMMIT_MERGE_RUN_TRANSACTION);
+    return output;
+  } catch (error) {
+    return rollbackTransaction(input.executeStatement, ROLLBACK_MERGE_RUN_TRANSACTION, error, "Merge run");
+  }
+}
+
+async function runMergeStagedLessonsWithinTransaction(
+  input: RunMergeStagedLessonsFromDatabaseInput,
+  now: string,
+  readStatements: string[],
+  query: (statement: SqlStatement) => Promise<RawRecord[]>,
+): Promise<RunMergeStagedLessonsFromDatabaseOutput> {
   const lessonRuns = await query(
     buildLoadMergeLessonRunsQuery({
       datasetId: input.datasetId,
@@ -150,12 +230,7 @@ export async function runMergeStagedLessonsFromDatabase(input: RunMergeStagedLes
     now,
     nodeTermRows: nodeTerms.rows,
   });
-  const executed = await storeMergedLessons(plan, {
-    datasetId: input.datasetId,
-    now,
-    nodeTermRows: nodeTerms.rows,
-    execute: input.executeStatement,
-  });
+  const executedStatements = await executeMergeStatements(sqlPlan.statements, input.executeStatement);
 
   return {
     ...plan,
@@ -163,7 +238,7 @@ export async function runMergeStagedLessonsFromDatabase(input: RunMergeStagedLes
     read_statements: readStatements,
     statements: sqlPlan.statements.map((statement) => statement.name),
     node_terms: nodeTerms,
-    executedStatements: executed.executedStatements,
+    executedStatements,
   };
 }
 

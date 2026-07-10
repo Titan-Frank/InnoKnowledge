@@ -105,6 +105,8 @@ export type ModelExtractionRequest = {
 };
 
 export type ModelBundle = {
+  lesson_disposition?: "extracted" | "no_knowledge";
+  no_knowledge_reason?: string;
   nodes?: RawRecord[];
   edges?: RawRecord[];
   evidence_units?: RawRecord[];
@@ -113,11 +115,13 @@ export type ModelBundle = {
   issues?: unknown[];
 };
 
-export type HybridNodeEvidenceBundle = Pick<ModelBundle, "nodes" | "evidence_units" | "issues">;
+export type HybridNodeEvidenceBundle = Pick<ModelBundle, "lesson_disposition" | "no_knowledge_reason" | "nodes" | "evidence_units" | "issues">;
 export type HybridEdgeBundle = Pick<ModelBundle, "edges" | "issues">;
 
 export type ExtractionPayload = {
   status: "success";
+  lesson_disposition: "extracted" | "no_knowledge";
+  no_knowledge_reason: string;
   lesson_run_id: string;
   book_id: string;
   batch_anchor: string;
@@ -256,7 +260,7 @@ function buildHybridNodeEvidenceInstructions(input: { prompt?: string; extractio
 任务是只从当前 lesson/chunk 中抽取证据和候选知识节点。
 
 硬约束：
-1. 只输出 nodes、evidence_units、issues 三个字段。
+1. 只输出 lesson_disposition、no_knowledge_reason、nodes、evidence_units、issues 五个字段。
 2. 这一阶段绝对不要输出关系；关系会在第二阶段单独判断。
 3. 每个节点必须能被当前 lesson 的 evidence_units 支撑，证据不足就不要列为节点。
 4. evidence_units.anchor 必须稳定、简短、唯一，例如 ev1、ev2。
@@ -267,7 +271,10 @@ function buildHybridNodeEvidenceInstructions(input: { prompt?: string; extractio
 9. 正式候选节点应具备稳定知识身份、证据锚点、关系潜力、教学用途和未来复用性。
 10. lesson_context.enrich_hints 只是对应教材位置的辅助判断材料，只能帮助判断术语边界、命名和粒度，不能作为节点证据。
 11. 如果 enrich_hints 和当前 lesson/chunk 证据冲突，以当前 lesson/chunk 的证据为准。
-12. 输出必须严格符合 JSON schema。
+12. 如果当前课时存在至少一个证据充分、符合准入条件的知识对象，lesson_disposition 必须为 extracted，no_knowledge_reason 必须为空字符串。
+13. 只有当前课时确实没有任何可抽取知识对象时，lesson_disposition 才能为 no_knowledge；此时 nodes 和 evidence_units 必须都为空，并在 no_knowledge_reason 中写明原因。
+14. 不要为了避免空结果而把目录、栏目、题型、活动标题或证据不足的词语提升为节点。
+15. 输出必须严格符合 JSON schema。
   `.trim();
   return appendPromptBlocks(base, input.prompt, input.extractionTemplate, "node_evidence");
 }
@@ -473,6 +480,8 @@ export function buildResponseSchema(extractionTemplate?: ExtractionTemplate | nu
       type: "object",
       additionalProperties: false,
       properties: {
+        lesson_disposition: { type: "string", enum: ["extracted", "no_knowledge"] },
+        no_knowledge_reason: { type: "string" },
         nodes: { type: "array", items: nodeItem },
         edges: { type: "array", items: edgeItem },
         evidence_units: { type: "array", items: evidenceItem },
@@ -480,7 +489,7 @@ export function buildResponseSchema(extractionTemplate?: ExtractionTemplate | nu
         node_cards: { type: "array", items: cardItem },
         issues: { type: "array", items: { type: "string" } },
       },
-      required: ["nodes", "edges", "evidence_units", "domain_profiles", "node_cards", "issues"],
+      required: ["lesson_disposition", "no_knowledge_reason", "nodes", "edges", "evidence_units", "domain_profiles", "node_cards", "issues"],
     },
   };
 }
@@ -494,11 +503,13 @@ export function buildHybridNodeEvidenceResponseSchema(extractionTemplate?: Extra
       type: "object",
       additionalProperties: false,
       properties: {
+        lesson_disposition: properties.lesson_disposition,
+        no_knowledge_reason: properties.no_knowledge_reason,
         nodes: properties.nodes,
         evidence_units: properties.evidence_units,
         issues: properties.issues,
       },
-      required: ["nodes", "evidence_units", "issues"],
+      required: ["lesson_disposition", "no_knowledge_reason", "nodes", "evidence_units", "issues"],
     },
   };
 }
@@ -718,6 +729,8 @@ function buildStrictHybridModelBundle(
   }
 
   return {
+    lesson_disposition: normalizeLessonDisposition(nodeEvidenceBundle.lesson_disposition),
+    no_knowledge_reason: stringValue(nodeEvidenceBundle.no_knowledge_reason).trim(),
     nodes: normalized.nodes,
     evidence_units: normalized.evidence_units,
     edges,
@@ -808,6 +821,9 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
   const schoolStage = input.schoolStage ?? "higher";
   const gradeBand = input.gradeBand ?? "university";
   const extractionTemplate = input.extractionTemplate;
+  const lessonDisposition = normalizeLessonDisposition(bundle.lesson_disposition);
+  const noKnowledgeReason = stringValue(bundle.no_knowledge_reason).trim();
+  const isNoKnowledge = lessonDisposition === "no_knowledge";
 
   const nodes: RawRecord[] = [];
   const nodeIds = new Set<string>();
@@ -875,32 +891,34 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
     });
   }
 
-  const hintStartIndex = evidence.length + 1;
-  for (const [offset, hint] of extractMarkdownEvidenceHints(markdownLines).entries()) {
-    const excerpt = hint.excerpt.trim();
-    if (!excerpt) continue;
-    const evidenceId = `evidence:${safePathToken(input.bookId)}:hint:${hintStartIndex + offset}`;
-    evidence.push({
-      id: evidenceId,
-      source_type: "textbook",
-      source_id: sourceId,
-      anchor_ref: anchorRef,
-      source_path: sourcePath,
-      page_start: item.page_start,
-      page_end: item.page_end,
-      excerpt,
-      locator: hint.locator.trim(),
-      modality: hint.modality,
-      extraction_method: "markdown_hint",
-      normalized_claims: [excerpt.slice(0, 120)],
-      properties: applyEvidenceTemplateProperties(
-        Object.fromEntries(Object.entries(hint).filter(([key]) => !["excerpt", "locator", "modality"].includes(key))),
-        extractionTemplate,
-      ),
-    });
+  if (!isNoKnowledge) {
+    const hintStartIndex = evidence.length + 1;
+    for (const [offset, hint] of extractMarkdownEvidenceHints(markdownLines).entries()) {
+      const excerpt = hint.excerpt.trim();
+      if (!excerpt) continue;
+      const evidenceId = `evidence:${safePathToken(input.bookId)}:hint:${hintStartIndex + offset}`;
+      evidence.push({
+        id: evidenceId,
+        source_type: "textbook",
+        source_id: sourceId,
+        anchor_ref: anchorRef,
+        source_path: sourcePath,
+        page_start: item.page_start,
+        page_end: item.page_end,
+        excerpt,
+        locator: hint.locator.trim(),
+        modality: hint.modality,
+        extraction_method: "markdown_hint",
+        normalized_claims: [excerpt.slice(0, 120)],
+        properties: applyEvidenceTemplateProperties(
+          Object.fromEntries(Object.entries(hint).filter(([key]) => !["excerpt", "locator", "modality"].includes(key))),
+          extractionTemplate,
+        ),
+      });
+    }
   }
 
-  if (nodes.length > 0 && evidence.length === 0) {
+  if (!isNoKnowledge && nodes.length > 0 && evidence.length === 0) {
     const backfillExcerpt = makeExcerpt(markdownLines, 600);
     const excerpt = backfillExcerpt || stringValue(item.title || anchorRef);
     evidence.push({
@@ -916,7 +934,14 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       modality: "text",
       extraction_method: "model_missing_evidence_backfill",
       normalized_claims: [excerpt.slice(0, 120)],
-      properties: applyEvidenceTemplateProperties({}, extractionTemplate),
+      properties: applyEvidenceTemplateProperties(
+        {
+          synthetic: true,
+          quality_excluded: true,
+          review_status: "pending",
+        },
+        extractionTemplate,
+      ),
     });
   }
 
@@ -942,23 +967,11 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
     }
   }
 
-  const backfillEvidenceId = stringValue(evidence[0]?.id);
-  const mentionedNodeIds = new Set(mentions.map((mention) => stringValue(mention.target_id)));
-  for (const node of nodes) {
-    const nodeId = stringValue(node.id);
-    if (mentionedNodeIds.has(nodeId) || !backfillEvidenceId) continue;
-    mentions.push({
-      id: `mention:${safePathToken(input.bookId)}:${safePathToken(nodeId)}:backfill`,
-      source_type: "textbook",
-      source_id: sourceId,
-      anchor_ref: anchorRef,
-      target_type: "node",
-      target_id: nodeId,
-      role: "mentions",
-      source_refs: [backfillEvidenceId],
-      confidence: 0.72,
-      properties: applyMentionTemplateProperties({ backfilled: true }, extractionTemplate),
-    });
+  const evidenceRefsByNode = new Map<string, string[]>();
+  for (const mention of mentions) {
+    const nodeId = stringValue(mention.target_id);
+    const refs = trimmedStrings(mention.source_refs);
+    evidenceRefsByNode.set(nodeId, uniqueStrings([...(evidenceRefsByNode.get(nodeId) ?? []), ...refs]));
   }
 
   const edges: RawRecord[] = [];
@@ -986,7 +999,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       droppedEdges += 1;
       continue;
     }
-    const evidenceId = evidenceByAnchor.get(stringValue(raw.evidence_anchor).trim()) ?? backfillEvidenceId;
+    const evidenceId = evidenceByAnchor.get(stringValue(raw.evidence_anchor).trim());
     edges.push({
       id: makeEdgeId(fromId, edgeType, toId),
       type: edgeType,
@@ -1016,7 +1029,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       domain,
       school_stages: trimmedStrings(raw.school_stages).length > 0 ? trimmedStrings(raw.school_stages) : [schoolStage],
       curriculum_roles: trimmedStrings(raw.curriculum_roles).length > 0 ? trimmedStrings(raw.curriculum_roles) : ["core"],
-      source_refs: sourceRefs.length > 0 ? sourceRefs.slice(0, 1) : backfillEvidenceId ? [backfillEvidenceId] : [],
+      source_refs: sourceRefs.slice(0, 1),
       properties: applyProfileTemplateProperties(isRecord(raw.properties) ? raw.properties : { subject, grade_band: gradeBand }, extractionTemplate),
       status: "draft",
       notes: "",
@@ -1036,7 +1049,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       domain,
       school_stages: [schoolStage],
       curriculum_roles: ["core"],
-      source_refs: backfillEvidenceId ? [backfillEvidenceId] : [],
+      source_refs: (evidenceRefsByNode.get(nodeId) ?? []).slice(0, 1),
       properties: applyProfileTemplateProperties({ subject, grade_band: gradeBand, backfilled: true }, extractionTemplate),
       status: "draft",
       notes: "Backfilled because the model omitted a domain profile.",
@@ -1048,7 +1061,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
   for (const raw of asRecords(bundle.node_cards)) {
     const nodeId = stringValue(raw.node_id).trim();
     if (!nodeIds.has(nodeId)) continue;
-    const evidenceId = evidenceByAnchor.get(stringValue(raw.evidence_anchor).trim()) ?? backfillEvidenceId;
+    const evidenceId = evidenceByAnchor.get(stringValue(raw.evidence_anchor).trim()) ?? "";
     const title = stringValue(nodes.find((node) => node.id === nodeId)?.name);
     nodeCards.push({
       id: makeNodeCardId(nodeId),
@@ -1080,19 +1093,20 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
     const nodeId = stringValue(node.id);
     if (cardNodeIds.has(nodeId)) continue;
     const definition = stringValue(node.definition || node.name).trim();
-    const refs = backfillEvidenceId ? [backfillEvidenceId] : [];
+    const evidenceId = (evidenceRefsByNode.get(nodeId) ?? [])[0] ?? "";
+    const refs = evidenceId ? [evidenceId] : [];
     nodeCards.push({
       id: makeNodeCardId(nodeId),
       node_id: nodeId,
       title: node.name,
       summary: definition,
       sections: [
-        cardSection("definition", "定义", "definition", [definition], backfillEvidenceId, { backfilled: true }),
-        cardSection("essence", "核心本质", "essence", [definition], backfillEvidenceId, { backfilled: true }),
-        cardSection("key-points", "关键要点", "key_points", [definition], backfillEvidenceId, { backfilled: true }),
-        cardSection("example", "示例", "example", [stringValue(node.name)], backfillEvidenceId, { backfilled: true }),
-        cardSection("application", "应用", "application", [stringValue(item.title || "")], backfillEvidenceId, { backfilled: true }),
-        cardSection("misconception", "常见误解", "misconception", ["需结合证据原文确认适用范围。"], backfillEvidenceId, { backfilled: true }),
+        cardSection("definition", "定义", "definition", [definition], evidenceId, { backfilled: true }),
+        cardSection("essence", "核心本质", "essence", [definition], evidenceId, { backfilled: true }),
+        cardSection("key-points", "关键要点", "key_points", [definition], evidenceId, { backfilled: true }),
+        cardSection("example", "示例", "example", [stringValue(node.name)], evidenceId, { backfilled: true }),
+        cardSection("application", "应用", "application", [stringValue(item.title || "")], evidenceId, { backfilled: true }),
+        cardSection("misconception", "常见误解", "misconception", ["需结合证据原文确认适用范围。"], evidenceId, { backfilled: true }),
       ],
       source_refs: refs,
       properties: applyCardTemplateProperties({ backfilled: true }, extractionTemplate),
@@ -1102,6 +1116,8 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
 
   return {
     status: "success",
+    lesson_disposition: lessonDisposition,
+    no_knowledge_reason: noKnowledgeReason,
     lesson_run_id: lessonRunId,
     book_id: input.bookId,
     batch_anchor: anchorRef,
@@ -1437,6 +1453,10 @@ function uniqueStrings(values: Iterable<string>): string[] {
 
 function validOrDefault(value: string, allowed: Set<string>, fallback: string): string {
   return allowed.has(value) ? value : fallback;
+}
+
+function normalizeLessonDisposition(value: unknown): "extracted" | "no_knowledge" {
+  return value === "no_knowledge" ? "no_knowledge" : "extracted";
 }
 
 function validListOrDefault(value: unknown, allowed: Set<string>, fallback: string): string[] {

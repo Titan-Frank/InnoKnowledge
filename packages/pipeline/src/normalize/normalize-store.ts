@@ -1,4 +1,9 @@
 import { checkGraphIntegrity } from "../qa/graph-integrity.js";
+import {
+  buildDatasetAdvisoryLockStatement,
+  DATASET_TRANSACTION_BEGIN_SQL,
+  rollbackTransaction,
+} from "../shared/dataset-transaction.js";
 import { planNodeTerms, type NodeTermsPlan } from "../shared/node-terms.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 import { normalizeNodeCardRows, type NodeCardLike } from "./normalize-cards.js";
@@ -35,6 +40,24 @@ export type RunNormalizeFromDatabaseInput = {
   executeStatement: NormalizeSqlExecutor;
 };
 
+const BEGIN_NORMALIZE_TRANSACTION: SqlStatement = {
+  name: "begin-normalize-transaction",
+  sql: DATASET_TRANSACTION_BEGIN_SQL,
+  params: [],
+};
+
+const COMMIT_NORMALIZE_TRANSACTION: SqlStatement = {
+  name: "commit-normalize-transaction",
+  sql: "COMMIT",
+  params: [],
+};
+
+const ROLLBACK_NORMALIZE_TRANSACTION: SqlStatement = {
+  name: "rollback-normalize-transaction",
+  sql: "ROLLBACK",
+  params: [],
+};
+
 export async function runNormalizeFromDatabase(input: RunNormalizeFromDatabaseInput): Promise<NormalizeDatabaseOutput> {
   const now = input.now || new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00");
   const readStatements: string[] = [];
@@ -47,6 +70,23 @@ export async function runNormalizeFromDatabase(input: RunNormalizeFromDatabaseIn
     return rows;
   };
 
+  await input.executeStatement(BEGIN_NORMALIZE_TRANSACTION);
+  try {
+    await query(buildDatasetAdvisoryLockStatement(input.datasetId));
+    const output = await runNormalizeWithinTransaction(input, now, readStatements, query);
+    await input.executeStatement(COMMIT_NORMALIZE_TRANSACTION);
+    return output;
+  } catch (error) {
+    return rollbackTransaction(input.executeStatement, ROLLBACK_NORMALIZE_TRANSACTION, error, "Normalize");
+  }
+}
+
+async function runNormalizeWithinTransaction(
+  input: RunNormalizeFromDatabaseInput,
+  now: string,
+  readStatements: string[],
+  query: (statement: SqlStatement) => Promise<RawRecord[]>,
+): Promise<NormalizeDatabaseOutput> {
   const nodeCards = await query(buildSelectNodeCardsForNormalizeQuery(input.datasetId));
   const domainProfiles = await query(buildSelectDomainProfilesForNormalizeQuery(input.datasetId));
   const edges = await query(buildSelectEdgesForNormalizeQuery(input.datasetId));
@@ -67,11 +107,7 @@ export async function runNormalizeFromDatabase(input: RunNormalizeFromDatabaseIn
     nodeTerms,
   });
 
-  const executedStatements: string[] = [];
-  for (const statement of statements) {
-    await input.executeStatement(statement);
-    executedStatements.push(statement.name);
-  }
+  const executedStatements = await executeNormalizeStatements(statements, input.executeStatement);
 
   return {
     status: "success",
@@ -90,6 +126,15 @@ export async function runNormalizeFromDatabase(input: RunNormalizeFromDatabaseIn
       edges: edgePlan,
     },
   };
+}
+
+async function executeNormalizeStatements(statements: SqlStatement[], execute: NormalizeSqlExecutor): Promise<string[]> {
+  const executedStatements: string[] = [];
+  for (const statement of statements) {
+    await execute(statement);
+    executedStatements.push(statement.name);
+  }
+  return executedStatements;
 }
 
 export function buildSelectNodeCardsForNormalizeQuery(datasetId: string): SqlStatement {

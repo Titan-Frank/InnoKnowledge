@@ -87,6 +87,8 @@ test("builds two-stage model requests with chat completions as the default API",
     assert.match(request.instructions, /物理教材抽取模板/);
     assert.match(request.instructions, /第一阶段/);
     assert.match(request.instructions, /不能作为节点证据/);
+    assert.match(request.instructions, /lesson_disposition/);
+    assert.match(request.instructions, /no_knowledge/);
     assert.doesNotMatch(request.instructions, /- edges:/);
     assert.doesNotMatch(request.instructions, /关系规则：/);
 
@@ -104,6 +106,9 @@ test("builds two-stage model requests with chat completions as the default API",
     assert.equal(schema.name, "world_knowledge_lesson_bundle");
     assert.equal(buildHybridNodeEvidenceResponseSchema().name, "world_knowledge_node_evidence_bundle");
     assert.equal(buildHybridEdgeResponseSchema().name, "world_knowledge_edge_bundle");
+    const hybridRequired = ((buildHybridNodeEvidenceResponseSchema().schema as Record<string, unknown>).required as string[]);
+    assert.ok(hybridRequired.includes("lesson_disposition"));
+    assert.ok(hybridRequired.includes("no_knowledge_reason"));
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }
@@ -186,6 +191,65 @@ test("strictly keeps hybrid edges only when nodes and evidence anchors exist", (
     assert.ok(payload.issues.includes("stage1"));
     assert.ok(payload.issues.includes("stage2"));
     assert.ok(payload.issues.some((issue) => issue.includes("Strict hybrid validator dropped 2 edge")));
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("keeps an explicit no_knowledge lesson completely empty", () => {
+  const repo = makeFixtureRepo();
+  try {
+    const payload = buildHybridExtractionPayloadFromModelBundles(
+      { bookId, batchAnchor: canonicalAnchor, repoRoot: repo.root },
+      {
+        lesson_disposition: "no_knowledge",
+        no_knowledge_reason: "当前课时只有导航信息。",
+        nodes: [],
+        evidence_units: [],
+        issues: [],
+      },
+      { edges: [], issues: [] },
+    );
+
+    assert.equal(payload.lesson_disposition, "no_knowledge");
+    assert.equal(payload.no_knowledge_reason, "当前课时只有导航信息。");
+    assert.deepEqual(payload.counts, {
+      nodes: 0,
+      edges: 0,
+      domain_profiles: 0,
+      mentions: 0,
+      evidence: 0,
+      node_cards: 0,
+    });
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("marks fallback evidence as quality-excluded without inventing a mention", () => {
+  const repo = makeFixtureRepo();
+  try {
+    const payload = buildHybridExtractionPayloadFromModelBundles(
+      { bookId, batchAnchor: canonicalAnchor, repoRoot: repo.root, markdownLines: ["知识正文"] },
+      {
+        lesson_disposition: "extracted",
+        no_knowledge_reason: "",
+        nodes: [{ id: "node:map", name: "知识图谱", kind: "concept", definition: "结构化表示知识。" }],
+        evidence_units: [],
+        issues: [],
+      },
+      { edges: [], issues: [] },
+    );
+
+    assert.equal(payload.evidence.length, 1);
+    assert.deepEqual(payload.evidence[0]?.properties, {
+      synthetic: true,
+      quality_excluded: true,
+      review_status: "pending",
+    });
+    assert.deepEqual(payload.mentions, []);
+    assert.deepEqual(payload.domain_profiles[0]?.source_refs, []);
+    assert.deepEqual(payload.node_cards[0]?.source_refs, []);
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }
@@ -307,14 +371,15 @@ test("converts a model bundle into Python-compatible staging artifacts", () => {
       nodes: 2,
       edges: 1,
       domain_profiles: 2,
-      mentions: 2,
+      mentions: 1,
       evidence: 4,
       node_cards: 2,
     });
     assert.equal(payload.edges[0]?.from, "node:map");
     assert.equal(payload.evidence[0]?.extraction_method, "openai_chat_completions");
     assert.equal(payload.evidence[1]?.extraction_method, "markdown_hint");
-    assert.equal(payload.mentions[1]?.role, "mentions");
+    assert.equal(payload.mentions.length, 1);
+    assert.equal(payload.mentions[0]?.role, "defines");
     assert.equal(payload.domain_profiles[1]?.notes, "Backfilled because the model omitted a domain profile.");
     assert.equal(payload.node_cards[0]?.summary, "以节点和关系表示知识。");
     assert.match(payload.issues.at(-1) ?? "", /Dropped 1 edges/);

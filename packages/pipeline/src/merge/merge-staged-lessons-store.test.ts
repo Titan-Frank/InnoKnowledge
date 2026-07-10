@@ -55,7 +55,8 @@ test("executes merged lesson SQL statements in plan order without creating a con
   assert.equal(result.merge_run_id, "merge:1");
   assert.equal(result.merged, 1);
   assert.deepEqual(result.stats, plan.stats);
-  assert.deepEqual(result.executedStatements, executed.map((statement) => statement.name));
+  assert.deepEqual(transactionStatementNames(executed), ["begin-merge-transaction", "commit-merge-transaction"]);
+  assert.deepEqual(result.executedStatements, businessStatementNames(executed));
   assert.deepEqual(result.executedStatements.slice(0, 4), [
     "upsert-world-merge-run-start",
     "mark-world-lesson-run-merging",
@@ -82,7 +83,34 @@ test("propagates merge SQL execution failures and stops after the failing statem
     /write failed/,
   );
 
-  assert.deepEqual(executed, ["upsert-world-merge-run-start", "mark-world-lesson-run-merging", "upsert-world-node"]);
+  assert.deepEqual(executed, [
+    "begin-merge-transaction",
+    "upsert-world-merge-run-start",
+    "mark-world-lesson-run-merging",
+    "upsert-world-node",
+    "rollback-merge-transaction",
+  ]);
+});
+
+test("reports both merge write and rollback failures", async () => {
+  const plan = makePlan();
+  const executed: string[] = [];
+
+  await assert.rejects(
+    () =>
+      storeMergedLessons(plan, {
+        datasetId: "main",
+        now: "now",
+        execute: (statement) => {
+          executed.push(statement.name);
+          if (statement.name === "upsert-world-node") throw new Error("write failed");
+          if (statement.name === "rollback-merge-transaction") throw new Error("rollback failed");
+        },
+      }),
+    /Merge transaction failed: write failed; rollback also failed: rollback failed/,
+  );
+
+  assert.deepEqual(executed.slice(-2), ["upsert-world-node", "rollback-merge-transaction"]);
 });
 
 test("executes no statements for an empty merge plan", async () => {
@@ -109,33 +137,41 @@ test("executes no statements for an empty merge plan", async () => {
 });
 
 test("executes database-backed staged lesson merge after reading staging rows", async () => {
-  const queried: string[] = [];
-  const executed: string[] = [];
+  const queried: SqlStatement[] = [];
+  const executed: SqlStatement[] = [];
   const result = await runMergeStagedLessonsFromDatabase({
     datasetId: "main",
     now: "now",
     query: (statement) => {
-      queried.push(statement.name);
+      queried.push(statement);
       return rowsForStatement(statement.name);
     },
     executeStatement: (statement) => {
-      executed.push(statement.name);
+      executed.push(statement);
     },
   });
 
   assert.equal(result.merged, 1);
   assert.equal(result.stats.nodes_created, 1);
-  assert.deepEqual(result.executedStatements, executed);
+  assert.deepEqual(result.executedStatements, businessStatementNames(executed));
   assert.ok(result.statements.includes("upsert-world-node"));
   assert.ok(result.node_terms.count > 0);
-  assert.deepEqual(queried.slice(0, 4), [
+  assert.deepEqual(queried[0], {
+    name: "lock-dataset-transaction",
+    sql: "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+    params: ["main"],
+  });
+  assert.deepEqual(queried.slice(0, 5).map((statement) => statement.name), [
+    "lock-dataset-transaction",
     "select-merge-lesson-runs",
     "select-merge-canonical-nodes",
     "select-existing-world-domain-profiles",
     "select-existing-world-evidence-ids",
   ]);
-  assert.ok(queried.includes("select-world_staging_nodes"));
-  assert.deepEqual(executed.slice(0, 4), [
+  assert.ok(queried.some((statement) => statement.name === "select-world_staging_nodes"));
+  assert.equal(executed[0]?.sql, "BEGIN");
+  assert.deepEqual(transactionStatementNames(executed), ["begin-merge-run-transaction", "commit-merge-run-transaction"]);
+  assert.deepEqual(businessStatementNames(executed).slice(0, 4), [
     "upsert-world-merge-run-start",
     "mark-world-lesson-run-merging",
     "upsert-world-node",
@@ -154,15 +190,85 @@ test("executes database-backed staged lesson merge in full plan order", async ()
     },
   });
 
-  assert.deepEqual(result.executedStatements, executed);
-  assert.deepEqual(executed.slice(0, 4), [
+  assert.deepEqual(result.executedStatements, businessStatementNames(executed));
+  assert.deepEqual(transactionStatementNames(executed), ["begin-merge-run-transaction", "commit-merge-run-transaction"]);
+  assert.deepEqual(businessStatementNames(executed).slice(0, 4), [
     "upsert-world-merge-run-start",
     "mark-world-lesson-run-merging",
     "upsert-world-node",
     "upsert-world-canonical-node-map",
   ]);
-  assert.deepEqual(executed.slice(-3), ["delete-world-node-terms", "upsert-world-node-terms", "complete-world-merge-run"]);
+  assert.deepEqual(businessStatementNames(executed).slice(-3), ["delete-world-node-terms", "upsert-world-node-terms", "complete-world-merge-run"]);
 });
+
+test("rolls back the merge run when a read fails after acquiring the dataset lock", async () => {
+  const queried: SqlStatement[] = [];
+  const executed: SqlStatement[] = [];
+
+  await assert.rejects(
+    () =>
+      runMergeStagedLessonsFromDatabase({
+        datasetId: "main",
+        now: "now",
+        query: (statement) => {
+          queried.push(statement);
+          if (statement.name === "select-merge-canonical-nodes") throw new Error("read failed");
+          return rowsForStatement(statement.name);
+        },
+        executeStatement: (statement) => {
+          executed.push(statement);
+        },
+      }),
+    /read failed/,
+  );
+
+  assert.deepEqual(queried.map((statement) => statement.name), [
+    "lock-dataset-transaction",
+    "select-merge-lesson-runs",
+    "select-merge-canonical-nodes",
+  ]);
+  assert.equal(executed[0]?.sql, "BEGIN");
+  assert.deepEqual(transactionStatementNames(executed), ["begin-merge-run-transaction", "rollback-merge-run-transaction"]);
+  assert.deepEqual(businessStatementNames(executed), []);
+});
+
+test("rolls back the merge run without nesting when a canonical write fails", async () => {
+  const executed: string[] = [];
+
+  await assert.rejects(
+    () =>
+      runMergeStagedLessonsFromDatabase({
+        datasetId: "main",
+        now: "now",
+        query: (statement) => rowsForStatement(statement.name),
+        executeStatement: (statement) => {
+          executed.push(statement.name);
+          if (statement.name === "upsert-world-node") throw new Error("write failed");
+        },
+      }),
+    /write failed/,
+  );
+
+  assert.deepEqual(transactionStatementNames(executed), ["begin-merge-run-transaction", "rollback-merge-run-transaction"]);
+  assert.equal(executed.includes("begin-merge-transaction"), false);
+  assert.deepEqual(businessStatementNames(executed).slice(-3), [
+    "upsert-world-merge-run-start",
+    "mark-world-lesson-run-merging",
+    "upsert-world-node",
+  ]);
+});
+
+function transactionStatementNames(statements: SqlStatement[] | string[]): string[] {
+  return statements
+    .map((statement) => typeof statement === "string" ? statement : statement.name)
+    .filter((name) => name.endsWith("-transaction"));
+}
+
+function businessStatementNames(statements: SqlStatement[] | string[]): string[] {
+  return statements
+    .map((statement) => typeof statement === "string" ? statement : statement.name)
+    .filter((name) => !name.endsWith("-transaction"));
+}
 
 function rowsForStatement(name: string): Array<Record<string, unknown>> {
   switch (name) {

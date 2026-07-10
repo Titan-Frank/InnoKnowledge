@@ -1,6 +1,6 @@
 # 提示词清单
 
-更新日期：2026-06-27
+更新日期：2026-07-10
 
 本文整理当前代码仓库中会在运行时发送给模型的提示词。范围只包括真实模型调用链路，不包括测试用例中的假提示词、普通界面文案、类型字段名或研究讨论文档中的概念示例。
 
@@ -90,7 +90,7 @@ P3 使用的 Schema 来自 `buildModelNodeBodyResponseSchema`，要求输出 `co
 
 用途：
 
-用两阶段流程抽取当前一个 `lesson/chunk`：第一阶段只抽取节点和证据，第二阶段只基于第一阶段结果判断关系。领域画像和节点卡片由后续规范化、补齐和 reducer 流程处理。
+用两阶段流程抽取当前一个 `lesson/chunk`：第一阶段判断该课时是抽取到知识还是合法无知识，并抽取节点和证据；第二阶段只基于第一阶段结果判断关系。领域画像和节点卡片由后续规范化、补齐和 reducer 流程处理。
 
 ### P1 输入
 
@@ -195,6 +195,9 @@ Chat Completions：
 7. tag 只是辅助检索，不承担主分类；主分类靠 kind、domain、relation。
 8. 关系只允许使用 schema 合法 type，证据不足就不要编造。
 9. 输出必须严格符合 JSON schema。
+10. 必须显式返回 `lesson_disposition`：有合格候选知识对象时为 `extracted`；当前课时确实没有符合准入规则的知识时为 `no_knowledge`。
+11. 返回 `no_knowledge` 时，必须填写 `no_knowledge_reason`，并允许节点、证据和关系为空；不要为了避免空数组而编造节点或证据。
+12. 模型调用失败、JSON 解析失败和无法判断，不等于 `no_knowledge`。
 
 主类判断：
 - entity：具体对象、物质、人物、地点、设备、样本。
@@ -257,6 +260,8 @@ P1 分两次调用模型。第一阶段 Schema 在 `buildHybridNodeEvidenceRespo
 
 ```json
 {
+  "lesson_disposition": "extracted",
+  "no_knowledge_reason": "",
   "nodes": [],
   "evidence_units": [],
   "issues": []
@@ -276,6 +281,8 @@ P1 分两次调用模型。第一阶段 Schema 在 `buildHybridNodeEvidenceRespo
 
 | 字段 | 含义 | 主要约束 |
 |---|---|---|
+| `lesson_disposition` | 当前课时的显式抽取结论 | 只能是 `extracted` 或 `no_knowledge` |
+| `no_knowledge_reason` | 合法空课时的原因 | `no_knowledge` 时必须填写；`extracted` 时为空字符串 |
 | `nodes` | 候选知识节点 | `kind` 只能是 `entity/concept/property/process/event/method/rule/representation/resource`；必须有 `definition`、`domains`、`knowledge_form`、`learning_mode`、`scope` 等字段 |
 | `edges` | 候选知识关系 | `type` 必须是 schema 合法关系；必须有 `from`、`to`、`directionality`、`confidence`、`evidence_anchor` |
 | `evidence_units` | 当前课时内可追溯的证据单元 | 必须有 `anchor`、`excerpt`、`locator`、`modality`、`node_ids` |
@@ -289,6 +296,30 @@ P1 分两次调用模型。第一阶段 Schema 在 `buildHybridNodeEvidenceRespo
 2. 更完整的结构化语义信息进入 `nodes[*].properties.semantic_core`，例如核心主张、公式、适用条件、边界、反例和常见误解；它不是 `world_node_bodies` 正文。
 3. `node_cards` 是结构化摘要，不等于课本原文。
 4. `evidence_units` 是证据锚点，不是完整原文存储。
+5. 显式的 `no_knowledge` 是合法空课时。它会保留课时运行记录，不会因为节点数为零自动视为抽取失败。
+
+合法空课时的最小输出形态如下：
+
+```json
+{
+  "lesson_disposition": "no_knowledge",
+  "no_knowledge_reason": "当前切片只有目录和练习编号，没有符合准入规则的知识对象。",
+  "nodes": [],
+  "evidence_units": [],
+  "issues": []
+}
+```
+
+当第一阶段返回 `no_knowledge` 时，不需要为了得到非空结果继续编造关系；第二阶段没有候选节点可连接时应保持空关系结果。
+
+### P1 输出后的质量治理
+
+模型输出进入 staging 后，代码还会执行质量治理；这些规则不由提示词替代：
+
+1. 需要人工判断但不立即阻断的警告持久化到 `world_lesson_runs.properties_json.quality_warnings`，并写入 `quality_review_required=true` 和相关的 `review_node_ids`。质量仪表盘据此计入“人工待处理”，警告不会只留在一次运行日志里。
+2. 如果程序为了保留追溯链补出合成证据，该证据必须带上 `properties.synthetic=true`、`properties.quality_excluded=true`、`properties.review_status=pending`。合成证据进入待复核列表，但不计入正式证据覆盖率。
+3. `lesson_disposition=no_knowledge` 和合成证据是两种不同情况：前者明确表示没有可抽取知识，后者表示已有候选对象的证据链仍需人工核验，不能相互替代。
+4. lesson worker 仍只写 `world_lesson_runs` 和 `world_staging_*`。正式 `merge-staged-lessons` 与 `normalize` 使用同一个数据集级事务锁，并把读取、计划生成和正式写入放在同一事务中；失败时整体回滚，不能因模型输出已生成就留下半写入的正式数据。
 
 ### P1 示例
 

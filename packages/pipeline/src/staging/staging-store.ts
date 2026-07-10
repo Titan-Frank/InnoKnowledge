@@ -65,6 +65,8 @@ export type StoreStagingInput = {
   root: string;
   bookId: string;
   batchAnchor: string;
+  lessonDisposition?: string;
+  noKnowledgeReason?: string;
   lessonRunId?: string;
   datasetId?: string;
   nodesJson: string;
@@ -102,6 +104,7 @@ export async function runStoreStaging(input: StoreStagingInput): Promise<StoreSt
   const batchAnchor = input.resolveOutline === false ? input.batchAnchor : resolveOutlineAnchor(input.bookId, input.batchAnchor, { strict: true });
   const lessonRunId = input.lessonRunId || makeLessonRunId(input.bookId, batchAnchor);
   const now = input.now || new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00");
+  const lessonDisposition = parseLessonDisposition(input.lessonDisposition);
 
   const artifacts = normalizeLessonArtifacts(
     {
@@ -123,6 +126,8 @@ export async function runStoreStaging(input: StoreStagingInput): Promise<StoreSt
       bookId: input.bookId,
       batchAnchor,
       now,
+      lessonDisposition,
+      noKnowledgeReason: input.noKnowledgeReason?.trim() ?? "",
     },
     artifacts,
   );
@@ -152,6 +157,12 @@ export async function runStoreStaging(input: StoreStagingInput): Promise<StoreSt
     quality,
     statements: result.executedStatements,
   };
+}
+
+function parseLessonDisposition(value: string | undefined): "extracted" | "no_knowledge" {
+  const disposition = value?.trim() || "extracted";
+  if (disposition === "extracted" || disposition === "no_knowledge") return disposition;
+  throw new Error(`Invalid --lesson-disposition '${value}'. Expected extracted or no_knowledge.`);
 }
 
 async function executeStatementsInTransaction(statements: SqlStatement[], execute: SqlExecutor): Promise<string[]> {

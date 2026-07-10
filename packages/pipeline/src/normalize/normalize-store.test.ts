@@ -2,37 +2,46 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { runNormalizeFromDatabase } from "./normalize-store.js";
+import type { SqlStatement } from "../staging/staging-sql.js";
 
 test("executes database-backed normalize after reading canonical rows", async () => {
-  const queried: string[] = [];
-  const executed: string[] = [];
+  const queried: SqlStatement[] = [];
+  const executed: SqlStatement[] = [];
   const result = await runNormalizeFromDatabase({
     datasetId: "main",
     now: "now",
     query: (statement) => {
-      queried.push(statement.name);
+      queried.push(statement);
       return normalizeRowsForStatement(statement.name);
     },
     executeStatement: (statement) => {
-      executed.push(statement.name);
+      executed.push(statement);
     },
   });
 
   assert.equal(result.cards_updated, 1);
   assert.equal(result.domain_profiles_deduplicated, 1);
   assert.equal(result.edges_deduplicated, 1);
-  assert.deepEqual(result.executedStatements, executed);
+  assert.deepEqual(transactionStatementNames(executed), ["begin-normalize-transaction", "commit-normalize-transaction"]);
+  assert.deepEqual(result.executedStatements, businessStatementNames(executed));
   assert.ok(result.statements.includes("update-normalized-node-card"));
   assert.ok(result.statements.includes("upsert-normalized-domain-profile"));
   assert.ok(result.statements.includes("deprecate-duplicate-world-edge"));
   assert.ok(result.statements.includes("upsert-world-node-terms"));
-  assert.deepEqual(queried.slice(0, 5), [
+  assert.deepEqual(queried[0], {
+    name: "lock-dataset-transaction",
+    sql: "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+    params: ["main"],
+  });
+  assert.deepEqual(queried.slice(0, 6).map((statement) => statement.name), [
+    "lock-dataset-transaction",
     "select-normalize-node-cards",
     "select-normalize-domain-profiles",
     "select-normalize-edges",
     "select-normalize-nodes",
     "select-normalize-evidence-ids",
   ]);
+  assert.equal(executed[0]?.sql, "BEGIN");
 });
 
 test("executes database-backed normalize in full plan order", async () => {
@@ -46,11 +55,99 @@ test("executes database-backed normalize in full plan order", async () => {
     },
   });
 
-  assert.deepEqual(result.executedStatements, executed);
-  assert.ok(executed.includes("update-normalized-node-card"));
-  assert.ok(executed.includes("delete-world-node-terms"));
-  assert.ok(executed.includes("upsert-world-node-terms"));
+  assert.deepEqual(result.executedStatements, businessStatementNames(executed));
+  assert.deepEqual(transactionStatementNames(executed), ["begin-normalize-transaction", "commit-normalize-transaction"]);
+  assert.ok(result.executedStatements.includes("update-normalized-node-card"));
+  assert.ok(result.executedStatements.includes("delete-world-node-terms"));
+  assert.ok(result.executedStatements.includes("upsert-world-node-terms"));
 });
+
+test("rolls back normalize when a business statement fails", async () => {
+  const executed: string[] = [];
+
+  await assert.rejects(
+    () =>
+      runNormalizeFromDatabase({
+        datasetId: "main",
+        now: "now",
+        query: (statement) => normalizeRowsForStatement(statement.name),
+        executeStatement: (statement) => {
+          executed.push(statement.name);
+          if (statement.name === "deprecate-duplicate-world-edge") throw new Error("write failed");
+        },
+      }),
+    /write failed/,
+  );
+
+  assert.equal(executed[0], "begin-normalize-transaction");
+  assert.deepEqual(executed.slice(-2), ["deprecate-duplicate-world-edge", "rollback-normalize-transaction"]);
+  assert.equal(executed.includes("commit-normalize-transaction"), false);
+});
+
+test("reports both normalize write and rollback failures", async () => {
+  const executed: string[] = [];
+
+  await assert.rejects(
+    () =>
+      runNormalizeFromDatabase({
+        datasetId: "main",
+        now: "now",
+        query: (statement) => normalizeRowsForStatement(statement.name),
+        executeStatement: (statement) => {
+          executed.push(statement.name);
+          if (statement.name === "deprecate-duplicate-world-edge") throw new Error("write failed");
+          if (statement.name === "rollback-normalize-transaction") throw new Error("rollback failed");
+        },
+      }),
+    /Normalize transaction failed: write failed; rollback also failed: rollback failed/,
+  );
+
+  assert.deepEqual(executed.slice(-2), ["deprecate-duplicate-world-edge", "rollback-normalize-transaction"]);
+});
+
+test("rolls back normalize when a read fails after acquiring the dataset lock", async () => {
+  const queried: SqlStatement[] = [];
+  const executed: SqlStatement[] = [];
+
+  await assert.rejects(
+    () =>
+      runNormalizeFromDatabase({
+        datasetId: "main",
+        now: "now",
+        query: (statement) => {
+          queried.push(statement);
+          if (statement.name === "select-normalize-edges") throw new Error("read failed");
+          return normalizeRowsForStatement(statement.name);
+        },
+        executeStatement: (statement) => {
+          executed.push(statement);
+        },
+      }),
+    /read failed/,
+  );
+
+  assert.deepEqual(queried.map((statement) => statement.name), [
+    "lock-dataset-transaction",
+    "select-normalize-node-cards",
+    "select-normalize-domain-profiles",
+    "select-normalize-edges",
+  ]);
+  assert.equal(executed[0]?.sql, "BEGIN");
+  assert.deepEqual(transactionStatementNames(executed), ["begin-normalize-transaction", "rollback-normalize-transaction"]);
+  assert.deepEqual(businessStatementNames(executed), []);
+});
+
+function transactionStatementNames(statements: SqlStatement[] | string[]): string[] {
+  return statements
+    .map((statement) => typeof statement === "string" ? statement : statement.name)
+    .filter((name) => name.endsWith("-normalize-transaction"));
+}
+
+function businessStatementNames(statements: SqlStatement[] | string[]): string[] {
+  return statements
+    .map((statement) => typeof statement === "string" ? statement : statement.name)
+    .filter((name) => !name.endsWith("-normalize-transaction"));
+}
 
 function normalizeRowsForStatement(name: string): Array<Record<string, unknown>> {
   switch (name) {

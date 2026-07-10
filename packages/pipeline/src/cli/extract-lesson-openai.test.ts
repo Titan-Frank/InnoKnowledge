@@ -40,6 +40,60 @@ test("returns a blocked JSON payload when the API key is missing", async () => {
   }
 });
 
+test("accepts an explicit no_knowledge lesson without calling the relation stage", async () => {
+  const repo = makeFixtureRepo();
+  const stdout: string[] = [];
+  let calls = 0;
+  try {
+    const code = await runExtractLessonOpenAiCli(
+      [
+        "--book-id",
+        bookId,
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+        "--no-image-filter",
+      ],
+      {
+        stdout: (text) => stdout.push(text),
+        stderr: () => undefined,
+        env: { OPENAI_API_KEY: "test-key" },
+        fetchImpl: async () => {
+          calls += 1;
+          return new Response(JSON.stringify({
+            choices: [{ message: { content: JSON.stringify({
+              lesson_disposition: "no_knowledge",
+              no_knowledge_reason: "当前课时只有导航信息。",
+              nodes: [],
+              evidence_units: [],
+              issues: [],
+            }) } }],
+          }), { status: 200, headers: { "Content-Type": "application/json" } });
+        },
+      },
+    );
+
+    assert.equal(code, 0);
+    assert.equal(calls, 1);
+    const payload = JSON.parse(stdout.join("")) as Record<string, unknown>;
+    assert.equal(payload.lesson_disposition, "no_knowledge");
+    assert.equal(payload.no_knowledge_reason, "当前课时只有导航信息。");
+    assert.deepEqual(payload.counts, {
+      nodes: 0,
+      edges: 0,
+      domain_profiles: 0,
+      mentions: 0,
+      evidence: 0,
+      node_cards: 0,
+    });
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
 test("calls the model with retrieval context loaded from a read-only executor", async () => {
   const repo = makeFixtureRepo();
   const stdout: string[] = [];

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { runMergeStagedLessonsFromDatabase } from "../merge/merge-staged-lessons-runner.js";
+import { isTransactionControlSql } from "../shared/dataset-transaction.js";
 import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
@@ -113,14 +114,15 @@ function assertSelectStatement(statement: SqlStatement): void {
   }
 }
 
-function assertAllowedMergeWriteStatement(statement: SqlStatement): void {
+export function assertAllowedMergeWriteStatement(statement: SqlStatement): void {
   const trimmed = statement.sql.trim();
-  const allowed =
+  const allowedTransaction = isTransactionControlSql(trimmed);
+  const allowedBusinessWrite =
     /^(INSERT|UPDATE|DELETE)\s+/i.test(trimmed) &&
     /\b(world_lesson_runs|world_nodes|world_edges|world_domain_profiles|world_mentions|world_evidence|world_node_cards|world_canonical_node_map|world_merge_runs|world_evidence_links|world_node_terms)\b/i.test(
       trimmed,
     );
-  if (!allowed) {
+  if (!allowedTransaction && !allowedBusinessWrite) {
     throw new Error(`Merge executor refuses statement '${statement.name}' outside canonical merge tables.`);
   }
 }
