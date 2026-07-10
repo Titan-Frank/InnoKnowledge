@@ -7,7 +7,7 @@ import type {
 } from '@okm/types';
 import type { SearchHitMeta } from '@/core/graph/types';
 import { useAppState } from '@/hooks/useAppState';
-import { generateGroundedAnswer, searchApiUnits } from '@/services/backend-client';
+import { generateGroundedAnswerStream, searchApiUnits } from '@/services/backend-client';
 import { resolveExpandedBackboneNodeId } from '@/lib/visibility';
 import { MarkdownView } from '@/components/MarkdownView';
 import {
@@ -51,10 +51,12 @@ export function GraphSearchPanel() {
   const [limit, setLimit] = useState(8);
   const [retrieval, setRetrieval] = useState<UnitRetrievalResponse | null>(null);
   const [generation, setGeneration] = useState<GroundedGenerationResponse | null>(null);
+  const [streamedAnswer, setStreamedAnswer] = useState('');
   const [loading, setLoading] = useState<'search' | 'generate' | null>(null);
   const [error, setError] = useState('');
   const activeSourceKeyRef = useRef(selectedSourceKey);
   const queryInputRef = useRef<HTMLInputElement>(null);
+  const generationAbortRef = useRef<AbortController | null>(null);
 
   const hasQuery = Boolean(query.trim());
   const actionDisabled = !selectedSourceKey || loading !== null || !hasQuery;
@@ -72,19 +74,31 @@ export function GraphSearchPanel() {
   }, [generation]);
 
   useEffect(() => {
+    generationAbortRef.current?.abort();
+    generationAbortRef.current = null;
     activeSourceKeyRef.current = selectedSourceKey;
     setRetrieval(null);
     setGeneration(null);
+    setStreamedAnswer('');
     setLoading(null);
     setError('');
     setSearchTerm('');
     setServerSearchHits(new Map());
     setHoverNodeId(null);
+    return () => generationAbortRef.current?.abort();
   }, [selectedSourceKey, setHoverNodeId, setSearchTerm, setServerSearchHits]);
 
+  function abortActiveGeneration() {
+    generationAbortRef.current?.abort();
+    generationAbortRef.current = null;
+    if (loading === 'generate') setLoading(null);
+  }
+
   function resetPublishedResults() {
+    abortActiveGeneration();
     setRetrieval(null);
     setGeneration(null);
+    setStreamedAnswer('');
     setError('');
     setSearchTerm('');
     setServerSearchHits(new Map());
@@ -93,21 +107,21 @@ export function GraphSearchPanel() {
 
   function handleQueryChange(value: string) {
     setQuery(value);
-    if (retrieval || generation || error) {
+    if (retrieval || generation || streamedAnswer || error || loading === 'generate') {
       resetPublishedResults();
     }
   }
 
   function handleModeChange(value: UnitRetrievalMode) {
     setMode(value);
-    if (retrieval || generation || error) {
+    if (retrieval || generation || streamedAnswer || error || loading === 'generate') {
       resetPublishedResults();
     }
   }
 
   function handleLimitChange(value: number) {
     setLimit(clampLimit(value));
-    if (retrieval || generation || error) {
+    if (retrieval || generation || streamedAnswer || error || loading === 'generate') {
       resetPublishedResults();
     }
   }
@@ -161,23 +175,43 @@ export function GraphSearchPanel() {
     if (!selectedSourceKey || !activeQueryValue.trim()) return;
     const activeSourceKey = selectedSourceKey;
     const activeQuery = activeQueryValue.trim();
+    abortActiveGeneration();
+    const controller = new AbortController();
+    generationAbortRef.current = controller;
     setLoading('generate');
     setError('');
+    setGeneration(null);
+    setStreamedAnswer('');
     try {
-      const response = await generateGroundedAnswer(activeSourceKey, {
+      const response = await generateGroundedAnswerStream(activeSourceKey, {
         question: activeQuery,
         limit,
         retrieval_mode: mode,
-      });
+      }, {
+        onRetrieval: (response) => {
+          if (activeSourceKeyRef.current !== activeSourceKey || controller.signal.aborted) return;
+          setRetrieval(response);
+          publishHits(response, activeQuery);
+        },
+        onAnswerDelta: (delta) => {
+          if (activeSourceKeyRef.current !== activeSourceKey || controller.signal.aborted) return;
+          setStreamedAnswer((current) => current + delta);
+        },
+      }, controller.signal);
       if (activeSourceKeyRef.current !== activeSourceKey) return;
       setRetrieval(response.retrieval);
       setGeneration(response);
+      setStreamedAnswer('');
       publishHits(response.retrieval, activeQuery);
     } catch (err) {
+      if (isAbortError(err)) return;
       if (activeSourceKeyRef.current !== activeSourceKey) return;
       setError(err instanceof Error ? err.message : String(err));
     } finally {
-      if (activeSourceKeyRef.current === activeSourceKey) setLoading(null);
+      if (generationAbortRef.current === controller) {
+        generationAbortRef.current = null;
+        if (activeSourceKeyRef.current === activeSourceKey) setLoading(null);
+      }
     }
   }
 
@@ -187,9 +221,11 @@ export function GraphSearchPanel() {
   }
 
   function clearSearch() {
+    abortActiveGeneration();
     setQuery('');
     setRetrieval(null);
     setGeneration(null);
+    setStreamedAnswer('');
     setError('');
     setSearchTerm('');
     setServerSearchHits(new Map());
@@ -354,7 +390,7 @@ export function GraphSearchPanel() {
       </form>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-thin">
-        {generation && (
+        {generation ? (
           <AnswerSection
             generation={generation}
             retrieval={retrieval}
@@ -362,7 +398,12 @@ export function GraphSearchPanel() {
             onFocusNode={focusNode}
             onPreviewNode={setHoverNodeId}
           />
-        )}
+        ) : ((loading === 'generate' && retrieval) || streamedAnswer) ? (
+          <StreamingAnswerSection
+            answer={streamedAnswer}
+            isStreaming={loading === 'generate'}
+          />
+        ) : null}
 
         <section>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -415,6 +456,25 @@ export function GraphSearchPanel() {
           )}
         </section>
       </div>
+    </section>
+  );
+}
+
+function StreamingAnswerSection({ answer, isStreaming }: { answer: string; isStreaming: boolean }) {
+  return (
+    <section className="mb-4 rounded-md border border-border-subtle bg-surface p-3" aria-live="polite">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h3 className="text-xs font-semibold text-text-secondary">回答</h3>
+        <span className={`flex items-center gap-1 text-[11px] ${isStreaming ? 'text-accent' : 'text-node-event'}`}>
+          {isStreaming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertCircle className="h-3.5 w-3.5" />}
+          {isStreaming ? '正在生成' : '生成中断'}
+        </span>
+      </div>
+      {answer ? (
+        <MarkdownView content={answer} className="text-xs leading-6 text-text-primary" />
+      ) : (
+        <p className="text-xs leading-6 text-text-muted">检索完成，正在等待回答内容……</p>
+      )}
     </section>
   );
 }
@@ -624,6 +684,10 @@ function EmptyState({ label, children }: { label: string; children?: ReactNode }
 function clampLimit(value: number): number {
   if (!Number.isFinite(value)) return 8;
   return Math.min(Math.max(Math.trunc(value), 1), 30);
+}
+
+function isAbortError(value: unknown): boolean {
+  return value instanceof DOMException && value.name === 'AbortError';
 }
 
 function formatScore(value: number): string {

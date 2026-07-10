@@ -30,6 +30,12 @@ interface GroundedGenerationOptions {
   retrievalMode?: UnitRetrievalMode;
 }
 
+interface GroundedGenerationStreamHandlers {
+  onRetrieval?: (retrieval: UnitRetrievalResponse) => void | Promise<void>;
+  onAnswerDelta?: (delta: string) => void | Promise<void>;
+  signal?: AbortSignal;
+}
+
 interface ModelJson {
   answer?: unknown;
   citations?: unknown;
@@ -63,6 +69,39 @@ export async function generateGroundedAnswer(
 
   const context = buildGroundingContext(retrieval);
   const raw = await callModelJson(question, context);
+  return buildGroundedGenerationResponse(question, options.datasetId, retrieval, raw);
+}
+
+export async function generateGroundedAnswerStream(
+  sql: Sql,
+  options: GroundedGenerationOptions,
+  handlers: GroundedGenerationStreamHandlers = {},
+): Promise<GroundedGenerationResponse> {
+  const question = options.question.trim();
+  const retrieval = await retrieveApiUnits(sql, {
+    datasetId: options.datasetId,
+    sourceKey: options.sourceKey,
+    query: question,
+    limit: options.limit,
+    mode: options.retrievalMode,
+  });
+  await handlers.onRetrieval?.(retrieval);
+
+  if (!retrieval.hits.length || !retrieval.hits.some((hit) => hit.unit.evidence.length > 0)) {
+    return buildNoContextResponse(question, options.datasetId, retrieval);
+  }
+
+  const context = buildGroundingContext(retrieval);
+  const raw = await callModelJsonStream(question, context, handlers.onAnswerDelta, handlers.signal);
+  return buildGroundedGenerationResponse(question, options.datasetId, retrieval, raw);
+}
+
+function buildGroundedGenerationResponse(
+  question: string,
+  datasetId: string,
+  retrieval: UnitRetrievalResponse,
+  raw: unknown,
+): GroundedGenerationResponse {
   const parsed = normalizeModelJson(raw);
   const validation = validateCitations(parsed.citations, retrieval);
   const unsupportedClaims = normalizeStringArray(parsed.unsupported_claims);
@@ -77,7 +116,7 @@ export async function generateGroundedAnswer(
 
   return {
     question,
-    source: options.datasetId,
+    source: datasetId,
     answer: normalizeText(parsed.answer) || 'The available context is not sufficient to answer this question.',
     citations: validation.valid,
     unsupported_claims: unsupportedClaims,
@@ -198,7 +237,44 @@ async function callModelJson(question: string, context: string): Promise<unknown
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new MissingModelConfigurationError();
 
-  const messages = [
+  const messages = buildModelMessages(question, context);
+
+  const first = await requestChatCompletion(apiKey, messages, true);
+  if (!first.ok && first.status === 400) {
+    const fallback = await requestChatCompletion(apiKey, messages, false);
+    if (fallback.ok) return parseJsonObject(fallback.content);
+    throw new Error(`Model request failed with HTTP ${fallback.status}: ${truncate(fallback.detail, 300)}`);
+  }
+  if (!first.ok) {
+    throw new Error(`Model request failed with HTTP ${first.status}: ${truncate(first.detail, 300)}`);
+  }
+  return parseJsonObject(first.content);
+}
+
+async function callModelJsonStream(
+  question: string,
+  context: string,
+  onAnswerDelta?: (delta: string) => void | Promise<void>,
+  signal?: AbortSignal,
+): Promise<unknown> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new MissingModelConfigurationError();
+
+  const messages = buildModelMessages(question, context);
+  const first = await requestChatCompletionStream(apiKey, messages, true, onAnswerDelta, signal);
+  if (!first.ok && first.status === 400) {
+    const fallback = await requestChatCompletionStream(apiKey, messages, false, onAnswerDelta, signal);
+    if (fallback.ok) return parseJsonObject(fallback.content);
+    throw new Error(`Model request failed with HTTP ${fallback.status}: ${truncate(fallback.detail, 300)}`);
+  }
+  if (!first.ok) {
+    throw new Error(`Model request failed with HTTP ${first.status}: ${truncate(first.detail, 300)}`);
+  }
+  return parseJsonObject(first.content);
+}
+
+function buildModelMessages(question: string, context: string): Array<{ role: string; content: string }> {
+  return [
     {
       role: 'system',
       content: [
@@ -207,7 +283,7 @@ async function callModelJson(question: string, context: string): Promise<unknown
         'Every factual claim should be grounded in the context.',
         'Citations must use evidence_id values that appear in the context.',
         'If the context is insufficient, say so and leave citations empty.',
-        'Return JSON only with keys: answer, citations, unsupported_claims, used_node_ids.',
+        'Return JSON only with keys in this exact order: answer, citations, unsupported_claims, used_node_ids.',
         'Each citation must be { "node_id": string, "evidence_id": string, "note": string }.',
       ].join(' '),
     },
@@ -220,17 +296,6 @@ async function callModelJson(question: string, context: string): Promise<unknown
       ].join('\n'),
     },
   ];
-
-  const first = await requestChatCompletion(apiKey, messages, true);
-  if (!first.ok && first.status === 400) {
-    const fallback = await requestChatCompletion(apiKey, messages, false);
-    if (fallback.ok) return parseJsonObject(fallback.content);
-    throw new Error(`Model request failed with HTTP ${fallback.status}: ${truncate(fallback.detail, 300)}`);
-  }
-  if (!first.ok) {
-    throw new Error(`Model request failed with HTTP ${first.status}: ${truncate(first.detail, 300)}`);
-  }
-  return parseJsonObject(first.content);
 }
 
 async function requestChatCompletion(
@@ -268,6 +333,174 @@ async function requestChatCompletion(
   } finally {
     clearTimeout(timer);
   }
+}
+
+async function requestChatCompletionStream(
+  apiKey: string,
+  messages: Array<{ role: string; content: string }>,
+  jsonMode: boolean,
+  onAnswerDelta?: (delta: string) => void | Promise<void>,
+  signal?: AbortSignal,
+): Promise<{ ok: true; content: string } | { ok: false; status: number; detail: string }> {
+  const controller = new AbortController();
+  const abortFromCaller = () => controller.abort();
+  signal?.addEventListener('abort', abortFromCaller, { once: true });
+  if (signal?.aborted) controller.abort();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(`${DEFAULT_BASE_URL.replace(/\/$/, '')}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: DEFAULT_MODEL,
+        ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
+        messages,
+        stream: true,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '');
+      return { ok: false, status: response.status, detail };
+    }
+    if (!response.body) {
+      throw new Error('Model stream returned no response body.');
+    }
+
+    let content = '';
+    let emittedAnswer = '';
+    for await (const data of readSseData(response.body)) {
+      if (data === '[DONE]') break;
+      const chunk = parseModelStreamChunk(data);
+      if (!chunk) continue;
+      content += chunk;
+      const answer = extractStreamingJsonStringField(content, 'answer');
+      if (answer.value.length > emittedAnswer.length) {
+        const delta = answer.value.slice(emittedAnswer.length);
+        emittedAnswer = answer.value;
+        await onAnswerDelta?.(delta);
+      }
+    }
+
+    const parsed = normalizeModelJson(parseJsonObject(content));
+    if (parsed.answer.length > emittedAnswer.length) {
+      await onAnswerDelta?.(parsed.answer.slice(emittedAnswer.length));
+    }
+    return { ok: true, content };
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', abortFromCaller);
+  }
+}
+
+async function* readSseData(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value, { stream: !done });
+    let boundary = findSseBoundary(buffer);
+    while (boundary) {
+      const block = buffer.slice(0, boundary.index);
+      buffer = buffer.slice(boundary.index + boundary.length);
+      const data = parseSseDataBlock(block);
+      if (data !== null) yield data;
+      boundary = findSseBoundary(buffer);
+    }
+    if (done) break;
+  }
+
+  const trailing = parseSseDataBlock(buffer);
+  if (trailing !== null) yield trailing;
+}
+
+function findSseBoundary(value: string): { index: number; length: number } | null {
+  const match = /\r?\n\r?\n/.exec(value);
+  return match ? { index: match.index, length: match[0].length } : null;
+}
+
+function parseSseDataBlock(block: string): string | null {
+  const lines = block
+    .split(/\r?\n/)
+    .filter((line) => line.startsWith('data:'))
+    .map((line) => line.slice(5).replace(/^ /, ''));
+  return lines.length ? lines.join('\n') : null;
+}
+
+function parseModelStreamChunk(data: string): string {
+  try {
+    const payload = JSON.parse(data) as {
+      choices?: Array<{ delta?: { content?: unknown } }>;
+    };
+    const content = payload.choices?.[0]?.delta?.content;
+    return typeof content === 'string' ? content : '';
+  } catch {
+    return '';
+  }
+}
+
+export function extractStreamingJsonStringField(
+  source: string,
+  field: string,
+): { value: string; complete: boolean } {
+  const keyPattern = new RegExp(`"${escapeRegExp(field)}"\\s*:\\s*"`);
+  const match = keyPattern.exec(source);
+  if (!match) return { value: '', complete: false };
+
+  let value = '';
+  for (let index = match.index + match[0].length; index < source.length; index += 1) {
+    const char = source[index];
+    if (char === '"') return { value, complete: true };
+    if (char !== '\\') {
+      value += char;
+      continue;
+    }
+
+    if (index + 1 >= source.length) break;
+    const escape = source[index + 1];
+    const simpleEscapes: Record<string, string> = {
+      '"': '"',
+      '\\': '\\',
+      '/': '/',
+      b: '\b',
+      f: '\f',
+      n: '\n',
+      r: '\r',
+      t: '\t',
+    };
+    if (escape in simpleEscapes) {
+      value += simpleEscapes[escape];
+      index += 1;
+      continue;
+    }
+    if (escape !== 'u' || index + 5 >= source.length) break;
+
+    const sequence = source.slice(index, index + 6);
+    if (!/^\\u[0-9a-fA-F]{4}$/.test(sequence)) break;
+    const code = Number.parseInt(sequence.slice(2), 16);
+    if (code >= 0xD800 && code <= 0xDBFF) {
+      if (index + 11 >= source.length) break;
+      const pair = source.slice(index, index + 12);
+      if (!/^\\u[0-9a-fA-F]{4}\\u[0-9a-fA-F]{4}$/.test(pair)) break;
+      value += JSON.parse(`"${pair}"`) as string;
+      index += 11;
+      continue;
+    }
+    value += String.fromCharCode(code);
+    index += 5;
+  }
+
+  return { value, complete: false };
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function parseJsonObject(content: string): unknown {
