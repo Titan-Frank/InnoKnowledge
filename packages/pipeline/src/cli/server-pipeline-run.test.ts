@@ -101,11 +101,13 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   const integrityStage = result.stages.find((stage) => stage.id === "graph_integrity");
   const qualityDashboardStage = result.stages.find((stage) => stage.id === "quality_dashboard");
   const nodeBodiesStage = result.stages.find((stage) => stage.id === "node_bodies");
+  const pedagogicalProfilesStage = result.stages.find((stage) => stage.id === "pedagogical_profiles");
   const nodeEmbeddingsStage = result.stages.find((stage) => stage.id === "node_embeddings");
   const unitEmbeddingsStage = result.stages.find((stage) => stage.id === "unit_embeddings");
   const canonicalCommand = canonicalStage?.output?.command as string[];
   const stagingQualityCommand = stagingQualityStage?.output?.command as string[];
   const nodeBodiesCommand = nodeBodiesStage?.output?.command as string[];
+  const pedagogicalProfilesCommand = pedagogicalProfilesStage?.output?.command as string[];
   const nodeEmbeddingsCommand = nodeEmbeddingsStage?.output?.command as string[];
   const unitEmbeddingsCommand = unitEmbeddingsStage?.output?.command as string[];
   const integrityCommand = integrityStage?.output?.command as string[];
@@ -126,6 +128,18 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.ok(nodeBodiesCommand.includes("8"));
   assert.ok(nodeBodiesCommand.includes("--model-retry-count"));
   assert.ok(nodeBodiesCommand.includes("2"));
+  assert.equal(pedagogicalProfilesStage?.status, "completed");
+  assert.ok(pedagogicalProfilesCommand.some((part) => part.endsWith("generate-pedagogical-profiles.js")));
+  assert.ok(pedagogicalProfilesCommand.includes("--book-id"));
+  assert.ok(pedagogicalProfilesCommand.includes(bookId));
+  assert.ok(pedagogicalProfilesCommand.includes("--school-stage"));
+  assert.ok(pedagogicalProfilesCommand.includes("higher"));
+  assert.ok(pedagogicalProfilesCommand.includes("--grade-band"));
+  assert.ok(pedagogicalProfilesCommand.includes("university"));
+  assert.ok(pedagogicalProfilesCommand.includes("--concurrency"));
+  assert.ok(pedagogicalProfilesCommand.includes("8"));
+  assert.ok(pedagogicalProfilesCommand.includes("--model-retry-count"));
+  assert.ok(pedagogicalProfilesCommand.includes("2"));
   assert.equal(nodeEmbeddingsStage?.status, "completed");
   assert.ok(nodeEmbeddingsCommand.some((part) => part.endsWith("backfill-embeddings.js")));
   assert.ok(nodeEmbeddingsCommand.includes("--dataset-id"));
@@ -142,16 +156,17 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.ok(integrityCommand.includes("--mark-qa-passed"));
   assert.equal(qualityDashboardStage?.status, "completed");
   assert.ok(qualityDashboardCommand.some((part) => part.endsWith("quality-dashboard.js")));
-  assert.ok(commands.at(-9)?.some((part) => part.endsWith("staging-quality.js")));
-  assert.ok(commands.at(-8)?.some((part) => part.endsWith("merge-staged-lessons.js")));
-  assert.ok(commands.at(-7)?.some((part) => part.endsWith("normalize.js")));
-  assert.ok(commands.at(-6)?.some((part) => part.endsWith("generate-node-bodies.js")));
+  assert.ok(commands.at(-10)?.some((part) => part.endsWith("staging-quality.js")));
+  assert.ok(commands.at(-9)?.some((part) => part.endsWith("merge-staged-lessons.js")));
+  assert.ok(commands.at(-8)?.some((part) => part.endsWith("normalize.js")));
+  assert.ok(commands.at(-7)?.some((part) => part.endsWith("generate-node-bodies.js")));
+  assert.ok(commands.at(-6)?.some((part) => part.endsWith("generate-pedagogical-profiles.js")));
   assert.ok(commands.at(-5)?.some((part) => part.endsWith("backfill-embeddings.js")));
   assert.ok(commands.at(-4)?.some((part) => part.endsWith("backfill-unit-embeddings.js")));
   assert.ok(commands.at(-3)?.some((part) => part.endsWith("strict-qa.js")));
   assert.ok(commands.at(-2)?.some((part) => part.endsWith("graph-integrity.js")));
   assert.ok(commands.at(-1)?.some((part) => part.endsWith("quality-dashboard.js")));
-  assert.ok(commands.slice(0, -9).every((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))));
+  assert.ok(commands.slice(0, -10).every((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))));
 });
 
 test("server pipeline retries chunks that fail staging quality", async () => {
@@ -279,6 +294,50 @@ test("server pipeline blocks when node body generation reports model failures", 
   assert.equal(commands.some((command) => command.some((part) => part.endsWith("strict-qa.js"))), false);
 });
 
+test("server pipeline blocks when pedagogical profile generation reports model failures", async () => {
+  const commands: string[][] = [];
+  const result = await runServerPipeline({
+    bookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-a",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 8,
+    noChunks: false,
+    pdfPath: "",
+    subject: "computer-science",
+    schoolStage: "higher",
+    gradeBand: "university",
+    textbookId: bookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: createNoopPipelineAssetStore(),
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async (command) => {
+      commands.push(command);
+      if (isPedagogicalProfilesCommand(command)) {
+        return { exitCode: 0, stdout: JSON.stringify({ failed_model_generation: 2 }), stderr: "" };
+      }
+      return { exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  });
+
+  assert.equal(result.status, "blocked");
+  const stage = result.stages.find((item) => item.id === "pedagogical_profiles");
+  assert.equal(stage?.status, "blocked");
+  assert.match(stage?.error ?? "", /2 pedagogical profile generation/);
+  assert.equal(commands.some((command) => command.some((part) => part.endsWith("backfill-embeddings.js"))), false);
+  assert.equal(commands.some((command) => command.some((part) => part.endsWith("strict-qa.js"))), false);
+});
+
 test("server pipeline blocks when unit embedding backfill cannot update pending units", async () => {
   const commands: string[][] = [];
   const result = await runServerPipeline({
@@ -345,6 +404,10 @@ function isStagingQualityCommand(command: string[]): boolean {
 
 function isNodeBodiesCommand(command: string[]): boolean {
   return command.some((part) => part.endsWith("generate-node-bodies.js"));
+}
+
+function isPedagogicalProfilesCommand(command: string[]): boolean {
+  return command.some((part) => part.endsWith("generate-pedagogical-profiles.js"));
 }
 
 function isUnitEmbeddingsCommand(command: string[]): boolean {

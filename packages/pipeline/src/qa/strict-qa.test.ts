@@ -79,6 +79,75 @@ test("validates persisted node bodies when present", () => {
   ]);
 });
 
+test("validates generated pedagogical profiles by school stage", () => {
+  const valid = runStrictQa({
+    ...completeRows,
+    domain_profiles: [{
+      ...completeRows.domain_profiles[0],
+      properties_json: {
+        pedagogical_profiles_by_stage: {
+          primary: {
+            school_stage: "primary",
+            learning_objectives: ["能够说明水的基本特征。"],
+            difficulty_level: "basic",
+            diagnostic_questions: ["水有哪些可观察特征？"],
+            common_errors: ["把所有透明液体都判断为水。"],
+            assessment_tasks: ["根据证据判断样品是否为水。"],
+            remediation_suggestions: ["回到定义逐项核对。"],
+            extension_suggestions: ["比较水在不同过程中的作用。"],
+            generation: {
+              generated_from: "model_generation",
+              model: "test-model",
+              prompt_version: "pedagogical-profile-v1",
+              generated_at: "now",
+              input_fingerprint: "hash",
+              review_status: "pending",
+              confidence: 0.8,
+              source_refs: ["ev1"],
+            },
+          },
+        },
+      },
+    }],
+  });
+  assert.equal(valid.status, "success");
+
+  const invalid = runStrictQa({
+    ...completeRows,
+    domain_profiles: [{
+      ...completeRows.domain_profiles[0],
+      properties_json: {
+        pedagogical_profiles_by_stage: {
+          "senior-secondary": {
+            school_stage: "primary",
+            learning_objectives: [],
+            difficulty_level: "impossible",
+            diagnostic_questions: [],
+            common_errors: [],
+            assessment_tasks: [],
+            remediation_suggestions: [],
+            extension_suggestions: [],
+            generation: {
+              generated_from: "model_generation",
+              review_status: "unknown",
+              confidence: 2,
+              source_refs: ["missing-evidence"],
+            },
+          },
+        },
+      },
+    }],
+  });
+  assert.equal(invalid.status, "blocked");
+  assert.ok(invalid.errors.some((item) => item.message === "School stage is not declared by the domain profile"));
+  assert.ok(invalid.errors.some((item) => item.message === "school_stage must match its stage key"));
+  assert.ok(invalid.errors.some((item) => item.message === "Invalid difficulty level: impossible"));
+  assert.ok(invalid.errors.some((item) => item.message === "assessment_tasks must contain non-empty strings"));
+  assert.ok(invalid.errors.some((item) => item.message === "Invalid review_status: unknown"));
+  assert.ok(invalid.errors.some((item) => item.message === "Generation confidence must be between 0 and 1"));
+  assert.ok(invalid.errors.some((item) => item.message === "Missing evidence missing-evidence"));
+});
+
 test("reports Python-compatible strict QA errors", () => {
   const result = runStrictQa({
     nodes: [{ id: "n1", kind: "bad-kind", name: "", definition: "", domains_json: ["bad-domain"], learning_mode_json: ["bad-mode"] }],

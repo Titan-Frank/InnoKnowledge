@@ -58,7 +58,7 @@ interface ApiUnit {
 | `node` | 知识对象骨架，包括 `id`、`name`、`kind`、`definition`、`domains`、`status` 等 | `world_nodes` |
 | `relations.outgoing` | 当前节点指向其他节点的关系 | `world_edges.from_id = node_id` |
 | `relations.incoming` | 其他节点指向当前节点的关系 | `world_edges.to_id = node_id` |
-| `domain_profiles` | 当前知识对象的学科、学段、课程角色和教学画像 | `world_domain_profiles` |
+| `domain_profiles` | 当前知识对象的学科、学段、课程角色和教学画像；数据库列 `properties_json` 在接口中映射为每条画像的 `properties` 字段 | `world_domain_profiles` |
 | `mentions` | 教材或资源中对该知识对象的提及 | `world_mentions` |
 | `evidence` | 支撑该知识对象存在和解释的证据 | `world_evidence` |
 | `media` | 从证据中解析出的图片等媒体资源 | `world_evidence` |
@@ -123,20 +123,39 @@ same_as / related_to
 
 教学画像属于领域投影，不属于节点本体。也就是说，同一知识对象在不同学科、学段里可以有不同教学重点。
 
-在不增加数据库列的前提下，先把扩展字段放在 `world_domain_profiles.properties.pedagogical_profile` 中。
+在不增加数据库列的前提下，教学画像继续放在数据库列
+`world_domain_profiles.properties_json` 中；服务端返回 `ApiUnit` 时，该列映射为
+`domain_profiles[].properties`。旧数据使用单份
+`properties_json.pedagogical_profile`（接口为 `properties.pedagogical_profile`）；自动生成的数据使用
+`properties_json.pedagogical_profiles_by_stage`（接口为
+`properties.pedagogical_profiles_by_stage`），按学段分别保存，避免同一知识对象在初中和高中共用一份教学内容。
 
 建议结构：
 
 ```json
 {
-  "pedagogical_profile": {
-    "learning_objectives": ["学习目标"],
-    "difficulty_level": "introductory",
-    "diagnostic_questions": ["前置诊断问题"],
-    "common_errors": ["常见错误"],
-    "assessment_tasks": ["评价任务"],
-    "remediation_suggestions": ["补救建议"],
-    "extension_suggestions": ["拓展建议"]
+  "pedagogical_profiles_by_stage": {
+    "senior-secondary": {
+      "school_stage": "senior-secondary",
+      "grade_band": "grade-11",
+      "learning_objectives": ["学习目标"],
+      "difficulty_level": "intermediate",
+      "diagnostic_questions": ["前置诊断问题"],
+      "common_errors": ["常见错误"],
+      "assessment_tasks": ["评价任务"],
+      "remediation_suggestions": ["补救建议"],
+      "extension_suggestions": ["拓展建议"],
+      "generation": {
+        "generated_from": "model_generation",
+        "model": "模型名称",
+        "prompt_version": "pedagogical-profile-v1",
+        "generated_at": "生成时间",
+        "input_fingerprint": "输入摘要",
+        "review_status": "pending",
+        "confidence": 0.8,
+        "source_refs": ["证据编号"]
+      }
+    }
   }
 }
 ```
@@ -144,8 +163,10 @@ same_as / related_to
 字段原则：
 
 1. `school_stages` 和 `curriculum_roles` 只说明教学位置。
-2. `pedagogical_profile` 说明怎么教、怎么诊断、怎么评价。
+2. `pedagogical_profiles_by_stage` 说明不同学段下怎么教、怎么诊断、怎么评价；旧的 `pedagogical_profile` 只用于兼容已有数据。
 3. 价值、伦理、人文讨论等内容不要塞进 `learning_mode`，应放在教学画像或课程活动中。
+4. 自动生成画像必须引用现有证据，记录模型、提示词版本、生成时间、输入摘要、可信度和审核状态。
+5. 已有人工画像和已确认画像不得被自动重跑覆盖；输入没有变化时不重复调用模型。
 
 ## 七、当前工程落点
 

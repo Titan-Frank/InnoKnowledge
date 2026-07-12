@@ -249,9 +249,15 @@ export interface ApiUnitRelation {
   notes?: string | null;
 }
 
-export interface PedagogicalProfileProperties {
+export type PedagogicalDifficultyLevel = 'introductory' | 'basic' | 'intermediate' | 'advanced' | 'expert';
+
+export type PedagogicalProfileReviewStatus = 'pending' | 'approved' | 'rejected';
+
+export type PedagogicalSchoolStage = 'primary' | 'junior-secondary' | 'senior-secondary' | 'higher';
+
+export interface PedagogicalProfileContent {
   learning_objectives?: string[];
-  difficulty_level?: string;
+  difficulty_level?: PedagogicalDifficultyLevel;
   diagnostic_questions?: string[];
   common_errors?: string[];
   assessment_tasks?: string[];
@@ -259,9 +265,45 @@ export interface PedagogicalProfileProperties {
   extension_suggestions?: string[];
 }
 
+/** Legacy single-context shape kept for existing datasets. */
+export interface PedagogicalProfileProperties extends PedagogicalProfileContent {}
+
+export interface PedagogicalModelProfileGeneration {
+  generated_from: 'model_generation';
+  model: string;
+  prompt_version: string;
+  generated_at: string;
+  input_fingerprint: string;
+  review_status: PedagogicalProfileReviewStatus;
+  confidence: number;
+  source_refs: string[];
+}
+
+export interface PedagogicalManualProfileGeneration {
+  generated_from: 'manual';
+  review_status?: PedagogicalProfileReviewStatus;
+  source_refs?: string[];
+}
+
+export type PedagogicalProfileGeneration = PedagogicalModelProfileGeneration | PedagogicalManualProfileGeneration;
+
+export interface PedagogicalStageProfileProperties {
+  school_stage: PedagogicalSchoolStage;
+  grade_band?: string;
+  learning_objectives: string[];
+  difficulty_level: PedagogicalDifficultyLevel;
+  diagnostic_questions: string[];
+  common_errors: string[];
+  assessment_tasks: string[];
+  remediation_suggestions: string[];
+  extension_suggestions: string[];
+  generation?: PedagogicalProfileGeneration;
+}
+
 export interface DomainProfileProperties {
   [key: string]: unknown;
   pedagogical_profile?: PedagogicalProfileProperties;
+  pedagogical_profiles_by_stage?: Partial<Record<PedagogicalSchoolStage, PedagogicalStageProfileProperties>>;
 }
 
 export interface ApiUnitDomainProfile {

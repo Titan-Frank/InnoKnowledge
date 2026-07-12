@@ -22,6 +22,7 @@ import {
   updateImageReview,
 } from '@/services/backend-client';
 import { useAppState } from '@/hooks/useAppState';
+import { invalidateUnitCache } from '@/hooks/useUnitLoader';
 import {
   AlertCircle,
   BarChart3,
@@ -675,6 +676,9 @@ const stageLabels: Record<string, string> = {
   canonical_commit: '合并入正式图谱',
   normalize: '归一化知识对象',
   node_bodies: '生成知识正文',
+  pedagogical_profiles: '生成教学画像',
+  node_embeddings: '生成节点向量',
+  unit_embeddings: '生成单元向量',
   strict_qa: '严格质检',
   graph_integrity: '图谱完整性检查',
   quality_dashboard: '生成质量仪表盘',
@@ -683,7 +687,18 @@ const stageLabels: Record<string, string> = {
 const sourceStageIds = ['check_postgres', 'mineru_source_markdown', 'prepare_source_markdown'];
 const outlineStageIds = ['extract_pdf_outline', 'ensure_outline', 'prepare_outline_chunks', 'lesson_plan'];
 const lessonStageIds = ['lesson_staging'];
-const mergeStageIds = ['staging_quality', 'canonical_commit', 'normalize', 'node_bodies', 'strict_qa', 'graph_integrity', 'quality_dashboard'];
+const mergeStageIds = [
+  'staging_quality',
+  'canonical_commit',
+  'normalize',
+  'node_bodies',
+  'pedagogical_profiles',
+  'node_embeddings',
+  'unit_embeddings',
+  'strict_qa',
+  'graph_integrity',
+  'quality_dashboard',
+];
 
 function stageLabel(stageId: string | undefined): string {
   if (!stageId) return '';
@@ -1356,6 +1371,10 @@ export function PipelineDebugPage() {
   const jobDone = jobStatus?.status === 'completed' || jobStatus?.status === 'blocked';
   const autoRefreshing = starting || Boolean(startResult && !jobDone && !pipelineBlocked(payload));
   const lastUpdatedAt = jobStatus?.updated_at ?? latestUpdatedAt(payload);
+
+  useEffect(() => {
+    if (startResult && jobDone) invalidateUnitCache(activeSourceKey);
+  }, [activeSourceKey, jobDone, startResult?.job_id]);
 
   useEffect(() => {
     if (!autoRefreshing) return undefined;

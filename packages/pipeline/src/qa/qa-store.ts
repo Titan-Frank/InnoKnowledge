@@ -112,7 +112,7 @@ export function buildSelectQaEdgesQuery(datasetId: string): SqlStatement {
 export function buildSelectQaDomainProfilesQuery(datasetId: string): SqlStatement {
   return {
     name: "select-strict-qa-domain-profiles",
-    sql: "SELECT id, node_id, domain, school_stages_json, curriculum_roles_json, source_refs_json FROM world_domain_profiles WHERE dataset_id = $1 AND status != 'deprecated' ORDER BY id",
+    sql: "SELECT id, node_id, domain, school_stages_json, curriculum_roles_json, source_refs_json, properties_json FROM world_domain_profiles WHERE dataset_id = $1 AND status != 'deprecated' ORDER BY id",
     params: [datasetId],
   };
 }

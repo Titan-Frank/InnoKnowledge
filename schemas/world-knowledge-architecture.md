@@ -110,7 +110,10 @@
 - 扩展信息附着在 `node_id` 上
 - 领域扩展不改写节点本体
 - 学科、学段、课程角色应放在这一层
-- 学习目标、难度、诊断题、常见错误、评价任务等教学画像先放在 `properties.pedagogical_profile`
+- 课时抽取只提供基础领域归属，不直接生成教学画像
+- 正式数据完成归一化后，由 P4 后处理按“领域画像记录＋学段”自动生成教学画像
+- 自动结果在数据库中写入 `world_domain_profiles.properties_json.pedagogical_profiles_by_stage`，接口通过 `ApiUnit.domain_profiles[].properties.pedagogical_profiles_by_stage` 返回
+- 旧的单份 `properties_json.pedagogical_profile` / `properties.pedagogical_profile` 只用于兼容历史数据
 
 ## 三、证据与溯源平面
 

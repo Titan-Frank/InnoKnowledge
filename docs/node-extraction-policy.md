@@ -91,9 +91,11 @@ entity / concept / property / process / event / method / rule / representation /
 1. 不修改 `world_nodes.kind`。
 2. 不新增正式 `object_type` 字段。
 3. `world_nodes.properties.semantic_core` 用来承载稳定语义核心。
-4. `world_domain_profiles.properties.pedagogical_profile` 用来承载教学画像。
-5. `staging-quality` 对明显违反准入原则的候选先给 warning。
-6. 只有无证据、无定义、无画像、无卡片、无提及等结构性问题才继续作为 blocking error。
+4. 课时抽取只产出基础领域归属，不直接生成教学画像。
+5. 正式数据归一化完成后，由 P4 后处理按学段生成教学画像；数据库写入 `world_domain_profiles.properties_json.pedagogical_profiles_by_stage`，接口通过 `ApiUnit.domain_profiles[].properties.pedagogical_profiles_by_stage` 返回。
+6. 旧的单份 `properties_json.pedagogical_profile` / `properties.pedagogical_profile` 只作为历史兼容结构。
+7. `staging-quality` 对明显违反准入原则的候选先给 warning。
+8. 只有无证据、无定义、无领域画像、无卡片、无提及等结构性问题才继续作为 blocking error。
 
 政策口径是：
 
@@ -118,7 +120,8 @@ entity / concept / property / process / event / method / rule / representation /
 这份政策应该接入三处：
 
 1. 抽取提示词：要求模型先证据、后节点，并按准入清单解释候选边界。
-2. JSON 输出和归一化：继续保留 `semantic_core` 和 `pedagogical_profile`，不引入七类正式节点类型。
+2. JSON 输出和归一化：保留 `semantic_core` 和基础 `domain_profiles`，不要求课时模型输出教学画像，也不引入七类正式节点类型。
 3. 暂存质量检查：把无证据、纯目录、孤立名词、考点误当概念等问题转成可观测 warning。
+4. P4 后处理：在正式数据归一化后，读取节点、卡片、关系和证据，按学段生成可追溯、待审核的教学画像。
 
 后续如果确实需要表达更细教学角色，应优先在教学画像中增加可选字段，而不是扩大顶层节点类型。

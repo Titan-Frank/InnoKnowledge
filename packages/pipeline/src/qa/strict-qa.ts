@@ -37,6 +37,7 @@ export type StrictQaRows = {
     school_stages_json?: unknown;
     curriculum_roles_json?: unknown;
     source_refs_json?: unknown;
+    properties_json?: unknown;
   }>;
   mentions: Array<{
     id: string;
@@ -71,6 +72,15 @@ export type StrictQaResult = {
 
 const REQUIRED_CARD_SECTIONS = new Set(["definition", "essence", "key_points", "example", "application", "misconception"]);
 const VALID_BODY_GENERATED_FROM = new Set(["manual", "card_expansion", "imported_unit", "model_generation"]);
+const VALID_PEDAGOGICAL_DIFFICULTIES = new Set(["introductory", "basic", "intermediate", "advanced", "expert"]);
+const PEDAGOGICAL_LIST_FIELDS = [
+  "learning_objectives",
+  "diagnostic_questions",
+  "common_errors",
+  "assessment_tasks",
+  "remediation_suggestions",
+  "extension_suggestions",
+] as const;
 
 export function runStrictQa(rows: StrictQaRows): StrictQaResult {
   const qa = new StrictQaRunner(rows);
@@ -171,12 +181,71 @@ class StrictQaRunner {
   private validateDomainProfiles(): void {
     for (const row of this.rows.domain_profiles) {
       if (!VALID_DOMAINS.has(row.domain)) this.error("domain_profile", row.id, `Invalid domain: ${row.domain}`);
-      const invalidStages = (Array.isArray(row.school_stages_json) ? row.school_stages_json : []).filter((item) => !VALID_SCHOOL_STAGES.has(String(item)));
+      const schoolStages = Array.isArray(row.school_stages_json) ? row.school_stages_json.map(String) : [];
+      const invalidStages = schoolStages.filter((item) => !VALID_SCHOOL_STAGES.has(item));
       if (invalidStages.length > 0) this.error("domain_profile", row.id, `Invalid school stages: ${formatPythonStringList(invalidStages)}`);
       const invalidRoles = (Array.isArray(row.curriculum_roles_json) ? row.curriculum_roles_json : []).filter((item) => !VALID_CURRICULUM_ROLES.has(String(item)));
       if (invalidRoles.length > 0) this.error("domain_profile", row.id, `Invalid curriculum roles: ${formatPythonStringList(invalidRoles)}`);
       this.validateSourceRefs("domain_profile", row.id, row.source_refs_json);
+      this.validatePedagogicalProfiles(row, schoolStages);
     }
+  }
+
+  private validatePedagogicalProfiles(row: StrictQaRows["domain_profiles"][number], schoolStages: string[]): void {
+    const properties = isRecord(row.properties_json) ? row.properties_json : {};
+    const rawByStage = properties.pedagogical_profiles_by_stage;
+    if (rawByStage === undefined) return;
+    if (!isRecord(rawByStage)) {
+      this.error("pedagogical_profile", row.id, "pedagogical_profiles_by_stage must be an object");
+      return;
+    }
+    for (const [stage, value] of Object.entries(rawByStage)) {
+      const itemId = `${row.id}:${stage}`;
+      if (!VALID_SCHOOL_STAGES.has(stage)) this.error("pedagogical_profile", itemId, `Invalid school stage: ${stage}`);
+      if (!schoolStages.includes(stage)) this.error("pedagogical_profile", itemId, "School stage is not declared by the domain profile");
+      if (!isRecord(value)) {
+        this.error("pedagogical_profile", itemId, "Stage profile must be an object");
+        continue;
+      }
+      if (value.school_stage !== stage) this.error("pedagogical_profile", itemId, "school_stage must match its stage key");
+      if (!VALID_PEDAGOGICAL_DIFFICULTIES.has(String(value.difficulty_level ?? ""))) {
+        this.error("pedagogical_profile", itemId, `Invalid difficulty level: ${String(value.difficulty_level ?? "")}`);
+      }
+      for (const field of PEDAGOGICAL_LIST_FIELDS) {
+        const items = Array.isArray(value[field]) ? value[field] : [];
+        if (items.length === 0 || items.some((item) => typeof item !== "string" || !item.trim())) {
+          this.error("pedagogical_profile", itemId, `${field} must contain non-empty strings`);
+        }
+      }
+      this.validatePedagogicalGeneration(itemId, value.generation);
+    }
+  }
+
+  private validatePedagogicalGeneration(itemId: string, value: unknown): void {
+    if (value === undefined) return;
+    if (!isRecord(value)) {
+      this.error("pedagogical_profile", itemId, "generation must be an object");
+      return;
+    }
+    const generatedFrom = String(value.generated_from ?? "");
+    if (generatedFrom !== "model_generation" && generatedFrom !== "manual") {
+      this.error("pedagogical_profile", itemId, `Invalid generated_from: ${generatedFrom}`);
+      return;
+    }
+    if (generatedFrom === "manual") return;
+    for (const field of ["model", "prompt_version", "generated_at", "input_fingerprint"]) {
+      if (typeof value[field] !== "string" || !value[field].trim()) {
+        this.error("pedagogical_profile", itemId, `Missing generation ${field}`);
+      }
+    }
+    if (!["pending", "approved", "rejected"].includes(String(value.review_status ?? ""))) {
+      this.error("pedagogical_profile", itemId, `Invalid review_status: ${String(value.review_status ?? "")}`);
+    }
+    const confidence = value.confidence;
+    if (typeof confidence !== "number" || !Number.isFinite(confidence) || confidence < 0 || confidence > 1) {
+      this.error("pedagogical_profile", itemId, "Generation confidence must be between 0 and 1");
+    }
+    this.validateSourceRefs("pedagogical_profile", itemId, value.source_refs);
   }
 
   private validateMentionsAndEvidence(): void {
