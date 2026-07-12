@@ -103,3 +103,20 @@ test("embeds texts with OpenAI-compatible response behavior", async () => {
   assert.equal(vectors[1]?.length, EMBEDDING_VECTOR_DIMENSION);
   assert.equal(vectors[1]?.at(-1), EMBEDDING_VECTOR_DIMENSION - 1);
 });
+
+test("does not make a network request without an explicit embedding URL", async () => {
+  const originalFetch = globalThis.fetch;
+  let fetchCalls = 0;
+  globalThis.fetch = (async () => {
+    fetchCalls += 1;
+    throw new Error("unexpected network request");
+  }) as typeof fetch;
+
+  try {
+    const vectors = await embedTextsOpenAICompatible(["private lesson text"], { maxRetries: 1 });
+    assert.deepEqual(vectors, [[]]);
+    assert.equal(fetchCalls, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

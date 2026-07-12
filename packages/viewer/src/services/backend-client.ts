@@ -112,12 +112,13 @@ export async function loadBundle(sourceKey: string): Promise<BundleResponse> {
   return fetchJson<BundleResponse>(`/api/source/${encodeURIComponent(sourceKey)}/bundle`);
 }
 
-export async function loadEnrichBooks(): Promise<EnrichIndexResponse> {
-  return fetchJson<EnrichIndexResponse>('/api/enrich/books');
+export async function loadEnrichBooks(sourceKey: string): Promise<EnrichIndexResponse> {
+  const params = new URLSearchParams({ source: sourceKey });
+  return fetchJson<EnrichIndexResponse>(`/api/enrich/books?${params}`);
 }
 
-export async function loadEnrichBook(path: string): Promise<EnrichBookResponse> {
-  const params = new URLSearchParams({ path });
+export async function loadEnrichBook(sourceKey: string, path: string): Promise<EnrichBookResponse> {
+  const params = new URLSearchParams({ source: sourceKey, path });
   return fetchJson<EnrichBookResponse>(`/api/enrich/book?${params}`);
 }
 

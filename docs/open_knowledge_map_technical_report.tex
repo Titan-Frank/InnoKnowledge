@@ -1,5 +1,5 @@
-% Open Knowledge Mesh technical report.
-% Compile with: python3 /Users/titan-frank/.codex/plugins/cache/openai-bundled/latex/0.2.4/scripts/compile_latex.py /Users/titan-frank/Documents/hsd/research/Open-Knowledge-Map/docs/open_knowledge_map_technical_report.tex --engine xelatex
+% Open Knowledge Map technical report.
+% Compile from the repository root with: cd docs && latexmk -xelatex -interaction=nonstopmode -halt-on-error open_knowledge_map_technical_report.tex
 \documentclass[11pt,letterpaper]{article}
 
 \usepackage{iftex}
@@ -49,7 +49,7 @@
   linkcolor=blue!45!black,
   citecolor=blue!45!black,
   urlcolor=blue!45!black,
-  pdftitle={Open Knowledge Mesh: An AI-Native Knowledge Object Infrastructure for Evidence-Grounded Learning Systems},
+  pdftitle={Open Knowledge Map: An AI-Native Knowledge Object Infrastructure for Evidence-Grounded Learning Systems},
   pdfauthor={Wenbo Wu and Aimin Zhou}
 }
 
@@ -59,8 +59,9 @@
 \setlength{\parindent}{0pt}
 
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcommand{\code}[1]{\nolinkurl{#1}}
-\newcommand{\OKM}{Open Knowledge Mesh}
+\newcommand{\OKM}{Open Knowledge Map}
 \newcommand{\AINKS}{AI-NKS}
 \ifPDFTeX
 \newenvironment{prompttranscript}{%
@@ -85,21 +86,6 @@
 \end{quote}%
 }
 \fi
-\newcommand{\uiscreenshotplaceholder}[4]{%
-\begin{figure}[H]
-\centering
-\fcolorbox{black!30}{black!3}{%
-\begin{minipage}[c][0.22\textheight][c]{0.9\textwidth}
-\centering
-\textbf{UI screenshot placeholder}\\[0.45em]
-\small #1\\[0.55em]
-\footnotesize #2
-\end{minipage}}
-\caption{#3}
-\label{#4}
-\end{figure}
-}
-
 \lstdefinestyle{okmstyle}{
   basicstyle=\ttfamily\small,
   columns=fullflexible,
@@ -115,7 +101,7 @@
 \setlength{\droptitle}{-0.75in}
 
 \title{
-  \bfseries\LARGE Open Knowledge Mesh:\\
+  \bfseries\LARGE Open Knowledge Map:\\
   An AI-Native Knowledge Object Infrastructure for\\
   Evidence-Grounded Learning Systems
 }
@@ -131,7 +117,7 @@
   \end{tabular}
 }
 
-\date{June 30, 2026}
+\date{July 12, 2026}
 
 \begin{document}
 \maketitle
@@ -142,11 +128,11 @@ Large language models and agent systems increasingly operate over textbooks, cou
 
 This report presents \OKM, an AI-native knowledge object infrastructure for evidence-grounded learning systems. The central claim is that textbooks and disciplinary materials should be treated as source evidence for governable Knowledge Objects rather than as the final computational form of knowledge. \OKM{} organizes extracted objects into a typed Knowledge Network, assembles them into consumption-side Knowledge Units, and keeps generated explanations, source fragments, evidence, media, and graph identities separate.
 
-The current implementation provides a TypeScript-first extraction pipeline, a PostgreSQL-backed knowledge store, a structured unit API, and a React viewer/debug workbench. It supports textbook parsing, lesson-level extraction, staging, merge and normalization, evidence preservation, knowledge body generation, image review, and quality checks. A documented physics-textbook run produced 288 nodes, 153 edges, 436 evidence rows, and 288 node cards, while also exposing graph-connectivity and extraction-hardening gaps. The report describes the theory, architecture, data model, pipeline, API contract, verification strategy, and remaining work, marking the full runtime, AI tutoring, learning-outcome evaluation, and version-governance loop as future work rather than implemented results.
+The current implementation provides a TypeScript-first extraction pipeline, a PostgreSQL-backed knowledge store, a structured unit API, and a React viewer/debug workbench. It supports textbook parsing, lesson-level extraction, staging, transactional merge and normalization, evidence preservation, knowledge-body generation, evidence-linked pedagogical profiles by school stage with pending review, explicitly configured embedding generation, image review, and layered quality checks. An early Knowledge Runtime always supports lexical retrieval of complete \code{ApiUnit} objects; vector and hybrid execution use stored vectors when a query-embedding service is configured, with execution mode reported in the response. Synchronous and streaming endpoints perform evidence-identifier-validated generation and expose explicit insufficient-context outcomes. A documented June 2026 physics-textbook run produced 288 nodes, 153 edges, 436 evidence rows, and 288 node cards, while also exposing graph-connectivity and extraction-hardening gaps. The report describes the theory, architecture, data model, pipeline, runtime contracts, verification strategy, and remaining work; AI tutoring, semantic planning, learning-outcome evaluation, broad benchmark validation, and the version-governance loop remain future work.
 \end{abstract}
 
 \vspace{0.55em}
-\noindent{\footnotesize $^\dagger$ Repository state inspected on June 30, 2026. Full \AINKS{} runtime, AI Tutor, learning-outcome study, version governance, and large-scale benchmarks remain future work unless explicitly marked as implemented.}
+\noindent{\footnotesize $^\dagger$ Repository snapshot based on merge commit \code{2a7dabb} and inspected on July 12, 2026. The report source, synthetic public demo, screenshots, and release documentation include working-tree changes prepared after that commit; an archival release should replace this note with the final release tag or commit. The early retrieval and grounded-generation runtime is implemented, while semantic planning, AI Tutor behavior, learning-outcome studies, version governance, and large-scale adjudicated benchmarks remain future work unless explicitly marked otherwise.}
 
 \newpage
 
@@ -154,21 +140,22 @@ The current implementation provides a TypeScript-first extraction pipeline, a Po
 
 Textbooks are dense, structured, and pedagogically curated, but their computational form is usually weak. A PDF or a markdown conversion preserves surface content, page order, figures, and headings; it does not automatically create durable knowledge identities, distinguish claims from evidence, expose prerequisite relations, or explain which generated statement came from which source. This becomes a practical bottleneck when the goal is to build AI systems that do more than search for passages. Recent work on large language models and LLM-based agents shows that AI systems increasingly generate, plan, use tools, and act over external information, which raises the need for stable and inspectable knowledge substrates \cite{zhao-llm-survey,xi-agent-survey}. A grounded tutor, curriculum planner, graph browser, or assessment generator needs knowledge objects that can be identified, linked, inspected, updated, and called from software.
 
-\OKM{} addresses this bottleneck as an AI-native knowledge object infrastructure rather than as a document-retrieval pipeline. Its current implementation realizes this infrastructure through an extraction pipeline, a governed PostgreSQL-backed knowledge store, structured serving APIs, and a viewer/debug workbench. Three design decisions shape the system. First, the repository treats textbooks as source resources rather than as the final unit of knowledge. A PDF is parsed by MinerU, aligned to an outline, split by lesson or chunk, and processed into staged knowledge candidates. Second, the system separates production-time extraction from consumption-time knowledge views. Model workers create staged rows; reducers, normalization, and QA decide what becomes canonical; the server later assembles complete \code{ApiUnit} views for users and downstream systems. Third, the project places evidence and governance in the main data model rather than in an optional sidecar. Nodes, relations, domain profiles, cards, and bodies are all expected to remain traceable to mentions, evidence, or source fragments.
+\OKM{} addresses this bottleneck as an AI-native knowledge object infrastructure rather than as a document-retrieval pipeline. Its current implementation realizes this infrastructure through an extraction pipeline, a governed PostgreSQL-backed knowledge store, structured serving APIs, and a viewer/debug workbench. Three design decisions shape the system. First, the repository treats textbooks as source resources rather than as the final unit of knowledge. A PDF is parsed by MinerU, aligned to an outline, split by lesson or chunk, and processed into staged knowledge candidates. Second, the system separates production-time extraction from consumption-time knowledge views. Model workers create staged rows. After staging quality passes, reducers and normalization write canonical state transactionally; strict QA and graph-integrity checks run afterward. The server later assembles complete \code{ApiUnit} views for users and downstream systems. Third, the project places evidence and governance in the main data model rather than in an optional sidecar. Nodes, relations, domain profiles, cards, and bodies are all expected to remain traceable to mentions, evidence, or source fragments.
 
-The report is organized around three engineering questions. First, what should be the stable computational unit when textbooks are used by AI systems: a document chunk, a chapter heading, or a governed Knowledge Object? Second, where should the system boundary be drawn among source evidence, model-generated candidates, canonical graph state, generated explanatory bodies, and consumption-side units? Third, what minimum pipeline, database, API, and review contracts are needed before later tutoring or generation layers can safely depend on the knowledge store?
+The report is organized around three engineering questions. First, what should be the stable computational unit when textbooks are used by AI systems: a document chunk, a chapter heading, or a governed Knowledge Object? Second, where should the system boundary be drawn among source evidence, model-generated candidates, canonical graph state, generated explanatory bodies, and consumption-side units? Third, what minimum pipeline, database, API, runtime, and review contracts are needed before tutoring and planning layers can safely depend on the knowledge store?
 
 This report follows the style of a system technical report. It explains the theoretical foundation, architecture, implemented modules, data boundaries, operational workflow, and research implications of the current repository. The emphasis is on what is already encoded in TypeScript, PostgreSQL, schema files, and viewer behavior, with future work called out explicitly.
 
 \subsection{Contributions}
 
-This report makes four contributions:
+This report makes five contributions:
 
 \begin{enumerate}
   \item It formulates an evidence-grounded Knowledge Object model for textbook-based learning systems, separating conceptual knowledge-system design from the executable \code{world-v1.2} schema used by the current implementation.
-  \item It presents a stage-gated extraction architecture that converts PDF or MinerU markdown into staged lesson/chunk candidates, canonical Knowledge Objects, typed relations, evidence records, normalized cards, and persistent knowledge bodies.
-  \item It implements a PostgreSQL-centered knowledge store that keeps source artifacts, textbook outlines, MinerU status, staging rows, canonical graph tables, evidence, pipeline jobs, review decisions, and retrieval candidates in separate but connected tables.
-  \item It defines \code{ApiUnit} as the public consumption contract for downstream viewers and future AI runtime components, combining identity, relations, domain profiles, mentions, evidence, media, source fragments, structured cards, persistent bodies, and completeness signals in one response.
+  \item It presents a stage-gated extraction architecture that converts PDF or MinerU markdown into staged lesson/chunk candidates, canonical Knowledge Objects, typed relations, evidence records, normalized cards, persistent knowledge bodies, school-stage pedagogical profiles, and node- and unit-level embeddings.
+  \item It implements a PostgreSQL-centered knowledge store that separates source artifacts, textbook outlines, MinerU status, staging rows, canonical graph tables, evidence, embeddings, pipeline jobs, review decisions, and retrieval candidates while preserving transactional reducer boundaries.
+  \item It defines \code{ApiUnit} as the public consumption contract for viewers and runtime components, combining identity, relations, stage-specific pedagogical profiles, mentions, evidence, media, source fragments, structured cards, persistent bodies, and completeness signals in one response.
+  \item It realizes an early executable runtime for lexical object retrieval, configured vector and hybrid execution, and citation-identifier-validated grounded generation through synchronous and server-sent-event interfaces.
 \end{enumerate}
 
 We further document an operational physics-textbook run to show the current system capacity and to identify remaining graph-quality, benchmark, and governance gaps.
@@ -280,7 +267,7 @@ The current repository implements an executable subset of this theory. It does n
 
 In the implementation, \code{world_nodes} stores the identity skeleton and minimal semantic fields for Knowledge Objects. Richer content lives across \code{properties.semantic_core}, \code{world_edges}, \code{world_evidence}, \code{world_mentions}, \code{world_domain_profiles}, cards, persistent bodies, media, and source fragments. The public consumption boundary is therefore \code{ApiUnit}, not a node row alone.
 
-This boundary matters for the rest of the report. \OKM{} currently demonstrates the knowledge substrate: staged extraction, canonical merge, typed relations, evidence grounding, cards, bodies, unit completeness, QA, graph integrity checks, and viewer/API inspection. Runtime tutoring, learner feedback write-back, expert governance queues, version evolution, and broad benchmark evaluation remain future work.
+This boundary matters for the rest of the report. \OKM{} currently demonstrates the knowledge substrate and an early runtime subset: staged extraction, canonical merge, typed relations, evidence links, cards, bodies, pending-review school-stage pedagogical profiles, node and unit embeddings, unit completeness, object-level retrieval, citation-identifier validation, QA, graph-integrity checks, and viewer/API inspection. Semantic planning, runtime tutoring, learner-feedback write-back, mature expert-governance queues, version evolution, and broad benchmark evaluation remain future work.
 
 \section{System Positioning and Boundary}
 
@@ -315,7 +302,7 @@ Knowledge Unit & Consumption-side unit for viewer, retrieval, generation, and la
 \code{ApiUnit} & Public view assembled by \code{node_id}: node, relations, domain profiles, mentions, evidence, media, source fragments, card, and body. & Current most important service contract.\\
 K-Unit & Earlier idea for a learning or collaboration unit. & Only a conceptual source; not the current schema or API.\\
 Knowledge Realization & A generated expression of the same object, such as textbook explanation, exercise, video, simulation, or tutor response. & Future extension.\\
-Knowledge Runtime & Mechanism for object retrieval, semantic planning, grounded generation, tutoring, feedback, and evolution. & Future implementation.\\
+Knowledge Runtime & Mechanism for object retrieval, semantic planning, grounded generation, tutoring, feedback, and evolution. & Early subset implemented for unit retrieval, citation-identifier checks, generation, and streaming; planning, tutoring, feedback, and evolution remain future work.\\
 \bottomrule
 \end{tabularx}
 \caption{Core terminology boundaries used by the current report.}
@@ -340,18 +327,24 @@ Source & PDF, MinerU markdown, images, formulas, tables, outlines, and enrich-bo
 Evidence & \code{world_evidence}, \code{world_mentions}, and \code{source_fragments}. & Finer evidence chains and conflict management.\\
 Knowledge Object & \code{world_nodes}, nine official kinds, and \code{properties.semantic_core}. & Version evolution and object-level impact analysis.\\
 Knowledge Network & \code{world_edges} with fifteen relation types. & Higher-order relations such as \code{supports}, \code{contradicts}, \code{applies_to}, \code{updates}, and \code{replaces}.\\
-Domain and pedagogy & \code{world_domain_profiles} and pedagogical profile fields. & Curriculum mapping, exam weighting, learner adaptation, and optional pedagogical roles.\\
-Knowledge Unit & \code{ApiUnit}, unit API, completeness score, and viewer presentation. & JSON export, runtime context pack, and score-driven repair workflow.\\
-Runtime & Search and retrieval candidates are emerging. & Object-level retrieval, semantic planning, grounded generation, and AI Tutor behavior.\\
+Domain and pedagogy & \code{world_domain_profiles} plus evidence-linked, pending-review \code{pedagogical_profiles_by_stage} generated after normalization. & Curriculum mapping, exam weighting, learner adaptation, and validated pedagogical effectiveness.\\
+Knowledge Unit & \code{ApiUnit}, unit API, completeness score, viewer presentation, and bounded generation context. & JSON export and score-driven repair workflow.\\
+Runtime & Object-level lexical retrieval; configured vector and hybrid execution with text-only reporting; unit embeddings; citation-identifier validation; insufficient-context handling; synchronous and streaming responses. & Semantic planning, AI Tutor behavior, learner-state adaptation, and feedback write-back.\\
 Governance & Staging, merge, normalization, strict QA, graph integrity, quality dashboard, and image review. & Expert review queues, version governance, and learning-feedback write-back.\\
 \bottomrule
 \end{tabularx}
 \caption{Current implementation boundary and planned AI-NKS layers.}
 \end{table}
 
+\subsection{Relation to Prior Work}
+
+\OKM{} combines ideas from several established lines of work but places the engineering boundary differently. Retrieval-augmented generation grounds model output in external passages, while recent surveys emphasize retrieval quality, generation faithfulness, and evaluation as separate concerns \cite{rag,gao-rag-survey}. Knowledge-graph research contributes stable identity, typed relations, schema, provenance, and validation, and work on combining knowledge graphs with large language models motivates graph-aware retrieval and generation \cite{hogan-kg,ji-kg-survey,pan-llm-kg}. Learning-object, educational-knowledge-graph, and tutoring research contributes reuse, domain modeling, learner modeling, task selection, and pedagogical adaptation \cite{wiley-learning-objects,qu-education-kg,vanlehn,koedinger-kli}.
+
+The distinct contribution of the current system is not a new embedding model or a claim that graphs universally replace document retrieval. It is an executable boundary for textbook-derived knowledge infrastructure: source fragments remain evidence; model workers write staging rows; reducers control canonical identity; cards and bodies remain distinguishable from source text; complete \code{ApiUnit} objects become the serving and retrieval boundary; and generated answers are checked against evidence identifiers in the retrieved units. This creates a testable substrate for later comparison with chunk-based retrieval and educational applications without treating those future results as already established.
+
 \section{System Overview}
 
-Figure~\ref{fig:architecture} shows the implemented construction and serving substrate, not the full future Knowledge Runtime. The main flow starts from a PDF textbook or a previously generated MinerU markdown file. The pipeline creates or loads a textbook outline, splits the material into lessons or chunks, attaches optional enrich-book hints from PostgreSQL, calls model-based extraction, optionally asks a vision model to classify image evidence, writes staged records, applies quality gates, merges and normalizes canonical objects, generates knowledge bodies, and runs strict QA, graph integrity, and quality-dashboard stages. PostgreSQL is the authoritative structured store. The Hono server reads from it and exposes graph bundles, units, search, pipeline status, quality diagnostics, image review, and textbook workbench routes. The React viewer consumes only these API contracts.
+Figure~\ref{fig:architecture} shows the implemented construction and serving substrate, including the early runtime subset but not the full future Knowledge Runtime. The main flow starts from a PDF textbook or a previously generated MinerU markdown file. The pipeline creates or loads a textbook outline, splits the material into lessons or chunks, attaches optional enrich-book hints from PostgreSQL, calls model-based extraction, optionally asks a vision model to classify image evidence, writes staged records, applies quality gates, merges and normalizes canonical objects, generates knowledge bodies and school-stage pedagogical profiles, optionally backfills node and unit embeddings through an operator-configured endpoint, and runs strict QA, graph integrity, and quality-dashboard stages. PostgreSQL is the authoritative structured store. The Hono server reads from it and exposes graph bundles, complete units, text/vector/hybrid unit retrieval, grounded generation, pipeline status, quality diagnostics, image review, and textbook workbench routes. The React viewer consumes only these API contracts.
 
 \begin{figure}[H]
 \centering
@@ -368,10 +361,10 @@ Figure~\ref{fig:architecture} shows the implemented construction and serving sub
   \node[box, right=of outline] (enrich) {Enrich books\\context hints};
   \node[box, below=of outline] (extract) {Lesson/chunk\\model workers};
   \node[box, left=of extract] (vlm) {Vision model\\image review hints};
-  \node[store, below=of extract] (pg) {PostgreSQL\\knowledge store};
+  \node[store, below=of extract] (pg) {PostgreSQL\\knowledge store\\and vectors};
   \node[box, right=of extract] (qa) {Merge\\normalize\\QA};
-  \node[box, right=of qa] (bodies) {Knowledge\\body writer};
-  \node[box, below=of pg] (api) {Hono API\\unit and bundle};
+  \node[box, right=of qa] (bodies) {Knowledge-body and\\pedagogy writers};
+  \node[box, below=of pg] (api) {Hono API\\unit retrieval\\and generation};
   \node[box, right=of api] (viewer) {React viewer\\debug workbench};
 
   \draw[arr] (pdf) -- (mineru);
@@ -402,9 +395,9 @@ Figure~\ref{fig:architecture} shows the implemented construction and serving sub
 \textbf{Path} & \textbf{Responsibility}\\
 \midrule
 \code{packages/types} & Shared TypeScript models and API types, including graph models, pipeline responses, outline structures, and the \code{ApiUnit} contract.\\
-\code{packages/pipeline} & Extraction pipeline, MinerU integration, outline parsing, enrich-context loading, lesson extraction, staging, merge, normalization, retrieval candidates, QA, progress tracking, and node body generation.\\
-\code{packages/server} & Hono API server, PostgreSQL connection and query layer, graph bundle assembly, unit loading, search, pipeline launch/status, image review, and enrich/textbook routes.\\
-\code{packages/viewer} & React/Vite graph viewer, G6 graph canvas, detail panel, textbook tree page, pipeline debug page, image review workflow, and frontend API client.\\
+\code{packages/pipeline} & Extraction pipeline, MinerU integration, outline parsing, enrich-context loading, lesson extraction, staging, transactional merge and normalization, retrieval candidates, body, pedagogical-profile, and embedding generation, QA, and progress tracking.\\
+\code{packages/server} & Hono API server, PostgreSQL query layer, graph and unit assembly, complete-unit retrieval, grounded generation and streaming, pipeline launch/status, review, and textbook routes.\\
+\code{packages/viewer} & React/Vite graph viewer, G6 graph canvas, unit detail and grounded-answer panels, textbook tree, pipeline debug page, image review, annotation, and frontend API client.\\
 \code{schemas} & World knowledge standard, JSON Schemas, architecture notes, extraction templates, and PostgreSQL schema files.\\
 \code{docs} & Theoretical foundation, theory decision record, current architecture, AI-NKS standard notes, knowledge unit contract, prompt inventory, run notes, and route planning.\\
 \bottomrule
@@ -485,21 +478,25 @@ The extraction pipeline is implemented in \code{packages/pipeline}. Its main com
 npm run server-pipeline-run -w packages/pipeline -- \
   --book-id chem-grade8 \
   --pdf-path /abs/path/to/book.pdf \
+  --subject chemistry \
+  --school-stage junior-secondary \
+  --grade-band grade-8 \
+  --skip-embeddings \
   --db "$DATABASE_URL"
 \end{lstlisting}
 
-The same command can accept a MinerU file URL, model options, vision-model options, concurrency settings, retry controls, enrich-context controls, and node-body generation options. In the current server pipeline path, enrich context is enabled by default with a small limit. The pipeline reads nearby \code{world_enrich_books} material and passes it as \code{lesson_context.enrich_hints}; this context is only allowed to help with terminology boundary, naming, and granularity. It is not evidence for creating nodes or relations.
+The same command can accept a MinerU file URL, model options, vision-model options, concurrency settings, retry controls, enrich-context controls, node-body options, and pedagogical-profile options. In the current server pipeline path, enrich context is enabled by default with a small limit. The pipeline reads nearby \code{world_enrich_books} material and passes it as \code{lesson_context.enrich_hints}; this context is only allowed to help with terminology boundary, naming, and granularity. It is not evidence for creating nodes or relations. Pipeline embedding backfill requires an explicitly configured \code{EMBEDDING_URL} and uses \code{EMBEDDING_API_KEY} when the selected provider requires authentication. Server-side query embeddings currently require both values; otherwise vector execution is unavailable and hybrid requests report text-only execution. No endpoint is contacted by default, and \code{--skip-embeddings} is the safe reproducible choice when an embedding provider has not been selected.
 
 \subsection{Stage Flow}
 
-Figure~\ref{fig:pipeline-flow} summarizes the stage boundary. The most important engineering rule is that lesson workers do not write canonical world tables. They write only lesson run state and staging rows. Canonical writes happen after merge, remapping, normalization, and quality checks. The server runner currently records ordered stages such as database check, MinerU parsing, outline preparation, lesson planning, lesson staging, staging-quality retry, canonical commit, normalization, node-body generation, strict QA, graph integrity, and quality-dashboard generation.
+Figure~\ref{fig:pipeline-flow} summarizes the stage boundary. Lesson workers write only \code{world_lesson_runs} and \code{world_staging_*}. After staging quality passes, reducer-controlled merge, remapping, and normalization perform canonical writes transactionally; strict QA and graph-integrity checks run afterward. The server runner records database checking, MinerU parsing, outline preparation, lesson planning, lesson staging, staging-quality retry, canonical commit, normalization, node-body generation, school-stage pedagogical-profile generation, node-embedding backfill, unit-embedding backfill, strict QA, graph integrity, and quality-dashboard generation as ordered stages. Pedagogical-profile and embedding stages can be explicitly skipped; embedding stages require an operator-configured endpoint.
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-  node distance=0.45cm,
-  stage/.style={draw, rounded corners=2pt, align=center, text width=3.0cm, minimum height=0.75cm, fill=orange!5},
-  table/.style={draw, align=center, text width=3.0cm, minimum height=0.75cm, fill=green!5},
+  node distance=0.32cm,
+  stage/.style={draw, rounded corners=2pt, align=center, text width=3.0cm, minimum height=0.62cm, fill=orange!5},
+  table/.style={draw, align=center, text width=3.0cm, minimum height=0.68cm, fill=green!5},
   arr/.style={-{Latex[length=2mm]}, thick}
 ]
   \node[stage] (s1) {1. Prepare source\\PDF or markdown};
@@ -512,8 +509,11 @@ Figure~\ref{fig:pipeline-flow} summarizes the stage boundary. The most important
   \node[stage, below=of s6] (s7) {7. Normalize\\cards and\\evidence};
   \node[table, right=1.0cm of s6] (canonical) {Canonical\\\code{world_*}};
   \node[stage, below=of s7] (s8) {8. Generate\\knowledge bodies};
-  \node[stage, below=of s8] (s9) {9. Strict QA\\graph integrity};
-  \node[stage, below=of s9] (s10) {10. Quality\\dashboard};
+  \node[stage, below=of s8] (s9) {9. Generate school-stage\\pedagogical profiles};
+  \node[stage, below=of s9] (s10) {10. Backfill\\node embeddings};
+  \node[stage, below=of s10] (s11) {11. Backfill\\unit embeddings};
+  \node[stage, below=of s11] (s12) {12. Strict QA\\graph integrity};
+  \node[stage, below=of s12] (s13) {13. Quality\\dashboard};
 
   \draw[arr] (s1) -- (s2);
   \draw[arr] (s2) -- (s3);
@@ -524,11 +524,12 @@ Figure~\ref{fig:pipeline-flow} summarizes the stage boundary. The most important
   \draw[arr] (s7) -- (s8);
   \draw[arr] (s8) -- (s9);
   \draw[arr] (s9) -- (s10);
+  \draw[arr] (s10) -- (s11);
+  \draw[arr] (s11) -- (s12);
+  \draw[arr] (s12) -- (s13);
   \draw[arr] (s3.east) -- (staging.west);
   \draw[arr] (s4.east) -- (staging.west);
   \draw[arr] (s6.east) -- (canonical.west);
-  \draw[arr] (s7.east) -- (canonical.west);
-  \draw[arr] (s8.east) -- (canonical.west);
 \end{tikzpicture}
 \caption{Pipeline stages and write boundary. Lesson/chunk workers write staging rows; reducers and post-processing stages write canonical world tables and quality summaries.}
 \label{fig:pipeline-flow}
@@ -542,19 +543,26 @@ Outline handling is similarly split. The service and pipeline read structured ou
 
 \subsection{Model Extraction}
 
-The current repository has five prompt-bearing model paths and two append mechanisms:
+The current repository has five primary model-facing workflows, one retry-specific prompt augmentation, and two general P1 augmentation mechanisms:
 
 \begin{itemize}
   \item P1: lesson/chunk knowledge extraction, split into node/evidence extraction and relation extraction in \code{model-lesson-extraction.ts};
   \item P2: textbook image relevance classification, implemented in \code{image-relevance.ts};
   \item P3: knowledge node body writing, implemented in \code{generate-node-bodies.ts};
-  \item P4: object-level grounded generation over retrieved \code{ApiUnit} context, implemented in the server runtime;
-  \item P5: staging-quality retry repair instructions, generated by the pipeline runner and appended to P1 after blocked lesson/chunk runs.
+  \item P4: evidence-linked, pending-review pedagogical-profile generation for each domain-profile and school-stage context, implemented in \code{generate-pedagogical-profiles.ts};
+  \item P5: object-level grounded generation over retrieved \code{ApiUnit} context, implemented in the server runtime;
+  \item P6: staging-quality retry repair instructions, generated by the pipeline runner and appended to P1 after blocked lesson/chunk runs.
 \end{itemize}
 
 P1 also accepts subject extraction-template blocks from the textbook template directory and an optional command-line \code{--prompt} block. P1 uses a structured input payload containing lesson context, page range, source path, markdown excerpt preview, retrieval candidates, evidence hints, optional \code{lesson_context.enrich_hints}, and markdown lines.
 
 The extraction path uses JSON Schema response constraints in addition to natural-language instructions. The project therefore does not rely on prompt text alone for output structure. The prompt explicitly says that enrich hints can help interpret the lesson topic, but cannot serve as node or relation evidence; if enrich hints conflict with the current slice, the current slice wins. This choice is consistent with graph-validation practice: the model may propose content, but schema and quality gates decide whether the content can enter the maintained graph \cite{shacl,hogan-kg}. Appendix~\ref{app:prompt-inventory} lists the prompt text and dynamic prompt wrappers found in the current repository.
+
+\subsection{School-Stage Pedagogical Profiles}
+
+Lesson extraction produces only the basic domain, school-stage, curriculum-role, and evidence associations needed for a domain profile. After canonical normalization and knowledge-body generation, the pedagogical-profile stage reads each eligible domain-profile and school-stage pair together with its canonical node, card, relations, related nodes, and evidence. The model returns learning objectives, a stage-relative difficulty level, diagnostic questions, common errors, assessment tasks, remediation suggestions, extension suggestions, evidence identifiers, and confidence.
+
+Generated profiles are written into the \code{properties_json} column of \code{world_domain_profiles}, under the stage-keyed map \code{pedagogical_profiles_by_stage}. They retain the model name, prompt version, generation time, input fingerprint, review status, confidence, and source references. The generator validates that returned source references belong to the evidence identifiers supplied to the model, but this identifier check is not a semantic-entailment test. The current evidence query also does not exclude rows solely because they are marked synthetic or \code{quality_excluded}. Generated entries therefore remain \code{pending}. Existing manual profiles and protected reviewed profiles are not silently overwritten; unchanged generated inputs can be skipped, while an explicit overwrite flag is limited to generated entries. Strict QA checks stage keys, output fields, provenance metadata, review state, confidence range, and evidence references. This stage makes pedagogy inspectable and reviewable, but it does not establish that the generated teaching design is effective.
 
 \subsection{Image Evidence}
 
@@ -564,7 +572,13 @@ This design reflects a practical textbook issue: figures can be central knowledg
 
 \subsection{Quality Gates and Retry}
 
-After staging writes, \code{staging-quality} checks whether each lesson/chunk produced sufficient and internally consistent staged output. The server pipeline has retry controls for blocked chunks, so a failed quality check can rerun affected lesson/chunk anchors instead of restarting the entire book. The retry prompt is generated from the failed lesson's quality issues and explicitly asks the worker to repair missing nodes, definitions, domain profiles, mentions, node cards, and evidence references. After merge and normalization, \code{strict-qa} validates schema legality, \code{graph-integrity} checks graph-level issues such as cycles, isolated nodes, disconnected components, and final QA markings, and \code{quality-dashboard} materializes lesson-level and canonical quality metrics for the debug page.
+After staging writes, \code{staging-quality} checks whether each lesson/chunk produced sufficient and internally consistent staged output. A lesson may legitimately produce no objects only when it explicitly returns \code{lesson_disposition=no_knowledge}, supplies a non-empty \code{no_knowledge_reason}, and leaves all staged knowledge artifacts empty. An implicit empty result, an invalid disposition, or an \code{extracted} result without nodes and evidence is blocked. The server pipeline can rerun only affected anchors instead of restarting the entire book. The generated retry prompt asks the worker to re-evaluate the current slice under the current response schema, permits an explicit \code{no_knowledge} outcome, and forbids fabricating nodes or relations merely to pass the gate.
+
+Non-blocking admission warnings are persisted in \code{world_lesson_runs} under \code{properties_json.quality_warnings}, together with \code{quality_review_required} and \code{review_node_ids}. Synthetic fallback evidence is marked \code{synthetic=true}, \code{quality_excluded=true}, and \code{review_status=pending}; it remains visible for review but cannot satisfy formal evidence-coverage checks. After merge and normalization, \code{strict-qa} validates schema legality, \code{graph-integrity} checks graph-level issues such as cycles, isolated nodes, disconnected components, and final QA markings, and \code{quality-dashboard} materializes lesson-level and canonical quality metrics and review queues for the debug page.
+
+\subsection{Transactional Canonical Writes}
+
+Staging writes already use a transaction so lesson-run state, deletion of prior staged rows, and insertion of a replacement bundle succeed or roll back together. Canonical merge and normalization add a data-set-scoped PostgreSQL advisory transaction lock through \code{pg_advisory_xact_lock}. Each reducer performs its reads, planning, remapping, and writes within the same transaction and rolls back on failure. This prevents concurrent reducers for the same data set from committing plans derived from stale canonical state while still allowing unrelated data sets to proceed independently.
 
 \section{PostgreSQL Knowledge Store}
 
@@ -579,7 +593,7 @@ The current repository treats PostgreSQL as the only authoritative structured st
 \midrule
 Dataset and sources & \code{world_datasets}, \code{world_source_artifacts}, \code{world_textbook_outlines}, \code{world_enrich_library}, \code{world_enrich_books}, \code{world_mineru_sources}\\
 Canonical knowledge & \code{world_nodes}, \code{world_node_terms}, \code{world_edges}, \code{world_taxonomy_terms}, \code{world_taxonomy_edges}, \code{world_domain_profiles}, \code{world_mentions}, \code{world_evidence}, \code{world_evidence_links}, \code{world_node_cards}, \code{world_node_bodies}\\
-Retrieval support & node embeddings on \code{world_nodes} and candidate rows in \code{retrieval_candidates}\\
+Retrieval support & node embeddings on \code{world_nodes}, complete-unit embeddings in \code{world_unit_embeddings}, and extraction-context rows in \code{retrieval_candidates}\\
 Pipeline status & \code{world_pipeline_jobs}, \code{world_pipeline_job_stages}, \code{world_pipeline_job_events}, \code{world_pipeline_worker_states}\\
 Staging and merge & \code{world_lesson_runs}, \code{world_staging_nodes}, \code{world_staging_edges}, \code{world_staging_domain_profiles}, \code{world_staging_mentions}, \code{world_staging_evidence}, \code{world_staging_node_cards}, \code{world_merge_runs}, \code{world_canonical_node_map}\\
 \bottomrule
@@ -598,6 +612,8 @@ This schema makes several boundaries explicit:
   \item \code{world_enrich_books} can provide extraction context, but it is not promoted to evidence unless a later explicit evidence path is added.
   \item Staging and canonical tables remain separate so model output can be checked, merged, and normalized before becoming part of the graph.
 \end{itemize}
+
+The unit-embedding table is keyed by data set and node. Its \code{retrieval_text} is assembled from the public unit's identity, definition, semantic core, card, persistent body, and evidence joined to node mentions rather than from a node name alone. The current embedding query does not exclude text evidence solely because it is marked synthetic or quality-excluded, so downstream evaluation must preserve that distinction. A \code{content_hash} lets the backfill stage skip unchanged units, while \code{embedding_model} and \code{generated_at} retain generation provenance. The current vector column has 1024 dimensions. Keeping unit embeddings separate from the identity row allows retrieval representation to evolve without treating an embedding as part of canonical knowledge identity.
 
 \section{Knowledge Unit API}
 
@@ -655,8 +671,9 @@ interface ApiUnitCompleteness {
 The server implementation in \code{packages/server/src/db/queries.ts} loads the node, outgoing and incoming edges, profiles, mentions, matching evidence, card, body, media derived from reviewed evidence, and source fragments derived from evidence and textbook outlines. It then calls \code{buildApiUnitCompleteness} to score the unit across node definition, semantic core, relations, evidence, source fragments, domain profiles, body source references, structured card, and mentions. Pending uncertain images and rejected images are filtered out of ordinary unit media. The viewer should consume this response instead of reconstructing table joins in the browser.
 
 \section{Server Layer and Pipeline Jobs}
+\label{sec:server-runtime}
 
-The server is a Hono application in \code{packages/server}. It exposes health, metadata, graph bundles, unit loading, node cards, search, pipeline status, pipeline quality diagnostics, image review, asset serving, and textbook workbench routes.
+The server is a Hono application in \code{packages/server}. It exposes health, metadata, graph bundles, unit loading, node cards, object-level retrieval, grounded generation, pipeline status, pipeline quality diagnostics, image review, annotation, asset serving, and textbook workbench routes.
 
 \begin{table}[H]
 \centering
@@ -669,7 +686,10 @@ The server is a Hono application in \code{packages/server}. It exposes health, m
 \code{GET /api/meta} & Available datasets, active source, and textbook metadata.\\
 \code{GET /api/source/:key/bundle} & Graph bundle for viewer initialization.\\
 \code{GET /api/source/:key/unit/:node_id} & Complete knowledge unit view.\\
-\code{GET /api/source/:key/search} & Node search using text and vector paths where available.\\
+\code{GET /api/source/:key/search} & Lightweight node search used by graph navigation.\\
+\code{GET /api/source/:key/units/search} & Complete-unit retrieval requested in \code{text}, \code{vector}, or \code{hybrid} mode. Vector execution requires a configured query-embedding service and stored vectors; each hit contains scores, match reasons, and a full \code{ApiUnit}, while the response reports \code{full} or \code{text_only} execution.\\
+\code{POST /api/source/:key/grounded-generate} & Retrieves units and returns an evidence-cited answer with identifier-validated and invalid citations, model-reported unsupported claims, used node ids, and grounding status.\\
+\code{POST /api/source/:key/grounded-generate/stream} & Server-sent-event form of grounded generation with \code{retrieval}, \code{answer_delta}, \code{complete}, and \code{error} events.\\
 \code{GET /api/source/:key/pipeline} & Pipeline summary, recent runs, merge status, and review items.\\
 \code{GET /api/source/:key/pipeline/quality} & Quality dashboard payload with lesson metrics, evidence coverage, isolated nodes, disconnected components, and manual-review counts.\\
 \code{POST /api/source/:key/pipeline/infer-textbook} & Infers book title, subject, stage, grade band, MinerU language, outline page defaults, and extraction template from the request and stored outline.\\
@@ -684,51 +704,62 @@ The server is a Hono application in \code{packages/server}. It exposes health, m
 
 Pipeline jobs started from the viewer are detached child processes. The server creates a job id, prepares a log path under \code{runs/server-jobs}, passes \code{--job-id} and \code{--log-path} into the pipeline command, and lets the pipeline write structured progress into PostgreSQL. The command builder also forwards user or inferred values such as dataset id, output root, parallelism, extraction template, quality retry count, model retry count, subject, school stage, grade band, OpenAI-compatible model settings, VLM settings, PDF path, MinerU URL, MinerU language, page ranges, and outline page range. This means the browser can close while the job continues; the UI later reads \code{world_pipeline_jobs}, stage rows, events, and worker states to reconstruct status.
 
+Lexical complete-unit retrieval does not require an embedding provider. Vector execution first embeds the query, prioritizes \code{world_unit_embeddings}, and supplements nodes without unit vectors from \code{world_nodes.embedding}. In hybrid mode, an unavailable vector path leaves lexical results and reports \code{mode=text_only}; a vector-only request has no lexical candidate path, so it returns no vector hits and also reports \code{text_only} when query embedding is unavailable.
+
+The grounded-generation path then retrieves bounded \code{ApiUnit} context and validates every model citation by checking that its node and evidence identifiers occur in the retrieved units. This establishes identifier membership, not semantic entailment between every answer claim and its cited excerpt; \code{unsupported_claims} is also model-reported rather than independently detected. Successful response bodies currently distinguish \code{grounded}, \code{partial}, and \code{insufficient_context} states. Although the shared type reserves \code{model_error}, provider or parsing failures currently leave the successful-response path and are reported as an HTTP error or a server-sent-event \code{error} event. The streaming route sends retrieval results before answer deltas and emits the same validated final response in its \code{complete} event.
+
 \section{Viewer and Debug Workbench}
 
-The viewer is a React/Vite application built around three work areas:
+The viewer is a React/Vite application built around four work areas:
 
 \begin{itemize}
-  \item graph browsing through \code{GraphCanvas}, filters, and detail panels;
+  \item graph browsing with filters, detail panels, complete-unit retrieval, and grounded question answering;
   \item textbook navigation through \code{TextbookTreePage};
-  \item extraction inspection and control through \code{PipelineDebugPage}.
+  \item extraction inspection and control through \code{PipelineDebugPage};
+  \item persisted annotation and review workflows.
 \end{itemize}
 
-The final version should include UI screenshots only where the interface proves that the repository contracts are inspectable by a user. The architecture and pipeline figures already explain backend structure; the screenshots should instead show graph reading, source navigation, pipeline execution, and quality-governance workflows.
+The architecture and pipeline figures explain backend structure. The four interface figures below use only the repository-authored Synthetic Home Solar Demo. They illustrate public interface and contract behavior rather than textbook extraction accuracy, pipeline completion, or benchmark performance. Figure~\ref{fig:ui-grounded-answer} shows the pre-retrieval question interface; executable grounded-generation behavior is established by the implementation and tests, not by that screenshot.
 
 The graph page first loads \code{/api/meta} and then \code{/api/source/:key/bundle}. Clicking a node loads \code{/api/source/:key/unit/:node_id} and shows the full knowledge unit. The detail view displays relation, evidence, profile, mention, and completeness counters; renders the generated knowledge body with evidence references; separates semantic-core groups, textbook source fragments, structured card sections, relations, domain profiles, evidence, and media; and supports full-screen reading of source fragments. This separation is essential because it keeps the user from mistaking generated explanatory text for the textbook source.
 
-\uiscreenshotplaceholder
-{Capture the graph browsing page with one representative node selected.}
-{The graph canvas should remain visible while the right-side detail panel shows relation, evidence, profile, mention, and completeness counters, generated body content, source fragments, and structured card sections. Use a node from the documented physics run if available.}
-{Placeholder for the graph browsing and knowledge-unit inspection UI.}
-{fig:ui-graph-unit-placeholder}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{assets/report/graph-overview.png}
+\caption{Graph view of the repository-authored Synthetic Home Solar Demo. The direct-seeded data set contains nine canonical Knowledge Objects spanning the nine \code{world-v1.2} node kinds and twelve typed relations. The figure demonstrates viewer and graph-contract behavior; it is not an extraction result or evaluation benchmark.}
+\label{fig:ui-graph-overview}
+\end{figure}
 
-The textbook workbench should be shown separately because it is the reader-facing bridge between textbook outline metadata, lesson source material, and extraction context. A useful screenshot should show that the system can inspect the textbook structure before or after extraction, not only the resulting graph.
+Figure~\ref{fig:ui-unit-detail} shows the synthetic source tree and the selected ``1.2 Solar panel'' chunk. The right panel links that chunk to a directly seeded Knowledge Object and a synthetic evidence excerpt, demonstrating the source-to-object inspection path without third-party textbook content.
 
-\uiscreenshotplaceholder
-{Capture the textbook tree or textbook workbench page with a real outline expanded.}
-{Show chapter and lesson levels, the selected lesson/detail pane, page range or source metadata, and enough source text or outline context to make clear that textbook navigation is backed by stored outline data rather than a static file screenshot.}
-{Placeholder for the textbook navigation and source-inspection UI.}
-{fig:ui-textbook-workbench-placeholder}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{assets/report/unit-detail.png}
+\caption{Textbook workbench view of the repository-authored synthetic module. The selected ``1.2 Solar panel'' chunk is linked to a directly seeded Knowledge Object and its synthetic evidence excerpt. These records were not produced by model extraction or reducer execution.}
+\label{fig:ui-unit-detail}
+\end{figure}
+
+The graph workspace also exposes the early runtime entry point. Figure~\ref{fig:ui-grounded-answer} shows a synthetic solar-panel question entered with hybrid retrieval selected, before retrieval or generation has run. It therefore demonstrates the controls but not a retrieval hit, answer, or citation-validation result.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{assets/report/grounded-answer.png}
+\caption{Grounded-question interface with a synthetic solar-panel question entered against the demo graph before retrieval begins. This screenshot shows the runtime entry point only; it does not show a retrieved result, generated answer, or validated citation.}
+\label{fig:ui-grounded-answer}
+\end{figure}
 
 The debug page covers the operational loop: infer textbook metadata, start a pipeline run, watch stage progress, inspect worker state, inspect quality-dashboard metrics, see blocked conditions, review image evidence, and inspect merge-review items. Image review actions are written back through the server so later unit views can hide \code{review_status=rejected} images or show \code{review_status=approved} core, supporting, or manually kept images.
 
-\uiscreenshotplaceholder
-{Capture the pipeline debug page during or immediately after a real pipeline run.}
-{Show inferred textbook metadata or launch controls, the current or latest job id, stage progress, lesson-worker state, blocked or completed stages, and quality-dashboard metric cards such as evidence coverage, isolated nodes, disconnected components, and manual-review counts.}
-{Placeholder for the pipeline launch, live status, and quality-dashboard UI.}
-{fig:ui-pipeline-debug-placeholder}
-
-\uiscreenshotplaceholder
-{Capture the image review panel with at least one pending or uncertain textbook image.}
-{Show the image preview, lesson/page/source location, model relevance label, confidence or reason text, and the human actions for approval, rejection, or manual keep. The screenshot should make clear that review decisions are persisted through the server, not only hidden in the browser.}
-{Placeholder for the image evidence review UI.}
-{fig:ui-image-review-placeholder}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{assets/report/quality-dashboard.png}
+\caption{Quality-dashboard card loaded with the direct-seeded synthetic demo. It reports one synthetic lesson row, nine canonical objects, twelve relations, and 0\% formal evidence coverage; the zero value is expected because demo evidence is marked synthetic and quality-excluded. This is not a recorded MinerU, model-extraction, reducer, QA, or independent-review run.}
+\label{fig:ui-pipeline-debug}
+\end{figure}
 
 \section{Structured Output and Prompt Governance}
 
-\OKM{} uses model calls, but it does not leave the core data shape to free-form generation. The repository pairs prompt instructions with JSON Schema response constraints. In the lesson extraction path, the model receives serialized lesson context, optional enrich hints, and markdown lines; the response must match the world-knowledge lesson bundle schema. In the image path, the response must contain a keep decision, relevance label, reason, confidence, and review-state-compatible decision. In the node-body path, the response must contain markdown body content and source references.
+\OKM{} uses model calls, but it does not leave the core data shape to free-form generation. The repository pairs prompt instructions with JSON Schema response constraints. In the lesson extraction path, the model receives serialized lesson context, optional enrich hints, and markdown lines; the response must match the world-knowledge lesson bundle schema. The node/evidence stage must explicitly distinguish \code{extracted} from \code{no_knowledge}, so a valid evidence-free lesson is not confused with an accidental empty model response. In the image path, the model must return \code{visual_summary}, \code{keep}, \code{relevance}, \code{reason}, and \code{confidence}; review status is derived and persisted by later code rather than returned by the model. In the node-body path, the response must contain markdown body content and source references.
 
 This pattern gives the project three useful properties:
 
@@ -743,8 +774,30 @@ The prompt inventory also documents a key production choice: lesson/chunk extrac
 The same rule applies to enrich hints. They can reduce naming and granularity errors, but they do not widen the worker's evidence boundary. This keeps auxiliary textbook material from silently becoming canonical proof.
 
 \section{Case Study: Physics Textbook Run}
+\label{sec:physics-case-study}
 
-A documented run on a high-school physics textbook provides an early system-level check of the pipeline. The input was a PDF textbook parsed through MinerU, with markdown and images cached under \code{data/mineru/physics-hukj-compulsory-3/}. Table~\ref{tab:physics-run} summarizes the final documented database state.
+A documented run on a high-school physics textbook provides an early system-level check of the pipeline. The input was a PDF textbook parsed through MinerU, with markdown and images cached under \code{data/mineru/physics-hukj-compulsory-3/}. This is a historical run record from June 26, 2026, not a claim about the live database shown in the July screenshots.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{0.92\textwidth}{@{}lY@{}}
+\toprule
+\textbf{Configuration} & \textbf{Recorded value}\\
+\midrule
+Source and data set & \code{physics-hukj-compulsory-3}; data set \code{main}\\
+Processing unit & 19 lesson-scale runs\\
+Extraction model & \code{Qwen3.6-27B} through an OpenAI-compatible interface; the language and vision paths used the same configured model\\
+Concurrency & Eight lesson workers and eight image-classification workers\\
+Successful merge & \code{merge:73b3e9ab80f8}\\
+Run date & June 26, 2026\\
+\bottomrule
+\end{tabularx}
+\caption{Recorded configuration of the historical physics-textbook run. Credentials were supplied through environment variables and are not part of the report artifact.}
+\label{tab:physics-run-config}
+\end{table}
+
+Table~\ref{tab:physics-run} summarizes the final documented database state.
 
 \begin{table}[H]
 \centering
@@ -773,7 +826,7 @@ The same run exposed practical hardening needs that have shaped the current repo
 
 \begin{itemize}
   \item Chinese textbook table-of-contents lines required stronger outline parsing.
-  \item Model responses sometimes wrapped JSON in markdown code fences, requiring robust JSON extraction.
+  \item Model responses sometimes wrapped JSON in markdown code fences, requiring reliable JSON extraction.
   \item Empty database reruns needed dataset bootstrap before progress and staging writes.
   \item PostgreSQL JSONB writes needed object/array parameters rather than stringified JSON.
   \item Some chunks returned zero nodes and needed targeted retry rather than whole-book restart.
@@ -790,6 +843,7 @@ The repository uses a layered verification strategy:
   \item TypeScript checks across workspaces through \code{npm run check}.
   \item Workspace builds through \code{npm run build}.
   \item Pipeline tests through \code{npm test -w packages/pipeline}.
+  \item Server and runtime tests through \code{npm test -w packages/server}.
   \item Stage-level quality checks through \code{staging-quality}.
   \item Schema and data checks through \code{strict-qa}.
   \item Graph-level checks through \code{graph-integrity}.
@@ -806,8 +860,8 @@ These checks target different risks. TypeScript catches contract drift across pa
 \textbf{Check} & \textbf{What it supports} & \textbf{What it does not prove}\\
 \midrule
 TypeScript check and build & Package contracts still compile across pipeline, server, viewer, and shared types. & Semantic correctness of extracted knowledge.\\
-Pipeline tests & Stage behavior, SQL writes, data-shape handling, and focused regression cases. & General extraction accuracy across subjects.\\
-Staging quality & Lesson/chunk outputs are non-empty and internally usable before merge. & Human-level boundary judgment for every candidate.\\
+Pipeline and server tests & Stage behavior, SQL writes, data-shape handling, runtime parsing, citation-identifier validation, streaming helpers, and focused regression cases. & General extraction or answer accuracy across subjects.\\
+Staging quality & Extracted lesson/chunk outputs are internally usable before merge, while explicit, reasoned \code{no_knowledge} outcomes remain valid. & Human-level boundary judgment for every candidate.\\
 Strict QA & Canonical rows satisfy schema and controlled-vocabulary constraints. & Pedagogical usefulness or factual completeness.\\
 Graph integrity & Structural graph issues such as cycles, isolated nodes, disconnected components, and final QA state are visible. & That the graph is optimal, dense, or ready for tutoring.\\
 Quality dashboard & Operational quality metrics are visible in the server and debug page. & Independent human evaluation, baseline comparison, or learning-outcome evidence.\\
@@ -816,7 +870,36 @@ Quality dashboard & Operational quality metrics are visible in the server and de
 \caption{Verification scope of the current repository checks.}
 \end{table}
 
-The current test design should continue to grow around business-output parity and database correctness. For database paths, useful tests should create temporary rows, verify writes and reads, and clean up after themselves. For extraction behavior, focused fixtures are more valuable than broad snapshots because the model layer itself is probabilistic.
+The July 12 verification used a working tree based on merge commit \code{2a7dabb}. The command \code{npm run verify} passed repository-wide type checks, 321 pipeline tests, 11 server tests, and all production builds. The Vite build emitted a bundle-size warning for the main viewer chunk; it did not fail the build, but it remains a frontend performance item. The current test design should continue to grow around business-output parity and database correctness. For database paths, useful tests should create temporary rows, verify writes and reads, and clean up after themselves. For extraction behavior, focused fixtures are more valuable than broad snapshots because the model layer itself is probabilistic.
+
+\section{Preliminary Runtime Evaluation and Reproducibility}
+
+The tracked repository contains a small five-question physics fixture under \code{experiments/}, named \code{runtime-apiunit-grounding-small.jsonl}, and a command-line evaluator:
+
+\begin{lstlisting}[language=bash]
+npm run evaluate-runtime -w packages/server -- \
+  --source main --db "$DATABASE_URL" --retrieval-mode hybrid
+\end{lstlisting}
+
+The fixture contains five hand-authored physics questions, each with one expected node identifier. Without \code{--generate}, the command reports retrieval hit rate and recall against those identifiers. With \code{--generate}, it additionally reports expected-term coverage, identifier-level citation validity, invalid-citation count, and the model-reported \code{unsupported_claims} field. The repository does not include the evaluated database snapshot or a machine-readable output for the July 10 local run, so this report does not present those local values as reproducible effectiveness results.
+
+The fixture and evaluator provide a development smoke check rather than a paper-grade benchmark: they cover one subject, only five questions, locally assigned node identifiers, and no independent adjudication. Additional local pilot and ablation scaffolds exist in the working environment, but they are not part of the tracked snapshot and do not contain a completed independent human-scoring record; this report therefore makes no comparative-performance claim from them.
+
+\subsection{Artifact, Data, and Rights Boundary}
+
+The implementation baseline for this draft is merge commit \code{2a7dabb}; the report source, public demo, screenshots, and release documentation are later working-tree changes. The archival report must identify a release commit or tag that contains both the implementation and the cited artifacts.
+
+Figures~\ref{fig:ui-graph-overview}--\ref{fig:ui-pipeline-debug} use \code{examples/demo-data}, a repository-authored synthetic home-solar module with nine directly seeded Knowledge Objects, twelve typed relations, and nine synthetic evidence records marked \code{quality_excluded}. It is not a real textbook, a model-extraction run, or an evaluation benchmark. A fresh clone can use this module to exercise database, API, and interface contracts without a model provider.
+
+The \code{examples/sample-data} directory is a legacy import-fixture set and is not public-safe as a whole. Its small Markdown snippets are explicitly synthetic, while its named-edition outlines and enrichment trees require file-by-file provenance and redistribution review. Original textbook PDFs, OCR or MinerU derivatives, source images, development database snapshots, and run logs are not public release artifacts. Reproducing the historical physics counts requires authorized access to the source material, compatible configured services, and the recorded run configuration; those counts are operational observations rather than a released benchmark.
+
+\subsection{Ethics, Authorship, and Disclosure Boundary}
+
+This technical report evaluates software and textbook-derived artifacts; it contains no learner study, human-participant experiment, or personal learner data. The four public interface figures use only the repository-authored synthetic demo and contain no third-party textbook passage or real individual record. The historical physics case study reports aggregate engineering observations; its source PDF, extracted passages, images, and database are not redistributed. Any future classroom deployment, learner-state modeling, or feedback write-back requires an appropriate consent, privacy, and institutional-review process.
+
+Running the extraction pipeline may transmit source material or derived text to configured MinerU, language-model, vision-model, or embedding providers. Operators must confirm processing rights, provider terms, retention policies, confidentiality requirements, and any necessary consent before using protected or personal material. The synthetic home-solar module is an interface fixture, not an extraction benchmark, learning-resource evaluation, or electrical-engineering recommendation.
+
+Author names, affiliations, and email addresses on the title page are personal information and should remain in a public artifact only with each author's explicit consent. Funding, conflicts of interest, and detailed author contributions cannot be inferred from repository evidence and must be completed by the authors before external submission; absence of repository evidence must not be read as a declaration of none. AI-assisted tools were used for code inspection, consistency checking, and language editing during preparation of this working draft. They did not supply empirical results, and the authors remain responsible for every claim, citation, and released artifact.
 
 \section{Design Discussion}
 
@@ -849,27 +932,28 @@ Lesson workers operate with local context and limited evidence. They are allowed
 The current system should be read as an infrastructure substrate, not as a completed AI-native learning platform.
 
 \begin{enumerate}
-  \item Object-level retrieval exists only partially. Search and candidate retrieval are present, but the full runtime contract for grounded generation and semantic planning is not complete.
+  \item Object-level lexical retrieval and citation-identifier validation are implemented. Vector and hybrid execution depend on configured query embeddings and stored vectors, while semantic planning, relation-path reasoning, runtime policy, and longitudinal feedback are not complete.
   \item AI Tutor behavior is not yet implemented as a first-class application over \code{ApiUnit}.
   \item Knowledge Realization is still future work: the same Knowledge Object is not yet systematically rendered into exercises, simulations, videos, tutor responses, or teacher materials.
-  \item The repository does not yet include a human-annotated multi-subject benchmark, baseline comparisons against chunk retrieval or chapter-centric extraction, or ablation studies.
+  \item The tracked repository does not yet include an adjudicated multi-subject benchmark, completed human scoring, or reproducible baseline comparisons against chunk retrieval or chapter-centric extraction. Existing local pilot and ablation scaffolds are not sufficient evidence for comparative claims.
   \item Learning outcomes have not been evaluated through learner studies, controlled classroom deployments, or long-term A/B tests.
   \item Graph density and relation quality need more evaluation. The physics run showed useful output, but also isolated nodes and disconnected components.
-  \item Evidence conflict management, expert review queues, version governance, and learning-feedback write-back are not yet complete.
+  \item Evidence conflict management, expert review queues, version governance, and learner feedback write-back are not yet complete.
   \item Curriculum mapping, exam weighting, and learner-adaptive use of domain profiles remain planned capabilities.
+  \item Generated school-stage pedagogical profiles remain pending review. Evidence-identifier membership, schema checks, and provenance metadata do not establish factual entailment, instructional quality, or learning effectiveness.
   \item Image review can be improved with cheap rule-based prefilters before vision-model calls.
   \item The top-level AI-NKS standard still needs a careful migration path before new runtime relations or governance fields become executable schema.
 \end{enumerate}
 
 \section{Future Work}
 
-The next phase should focus on turning the current substrate into a callable runtime. Five directions are especially important.
+The next phase should focus on turning the current early runtime into an evaluated and governable learning runtime. Five directions are especially important.
 
 \textbf{Stabilize \code{ApiUnit} as the public contract.}
-Future search, generation, tutoring, and planning modules should consume \code{ApiUnit} instead of joining tables directly. This keeps evidence, body, card, relation, and media semantics consistent across applications. The next contract-level additions should include unit export, runtime context packs for model calls, and repair workflows driven by the existing completeness signals.
+Existing retrieval and grounded-generation modules already consume \code{ApiUnit}; future tutoring and planning modules should preserve this boundary instead of joining tables directly. This keeps evidence, body, card, relation, and media semantics consistent across applications. The next contract-level additions should include unit export, explicit context-pack versioning, and repair workflows driven by the existing completeness signals.
 
-\textbf{Build object-level retrieval and grounded generation.}
-Search results should return units and relation paths, not only node hits. Grounded generation should cite unit bodies and source fragments explicitly, and it should be able to refuse when evidence is insufficient. This direction extends retrieval-augmented generation from passage retrieval toward knowledge-unit retrieval and graph-aware grounding \cite{gao-rag-survey,pan-llm-kg}.
+\textbf{Evaluate and extend object-level retrieval and grounded generation.}
+Current search returns complete units, and current generation checks citation identifiers against retrieved evidence and can report insufficient context. The next step is to add semantic support checks, relation-path retrieval, multi-step planning, calibrated refusal, conflict-aware evidence selection, and controlled comparisons with passage retrieval. This direction extends retrieval-augmented generation from passage retrieval toward knowledge-unit retrieval and graph-aware grounding \cite{gao-rag-survey,pan-llm-kg}.
 
 \textbf{Improve graph construction quality.}
 The pipeline should improve relation extraction, low-risk relation completion, cross-chunk merge evidence, and graph integrity feedback. Isolated nodes and weakly connected components are useful diagnostic signals, not merely warnings to suppress.
@@ -878,13 +962,13 @@ The pipeline should improve relation extraction, low-risk relation completion, c
 The same Knowledge Object should eventually support multiple governed expressions: textbook explanation, tutor response, exercise, diagram, simulation, and teacher material. This requires versioning, expert review, conflict handling, and feedback records rather than one-off generation.
 
 \textbf{Close the education loop.}
-The long-term AI-NKS direction needs learner tasks, misconception detection, diagnostic questions, assessment tasks, feedback write-back, and evaluation metrics. It also changes what a course can mean computationally. A traditional course is usually a pre-authored sequence of chapters and lessons; in AI-NKS, a course can become a generated path over a Knowledge Object Network, constrained by learning goals, learner state, evidence availability, curriculum boundaries, and assessment feedback. The current data model already has places for pedagogical profiles and evidence; the runtime still needs to use them in tutoring and measurement. This future work is motivated by the long-standing tutoring, instructional-design, learning-analytics, and educational-knowledge-graph literature: one-to-one tutoring remains a high bar for learning systems, and effective instruction depends on task-centered practice, feedback, assessment, adaptation to learner state, and domain structures that can support pedagogical applications \cite{bloom-two-sigma,merrill,anderson-krathwohl,vanlehn,koedinger-kli,siemens-learning-analytics,qu-education-kg}.
+The long-term AI-NKS direction needs learner tasks, misconception detection, diagnostic questions, assessment tasks, feedback write-back, and evaluation metrics. It also changes what a course can mean computationally. A traditional course is usually a pre-authored sequence of chapters and lessons; in AI-NKS, a course can become a generated path over a Knowledge Object Network, constrained by learning goals, learner state, evidence availability, curriculum boundaries, and assessment feedback. The current data model and pipeline can store and generate pending-review school-stage pedagogical profiles; the runtime still needs to validate and use them in tutoring and measurement. This future work is motivated by the long-standing tutoring, instructional-design, learning-analytics, and educational-knowledge-graph literature: one-to-one tutoring remains a high bar for learning systems, and effective instruction depends on task-centered practice, feedback, assessment, adaptation to learner state, and domain structures that can support pedagogical applications \cite{bloom-two-sigma,merrill,anderson-krathwohl,vanlehn,koedinger-kli,siemens-learning-analytics,qu-education-kg}.
 
 \section{Conclusion}
 
 \OKM{} is best understood as an implemented knowledge-infrastructure substrate rather than a simple textbook parser or graph viewer. Its core contribution is the disciplined separation of source resources, staged model output, canonical world knowledge, consumption-side knowledge units, generated bodies, and evidence. The current TypeScript workspaces, PostgreSQL schema, Hono API, React viewer, and documented pipeline commands make this separation operational.
 
-The project is deliberately incomplete in the areas that require stronger empirical evidence. It has enough structure to support extraction, inspection, and QA; it has enough service-layer shape to expose knowledge units to future AI systems; and it has enough evidence and provenance to avoid treating model prose as ground truth. The next research step is to make these knowledge units callable by retrievers, generators, tutors, planners, and evaluators, then measure whether object-level, evidence-grounded knowledge infrastructure improves accuracy, traceability, maintainability, and learning outcomes compared with ordinary document-chunk retrieval.
+The project is deliberately incomplete in the areas that require stronger empirical evidence. It has enough structure to support extraction, inspection, and QA; it already exposes complete units to retrievers and citation-identifier-validated generators; and it records enough evidence and provenance to keep model prose distinct from source material. The next research step is to evaluate this runtime against explicit baselines, extend it to planning and tutoring, and measure whether object-level, evidence-grounded knowledge infrastructure improves accuracy, traceability, maintainability, and learning outcomes compared with ordinary document-chunk retrieval.
 
 \newpage
 
@@ -893,7 +977,7 @@ The project is deliberately incomplete in the areas that require stronger empiri
 \section{Prompt Inventory}
 \label{app:prompt-inventory}
 
-This appendix records the prompt-bearing paths found in the repository source code. It includes fixed prompt text, prompt blocks loaded from extraction templates, and dynamic wrappers that are sent to model APIs. It excludes test fixtures, UI labels, documentation prose, and type fields named \code{prompt} when they are not sent to a model call.
+This appendix records the prompt-bearing paths found in the repository source code. It includes fixed prompt text, prompt blocks loaded from extraction templates, and dynamic wrappers that are sent to model APIs. It excludes test fixtures, UI labels, documentation prose, and type fields named \code{prompt} when they are not sent to a model call. The executable source remains normative if later code changes diverge from this snapshot; \code{docs/prompt-inventory.md} is the maintained repository-level inventory.
 
 \begin{table}[H]
 \centering
@@ -908,8 +992,9 @@ P1c & Subject extraction-template blocks appended to P1 & \code{packages/pipelin
 P1d & Optional project prompt appended to P1 & \code{--prompt} in \code{extract-lesson-openai.ts} and \code{parallel-batch.ts}\\
 P2 & Textbook image relevance classification & \code{packages/pipeline/src/extraction/image-relevance.ts}\\
 P3 & Knowledge node body generation & \code{packages/pipeline/src/unit-bodies/generate-node-bodies.ts}\\
-P4 & Runtime grounded generation over retrieved \code{ApiUnit} context & \code{packages/server/src/runtime/grounded-generation.ts}\\
-P5 & Staging-quality retry repair prompt appended to P1 & \code{packages/pipeline/src/cli/server-pipeline-run.ts}\\
+P4 & School-stage pedagogical-profile generation & \code{packages/pipeline/src/pedagogical-profiles/generate-pedagogical-profiles.ts}\\
+P5 & Runtime grounded generation over retrieved \code{ApiUnit} context & \code{packages/server/src/runtime/grounded-generation.ts}\\
+P6 & Staging-quality retry repair prompt appended to P1 & \code{packages/pipeline/src/cli/server-pipeline-run.ts}\\
 \bottomrule
 \end{tabularx}
 \caption{Prompt-bearing paths included in the appendix.}
@@ -926,7 +1011,7 @@ P1 is sent as model instructions. In the Responses API path it is placed in the 
 任务是只从当前 lesson/chunk 中抽取证据和候选知识节点。\par
 
 硬约束：\par
-1. 只输出 \code{nodes}、\code{evidence\_units}、\code{issues} 三个字段。\par
+1. 只输出 \code{lesson\_disposition}、\code{no\_knowledge\_reason}、\code{nodes}、\code{evidence\_units}、\code{issues} 五个字段。\par
 2. 这一阶段绝对不要输出关系；关系会在第二阶段单独判断。\par
 3. 每个节点必须能被当前 lesson 的 \code{evidence\_units} 支撑，证据不足就不要列为节点。\par
 4. \code{evidence\_units.anchor} 必须稳定、简短、唯一，例如 \code{ev1}、\code{ev2}。\par
@@ -938,7 +1023,10 @@ P1 is sent as model instructions. In the Responses API path it is placed in the 
 9. 正式候选节点应具备稳定知识身份、证据锚点、关系潜力、教学用途和未来复用性。\par
 10. \code{lesson\_context.enrich\_hints} 只是对应教材位置的辅助判断材料，只能帮助判断术语边界、命名和粒度，不能作为节点证据。\par
 11. 如果 \code{enrich\_hints} 和当前 lesson/chunk 证据冲突，以当前 lesson/chunk 的证据为准。\par
-12. 输出必须严格符合 JSON schema。
+12. 如果当前课时存在至少一个证据充分、符合准入条件的知识对象，\code{lesson\_disposition} 必须为 \code{extracted}，\code{no\_knowledge\_reason} 必须为空字符串。\par
+13. 只有当前课时确实没有任何可抽取知识对象时，\code{lesson\_disposition} 才能为 \code{no\_knowledge}；此时 \code{nodes} 和 \code{evidence\_units} 必须都为空，并在 \code{no\_knowledge\_reason} 中写明原因。\par
+14. 不要为了避免空结果而把目录、栏目、题型、活动标题或证据不足的词语提升为节点。\par
+15. 输出必须严格符合 JSON schema。
 \end{prompttranscript}
 
 \paragraph{P1b: relation extraction base prompt.}
@@ -1054,9 +1142,30 @@ P3 writes a durable markdown body for one knowledge node from the node row, stru
 7. 输出必须是 JSON，不要输出额外解释。
 \end{prompttranscript}
 
-\subsection{P4: Runtime Grounded Generation}
+\subsection{P4: School-Stage Pedagogical Profile Generation}
 
-P4 is the server-side grounded-generation prompt. It retrieves \code{ApiUnit} records, serializes a bounded context, and asks the model to answer in JSON.
+P4 runs after canonical normalization and knowledge-body generation. It receives one canonical node, one domain-profile and school-stage context, the node card, neighboring relations and nodes, linked evidence, and the allowed evidence identifiers. The fixed instruction text is:
+
+\begin{prompttranscript}
+你是 Open Knowledge Map 的教学画像生成器。\par
+任务：根据一个已经规范化的知识对象、指定领域和指定学段，生成可用于教学、诊断和评价的结构化画像。\par
+
+硬约束：\par
+1. 知识事实只能来自输入的节点、结构化卡片、关系和证据；不得补充无证据支持的学科事实。\par
+2. 学习目标、问题、任务和建议可以进行教学设计，但必须围绕输入知识，不得引入新的知识结论。\par
+3. 每个列表写 1 至 3 条，内容具体、简洁、可执行，避免空泛表述。\par
+4. 学习目标使用可观察的行为描述；评价任务应能检验这些目标。\par
+5. 难度必须相对于当前 \code{school_stage} 判断，只能使用 \code{introductory}、\code{basic}、\code{intermediate}、\code{advanced}、\code{expert}。\par
+6. \code{source_refs} 只能填写 \code{allowed_source_refs} 中出现的证据编号，不能创造编号。\par
+7. \code{common_errors} 只描述与当前知识边界直接相关的典型错误，不要编造教材没有涉及的事实。\par
+8. 输出必须严格符合 JSON schema，不要输出额外解释。
+\end{prompttranscript}
+
+The response schema has nine required keys covering learning objectives, stage-relative difficulty, diagnostic questions, common errors, assessment tasks, remediation and extension suggestions, source references, and confidence. The application verifies schema shape and evidence-identifier membership, records generation provenance, and stores the result with \code{review_status=pending}; it does not independently prove that each teaching statement is entailed by the cited excerpt.
+
+\subsection{P5: Runtime Grounded Generation}
+
+P5 is the server-side grounded-generation prompt. It retrieves \code{ApiUnit} records, serializes a bounded context, and asks the model to answer in JSON.
 
 \begin{lstlisting}
 You answer questions only from the provided Open Knowledge Map ApiUnit context.
@@ -1103,16 +1212,17 @@ Source fragment {source_id}:{anchor_ref}
 {fragment excerpts}
 \end{lstlisting}
 
-\subsection{P5: Staging-Quality Retry Prompt}
+\subsection{P6: Staging-Quality Retry Prompt}
 
-P5 is generated only after staging-quality blocks a lesson/chunk. It is appended through \code{--prompt} for the affected retry command.
+P6 is generated only after staging-quality blocks a lesson/chunk. It is appended through \code{--prompt} for the affected retry command.
 
 \begin{prompttranscript}
 这是第 \{retryNumber\} 次质量失败后的自动重抽。\par
 上一轮问题：\{issueText\}\par
-请不要只返回证据。必须从当前 chunk 抽取与\{subjectContext\}对应的核心知识对象，并为每个节点补齐 \code{definition}、\code{domain\_profile}、\code{mention}、\code{node\_card} 和 evidence \code{source\_refs}。\par
-即使当前文本以习题、探究、小结或图示为主，也要从题干、公式、图、表和说明中抽取概念、对象、属性、方法、规则、表示、过程、案例、材料或活动。\par
-节点、提及、卡片和领域画像不能为空；证据不足的关系可以少，但不要让节点数为 0。
+请重新核对当前 chunk 是否包含与\{subjectContext\}对应、且有直接教材证据支撑的知识对象。\par
+第一阶段只按当前 schema 返回 \code{lesson\_disposition}、\code{no\_knowledge\_reason}、\code{nodes}、\code{evidence\_units} 和 \code{issues}；不要要求或输出当前阶段不支持的画像、提及或卡片字段。\par
+如果存在合格知识对象，\code{lesson\_disposition} 设为 \code{extracted}，并让每个节点通过 \code{evidence\_units.node\_ids} 绑定自己的证据；如果确实没有合格知识对象，\code{lesson\_disposition} 设为 \code{no\_knowledge}，所有知识产物保持为空，并明确填写 \code{no\_knowledge\_reason}。\par
+第二阶段只为第一阶段的节点抽取证据充分的关系；证据不足时允许关系为空，不要为了通过检查而制造节点或关系。
 \end{prompttranscript}
 
 \newpage
@@ -1136,7 +1246,7 @@ Schema element & Current executable rule\\
 Node kinds & The legal \code{world_nodes.kind} values are \code{entity}, \code{concept}, \code{property}, \code{process}, \code{event}, \code{method}, \code{rule}, \code{representation}, and \code{resource}.\\
 Semantic core & Rich semantic fields are stored under \code{world_nodes.properties_json.semantic_core}, including \code{core_claims}, \code{formal_expressions}, \code{conditions}, \code{boundaries}, \code{counterexamples}, and \code{misconceptions}.\\
 Relation types & The legal \code{world_edges.type} values are \code{is_a}, \code{instance_of}, \code{part_of}, \code{contains}, \code{has_property}, \code{uses}, \code{produces}, \code{depends_on}, \code{prerequisite_for}, \code{causes}, \code{affects}, \code{represents}, \code{about}, \code{same_as}, and \code{related_to}.\\
-Domain projection & Teaching context is not stored as a new node kind. It is stored in \code{world_domain_profiles}, with \code{domain}, \code{school_stages_json}, \code{curriculum_roles_json}, and optional \code{properties_json.pedagogical_profile}.\\
+Domain projection & Teaching context is not stored as a new node kind. It is stored in \code{world_domain_profiles}, with \code{domain}, \code{school_stages_json}, \code{curriculum_roles_json}, and \code{properties_json}. New generated data uses the school-stage-keyed \code{pedagogical_profiles_by_stage}; the single \code{pedagogical_profile} object is retained for legacy compatibility.\\
 Evidence boundary & Evidence is stored in \code{world_evidence} and connected through mentions, relation source references, cards, bodies, and evidence links. Model-generated prose must cite evidence; it is not itself textbook evidence.\\
 \bottomrule
 \end{tabularx}
@@ -1153,15 +1263,16 @@ Table or table group & Role in the executable schema\\
 \midrule
 \code{world_nodes} & Stable object identity: id, name, kind, definition, aliases, domains, knowledge form, learning mode, scope, semantic properties, tags, embedding, status, and deprecation boundary.\\
 \code{world_edges} & Typed object relations: relation type, endpoints, directionality, confidence, evidence references, properties, status, and notes.\\
-\code{world_domain_profiles} & Domain, school-stage, curriculum-role, and pedagogical projection for an object without changing the object's top-level kind.\\
+\code{world_domain_profiles} & Domain, school-stage, curriculum-role, and pedagogical projection for an object without changing its top-level kind. Generated \code{pedagogical_profiles_by_stage} entries include teaching fields, source identifiers, model and prompt provenance, input fingerprint, confidence, and review state.\\
 \code{world_mentions} & Source-level mention records that connect a source location to a node, edge, taxonomy term, or domain profile.\\
 \code{world_evidence} & Source-backed evidence units with source id, anchor, source path, page range, excerpt, locator, modality, extraction method, normalized claims, and properties.\\
 \code{world_evidence_links} & Additional evidence attachment table for edges, domain profiles, mentions, node cards, and node-card sections.\\
 \code{world_node_cards} & Structured inspectable summaries for nodes, including card sections and evidence references.\\
 \code{world_node_bodies} & Persistent markdown knowledge bodies with media references, evidence references, generation provenance, and status.\\
+\code{world_unit_embeddings} & Complete-unit retrieval text, 1024-dimensional embedding, content hash, embedding-model provenance, and generation timestamp keyed by data set and node.\\
 \code{world_lesson_runs} and \code{world_staging_*} & Lesson/chunk-scoped staging output. Model workers write here before canonical merge and QA.\\
 \code{world_pipeline_jobs}, stages, events, workers & Server-launched pipeline state, progress, logs, stage status, events, and worker status.\\
-\code{retrieval_candidates} & Retrieval candidates associated with batch anchors and query ids. This supports extraction context and later object-level retrieval.\\
+\code{retrieval_candidates} & Candidate context associated with extraction batch anchors and query ids; the runtime's complete-unit vector path uses \code{world_unit_embeddings}.\\
 \bottomrule
 \end{tabularx}
 \caption{Main storage responsibilities in the PostgreSQL schema.}
@@ -1181,7 +1292,7 @@ Table or table group & Role in the executable schema\\
 \midrule
 \code{node} & Normalized object identity: id, dataset id, name, kind, subkind, definition, aliases, domains, knowledge form, learning mode, scope, properties, external ids, tags, status, deprecation target, timestamps, and notes.\\
 \code{relations.outgoing} and \code{relations.incoming} & Typed graph neighborhood around the object, split by edge direction and including confidence, source references, properties, status, and notes.\\
-\code{domain_profiles} & Domain-specific teaching and curriculum projections for the node, including school stages, curriculum roles, source references, and pedagogical profile data.\\
+\code{domain_profiles} & Domain-specific teaching and curriculum projections for the node. Database \code{properties_json.pedagogical_profiles_by_stage} is exposed as \code{properties.pedagogical_profiles_by_stage}; the legacy single-profile field remains readable for compatibility.\\
 \code{mentions} & Source mentions that link the object to textbook or resource locations.\\
 \code{evidence} & Source-backed evidence rows supporting the object. Hidden image evidence is filtered from ordinary unit output when it is rejected, pending, or unresolved uncertain evidence.\\
 \code{media} & Reviewed image media derived from evidence rows, including URL, path, caption, evidence id, source id, anchor, and page range.\\
@@ -1219,9 +1330,7 @@ Signal & Severity & What is checked\\
 \label{tab:apiunit-completeness}
 \end{table}
 
-\subsection{Runtime Response Contracts}
-
-\code{GET /api/source/:key/unit/:node_id} returns \code{ApiUnit}. The newer runtime retrieval path returns \code{UnitRetrievalResponse}, where each hit includes score fields, match reasons, and a full \code{ApiUnit}. The grounded-generation path returns \code{GroundedGenerationResponse}, including the question, answer, valid citations, unsupported claims, used node ids, the retrieval response, grounding status, invalid citation details, cited evidence ids, and model name. These runtime paths are implemented as an early executable subset; broad benchmark evaluation remains future work.
+The implemented retrieval, grounded-generation, and streaming response contracts are summarized in Section~\ref{sec:server-runtime} and share \code{ApiUnit} as their context boundary. They form an early runtime subset; semantic planning and broad benchmark evaluation remain future work.
 
 \newpage
 
@@ -1235,12 +1344,12 @@ The repository uses several quality layers because no single check can cover ext
 \begin{table}[H]
 \centering
 \small
-\begin{tabularx}{\textwidth}{@{}p{0.22\textwidth}Yp{0.22\textwidth}@{}}
+\begin{tabularx}{\textwidth}{@{}P{0.22\textwidth}YP{0.22\textwidth}@{}}
 \toprule
 Gate & What it checks & Blocking behavior\\
 \midrule
-\code{staging-quality} & Lesson/chunk staged output: non-empty nodes and evidence, valid node kinds, definitions, domain profiles, mentions, node cards, evidence-backed source references, edge endpoints, edge types, directionality, and required card sections. & Blocks affected lesson/chunk runs unless invoked in warning-only mode. Blocked chunks can be retried with a generated repair prompt.\\
-\code{strict-qa} & Canonical schema and evidence legality: valid node kinds, domains, learning modes, edge types, directionality, evidence references, required profiles, mentions, cards, card sections, node body format, body source references, and media references. & Returns \code{blocked} when errors exist.\\
+\code{staging-quality} & Extracted lesson/chunk output: nodes and evidence, valid kinds, definitions, profiles, mentions, cards, evidence-backed references, edge legality, and required card sections. An explicit \code{no_knowledge} result instead requires a reason and zero staged artifacts. Synthetic or quality-excluded evidence cannot satisfy coverage. & Blocks affected runs unless invoked in warning-only mode. Non-blocking warnings and review-node ids are persisted; blocked chunks can be retried with a schema-aligned repair prompt.\\
+\code{strict-qa} & Canonical schema and evidence-identifier legality: valid node kinds, domains, learning modes, edge types, directionality, evidence references, required profiles, stage-keyed pedagogical-profile shape and provenance, mentions, cards, card sections, node body format, body source references, and media references. & Returns \code{blocked} when errors exist.\\
 \code{graph-integrity} & Canonical graph structure: hard cycles over hierarchical relations, directed-cycle warnings, isolated nodes, and large weakly connected components. & Succeeds by default while reporting warnings; can block on hard cycles when \code{--fail-on-cycles} is used.\\
 \code{quality-dashboard} & Operational metrics: lesson counts, node counts, relation counts, evidence coverage, isolated-node ratio, disconnected components, pending image reviews, merge-review items, blocked lessons, and manual pending items. & Does not replace QA gates; it exposes inspection and triage metrics.\\
 Manual review & Human decisions for uncertain image evidence and merge-review cases; reviewer judgment for node admission and relation quality. & Updates stored review state or guides follow-up reruns and merge decisions.\\
@@ -1261,12 +1370,13 @@ npm run quality-dashboard -w packages/pipeline -- --dataset-id main --db "$DATAB
 
 \subsection{Strict QA Details}
 
-\code{strict-qa} checks canonical data after merge and normalization. Its current error categories include \code{node}, \code{edge}, \code{domain_profile}, \code{mention}, \code{node_card}, \code{node_card_section}, and \code{node_body}. It checks, among other things:
+\code{strict-qa} checks canonical data after merge and normalization. Its current error categories include \code{node}, \code{edge}, \code{domain_profile}, \code{pedagogical_profile}, \code{mention}, \code{node_card}, \code{node_card_section}, and \code{node_body}. It checks, among other things:
 
 \begin{itemize}
   \item nodes must have legal kinds, names, definitions, non-empty domains, non-empty learning modes, cards, mentions, and domain profiles;
   \item edges must use legal types and directionality, reference existing endpoints, and carry evidence source references;
   \item domain profiles must use legal domains, school stages, curriculum roles, and evidence source references;
+  \item stage-keyed pedagogical profiles must match a declared school stage and contain legal teaching fields; model-generated entries must record model, prompt version, generation time, input fingerprint, review status, confidence, and existing source references;
   \item mentions, node cards, and card sections must cite evidence that exists in \code{world_evidence};
   \item node cards must contain a summary and required sections: \code{definition}, \code{essence}, \code{key_points}, \code{example}, \code{application}, and \code{misconception};
   \item node bodies must use markdown format, contain content, use a legal \code{generated_from} value, cite source references, and declare media references for local markdown images.
@@ -1285,11 +1395,11 @@ The documented physics-textbook run provides concrete failure cases that shaped 
 \begin{table}[H]
 \centering
 \small
-\begin{tabularx}{\textwidth}{@{}p{0.24\textwidth}Yp{0.27\textwidth}@{}}
+\begin{tabularx}{\textwidth}{@{}P{0.24\textwidth}YP{0.27\textwidth}@{}}
 \toprule
 Failure case & What happened & Current mitigation\\
 \midrule
-Zero-node chunk & \code{chunk:11-4-a} first returned no nodes, which is unusable even if evidence exists. & \code{staging-quality} blocks zero-node output; the server runner can retry blocked chunks with a repair prompt.\\
+Implicit zero-node chunk & \code{chunk:11-4-a} historically returned no nodes without an explicit valid no-knowledge disposition. & Current \code{staging-quality} accepts only reasoned \code{no_knowledge} with no artifacts; other zero-node output is blocked and can be retried without forcing fabricated nodes.\\
 Partial staging write & \code{chunk:9-7-a} hit a duplicate mention key and left a partial staging state. & Staging writes now run as a transaction: lesson run upsert, old staging deletion, and new staging inserts succeed or roll back together.\\
 Merge failure & An early merge failed because an \code{undefined} value reached PostgreSQL JSONB parameters. & PostgreSQL parameter preparation converts objects and arrays correctly and normalizes \code{undefined} to \code{null}. The failed merge run was superseded by a successful run.\\
 Image filtering side effect & Removing decorative image evidence could leave nodes, mentions, profiles, cards, or card sections with empty source references. & Post-processing reconnects remaining text evidence when text evidence is still available.\\
@@ -1307,7 +1417,9 @@ Manual review is used where schema checks cannot decide semantic quality by them
 \begin{enumerate}
   \item Node admission: a candidate node should have a stable knowledge identity, a legal kind, a readable definition, evidence support, a mention, a domain profile, and a structured card. Directory headings, exercise labels, assessment labels, and textbook columns should not become nodes merely because they appear in a source.
   \item Evidence review: source references should point to actual \code{world_evidence} rows. Evidence may be text, image, table, formula, or other modality, but generated summaries and generated bodies are not source evidence.
+  \item Synthetic evidence review: fallback rows marked \code{synthetic} or \code{quality_excluded} stay in the review queue but do not count toward evidence coverage and cannot make a candidate pass admission checks.
   \item Image review: pending or unresolved uncertain images are hidden from ordinary unit views. A reviewer may mark an image as \code{core_content}, \code{supporting}, \code{keep}, \code{drop}, or \code{uncertain}. The stored review status becomes \code{approved}, \code{rejected}, or \code{pending}.
+  \item Pedagogical-profile review: generated objectives, questions, errors, tasks, and recommendations remain pending until a reviewer checks their school-stage fit, factual scope, evidence relevance, internal alignment, and classroom suitability. A valid source identifier alone is not sufficient approval.
   \item Merge review: cases marked for review in the canonical-node map should be judged by comparing names, definitions, semantic fields, and evidence. A merge should not be accepted only because two labels are similar.
   \item Relation review: relation type, direction, and source evidence should be checked together. Weak associations should remain \code{related_to}; causal, prerequisite, structural, or taxonomic edges need stronger direct evidence.
   \item Graph review: cycles in hierarchical relations require correction or an explicit modeling decision. Isolated nodes and disconnected components are signals for missing relations, over-fragmented nodes, or insufficient extraction context.
@@ -1315,7 +1427,7 @@ Manual review is used where schema checks cannot decide semantic quality by them
 
 \subsection{Boundary of Current Evaluation}
 
-The current quality system validates whether a run is structurally usable and evidence-grounded enough for inspection. It does not yet prove that the graph is pedagogically optimal, that all relations are semantically correct, that object-level retrieval beats chunk retrieval, or that learners achieve better outcomes. Those claims require external benchmarks, human annotation, baseline comparisons, and learning-outcome evaluation.
+The current quality system validates whether a run is structurally usable and evidence-linked enough for inspection. The tracked fixture and evaluator support a small retrieval smoke check. Generation mode provides structural citation-identifier diagnostics, but no adjudicated generation result is reported. These checks do not prove that the graph is pedagogically optimal, that all relations are semantically correct, that object-level retrieval beats chunk retrieval, or that learners achieve better outcomes. Those claims require external benchmarks, human annotation, baseline comparisons, and learning-outcome evaluation.
 
 \newpage
 

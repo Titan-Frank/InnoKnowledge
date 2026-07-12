@@ -63,8 +63,8 @@ async function runDatabaseMode(
           ? undefined
           : async (queryText) => {
               const vectors = await embedTextsOpenAICompatible([queryText], {
-                url: flags.get("embedding-url") ?? DEFAULT_EMBEDDING_URL,
-                model: flags.get("embedding-model") ?? DEFAULT_EMBEDDING_MODEL,
+                url: flags.get("embedding-url") ?? process.env.EMBEDDING_URL ?? DEFAULT_EMBEDDING_URL,
+                model: flags.get("embedding-model") ?? process.env.EMBEDDING_MODEL ?? DEFAULT_EMBEDDING_MODEL,
                 apiKey: process.env[flags.get("embedding-api-key-env") ?? "EMBEDDING_API_KEY"] ?? "",
               });
               return vectors[0] ?? [];

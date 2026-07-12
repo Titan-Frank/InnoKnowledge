@@ -5,6 +5,13 @@ __pycache__/
 tmp/
 lesson1_*.txt
 *.pdf
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.xdv
 .claude/node_modules/
 .claude/package.json
 .claude/bun.lock
@@ -29,6 +36,7 @@ experiments/
 
 # Generated artifacts
 .playwright-mcp/
+.playwright-cli/
 output/
 runs/
 tools/

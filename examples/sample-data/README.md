@@ -1,9 +1,11 @@
-# Open Knowledge Map sample data
+# Legacy import fixtures
 
-This directory contains a tiny, repository-safe sample asset set for `npm run import-file-assets -w packages/pipeline`.
+This directory contains legacy fallback fixtures for `npm run import-file-assets -w packages/pipeline`. Its contents have **not** completed the file-by-file provenance and redistribution review required for a public release.
 
-- `outlines/` contains two textbook outline JSON files.
-- `enrich/` contains two generated enrichment trees and a matching index.
-- `mineru/` contains synthetic Markdown snippets and minimal source manifests. The Markdown files are not original textbook text.
+- `outlines/` currently contains two outline JSON files associated with named textbook editions.
+- `enrich/` contains an index and two complete generated trees associated with those named editions; these artifacts still require source and redistribution review.
+- `mineru/` contains two small Markdown snippets explicitly marked as synthetic, plus import-status metadata. Their presence does not make the outline and enrichment artifacts public-safe.
 
-The importer uses the full local `data/` assets when they exist. It falls back to this sample set when a fresh clone has no generated local assets.
+The importer uses full local `data/` assets when they exist and may fall back to this directory in a fresh clone. Do not describe these fixtures as public-safe or redistribute them without recording their source, derivation, and applicable permission.
+
+For a populated, fully repository-authored example, use [`../demo-data`](../demo-data/README.md).

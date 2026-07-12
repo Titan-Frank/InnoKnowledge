@@ -63,7 +63,7 @@ type ExtractLessonOpenAiErrorPayload = {
   issues: string[];
 };
 
-const DEFAULT_EMBEDDING_URL = "https://heckb8bcaq88cko9mooamhkbceqq9ecc.openapi-sj.sii.edu.cn/v1/embeddings";
+const DEFAULT_EMBEDDING_URL = "";
 const DEFAULT_EMBEDDING_MODEL = "Qwen/Qwen3-Embedding-4B";
 const EMBEDDING_DIMENSION = 1024;
 
@@ -529,10 +529,11 @@ function createEmbedQuery(
   env: CliEnv,
   fetchImpl: typeof fetch,
 ): (queryText: string) => Promise<number[]> {
-  const url = flags.get("embedding-url") ?? DEFAULT_EMBEDDING_URL;
-  const model = flags.get("embedding-model") ?? DEFAULT_EMBEDDING_MODEL;
+  const url = flags.get("embedding-url") ?? env.EMBEDDING_URL ?? DEFAULT_EMBEDDING_URL;
+  const model = flags.get("embedding-model") ?? env.EMBEDDING_MODEL ?? DEFAULT_EMBEDDING_MODEL;
   const apiKeyEnv = flags.get("embedding-api-key-env") ?? "EMBEDDING_API_KEY";
   const apiKey = (env[apiKeyEnv] ?? "").trim();
+  if (!url.trim()) return async () => [];
   return async (queryText: string) => {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (apiKey) headers.Authorization = `Bearer ${apiKey}`;

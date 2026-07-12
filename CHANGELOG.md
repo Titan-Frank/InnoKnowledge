@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - 2026-07-12
+
+- Reworked the default README as an English public entry point and added a complete Chinese companion.
+- Added verified product screenshots for the graph, textbook tree, quality dashboard, and grounded-answer views.
+- Added GitHub continuous integration, contribution guidance, a security policy, citation metadata, provenance boundaries, and a public-release checklist.
+- Added root `test` and `verify` commands plus Node.js 22 package metadata.
+- Added a repository-authored populated graph and a one-command demo backed by an isolated PostgreSQL database.
+- Added evidence-linked, pending-review pedagogical-profile generation by school stage, integrated after canonical normalization and exposed through `ApiUnit` domain profiles.
+- Removed the implicit institutional embedding endpoint; embedding text is sent only after an endpoint is explicitly configured.
+- Restricted the Docker PostgreSQL port binding to the local host.
+
+### Release note
+
+The repository does not yet include a public license. The technical-report author metadata, legacy import fixtures, and final release artifact set also require explicit review as documented in `docs/open-source-release-checklist.md`.
+
 ### Removed - 2026-06-23
 
 #### TypeScript Pipeline Migration
@@ -13,6 +28,10 @@ All notable changes to this project will be documented in this file.
 - Removed unused Python helper modules `scripts/knowledge_store_common.py`, `scripts/embedding_client.py`, and `scripts/okm_pathing.py`.
 - Removed the legacy Python harness wrapper under `harness/`, `scripts/run_okm_harness.py`, and the retired harness workflow schema.
 - Removed the old OpenHarness upload utility `oah_upload.py`.
+
+## Historical entries for retired architectures
+
+The entries below describe earlier Python, SQLite, and agent-based iterations. They are preserved as project history and must not be used as current setup instructions. Current behavior is documented in `README.md`, `docs/README.md`, and `docs/current-system-architecture.md`.
 
 ### Added - 2026-04-08
 

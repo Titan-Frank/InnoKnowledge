@@ -446,8 +446,9 @@ export function TextbookTreePage() {
   );
 
   useEffect(() => {
+    if (!selectedSourceKey) return;
     let cancelled = false;
-    loadEnrichBooks()
+    loadEnrichBooks(selectedSourceKey)
       .then((payload) => {
         if (cancelled) return;
         setEnrichIndex(payload);
@@ -458,7 +459,7 @@ export function TextbookTreePage() {
         setEnrichIndexError((error as Error).message || '富化教材索引加载失败');
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [selectedSourceKey]);
 
   useEffect(() => {
     window.localStorage.setItem(TEXTBOOK_DETAIL_WIDTH_KEY, String(detailPanelWidth));
@@ -485,11 +486,11 @@ export function TextbookTreePage() {
   }, [filteredEnrichBooks, selectedEnrichPath, sourceMode]);
 
   useEffect(() => {
-    if (sourceMode !== 'enrich' || !selectedEnrichPath) return;
+    if (sourceMode !== 'enrich' || !selectedEnrichPath || !selectedSourceKey) return;
     let cancelled = false;
     setEnrichLoading(true);
     setEnrichError('');
-    loadEnrichBook(selectedEnrichPath)
+    loadEnrichBook(selectedSourceKey, selectedEnrichPath)
       .then((payload) => {
         if (cancelled) return;
         setActiveEnrichBook(payload.book);
@@ -505,7 +506,7 @@ export function TextbookTreePage() {
         if (!cancelled) setEnrichLoading(false);
       });
     return () => { cancelled = true; };
-  }, [selectedEnrichPath, sourceMode]);
+  }, [selectedEnrichPath, selectedSourceKey, sourceMode]);
 
   useEffect(() => {
     if (!activeFlat.length) {

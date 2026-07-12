@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use Open Knowledge Map in research or software, please cite it using this metadata."
+title: "Open Knowledge Map"
+abstract: >-
+  A TypeScript-first, PostgreSQL-backed system that converts textbooks and
+  other learning materials into evidence-grounded Knowledge Objects, assembles
+  them into ApiUnit views, and supports inspection, retrieval, and
+  citation-validated generation.
+type: software
+version: "0.1.0"
+repository-code: "https://github.com/Titan-Frank/Open-Knowledge-Map"
+url: "https://github.com/Titan-Frank/Open-Knowledge-Map"
+authors:
+  - name: "Titan-Frank"
+keywords:
+  - knowledge graph
+  - knowledge object
+  - education
+  - evidence grounding
+  - textbook extraction
+  - retrieval-augmented generation

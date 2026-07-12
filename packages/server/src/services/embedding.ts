@@ -1,7 +1,7 @@
 /**
  * TypeScript embedding client for the Qwen3-Embedding-4B API.
  *
- * Uses the same embedding defaults as the TypeScript pipeline commands.
+ * Uses an explicitly configured OpenAI-compatible embedding endpoint.
  * Returns `null` on any failure so the caller can fall back to text-only search.
  */
 
@@ -9,9 +9,7 @@ import { loadDotenvIntoProcess } from '../utils/env.js';
 
 loadDotenvIntoProcess();
 
-const DEFAULT_EMBEDDING_URL =
-  process.env.EMBEDDING_URL ??
-  'https://heckb8bcaq88cko9mooamhkbceqq9ecc.openapi-sj.sii.edu.cn/v1/embeddings';
+const EMBEDDING_URL = process.env.EMBEDDING_URL?.trim() ?? '';
 
 const DEFAULT_EMBEDDING_MODEL =
   process.env.EMBEDDING_MODEL ?? 'Qwen/Qwen3-Embedding-4B';
@@ -33,7 +31,7 @@ export async function embedQuery(text: string): Promise<number[] | null> {
 export async function embedTextBatch(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
   const apiKey = process.env.EMBEDDING_API_KEY;
-  if (!apiKey) return texts.map(() => []);
+  if (!apiKey || !EMBEDDING_URL) return texts.map(() => []);
 
   const body = JSON.stringify({
     model: DEFAULT_EMBEDDING_MODEL,
@@ -50,7 +48,7 @@ export async function embedTextBatch(texts: string[]): Promise<number[][]> {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-      const resp = await fetch(DEFAULT_EMBEDDING_URL, {
+      const resp = await fetch(EMBEDDING_URL, {
         method: 'POST',
         headers,
         body,

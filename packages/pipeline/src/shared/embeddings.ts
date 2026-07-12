@@ -22,7 +22,7 @@ export type PlannedEmbeddingUpdate = {
   vector: number[];
 };
 
-export const DEFAULT_EMBEDDING_URL = "https://heckb8bcaq88cko9mooamhkbceqq9ecc.openapi-sj.sii.edu.cn/v1/embeddings";
+export const DEFAULT_EMBEDDING_URL = "";
 export const DEFAULT_EMBEDDING_MODEL = "Qwen/Qwen3-Embedding-4B";
 export const EMBEDDING_VECTOR_DIMENSION = 1024;
 
@@ -252,6 +252,8 @@ export async function embedTextsOpenAICompatible(texts: string[], options: Embed
   const fetchEmbedding = options.fetch ?? defaultFetch;
   const sleep = options.sleep ?? defaultSleep;
   const emptyResult = texts.map(() => [] as number[]);
+  const url = (options.url ?? DEFAULT_EMBEDDING_URL).trim();
+  if (!url && options.fetch === undefined) return emptyResult;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const apiKey = options.apiKey ?? process.env.EMBEDDING_API_KEY ?? "";
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
@@ -264,7 +266,7 @@ export async function embedTextsOpenAICompatible(texts: string[], options: Embed
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const response = await fetchEmbedding(options.url ?? DEFAULT_EMBEDDING_URL, {
+      const response = await fetchEmbedding(url, {
         method: "POST",
         headers,
         body,

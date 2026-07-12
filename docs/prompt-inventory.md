@@ -6,7 +6,7 @@
 
 ## 一、总览
 
-当前仓库中实际会发送给模型的提示词有四类：
+当前仓库中有五类主要模型调用提示词，以及一类在质量失败后自动追加到 P1 的重抽提示：
 
 | 编号 | 用途 | 入口文件 | 调用模型 | 发送位置 |
 |---|---|---|---|---|
@@ -14,6 +14,8 @@
 | P2 | 教材图片是否作为知识证据保留 | `packages/pipeline/src/extraction/image-relevance.ts` | 视觉模型 | OpenAI Responses 或 Chat Completions |
 | P3 | 知识节点正式正文写作 | `packages/pipeline/src/unit-bodies/generate-node-bodies.ts` | 文本模型 | OpenAI Responses 或 Chat Completions |
 | P4 | 按学段生成教学画像 | `packages/pipeline/src/pedagogical-profiles/generate-pedagogical-profiles.ts` | 文本模型 | OpenAI Responses 或 Chat Completions |
+| P5 | 基于检索到的 `ApiUnit` 进行带依据生成 | `packages/server/src/runtime/grounded-generation.ts` | 文本模型 | OpenAI Chat Completions，同步或流式 |
+| P6 | 暂存质量失败后的定向重抽提示 | `packages/pipeline/src/cli/server-pipeline-run.ts` | 文本模型 | 追加到 P1 后沿原调用链发送 |
 
 另有一个可选补充提示词入口：
 
@@ -79,6 +81,10 @@ P1 的 JSON Schema 来自 `buildResponseSchema`。下面示例省略了 Schema �
 P2 也是同样机制，只是使用的 Schema 是 `imageRelevanceJsonSchema`，要求输出 `keep`、`relevance`、`reason`、`confidence`。
 
 P3 使用的 Schema 来自 `buildModelNodeBodyResponseSchema`，要求输出 `content` 和 `source_refs`。
+
+P4 使用 `buildModelPedagogicalProfileResponseSchema`，要求返回按学段组织的教学字段、来源编号和置信度。代码校验来源编号是否属于输入白名单，但这不等于验证每条教学结论都被来源语义蕴含；自动生成结果保持待审核。
+
+P5 使用 Chat Completions 的 JSON object 模式，要求返回 `answer`、`citations`、`unsupported_claims` 和 `used_node_ids`。服务端随后校验引用中的节点和证据编号是否属于检索上下文。`unsupported_claims` 由模型自行报告，不是独立事实核验器的输出。
 
 因此，提示词里的“输出必须严格符合 JSON schema”只是自然语言提醒；真正让模型按 JSON 返回的是 API 请求体中的 `json_schema` 参数。
 
@@ -877,7 +883,29 @@ P4 输入包含：
 5. 输入摘要未变化时跳过调用；输入变化时只更新尚未确认的模型画像。
 6. 任一模型请求失败时，一键流水线会在向量和严格质检前阻断并报告失败位置。
 
-## 七、非运行提示词和排除项
+## 七、P5：基于 ApiUnit 的带依据生成
+
+来源：
+
+- `packages/server/src/runtime/grounded-generation.ts`
+- 函数：`buildModelMessages`、`generateGroundedAnswer`、`generateGroundedAnswerStream`
+
+用途：
+
+先检索完整 `ApiUnit`，再把节点、卡片、正文、关系、证据和来源片段压缩成有界上下文，要求模型用与问题相同的语言作答。系统提示明确要求引用上下文中已经出现的 `evidence_id`；服务端校验编号归属，并把结果分为 `grounded`、`partial` 或 `insufficient_context`。该检查不证明每个生成结论都被引用片段语义蕴含。
+
+## 八、P6：暂存质量失败后的定向重抽
+
+来源：
+
+- `packages/pipeline/src/cli/server-pipeline-run.ts`
+- 函数：`buildStagingQualityRetryPrompt`
+
+用途：
+
+只有 `staging-quality` 阻断某个课时或分块时才生成。提示中会加入重试次数、上一轮问题和当前学科上下文，允许明确返回 `no_knowledge`，并禁止为了通过检查而制造节点或关系。该文本通过 `--prompt` 追加到受影响分块的 P1 调用，不会重跑整本教材。
+
+## 九、非运行提示词和排除项
 
 以下内容没有作为当前运行时提示词整理进主清单：
 
@@ -887,7 +915,7 @@ P4 输入包含：
 4. embedding 调用只发送待嵌入文本，没有额外自然语言提示词。
 5. MinerU 调用使用参数化请求，没有仓库内自然语言提示词。
 
-## 八、维护规则
+## 十、维护规则
 
 后续如果新增模型调用，请同步更新本文，并至少记录：
 

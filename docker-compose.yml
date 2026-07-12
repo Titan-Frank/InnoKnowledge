@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: okm
       POSTGRES_PASSWORD: okm
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - ./storage/pgdata:/var/lib/postgresql/data
     healthcheck:
