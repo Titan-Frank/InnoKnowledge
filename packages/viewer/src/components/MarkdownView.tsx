@@ -558,6 +558,19 @@ export function MarkdownView({
   const blocks: ReactNode[] = [];
   let i = 0;
 
+  const appendDisplayMath = (formula: string, suffix: string, key: string) => {
+    blocks.push(
+      <div key={key} className={suffix ? 'space-y-1' : undefined}>
+        {renderDisplayMath(formula, `${key}:formula`)}
+        {suffix ? (
+          <div className="text-center text-xs leading-none">
+            {renderInline(suffix, `${key}:suffix`, resolveImageUrl, imageLayout, renderEvidenceRef)}
+          </div>
+        ) : null}
+      </div>,
+    );
+  };
+
   while (i < lines.length) {
     const line = lines[i];
     if (!line.trim()) {
@@ -567,9 +580,9 @@ export function MarkdownView({
 
     if (line.trim().startsWith('$$')) {
       const firstLine = line.trim();
-      const singleLine = firstLine.match(/^\$\$\s*(.*?)\s*\$\$$/);
+      const singleLine = firstLine.match(/^\$\$\s*(.*?)\s*\$\$(.*)$/);
       if (singleLine) {
-        blocks.push(renderDisplayMath(singleLine[1], `math-block:${i}`));
+        appendDisplayMath(singleLine[1], singleLine[2].trim(), `math-block:${i}`);
         i += 1;
         continue;
       }
@@ -578,16 +591,20 @@ export function MarkdownView({
       const openingRemainder = firstLine.replace(/^\$\$\s*/, '').trim();
       if (openingRemainder) formulaLines.push(openingRemainder);
       i += 1;
-      while (i < lines.length && !lines[i].trim().endsWith('$$')) {
+      while (i < lines.length && !lines[i].includes('$$')) {
         formulaLines.push(lines[i].trim());
         i += 1;
       }
+      let suffix = '';
       if (i < lines.length) {
-        const closingRemainder = lines[i].trim().replace(/\s*\$\$$/, '').trim();
+        const closingLine = lines[i].trim();
+        const closingIndex = closingLine.indexOf('$$');
+        const closingRemainder = closingLine.slice(0, closingIndex).trim();
         if (closingRemainder) formulaLines.push(closingRemainder);
+        suffix = closingLine.slice(closingIndex + 2).trim();
         i += 1;
       }
-      blocks.push(renderDisplayMath(formulaLines.join(' '), `math-block:${i}`));
+      appendDisplayMath(formulaLines.join(' '), suffix, `math-block:${i}`);
       continue;
     }
 
