@@ -313,8 +313,8 @@ function sourceFragmentMarkdown(excerpts: Row[]): string {
 function SectionTitle({ title, meta }: { title: string; meta?: string }) {
   return (
     <div className="mb-2 flex items-center justify-between gap-3">
-      <div className="text-sm font-semibold text-text-primary">{title}</div>
-      {meta && <div className="shrink-0 text-xs text-text-muted">{meta}</div>}
+      <h4 className="text-sm font-semibold text-text-primary">{title}</h4>
+      {meta && <div className="shrink-0 text-xs text-text-secondary">{meta}</div>}
     </div>
   );
 }
@@ -323,7 +323,7 @@ function StatTile({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-lg border border-border-subtle bg-elevated px-3 py-2 text-center">
       <div className="text-base font-semibold tabular-nums text-text-primary">{value}</div>
-      <div className="mt-0.5 text-[11px] font-medium text-text-muted">{label}</div>
+      <div className="mt-0.5 text-[11px] font-medium text-text-secondary">{label}</div>
     </div>
   );
 }
@@ -390,10 +390,12 @@ export function DetailUnit({ node }: { node: OKMNode }) {
 
   if (!unit) {
     return (
-      <div className="rounded-lg border border-border-subtle bg-elevated p-4">
-        <SectionTitle title="知识单元" />
-        <p className="text-base leading-7 text-text-secondary">{node.description}</p>
-      </div>
+      <section aria-label="知识单元" className="rounded-lg border border-border-subtle bg-elevated p-4">
+        <h3 className="mb-2 text-sm font-semibold text-text-primary">完整知识单元</h3>
+        <p className="text-sm leading-relaxed text-text-secondary">
+          当前仅有知识对象骨架，尚未聚合知识正文、关系、证据和领域画像。
+        </p>
+      </section>
     );
   }
 
@@ -524,14 +526,19 @@ export function DetailUnit({ node }: { node: OKMNode }) {
   };
 
   return (
-    <div className="space-y-4">
-      <section>
-        <div className={completenessScore == null ? 'mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4' : 'mb-3 grid grid-cols-2 gap-2 sm:grid-cols-5'}>
+    <section aria-label="完整知识单元" className="space-y-4">
+      <div className="flex items-center justify-between gap-3 px-1">
+        <h3 className="text-sm font-semibold text-text-primary">完整知识单元</h3>
+        <span className="text-xs text-text-secondary">聚合视图</span>
+      </div>
+
+      <div>
+        <div className="mb-3 grid grid-cols-[repeat(auto-fit,minmax(4.5rem,1fr))] gap-2">
           <StatTile label="关系" value={outgoing.length + incoming.length} />
           <StatTile label="证据" value={evidence.length} />
           <StatTile label="画像" value={profiles.length} />
           <StatTile label="提及" value={unit.mentions?.length ?? 0} />
-          {completenessScore != null && <StatTile label="完整度" value={completenessScore} />}
+          {completenessScore != null && <StatTile label="资料完整度" value={completenessScore} />}
         </div>
         {body && (
           <div className="rounded-lg border border-border-subtle bg-elevated p-4">
@@ -546,7 +553,7 @@ export function DetailUnit({ node }: { node: OKMNode }) {
             </div>
           </div>
         )}
-      </section>
+      </div>
 
       {semanticCoreGroups.length > 0 && (
         <section className="rounded-lg border border-border-subtle bg-elevated p-4">
@@ -875,6 +882,6 @@ export function DetailUnit({ node }: { node: OKMNode }) {
           </div>
         </section>
       )}
-    </div>
+    </section>
   );
 }

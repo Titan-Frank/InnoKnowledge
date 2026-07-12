@@ -520,14 +520,15 @@ POST /api/source/:key/grounded-generate
 
 命中对象会同步到图谱样式层，用于高亮检索结果；点击命中对象或引用会选中并定位到对应节点。
 
-然后在右侧详情面板中展示：
+然后在右侧“知识单元详情”面板中按下面的层级展示：
 
-- 知识正文：来自 `ApiUnit.body`
-- 课本原文：来自 `ApiUnit.source_fragments`
-- 结构化卡片：来自 `ApiUnit.card`
-- 关系：来自 `ApiUnit.relations`
-- 领域画像：来自 `ApiUnit.domain_profiles`
-- 证据和媒体：来自 `ApiUnit.evidence`、`ApiUnit.media`
+- 对象概览：知识对象的定义和别名
+- 知识属性：领域、知识形式、修订版布鲁姆知识维度、适用范围和主题标签；主题标签只用于检索与归类，不冒充图谱关系
+- 完整知识单元：聚合 `ApiUnit` 的知识正文、知识骨架、课本原文、结构化卡片、关系和领域画像
+- 教材位置：来自当前数据源中的对象提及
+- 补充属性：未进入正式展示分区的扩展字段，默认折叠
+
+其中知识正文来自 `ApiUnit.body`，课本原文来自 `ApiUnit.source_fragments`，结构化卡片来自 `ApiUnit.card`，关系来自 `ApiUnit.relations`，领域画像来自 `ApiUnit.domain_profiles`，证据和媒体来自 `ApiUnit.evidence`、`ApiUnit.media`。
 
 ## 九、提示词与结构化输出
 
