@@ -6,6 +6,8 @@ import { getVisibleNodes } from '@/lib/visibility';
 import { getNodeTypeLabel } from '@/core/graph/knowledge-data';
 import { ZoomIn, ZoomOut, Maximize2, Play, Pause, RotateCcw } from '@/lib/lucide-icons';
 
+const EMPTY_SEARCH_HIT_IDS = new Set<string>();
+
 export function GraphCanvas() {
   const appState = useAppState();
   const {
@@ -16,7 +18,7 @@ export function GraphCanvas() {
     serverSearchHits,
   } = appState;
 
-  const [hoveredNodeName, setHoveredNodeName] = useState<string | null>(null);
+  const [hoveredNode, setHoveredNode] = useState<{ id: string; name: string } | null>(null);
 
   // Compute visible node IDs — only structural filters (not selection)
   const structuralVisibility = useMemo(() => ({
@@ -37,6 +39,10 @@ export function GraphCanvas() {
     return new Set(nodes.map((n) => n.id));
   }, [structuralVisibility, knowledgeGraph]);
 
+  useEffect(() => {
+    setHoveredNode((current) => current && visibleNodeIds.has(current.id) ? current : null);
+  }, [visibleNodeIds]);
+
   // Handle node click — only updates state, no graph rebuild
   const handleNodeClick = useCallback((nodeId: string) => {
     setSelectedNodeId(nodeId);
@@ -48,21 +54,22 @@ export function GraphCanvas() {
 
   const handleNodeHover = useCallback((nodeId: string | null) => {
     if (!nodeId || !knowledgeGraph) {
-      setHoveredNodeName(null);
-      setHoverNodeId(null);
+      setHoveredNode(null);
       return;
     }
     const node = knowledgeGraph.nodeById.get(nodeId);
-    setHoveredNodeName(node?.name ?? null);
-    setHoverNodeId(node?.id ?? null);
-  }, [knowledgeGraph, setHoverNodeId]);
+    setHoveredNode(node ? { id: node.id, name: node.name } : null);
+  }, [knowledgeGraph]);
 
   const handleStageClick = useCallback(() => {
     setSelectedNodeId(null);
     setHoverNodeId(null);
   }, [setSelectedNodeId, setHoverNodeId]);
 
-  const searchHitIds = useMemo(() => new Set(serverSearchHits.keys()), [serverSearchHits]);
+  const searchHitIds = useMemo(
+    () => serverSearchHits.size > 0 ? new Set(serverSearchHits.keys()) : EMPTY_SEARCH_HIT_IDS,
+    [serverSearchHits],
+  );
   const selectedNode = selectedNodeId && knowledgeGraph ? knowledgeGraph.nodeById.get(selectedNodeId) ?? null : null;
   const canvasSummary = selectedNode
     ? getNodeTypeLabel(selectedNode)
@@ -80,7 +87,7 @@ export function GraphCanvas() {
     onLayoutRunningChange: setIsLayoutRunning,
     selectedNodeId,
     searchHitIds,
-    previewNodeId: hoverNodeId,
+    previewNodeId: hoveredNode?.id ?? hoverNodeId,
     themeMode,
     showLabels,
   });
@@ -159,9 +166,9 @@ export function GraphCanvas() {
       </div>
 
       {/* Hovered node tooltip */}
-      {hoveredNodeName && !selectedNodeId && (
+      {hoveredNode && !selectedNodeId && (
         <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 animate-fade-in rounded-lg border border-border-subtle bg-elevated/95 px-3 py-1.5 shadow-panel backdrop-blur-sm">
-          <span className="font-mono text-sm text-text-primary">{hoveredNodeName}</span>
+          <span className="font-mono text-sm text-text-primary">{hoveredNode.name}</span>
         </div>
       )}
 

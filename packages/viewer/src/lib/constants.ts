@@ -47,7 +47,18 @@ export const LEARNING_MODE_LABELS: Record<string, string> = {
   metacognitive: '元认知',
 };
 
-export const BRIDGE_TAG_LABELS: Record<string, string> = {
+export const KNOWLEDGE_FORM_LABELS: Record<string, string> = {
+  propositional: '命题式',
+  practical: '实践式',
+};
+
+export const SCOPE_LABELS: Record<string, string> = {
+  universal: '通用',
+  'domain-specific': '领域特定',
+  'culture-specific': '文化特定',
+};
+
+export const TAG_LABELS: Record<string, string> = {
   system: '系统',
   structure: '结构',
   function: '功能',

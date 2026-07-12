@@ -1,6 +1,7 @@
 import type { OKMNode } from '@/core/graph/types';
 import { humanizeKey } from '@/core/graph/knowledge-data';
-import { BRIDGE_TAG_LABELS, DOMAIN_LABELS } from '@/lib/constants';
+import { ChevronRight } from '@/lib/lucide-icons';
+import { DOMAIN_LABELS, KNOWLEDGE_FORM_LABELS, SCOPE_LABELS, TAG_LABELS } from '@/lib/constants';
 
 type PrimitiveValue = string | number | boolean | null | undefined;
 
@@ -14,8 +15,15 @@ const SKIP_KEYS = new Set([
   'chunk_id',
   'chunk_ids',
   'batch_anchor',
+  'semantic_core',
+  'domains',
+  'knowledge_form',
   'learning_modes',
   'bridge_tags',
+  'scope',
+  'tags',
+  'template_display',
+  'extraction_template',
   'node_layer',
   'node_type',
   'node_kind',
@@ -49,13 +57,10 @@ const PROPERTY_LABELS: Record<string, string> = {
 
 const VALUE_LABELS: Record<string, string> = {
   ...DOMAIN_LABELS,
-  ...BRIDGE_TAG_LABELS,
+  ...KNOWLEDGE_FORM_LABELS,
+  ...SCOPE_LABELS,
+  ...TAG_LABELS,
   general: '通用',
-  propositional: '命题式',
-  practical: '实践式',
-  universal: '通用',
-  'domain-specific': '领域特定',
-  'culture-specific': '文化特定',
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -173,14 +178,18 @@ export function DetailProperties({ node }: { node: OKMNode }) {
   if (entries.length === 0) return null;
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-elevated p-4">
-      <div className="mb-2 text-sm font-semibold text-text-primary">属性</div>
-      <div className="space-y-1.5">
+    <details className="group rounded-lg border border-border-subtle bg-elevated">
+      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-lg px-4 py-3 transition-colors hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-details-marker]:hidden">
+        <ChevronRight className="h-3.5 w-3.5 shrink-0 text-text-secondary transition-transform group-open:rotate-90" />
+        <h3 className="text-sm font-semibold text-text-primary">补充属性</h3>
+        <span className="ml-auto text-xs text-text-secondary">{entries.length} 项</span>
+      </summary>
+      <div className="space-y-1.5 border-t border-border-subtle p-4">
         {entries.map(([key, value]) => {
           const complex = Array.isArray(value) || isRecord(value);
           return (
             <div key={key} className={`rounded-md bg-surface px-2.5 py-2 text-sm ${complex ? 'space-y-2' : 'flex flex-wrap gap-2'}`}>
-              <span className="shrink-0 text-text-muted">{propertyLabel(key)}</span>
+              <span className="shrink-0 text-text-secondary">{propertyLabel(key)}</span>
               <div className="min-w-0 flex-1">
                 <PropertyValue value={value} />
               </div>
@@ -188,6 +197,6 @@ export function DetailProperties({ node }: { node: OKMNode }) {
           );
         })}
       </div>
-    </div>
+    </details>
   );
 }

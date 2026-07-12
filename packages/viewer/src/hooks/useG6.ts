@@ -10,6 +10,12 @@ import {
 } from '@antv/g6';
 import type { G6EdgePair } from '@/lib/graph-adapter';
 import type { ThemeMode } from '@/core/graph/types';
+import {
+  clampGraphDevicePixelRatio,
+  LIGHTWEIGHT_FORCE_LAYOUT,
+  reuseGraphNodePositions,
+  resolveStyledPreviewNodeId,
+} from '@/lib/graph-performance';
 
 interface UseG6Options {
   onNodeClick?: (nodeId: string) => void;
@@ -30,8 +36,9 @@ interface SetGraphPayload {
 }
 
 const VIEWPORT_ANIMATION = { duration: 360, easing: 'ease-in-out' as const };
+const ELEMENT_UPDATE_ANIMATION = { duration: 0 };
 
-const DEFAULT_LAYOUT: LayoutOptions = { type: 'force' };
+const DEFAULT_LAYOUT: LayoutOptions = LIGHTWEIGHT_FORCE_LAYOUT;
 const DEFAULT_NODE_Z_INDEX = 0;
 const DEFAULT_EDGE_Z_INDEX = 0;
 const CLICK_MOVE_THRESHOLD_PX = 6;
@@ -115,6 +122,7 @@ function waitForNextFrame(): Promise<void> {
 }
 
 export function useG6(options: UseG6Options) {
+  const styledPreviewNodeId = resolveStyledPreviewNodeId(options.searchHitIds, options.previewNodeId);
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<G6Graph | null>(null);
   const dataRef = useRef<SetGraphPayload | null>(null);
@@ -126,7 +134,7 @@ export function useG6(options: UseG6Options) {
   });
   const selectedNodeRef = useRef<string | null>(options.selectedNodeId);
   const searchHitIdsRef = useRef<Set<string>>(options.searchHitIds);
-  const previewNodeIdRef = useRef<string | null>(options.previewNodeId);
+  const previewNodeIdRef = useRef<string | null>(styledPreviewNodeId);
   const suppressStageClickUntilRef = useRef(0);
   const nodePointerDownAtRef = useRef(0);
   const pointerGestureRef = useRef<PointerGesture>({
@@ -146,11 +154,21 @@ export function useG6(options: UseG6Options) {
     endedAt: 0,
   });
   const selectionVersionRef = useRef(0);
-  const styleQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const graphMutationQueueRef = useRef<Promise<void>>(Promise.resolve());
   const renderTokenRef = useRef(0);
   const styleSnapshotRef = useRef<GraphStyleSnapshot | null>(null);
   const showLabelsRef = useRef(options.showLabels);
   const [containerReady, setContainerReady] = useState(false);
+
+  const enqueueGraphMutation = useCallback((mutation: () => Promise<void>): Promise<void> => {
+    const operation = graphMutationQueueRef.current.catch(() => undefined).then(mutation);
+    const guardedOperation = operation.catch((error: unknown) => {
+      callbacksRef.current.onLayoutRunningChange?.(false);
+      console.error('图谱更新失败', error);
+    });
+    graphMutationQueueRef.current = guardedOperation;
+    return guardedOperation;
+  }, []);
 
   const clearSelectionFromStage = useCallback(() => {
     const now = performance.now();
@@ -187,8 +205,8 @@ export function useG6(options: UseG6Options) {
   }, [options.searchHitIds]);
 
   useEffect(() => {
-    previewNodeIdRef.current = options.previewNodeId;
-  }, [options.previewNodeId]);
+    previewNodeIdRef.current = styledPreviewNodeId;
+  }, [styledPreviewNodeId]);
 
   useEffect(() => {
     showLabelsRef.current = options.showLabels;
@@ -200,7 +218,8 @@ export function useG6(options: UseG6Options) {
 
     const checkSize = () => {
       const { width, height } = container.getBoundingClientRect();
-      if (width > 0 && height > 0) setContainerReady(true);
+      if (width <= 0 || height <= 0) return;
+      setContainerReady(true);
       graphRef.current?.resize(Math.floor(width), Math.floor(height));
     };
 
@@ -218,15 +237,19 @@ export function useG6(options: UseG6Options) {
     const version = selectionVersionRef.current + 1;
     selectionVersionRef.current = version;
 
-    styleQueueRef.current = styleQueueRef.current.catch(() => undefined).then(async () => {
+    void enqueueGraphMutation(async () => {
       if (version !== selectionVersionRef.current) return;
 
       const graph = graphRef.current;
       const payload = dataRef.current;
-      if (!graph || !payload) return;
+      if (!graph || graph.destroyed || !payload) return;
 
       await waitForNextFrame();
-      if (version !== selectionVersionRef.current) return;
+      if (
+        version !== selectionVersionRef.current ||
+        graphRef.current !== graph ||
+        graph.destroyed
+      ) return;
 
       const snapshot = styleSnapshotRef.current;
       const nodeUpdates: Array<{ id: string; style: ElementStyle }> = [];
@@ -425,7 +448,7 @@ export function useG6(options: UseG6Options) {
       if (nodeUpdates.length > 0) graph.updateNodeData(nodeUpdates);
       await graph.draw();
     });
-  }, []);
+  }, [enqueueGraphMutation]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -433,9 +456,10 @@ export function useG6(options: UseG6Options) {
 
     const graph = new G6Graph({
       container,
-      autoResize: true,
+      autoResize: false,
+      devicePixelRatio: clampGraphDevicePixelRatio(window.devicePixelRatio || 1),
       theme: getThemeName(options.themeMode),
-      animation: { duration: 260 },
+      animation: ELEMENT_UPDATE_ANIMATION,
       data: { nodes: [], edges: [] },
       layout: DEFAULT_LAYOUT,
       node: {
@@ -541,52 +565,77 @@ export function useG6(options: UseG6Options) {
       container.removeEventListener('pointerdown', onContainerPointerDown);
       container.removeEventListener('pointermove', onContainerPointerMove);
       container.removeEventListener('pointerup', onContainerPointerUp);
-      graph.destroy();
+      renderTokenRef.current += 1;
+      selectionVersionRef.current += 1;
+      dataRef.current = null;
+      styleSnapshotRef.current = null;
       graphRef.current = null;
+      graph.destroy();
     };
   }, [clearSelectionFromStage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    graphRef.current?.setTheme(getThemeName(options.themeMode));
-  }, [options.themeMode]);
+    void enqueueGraphMutation(async () => {
+      const graph = graphRef.current;
+      if (!graph || graph.destroyed) return;
+      graph.setTheme(getThemeName(options.themeMode));
+    });
+  }, [enqueueGraphMutation, options.themeMode]);
 
   useEffect(() => {
-    const graph = graphRef.current;
-    const payload = dataRef.current;
-    if (!graph || !payload) return;
-
-    graph.updateNodeData(payload.nodeIds.map((id) => ({
-      id,
-      style: { label: options.showLabels },
-    })));
-    void graph.draw().then(() => {
-      applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
-    });
+    applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
   }, [applySelectionStyle, options.showLabels]);
 
   useEffect(() => {
-    applySelectionStyle(options.selectedNodeId, options.searchHitIds, options.previewNodeId);
-  }, [applySelectionStyle, options.selectedNodeId, options.searchHitIds, options.previewNodeId]);
+    applySelectionStyle(options.selectedNodeId, options.searchHitIds, styledPreviewNodeId);
+  }, [applySelectionStyle, options.selectedNodeId, options.searchHitIds, styledPreviewNodeId]);
 
-  const setGraph = useCallback(async (payload: SetGraphPayload) => {
-    const graph = graphRef.current;
-    if (!graph) return;
-
+  const setGraph = useCallback((payload: SetGraphPayload): Promise<void> => {
     const token = ++renderTokenRef.current;
-    dataRef.current = payload;
-    styleSnapshotRef.current = createStyleSnapshot(payload.data);
-    callbacksRef.current.onLayoutRunningChange?.(true);
-    graph.setData(payload.data);
-    graph.setLayout(DEFAULT_LAYOUT);
+    selectionVersionRef.current += 1;
+    return enqueueGraphMutation(async () => {
+      const graph = graphRef.current;
+      if (!graph || graph.destroyed || token !== renderTokenRef.current) return;
 
-    try {
-      await graph.render();
-      if (token !== renderTokenRef.current) return;
-      applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
-    } finally {
-      if (token === renderTokenRef.current) callbacksRef.current.onLayoutRunningChange?.(false);
-    }
-  }, [applySelectionStyle]);
+      const previousPayload = dataRef.current;
+      if (previousPayload) graph.stopLayout();
+      const [centerX, centerY] = previousPayload && graph.rendered
+        ? graph.getViewportCenter()
+        : [0, 0];
+      const positionResult = reuseGraphNodePositions(
+        payload.data,
+        previousPayload ? graph.getNodeData() : [],
+        { x: centerX, y: centerY },
+      );
+      const nextPayload = { ...payload, data: positionResult.data };
+      dataRef.current = nextPayload;
+      styleSnapshotRef.current = createStyleSnapshot(nextPayload.data);
+      graph.setData(nextPayload.data);
+
+      try {
+        if (positionResult.shouldReusePositions) {
+          callbacksRef.current.onLayoutRunningChange?.(false);
+          await graph.draw();
+        } else {
+          callbacksRef.current.onLayoutRunningChange?.(true);
+          graph.setLayout(DEFAULT_LAYOUT);
+          await graph.render();
+        }
+        if (
+          token !== renderTokenRef.current ||
+          graphRef.current !== graph ||
+          graph.destroyed
+        ) return;
+        applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
+      } finally {
+        if (
+          token === renderTokenRef.current &&
+          graphRef.current === graph &&
+          !graph.destroyed
+        ) callbacksRef.current.onLayoutRunningChange?.(false);
+      }
+    });
+  }, [applySelectionStyle, enqueueGraphMutation]);
 
   const zoomIn = useCallback(() => {
     void graphRef.current?.zoomBy(1.35, VIEWPORT_ANIMATION);
@@ -604,19 +653,38 @@ export function useG6(options: UseG6Options) {
     void graphRef.current?.focusElement(nodeId, VIEWPORT_ANIMATION);
   }, []);
 
-  const startLayout = useCallback(async () => {
-    const graph = graphRef.current;
-    const payload = dataRef.current;
-    if (!graph || !payload || payload.nodeIds.length === 0) return;
+  const startLayout = useCallback(() => {
+    const token = renderTokenRef.current;
+    selectionVersionRef.current += 1;
+    void enqueueGraphMutation(async () => {
+      const graph = graphRef.current;
+      const payload = dataRef.current;
+      if (
+        !graph ||
+        graph.destroyed ||
+        token !== renderTokenRef.current ||
+        !payload ||
+        payload.nodeIds.length === 0
+      ) return;
 
-    callbacksRef.current.onLayoutRunningChange?.(true);
-    try {
-      await graph.layout(DEFAULT_LAYOUT);
-      applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
-    } finally {
-      callbacksRef.current.onLayoutRunningChange?.(false);
-    }
-  }, [applySelectionStyle]);
+      callbacksRef.current.onLayoutRunningChange?.(true);
+      try {
+        await graph.layout(DEFAULT_LAYOUT);
+        if (
+          token !== renderTokenRef.current ||
+          graphRef.current !== graph ||
+          graph.destroyed
+        ) return;
+        applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
+      } finally {
+        if (
+          token === renderTokenRef.current &&
+          graphRef.current === graph &&
+          !graph.destroyed
+        ) callbacksRef.current.onLayoutRunningChange?.(false);
+      }
+    });
+  }, [applySelectionStyle, enqueueGraphMutation]);
 
   const stopLayout = useCallback(() => {
     graphRef.current?.stopLayout();

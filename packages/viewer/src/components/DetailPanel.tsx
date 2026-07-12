@@ -1,9 +1,7 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useAppState } from '@/hooks/useAppState';
 import { DetailHeader } from './sections/DetailHeader';
-import { DetailDescription } from './sections/DetailDescription';
-import { DetailKnowledgeAxes } from './sections/DetailKnowledgeAxes';
-import { DetailAliases } from './sections/DetailAliases';
+import { DetailObjectOverview } from './sections/DetailObjectOverview';
 import { DetailProperties } from './sections/DetailProperties';
 import { DetailSupportNodes } from './sections/DetailSupportNodes';
 import { DetailUnit } from './sections/DetailUnit';
@@ -31,13 +29,11 @@ function readPanelWidth(): number {
 const NodeDetailBody = memo(function NodeDetailBody({ node, selectedBook }: { node: OKMNode; selectedBook: string }) {
   return (
     <>
+      <DetailObjectOverview node={node} />
       <DetailUnit node={node} />
-      {!node.description ? null : <DetailDescription node={node} />}
-      <DetailKnowledgeAxes node={node} />
-      <DetailAliases node={node} />
-      <DetailProperties node={node} />
       <DetailSupportNodes node={node} />
       <DetailMentions node={node} selectedBook={selectedBook} />
+      <DetailProperties node={node} />
     </>
   );
 });
@@ -215,7 +211,7 @@ export function DetailPanel() {
         {maybeResizeHandle}
         <div className="flex items-center justify-between gap-3 border-b border-border-subtle bg-elevated px-4 py-3">
           <div>
-            <div className="text-sm font-semibold text-text-primary">节点详情</div>
+            <div className="text-sm font-semibold text-text-primary">知识单元详情</div>
             <div className="mt-0.5 max-w-[14rem] truncate text-[11px] text-text-muted">{detailNode.name}</div>
           </div>
           <div className="flex shrink-0 items-center gap-1">
@@ -223,7 +219,7 @@ export function DetailPanel() {
               type="button"
               onClick={() => setExpanded(true)}
               className="flex h-8 items-center gap-1.5 rounded-md border border-border-subtle bg-surface px-2.5 text-sm text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
-              aria-label="放大查看节点详情"
+              aria-label="放大查看知识单元详情"
             >
               <Maximize2 className="h-3.5 w-3.5" />
               放大
@@ -232,7 +228,7 @@ export function DetailPanel() {
               type="button"
               onClick={() => setSelectedNodeId(null)}
               className="flex h-8 w-8 items-center justify-center rounded-md border border-border-subtle bg-surface text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
-              aria-label="关闭节点详情"
+              aria-label="关闭知识单元详情"
               title="关闭"
             >
               <X className="h-3.5 w-3.5" />
@@ -265,7 +261,7 @@ export function DetailPanel() {
           >
             <div className="flex items-center justify-between border-b border-border-subtle bg-elevated px-5 py-4">
               <div>
-                <div id="expanded-node-detail-title" className="text-base font-semibold text-text-primary">节点详情</div>
+                <div id="expanded-node-detail-title" className="text-base font-semibold text-text-primary">知识单元详情</div>
                 <div className="mt-0.5 max-w-[40rem] truncate text-sm text-text-muted">{detailNode.name}</div>
               </div>
               <button
