@@ -174,6 +174,7 @@ packages/viewer     React/Vite graph and review workbench
 schemas             JSON Schemas, PostgreSQL DDL, and knowledge standards
 examples/demo-data  Repository-authored populated demo
 examples/sample-data Legacy import fixtures; audit rights before public release
+experiments         Reproducible experiment source, schemas, and reviewed fixtures/reports
 docs                Theory, architecture, contracts, reports, and run notes
 ```
 

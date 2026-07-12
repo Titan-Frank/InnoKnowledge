@@ -27,6 +27,7 @@ Use this page to distinguish current contracts from theory, historical run notes
 ## Operations and history
 
 - [Populated synthetic demo](../examples/demo-data/README.md): repository-authored graph and one-command local viewer path.
+- [TypeScript pipeline migration record](history/pipeline-typescript-migration.md): completed Python-to-TypeScript migration scope and verification history.
 - [Physics extraction run, 2026-06-26](physics-hukj-compulsory-3-extraction-run-2026-06-26.md): one historical run record, not the current standard.
 - [Next-step plan, 2026-06-26](next-step-plan-2026-06-26.md): dated roadmap; confirm completion against current code.
 - [Open-source release checklist](open-source-release-checklist.md): legal, product, benchmark, and GitHub release gates.

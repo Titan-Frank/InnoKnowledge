@@ -2,10 +2,10 @@
 
 ## Project Structure & Module Organization
 
-This repository is moving to a TypeScript-first extraction pipeline. Main areas:
+This repository uses a TypeScript-first extraction pipeline. Main areas:
 
 - `packages/types`: shared TypeScript models and API types.
-- `packages/pipeline`: TypeScript pipeline commands, stage logic, PostgreSQL executors, and parity tests.
+- `packages/pipeline`: TypeScript pipeline commands, stage logic, PostgreSQL executors, and stage tests.
 - `packages/server`: Hono-based API server and PostgreSQL query layer.
 - `packages/viewer`: React/Vite graph viewer UI.
 - `schemas`: JSON Schemas, PostgreSQL schema files, and the world knowledge standard docs.
@@ -52,7 +52,7 @@ Run the TypeScript extraction pipeline:
 npm run server-pipeline-run -w packages/pipeline -- --book-id chem-grade8 --pdf-path /abs/path/to/book.pdf --db "$DATABASE_URL"
 ```
 
-Run pipeline parity tests:
+Run pipeline tests:
 
 ```bash
 npm test -w packages/pipeline
@@ -71,7 +71,7 @@ npm run strict-qa -w packages/pipeline -- --dataset-id main --db "$DATABASE_URL"
 npm run graph-integrity -w packages/pipeline -- --dataset-id main --db "$DATABASE_URL"
 ```
 
-Use focused fixtures that prove business-output parity with the retired Python behavior. For database paths, use temporary data, verify writes, and clean up test rows.
+Use focused fixtures that prove current stage contracts and business outputs. For database paths, use temporary data, verify writes, and clean up test rows.
 
 ## Commit & Pull Request Guidelines
 
@@ -81,4 +81,4 @@ Pull requests should include a concise description, affected packages or scripts
 
 ## Architecture & Data Rules
 
-The active standard is unified world knowledge `V1.2`; do not use retired `schemas/v2/*` assumptions. Process textbooks by lesson unless explicitly asked otherwise. Lesson workers may write only `world_lesson_runs` and `world_staging_*`. Canonical `world_*` writes, duplicate merges, remapping, and final QA status belong only in reducer steps.
+The top-level conceptual standard is `ai-nks-v0.1`; unified world knowledge `world-v1.2` is the active executable engineering schema. Do not use retired `schemas/v2/*` assumptions. Process textbooks by lesson unless explicitly asked otherwise. Lesson workers may write only `world_lesson_runs` and `world_staging_*`. Canonical `world_*` writes, duplicate merges, remapping, and final QA status belong only in reducer steps.

@@ -24,9 +24,7 @@ schemas/
 ├── world-knowledge-standard.md
 ├── world-knowledge-architecture.md
 └── pg/
-    ├── knowledge_store.sql
-    ├── world_knowledge.sql
-    └── world_taxonomy.sql
+    └── knowledge_store.sql
 ```
 
 ## 文件说明

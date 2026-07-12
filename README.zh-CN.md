@@ -2,7 +2,7 @@
 
 **把教材转换成有证据、有关系、可检索、可供人工智能调用的知识对象。**
 
-[English](README.md) · [完整演示数据](examples/demo-data/README.md) · [系统架构](docs/current-system-architecture.md) · [知识单元契约](docs/knowledge-unit-contract.md) · [贡献指南](CONTRIBUTING.md)
+[English](README.md) · [完整演示数据](examples/demo-data/README.md) · [系统架构](docs/current-system-architecture.md) · [知识单元契约](docs/knowledge-unit-contract.md) · [贡献指南](CONTRIBUTING.zh-CN.md)
 
 ![展示仓库原创太阳能演示数据的 Open Knowledge Map 图谱界面](docs/assets/report/graph-overview.png)
 
@@ -180,6 +180,7 @@ packages/viewer     React/Vite 图谱和人工复核工作台
 schemas             JSON Schema、PostgreSQL DDL 与知识标准
 examples/demo-data  仓库原创的完整演示数据
 examples/sample-data 旧导入夹具；公开发布前必须单独核查权利
+experiments         可复现实验源码、结构约束及已审核的输入与报告
 docs                理论、架构、契约、报告与运行记录
 ```
 

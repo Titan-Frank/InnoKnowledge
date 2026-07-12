@@ -1,6 +1,8 @@
-# Pipeline Migration Scope
+# TypeScript 流水线迁移完成记录
 
-目标是把 Python 流水线逐步迁移到 TypeScript，但业务输出必须和 Python 对齐。TypeScript 可以按系统边界重组，不需要逐行照搬 Python，也不应该继续平铺大量文件。
+> 状态：历史记录。Python 到 TypeScript 的主流程迁移已完成；当前开发规范以仓库根目录 `AGENTS.md` 和 `docs/current-system-architecture.md` 为准。
+
+本文记录 Python 流水线迁移到 TypeScript 的范围、阶段边界和完成情况，不再作为当前实现的约束清单。
 
 ## 目录方向
 

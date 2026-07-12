@@ -1,42 +1,68 @@
+# Local system and tool state
 .DS_Store
 .env
+.mcp.json
 .codex/
+.claude/node_modules/
+.claude/package.json
+.claude/bun.lock
+.playwright-mcp/
+.playwright-cli/
+
+# Dependencies and build outputs
+node_modules/
+dist/
 __pycache__/
-tmp/
-lesson1_*.txt
-*.pdf
 *.aux
 *.fdb_latexmk
 *.fls
 *.log
 *.out
+*.pdf
 *.synctex.gz
 *.xdv
-.claude/node_modules/
-.claude/package.json
-.claude/bun.lock
-# Data: track small config files, ignore large generated content
-data/outlines/*.marked.md
-data/outlines/*.outline.json
-data/**/*.jsonl
-data/**/runs/
-data/mineru/
-data/main/
-data/cs/
-!data/frameworks/
-!data/patterns/
-!data/outlines/
-ocr/
-storage/
-node_modules/
-dist/
-.mcp.json
-data
-experiments/
 
-# Generated artifacts
-.playwright-mcp/
-.playwright-cli/
+# Generated runtime artifacts
+tmp/
 output/
 runs/
-tools/
+storage/
+ocr/
+lesson1_*.txt
+
+# Data: ignore local corpora by default, but keep curated configuration paths trackable
+/data/*
+!/data/frameworks/
+!/data/patterns/
+!/data/outlines/
+/data/outlines/*
+!/data/outlines/.gitkeep
+
+# Experiment source, fixtures, schemas, and reports are versioned.
+# Generated results and third-party runtimes stay local.
+/experiments/**/outputs/*
+!/experiments/**/outputs/.gitignore
+/experiments/**/external/cache/
+/experiments/**/external/work/
+
+# Benchmark data derived from local textbooks stays local until rights review.
+/experiments/**/data/
+/experiments/**/fixtures/**/*.json
+/experiments/**/fixtures/**/*.jsonl
+/experiments/**/fixtures/**/*.csv
+
+/experiments/**/*.zip
+/experiments/**/*.tar
+/experiments/**/*.tar.gz
+/experiments/**/*.jar
+/experiments/**/*.pt
+/experiments/**/*.pth
+/experiments/**/*.ckpt
+/experiments/**/*.safetensors
+/experiments/**/*.onnx
+/experiments/**/*.parquet
+/experiments/**/*.sqlite
+/experiments/**/*.sqlite3
+
+# Local helper tools
+/tools/

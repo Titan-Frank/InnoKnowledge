@@ -57,7 +57,7 @@
 当前文件：
 
 - `world-taxonomy-term.schema.json`
-- `pg/world_taxonomy.sql`
+- `pg/knowledge_store.sql`
 
 当前结构原则：
 
@@ -81,7 +81,7 @@
 当前文件：
 
 - `world-knowledge-edge.schema.json`
-- `pg/world_knowledge.sql`
+- `pg/knowledge_store.sql`
 
 结构原则：
 
@@ -103,7 +103,7 @@
 当前文件：
 
 - `world-domain-profile.schema.json`
-- `pg/world_taxonomy.sql`
+- `pg/knowledge_store.sql`
 
 结构原则：
 

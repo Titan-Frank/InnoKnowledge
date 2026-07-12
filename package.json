@@ -20,7 +20,7 @@
     "demo": "bash scripts/demo-local.sh serve",
     "demo:seed": "bash scripts/demo-local.sh seed-only",
     "dev": "npm run build -w packages/viewer && concurrently -n server,viewer -c blue,green \"npm run dev -w packages/server\" \"npm run dev -w packages/viewer\"",
-    "build": "npm run build -w packages/pipeline && npm run build -w packages/server && npm run build -w packages/viewer",
+    "build": "npm run build -w packages/types && npm run build -w packages/pipeline && npm run build -w packages/server && npm run build -w packages/viewer",
     "serve": "npm run build && npm run start -w packages/server",
     "check": "npm run check -w packages/types && npm run check -w packages/pipeline && npm run check -w packages/server && npm run check -w packages/viewer",
     "test": "npm test -w packages/pipeline && npm test -w packages/server",
