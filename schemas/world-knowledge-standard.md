@@ -212,7 +212,7 @@
 
 这与 UNESCO/ISCED 一类教育分类标准的做法一致：对象本身和教育编排层面应分离。
 
-领域扩展层中，`school_stages` 和 `curriculum_roles` 只说明教学位置。如果需要描述怎么教、怎么诊断、怎么评价，先放入 `world_domain_profiles.properties.pedagogical_profile`：
+领域扩展层中，`school_stages` 和 `curriculum_roles` 只说明教学位置。如果需要描述怎么教、怎么诊断、怎么评价，写入数据库列 `world_domain_profiles.properties_json`。服务端聚合 `ApiUnit` 时，该列映射为 `domain_profiles[].properties`。旧数据使用 `properties_json.pedagogical_profile`（接口为 `properties.pedagogical_profile`）；自动生成数据使用 `properties_json.pedagogical_profiles_by_stage`（接口为 `properties.pedagogical_profiles_by_stage`），按学段分别保存：
 
 - `learning_objectives`：学习目标
 - `difficulty_level`：难度层级

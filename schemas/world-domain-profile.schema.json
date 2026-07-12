@@ -81,7 +81,7 @@
         "pedagogical_profile": {
           "type": "object",
           "additionalProperties": true,
-          "description": "Teaching projection details for this node in this domain and stage context.",
+          "description": "Legacy single-context teaching projection details. New generated data should use pedagogical_profiles_by_stage.",
           "properties": {
             "learning_objectives": {
               "type": "array",
@@ -139,6 +139,185 @@
               "items": {
                 "type": "string",
                 "minLength": 1
+              }
+            }
+          }
+        },
+        "pedagogical_profiles_by_stage": {
+          "type": "object",
+          "description": "Teaching projection details keyed by school stage so different stages never share one generated profile.",
+          "propertyNames": {
+            "enum": [
+              "primary",
+              "junior-secondary",
+              "senior-secondary",
+              "higher"
+            ]
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "school_stage",
+              "learning_objectives",
+              "difficulty_level",
+              "diagnostic_questions",
+              "common_errors",
+              "assessment_tasks",
+              "remediation_suggestions",
+              "extension_suggestions"
+            ],
+            "properties": {
+              "school_stage": {
+                "type": "string",
+                "enum": [
+                  "primary",
+                  "junior-secondary",
+                  "senior-secondary",
+                  "higher"
+                ]
+              },
+              "grade_band": {
+                "type": "string"
+              },
+              "learning_objectives": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "difficulty_level": {
+                "type": "string",
+                "enum": [
+                  "introductory",
+                  "basic",
+                  "intermediate",
+                  "advanced",
+                  "expert"
+                ]
+              },
+              "diagnostic_questions": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "common_errors": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "assessment_tasks": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "remediation_suggestions": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "extension_suggestions": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "generation": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "generated_from"
+                ],
+                "properties": {
+                  "generated_from": {
+                    "type": "string",
+                    "enum": [
+                      "model_generation",
+                      "manual"
+                    ]
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "prompt_version": {
+                    "type": "string"
+                  },
+                  "generated_at": {
+                    "type": "string"
+                  },
+                  "input_fingerprint": {
+                    "type": "string"
+                  },
+                  "review_status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "approved",
+                      "rejected"
+                    ]
+                  },
+                  "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "source_refs": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "generated_from": {
+                          "const": "model_generation"
+                        }
+                      },
+                      "required": [
+                        "generated_from"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "model",
+                        "prompt_version",
+                        "generated_at",
+                        "input_fingerprint",
+                        "review_status",
+                        "confidence",
+                        "source_refs"
+                      ]
+                    }
+                  }
+                ]
               }
             }
           }

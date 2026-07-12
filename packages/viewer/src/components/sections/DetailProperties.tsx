@@ -1,5 +1,6 @@
 import type { OKMNode } from '@/core/graph/types';
 import { humanizeKey } from '@/core/graph/knowledge-data';
+import { BRIDGE_TAG_LABELS, DOMAIN_LABELS } from '@/lib/constants';
 
 type PrimitiveValue = string | number | boolean | null | undefined;
 
@@ -47,6 +48,8 @@ const PROPERTY_LABELS: Record<string, string> = {
 };
 
 const VALUE_LABELS: Record<string, string> = {
+  ...DOMAIN_LABELS,
+  ...BRIDGE_TAG_LABELS,
   general: '通用',
   propositional: '命题式',
   practical: '实践式',

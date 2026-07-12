@@ -4,7 +4,13 @@ import { useAppState } from '@/hooks/useAppState';
 import { useUnitLoader } from '@/hooks/useUnitLoader';
 import { ChevronDown, ChevronRight, Loader2, Maximize2, X } from '@/lib/lucide-icons';
 import { resolveEdgeVisual } from '@/lib/edge-styles';
-import { SCHOOL_STAGE_LABELS, CURRICULUM_ROLE_LABELS } from '@/lib/constants';
+import {
+  CURRICULUM_ROLE_LABELS,
+  DOMAIN_LABELS,
+  PEDAGOGICAL_DIFFICULTY_LABELS,
+  PEDAGOGICAL_REVIEW_STATUS_LABELS,
+  SCHOOL_STAGE_LABELS,
+} from '@/lib/constants';
 import { MarkdownView } from '@/components/MarkdownView';
 
 type Row = Record<string, unknown>;
@@ -43,6 +49,52 @@ function uniqueValues(values: string[]): string[] {
 
 function text(value: unknown): string {
   return value == null ? '' : String(value);
+}
+
+function hasPedagogicalContent(value: Row): boolean {
+  return Boolean(text(value.difficulty_level).trim()) || [
+    value.learning_objectives,
+    value.diagnostic_questions,
+    value.common_errors,
+    value.assessment_tasks,
+    value.remediation_suggestions,
+    value.extension_suggestions,
+  ].some((items) => textList(items).length > 0);
+}
+
+function pedagogicalContexts(properties: Row, fallbackStages: string[]): Array<{ key: string; stage: string; value: Row }> {
+  const byStage = asRecord(properties.pedagogical_profiles_by_stage);
+  const stageOrder = ['primary', 'junior-secondary', 'senior-secondary', 'higher'];
+  const contexts = Object.entries(byStage)
+    .map(([stage, value]) => ({ key: stage, stage, value: asRecord(value) }))
+    .filter((item) => hasPedagogicalContent(item.value))
+    .sort((left, right) => {
+      const leftIndex = stageOrder.indexOf(left.stage);
+      const rightIndex = stageOrder.indexOf(right.stage);
+      return (leftIndex < 0 ? 99 : leftIndex) - (rightIndex < 0 ? 99 : rightIndex);
+    });
+  const legacy = asRecord(properties.pedagogical_profile);
+  if (!hasPedagogicalContent(legacy)) return contexts;
+  const stage = contexts.length === 0 && fallbackStages.length === 1 ? fallbackStages[0]! : '';
+  return [...contexts, { key: 'legacy', stage, value: legacy }];
+}
+
+function generatedDateLabel(value: unknown): string {
+  const raw = text(value).trim();
+  if (!raw) return '';
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? raw : date.toLocaleDateString('zh-CN');
+}
+
+function gradeBandLabel(value: string): string {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized || normalized === 'unknown') return '';
+  if (normalized === 'university') return '大学';
+  const match = /^grade-?(\d{1,2})$/.exec(normalized);
+  if (!match) return value;
+  const labels = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
+  const grade = Number(match[1]);
+  return grade >= 1 && grade <= labels.length ? `${labels[grade - 1]}年级` : value;
 }
 
 function evidenceAnchorId(evidenceId: string): string {
@@ -362,6 +414,17 @@ export function DetailUnit({ node }: { node: OKMNode }) {
       if (!visibleEvidenceAnchorOwners.has(evidenceId)) visibleEvidenceAnchorOwners.set(evidenceId, fragmentKey);
     }
   });
+  const expandedFragmentByEvidenceId = new Map<string, ExpandedFragment>();
+  sourceFragments.forEach((fragment, index) => {
+    const expanded = {
+      title: fragmentTitle(fragment, index),
+      modalities: sourceRefs(fragment.modalities),
+      markdown: sourceFragmentMarkdown(asRows(fragment.excerpts)),
+    };
+    for (const evidenceId of evidenceIdsForFragment(fragment, evidence)) {
+      if (!expandedFragmentByEvidenceId.has(evidenceId)) expandedFragmentByEvidenceId.set(evidenceId, expanded);
+    }
+  });
   const cardSections = Array.isArray(unit.card?.sections) ? unit.card.sections : [];
   const body = unit.body?.content?.trim() || '';
   const bodySourceRefs = sourceRefs(unit.body?.source_refs);
@@ -417,9 +480,22 @@ export function DetailUnit({ node }: { node: OKMNode }) {
     }
     if (!visibleEvidenceIds.has(evidenceId)) {
       const summary = evidenceSummary(evidenceId, index, evidenceById.get(evidenceId));
+      const target = expandedFragmentByEvidenceId.get(evidenceId) ?? {
+        title: summary.meta,
+        modalities: [evidenceModality(evidenceById.get(evidenceId))].filter(Boolean),
+        markdown: text(evidenceById.get(evidenceId)?.excerpt),
+      };
       return (
-        <sup key={key} className="ml-0.5 align-super text-[0.65em] font-semibold text-accent" title={summary.title}>
-          [{index}]
+        <sup key={key} className="ml-0.5 align-super text-[0.65em] font-semibold">
+          <button
+            type="button"
+            onClick={() => setExpandedFragment(target)}
+            className="rounded-sm px-0.5 text-accent transition-colors hover:bg-accent/15 hover:text-accent"
+            title={`查看${summary.meta}: ${summary.preview}`}
+            aria-label={`查看${summary.meta}`}
+          >
+            [{index}]
+          </button>
         </sup>
       );
     }
@@ -700,19 +776,12 @@ export function DetailUnit({ node }: { node: OKMNode }) {
             {profiles.map((profile) => {
               const stages = sourceRefs(profile.school_stages);
               const roles = sourceRefs(profile.curriculum_roles);
-              const pedagogicalProfile = asRecord(asRecord(profile.properties).pedagogical_profile);
-              const difficulty = text(pedagogicalProfile.difficulty_level).trim();
-              const pedagogicalGroups = [
-                { title: '学习目标', items: textList(pedagogicalProfile.learning_objectives) },
-                { title: '诊断问题', items: textList(pedagogicalProfile.diagnostic_questions) },
-                { title: '常见错误', items: textList(pedagogicalProfile.common_errors) },
-                { title: '评价任务', items: textList(pedagogicalProfile.assessment_tasks) },
-                { title: '补救建议', items: textList(pedagogicalProfile.remediation_suggestions) },
-                { title: '拓展建议', items: textList(pedagogicalProfile.extension_suggestions) },
-              ].filter((group) => group.items.length > 0);
+              const properties = asRecord(profile.properties);
+              const contexts = pedagogicalContexts(properties, stages);
+              const domain = text(profile.domain);
               return (
                 <div key={text(profile.id)} className="rounded-lg border border-border-subtle bg-surface p-3">
-                  <div className="text-xs font-medium text-text-primary">{text(profile.domain)}</div>
+                  <div className="text-xs font-medium text-text-primary">{DOMAIN_LABELS[domain] ?? domain}</div>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {stages.map((stage) => (
                       <span key={stage} className="rounded-full bg-elevated px-2 py-0.5 text-[11px] text-text-muted">
@@ -725,23 +794,81 @@ export function DetailUnit({ node }: { node: OKMNode }) {
                       </span>
                     ))}
                   </div>
-                  {(difficulty || pedagogicalGroups.length > 0) && (
-                    <div className="mt-3 border-t border-border-subtle pt-3">
-                      <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-medium text-text-primary">
-                        <span>学习与教学</span>
-                        {difficulty && (
-                          <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">
-                            难度：{difficulty}
-                          </span>
+                  {contexts.map((context) => {
+                    const generation = asRecord(context.value.generation);
+                    const difficulty = text(context.value.difficulty_level).trim();
+                    const generatedFrom = text(generation.generated_from).trim();
+                    const reviewStatus = text(generation.review_status).trim();
+                    const confidence = Number(generation.confidence);
+                    const generatedAt = generatedDateLabel(generation.generated_at);
+                    const model = text(generation.model).trim();
+                    const contextSourceRefs = sourceRefs(generation.source_refs);
+                    const contextStage = text(context.value.school_stage).trim() || context.stage;
+                    const contextTitle = context.key === 'legacy' && contexts.length > 1
+                      ? '旧版教学画像'
+                      : contextStage
+                        ? `${SCHOOL_STAGE_LABELS[contextStage] ?? contextStage}教学画像`
+                        : '学习与教学';
+                    const gradeBand = gradeBandLabel(text(context.value.grade_band));
+                    const pedagogicalGroups = [
+                      { title: '学习目标', items: textList(context.value.learning_objectives) },
+                      { title: '诊断问题', items: textList(context.value.diagnostic_questions) },
+                      { title: '常见错误', items: textList(context.value.common_errors) },
+                      { title: '评价任务', items: textList(context.value.assessment_tasks) },
+                      { title: '补救建议', items: textList(context.value.remediation_suggestions) },
+                      { title: '拓展建议', items: textList(context.value.extension_suggestions) },
+                    ].filter((group) => group.items.length > 0);
+                    return (
+                      <div key={`${text(profile.id)}:${context.key}`} className="mt-3 border-t border-border-subtle pt-3">
+                        <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs font-medium text-text-primary">
+                          <span>{contextTitle}</span>
+                          {gradeBand && (
+                            <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">
+                              {gradeBand}
+                            </span>
+                          )}
+                          {difficulty && (
+                            <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">
+                              难度：{PEDAGOGICAL_DIFFICULTY_LABELS[difficulty] ?? difficulty}
+                            </span>
+                          )}
+                          {generatedFrom === 'model_generation' && (
+                            <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-normal text-accent">
+                              模型生成
+                            </span>
+                          )}
+                          {generatedFrom === 'manual' && (
+                            <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">
+                              人工维护
+                            </span>
+                          )}
+                          {reviewStatus && (
+                            <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">
+                              {PEDAGOGICAL_REVIEW_STATUS_LABELS[reviewStatus] ?? reviewStatus}
+                            </span>
+                          )}
+                        </div>
+                        {(model || generatedAt || Number.isFinite(confidence) || contextSourceRefs.length > 0) && (
+                          <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-text-muted">
+                            {model && <span>模型：{model}</span>}
+                            {generatedAt && <span>生成：{generatedAt}</span>}
+                            {Number.isFinite(confidence) && <span>可信度：{Math.round(confidence * 100)}%</span>}
+                            {contextSourceRefs.length > 0 && (
+                              <span>
+                                依据 {contextSourceRefs.length} 条证据
+                                {contextSourceRefs.map((evidenceId, index) => renderEvidenceRef(evidenceId, `${text(profile.id)}:${context.key}:evidence:${index}`))}
+                              </span>
+                            )}
+                          </div>
                         )}
+                        <div className="grid gap-2">
+                          {pedagogicalGroups.map((group) => (
+                            <DetailListGroup key={`${text(profile.id)}:${context.key}:${group.title}`} title={group.title} items={group.items} />
+                          ))}
+                        </div>
                       </div>
-                      <div className="grid gap-2">
-                        {pedagogicalGroups.map((group) => (
-                          <DetailListGroup key={`${text(profile.id)}:${group.title}`} title={group.title} items={group.items} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
               );
             })}

@@ -36,7 +36,9 @@ flowchart TD
   K --> L["normalize"]
   L --> N["generate-node-bodies"]
   N --> O["world_node_bodies"]
-  O --> M["strict_qa 与 graph_integrity"]
+  O --> S["generate-pedagogical-profiles"]
+  S --> T["world_domain_profiles 教学画像"]
+  T --> M["strict_qa 与 graph_integrity"]
   K --> P["Hono API"]
   O --> P
   P --> Q["React viewer"]
@@ -144,7 +146,7 @@ same_as / related_to
 落点：
 
 - 数据库表：`world_domain_profiles`
-- 教学画像扩展：`properties.pedagogical_profile`
+- 教学画像扩展：数据库列 `properties_json` 映射为 `ApiUnit.domain_profiles[].properties`；旧数据使用单份 `pedagogical_profile`，自动数据按学段使用 `pedagogical_profiles_by_stage`
 - 前端展示：知识单元详情里的“领域画像”
 
 ### 5. 证据与溯源平面
@@ -284,8 +286,10 @@ staging 写入后，系统会执行：
 1. `staging-quality`：检查单课时 staging 数据是否完整。
 2. `merge-staged-lessons`：把多个 lesson 的候选节点归并为 canonical 节点。
 3. `normalize`：修正卡片、领域画像、证据引用等后处理。
-4. `strict-qa`：检查 schema 合法性。
-5. `graph-integrity`：检查图结构完整性，并可标记 QA 通过。
+4. `generate-node-bodies`：根据正式节点、卡片和证据生成知识正文。
+5. `generate-pedagogical-profiles`：按“节点＋领域＋学段”生成教学画像。
+6. `strict-qa`：检查 schema 合法性及自动教学画像的字段、学段、生成信息和证据引用。
+7. `graph-integrity`：检查图结构完整性，并可标记 QA 通过。
 
 质量检查把错误和警告分开处理：
 
@@ -325,6 +329,33 @@ npm run generate-node-bodies -w packages/pipeline -- \
 
 - `packages/pipeline/src/unit-bodies/generate-node-bodies.ts`
 - `packages/pipeline/src/cli/generate-node-bodies.ts`
+
+### 8. 教学画像生成
+
+一键流水线会在知识正文之后、向量和严格质检之前自动生成教学画像。生成任务以“领域画像记录＋学段”为单位，读取正式节点、结构化卡片、关系和课本证据，结果写入现有 `world_domain_profiles.properties_json.pedagogical_profiles_by_stage`，不增加数据库列。
+
+```bash
+npm run generate-pedagogical-profiles -w packages/pipeline -- \
+  --dataset-id main \
+  --book-id textbook-id \
+  --school-stage junior-secondary \
+  --grade-band grade-8 \
+  --db "$DATABASE_URL" \
+  --pretty
+```
+
+自动生成遵循以下边界：
+
+1. 初中、高中等学段分别保存，不共用一份教学目标或评价任务。
+2. 模型只能引用当前任务提供的证据编号；严格质检会再次检查引用。
+3. 生成信息记录模型、提示词版本、生成时间、输入摘要、可信度和审核状态。
+4. 旧的单份教学画像、人工画像和已确认画像不会被自动覆盖。
+5. 输入摘要未变化时跳过重复生成；证据、节点、卡片或关系变化时自动更新尚未确认的模型画像。
+
+核心代码：
+
+- `packages/pipeline/src/pedagogical-profiles/generate-pedagogical-profiles.ts`
+- `packages/pipeline/src/cli/generate-pedagogical-profiles.ts`
 
 ## 五、数据库结构
 
@@ -580,6 +611,6 @@ viewer 不应该自己理解数据库表结构。它应该消费 `BundleResponse
 这部分不是当前架构已经完成的事实，而是从现状自然推出来的改进方向：
 
 1. 把 `ApiUnit` 当成正式公开契约继续稳定下来，避免前端和未来生成系统各自拼表。
-2. 继续收紧 `semantic_core`、`pedagogical_profile` 等扩展字段的 schema。
+2. 继续收紧 `semantic_core`、`pedagogical_profiles_by_stage` 等扩展字段的 schema，并仅把单份 `pedagogical_profile` 作为历史兼容结构。
 3. 让 pipeline manifest 更好支持断点续跑和最终状态回写。
 4. 补充对象级检索和生成评测，让知识单元不只可看，还能被稳定调用。

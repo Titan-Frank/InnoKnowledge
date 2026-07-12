@@ -692,19 +692,64 @@ export async function loadUnit(
     ORDER BY source_id, anchor_ref
   `;
   const evidenceRows = await sql`
+    WITH referenced_evidence_ids AS (
+      SELECT ref.value AS evidence_id
+      FROM world_mentions AS mention
+      CROSS JOIN LATERAL jsonb_array_elements_text(COALESCE(mention.source_refs_json, '[]'::jsonb)) AS ref(value)
+      WHERE mention.dataset_id = ${datasetId}
+        AND mention.target_type = 'node'
+        AND mention.target_id = ${nodeId}
+      UNION
+      SELECT ref.value AS evidence_id
+      FROM world_domain_profiles AS profile
+      CROSS JOIN LATERAL jsonb_array_elements_text(COALESCE(profile.source_refs_json, '[]'::jsonb)) AS ref(value)
+      WHERE profile.dataset_id = ${datasetId}
+        AND profile.node_id = ${nodeId}
+        AND profile.status != 'deprecated'
+      UNION
+      SELECT ref.value AS evidence_id
+      FROM world_edges AS edge
+      CROSS JOIN LATERAL jsonb_array_elements_text(COALESCE(edge.source_refs_json, '[]'::jsonb)) AS ref(value)
+      WHERE edge.dataset_id = ${datasetId}
+        AND (edge.from_id = ${nodeId} OR edge.to_id = ${nodeId})
+        AND edge.status != 'deprecated'
+      UNION
+      SELECT ref.value AS evidence_id
+      FROM world_node_cards AS card
+      CROSS JOIN LATERAL jsonb_array_elements_text(COALESCE(card.source_refs_json, '[]'::jsonb)) AS ref(value)
+      WHERE card.dataset_id = ${datasetId}
+        AND card.node_id = ${nodeId}
+        AND card.status != 'deprecated'
+      UNION
+      SELECT ref.value AS evidence_id
+      FROM world_node_cards AS card
+      CROSS JOIN LATERAL jsonb_array_elements(COALESCE(card.sections_json, '[]'::jsonb)) AS section(value)
+      CROSS JOIN LATERAL jsonb_array_elements_text(COALESCE(section.value -> 'source_refs', '[]'::jsonb)) AS ref(value)
+      WHERE card.dataset_id = ${datasetId}
+        AND card.node_id = ${nodeId}
+        AND card.status != 'deprecated'
+      UNION
+      SELECT ref.value AS evidence_id
+      FROM world_node_bodies AS body
+      CROSS JOIN LATERAL jsonb_array_elements_text(COALESCE(body.source_refs_json, '[]'::jsonb)) AS ref(value)
+      WHERE body.dataset_id = ${datasetId}
+        AND body.node_id = ${nodeId}
+        AND body.status != 'deprecated'
+    )
     SELECT DISTINCT e.*
-    FROM world_evidence e
-    JOIN world_mentions m ON m.dataset_id = e.dataset_id
-    WHERE m.dataset_id = ${datasetId}
-      AND m.target_type = 'node'
-      AND m.target_id = ${nodeId}
+    FROM world_evidence AS e
+    WHERE e.dataset_id = ${datasetId}
       AND (
-        EXISTS (
+        e.id IN (SELECT evidence_id FROM referenced_evidence_ids)
+        OR EXISTS (
           SELECT 1
-          FROM jsonb_array_elements_text(m.source_refs_json) AS ref(value)
-          WHERE ref.value = e.id
+          FROM world_mentions AS mention
+          WHERE mention.dataset_id = e.dataset_id
+            AND mention.target_type = 'node'
+            AND mention.target_id = ${nodeId}
+            AND e.source_id = mention.source_id
+            AND e.anchor_ref = mention.anchor_ref
         )
-        OR (e.source_id = m.source_id AND e.anchor_ref = m.anchor_ref)
       )
     ORDER BY e.source_id, e.anchor_ref, e.id
   `;

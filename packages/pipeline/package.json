@@ -17,6 +17,7 @@
     "dedupe-nodes": "npm run build && node dist/cli/dedupe-nodes.js",
     "extract-pdf-outline": "npm run build && node dist/cli/extract-pdf-outline.js",
     "extract-lesson-openai": "npm run build && node dist/cli/extract-lesson-openai.js",
+    "generate-pedagogical-profiles": "npm run build && node dist/cli/generate-pedagogical-profiles.js",
     "generate-node-bodies": "npm run build && node dist/cli/generate-node-bodies.js",
     "graph-integrity": "npm run build && node dist/cli/graph-integrity.js",
     "import-file-assets": "npm run build && node dist/cli/import-file-assets.js",

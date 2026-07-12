@@ -92,7 +92,7 @@ Knowledge Object 是可识别、可维护、可对齐、可追溯的知识对象
 | 短定义 | 它是什么 | `world_nodes.definition` |
 | 语义核心 | 核心命题、公式、条件、边界、反例、常见误解 | `world_nodes.properties.semantic_core` |
 | 领域投影 | 学科、学段、课程角色 | `world_domain_profiles` |
-| 教学画像 | 学习目标、难度、诊断题、常见错误、评价任务 | `world_domain_profiles.properties.pedagogical_profile` |
+| 教学画像 | 按学段组织的学习目标、难度、诊断题、常见错误和评价任务 | 数据库：`world_domain_profiles.properties_json.pedagogical_profiles_by_stage`；接口：`ApiUnit.domain_profiles[].properties.pedagogical_profiles_by_stage` |
 | 证据 | 支撑对象存在和解释的来源 | `world_mentions`、`world_evidence` |
 | 正文 | 面向阅读和生成的连续表达 | `world_node_bodies` |
 
@@ -121,6 +121,12 @@ interface ApiUnit {
   completeness: ApiUnitCompleteness;
 }
 ```
+
+数据库中的 `world_domain_profiles.properties_json` 在服务端聚合为
+`ApiUnit.domain_profiles[].properties`。因此，自动教学画像在数据库中读取
+`properties_json.pedagogical_profiles_by_stage`，在接口响应中读取
+`properties.pedagogical_profiles_by_stage`。旧的单份
+`properties_json.pedagogical_profile` / `properties.pedagogical_profile` 仅用于兼容历史数据，新数据不再写入该字段。
 
 也就是说，当前项目里的“知识点”应该理解为：
 
@@ -233,13 +239,28 @@ PDF / Markdown
     "misconceptions": []
   },
   "relations": [],
-  "pedagogical_profile": {
-    "learning_objectives": [],
-    "difficulty_level": "basic",
-    "diagnostic_questions": [],
-    "common_errors": [],
-    "assessment_tasks": []
-  },
+  "domain_profiles": [
+    {
+      "domain": "chemistry",
+      "school_stages": ["junior-secondary"],
+      "curriculum_roles": ["core"],
+      "properties": {
+        "pedagogical_profiles_by_stage": {
+          "junior-secondary": {
+            "school_stage": "junior-secondary",
+            "grade_band": "grade-8",
+            "learning_objectives": ["能够依据证据说明该知识对象的关键特征。"],
+            "difficulty_level": "basic",
+            "diagnostic_questions": ["学习这一内容前需要掌握哪些概念？"],
+            "common_errors": ["忽略该结论的适用条件。"],
+            "assessment_tasks": ["根据给定证据完成判断并说明理由。"],
+            "remediation_suggestions": ["回到定义、条件和证据逐项核对。"],
+            "extension_suggestions": ["比较该知识在相邻情境中的作用。"]
+          }
+        }
+      }
+    }
+  ],
   "body": {
     "format": "markdown",
     "content": "",
@@ -250,6 +271,8 @@ PDF / Markdown
 ```
 
 当前工程不会直接以这个 JSON 落库。它会被拆到多张表中，再由 `ApiUnit` 聚合回来。
+其中示例里的 `domain_profiles[].properties` 对应数据库
+`world_domain_profiles.properties_json`。旧的单份 `pedagogical_profile` 仍可被读取，但只作为历史兼容结构。
 
 ## 七、与普通 RAG 的区别
 

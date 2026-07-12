@@ -1,18 +1,19 @@
 # 提示词清单
 
-更新日期：2026-07-10
+更新日期：2026-07-12
 
 本文整理当前代码仓库中会在运行时发送给模型的提示词。范围只包括真实模型调用链路，不包括测试用例中的假提示词、普通界面文案、类型字段名或研究讨论文档中的概念示例。
 
 ## 一、总览
 
-当前仓库中实际会发送给模型的提示词有三类：
+当前仓库中实际会发送给模型的提示词有四类：
 
 | 编号 | 用途 | 入口文件 | 调用模型 | 发送位置 |
 |---|---|---|---|---|
 | P1 | 单课时 / 单分块知识抽取 | `packages/pipeline/src/extraction/model-lesson-extraction.ts` | 文本模型 | OpenAI Responses 或 Chat Completions |
 | P2 | 教材图片是否作为知识证据保留 | `packages/pipeline/src/extraction/image-relevance.ts` | 视觉模型 | OpenAI Responses 或 Chat Completions |
 | P3 | 知识节点正式正文写作 | `packages/pipeline/src/unit-bodies/generate-node-bodies.ts` | 文本模型 | OpenAI Responses 或 Chat Completions |
+| P4 | 按学段生成教学画像 | `packages/pipeline/src/pedagogical-profiles/generate-pedagogical-profiles.ts` | 文本模型 | OpenAI Responses 或 Chat Completions |
 
 另有一个可选补充提示词入口：
 
@@ -233,10 +234,9 @@ Chat Completions：
 - 没有证据支撑的公式、边界、反例、常见误解不要补。
 
 教学画像：
-- domain_profiles 只描述该知识对象在具体领域和学段中的教学投影。
-- school_stages 和 curriculum_roles 说明教学位置。
-- 如果当前证据能支持学习目标、难度、诊断题、常见错误、评价任务，放入 domain_profiles.properties.pedagogical_profile。
-- pedagogical_profile 可以包含 learning_objectives、difficulty_level、diagnostic_questions、common_errors、assessment_tasks、remediation_suggestions、extension_suggestions。
+- 当前两阶段课时抽取不生成教学画像。
+- domain_profiles 的领域、学段和课程角色先由后处理补齐。
+- 学习目标、难度、诊断题、常见错误、评价任务、补救建议和拓展建议由 P4 在正式数据归一化后单独生成。
 ```
 
 ### P1 可选补充提示词
@@ -286,7 +286,7 @@ P1 分两次调用模型。第一阶段 Schema 在 `buildHybridNodeEvidenceRespo
 | `nodes` | 候选知识节点 | `kind` 只能是 `entity/concept/property/process/event/method/rule/representation/resource`；必须有 `definition`、`domains`、`knowledge_form`、`learning_mode`、`scope` 等字段 |
 | `edges` | 候选知识关系 | `type` 必须是 schema 合法关系；必须有 `from`、`to`、`directionality`、`confidence`、`evidence_anchor` |
 | `evidence_units` | 当前课时内可追溯的证据单元 | 必须有 `anchor`、`excerpt`、`locator`、`modality`、`node_ids` |
-| `domain_profiles` | 节点在具体学科和学段中的教学投影 | 必须绑定 `node_id`，可在 `properties.pedagogical_profile` 中放学习目标、难度、诊断题、常见错误和评价任务 |
+| `domain_profiles` | 兼容完整响应结构的领域画像字段 | 当前两阶段流程会先设为空，后处理补齐基础画像，P4 再按学段生成教学画像 |
 | `node_cards` | 面向前端展示的节点摘要卡片 | 必须绑定 `node_id` 和 `evidence_anchor`，包含 `summary`、`definition`、`essence`、`key_points`、`example`、`application`、`misconception` |
 | `issues` | 模型主动报告的问题 | 例如证据不足、内容模糊、无法确定分类等 |
 
@@ -432,14 +432,7 @@ P1 分两次调用模型。第一阶段 Schema 在 `buildHybridNodeEvidenceRespo
       "domain": "chemistry",
       "school_stages": ["junior-secondary"],
       "curriculum_roles": ["core"],
-      "properties": {
-        "pedagogical_profile": {
-          "learning_objectives": ["能说出溶液的均一、稳定特征。"],
-          "difficulty_level": "basic",
-          "diagnostic_questions": ["蔗糖水为什么可以看作溶液？"],
-          "common_errors": ["把所有混合物都称为溶液。"]
-        }
-      }
+      "properties": {}
     }
   ],
   "node_cards": [
@@ -817,7 +810,74 @@ P3 必须返回一个 JSON 对象。Schema 在 `buildModelNodeBodyResponseSchema
 
 注意：示例中的证据标记应保持和输入证据 ID 一致。实际前端会把 `[evidence:...]` 显示成角标编号，例如 `[1]`。
 
-## 六、非运行提示词和排除项
+## 六、P4：按学段生成教学画像
+
+来源：
+
+- `packages/pipeline/src/pedagogical-profiles/generate-pedagogical-profiles.ts`
+- 函数：`buildModelPedagogicalProfilePrompt`
+- CLI 入口：`npm run generate-pedagogical-profiles -w packages/pipeline -- ...`
+- 当前提示词版本：`pedagogical-profile-v1`
+
+用途：
+
+在正式节点完成归一化后，针对每个“领域画像记录＋学段”生成学习目标、难度、诊断、评价、补救和拓展内容。生成结果按学段写入 `world_domain_profiles.properties_json.pedagogical_profiles_by_stage`。
+
+### P4 输入
+
+P4 输入包含：
+
+1. 当前领域、学段、年级范围和课程角色。
+2. 正式知识节点及其语义核心。
+3. 结构化节点卡片。
+4. 当前节点的入边、出边和相关节点名称。
+5. 与本次教材关联的证据片段和允许引用的证据编号。
+
+同一领域画像包含多个学段时，系统会拆成多个独立请求，不能把初中和高中目标写入同一份画像。
+
+### P4 提示词
+
+```text
+你是 Open Knowledge Map 的教学画像生成器。
+任务：根据一个已经规范化的知识对象、指定领域和指定学段，生成可用于教学、诊断和评价的结构化画像。
+
+硬约束：
+1. 知识事实只能来自输入的节点、结构化卡片、关系和证据；不得补充无证据支持的学科事实。
+2. 学习目标、问题、任务和建议可以进行教学设计，但必须围绕输入知识，不得引入新的知识结论。
+3. 每个列表写 1 至 3 条，内容具体、简洁、可执行，避免空泛表述。
+4. 学习目标使用可观察的行为描述；评价任务应能检验这些目标。
+5. 难度必须相对于当前 school_stage 判断。
+6. source_refs 只能填写 allowed_source_refs 中出现的证据编号。
+7. common_errors 只描述与当前知识边界直接相关的典型错误。
+8. 输出必须严格符合 JSON schema，不要输出额外解释。
+```
+
+### P4 输出
+
+```json
+{
+  "learning_objectives": ["能够依据证据说明该知识对象的关键特征。"],
+  "difficulty_level": "intermediate",
+  "diagnostic_questions": ["学习这一内容前需要掌握哪些概念？"],
+  "common_errors": ["忽略该结论的适用条件。"],
+  "assessment_tasks": ["根据给定证据完成判断并说明理由。"],
+  "remediation_suggestions": ["回到定义、条件和证据逐项核对。"],
+  "extension_suggestions": ["比较该知识在相邻情境中的作用。"],
+  "source_refs": ["evidence:auto-64c1ee9124ae"],
+  "confidence": 0.82
+}
+```
+
+后续处理规则：
+
+1. 七类内容都必须至少包含一条非空文本，难度和可信度必须在合法范围内。
+2. 代码会过滤不在输入白名单中的证据编号；没有合法证据编号时记为模型失败。
+3. 生成信息记录模型、提示词版本、生成时间、输入摘要、审核状态和证据编号。
+4. 人工画像、未知来源画像和已确认画像不会被自动覆盖。
+5. 输入摘要未变化时跳过调用；输入变化时只更新尚未确认的模型画像。
+6. 任一模型请求失败时，一键流水线会在向量和严格质检前阻断并报告失败位置。
+
+## 七、非运行提示词和排除项
 
 以下内容没有作为当前运行时提示词整理进主清单：
 
@@ -827,7 +887,7 @@ P3 必须返回一个 JSON 对象。Schema 在 `buildModelNodeBodyResponseSchema
 4. embedding 调用只发送待嵌入文本，没有额外自然语言提示词。
 5. MinerU 调用使用参数化请求，没有仓库内自然语言提示词。
 
-## 七、维护规则
+## 八、维护规则
 
 后续如果新增模型调用，请同步更新本文，并至少记录：
 

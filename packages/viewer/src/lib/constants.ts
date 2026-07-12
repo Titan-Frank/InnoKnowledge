@@ -68,6 +68,8 @@ export const BRIDGE_TAG_LABELS: Record<string, string> = {
 
 export const SCHOOL_STAGE_LABELS: Record<string, string> = {
   primary: '小学',
+  'junior-secondary': '初中',
+  'senior-secondary': '高中',
   junior_secondary: '初中',
   senior_secondary: '高中',
   higher: '高等教育',
@@ -75,12 +77,57 @@ export const SCHOOL_STAGE_LABELS: Record<string, string> = {
 };
 
 export const CURRICULUM_ROLE_LABELS: Record<string, string> = {
+  core: '核心',
+  support: '支撑',
+  assessment: '评价',
+  practice: '练习',
+  literacy: '素养',
   introduced: '首次引入',
   reinforced: '巩固强化',
   developed: '深入发展',
   integrated: '综合整合',
   transferred: '迁移应用',
   assessed: '评价考查',
+};
+
+export const DOMAIN_LABELS: Record<string, string> = {
+  mathematics: '数学',
+  physics: '物理',
+  chemistry: '化学',
+  biology: '生物学',
+  'earth-science': '地球科学',
+  astronomy: '天文学',
+  'computer-science': '计算机科学',
+  engineering: '工程学',
+  'language-arts': '语言与语文',
+  linguistics: '语言学',
+  literature: '文学',
+  history: '历史',
+  geography: '地理',
+  civics: '公民教育',
+  economics: '经济学',
+  law: '法学',
+  education: '教育学',
+  arts: '艺术',
+  music: '音乐',
+  health: '健康',
+  sports: '体育',
+  philosophy: '哲学',
+  general: '通用',
+};
+
+export const PEDAGOGICAL_DIFFICULTY_LABELS: Record<string, string> = {
+  introductory: '入门',
+  basic: '基础',
+  intermediate: '中等',
+  advanced: '进阶',
+  expert: '专家级',
+};
+
+export const PEDAGOGICAL_REVIEW_STATUS_LABELS: Record<string, string> = {
+  pending: '待审核',
+  approved: '已确认',
+  rejected: '已退回',
 };
 
 export const MASTERY_LEVEL_LABELS: Record<string, string> = {

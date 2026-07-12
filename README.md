@@ -119,11 +119,19 @@ npm run parallel-lesson-pipeline -w packages/pipeline -- \
   --db "$DATABASE_URL"
 ```
 
-`server-pipeline-run` 会在归一化之后自动生成知识正文，再进入严格质检和图完整性检查。默认使用模型模式，根据节点、卡片、课本原文片段和证据引用写入 `world_node_bodies`。如果只想单独重跑正文生成，可以使用下面的命令：
+`server-pipeline-run` 会在归一化之后自动生成知识正文和按学段教学画像，再进入向量、严格质检和图完整性检查。知识正文写入 `world_node_bodies`；教学画像写入 `world_domain_profiles.properties_json.pedagogical_profiles_by_stage`。如果只想单独补跑，可以使用下面的命令：
 
 ```bash
 npm run generate-node-bodies -w packages/pipeline -- \
   --dataset-id main \
+  --db "$DATABASE_URL" \
+  --pretty
+
+npm run generate-pedagogical-profiles -w packages/pipeline -- \
+  --dataset-id main \
+  --book-id chem-grade8 \
+  --school-stage junior-secondary \
+  --grade-band grade-8 \
   --db "$DATABASE_URL" \
   --pretty
 ```
@@ -185,6 +193,7 @@ npm run generate-node-bodies -w packages/pipeline -- \
 - `npm run server-pipeline-run -w packages/pipeline`
 - `npm run extract-lesson-openai -w packages/pipeline`
 - `npm run generate-node-bodies -w packages/pipeline`
+- `npm run generate-pedagogical-profiles -w packages/pipeline`
 - `npm run store-staging -w packages/pipeline`
 - `npm run staging-quality -w packages/pipeline`
 - `npm run strict-qa -w packages/pipeline`

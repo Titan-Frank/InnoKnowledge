@@ -98,6 +98,11 @@ type RunnerOptions = {
   nodeBodyLimit?: number;
   nodeBodyMaxEvidence?: number;
   overwriteNodeBodies?: boolean;
+  skipPedagogicalProfiles?: boolean;
+  pedagogicalProfileConcurrency?: number;
+  pedagogicalProfileLimit?: number;
+  pedagogicalProfileMaxEvidence?: number;
+  overwriteGeneratedPedagogicalProfiles?: boolean;
   skipEmbeddings?: boolean;
   nodeEmbeddingBatchSize?: number;
   unitEmbeddingBatchSize?: number;
@@ -404,6 +409,17 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       );
       if (!nodeBodiesOk) return result;
     }
+    if (!options.skipPedagogicalProfiles) {
+      const pedagogicalProfilesOk = await runPipelineCommandStage(
+        result,
+        progressStore,
+        options,
+        "pedagogical_profiles",
+        buildPedagogicalProfilesCommand(options),
+        "Pedagogical profile generation command failed.",
+      );
+      if (!pedagogicalProfilesOk) return result;
+    }
     if (!options.skipEmbeddings) {
       const nodeEmbeddingsOk = await runPipelineCommandStage(
         result,
@@ -709,6 +725,37 @@ function buildNodeBodiesCommand(options: RunnerOptions): string[] {
   return command;
 }
 
+function buildPedagogicalProfilesCommand(options: RunnerOptions): string[] {
+  const command = [
+    "node",
+    resolve(CLI_DIR, "generate-pedagogical-profiles.js"),
+    "--dataset-id",
+    options.datasetId,
+    "--db",
+    options.dbUrl,
+    "--book-id",
+    options.bookId,
+    "--school-stage",
+    options.schoolStage,
+    "--pretty",
+    "--api-mode",
+    options.apiMode,
+  ];
+  if (options.model) command.push("--model", options.model);
+  if (options.gradeBand) command.push("--grade-band", options.gradeBand);
+  if (options.baseUrl) command.push("--base-url", options.baseUrl);
+  if (options.reasoningEffort) command.push("--reasoning-effort", options.reasoningEffort);
+  command.push("--timeout", String(options.timeoutSeconds));
+  command.push("--max-evidence", String(options.pedagogicalProfileMaxEvidence ?? 8));
+  command.push("--concurrency", String(options.pedagogicalProfileConcurrency ?? options.parallelism));
+  command.push("--model-retry-count", String(options.modelRetryCount));
+  if (options.pedagogicalProfileLimit && options.pedagogicalProfileLimit > 0) {
+    command.push("--limit", String(options.pedagogicalProfileLimit));
+  }
+  if (options.overwriteGeneratedPedagogicalProfiles) command.push("--overwrite-generated");
+  return command;
+}
+
 function buildNodeEmbeddingsCommand(options: RunnerOptions): string[] {
   return [
     "node",
@@ -812,6 +859,14 @@ function stageFailureFromOutput(stageId: string, stdout: string): string | null 
   if (stageId === "node_bodies") {
     const failed = numberValue(output.failed_model_generation) ?? 0;
     if (failed > 0) return `${failed} node body generation request(s) failed.`;
+  }
+  if (stageId === "pedagogical_profiles") {
+    const failed = numberValue(output.failed_model_generation) ?? 0;
+    if (failed > 0) return `${failed} pedagogical profile generation request(s) failed.`;
+    const missing = (numberValue(output.skipped_missing_stage) ?? 0)
+      + (numberValue(output.skipped_missing_context) ?? 0)
+      + (numberValue(output.skipped_missing_evidence) ?? 0);
+    if (missing > 0) return `${missing} pedagogical profile context(s) were missing stage, node, or evidence data.`;
   }
   if (stageId === "node_embeddings") {
     const selected = numberValue(output.selected) ?? 0;
@@ -1184,6 +1239,7 @@ function stageSortOrder(stageId: string, fallback: number): number {
     "canonical_commit",
     "normalize",
     "node_bodies",
+    "pedagogical_profiles",
     "node_embeddings",
     "unit_embeddings",
     "strict_qa",
@@ -1211,6 +1267,7 @@ function stageLabel(stageId: string): string {
     canonical_commit: "合并入正式图谱",
     normalize: "归一化知识对象",
     node_bodies: "生成知识正文",
+    pedagogical_profiles: "生成教学画像",
     node_embeddings: "生成节点向量",
     unit_embeddings: "生成单元向量",
     strict_qa: "严格质检",
@@ -1328,6 +1385,11 @@ function parseOptions(argv: string[]): RunnerOptions {
     nodeBodyLimit: parseNonNegativeInteger(flags.get("node-body-limit"), 0),
     nodeBodyMaxEvidence: parseInteger(flags.get("node-body-max-evidence"), 8),
     overwriteNodeBodies: flags.has("overwrite-node-bodies"),
+    skipPedagogicalProfiles: flags.has("skip-pedagogical-profiles"),
+    pedagogicalProfileConcurrency: parseInteger(flags.get("pedagogical-profile-concurrency") ?? flags.get("parallelism"), 8),
+    pedagogicalProfileLimit: parseNonNegativeInteger(flags.get("pedagogical-profile-limit"), 0),
+    pedagogicalProfileMaxEvidence: parseInteger(flags.get("pedagogical-profile-max-evidence"), 8),
+    overwriteGeneratedPedagogicalProfiles: flags.has("overwrite-generated-pedagogical-profiles"),
     skipEmbeddings: flags.has("skip-embeddings"),
     nodeEmbeddingBatchSize: parseInteger(flags.get("node-embedding-batch-size") ?? flags.get("embedding-batch-size"), 8),
     unitEmbeddingBatchSize: parseInteger(flags.get("unit-embedding-batch-size") ?? flags.get("embedding-batch-size"), 8),
