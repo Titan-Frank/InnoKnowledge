@@ -1,8 +1,8 @@
 # Open Knowledge Map
 
-**把教材转换成有证据、有关系、可检索、可供人工智能调用的知识对象。**
+**构建由统一知识对象、学科语义、跨学科桥接和来源证据组成的人工智能原生多学科知识网络。**
 
-[English](README.md) · [在线体验](https://open-knowledge-map.pages.dev/) · [公开成果快照](artifacts/okm-public-v0.1.0/README.md) · [完整演示数据](examples/demo-data/README.md) · [系统架构](docs/current-system-architecture.md) · [跨学科知识网络](docs/interdisciplinary-knowledge-network.md) · [知识单元契约](docs/knowledge-unit-contract.md) · [贡献指南](CONTRIBUTING.zh-CN.md)
+[English](README.md) · [在线体验](https://open-knowledge-map.pages.dev/) · [历史公开成果快照](artifacts/okm-public-v0.1.0/README.md) · [完整演示数据](examples/demo-data/README.md) · [系统架构](docs/current-system-architecture.md) · [跨学科知识网络](docs/interdisciplinary-knowledge-network.md) · [知识单元契约](docs/knowledge-unit-contract.md) · [贡献指南](CONTRIBUTING.zh-CN.md)
 
 ![展示仓库原创太阳能界面样例的 Open Knowledge Map 图谱界面](docs/assets/report/graph-overview.png)
 
@@ -18,7 +18,7 @@
 
 PDF 页面和文档切块适合短期检索，但很难直接成为教学、规划、评测和知识维护的长期接口。它们不会自动提供稳定身份、受控类型、明确关系、来源证据、人工复核状态，也不能直接形成下游软件可安全调用的知识契约。
 
-Open Knowledge Map 把教材视为**来源证据**，而不是知识的最终计算形态。系统按课时抽取知识对象与关系，经暂存、正式归并、规范化和质量检查后写入统一知识网络，再通过完整的 `ApiUnit` 提供给搜索、带依据生成和人工检查界面。
+Open Knowledge Map 把教材视为**来源证据和教学路径**，而不是知识本体。系统按课时抽取知识对象、学科语义和课程投影，经暂存、正式归并、规范化和质量检查后写入统一知识网络；跨学科连接通过抽象规律、方法或模型等桥接对象建立，再通过完整的 `ApiUnit` 提供给搜索、带依据生成和人工检查界面。
 
 这个仓库是一套完整的抽取与知识运行系统，不只是静态分类表或 JSON 数据集。
 
@@ -28,11 +28,12 @@ Open Knowledge Map 把教材视为**来源证据**，而不是知识的最终计
 - 教材目录对齐和课时/切块规划。
 - 基于模型的知识对象与关系抽取。
 - 课时隔离暂存表和事务化正式归并器。
-- 节点、关系、领域画像、提及、证据、卡片与知识正文。
-- 正式数据归一化后，按学段生成带证据编号、等待审核的教学画像。
+- 统一知识对象、中文语义关系、学科语义画像、课程与教学投影、提及、证据、卡片与知识正文。
+- 数学、物理、计算机科学、化学、生物学和通用领域模式，以及可扩展的来源治理策略。
+- 正式数据归一化后，按课程与学段生成带证据编号、等待审核的教学画像。
 - 始终可用的文本知识对象检索，以及在查询向量和库内向量齐备时运行的向量与混合检索。
 - 带证据编号归属校验的依据生成，以及证据不足时的明确结果。
-- 可解释的跨学科对象对齐与关系候选扫描；关系必须选择教材证据并经人工批准后才能写入正式图谱。
+- 可解释的跨学科对象对齐、直接关系和“知识对象—桥接对象—知识对象”路径扫描；每段关系必须选择符合来源策略的直接证据并经人工批准后才能写入正式网络。
 - 图片相关性复核、合并复核、跨学科复核、严格质量检查和图完整性检查。
 - PostgreSQL 服务接口和 React 图谱、跨学科、教材、标注与流水线工作台。
 
@@ -70,11 +71,11 @@ flowchart LR
 
 | 层次 | 当前名称 | 作用 |
 | --- | --- | --- |
-| 顶层概念标准 | `ai-nks-v0.1` | 知识对象、知识单元、知识网络、运行时和治理边界 |
-| 可执行工程结构 | `world-v1.2` | 当前 PostgreSQL 表、JSON Schema、节点类型、关系类型和证据规则 |
+| 顶层概念标准 | `ai-nks-v0.2` | 统一知识对象、学科语义画像、课程投影、桥接对象、知识网络、运行时和治理边界 |
+| 可执行工程结构 | `world-v1.3` | 当前 PostgreSQL 表、JSON Schema、领域模式、中文关系语义、来源策略和证据规则 |
 | 公共消费契约 | `ApiUnit` | Viewer、检索和带依据生成共同使用的完整知识对象视图 |
 
-详细说明见[理论决策记录](docs/theory-decision-record.md)、[AI-NKS v0.1](docs/ai-nks-v0.1.md)、[跨学科知识网络](docs/interdisciplinary-knowledge-network.md)和[知识单元契约](docs/knowledge-unit-contract.md)。
+详细说明见[理论决策记录](docs/theory-decision-record.md)、[AI-NKS v0.2](docs/ai-nks-v0.2.md)、[跨学科知识网络](docs/interdisciplinary-knowledge-network.md)和[知识单元契约](docs/knowledge-unit-contract.md)。
 
 ## 本地一键安全样例
 
@@ -135,7 +136,7 @@ npm run server-pipeline-run -w packages/pipeline -- \
 
 如果 PDF 已有公网地址，可用 `--mineru-file-url` 代替 `--pdf-path`。只有在你已经配置并信任向量服务后，才应删除 `--skip-embeddings`。
 
-正式数据归一化后，默认流程会依次生成知识正文和按学段教学画像，再进入可选的向量阶段与最终质量检查。教学画像写入 `world_domain_profiles.properties_json.pedagogical_profiles_by_stage`；自动生成内容会保留证据引用、模型与提示词版本、输入指纹、置信度和审核状态。代码会校验返回的证据编号是否属于输入上下文，但编号合法不等于内容在语义上已被证据充分证明，因此自动生成结果仍保持待审核状态。若要单独重跑教学画像阶段，可使用：
+正式数据归一化后，默认流程会依次生成知识正文和按课程、学段划分的教学画像，再进入可选的向量阶段与最终质量检查。学科本体语义写入 `world_domain_profiles`；课程位置和教学画像写入 `world_curriculum_projections.properties_json.pedagogical_profile`，两者不会混写。自动生成内容会保留证据引用、模型与提示词版本、输入指纹、置信度和审核状态。代码会校验返回的证据编号是否属于输入上下文，但编号合法不等于内容在语义上已被证据充分证明，因此自动生成结果仍保持待审核状态。若要单独重跑教学画像阶段，可使用：
 
 ```bash
 npm run generate-pedagogical-profiles -w packages/pipeline -- \
@@ -156,7 +157,7 @@ npm run interdisciplinary-analyze -w packages/pipeline -- \
   --pretty
 ```
 
-关系候选必须选择现有教材证据、关系类型和方向。批准后再执行受数据集锁保护的应用步骤：
+直接关系候选必须选择符合来源策略的现有证据、中文关系名称和方向；桥接路径必须逐段选择关系和直接证据。批准后再执行受数据集锁保护的应用步骤：
 
 ```bash
 npm run interdisciplinary-apply -w packages/pipeline -- \
@@ -165,7 +166,7 @@ npm run interdisciplinary-apply -w packages/pipeline -- \
   --pretty
 ```
 
-共享名称、别名、语义键和桥接标签只用于发现候选，不是事实证据。同一对象候选批准后执行节点归一；关系候选批准并应用后才进入 `world_edges`。完整边界见[跨学科知识网络](docs/interdisciplinary-knowledge-network.md)。
+共享名称、别名、语义键和主题标签只用于发现候选，不是事实证据。同一对象候选批准后执行节点归一；直接关系或桥接路径批准并应用后才进入唯一正式关系表 `world_edges`。`same_as` 已停用，同一身份必须归并节点。完整边界见[跨学科知识网络](docs/interdisciplinary-knowledge-network.md)。
 
 完整流程可能向外部服务传输内容：MinerU 会收到 PDF 或公开文件地址；语言模型服务会收到课时文本，并在后续正文和教学画像阶段收到规范化后的节点、卡片、关系与证据上下文；可选视觉服务会收到选定的图片上下文；明确配置的向量服务会收到知识对象文本。处理私有、受许可限制、含个人信息或机构内部材料前，必须先确认各服务的数据处理条款。上面的演示命令不会发生这些传输。
 

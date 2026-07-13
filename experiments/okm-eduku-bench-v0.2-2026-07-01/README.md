@@ -1,5 +1,7 @@
 # OKM-EduKU-Bench v0.2
 
+> 本实验目录的名称保留原始实验版本；其构建输出契约已于 2026-07-13 同步到 `ai-nks-v0.2` / `world-v1.3`。学科语义画像与课程投影分别标注，关系向标注者显示中文名称，稳定代码只用于系统交换。
+
 This directory contains the paper-grade experiment scaffold for comparing OKM as an evidence-constrained Knowledge Unit system.
 
 It is intentionally separate from `experiments/physics-okm-benchmark-2026-07-01`. The earlier physics experiment remains a pilot and development set. This benchmark defines the held-out test design for two MinerU textbooks:
@@ -80,7 +82,8 @@ Construction systems must write JSON files under `outputs/construction/*.json` w
   "edges": [],
   "evidence_links": [],
   "semantic_core": [],
-  "pedagogical_profile": [],
+  "domain_profiles": [],
+  "curriculum_projections": [],
   "cost": {}
 }
 ```

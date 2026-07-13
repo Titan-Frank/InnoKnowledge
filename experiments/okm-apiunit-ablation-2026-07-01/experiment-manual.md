@@ -4,7 +4,7 @@
 
 本目录独立评测 OKM 的 A0-A7 消融组，不复用正在进行的 `physics-okm-benchmark-2026-07-01` 输出目录，也不修改正式 API、viewer 或 canonical 数据表。
 
-实验回答的问题是：证据锚定、知识正文、领域画像、图关系、关系扩展、质量治理和完整 `ApiUnit` 返回，分别对对象级检索、证据化回答和教学可用性贡献多少。
+实验回答的问题是：证据锚定、知识正文、学科语义画像、课程与教学投影、图关系、关系扩展、质量治理和完整 `ApiUnit` 返回，分别对对象级检索、证据化回答和教学可用性贡献多少。
 
 ## 数据
 
@@ -20,13 +20,19 @@
 | A0 | 完整 OKM，上下文包含完整 `ApiUnit`，并允许一跳关系扩展 |
 | A1 | 移除证据锚定，不提供 `evidence`、`source_fragments` 和 `source_refs` |
 | A2 | 移除 `node_bodies`，只用节点、卡片、证据、画像和关系 |
-| A3 | 移除 `domain_profiles` 和 `pedagogical_profile` |
+| A3 | 同时移除学科语义 `domain_profiles` 和课程教学 `curriculum_projections` |
 | A4 | 不使用图关系，只用对象向量召回，并从上下文移除关系 |
 | A5 | 不做关系扩展，只返回 top-k 种子单元 |
 | A6 | 使用 raw staging 结果，不经过 QA、normalize、merge |
 | A7 | 只返回节点骨架，不返回完整 `ApiUnit` |
 
 ## 运行
+
+脚本直接复用共享关系定义，首次运行前先构建类型包：
+
+```bash
+npm run build -w packages/types
+```
 
 只跑检索和结构检查：
 

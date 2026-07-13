@@ -4,11 +4,12 @@ export type MergeStagingTable =
   | "world_staging_nodes"
   | "world_staging_edges"
   | "world_staging_domain_profiles"
+  | "world_staging_curriculum_projections"
   | "world_staging_mentions"
   | "world_staging_evidence"
   | "world_staging_node_cards";
 
-export type MergeExistingTable = "world_domain_profiles" | "world_edges" | "world_mentions" | "world_node_cards" | "world_nodes";
+export type MergeExistingTable = "world_curriculum_projections" | "world_domain_profiles" | "world_edges" | "world_mentions" | "world_node_cards" | "world_nodes";
 
 export function buildLoadMergeLessonRunsQuery(input: {
   datasetId: string;
@@ -49,6 +50,14 @@ export function buildLoadExistingDomainProfilesQuery(datasetId: string): SqlStat
   return {
     name: "select-existing-world-domain-profiles",
     sql: ["SELECT *", "FROM world_domain_profiles", "WHERE dataset_id = $1", "ORDER BY id"].join("\n"),
+    params: [datasetId],
+  };
+}
+
+export function buildLoadExistingCurriculumProjectionsQuery(datasetId: string): SqlStatement {
+  return {
+    name: "select-existing-world-curriculum-projections",
+    sql: ["SELECT *", "FROM world_curriculum_projections", "WHERE dataset_id = $1", "ORDER BY id"].join("\n"),
     params: [datasetId],
   };
 }

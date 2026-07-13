@@ -83,7 +83,7 @@ async function ensureDataset(sql: postgres.Sql, datasetId: string, repoRoot: str
       dataset_id, dataset_name, schema_version, status, is_active, root_path, created_at, updated_at, notes
     )
     VALUES (
-      ${datasetId}, ${datasetId}, 'world-v1.2', 'active', 0, ${relativeRepoPath(repoRoot, resolve(repoRoot, "data", datasetId))}, ${now}, ${now}, NULL
+      ${datasetId}, ${datasetId}, 'world-v1.3', 'active', 0, ${relativeRepoPath(repoRoot, resolve(repoRoot, "data", datasetId))}, ${now}, ${now}, NULL
     )
     ON CONFLICT (dataset_id) DO UPDATE SET
       root_path = COALESCE(world_datasets.root_path, EXCLUDED.root_path),

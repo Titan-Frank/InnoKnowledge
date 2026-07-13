@@ -153,7 +153,8 @@ function emptyAnnotation() {
     relations: [],
     evidence_spans: [],
     semantic_core: [],
-    pedagogical_profile: [],
+    domain_profiles: [],
+    curriculum_projections: [],
     notes: "",
   };
 }

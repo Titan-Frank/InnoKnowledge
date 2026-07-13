@@ -202,6 +202,7 @@ async function repairDuplicateGroup(
   await executeStatement(sql, buildDeprecateRemappedSelfLoopEdgesStatement(datasetId, canonical.id, now));
   await executeStatement(sql, buildDeprecateDuplicateRemappedEdgesStatement(datasetId, canonical.id, now));
   await sql.unsafe("UPDATE world_domain_profiles SET node_id = $1, updated_at = $2 WHERE dataset_id = $3 AND node_id = ANY($4::text[])", [canonical.id, now, datasetId, duplicateIds]);
+  await sql.unsafe("UPDATE world_curriculum_projections SET node_id = $1, updated_at = $2 WHERE dataset_id = $3 AND node_id = ANY($4::text[])", [canonical.id, now, datasetId, duplicateIds]);
   await sql.unsafe("UPDATE world_mentions SET target_id = $1, updated_at = $2 WHERE dataset_id = $3 AND target_type = 'node' AND target_id = ANY($4::text[])", [
     canonical.id,
     now,

@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
-import { EDGE_TYPES as EDGE_TYPE_VALUES, type AnnotationTextbookSummary, type EdgeType, type NodeKind } from '@okm/types';
+import {
+  ACTIVE_EDGE_TYPES,
+  edgeTypeLabelZh,
+  type ActiveEdgeType,
+  type AnnotationTextbookSummary,
+  type NodeKind,
+} from '@okm/types';
 import { TYPE_META } from '@/lib/constants';
 import { loadAnnotationLessonText, loadAnnotationTextbooks } from '@/services/backend-client';
 import {
@@ -54,7 +60,7 @@ interface GoldEdge {
   gold_edge_id: string;
   source: string;
   target: string;
-  relation_type: EdgeType;
+  relation_type: ActiveEdgeType;
   direction_note: string;
   lesson_ids: string[];
   evidence_ids: string[];
@@ -103,7 +109,7 @@ const NODE_KINDS: NodeKind[] = [
   'resource',
 ];
 
-const EDGE_TYPES: EdgeType[] = [...EDGE_TYPE_VALUES];
+const EDGE_TYPES: ActiveEdgeType[] = [...ACTIVE_EDGE_TYPES];
 
 const EMPTY_DATA: AnnotationData = {
   metadata: {
@@ -334,12 +340,14 @@ function SelectField<T extends string>({
   label,
   value,
   options,
+  optionLabel,
   onChange,
 }: {
   id: string;
   label: string;
   value: T;
   options: T[];
+  optionLabel?: (option: T) => string;
   onChange: (value: T) => void;
 }) {
   return (
@@ -352,7 +360,7 @@ function SelectField<T extends string>({
         className="h-9 w-full rounded-md border border-border-subtle bg-elevated px-2.5 text-xs text-text-primary outline-none transition-colors focus:border-accent"
       >
         {options.map((option) => (
-          <option key={option} value={option}>{option}</option>
+          <option key={option} value={option}>{optionLabel?.(option) ?? option}</option>
         ))}
       </select>
     </label>
@@ -1168,7 +1176,7 @@ export function AnnotationWorkbench() {
               <div className="space-y-3">
                 <Field id="edge-source" label="来源节点" value={edgeDraft.source} onChange={(value) => setEdgeDraft((current) => ({ ...current, source: value }))} />
                 <Field id="edge-target" label="目标节点" value={edgeDraft.target} onChange={(value) => setEdgeDraft((current) => ({ ...current, target: value }))} />
-                <SelectField id="edge-type" label="关系类型" value={edgeDraft.relation_type} options={EDGE_TYPES} onChange={(value) => setEdgeDraft((current) => ({ ...current, relation_type: value }))} />
+                <SelectField id="edge-type" label="关系类型" value={edgeDraft.relation_type} options={EDGE_TYPES} optionLabel={edgeTypeLabelZh} onChange={(value) => setEdgeDraft((current) => ({ ...current, relation_type: value }))} />
                 <TextAreaField id="edge-direction" label="方向说明" value={edgeDraft.direction_note} onChange={(value) => setEdgeDraft((current) => ({ ...current, direction_note: value }))} rows={2} />
                 <TextAreaField id="edge-evidence" label="证据编号" value={joinList(edgeDraft.evidence_ids)} onChange={(value) => setEdgeDraft((current) => ({ ...current, evidence_ids: splitList(value) }))} rows={2} />
                 <details>
@@ -1293,7 +1301,7 @@ export function AnnotationWorkbench() {
                   const meta = 'kind' in row
                     ? row.kind
                     : 'relation_type' in row
-                      ? row.relation_type
+                      ? edgeTypeLabelZh(row.relation_type)
                       : 'modality' in row
                         ? row.modality
                         : row.reason;

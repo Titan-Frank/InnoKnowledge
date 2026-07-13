@@ -44,7 +44,7 @@ test("builds a staging SQL plan without executing database operations", () => {
     rows.lesson_run.counts_json,
   ]);
 
-  assert.equal(plan.deletes.length, 6);
+  assert.equal(plan.deletes.length, 7);
   assert.deepEqual(plan.deletes[0], {
     name: "delete-world_staging_nodes",
     sql: "DELETE FROM world_staging_nodes WHERE dataset_id = $1 AND lesson_run_id = $2",
@@ -104,7 +104,7 @@ test("skips empty insert batches while preserving delete statements", () => {
   );
 
   const plan = buildStagingSqlPlan(rows);
-  assert.equal(plan.deletes.length, 6);
+  assert.equal(plan.deletes.length, 7);
   assert.equal(plan.inserts.length, 0);
-  assert.equal(plan.statements.length, 7);
+  assert.equal(plan.statements.length, 8);
 });

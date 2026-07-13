@@ -1,3 +1,5 @@
+import type { EdgeType, RelationScope } from './relations.js';
+
 // ── Node ──────────────────────────────────────────────────
 
 export type NodeKind =
@@ -31,6 +33,7 @@ export interface NodeProperties {
   tags?: string[];
   learning_modes?: LearningMode[];
   bridge_tags?: string[];
+  bridge_role?: 'semantic_bridge' | 'method_bridge' | 'analogy_bridge';
 }
 
 export interface ApiNode {
@@ -59,22 +62,22 @@ export interface ApiNode {
 
 // ── Edge ──────────────────────────────────────────────────
 
-export const EDGE_TYPES = [
-  'is_a', 'instance_of', 'part_of', 'contains',
-  'has_property', 'uses', 'produces', 'depends_on',
-  'prerequisite_for', 'causes', 'affects',
-  'represents', 'about', 'same_as', 'related_to',
-] as const;
-
-export type EdgeType = typeof EDGE_TYPES[number];
-
 export type EdgeLayer = 'backbone' | 'support';
+
+export interface EdgeProperties {
+  [key: string]: unknown;
+  relation_scope?: RelationScope;
+  qualifiers?: Record<string, unknown>;
+  bridge_object_ids?: string[];
+  interdisciplinary?: Record<string, unknown>;
+}
 
 export interface ApiEdge {
   [key: string]: unknown;
   id: string;
   dataset_id: string;
   edge_type: EdgeType;
+  edge_type_label_zh: string;
   edge_layer: EdgeLayer;
   from_id: string;
   to_id: string;
@@ -84,7 +87,7 @@ export interface ApiEdge {
   confidence: number;
   backbone_expand: boolean;
   source_refs: string[];
-  properties: Record<string, unknown>;
+  properties: EdgeProperties;
   status: string;
   created_at: string | null;
   updated_at: string | null;
@@ -98,25 +101,16 @@ export interface ApiProfile {
   dataset_id: string;
   node_id: string;
   domain: string;
-  school_stages: string[];
-  curriculum_roles: string[];
+  schema_id: string;
+  schema_version: string;
+  domain_role: string;
   source_refs: string[];
-  properties: DomainProfileProperties;
+  properties: Record<string, unknown>;
   status: string;
   created_at: string | null;
   updated_at: string | null;
   notes?: string | null;
-  subject?: string;
-  school_stage?: string;
-  grade_band?: string;
-  context_key?: string;
-  curriculum_role?: string;
-  mastery_level?: string;
-  learning_objectives?: string[];
   framework_refs?: string[];
-  textbook_refs?: string[];
-  textbook_ids?: string[];
-  assessment_signals?: string[];
 }
 
 // ── Mention ───────────────────────────────────────────────
@@ -240,12 +234,13 @@ export interface ApiUnitRelation {
   dataset_id: string;
   type: EdgeType;
   edge_type?: EdgeType;
+  type_label_zh: string;
   from_id: string;
   to_id: string;
   directionality: 'directed' | 'undirected';
   confidence: number;
   source_refs: string[];
-  properties: Record<string, unknown>;
+  properties: EdgeProperties;
   status: string;
   created_at: string | null;
   updated_at: string | null;
@@ -268,7 +263,6 @@ export interface PedagogicalProfileContent {
   extension_suggestions?: string[];
 }
 
-/** Legacy single-context shape kept for existing datasets. */
 export interface PedagogicalProfileProperties extends PedagogicalProfileContent {}
 
 export interface PedagogicalModelProfileGeneration {
@@ -305,8 +299,6 @@ export interface PedagogicalStageProfileProperties {
 
 export interface DomainProfileProperties {
   [key: string]: unknown;
-  pedagogical_profile?: PedagogicalProfileProperties;
-  pedagogical_profiles_by_stage?: Partial<Record<PedagogicalSchoolStage, PedagogicalStageProfileProperties>>;
 }
 
 export interface ApiUnitDomainProfile {
@@ -315,10 +307,34 @@ export interface ApiUnitDomainProfile {
   dataset_id: string;
   node_id: string;
   domain: string;
-  school_stages: string[];
-  curriculum_roles: string[];
+  schema_id: string;
+  schema_version: string;
+  domain_role: string;
   source_refs: string[];
   properties: DomainProfileProperties;
+  status: string;
+  created_at: string | null;
+  updated_at: string | null;
+  notes?: string | null;
+}
+
+export interface CurriculumProjectionProperties {
+  [key: string]: unknown;
+  pedagogical_profile?: PedagogicalStageProfileProperties;
+}
+
+export interface ApiUnitCurriculumProjection {
+  [key: string]: unknown;
+  id: string;
+  dataset_id: string;
+  node_id: string;
+  domain: string;
+  curriculum_id: string;
+  school_stage: PedagogicalSchoolStage;
+  grade_band: string | null;
+  curriculum_roles: string[];
+  source_refs: string[];
+  properties: CurriculumProjectionProperties;
   status: string;
   created_at: string | null;
   updated_at: string | null;
@@ -361,6 +377,7 @@ export interface ApiUnit {
     incoming: ApiUnitRelation[];
   };
   domain_profiles: ApiUnitDomainProfile[];
+  curriculum_projections: ApiUnitCurriculumProjection[];
   mentions: ApiMention[];
   evidence: ApiEvidence[];
   media: ApiUnitMedia[];

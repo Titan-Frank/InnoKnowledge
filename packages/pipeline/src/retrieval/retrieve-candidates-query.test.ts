@@ -37,7 +37,7 @@ test("builds local candidate query like Python fetch_local_candidates", () => {
   assert.match(statement.sql, /n\.dataset_id = \$3/);
   assert.match(statement.sql, /n\.kind = \$4/);
   assert.match(statement.sql, /p\.domain = \$5/);
-  assert.match(statement.sql, /\$6 = ANY\(SELECT jsonb_array_elements_text\(p\.school_stages_json\)\)/);
+  assert.match(statement.sql, /p\.school_stage = \$6/);
   assert.match(statement.sql, /nt\.term_norm = \$7 OR nt\.term_norm LIKE \$8 OR n\.definition ILIKE \$9/);
   assert.match(statement.sql, /ORDER BY score DESC, n\.name\nLIMIT \$10/);
 });

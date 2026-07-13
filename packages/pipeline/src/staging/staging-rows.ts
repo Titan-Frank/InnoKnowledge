@@ -1,6 +1,7 @@
 import { VALID_SCOPE } from "../shared/knowledge.js";
 import type {
   NormalizedDomainProfile,
+  NormalizedCurriculumProjection,
   NormalizedEdge,
   NormalizedEvidence,
   NormalizedLessonArtifacts,
@@ -83,7 +84,26 @@ export type StagingDomainProfileRow = {
   raw_profile_id: string;
   raw_node_id: string;
   domain: string;
-  school_stages_json: string[];
+  schema_id: string;
+  schema_version: string;
+  domain_role: string;
+  source_refs_json: string[];
+  properties_json: Record<string, unknown>;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  notes: string;
+};
+
+export type StagingCurriculumProjectionRow = {
+  dataset_id: string;
+  lesson_run_id: string;
+  raw_projection_id: string;
+  raw_node_id: string;
+  domain: string;
+  curriculum_id: string;
+  school_stage: string;
+  grade_band: string | null;
   curriculum_roles_json: string[];
   source_refs_json: string[];
   properties_json: Record<string, unknown>;
@@ -150,6 +170,7 @@ export type StagingTableRows = {
   nodes: StagingNodeRow[];
   edges: StagingEdgeRow[];
   domain_profiles: StagingDomainProfileRow[];
+  curriculum_projections: StagingCurriculumProjectionRow[];
   mentions: StagingMentionRow[];
   evidence: StagingEvidenceRow[];
   node_cards: StagingNodeCardRow[];
@@ -161,6 +182,7 @@ export function buildStagingTableRows(context: StagingWriteContext, artifacts: N
     nodes: artifacts.nodes.map((node) => buildStagingNodeRow(context, node)),
     edges: artifacts.edges.map((edge) => buildStagingEdgeRow(context, edge)),
     domain_profiles: artifacts.domain_profiles.map((profile) => buildStagingDomainProfileRow(context, profile)),
+    curriculum_projections: artifacts.curriculum_projections.map((projection) => buildStagingCurriculumProjectionRow(context, projection)),
     mentions: artifacts.mentions.map((mention) => buildStagingMentionRow(context, mention)),
     evidence: artifacts.evidence.map((item) => buildStagingEvidenceRow(context, item)),
     node_cards: artifacts.node_cards.map((card) => buildStagingNodeCardRow(context, card)),
@@ -241,14 +263,38 @@ export function buildStagingDomainProfileRow(context: StagingWriteContext, profi
     raw_profile_id: profile.raw_profile_id,
     raw_node_id: profile.raw_node_id,
     domain: profile.domain,
-    school_stages_json: profile.school_stages_json,
-    curriculum_roles_json: profile.curriculum_roles_json,
+    schema_id: profile.schema_id,
+    schema_version: profile.schema_version,
+    domain_role: profile.domain_role,
     source_refs_json: profile.source_refs_json,
     properties_json: profile.properties_json,
     status: profile.status,
     created_at: context.now,
     updated_at: context.now,
     notes: profile.notes,
+  };
+}
+
+export function buildStagingCurriculumProjectionRow(
+  context: StagingWriteContext,
+  projection: NormalizedCurriculumProjection,
+): StagingCurriculumProjectionRow {
+  return {
+    dataset_id: context.datasetId,
+    lesson_run_id: context.lessonRunId,
+    raw_projection_id: projection.raw_projection_id,
+    raw_node_id: projection.raw_node_id,
+    domain: projection.domain,
+    curriculum_id: projection.curriculum_id,
+    school_stage: projection.school_stage,
+    grade_band: projection.grade_band,
+    curriculum_roles_json: projection.curriculum_roles_json,
+    source_refs_json: projection.source_refs_json,
+    properties_json: projection.properties_json,
+    status: projection.status,
+    created_at: context.now,
+    updated_at: context.now,
+    notes: projection.notes,
   };
 }
 

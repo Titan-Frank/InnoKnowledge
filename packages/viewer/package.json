@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "npm run build -w @okm/types",
     "dev": "vite build --watch",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run build -w @okm/types && tsc --noEmit && vite build",
     "preview": "vite preview",
     "check": "tsc --noEmit",
+    "pretest": "npm run build -w @okm/types",
     "test": "tsx --test \"test/**/*.test.ts\""
   },
   "dependencies": {

@@ -5,8 +5,9 @@ export type CanonicalDomainProfileLike = {
   id: string;
   node_id: string;
   domain: string;
-  school_stages_json?: unknown;
-  curriculum_roles_json?: unknown;
+  schema_id: string;
+  schema_version: string;
+  domain_role: string;
   source_refs_json?: unknown;
   properties_json?: unknown;
   notes?: string | null;
@@ -23,8 +24,9 @@ export type DomainProfileDeduplicationGroup = {
   primary_id: string;
   duplicate_ids: string[];
   merged: {
-    school_stages_json: string[];
-    curriculum_roles_json: string[];
+    schema_id: string;
+    schema_version: string;
+    domain_role: string;
     source_refs_json: string[];
     properties_json: Record<string, unknown>;
     notes: string;
@@ -59,16 +61,12 @@ export function planDomainProfileDeduplication(
     if (!needsMerge) continue;
 
     const primary = profilesForKey.find((profile) => profile.id === canonicalProfileId) ?? first;
-    let schoolStages: string[] = [];
-    let curriculumRoles: string[] = [];
     let sourceRefs: string[] = [];
     let properties: Record<string, unknown> = {};
     let notes = "";
     let createdAt = primary.created_at;
 
     for (const profile of profilesForKey) {
-      schoolStages = mergeUniqueStrings(schoolStages, listValue(profile.school_stages_json));
-      curriculumRoles = mergeUniqueStrings(curriculumRoles, listValue(profile.curriculum_roles_json));
       sourceRefs = mergeUniqueStrings(sourceRefs, listValue(profile.source_refs_json));
       properties = mergeJsonObjects(properties, recordValue(profile.properties_json));
       notes = mergeTextBlocks(notes, profile.notes ?? "");
@@ -90,8 +88,9 @@ export function planDomainProfileDeduplication(
       primary_id: primary.id,
       duplicate_ids: profilesForKey.filter((profile) => profile.id !== canonicalProfileId).map((profile) => profile.id),
       merged: {
-        school_stages_json: schoolStages,
-        curriculum_roles_json: curriculumRoles,
+        schema_id: primary.schema_id,
+        schema_version: primary.schema_version,
+        domain_role: primary.domain_role,
         source_refs_json: sourceRefs,
         properties_json: properties,
         notes,

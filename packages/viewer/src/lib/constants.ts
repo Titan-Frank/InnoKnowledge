@@ -1,3 +1,5 @@
+import { EDGE_TYPE_LABELS_ZH } from '@okm/types';
+
 export const TYPE_META: Record<string, { label: string; color: string }> = {
   concept: { label: '概念', color: '#555AFF' },
   entity: { label: '实体', color: '#3782FF' },
@@ -141,18 +143,6 @@ export const PEDAGOGICAL_REVIEW_STATUS_LABELS: Record<string, string> = {
   rejected: '已退回',
 };
 
-export const MASTERY_LEVEL_LABELS: Record<string, string> = {
-  aware: '感知',
-  identify: '识别',
-  understand: '理解',
-  apply: '应用',
-  analyze: '分析',
-  model: '建模',
-  transfer: '迁移',
-  evaluate: '评价',
-  create: '创造',
-};
-
 export const NODE_LAYER_LABELS: Record<string, string> = {
   backbone: '主干',
   support: '支撑',
@@ -163,23 +153,7 @@ export const EDGE_LAYER_LABELS: Record<string, string> = {
   support: '支撑关系',
 };
 
-export const EDGE_TYPE_LABELS: Record<string, string> = {
-  is_a: '属于',
-  instance_of: '实例',
-  part_of: '组成部分',
-  contains: '包含',
-  has_property: '具有性质',
-  uses: '使用',
-  produces: '生成',
-  depends_on: '依赖',
-  prerequisite_for: '前置知识',
-  causes: '导致',
-  affects: '影响',
-  represents: '表征',
-  about: '关于',
-  same_as: '等同',
-  related_to: '相关',
-};
+export const EDGE_TYPE_LABELS: Record<string, string> = { ...EDGE_TYPE_LABELS_ZH };
 
 export const LAYER_MODE_OPTIONS = [
   {
@@ -217,7 +191,7 @@ export function getCommunityColor(index: number, mode: ThemeMode = 'dark'): stri
 }
 
 export const COMMUNITY_EDGE_TYPES = new Set([
-  'related_to', 'same_as', 'about',
+  'related_to', 'about', 'analogous_to',
   'causes', 'affects',
-  'uses', 'produces', 'represents', 'has_property',
+  'uses', 'produces', 'represents', 'formalizes', 'applies_to', 'models', 'has_property',
 ]);

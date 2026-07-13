@@ -43,6 +43,7 @@ test("executes staging SQL statements in plan order when integrity passes", asyn
     nodes: 1,
     edges: 1,
     domain_profiles: 1,
+    curriculum_projections: 0,
     mentions: 1,
     evidence: 1,
     node_cards: 1,
@@ -57,9 +58,9 @@ test("executes staging SQL statements in plan order when integrity passes", asyn
     "delete-world_staging_nodes",
     "delete-world_staging_edges",
     "delete-world_staging_domain_profiles",
+    "delete-world_staging_curriculum_projections",
     "delete-world_staging_mentions",
     "delete-world_staging_evidence",
-    "delete-world_staging_node_cards",
   ]);
   assert.ok(result.executedStatements.includes("insert-world-staging-nodes"));
 });

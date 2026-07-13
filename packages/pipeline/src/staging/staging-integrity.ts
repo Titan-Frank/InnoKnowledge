@@ -11,13 +11,19 @@ export type StagingIntegrityResult = {
   issues: string[];
 };
 
-export function checkStagingIntegrity(rows: Pick<StagingTableRows, "domain_profiles" | "edges" | "node_cards" | "nodes">): StagingIntegrityResult {
+export function checkStagingIntegrity(rows: Pick<StagingTableRows, "curriculum_projections" | "domain_profiles" | "edges" | "node_cards" | "nodes">): StagingIntegrityResult {
   const issues: string[] = [];
   const nodeIds = new Set(rows.nodes.map((row) => row.raw_node_id));
 
   for (const profile of rows.domain_profiles) {
     if (!nodeIds.has(profile.raw_node_id)) {
       issues.push(`Domain profile ${profile.raw_profile_id} references missing node ${profile.raw_node_id}.`);
+    }
+  }
+
+  for (const projection of rows.curriculum_projections) {
+    if (!nodeIds.has(projection.raw_node_id)) {
+      issues.push(`Curriculum projection ${projection.raw_projection_id} references missing node ${projection.raw_node_id}.`);
     }
   }
 

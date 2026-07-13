@@ -30,11 +30,28 @@ export type StrictQaRows = {
     to_id: string;
     source_refs_json?: unknown;
   }>;
+  domain_schemas: Array<{
+    schema_id: string;
+    domain: string;
+    schema_version: string;
+    roles_json?: unknown;
+  }>;
   domain_profiles: Array<{
     id: string;
     node_id: string;
     domain: string;
-    school_stages_json?: unknown;
+    schema_id: string;
+    schema_version: string;
+    domain_role: string;
+    source_refs_json?: unknown;
+  }>;
+  curriculum_projections: Array<{
+    id: string;
+    node_id: string;
+    domain: string;
+    curriculum_id: string;
+    school_stage: string;
+    grade_band?: string | null;
     curriculum_roles_json?: unknown;
     source_refs_json?: unknown;
     properties_json?: unknown;
@@ -99,6 +116,7 @@ class StrictQaRunner {
   private readonly cardNodeIds: Set<string>;
   private readonly mentionTargetIds: Set<string>;
   private readonly profileNodeIds: Set<string>;
+  private readonly domainSchemasById: Map<string, StrictQaRows["domain_schemas"][number]>;
 
   constructor(private readonly rows: StrictQaRows) {
     this.nodeIds = new Set(rows.nodes.map((row) => row.id));
@@ -106,12 +124,14 @@ class StrictQaRunner {
     this.cardNodeIds = new Set(rows.node_cards.map((row) => row.node_id));
     this.mentionTargetIds = new Set(rows.mentions.map((row) => row.target_id));
     this.profileNodeIds = new Set(rows.domain_profiles.map((row) => row.node_id));
+    this.domainSchemasById = new Map(rows.domain_schemas.map((row) => [row.schema_id, row]));
   }
 
   run(): Omit<StrictQaResult, "status"> {
     this.validateNodes();
     this.validateEdges();
     this.validateDomainProfiles();
+    this.validateCurriculumProjections();
     this.validateMentionsAndEvidence();
     this.validateNodeCards();
     this.validateNodeBodies();
@@ -181,44 +201,62 @@ class StrictQaRunner {
   private validateDomainProfiles(): void {
     for (const row of this.rows.domain_profiles) {
       if (!VALID_DOMAINS.has(row.domain)) this.error("domain_profile", row.id, `Invalid domain: ${row.domain}`);
-      const schoolStages = Array.isArray(row.school_stages_json) ? row.school_stages_json.map(String) : [];
-      const invalidStages = schoolStages.filter((item) => !VALID_SCHOOL_STAGES.has(item));
-      if (invalidStages.length > 0) this.error("domain_profile", row.id, `Invalid school stages: ${formatPythonStringList(invalidStages)}`);
-      const invalidRoles = (Array.isArray(row.curriculum_roles_json) ? row.curriculum_roles_json : []).filter((item) => !VALID_CURRICULUM_ROLES.has(String(item)));
-      if (invalidRoles.length > 0) this.error("domain_profile", row.id, `Invalid curriculum roles: ${formatPythonStringList(invalidRoles)}`);
+      const schema = this.domainSchemasById.get(row.schema_id);
+      if (!schema) {
+        this.error("domain_profile", row.id, `Missing domain schema: ${row.schema_id}`);
+      } else {
+        if (row.schema_version !== schema.schema_version) {
+          this.error("domain_profile", row.id, `Domain schema version mismatch: ${row.schema_version}`);
+        }
+        if (schema.domain !== "general" && schema.domain !== row.domain) {
+          this.error("domain_profile", row.id, `Domain schema ${row.schema_id} does not govern ${row.domain}`);
+        }
+        const roles = Array.isArray(schema.roles_json) ? schema.roles_json.map(String) : [];
+        if (!roles.includes(row.domain_role)) {
+          this.error("domain_profile", row.id, `Invalid domain role: ${row.domain_role}`);
+        }
+      }
       this.validateSourceRefs("domain_profile", row.id, row.source_refs_json);
-      this.validatePedagogicalProfiles(row, schoolStages);
     }
   }
 
-  private validatePedagogicalProfiles(row: StrictQaRows["domain_profiles"][number], schoolStages: string[]): void {
+  private validateCurriculumProjections(): void {
+    for (const row of this.rows.curriculum_projections) {
+      if (!this.nodeIds.has(row.node_id)) this.error("curriculum_projection", row.id, "Missing node");
+      if (!VALID_DOMAINS.has(row.domain)) this.error("curriculum_projection", row.id, `Invalid domain: ${row.domain}`);
+      if (!row.curriculum_id.trim()) this.error("curriculum_projection", row.id, "Missing curriculum id");
+      if (!VALID_SCHOOL_STAGES.has(row.school_stage)) {
+        this.error("curriculum_projection", row.id, `Invalid school stage: ${row.school_stage}`);
+      }
+      const invalidRoles = (Array.isArray(row.curriculum_roles_json) ? row.curriculum_roles_json : []).filter((item) => !VALID_CURRICULUM_ROLES.has(String(item)));
+      if (invalidRoles.length > 0) this.error("curriculum_projection", row.id, `Invalid curriculum roles: ${formatPythonStringList(invalidRoles)}`);
+      this.validateSourceRefs("curriculum_projection", row.id, row.source_refs_json);
+      this.validatePedagogicalProfile(row);
+    }
+  }
+
+  private validatePedagogicalProfile(row: StrictQaRows["curriculum_projections"][number]): void {
     const properties = isRecord(row.properties_json) ? row.properties_json : {};
-    const rawByStage = properties.pedagogical_profiles_by_stage;
-    if (rawByStage === undefined) return;
-    if (!isRecord(rawByStage)) {
-      this.error("pedagogical_profile", row.id, "pedagogical_profiles_by_stage must be an object");
+    const value = properties.pedagogical_profile;
+    if (value === undefined) return;
+    if (!isRecord(value)) {
+      this.error("pedagogical_profile", row.id, "pedagogical_profile must be an object");
       return;
     }
-    for (const [stage, value] of Object.entries(rawByStage)) {
-      const itemId = `${row.id}:${stage}`;
-      if (!VALID_SCHOOL_STAGES.has(stage)) this.error("pedagogical_profile", itemId, `Invalid school stage: ${stage}`);
-      if (!schoolStages.includes(stage)) this.error("pedagogical_profile", itemId, "School stage is not declared by the domain profile");
-      if (!isRecord(value)) {
-        this.error("pedagogical_profile", itemId, "Stage profile must be an object");
-        continue;
-      }
-      if (value.school_stage !== stage) this.error("pedagogical_profile", itemId, "school_stage must match its stage key");
-      if (!VALID_PEDAGOGICAL_DIFFICULTIES.has(String(value.difficulty_level ?? ""))) {
-        this.error("pedagogical_profile", itemId, `Invalid difficulty level: ${String(value.difficulty_level ?? "")}`);
-      }
-      for (const field of PEDAGOGICAL_LIST_FIELDS) {
-        const items = Array.isArray(value[field]) ? value[field] : [];
-        if (items.length === 0 || items.some((item) => typeof item !== "string" || !item.trim())) {
-          this.error("pedagogical_profile", itemId, `${field} must contain non-empty strings`);
-        }
-      }
-      this.validatePedagogicalGeneration(itemId, value.generation);
+    const itemId = row.id;
+    if (value.school_stage !== row.school_stage) {
+      this.error("pedagogical_profile", itemId, "school_stage must match its curriculum projection");
     }
+    if (!VALID_PEDAGOGICAL_DIFFICULTIES.has(String(value.difficulty_level ?? ""))) {
+      this.error("pedagogical_profile", itemId, `Invalid difficulty level: ${String(value.difficulty_level ?? "")}`);
+    }
+    for (const field of PEDAGOGICAL_LIST_FIELDS) {
+      const items = Array.isArray(value[field]) ? value[field] : [];
+      if (items.length === 0 || items.some((item) => typeof item !== "string" || !item.trim())) {
+        this.error("pedagogical_profile", itemId, `${field} must contain non-empty strings`);
+      }
+    }
+    this.validatePedagogicalGeneration(itemId, value.generation);
   }
 
   private validatePedagogicalGeneration(itemId: string, value: unknown): void {

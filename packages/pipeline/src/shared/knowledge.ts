@@ -1,3 +1,11 @@
+import {
+  ACTIVE_EDGE_TYPES,
+  EDGE_TYPE_LABELS_ZH,
+  domainSchemaFor,
+  defaultDomainRole,
+  normalizeEdgeType,
+  type ActiveEdgeType,
+} from "@okm/types";
 import { loadOutlineItems, makeStableSuffix, normalizeTerm, uniqueStable } from "./pathing.js";
 
 export const TEXTBOOK_SOURCE_PREFIX = "textbook:";
@@ -46,23 +54,8 @@ export const VALID_KNOWLEDGE_FORMS = new Set(["propositional", "practical"]);
 export const VALID_LEARNING_MODES = new Set(["factual", "conceptual", "procedural", "metacognitive"]);
 export const VALID_SCOPE = new Set(["universal", "domain-specific", "culture-specific"]);
 
-export const VALID_EDGE_TYPES = new Set([
-  "is_a",
-  "instance_of",
-  "part_of",
-  "contains",
-  "has_property",
-  "uses",
-  "produces",
-  "depends_on",
-  "prerequisite_for",
-  "causes",
-  "affects",
-  "represents",
-  "about",
-  "same_as",
-  "related_to",
-]);
+export const VALID_EDGE_TYPES = new Set<string>(ACTIVE_EDGE_TYPES);
+export { ACTIVE_EDGE_TYPES, EDGE_TYPE_LABELS_ZH, domainSchemaFor, defaultDomainRole };
 
 export const HIERARCHICAL_EDGE_TYPES = new Set([
   "is_a",
@@ -105,12 +98,15 @@ export function normalizeLearningModes(learningModes: Iterable<string> | null | 
   return cleaned.length > 0 ? cleaned : inferLearningModes(kind);
 }
 
-export function requireValidEdgeType(edgeType: string): string {
-  if (!VALID_EDGE_TYPES.has(edgeType)) {
-    const allowed = [...VALID_EDGE_TYPES].sort().join(", ");
-    throw new Error(`Invalid edge type '${edgeType}'. Allowed values: ${allowed}`);
+export function requireValidEdgeType(edgeType: string): ActiveEdgeType {
+  const normalized = normalizeEdgeType(edgeType);
+  if (!normalized) {
+    const allowed = ACTIVE_EDGE_TYPES
+      .map((code) => `${EDGE_TYPE_LABELS_ZH[code]}（${code}）`)
+      .join("、");
+    throw new Error(`无效关系“${edgeType}”。允许值：${allowed}`);
   }
-  return edgeType;
+  return normalized;
 }
 
 export function makeQueryId(batchAnchor: string, queryText: string): string {
@@ -132,6 +128,22 @@ export function makeEvidenceId(lessonRunId: string, rawEvidenceId: string, ancho
 
 export function makeMentionId(lessonRunId: string, rawMentionId: string, targetType: string, targetId: string): string {
   return `mention:auto-${makeStableSuffix([lessonRunId, rawMentionId, targetType, targetId], 12)}`;
+}
+
+export function makeCurriculumProjectionId(
+  nodeId: string,
+  domain: string,
+  curriculumId: string,
+  schoolStage: string,
+  gradeBand?: string | null,
+): string {
+  return `curriculum-projection:auto-${makeStableSuffix([
+    nodeId,
+    domain,
+    curriculumId,
+    schoolStage,
+    gradeBand ?? "",
+  ], 16)}`;
 }
 
 export function mergeUniqueStrings(...groups: Array<Iterable<unknown> | null | undefined>): string[] {

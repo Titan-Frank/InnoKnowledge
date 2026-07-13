@@ -36,7 +36,9 @@ export async function runStrictQaFromDatabase(input: { datasetId: string; query:
   const rows: StrictQaRows = {
     nodes: (await query(buildSelectQaNodesQuery(input.datasetId))).map(toStrictQaNode),
     edges: (await query(buildSelectQaEdgesQuery(input.datasetId))).map(toStrictQaEdge),
+    domain_schemas: (await query(buildSelectQaDomainSchemasQuery())).map(toStrictQaDomainSchema),
     domain_profiles: (await query(buildSelectQaDomainProfilesQuery(input.datasetId))).map(toStrictQaDomainProfile),
+    curriculum_projections: (await query(buildSelectQaCurriculumProjectionsQuery(input.datasetId))).map(toStrictQaCurriculumProjection),
     mentions: (await query(buildSelectQaMentionsQuery(input.datasetId))).map(toStrictQaMention),
     evidence: (await query(buildSelectQaEvidenceQuery(input.datasetId))).map(toStrictQaEvidence),
     node_cards: (await query(buildSelectQaNodeCardsQuery(input.datasetId))).map(toStrictQaNodeCard),
@@ -112,7 +114,23 @@ export function buildSelectQaEdgesQuery(datasetId: string): SqlStatement {
 export function buildSelectQaDomainProfilesQuery(datasetId: string): SqlStatement {
   return {
     name: "select-strict-qa-domain-profiles",
-    sql: "SELECT id, node_id, domain, school_stages_json, curriculum_roles_json, source_refs_json, properties_json FROM world_domain_profiles WHERE dataset_id = $1 AND status != 'deprecated' ORDER BY id",
+    sql: "SELECT id, node_id, domain, schema_id, schema_version, domain_role, source_refs_json FROM world_domain_profiles WHERE dataset_id = $1 AND status != 'deprecated' ORDER BY id",
+    params: [datasetId],
+  };
+}
+
+export function buildSelectQaDomainSchemasQuery(): SqlStatement {
+  return {
+    name: "select-strict-qa-domain-schemas",
+    sql: "SELECT schema_id, domain, schema_version, roles_json FROM world_domain_schemas WHERE status = 'active' ORDER BY schema_id",
+    params: [],
+  };
+}
+
+export function buildSelectQaCurriculumProjectionsQuery(datasetId: string): SqlStatement {
+  return {
+    name: "select-strict-qa-curriculum-projections",
+    sql: "SELECT id, node_id, domain, curriculum_id, school_stage, grade_band, curriculum_roles_json, source_refs_json, properties_json FROM world_curriculum_projections WHERE dataset_id = $1 AND status != 'deprecated' ORDER BY id",
     params: [datasetId],
   };
 }
@@ -221,9 +239,33 @@ function toStrictQaDomainProfile(row: RawRecord): StrictQaRows["domain_profiles"
     id: requiredString(row.id, "id"),
     node_id: requiredString(row.node_id, "node_id"),
     domain: requiredString(row.domain, "domain"),
-    school_stages_json: row.school_stages_json,
+    schema_id: requiredString(row.schema_id, "schema_id"),
+    schema_version: requiredString(row.schema_version, "schema_version"),
+    domain_role: requiredString(row.domain_role, "domain_role"),
+    source_refs_json: row.source_refs_json,
+  };
+}
+
+function toStrictQaDomainSchema(row: RawRecord): StrictQaRows["domain_schemas"][number] {
+  return {
+    schema_id: requiredString(row.schema_id, "schema_id"),
+    domain: requiredString(row.domain, "domain"),
+    schema_version: requiredString(row.schema_version, "schema_version"),
+    roles_json: row.roles_json,
+  };
+}
+
+function toStrictQaCurriculumProjection(row: RawRecord): StrictQaRows["curriculum_projections"][number] {
+  return {
+    id: requiredString(row.id, "id"),
+    node_id: requiredString(row.node_id, "node_id"),
+    domain: requiredString(row.domain, "domain"),
+    curriculum_id: requiredString(row.curriculum_id, "curriculum_id"),
+    school_stage: requiredString(row.school_stage, "school_stage"),
+    grade_band: optionalString(row.grade_band),
     curriculum_roles_json: row.curriculum_roles_json,
     source_refs_json: row.source_refs_json,
+    properties_json: row.properties_json,
   };
 }
 

@@ -42,8 +42,15 @@ function hasRelations(unit: ApiUnitForScoring): boolean {
 function hasDomainContext(unit: ApiUnitForScoring): boolean {
   return unit.domain_profiles.some((profile) => (
     hasText(profile.domain) ||
-    hasNonEmptyArray(profile.school_stages) ||
-    hasNonEmptyArray(profile.curriculum_roles)
+    hasText(profile.schema_id) ||
+    hasText(profile.domain_role)
+  ));
+}
+
+function hasCurriculumContext(unit: ApiUnitForScoring): boolean {
+  return unit.curriculum_projections.some((projection) => (
+    hasText(projection.curriculum_id)
+    && hasText(projection.school_stage)
   ));
 }
 
@@ -115,8 +122,16 @@ export function buildApiUnitCompleteness(unit: ApiUnitForScoring): ApiUnitComple
       label: '领域画像',
       passed: hasDomainContext(unit),
       severity: 'required',
-      passedMessage: '节点有领域、学段或课程角色信息。',
-      failedMessage: '节点缺少领域、学段或课程角色信息。',
+      passedMessage: '节点有学科模式和学科角色信息。',
+      failedMessage: '节点缺少学科语义画像。',
+    }),
+    signal({
+      key: 'curriculum_projections',
+      label: '课程投影',
+      passed: hasCurriculumContext(unit),
+      severity: 'recommended',
+      passedMessage: '节点有独立的课程与学段投影。',
+      failedMessage: '节点尚未映射到课程或学段；非教材来源可以暂时缺省。',
     }),
     signal({
       key: 'body_source_refs',

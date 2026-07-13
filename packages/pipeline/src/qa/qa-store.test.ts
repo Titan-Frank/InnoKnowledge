@@ -18,7 +18,9 @@ test("runs strict QA from canonical database rows", async () => {
   assert.deepEqual(queried, [
     "select-strict-qa-nodes",
     "select-strict-qa-edges",
+    "select-strict-qa-domain-schemas",
     "select-strict-qa-domain-profiles",
+    "select-strict-qa-curriculum-projections",
     "select-strict-qa-mentions",
     "select-strict-qa-evidence",
     "select-strict-qa-node-cards",
@@ -81,7 +83,29 @@ function qaRowsForStatement(name: string): Array<Record<string, unknown>> {
           id: "domain-profile:water",
           node_id: "node:water",
           domain: "chemistry",
-          school_stages_json: ["higher"],
+          schema_id: "domain:chemistry:v1",
+          schema_version: "1.0",
+          domain_role: "substance",
+          source_refs_json: ["ev1"],
+        },
+      ];
+    case "select-strict-qa-domain-schemas":
+      return [
+        {
+          schema_id: "domain:chemistry:v1",
+          domain: "chemistry",
+          schema_version: "1.0",
+          roles_json: ["substance"],
+        },
+      ];
+    case "select-strict-qa-curriculum-projections":
+      return [
+        {
+          id: "curriculum-projection:water",
+          node_id: "node:water",
+          domain: "chemistry",
+          curriculum_id: "cn-basic-education",
+          school_stage: "higher",
           curriculum_roles_json: ["core"],
           source_refs_json: ["ev1"],
         },

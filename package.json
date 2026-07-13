@@ -1,7 +1,7 @@
 {
   "name": "open-knowledge-map",
   "version": "0.1.0",
-  "description": "Evidence-grounded knowledge object infrastructure for textbooks and AI learning systems.",
+  "description": "Evidence-grounded AI-native multidisciplinary knowledge network infrastructure.",
   "private": true,
   "repository": {
     "type": "git",
@@ -19,7 +19,7 @@
   "scripts": {
     "demo": "bash scripts/demo-local.sh serve",
     "demo:seed": "bash scripts/demo-local.sh seed-only",
-    "artifact:export": "npm run build -w packages/server && node scripts/export-public-artifact.mjs --allow-unreviewed && npm run artifact:viewer",
+    "artifact:export": "npm run build -w packages/server && node scripts/export-public-artifact.mjs --artifact-version v0.2.0 --output artifacts/okm-public-v0.2.0 --allow-unreviewed && npm run artifact:viewer -- artifacts/okm-public-v0.2.0",
     "artifact:viewer": "node scripts/sync-public-viewer.mjs",
     "artifact:verify": "node scripts/verify-public-artifact.mjs",
     "dev": "npm run build -w packages/viewer && concurrently -n server,viewer -c blue,green \"npm run dev -w packages/server\" \"npm run dev -w packages/viewer\"",

@@ -2,12 +2,12 @@
 
 ## 当前工程 schema 基线
 
-仓库当前只保留一套可执行工程 schema：统一世界知识 `world-v1.2`。
+仓库当前只保留一套可执行工程结构：多学科统一知识网络 `world-v1.3`。
 
-注意：这里的 `world-v1.2` 是当前代码、数据库和质量检查正在使用的底层结构约束，不代表项目顶层标准版本。当前理论边界和顶层标准以 `docs/` 下的文档为准，尤其是：
+注意：这里的 `world-v1.3` 是当前代码、数据库和质量检查正在使用的底层结构约束，不代表项目顶层标准版本。当前理论边界和顶层标准以 `docs/` 下的文档为准，尤其是：
 
 - `docs/theory-decision-record.md`
-- `docs/ai-nks-v0.1.md`
+- `docs/ai-nks-v0.2.md`
 - `docs/documentation-status.md`
 - `docs/knowledge-unit-contract.md`
 - `docs/interdisciplinary-knowledge-network.md`
@@ -21,6 +21,8 @@ schemas/
 ├── world-node-body.schema.json
 ├── world-taxonomy-term.schema.json
 ├── world-domain-profile.schema.json
+├── world-domain-schema.schema.json
+├── world-curriculum-projection.schema.json
 ├── world-knowledge-standard.md
 ├── world-knowledge-architecture.md
 ├── extraction-templates/
@@ -40,25 +42,31 @@ schemas/
 - `world-taxonomy-term.schema.json`
   受控分类词表 schema。
 - `world-domain-profile.schema.json`
-  领域扩展 schema，用于 K12 等领域上下文。
+  学科语义画像结构，只保存学科模式、学科角色和学科特有属性。
+- `world-domain-schema.schema.json`
+  领域模式结构，定义每个学科允许的角色集合。
+- `world-curriculum-projection.schema.json`
+  课程与教学投影结构，保存课程、学段、年级、课程角色和教学画像。
 - `world-knowledge-standard.md`
   分类标准说明。
 - `world-knowledge-architecture.md`
   四层结构与 `schema/tag` 分工说明。
 - `pg/knowledge_store.sql`
-  当前正式运行的 PostgreSQL schema，包括 canonical、staging、运行记录以及 `world_interdisciplinary_runs` 和 `world_interdisciplinary_candidates` 两张跨学科治理表。
+  当前正式运行的 PostgreSQL 结构，包括正式表、暂存表、领域模式、来源策略、课程投影、运行记录和跨学科治理表。
 - `extraction-templates/textbook/*.yaml`
-  在统一 `world-v1.2` 结构上按学科收窄抽取关注点、允许类型和优先关系；它们不是互相独立的学科 schema。
+  在统一 `world-v1.3` 结构上按学科收窄抽取关注点和优先关系；用户与模型看到中文关系名称，稳定代码只用于内部输出归一化。
 
 ## 设计原则
 
 1. 顶层本体决定知识对象是什么。
 2. taxonomy 负责受控分类，不靠 tag 充当主分类。
 3. edge 负责稳定事实关系。
-4. domain profile 只承载领域扩展，不污染节点本体。
+4. domain profile 只承载学科语义；课程、学段和教学画像进入 curriculum projection。
 5. 证据与溯源约束横跨全部结构层。
 6. `schema` 是结构规则，`tag` 只是检索辅助。
-7. 跨学科扫描只生成治理候选；标签不是证据，只有人工批准并应用后的关系才能进入正式图谱。
+7. 跨学科扫描只生成治理候选；桥接路径逐段审核，标签不是证据，只有人工批准并应用后的关系才能进入正式网络。
+8. `world_edges` 是唯一正式关系表；跨学科关系使用派生视图查询，不复制存储。
+9. 同一知识身份通过节点归一解决，不创建已停用的 `same_as` 关系。
 
 ## 理论依据
 

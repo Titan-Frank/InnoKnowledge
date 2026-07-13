@@ -161,11 +161,12 @@ test("executes database-backed staged lesson merge after reading staging rows", 
     sql: "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
     params: ["main"],
   });
-  assert.deepEqual(queried.slice(0, 5).map((statement) => statement.name), [
+  assert.deepEqual(queried.slice(0, 6).map((statement) => statement.name), [
     "lock-dataset-transaction",
     "select-merge-lesson-runs",
     "select-merge-canonical-nodes",
     "select-existing-world-domain-profiles",
+    "select-existing-world-curriculum-projections",
     "select-existing-world-evidence-ids",
   ]);
   assert.ok(queried.some((statement) => statement.name === "select-world_staging_nodes"));

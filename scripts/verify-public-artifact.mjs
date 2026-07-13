@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const artifactRoot = resolve(repoRoot, process.argv[2] ?? "artifacts/okm-public-v0.1.0");
-const requiredTopLevel = [
+const baseRequiredTopLevel = [
   "node", "relations", "domain_profiles", "mentions", "evidence",
   "media", "source_fragments", "card", "body", "completeness",
 ];
@@ -15,6 +15,11 @@ const validStages = new Set(["primary", "junior-secondary", "senior-secondary", 
 
 verifyChecksums();
 const manifest = readJson("manifest.json");
+const isCurrentContract = manifest.contracts?.executable_schema === "world-v1.3"
+  || manifest.contracts?.conceptual_standard === "ai-nks-v0.2";
+const requiredTopLevel = isCurrentContract
+  ? [...baseRequiredTopLevel, "curriculum_projections"]
+  : baseRequiredTopLevel;
 const graph = readJson(manifest.files.graph);
 const index = readJson(manifest.files.unit_index);
 
@@ -35,6 +40,12 @@ assert(nodeIds.size === graph.nodes.length, "Graph contains duplicate node ident
 for (const edge of graph.edges) {
   assert(nodeIds.has(String(edge.from_id ?? edge.from)), `Missing edge source '${edge.id}'.`);
   assert(nodeIds.has(String(edge.to_id ?? edge.to)), `Missing edge target '${edge.id}'.`);
+  if (isCurrentContract) {
+    assert(
+      String(edge.edge_type_label_zh ?? "").trim().length > 0,
+      `Graph edge '${edge.id}' is missing its Chinese relation label.`,
+    );
+  }
 }
 
 for (const entry of index.units) {
@@ -44,10 +55,23 @@ for (const entry of index.units) {
   for (const key of requiredTopLevel) assert(Object.hasOwn(unit, key), `ApiUnit '${entry.node_id}' is missing '${key}'.`);
   assert(Array.isArray(unit.relations?.outgoing), `ApiUnit '${entry.node_id}' has invalid outgoing relations.`);
   assert(Array.isArray(unit.relations?.incoming), `ApiUnit '${entry.node_id}' has invalid incoming relations.`);
+  if (isCurrentContract) {
+    for (const relation of [...unit.relations.outgoing, ...unit.relations.incoming]) {
+      assert(
+        String(relation.type_label_zh ?? "").trim().length > 0,
+        `ApiUnit '${entry.node_id}' has a relation without a Chinese label.`,
+      );
+    }
+  }
   assert(Number(unit.completeness?.score) >= 0 && Number(unit.completeness?.score) <= 100, `ApiUnit '${entry.node_id}' has invalid completeness score.`);
-  for (const profile of unit.domain_profiles ?? []) {
-    for (const stage of profile.school_stages ?? []) {
-      assert(validStages.has(String(stage)), `ApiUnit '${entry.node_id}' has invalid school stage '${stage}'.`);
+  for (const projection of unit.curriculum_projections ?? []) {
+    assert(validStages.has(String(projection.school_stage)), `ApiUnit '${entry.node_id}' has invalid school stage '${projection.school_stage}'.`);
+  }
+  if (!isCurrentContract) {
+    for (const profile of unit.domain_profiles ?? []) {
+      for (const stage of profile.school_stages ?? []) {
+        assert(validStages.has(String(stage)), `ApiUnit '${entry.node_id}' has invalid school stage '${stage}'.`);
+      }
     }
   }
   assert(!serializedUnit.includes("/Users/"), `ApiUnit '${entry.node_id}' exposes a macOS user path.`);

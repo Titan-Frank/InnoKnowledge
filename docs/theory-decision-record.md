@@ -4,7 +4,7 @@
 
 状态：当前理论边界。
 
-本文冻结 OKM 当前阶段最重要的理论边界。它不替代 `docs/ai-nks-v0.1.md` 的顶层系统标准，也不替代 `docs/current-system-architecture.md` 的工程说明；它只回答四个容易混淆的问题：OKM 到底是什么，几个核心术语分别是什么，学科、课标、教材、考点各自扮演什么角色，以及哪些能力已经实现、哪些还只是未来运行层设想。
+本文冻结 OKM 当前阶段最重要的理论边界。它不替代 `docs/ai-nks-v0.2.md` 的顶层系统标准，也不替代 `docs/current-system-architecture.md` 的工程说明；它只回答四个容易混淆的问题：OKM 到底是什么，几个核心术语分别是什么，学科、课标、教材、考点各自扮演什么角色，以及哪些能力已经实现、哪些还只是未来运行层设想。
 
 ## 一、OKM 到底是什么
 
@@ -12,7 +12,7 @@ OKM 是 AI-Native Knowledge System 的工程原型。
 
 它的目标不是把教材切成更多文本块，也不是只构建一个可视化知识图谱，而是构建一套面向人类学习与 AI 调用共同使用的知识基础设施。
 
-OKM 以 Knowledge Object 为可治理知识身份，以 Knowledge Network 组织对象关系，以 ApiUnit 提供消费侧知识单元视图，以 Evidence / Governance 保证可信，并为后续对象级检索、语义规划、Grounded AI Tutor 和学习反馈演化提供 Runtime 基础。
+OKM 以统一知识对象为可治理身份，以学科语义画像解释对象在不同学科中的角色，以课程投影表达教学位置，以显式桥接对象组织跨学科路径，以 `ApiUnit` 提供消费侧知识单元视图，并以证据和治理约束正式写入。
 
 因此，OKM 不是：
 
@@ -31,6 +31,9 @@ OKM 要建设的是一种可计算、可追溯、可教学、可运行、可演�
 |---|---|---|
 | Knowledge Object | 可唯一识别、可证据追踪、可关系连接、可教学适配、可治理演化的知识对象。 | 顶层理论核心。 |
 | `world_nodes` | Knowledge Object 的身份骨架，保存 ID、名称、kind、定义、状态和最小语义信息。 | 当前 PostgreSQL 正式表。 |
+| Domain Profile | 知识对象在一个学科中的语义角色和学科特有属性。 | 当前通过 `world_domain_profiles` 表达。 |
+| Curriculum Projection | 知识对象在一个课程、学段和年级中的教学位置与教学画像。 | 当前通过 `world_curriculum_projections` 表达。 |
+| Bridge Object | 用抽象规律、方法、模型或类比机制连接不同学科的正式知识对象。 | 当前通过普通 `world_nodes` 对象及桥接角色表达。 |
 | Knowledge Unit | 面向前端、检索、生成、AI Tutor 的消费侧知识单元。 | 当前通过 `ApiUnit` 表达。 |
 | `ApiUnit` | 按 `node_id` 聚合 node、relations、domain_profiles、mentions、evidence、media、source_fragments、card、body 的公开视图。 | 当前最重要的消费契约。 |
 | K-Unit | 早期讨论中的学习活动或人机协作单元设想。 | 只作为思想来源，不作为当前 schema 或 API。 |
@@ -76,8 +79,8 @@ OKM 要建设的是一种可计算、可追溯、可教学、可运行、可演�
 | Source Layer | PDF、MinerU Markdown、图片、表格、公式、教材 outline。 | Obsidian、外部知识库、人工正文导入。 |
 | Evidence Layer | `world_evidence`、`world_mentions`、`source_fragments`。 | 更细粒度证据链、证据冲突管理。 |
 | Knowledge Object Layer | `world_nodes`、九类 kind、`semantic_core` properties。 | 版本演化、对象级影响分析。 |
-| Knowledge Network Layer | `world_edges`、十五类关系，以及受治理的跨学科对象对齐和关系候选流程。 | 新关系类型需经研究与 schema 版本升级，不在候选页临时扩张。 |
-| Domain / Pedagogy Layer | `world_domain_profiles`、`pedagogical_profile`。 | 课标映射、考点权重、学习者适配。 |
+| Knowledge Network Layer | `world_edges`、18 类中文语义关系，以及同一对象、直接关系和显式桥接路径候选流程。 | 新关系类型需经研究与工程结构升级，不在候选页临时扩张。 |
+| Domain / Pedagogy Layer | `world_domain_schemas`、`world_domain_profiles`、`world_curriculum_projections`。 | 更完整的课标映射、考点权重和学习者适配。 |
 | Knowledge Unit Layer | `ApiUnit`、Unit API、Viewer 展示、完整度评分。 | JSON 导出、Runtime 上下文包。 |
 | Runtime Layer | 完整 `ApiUnit` 的文本、向量与混合检索，以及带引用编号归属校验的生成接口。 | 语义规划、独立蕴含验证、AI Tutor 和学习反馈。 |
 | Governance Layer | staging、merge、normalize、strict-qa、graph-integrity、图片复核、节点合并复核和跨学科候选复核。 | 正式版本治理、多专家裁决和学习反馈写回。 |
@@ -86,7 +89,7 @@ OKM 要建设的是一种可计算、可追溯、可教学、可运行、可演�
 
 ## 五、当前工程约束
 
-当前阶段不新增七类对象类型，不修改数据库结构，也不把早期 K-Unit JSON 讨论变成当前 API。
+当前阶段不新增七类对象类型，也不把早期 K-Unit JSON 讨论变成当前接口。`world-v1.3` 已完成学科画像与课程投影分离、来源策略和桥接路径治理，但仍保持九类顶层知识形态。
 
 更稳的工程约束是：
 
@@ -95,7 +98,7 @@ OKM 要建设的是一种可计算、可追溯、可教学、可运行、可演�
 3. 七类教育对象只作为节点准入与评测检查清单。
 4. 未来如确有需要，只增加可选 `pedagogical_role`，例如 skill、task、misconception。
 
-当前工程继续使用 `world-v1.2` 的九类顶层主类：
+当前工程继续使用 `world-v1.3` 的九类顶层主类：
 
 ```text
 entity / concept / property / process / event / method / rule / representation / resource
@@ -108,10 +111,9 @@ entity / concept / property / process / event / method / rule / representation /
 如果仓库文档之间出现口径不一致，按下面顺序判断：
 
 1. `docs/theory-decision-record.md`：判断理论边界和术语边界。
-2. `docs/ai-nks-v0.1.md`：判断顶层系统标准和架构方向。
+2. `docs/ai-nks-v0.2.md`：判断顶层系统标准和架构方向。
 3. `docs/current-system-architecture.md`：判断当前工程已经实现的结构。
 4. `docs/knowledge-unit-contract.md`：判断当前知识单元公开契约。
 5. `docs/interdisciplinary-knowledge-network.md`：判断跨学科候选、证据复核和归并边界。
 6. `docs/prompt-inventory.md`：判断当前模型调用和结构化输出契约。
 7. `schemas/*`：判断当前可执行工程 schema。
-8. `docs/ai_nks_technical_report_v0_2.md`：只作为有明确日期的研究背景和思想来源。

@@ -8,6 +8,7 @@ import {
   makeCanonicalCandidate,
   mergeNodePayload,
   normalizedTerms,
+  planCurriculumProjectionMerge,
   planDomainProfileMerge,
   planEdgeMerge,
   planEvidenceMerge,
@@ -548,8 +549,9 @@ test("plans new domain profile merge payload like Python", () => {
     nodeId: "node:water",
     staged: {
       domain: "chemistry",
-      school_stages_json: ["junior-secondary"],
-      curriculum_roles_json: ["core"],
+      schema_id: "domain:chemistry:v1",
+      schema_version: "1.0",
+      domain_role: "substance",
       source_refs_json: ["raw-1", "raw-missing"],
       properties_json: { grade: 8 },
       created_at: "created",
@@ -565,8 +567,9 @@ test("plans new domain profile merge payload like Python", () => {
     id: "domain-profile:auto-71459b98c396",
     node_id: "node:water",
     domain: "chemistry",
-    school_stages_json: ["junior-secondary"],
-    curriculum_roles_json: ["core"],
+    schema_id: "domain:chemistry:v1",
+    schema_version: "1.0",
+    domain_role: "substance",
     source_refs_json: ["evidence:1"],
     properties_json: { grade: 8 },
     status: "active",
@@ -584,16 +587,15 @@ test("plans existing domain profile merge like Python", () => {
     nodeId: "node:water",
     staged: {
       domain: "chemistry",
-      school_stages_json: ["junior-secondary", "senior-secondary"],
-      curriculum_roles_json: ["practice"],
+      schema_id: "domain:chemistry:v1",
+      schema_version: "1.0",
+      domain_role: "chemical_property",
       source_refs_json: ["raw-2", "raw-1"],
       properties_json: { updated: true },
       created_at: "staged-created",
       notes: "new note",
     },
     existing: {
-      school_stages_json: ["primary", "junior-secondary"],
-      curriculum_roles_json: ["core"],
       source_refs_json: ["evidence:old", "evidence:1"],
       properties_json: { existing: true },
       created_at: "existing-created",
@@ -609,8 +611,9 @@ test("plans existing domain profile merge like Python", () => {
     id: "domain-profile:auto-71459b98c396",
     node_id: "node:water",
     domain: "chemistry",
-    school_stages_json: ["primary", "junior-secondary", "senior-secondary"],
-    curriculum_roles_json: ["core", "practice"],
+    schema_id: "domain:chemistry:v1",
+    schema_version: "1.0",
+    domain_role: "chemical_property",
     source_refs_json: ["evidence:1", "evidence:2"],
     properties_json: { existing: true, updated: true },
     status: "active",
@@ -618,6 +621,45 @@ test("plans existing domain profile merge like Python", () => {
     updated_at: "now",
     notes: "old note\n\nnew note",
   });
+});
+
+test("plans a curriculum projection independently from domain semantics", () => {
+  const plan = planCurriculumProjectionMerge({
+    datasetId: "main",
+    nodeId: "node:water",
+    staged: {
+      domain: "chemistry",
+      curriculum_id: "cn-basic-education",
+      school_stage: "junior-secondary",
+      grade_band: "grade-8",
+      curriculum_roles_json: ["core"],
+      source_refs_json: ["raw-1"],
+      properties_json: { subject: "chemistry" },
+      created_at: "created",
+      notes: "",
+    },
+    evidenceIdByRaw: { "raw-1": "evidence:1" },
+    existingEvidenceIds: ["evidence:1"],
+    now: "now",
+  });
+
+  assert.deepEqual(plan.payload, {
+    dataset_id: "main",
+    id: "curriculum-projection:auto-c0e437ea8df00aaf",
+    node_id: "node:water",
+    domain: "chemistry",
+    curriculum_id: "cn-basic-education",
+    school_stage: "junior-secondary",
+    grade_band: "grade-8",
+    curriculum_roles_json: ["core"],
+    source_refs_json: ["evidence:1"],
+    properties_json: { subject: "chemistry" },
+    status: "active",
+    created_at: "created",
+    updated_at: "now",
+    notes: "",
+  });
+  assert.equal(plan.evidence_links.inserted, 1);
 });
 
 test("plans mention merge payload like Python", () => {

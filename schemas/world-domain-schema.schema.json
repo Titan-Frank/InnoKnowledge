@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://open-knowledge-map.org/schemas/world-domain-schema-v1.3.json",
+  "title": "World Domain Schema V1.3",
+  "description": "学科自己的角色词表和扩展约束；不强迫所有学科共用同一套角色分类。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "domain", "schema_version", "display_name_zh", "roles", "status"],
+  "properties": {
+    "schema_id": { "type": "string", "pattern": "^domain:[a-z0-9-]+:v[0-9]+$" },
+    "domain": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "schema_version": { "type": "string", "minLength": 1 },
+    "display_name_zh": { "type": "string", "minLength": 1 },
+    "roles": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+    },
+    "properties": { "type": "object", "additionalProperties": true },
+    "status": { "type": "string", "enum": ["active", "deprecated"] }
+  }
+}

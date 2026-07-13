@@ -37,6 +37,7 @@ async function main(argv: string[]): Promise<number> {
       nodesJson: required(flags, "nodes-json"),
       edgesJson: required(flags, "edges-json"),
       domainProfilesJson: required(flags, "domain-profiles-json"),
+      curriculumProjectionsJson: flags.get("curriculum-projections-json") ?? "[]",
       mentionsJson: required(flags, "mentions-json"),
       evidenceJson: required(flags, "evidence-json"),
       nodeCardsJson: required(flags, "node-cards-json"),
@@ -76,8 +77,8 @@ function assertAllowedStoreStagingStatement(statement: SqlStatement): void {
   const allowed =
     /^(BEGIN|COMMIT|ROLLBACK)\b/i.test(trimmed) ||
     /^INSERT\s+INTO\s+world_lesson_runs\b/i.test(trimmed) ||
-    /^DELETE\s+FROM\s+world_staging_(nodes|edges|domain_profiles|mentions|evidence|node_cards)\b/i.test(trimmed) ||
-    /^INSERT\s+INTO\s+world_staging_(nodes|edges|domain_profiles|mentions|evidence|node_cards)\b/i.test(trimmed);
+    /^DELETE\s+FROM\s+world_staging_(nodes|edges|domain_profiles|curriculum_projections|mentions|evidence|node_cards)\b/i.test(trimmed) ||
+    /^INSERT\s+INTO\s+world_staging_(nodes|edges|domain_profiles|curriculum_projections|mentions|evidence|node_cards)\b/i.test(trimmed);
   if (!allowed) {
     throw new Error(`Store staging executor refuses statement '${statement.name}' outside staging writes.`);
   }

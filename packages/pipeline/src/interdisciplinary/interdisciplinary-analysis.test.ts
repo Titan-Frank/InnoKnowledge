@@ -9,6 +9,7 @@ import {
 
 function node(input: Partial<InterdisciplinaryNodeInput> & Pick<InterdisciplinaryNodeInput, "id" | "name" | "kind" | "domains">): InterdisciplinaryNodeInput {
   return {
+    definition: input.name,
     aliases: [],
     tags: [],
     bridgeTags: [],

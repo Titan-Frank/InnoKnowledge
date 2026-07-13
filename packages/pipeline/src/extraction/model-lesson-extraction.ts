@@ -2,11 +2,14 @@ import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, resolve } from "node:path";
 
 import {
+  defaultDomainRole,
+  domainSchemaFor,
   VALID_DOMAINS,
   VALID_KNOWLEDGE_FORMS,
   VALID_LEARNING_MODES,
   VALID_NODE_KINDS,
 } from "../shared/knowledge.js";
+import { EDGE_TYPE_METADATA, normalizeEdgeType } from "@okm/types";
 import {
   buildTemplateInstructionBlock,
   templateAllowedNodeKinds,
@@ -111,6 +114,7 @@ export type ModelBundle = {
   edges?: RawRecord[];
   evidence_units?: RawRecord[];
   domain_profiles?: RawRecord[];
+  curriculum_projections?: RawRecord[];
   node_cards?: RawRecord[];
   issues?: unknown[];
 };
@@ -128,6 +132,7 @@ export type ExtractionPayload = {
   nodes: RawRecord[];
   edges: RawRecord[];
   domain_profiles: RawRecord[];
+  curriculum_projections: RawRecord[];
   mentions: RawRecord[];
   evidence: RawRecord[];
   node_cards: RawRecord[];
@@ -135,6 +140,7 @@ export type ExtractionPayload = {
     nodes: number;
     edges: number;
     domain_profiles: number;
+    curriculum_projections: number;
     mentions: number;
     evidence: number;
     node_cards: number;
@@ -185,6 +191,11 @@ export function buildHybridEdgeExtractionRequest(
     {
       lesson_context: lessonPayload.lesson_context,
       allowed_edge_types: templatePreferredEdgeTypes(input.extractionTemplate),
+      allowed_relations: templatePreferredEdgeTypes(input.extractionTemplate).map((code) => ({
+        code,
+        name_zh: EDGE_TYPE_METADATA[code as keyof typeof EDGE_TYPE_METADATA]?.label_zh ?? code,
+        description_zh: EDGE_TYPE_METADATA[code as keyof typeof EDGE_TYPE_METADATA]?.description_zh ?? "",
+      })),
       extraction_template: input.extractionTemplate ? templateModelPayload(input.extractionTemplate) : null,
       candidate_nodes: normalized.nodes.map((node) => ({
         id: node.id,
@@ -289,9 +300,9 @@ function buildHybridEdgeInstructions(input: { prompt?: string; extractionTemplat
 2. 不要新增节点，不要改写节点 id，不要新增证据。
 3. edge.from 和 edge.to 必须来自 candidate_nodes.id。
 4. edge.evidence_anchor 必须完全等于 evidence_units.anchor 中的一个值。
-5. 关系 type 只能来自 allowed_edge_types。
+5. 关系 type 只能来自 allowed_relations；优先输出其中的中文关系名称，系统会归一为稳定代码。
 6. 如果证据不能直接支持关系，就不要输出该关系。
-7. 优先抽取教材明确表达的类属、组成、性质、因果、依赖、表示、使用、产出关系。
+7. 优先抽取教材明确表达的类属、组成、性质、因果、依赖、形式化、应用、建模、表示、使用和产出关系。
 8. 如果 lesson_context.enrich_hints 存在，它只能帮助理解课时主题，不能作为关系证据。
 9. 输出必须严格符合 JSON schema，不要解释。
   `.trim();
@@ -372,6 +383,13 @@ export function buildResponseSchema(extractionTemplate?: ExtractionTemplate | nu
       extension_suggestions: stringList,
     },
   };
+  const activeRelationCodes = templatePreferredEdgeTypes(extractionTemplate)
+    .map((value) => normalizeEdgeType(value))
+    .filter((value): value is NonNullable<typeof value> => value !== null);
+  const relationTypeValues = uniqueStrings(activeRelationCodes.flatMap((code) => [
+    code,
+    EDGE_TYPE_METADATA[code].label_zh,
+  ]));
   const nodeItem = {
     type: "object",
     additionalProperties: false,
@@ -419,7 +437,7 @@ export function buildResponseSchema(extractionTemplate?: ExtractionTemplate | nu
     properties: {
       from: { type: "string" },
       to: { type: "string" },
-      type: { type: "string", enum: templatePreferredEdgeTypes(extractionTemplate) },
+      type: { type: "string", enum: relationTypeValues },
       directionality: { type: "string", enum: ["directed", "undirected"] },
       confidence: { type: "number" },
       evidence_anchor: { type: "string" },
@@ -445,17 +463,28 @@ export function buildResponseSchema(extractionTemplate?: ExtractionTemplate | nu
     properties: {
       node_id: { type: "string" },
       domain: { type: "string", enum: sortedSet(VALID_DOMAINS) },
-      school_stages: { type: "array", items: { type: "string" } },
+      domain_role: { type: "string" },
+      properties: { type: "object", additionalProperties: true },
+    },
+    required: ["node_id", "domain", "domain_role", "properties"],
+  };
+  const curriculumProjectionItem = {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      node_id: { type: "string" },
+      domain: { type: "string", enum: sortedSet(VALID_DOMAINS) },
+      curriculum_id: { type: "string" },
+      school_stage: { type: "string", enum: ["primary", "junior-secondary", "senior-secondary", "higher"] },
+      grade_band: { type: "string" },
       curriculum_roles: { type: "array", items: { type: "string" } },
       properties: {
         type: "object",
         additionalProperties: true,
-        properties: {
-          pedagogical_profile: pedagogicalProfile,
-        },
+        properties: { pedagogical_profile: pedagogicalProfile },
       },
     },
-    required: ["node_id", "domain", "school_stages", "curriculum_roles", "properties"],
+    required: ["node_id", "domain", "curriculum_id", "school_stage", "grade_band", "curriculum_roles", "properties"],
   };
   const cardItem = {
     type: "object",
@@ -486,10 +515,11 @@ export function buildResponseSchema(extractionTemplate?: ExtractionTemplate | nu
         edges: { type: "array", items: edgeItem },
         evidence_units: { type: "array", items: evidenceItem },
         domain_profiles: { type: "array", items: domainProfileItem },
+        curriculum_projections: { type: "array", items: curriculumProjectionItem },
         node_cards: { type: "array", items: cardItem },
         issues: { type: "array", items: { type: "string" } },
       },
-      required: ["lesson_disposition", "no_knowledge_reason", "nodes", "edges", "evidence_units", "domain_profiles", "node_cards", "issues"],
+      required: ["lesson_disposition", "no_knowledge_reason", "nodes", "edges", "evidence_units", "domain_profiles", "curriculum_projections", "node_cards", "issues"],
     },
   };
 }
@@ -698,7 +728,11 @@ function buildStrictHybridModelBundle(
   const normalized = normalizeHybridNodeEvidenceBundle(nodeEvidenceBundle);
   const nodeIds = new Set(normalized.nodes.map((node) => stringValue(node.id)).filter(Boolean));
   const evidenceAnchors = new Set(normalized.evidence_units.map((evidence) => stringValue(evidence.anchor)).filter(Boolean));
-  const allowedEdgeTypes = new Set(templatePreferredEdgeTypes(extractionTemplate));
+  const allowedEdgeTypes = new Set(
+    templatePreferredEdgeTypes(extractionTemplate)
+      .map((value) => normalizeEdgeType(value))
+      .filter((value): value is NonNullable<typeof value> => value !== null),
+  );
   const edges: RawRecord[] = [];
   const seenEdges = new Set<string>();
   let droppedEdges = 0;
@@ -706,9 +740,9 @@ function buildStrictHybridModelBundle(
   for (const raw of asRecords(edgeBundle.edges)) {
     const from = stringValue(raw.from || raw.source || raw.source_id).trim();
     const to = stringValue(raw.to || raw.target || raw.target_id).trim();
-    const type = stringValue(raw.type || raw.relation || raw.predicate).trim();
+    const type = normalizeEdgeType(raw.type || raw.relation || raw.predicate);
     const evidenceAnchor = stringValue(raw.evidence_anchor || raw.anchor || raw.evidence).trim();
-    if (!nodeIds.has(from) || !nodeIds.has(to) || !allowedEdgeTypes.has(type) || !evidenceAnchors.has(evidenceAnchor)) {
+    if (!nodeIds.has(from) || !nodeIds.has(to) || !type || !allowedEdgeTypes.has(type) || !evidenceAnchors.has(evidenceAnchor)) {
       droppedEdges += 1;
       continue;
     }
@@ -735,6 +769,7 @@ function buildStrictHybridModelBundle(
     evidence_units: normalized.evidence_units,
     edges,
     domain_profiles: [],
+    curriculum_projections: [],
     node_cards: [],
     issues: trimmedStrings(nodeEvidenceBundle.issues).concat(
       trimmedStrings(edgeBundle.issues),
@@ -976,7 +1011,11 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
 
   const edges: RawRecord[] = [];
   let droppedEdges = 0;
-  const allowedEdgeTypes = new Set(templatePreferredEdgeTypes(extractionTemplate));
+  const allowedEdgeTypes = new Set(
+    templatePreferredEdgeTypes(extractionTemplate)
+      .map((value) => normalizeEdgeType(value))
+      .filter((value): value is NonNullable<typeof value> => value !== null),
+  );
   const nodeLookup = new Map<string, string>();
   for (const node of nodes) {
     const nodeId = stringValue(node.id);
@@ -994,8 +1033,8 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
     const rawTo = stringValue(raw.to).trim();
     const fromId = nodeLookup.get(rawFrom) ?? nodeLookup.get(normalizeTerm(rawFrom)) ?? rawFrom;
     const toId = nodeLookup.get(rawTo) ?? nodeLookup.get(normalizeTerm(rawTo)) ?? rawTo;
-    const edgeType = stringValue(raw.type).trim();
-    if (!nodeIds.has(fromId) || !nodeIds.has(toId) || !allowedEdgeTypes.has(edgeType)) {
+    const edgeType = normalizeEdgeType(raw.type);
+    if (!nodeIds.has(fromId) || !nodeIds.has(toId) || !edgeType || !allowedEdgeTypes.has(edgeType)) {
       droppedEdges += 1;
       continue;
     }
@@ -1008,13 +1047,17 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       directionality: stringValue(raw.directionality || "directed"),
       confidence: numberOrDefault(raw.confidence, 0.8),
       source_refs: evidenceId ? [evidenceId] : [],
-      properties: applyEdgeTemplateProperties(recordValue(raw.properties), extractionTemplate, edgeType),
+      properties: applyEdgeTemplateProperties({
+        ...recordValue(raw.properties),
+        relation_scope: inferRelationScope(nodes, fromId, toId),
+      }, extractionTemplate, edgeType),
       status: "draft",
       notes: stringValue(raw.notes).trim(),
     });
   }
 
   const domainProfiles: RawRecord[] = [];
+  const nodeRecordById = new Map(nodes.map((node) => [stringValue(node.id), node]));
   for (const raw of asRecords(bundle.domain_profiles)) {
     const nodeId = stringValue(raw.node_id).trim();
     const domain = stringValue(raw.domain).trim();
@@ -1023,14 +1066,17 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       .filter((mention) => mention.target_id === nodeId && Array.isArray(mention.source_refs))
       .map((mention) => stringValue((mention.source_refs as unknown[])[0]))
       .filter(Boolean);
+    const schema = domainSchemaFor(domain);
+    const nodeKind = stringValue(nodeRecordById.get(nodeId)?.kind);
     domainProfiles.push({
       id: makeDomainProfileId(nodeId, domain),
       node_id: nodeId,
       domain,
-      school_stages: trimmedStrings(raw.school_stages).length > 0 ? trimmedStrings(raw.school_stages) : [schoolStage],
-      curriculum_roles: trimmedStrings(raw.curriculum_roles).length > 0 ? trimmedStrings(raw.curriculum_roles) : ["core"],
+      schema_id: schema.schema_id,
+      schema_version: schema.version,
+      domain_role: stringValue(raw.domain_role || raw.role).trim() || defaultDomainRole(domain, nodeKind),
       source_refs: sourceRefs.slice(0, 1),
-      properties: applyProfileTemplateProperties(isRecord(raw.properties) ? raw.properties : { subject, grade_band: gradeBand }, extractionTemplate),
+      properties: applyProfileTemplateProperties(stripTeachingProperties(recordValue(raw.properties)), extractionTemplate),
       status: "draft",
       notes: "",
     });
@@ -1043,17 +1089,66 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
     if (profiledNodeIds.has(nodeId)) continue;
     const nodeDomains = trimmedStrings(node.domains).filter((domain) => VALID_DOMAINS.has(domain));
     const domain = nodeDomains.includes(defaultDomain) || nodeDomains.length === 0 ? defaultDomain : nodeDomains[0]!;
+    const schema = domainSchemaFor(domain);
     domainProfiles.push({
       id: makeDomainProfileId(nodeId, domain),
       node_id: nodeId,
       domain,
-      school_stages: [schoolStage],
-      curriculum_roles: ["core"],
+      schema_id: schema.schema_id,
+      schema_version: schema.version,
+      domain_role: defaultDomainRole(domain, stringValue(node.kind)),
       source_refs: (evidenceRefsByNode.get(nodeId) ?? []).slice(0, 1),
-      properties: applyProfileTemplateProperties({ subject, grade_band: gradeBand, backfilled: true }, extractionTemplate),
+      properties: applyProfileTemplateProperties({ backfilled: true }, extractionTemplate),
       status: "draft",
       notes: "Backfilled because the model omitted a domain profile.",
     });
+  }
+
+  const curriculumProjections: RawRecord[] = [];
+  const projectionKeys = new Set<string>();
+  const addCurriculumProjection = (raw: RawRecord, backfilled = false): void => {
+    const nodeId = stringValue(raw.node_id).trim();
+    const domain = stringValue(raw.domain).trim();
+    const stage = stringValue(raw.school_stage || schoolStage).trim();
+    if (!nodeIds.has(nodeId) || !VALID_DOMAINS.has(domain) || !["primary", "junior-secondary", "senior-secondary", "higher"].includes(stage)) return;
+    const curriculumId = stringValue(raw.curriculum_id || `textbook:${sourceId}`).trim();
+    const projectionGradeBand = stringValue(raw.grade_band || gradeBand).trim();
+    const key = [nodeId, domain, curriculumId, stage, projectionGradeBand].join("|");
+    if (projectionKeys.has(key)) return;
+    projectionKeys.add(key);
+    const sourceRefs = trimmedStrings(raw.source_refs).length > 0
+      ? trimmedStrings(raw.source_refs)
+      : (evidenceRefsByNode.get(nodeId) ?? []).slice(0, 1);
+    curriculumProjections.push({
+      id: `curriculum:${safePathToken(nodeId)}:${safePathToken(domain)}:${safePathToken(stage)}:${safePathToken(projectionGradeBand || "all")}`,
+      node_id: nodeId,
+      domain,
+      curriculum_id: curriculumId,
+      school_stage: stage,
+      grade_band: projectionGradeBand,
+      curriculum_roles: trimmedStrings(raw.curriculum_roles).length > 0 ? trimmedStrings(raw.curriculum_roles) : ["core"],
+      source_refs: sourceRefs,
+      properties: applyProfileTemplateProperties({
+        ...recordValue(raw.properties),
+        ...(backfilled ? { backfilled: true } : {}),
+      }, extractionTemplate),
+      status: "draft",
+      notes: backfilled ? "根据课时上下文补齐课程投影。" : stringValue(raw.notes).trim(),
+    });
+  };
+
+  for (const raw of asRecords(bundle.curriculum_projections)) addCurriculumProjection(raw);
+  for (const profile of domainProfiles) {
+    addCurriculumProjection({
+      node_id: profile.node_id,
+      domain: profile.domain,
+      curriculum_id: `textbook:${sourceId}`,
+      school_stage: schoolStage,
+      grade_band: gradeBand,
+      curriculum_roles: ["core"],
+      source_refs: profile.source_refs,
+      properties: {},
+    }, true);
   }
 
   const evidenceText = new Map(evidence.map((evidenceItem) => [stringValue(evidenceItem.id), stringValue(evidenceItem.excerpt)]));
@@ -1124,6 +1219,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
     nodes,
     edges,
     domain_profiles: domainProfiles,
+    curriculum_projections: curriculumProjections,
     mentions,
     evidence,
     node_cards: nodeCards,
@@ -1131,6 +1227,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       nodes: nodes.length,
       edges: edges.length,
       domain_profiles: domainProfiles.length,
+      curriculum_projections: curriculumProjections.length,
       mentions: mentions.length,
       evidence: evidence.length,
       node_cards: nodeCards.length,
@@ -1173,6 +1270,32 @@ function applyMentionTemplateProperties(properties: RawRecord, extractionTemplat
 
 function applyProfileTemplateProperties(properties: RawRecord, extractionTemplate: ExtractionTemplate | null | undefined): RawRecord {
   return applyTemplateProperties(properties, extractionTemplate, {});
+}
+
+function stripTeachingProperties(properties: RawRecord): RawRecord {
+  const result = { ...properties };
+  for (const key of [
+    "schema_id",
+    "schema_version",
+    "domain_role",
+    "school_stage",
+    "curriculum_roles",
+    "curriculum_id",
+    "grade_band",
+    "pedagogical_profile",
+  ]) {
+    delete result[key];
+  }
+  return result;
+}
+
+function inferRelationScope(nodes: RawRecord[], fromId: string, toId: string): "intra_domain" | "cross_domain" | "universal" {
+  const fromNode = nodes.find((node) => node.id === fromId);
+  const toNode = nodes.find((node) => node.id === toId);
+  if (fromNode?.scope === "universal" || toNode?.scope === "universal") return "universal";
+  const fromDomains = new Set(trimmedStrings(fromNode?.domains));
+  const toDomains = trimmedStrings(toNode?.domains);
+  return toDomains.some((domain) => fromDomains.has(domain)) ? "intra_domain" : "cross_domain";
 }
 
 function applyCardTemplateProperties(properties: RawRecord, extractionTemplate: ExtractionTemplate | null | undefined): RawRecord {

@@ -32,6 +32,7 @@
 运行检查：
 
 ```bash
+npm run build -w packages/types
 docker compose ps postgres
 node experiments/physics-okm-benchmark-2026-07-01/scripts/run-local-experiments.mjs --env-check
 ```
@@ -85,7 +86,7 @@ node experiments/physics-okm-benchmark-2026-07-01/scripts/run-local-experiments.
 - 证据命中率：命中的金标准节点或关系是否带有能覆盖支持词的证据。
 - 重复率：预测节点归一化名称重复比例。
 - 虚构率：预测对象没有证据，或证据片段无法在教材样本中找到的比例。
-- schema 违规率：节点类型或关系类型不在 `world-v1.2` 允许集合中的比例。
+- schema 违规率：节点类型或关系类型不在当前 `world-v1.3` 允许集合中的比例。关系集合由 `schemas/world-knowledge-edge.schema.json` 读取，不在实验脚本中另存旧副本。
 - 人工审核成本：需要人工检查的节点、关系、重复项和无证据项的估计数量。
 
 知识运行时：

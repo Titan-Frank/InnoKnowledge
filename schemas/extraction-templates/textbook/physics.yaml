@@ -1,5 +1,5 @@
 id: textbook/physics
-version: 1
+version: 2
 name: 物理教材抽取模板
 description: 面向物理教材，强调物理量、过程、规律、公式、实验、图像和模型。
 selector:
@@ -70,6 +70,9 @@ output:
     - causes
     - affects
     - represents
+    - formalizes
+    - applies_to
+    - models
     - part_of
     - contains
     - related_to
@@ -87,14 +90,17 @@ display:
     representation: 图像/模型
     entity: 装置/对象
   edge_labels:
-    has_property: 具有物理量
+    has_property: 具有属性
     uses: 使用
     produces: 产生
-    depends_on: 依赖条件
-    prerequisite_for: 前置知识
+    depends_on: 依赖
+    prerequisite_for: 是前置知识
     causes: 导致
     affects: 影响
-    represents: 表征
+    represents: 表示
+    formalizes: 形式化表达
+    applies_to: 应用于
+    models: 建模描述
     related_to: 相关
   colors:
     rule: "#8C55FF"

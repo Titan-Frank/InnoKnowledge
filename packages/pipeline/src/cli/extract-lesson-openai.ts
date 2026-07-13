@@ -451,6 +451,7 @@ async function writeStagingPayload(input: {
         nodes: recordArray(input.payload.nodes),
         edges: recordArray(input.payload.edges),
         domainProfiles: recordArray(input.payload.domain_profiles),
+        curriculumProjections: recordArray(input.payload.curriculum_projections),
         mentions: recordArray(input.payload.mentions),
         evidence: recordArray(input.payload.evidence),
         nodeCards: recordArray(input.payload.node_cards),
@@ -517,8 +518,8 @@ function assertAllowedStagingStatement(sql: string, name: string): void {
   const allowed =
     /^(BEGIN|COMMIT|ROLLBACK)\b/i.test(trimmed) ||
     /^INSERT\s+INTO\s+world_lesson_runs\b/i.test(trimmed) ||
-    /^DELETE\s+FROM\s+world_staging_(nodes|edges|domain_profiles|mentions|evidence|node_cards)\b/i.test(trimmed) ||
-    /^INSERT\s+INTO\s+world_staging_(nodes|edges|domain_profiles|mentions|evidence|node_cards)\b/i.test(trimmed);
+    /^DELETE\s+FROM\s+world_staging_(nodes|edges|domain_profiles|curriculum_projections|mentions|evidence|node_cards)\b/i.test(trimmed) ||
+    /^INSERT\s+INTO\s+world_staging_(nodes|edges|domain_profiles|curriculum_projections|mentions|evidence|node_cards)\b/i.test(trimmed);
   if (!allowed) {
     throw new Error(`Staging executor refuses statement '${name}' outside world_lesson_runs/world_staging_*.`);
   }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { InterdisciplinaryCandidate } from '@okm/types';
-import { candidateMatchesDomainPair, reviewReadiness } from '../src/lib/interdisciplinary.ts';
+import { candidateMatchesDomainPair, relationTypeLabel, reviewReadiness } from '../src/lib/interdisciplinary.ts';
 
 function candidate(overrides: Partial<InterdisciplinaryCandidate> = {}): InterdisciplinaryCandidate {
   return {
@@ -61,4 +61,52 @@ test('domain-pair filtering is direction independent', () => {
   assert.equal(candidateMatchesDomainPair(candidate(), 'physics', 'chemistry'), true);
   assert.equal(candidateMatchesDomainPair(candidate(), 'chemistry', 'physics'), true);
   assert.equal(candidateMatchesDomainPair(candidate(), 'physics', 'biology'), false);
+});
+
+test('bridge path approval requires direct evidence for both segments', () => {
+  const bridgeCandidate = candidate({
+    candidate_kind: 'bridge_path',
+    bridge_node_id: 'node:bridge',
+    bridge_node_name: '变化率',
+    bridge_node_kind: 'concept',
+    bridge_node_definition: '描述量随另一变量变化的快慢。',
+    bridge_node_domains: ['general'],
+    proposed_edge_type: null,
+    proposed_path: [
+      {
+        from_node_id: 'node:a',
+        from_node_name: '导数',
+        to_node_id: 'node:bridge',
+        to_node_name: '变化率',
+        relation_type: 'formalizes',
+        relation_type_label_zh: '形式化表达',
+        directionality: 'directed',
+        evidence_refs: ['evidence:1'],
+      },
+      {
+        from_node_id: 'node:bridge',
+        from_node_name: '变化率',
+        to_node_id: 'node:b',
+        to_node_name: '速度',
+        relation_type: 'applies_to',
+        relation_type_label_zh: '应用于',
+        directionality: 'directed',
+        evidence_refs: ['evidence:2'],
+      },
+    ],
+    evidence_refs: ['evidence:1', 'evidence:2'],
+    evidence: [
+      candidate().evidence[0]!,
+      { ...candidate().evidence[0]!, evidence_id: 'evidence:2', excerpt: '速度刻画位置对时间的变化率。' },
+    ],
+  });
+
+  assert.equal(reviewReadiness(bridgeCandidate, [], [['evidence:1'], []]).ready, false);
+  assert.equal(reviewReadiness(bridgeCandidate, [], [['evidence:1'], ['evidence:1']]).ready, false);
+  assert.equal(reviewReadiness(bridgeCandidate, [], [['evidence:1'], ['evidence:2']]).ready, true);
+});
+
+test('relation selectors use Chinese labels', () => {
+  assert.equal(relationTypeLabel('formalizes'), '形式化表达');
+  assert.equal(relationTypeLabel('applies_to'), '应用于');
 });

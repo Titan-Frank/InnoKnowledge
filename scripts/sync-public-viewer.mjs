@@ -16,7 +16,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const artifactDir = resolve(repoRoot, process.argv[2] ?? "artifacts/okm-public-v0.1.0");
+const artifactDir = resolve(repoRoot, process.argv[2] ?? "artifacts/okm-public-v0.2.0");
 const viewerDist = join(repoRoot, "packages/viewer/dist");
 const artifactViewer = join(artifactDir, "viewer");
 

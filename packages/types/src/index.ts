@@ -1,16 +1,27 @@
 export type {
   NodeKind, NodeSubkind, NodeLayer, LearningMode, NodeStatus,
-  ApiNode, ApiEdge, EdgeType, EdgeLayer,
+  ApiNode, ApiEdge, EdgeLayer, EdgeProperties,
   ApiProfile, ApiMention, ApiEvidence,
   NodeCardSection, ApiNodeCard,
   SemanticCoreProperties, NodeProperties,
-  PedagogicalProfileProperties, DomainProfileProperties,
+  PedagogicalProfileProperties, DomainProfileProperties, CurriculumProjectionProperties,
   ApiUnitBody, ApiUnitMedia, ApiUnitNode, ApiUnitRelation,
-  ApiUnitDomainProfile, ApiUnitSourceFragment,
+  ApiUnitDomainProfile, ApiUnitCurriculumProjection, ApiUnitSourceFragment,
   ApiUnitCompletenessSeverity, ApiUnitCompletenessSignal, ApiUnitCompleteness,
   ApiUnit,
 } from './models.js';
-export { EDGE_TYPES } from './models.js';
+export type { EdgeType, ActiveEdgeType, LegacyEdgeType, RelationScope, RelationCategory, EdgeTypeMetadata } from './relations.js';
+export {
+  ACTIVE_EDGE_TYPES, LEGACY_EDGE_TYPES, EDGE_TYPES, EDGE_TYPE_METADATA, EDGE_TYPE_LABELS_ZH,
+  normalizeEdgeType, isActiveEdgeType, edgeTypeLabelZh, formatRelationZh,
+} from './relations.js';
+export {
+  DOMAIN_SCHEMA_DEFINITIONS, DOMAIN_ROLE_LABELS_ZH,
+  domainSchemaFor, domainRoleLabelZh, isValidDomainRole, defaultDomainRole,
+} from './domain-schemas.js';
+export type { DefinedDomain } from './domain-schemas.js';
+export { SOURCE_TYPE_POLICIES, sourceTypeLabelZh } from './source-policies.js';
+export type { GovernedSourceType } from './source-policies.js';
 
 export type {
   HealthResponse, SourceSummary, MetaResponse,

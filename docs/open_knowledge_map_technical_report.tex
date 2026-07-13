@@ -11,13 +11,23 @@
 \else
   \usepackage{fontspec}
   \usepackage{xeCJK}
-  \setCJKmainfont[
-    Path=/usr/local/texlive/2024/texmf-dist/fonts/opentype/public/fandol/,
-    BoldFont=FandolSong-Bold.otf
-  ]{FandolSong-Regular.otf}
-  \setCJKmonofont[
-    Path=/usr/local/texlive/2024/texmf-dist/fonts/opentype/public/fandol/
-  ]{FandolHei-Regular.otf}
+  \IfFontExistsTF{Songti SC}{
+    \setCJKmainfont{Songti SC}
+    \setCJKmonofont{Heiti SC}
+  }{
+    \IfFontExistsTF{Noto Serif CJK SC}{
+      \setCJKmainfont{Noto Serif CJK SC}
+      \setCJKmonofont{Noto Sans Mono CJK SC}
+    }{
+      \setCJKmainfont[
+        Path=/usr/local/texlive/2024/texmf-dist/fonts/opentype/public/fandol/,
+        BoldFont=FandolSong-Bold.otf
+      ]{FandolSong-Regular.otf}
+      \setCJKmonofont[
+        Path=/usr/local/texlive/2024/texmf-dist/fonts/opentype/public/fandol/
+      ]{FandolHei-Regular.otf}
+    }
+  }
 \fi
 \usepackage{microtype}
 \usepackage{geometry}
@@ -129,7 +139,7 @@ Large language models and agent systems increasingly operate over textbooks, cou
 
 This report presents \OKM, an AI-native knowledge object infrastructure for evidence-grounded learning systems. The central claim is that textbooks and disciplinary materials should be treated as source evidence for governable Knowledge Objects rather than as the final computational form of knowledge. \OKM{} organizes extracted objects into a typed Knowledge Network, assembles them into consumption-side Knowledge Units, and keeps generated explanations, source fragments, evidence, media, and graph identities separate.
 
-The current implementation provides a TypeScript-first extraction pipeline, a PostgreSQL-backed knowledge store, a structured unit API, and a React viewer and governance workbench. It supports textbook parsing, lesson-level extraction, staging, transactional merge and normalization, evidence preservation, knowledge-body generation, evidence-linked pedagogical profiles by school stage with pending review, explicitly configured embedding generation, image review, governed interdisciplinary candidate discovery, and layered quality checks. Interdisciplinary scans propose possible cross-domain identity alignments and review-only relations without mutating canonical knowledge; a relation requires human-selected textbook evidence before a dataset-locked reducer can apply it. An early Knowledge Runtime always supports lexical retrieval of complete \code{ApiUnit} objects; vector and hybrid execution use stored vectors when a query-embedding service is configured, with execution mode reported in the response. Synchronous and streaming endpoints perform evidence-identifier-validated generation and expose explicit insufficient-context outcomes. A documented June 2026 physics-textbook run produced 288 nodes, 153 edges, 436 evidence rows, and 288 node cards, while also exposing graph-connectivity and extraction-hardening gaps. The report describes the theory, architecture, data model, pipeline, runtime contracts, verification strategy, and remaining work; AI tutoring, semantic planning, learning-outcome evaluation, broad benchmark validation, and the version-governance loop remain future work.
+The current implementation provides a TypeScript-first extraction pipeline, a PostgreSQL-backed knowledge store, a structured unit API, and a React viewer and governance workbench. It supports textbook parsing, lesson-level extraction, staging, transactional merge and normalization, evidence preservation, knowledge-body generation, evidence-linked curriculum projections and pedagogical profiles with pending review, explicitly configured embedding generation, image review, governed multidisciplinary candidate discovery, and layered quality checks. The \code{ai-nks-v0.2} model gives every Knowledge Object one canonical identity, separates disciplinary semantics from curriculum placement, represents cross-domain bridges as ordinary Knowledge Objects, and governs textbooks, papers, encyclopedias, curriculum standards, databases, and expert notes through explicit source policies. Cross-domain scans propose identity alignments, direct relations, or two-segment bridge paths without mutating canonical knowledge; every proposed relation segment requires eligible human-selected evidence before a dataset-locked reducer can apply it. An early Knowledge Runtime always supports lexical retrieval of complete \code{ApiUnit} objects; vector and hybrid execution use stored vectors when a query-embedding service is configured, with execution mode reported in the response. Synchronous and streaming endpoints perform evidence-identifier-validated generation and expose explicit insufficient-context outcomes. A documented June 2026 physics-textbook run produced 288 nodes, 153 edges, 436 evidence rows, and 288 node cards, while also exposing graph-connectivity and extraction-hardening gaps. The report describes the theory, architecture, data model, pipeline, runtime contracts, verification strategy, and remaining work; AI tutoring, semantic planning, learning-outcome evaluation, broad benchmark validation, and the version-governance loop remain future work.
 \end{abstract}
 
 \vspace{0.55em}
@@ -152,12 +162,12 @@ This report follows the style of a system technical report. It explains the theo
 This report makes six contributions:
 
 \begin{enumerate}
-  \item It formulates an evidence-grounded Knowledge Object model for textbook-based learning systems, separating conceptual knowledge-system design from the executable \code{world-v1.2} schema used by the current implementation.
-  \item It presents a stage-gated extraction architecture that converts PDF or MinerU markdown into staged lesson/chunk candidates, canonical Knowledge Objects, typed relations, evidence records, normalized cards, persistent knowledge bodies, school-stage pedagogical profiles, and node- and unit-level embeddings.
+  \item It formulates an evidence-grounded, multidisciplinary Knowledge Object model for learning and research systems, separating the \code{ai-nks-v0.2} conceptual standard from the executable \code{world-v1.3} schema used by the current implementation.
+  \item It presents a stage-gated extraction architecture that converts PDF or MinerU markdown into staged lesson/chunk candidates, canonical Knowledge Objects, typed relations, evidence records, semantic Domain Profiles, Curriculum Projections, normalized cards, persistent knowledge bodies, and node- and unit-level embeddings.
   \item It implements a PostgreSQL-centered knowledge store that separates source artifacts, textbook outlines, MinerU status, staging rows, canonical graph tables, evidence, embeddings, pipeline jobs, review decisions, and retrieval candidates while preserving transactional reducer boundaries.
-  \item It defines \code{ApiUnit} as the public consumption contract for viewers and runtime components, combining identity, relations, stage-specific pedagogical profiles, mentions, evidence, media, source fragments, structured cards, persistent bodies, and completeness signals in one response.
+  \item It defines \code{ApiUnit} as the public consumption contract for viewers and runtime components, combining identity, Chinese-labeled relations, semantic Domain Profiles, Curriculum Projections, mentions, evidence, media, source fragments, structured cards, persistent bodies, and completeness signals in one response.
   \item It realizes an early executable runtime for lexical object retrieval, configured vector and hybrid execution, and citation-identifier-validated grounded generation through synchronous and server-sent-event interfaces.
-  \item It adds a governed interdisciplinary workflow that separates deterministic candidate discovery from canonical truth, requires human-selected textbook evidence for relation approval, and applies approved identity merges and relations through a dataset-locked transactional reducer.
+  \item It adds a governed multidisciplinary workflow that separates deterministic candidate discovery from canonical truth, supports explicit bridge-object paths, requires human-selected eligible evidence for every relation segment, and applies approved identity merges and relations through a dataset-locked transactional reducer.
 \end{enumerate}
 
 We further document an operational physics-textbook run to show the current system capacity and to identify remaining graph-quality, benchmark, and governance gaps.
@@ -217,7 +227,7 @@ This target model gives \OKM{} six structural expectations:
   \item Governance: source evidence, review status, confidence, update history, risk markers, and feedback paths.
 \end{enumerate}
 
-The current repository implements the substrate-level subset of this target model. It supports stable object identity, controlled types, semantic-core fields, typed relations, evidence grounding, domain profiles, structured cards, persistent bodies, source fragments, unit-completeness signals, governed interdisciplinary candidates, and pipeline quality gates. Full lifecycle governance and runtime pedagogical adaptation remain future work.
+The current repository implements the substrate-level subset of this target model. It supports stable object identity, controlled types, semantic-core fields, typed relations, evidence grounding, Domain Schemas, semantic Domain Profiles, separate Curriculum Projections, source policies, structured cards, persistent bodies, source fragments, unit-completeness signals, governed direct-relation and bridge-path candidates, and pipeline quality gates. Full lifecycle governance and runtime pedagogical adaptation remain future work.
 
 This definition also clarifies what a Knowledge Object is not. It is not admitted merely because a word appears in a textbook. It is not identical to a chapter heading, curriculum bullet, exam point, or model-generated phrase. In the current implementation, a candidate becomes useful only when its identity, source evidence, relation potential, domain profile, structured card, and quality state are sufficient for downstream inspection or use.
 
@@ -265,11 +275,11 @@ These principles explain why the repository invests in identity, evidence, stagi
 
 \subsection{Implemented Boundary in This Repository}
 
-The current repository implements an executable subset of this theory. It does not yet implement the whole AI-native knowledge system. The conceptual layer describes the target system: Knowledge Objects, Knowledge Units, Knowledge Networks, Knowledge Runtime, and governance. The executable layer is the current \code{world-v1.2} schema and service contract.
+The current repository implements an executable subset of this theory. It does not yet implement the whole AI-native knowledge system. The conceptual layer describes the target system: Knowledge Objects, Knowledge Units, multidisciplinary Knowledge Networks, Knowledge Runtime, and governance. The executable layer is the current \code{world-v1.3} schema and service contract.
 
-In the implementation, \code{world_nodes} stores the identity skeleton and minimal semantic fields for Knowledge Objects. Richer content lives across \code{properties.semantic_core}, \code{world_edges}, \code{world_evidence}, \code{world_mentions}, \code{world_domain_profiles}, cards, persistent bodies, media, and source fragments. The public consumption boundary is therefore \code{ApiUnit}, not a node row alone.
+In the implementation, \code{world_nodes} stores the identity skeleton and minimal semantic fields for Knowledge Objects. Richer content lives across \code{properties.semantic_core}, \code{world_edges}, \code{world_evidence}, \code{world_mentions}, semantic \code{world_domain_profiles}, separate \code{world_curriculum_projections}, cards, persistent bodies, media, and source fragments. The public consumption boundary is therefore \code{ApiUnit}, not a node row alone.
 
-This boundary matters for the rest of the report. \OKM{} currently demonstrates the knowledge substrate and an early runtime subset: staged extraction, canonical merge, typed relations, evidence links, cards, bodies, pending-review school-stage pedagogical profiles, node and unit embeddings, unit completeness, object-level retrieval, citation-identifier validation, governed cross-domain candidate review and application, QA, graph-integrity checks, and viewer/API inspection. Semantic planning, runtime tutoring, learner-feedback write-back, mature multi-expert governance, version evolution, and broad benchmark evaluation remain future work.
+This boundary matters for the rest of the report. \OKM{} currently demonstrates the knowledge substrate and an early runtime subset: staged extraction, canonical merge, typed relations, evidence links, cards, bodies, pending-review curriculum-scoped pedagogical profiles, node and unit embeddings, unit completeness, object-level retrieval, citation-identifier validation, governed cross-domain candidate review and application, QA, graph-integrity checks, and viewer/API inspection. Semantic planning, runtime tutoring, learner-feedback write-back, mature multi-expert governance, version evolution, and broad benchmark evaluation remain future work.
 
 \section{System Positioning and Boundary}
 
@@ -285,9 +295,9 @@ The current project boundary is deliberately narrower and more precise than seve
 
 \subsection{Conceptual Standard and Executable Schema}
 
-The repository uses two standard layers. The conceptual layer is the top-level language for the AI-native knowledge system. In repository documents this layer is versioned as \code{ai-nks-v0.1}; it frames the project as knowledge infrastructure organized around Knowledge Object, Knowledge Unit, Knowledge Network, Knowledge Runtime, and governance. The executable engineering layer is the active PostgreSQL and JSON Schema baseline. In repository documents this layer is versioned as \code{world-v1.2}; it defines the actual storage schema, node kinds, relation types, evidence tables, cards, bodies, and QA behavior. This layering is close to the broader knowledge-graph literature, where identity, schema, context, validation, acquisition, and provenance are treated as separate design concerns \cite{hogan-kg,ji-kg-survey,rdf,owl,shacl,prov}.
+The repository uses two standard layers. The conceptual layer is the top-level language for the AI-native knowledge system. In repository documents this layer is versioned as \code{ai-nks-v0.2}; it frames the project as knowledge infrastructure organized around canonical Knowledge Objects, semantic Domain Profiles, Curriculum Projections, multidisciplinary bridge paths, Knowledge Units, Knowledge Runtime, and governance. The executable engineering layer is the active PostgreSQL and JSON Schema baseline. In repository documents this layer is versioned as \code{world-v1.3}; it defines the actual storage schema, node kinds, Domain Schemas, source policies, relation types, evidence tables, cards, bodies, and QA behavior. This layering is close to the broader knowledge-graph literature, where identity, schema, context, validation, acquisition, and provenance are treated as separate design concerns \cite{hogan-kg,ji-kg-survey,rdf,owl,shacl,prov}.
 
-This distinction matters because it prevents two mistakes. The first is calling the current graph schema the whole research vision. The second is renaming or migrating storage prematurely before the runtime contract is stable. The repository currently treats \code{world-v1.2} as the executable graph substrate under the broader \AINKS{} direction.
+This distinction matters because it prevents two mistakes. The first is calling the current graph schema the whole research vision. The second is mixing disciplinary meaning, teaching placement, and source authority into one profile. The repository currently treats \code{world-v1.3} as the executable graph substrate under the broader \AINKS{} direction.
 
 \subsection{Terminology Boundaries}
 
@@ -301,7 +311,7 @@ This distinction matters because it prevents two mistakes. The first is calling 
 Knowledge Object & Governable knowledge identity with evidence, relations, teaching use, and evolution boundary. & Top-level theoretical core.\\
 \code{world_nodes} & Identity skeleton for a Knowledge Object: id, name, kind, definition, status, and minimal semantic data. & Current PostgreSQL table.\\
 Knowledge Unit & Consumption-side unit for viewer, retrieval, generation, and later tutoring. & Expressed through \code{ApiUnit}.\\
-\code{ApiUnit} & Public view assembled by \code{node_id}: node, relations, domain profiles, mentions, evidence, media, source fragments, card, and body. & Current most important service contract.\\
+\code{ApiUnit} & Public view assembled by \code{node_id}: node, Chinese-labeled relations, semantic domain profiles, curriculum projections, mentions, evidence, media, source fragments, card, and body. & Current most important service contract.\\
 K-Unit & Earlier idea for a learning or collaboration unit. & Only a conceptual source; not the current schema or API.\\
 Knowledge Realization & A generated expression of the same object, such as textbook explanation, exercise, video, simulation, or tutor response. & Future extension.\\
 Knowledge Runtime & Mechanism for object retrieval, semantic planning, grounded generation, tutoring, feedback, and evolution. & Early subset implemented for unit retrieval, citation-identifier checks, generation, and streaming; planning, tutoring, feedback, and evolution remain future work.\\
@@ -314,7 +324,7 @@ The immediate engineering rule is that \code{world_nodes} does not equal a compl
 
 \subsection{Knowledge Units as the Consumption Boundary}
 
-In the current code, a knowledge point is not a single row in \code{world_nodes}. A node row is only the identity core. The complete consumption unit is \code{ApiUnit}, assembled by the server from several tables. This contract is important for future AI use because a tutor or generator should not have to hand-join database tables or guess whether a field is source text, generated body text, or structured summary. It should request one unit and receive the node, its graph neighborhood, domain profiles, evidence, card, body, media, and source fragments in a stable shape. The educational motivation is aligned with work on intelligent tutoring systems, learner modeling, and learning analytics: useful tutoring needs a domain model, a learner model, task selection, feedback, and evidence about changing learner state \cite{vanlehn,corbett-anderson,piech-dkt,bull-kay,koedinger-kli,siemens-learning-analytics}.
+In the current code, a knowledge point is not a single row in \code{world_nodes}. A node row is only the identity core. The complete consumption unit is \code{ApiUnit}, assembled by the server from several tables. This contract is important for future AI use because a tutor or generator should not have to hand-join database tables or guess whether a field is disciplinary meaning, curriculum placement, source text, generated body text, or structured summary. It should request one unit and receive the node, its graph neighborhood, Domain Profiles, Curriculum Projections, evidence, card, body, media, and source fragments in a stable shape. The educational motivation is aligned with work on intelligent tutoring systems, learner modeling, and learning analytics: useful tutoring needs a domain model, a learner model, task selection, feedback, and evidence about changing learner state \cite{vanlehn,corbett-anderson,piech-dkt,bull-kay,koedinger-kli,siemens-learning-analytics}.
 
 \subsection{Implemented and Planned Layers}
 
@@ -328,8 +338,8 @@ In the current code, a knowledge point is not a single row in \code{world_nodes}
 Source & PDF, MinerU markdown, images, formulas, tables, outlines, and enrich-book context. & Obsidian notes, external knowledge bases, and curated human-authored bodies.\\
 Evidence & \code{world_evidence}, \code{world_mentions}, and \code{source_fragments}. & Finer evidence chains and conflict management.\\
 Knowledge Object & \code{world_nodes}, nine official kinds, and \code{properties.semantic_core}. & Version evolution and object-level impact analysis.\\
-Knowledge Network & \code{world_edges} with fifteen relation types plus governed cross-domain identity-alignment and relation candidates. & Higher-order relation types require a versioned schema decision rather than ad hoc review-time expansion.\\
-Domain and pedagogy & \code{world_domain_profiles} plus evidence-linked, pending-review \code{pedagogical_profiles_by_stage} generated after normalization. & Curriculum mapping, exam weighting, learner adaptation, and validated pedagogical effectiveness.\\
+Knowledge Network & One canonical \code{world_edges} table with eighteen active relation types, Chinese display metadata, and governed cross-domain identity, direct-relation, and bridge-path candidates. & Adjudicated evaluation of cross-domain discovery and relation accuracy.\\
+Domain and pedagogy & Semantic \code{world_domain_profiles} validated by Domain Schemas, plus separate \code{world_curriculum_projections} with evidence-linked, pending-review pedagogical profiles. & Exam weighting, learner adaptation, and validated pedagogical effectiveness.\\
 Knowledge Unit & \code{ApiUnit}, unit API, completeness score, viewer presentation, and bounded generation context. & JSON export and score-driven repair workflow.\\
 Runtime & Object-level lexical retrieval; configured vector and hybrid execution with text-only reporting; unit embeddings; citation-identifier validation; insufficient-context handling; synchronous and streaming responses. & Semantic planning, AI Tutor behavior, learner-state adaptation, and feedback write-back.\\
 Governance & Staging, merge, normalization, strict QA, graph integrity, quality dashboard, image review, merge review, and interdisciplinary evidence review. & Multi-expert adjudication, version governance, and learning-feedback write-back.\\
@@ -342,11 +352,11 @@ Governance & Staging, merge, normalization, strict QA, graph integrity, quality 
 
 \OKM{} combines ideas from several established lines of work but places the engineering boundary differently. Retrieval-augmented generation grounds model output in external passages, while recent surveys emphasize retrieval quality, generation faithfulness, and evaluation as separate concerns \cite{rag,gao-rag-survey}. Knowledge-graph research contributes stable identity, typed relations, schema, provenance, and validation, and work on combining knowledge graphs with large language models motivates graph-aware retrieval and generation \cite{hogan-kg,ji-kg-survey,pan-llm-kg}. Learning-object, educational-knowledge-graph, and tutoring research contributes reuse, domain modeling, learner modeling, task selection, and pedagogical adaptation \cite{wiley-learning-objects,qu-education-kg,vanlehn,koedinger-kli}.
 
-The distinct contribution of the current system is not a new embedding model or a claim that graphs universally replace document retrieval. It is an executable boundary for textbook-derived knowledge infrastructure: source fragments remain evidence; model workers write staging rows; reducers control canonical identity; cards and bodies remain distinguishable from source text; complete \code{ApiUnit} objects become the serving and retrieval boundary; and generated answers are checked against evidence identifiers in the retrieved units. This creates a testable substrate for later comparison with chunk-based retrieval and educational applications without treating those future results as already established.
+The distinct contribution of the current system is not a new embedding model or a claim that graphs universally replace document retrieval. It is an executable boundary for evidence-grounded, multidisciplinary knowledge infrastructure: source fragments remain evidence; source authority is governed by policy; model workers write staging rows; reducers control canonical identity; Domain Profiles remain distinct from Curriculum Projections; cards and bodies remain distinguishable from source text; complete \code{ApiUnit} objects become the serving and retrieval boundary; and generated answers are checked against evidence identifiers in the retrieved units. The implemented ingestion path remains textbook-first, while the storage and governance contract is source-general. This creates a testable substrate for later comparison with chunk-based retrieval and educational applications without treating those future results as already established.
 
 \section{System Overview}
 
-Figure~\ref{fig:architecture} shows the implemented construction and serving substrate, including the early runtime subset but not the full future Knowledge Runtime. The main flow starts from a PDF textbook or a previously generated MinerU markdown file. The pipeline creates or loads a textbook outline, splits the material into lessons or chunks, attaches optional enrich-book hints from PostgreSQL, calls model-based extraction, optionally asks a vision model to classify image evidence, writes staged records, applies quality gates, merges and normalizes canonical objects, generates knowledge bodies and school-stage pedagogical profiles, optionally backfills node and unit embeddings through an operator-configured endpoint, scans interdisciplinary candidates, and runs strict QA, graph integrity, and quality-dashboard stages. Candidate scanning writes governance tables only. Human-approved identity alignments and evidence-backed relations are applied separately through a transactional reducer. PostgreSQL is the authoritative structured store. The Hono server reads from it and exposes graph bundles, complete units, text/vector/hybrid unit retrieval, grounded generation, pipeline status, quality diagnostics, image review, interdisciplinary governance, and textbook workbench routes. The React viewer consumes only these API contracts.
+Figure~\ref{fig:architecture} shows the implemented construction and serving substrate, including the early runtime subset but not the full future Knowledge Runtime. The production flow starts from a PDF textbook or a previously generated MinerU markdown file. The pipeline creates or loads a textbook outline, splits the material into lessons or chunks, attaches optional enrich-book hints from PostgreSQL, calls model-based extraction, optionally asks a vision model to classify image evidence, writes staged records, applies quality gates, merges and normalizes canonical objects, generates knowledge bodies and curriculum-scoped pedagogical profiles, optionally backfills node and unit embeddings through an operator-configured endpoint, scans multidisciplinary candidates, and runs strict QA, graph integrity, and quality-dashboard stages. Candidate scanning writes governance tables only. Human-approved identity alignments, direct relations, and evidence-backed bridge-path segments are applied separately through a transactional reducer. PostgreSQL is the authoritative structured store. The Hono server reads from it and exposes graph bundles, complete units, text/vector/hybrid unit retrieval, grounded generation, pipeline status, quality diagnostics, image review, multidisciplinary governance, and textbook workbench routes. The React viewer consumes only these API contracts.
 
 \begin{figure}[H]
 \centering
@@ -365,7 +375,7 @@ Figure~\ref{fig:architecture} shows the implemented construction and serving sub
   \node[box, left=of extract] (vlm) {Vision model\\image review hints};
   \node[store, below=of extract] (pg) {PostgreSQL\\knowledge store\\and vectors};
   \node[box, right=of extract] (qa) {Merge\\normalize\\QA};
-  \node[box, right=of qa] (bodies) {Knowledge-body and\\pedagogy writers};
+  \node[box, right=of qa] (bodies) {Knowledge-body and\\curriculum-profile writers};
   \node[box, below=of pg] (api) {Hono API\\unit retrieval\\and generation};
   \node[box, right=of api] (viewer) {React viewer\\governance workbench};
 
@@ -432,32 +442,31 @@ The executable schema fixes nine top-level node kinds. The design draws on upper
 \end{tabular}
 \end{center}
 
-The goal is not to describe every school subject with one flat tag list. Instead, \OKM{} separates object identity, taxonomy, factual relations, domain-specific teaching projection, and evidence.
+The goal is not to describe every school subject with one flat tag list. Instead, \OKM{} separates object identity, taxonomy, factual relations, domain-specific semantics, curriculum projection, and evidence. Each discipline selects its own legal roles through a versioned Domain Schema; a mathematical theorem, physical experiment, historical event, or computational algorithm need not be forced into one universal role taxonomy.
 
 The current theory boundary also rejects a premature expansion into many new top-level education object types. \code{world_nodes.kind} remains the official top-level type field. More detailed semantic structure is placed in \code{world_nodes.properties.semantic_core}; educational roles such as skill, task, or misconception may become optional pedagogical metadata later, but they are not new top-level node kinds in the current executable schema.
 
 \subsection{Relation Set}
 
-The current relation set contains fifteen stable relation types:
+The current relation set contains eighteen active relation types. Stable snake-case codes are used for storage and APIs; Chinese names and sentence templates are used in prompts, review controls, graph details, and generated relation summaries:
 
 \begin{center}
 \small
 \begin{tabularx}{\textwidth}{@{}lY@{}}
 \toprule
-\textbf{Relation family} & \textbf{Types}\\
+\textbf{Relation family} & \textbf{Chinese name (internal code)}\\
 \midrule
-Classification & \code{is_a}, \code{instance_of}\\
-Structure & \code{part_of}, \code{contains}\\
-Property and use & \code{has_property}, \code{uses}, \code{produces}\\
-Dependency and learning & \code{depends_on}, \code{prerequisite_for}\\
-Causal and influence & \code{causes}, \code{affects}\\
-Representation and topic & \code{represents}, \code{about}\\
-Alignment and weak link & \code{same_as}, \code{related_to}\\
+Classification & 是一种（\code{is_a}），是实例（\code{instance_of}）\\
+Structure & 是组成部分（\code{part_of}），包含（\code{contains}）\\
+Mechanism and learning & 具有属性（\code{has_property}），产生（\code{produces}），依赖（\code{depends_on}），是前置知识（\code{prerequisite_for}），导致（\code{causes}），影响（\code{affects}）\\
+Representation & 表示（\code{represents}），形式化表达（\code{formalizes}），建模描述（\code{models}）\\
+Application and analogy & 使用（\code{uses}），应用于（\code{applies_to}），类似于（\code{analogous_to}）\\
+Association & 主题是（\code{about}），相关（\code{related_to}）\\
 \bottomrule
 \end{tabularx}
 \end{center}
 
-The small controlled set keeps extraction and QA tractable. Higher-order runtime relations such as \code{supports}, \code{contradicts}, \code{applies_to}, or \code{updates} are part of the AI-NKS direction, but they should enter through explicit schema extension rather than by overloading tags. This follows the same separation between formal schema and lightweight discovery labels used in semantic-web and knowledge-organization work \cite{rdf,owl,skos,shacl}.
+The controlled set keeps extraction and QA tractable while adding the minimum relations needed for multidisciplinary explanation: formalization, application, analogy, and modeling. New relations must enter through explicit schema extension rather than by overloading tags. The retired \code{same_as} code is migration-only: confirmed identity equivalence merges nodes instead of creating an edge. This follows the same separation between formal schema and lightweight discovery labels used in semantic-web and knowledge-organization work \cite{rdf,owl,skos,shacl}.
 
 \subsection{Evidence Plane}
 
@@ -553,7 +562,7 @@ The current repository has five primary model-facing workflows, one retry-specif
   \item P1: lesson/chunk knowledge extraction, split into node/evidence extraction and relation extraction in \code{model-lesson-extraction.ts};
   \item P2: textbook image relevance classification, implemented in \code{image-relevance.ts};
   \item P3: knowledge node body writing, implemented in \code{generate-node-bodies.ts};
-  \item P4: evidence-linked, pending-review pedagogical-profile generation for each domain-profile and school-stage context, implemented in \code{generate-pedagogical-profiles.ts};
+  \item P4: evidence-linked, pending-review pedagogical-profile generation for each Curriculum Projection, implemented in \code{generate-pedagogical-profiles.ts};
   \item P5: object-level grounded generation over retrieved \code{ApiUnit} context, implemented in the server runtime;
   \item P6: staging-quality retry repair instructions, generated by the pipeline runner and appended to P1 after blocked lesson/chunk runs.
 \end{itemize}
@@ -562,11 +571,11 @@ P1 also accepts subject extraction-template blocks from the textbook template di
 
 The extraction path uses JSON Schema response constraints in addition to natural-language instructions. The project therefore does not rely on prompt text alone for output structure. The prompt explicitly says that enrich hints can help interpret the lesson topic, but cannot serve as node or relation evidence; if enrich hints conflict with the current slice, the current slice wins. This choice is consistent with graph-validation practice: the model may propose content, but schema and quality gates decide whether the content can enter the maintained graph \cite{shacl,hogan-kg}. Appendix~\ref{app:prompt-inventory} lists the prompt text and dynamic prompt wrappers found in the current repository.
 
-\subsection{School-Stage Pedagogical Profiles}
+\subsection{Curriculum-Scoped Pedagogical Profiles}
 
-Lesson extraction produces only the basic domain, school-stage, curriculum-role, and evidence associations needed for a domain profile. After canonical normalization and knowledge-body generation, the pedagogical-profile stage reads each eligible domain-profile and school-stage pair together with its canonical node, card, relations, related nodes, and evidence. The model returns learning objectives, a stage-relative difficulty level, diagnostic questions, common errors, assessment tasks, remediation suggestions, extension suggestions, evidence identifiers, and confidence.
+Lesson extraction produces semantic Domain Profiles and separate Curriculum Projections. A Domain Profile records the object's role and discipline-specific properties under a versioned Domain Schema; it does not contain school stage, grade, curriculum role, or pedagogical design. After canonical normalization and knowledge-body generation, the pedagogical-profile stage reads each eligible Curriculum Projection together with its canonical node, card, relations, related nodes, and evidence. The model returns learning objectives, a stage-relative difficulty level, diagnostic questions, common errors, assessment tasks, remediation suggestions, extension suggestions, evidence identifiers, and confidence.
 
-Generated profiles are written into the \code{properties_json} column of \code{world_domain_profiles}, under the stage-keyed map \code{pedagogical_profiles_by_stage}. They retain the model name, prompt version, generation time, input fingerprint, review status, confidence, and source references. The generator validates that returned source references belong to the evidence identifiers supplied to the model, but this identifier check is not a semantic-entailment test. The current evidence query also does not exclude rows solely because they are marked synthetic or \code{quality_excluded}. Generated entries therefore remain \code{pending}. Existing manual profiles and protected reviewed profiles are not silently overwritten; unchanged generated inputs can be skipped, while an explicit overwrite flag is limited to generated entries. Strict QA checks stage keys, output fields, provenance metadata, review state, confidence range, and evidence references. This stage makes pedagogy inspectable and reviewable, but it does not establish that the generated teaching design is effective.
+Generated profiles are written to \code{world_curriculum_projections.properties_json.pedagogical_profile}. Each projection already fixes one curriculum, domain, school stage, and optional grade band, so the profile no longer needs a stage-keyed compatibility map. It retains the model name, prompt version, generation time, input fingerprint, review status, confidence, and source references. The generator validates that returned source references belong to the evidence identifiers supplied to the model, but this identifier check is not a semantic-entailment test. Generated entries therefore remain \code{pending}. Existing manual profiles and protected reviewed profiles are not silently overwritten; unchanged generated inputs can be skipped, while an explicit overwrite flag is limited to generated entries. Strict QA checks the projection boundary, output fields, provenance metadata, review state, confidence range, and evidence references. This stage makes pedagogy inspectable and reviewable, but it does not establish that the generated teaching design is effective.
 
 \subsection{Image Evidence}
 
@@ -586,13 +595,13 @@ Staging writes already use a transaction so lesson-run state, deletion of prior 
 
 \subsection{Governed Interdisciplinary Discovery}
 
-The interdisciplinary stage deterministically examines canonical nodes whose domain sets are disjoint. Identity-alignment candidates require the same controlled node kind and are blocked by names, aliases, or semantic keys before the existing node-match score is applied. Relation candidates require a shared explicit bridge tag, or ordinary tags as a fallback, and exclude node pairs that already have a canonical edge or an identity-alignment candidate. These signals are candidate-recall mechanisms rather than evidence that a fact is true.
+The multidisciplinary stage deterministically examines canonical nodes whose domain sets are disjoint. Identity-alignment candidates require the same controlled node kind and are blocked by names, aliases, or semantic keys before the existing node-match score is applied. Direct-relation candidates require shared explicit bridge tags and exclude node pairs that already have a canonical edge or an identity-alignment candidate. Bridge-path candidates require an explicit bridge Knowledge Object: a node with a bridge role, universal scope, or multiple Domain Profiles whose bridge signals connect both endpoints. These signals are candidate-recall mechanisms rather than evidence that a fact is true.
 
-Candidate records remain outside \code{ApiUnit.relations}. A reviewer can reject either candidate kind. Approving a relation additionally requires a legal non-\code{same_as} \code{world-v1.2} relation type, directionality and endpoint order, and at least one selected \code{world_evidence} identifier that belongs to the candidate, still exists, and is not synthetic, quality-excluded, pending, or rejected. The separate \code{interdisciplinary-apply} reducer obtains the same dataset-level advisory lock used by canonical repair, follows deprecated-node chains, rechecks current state and evidence eligibility, merges approved duplicate identities or writes evidence-backed edges, records interdisciplinary review provenance, and rolls back the transaction on failure. Approved identity alignment performs a canonical merge rather than adding a \code{same_as} edge. The scan itself uses no language model prompt.
+Candidate records remain outside \code{ApiUnit.relations}. A reviewer can reject any candidate kind. Approving a direct relation requires one of the eighteen active relation types, directionality and endpoint order, and at least one selected eligible \code{world_evidence} identifier that belongs to the candidate. Approving a bridge path requires an active relation type and eligible evidence for each of its two segments; evidence attached only to the other segment cannot be borrowed. Evidence must still exist, satisfy its source policy, and be neither synthetic, quality-excluded, pending, nor rejected. The separate \code{interdisciplinary-apply} reducer obtains the same dataset-level advisory lock used by canonical repair, follows deprecated-node chains, rechecks current state and evidence eligibility, merges approved duplicate identities or writes evidence-backed edges to the single canonical \code{world_edges} table, records multidisciplinary review provenance, and rolls back the transaction on failure. Approved identity alignment performs a canonical merge; the retired \code{same_as} relation is never created. The scan itself uses no language model prompt.
 
 \section{PostgreSQL Knowledge Store}
 
-The current repository treats PostgreSQL as the only authoritative structured store. The initialization file is \code{schemas/pg/knowledge_store.sql}. The data model can be read in six groups.
+The current repository treats PostgreSQL as the only authoritative structured store. The initialization file is \code{schemas/pg/knowledge_store.sql}. The data model can be read in seven groups.
 
 \begin{table}[H]
 \centering
@@ -601,11 +610,12 @@ The current repository treats PostgreSQL as the only authoritative structured st
 \toprule
 \textbf{Group} & \textbf{Tables}\\
 \midrule
-Dataset and sources & \code{world_datasets}, \code{world_source_artifacts}, \code{world_textbook_outlines}, \code{world_enrich_library}, \code{world_enrich_books}, \code{world_mineru_sources}\\
-Canonical knowledge & \code{world_nodes}, \code{world_node_terms}, \code{world_edges}, \code{world_taxonomy_terms}, \code{world_taxonomy_edges}, \code{world_domain_profiles}, \code{world_mentions}, \code{world_evidence}, \code{world_evidence_links}, \code{world_node_cards}, \code{world_node_bodies}\\
+Dataset and sources & \code{world_datasets}, \code{world_source_artifacts}, \code{world_source_policies}, \code{world_textbook_outlines}, \code{world_enrich_library}, \code{world_enrich_books}, \code{world_mineru_sources}\\
+Domain and curriculum models & \code{world_domain_schemas}, \code{world_domain_profiles}, \code{world_curriculum_projections}\\
+Canonical knowledge & \code{world_nodes}, \code{world_node_terms}, \code{world_edges}, \code{world_taxonomy_terms}, \code{world_taxonomy_edges}, \code{world_mentions}, \code{world_evidence}, \code{world_evidence_links}, \code{world_node_cards}, \code{world_node_bodies}\\
 Retrieval support & node embeddings on \code{world_nodes}, complete-unit embeddings in \code{world_unit_embeddings}, and extraction-context rows in \code{retrieval_candidates}\\
 Pipeline status & \code{world_pipeline_jobs}, \code{world_pipeline_job_stages}, \code{world_pipeline_job_events}, \code{world_pipeline_worker_states}\\
-Staging and merge & \code{world_lesson_runs}, \code{world_staging_nodes}, \code{world_staging_edges}, \code{world_staging_domain_profiles}, \code{world_staging_mentions}, \code{world_staging_evidence}, \code{world_staging_node_cards}, \code{world_merge_runs}, \code{world_canonical_node_map}\\
+Staging and merge & \code{world_lesson_runs}, \code{world_staging_nodes}, \code{world_staging_edges}, \code{world_staging_domain_profiles}, \code{world_staging_curriculum_projections}, \code{world_staging_mentions}, \code{world_staging_evidence}, \code{world_staging_node_cards}, \code{world_merge_runs}, \code{world_canonical_node_map}\\
 Interdisciplinary governance & \code{world_interdisciplinary_runs}, \code{world_interdisciplinary_candidates}\\
 \bottomrule
 \end{tabularx}
@@ -616,6 +626,8 @@ This schema makes several boundaries explicit:
 
 \begin{itemize}
   \item \code{world_nodes} stores the identity core, not a full knowledge unit.
+  \item \code{world_domain_profiles} stores disciplinary roles and semantics; \code{world_curriculum_projections} separately stores curriculum, stage, grade, teaching roles, and pedagogical profiles.
+  \item \code{world_source_policies} governs whether each source class can support relations and whether explicit review is required; source policy does not replace row-level evidence review.
   \item \code{world_node_terms} stores canonical names, aliases, and tags as normalized lookup terms.
   \item \code{world_node_cards} stores structured summaries, not textbook source text.
   \item \code{world_node_bodies} stores persistent knowledge bodies, not textbook source text.
@@ -639,6 +651,7 @@ interface ApiUnit {
     incoming: ApiUnitRelation[];
   };
   domain_profiles: ApiUnitDomainProfile[];
+  curriculum_projections: ApiUnitCurriculumProjection[];
   mentions: ApiMention[];
   evidence: ApiEvidence[];
   media: ApiUnitMedia[];
@@ -666,21 +679,22 @@ interface ApiUnitCompleteness {
 ]
   \node[source] (nodes) {\code{world_nodes}\\identity};
   \node[source, below=of nodes] (edges) {\code{world_edges}\\relations};
-  \node[source, below=of edges] (profiles) {\code{world_domain_profiles}\\teaching view};
+  \node[source, below=of edges] (profiles) {\code{world_domain_profiles}\\disciplinary semantics};
   \node[source, right=1.2cm of nodes] (mentions) {\code{world_mentions}\\mentions};
   \node[source, below=of mentions] (evidence) {\code{world_evidence}\\source evidence};
   \node[source, below=of evidence] (cards) {\code{world_node_cards}\\summary card};
   \node[source, right=1.2cm of evidence] (bodies) {\code{world_node_bodies}\\knowledge body};
+  \node[source, below=of cards] (curricula) {\code{world_curriculum_projections}\\teaching view};
   \node[unit, below=1.1cm of bodies] (apiunit) {\code{ApiUnit}\\complete consumption\\view};
 
-  \foreach \x in {nodes,edges,profiles,mentions,evidence,cards,bodies}
+  \foreach \x in {nodes,edges,profiles,mentions,evidence,cards,bodies,curricula}
     \draw[arr] (\x) -- (apiunit);
 \end{tikzpicture}
-\caption{Knowledge unit assembly. The service layer combines identity, graph neighborhood, domain projection, evidence, source fragments, cards, and bodies into one public unit.}
+\caption{Knowledge unit assembly. The service layer combines identity, graph neighborhood, disciplinary semantics, curriculum projections, evidence, source fragments, cards, and bodies into one public unit.}
 \label{fig:unit}
 \end{figure}
 
-The server implementation in \code{packages/server/src/db/queries.ts} loads the node, outgoing and incoming edges, profiles, mentions, matching evidence, card, body, media derived from reviewed evidence, and source fragments derived from evidence and textbook outlines. It then calls \code{buildApiUnitCompleteness} to score the unit across node definition, semantic core, relations, evidence, source fragments, domain profiles, body source references, structured card, and mentions. Pending uncertain images and rejected images are filtered out of ordinary unit media. The viewer should consume this response instead of reconstructing table joins in the browser.
+The server implementation in \code{packages/server/src/db/queries.ts} loads the node, outgoing and incoming edges with Chinese labels, semantic Domain Profiles, Curriculum Projections, mentions, matching evidence, card, body, media derived from reviewed evidence, and source fragments derived from evidence and textbook outlines. It then calls \code{buildApiUnitCompleteness} to score the unit across node definition, semantic core, relations, evidence, source fragments, domain profiles, body source references, structured card, and mentions. Pending uncertain images and rejected images are filtered out of ordinary unit media. The viewer should consume this response instead of reconstructing table joins in the browser.
 
 \section{Server Layer and Pipeline Jobs}
 \label{sec:server-runtime}
@@ -717,10 +731,10 @@ The server is a Hono application in \code{packages/server}. It exposes health, m
 \code{POST /api/source/:key/pipeline/start} & Starts a detached server-side pipeline job.\\
 \code{GET /api/source/:key/pipeline/jobs/:job_id} & Detailed job status from \code{world_pipeline_*}.\\
 \code{GET/POST /api/source/:key/image-reviews} & Reads and writes human image-review decisions.\\
-\code{GET /api/source/:key/interdisciplinary} & Domain coverage, bridge objects, domain-pair summaries, candidates, evidence excerpts, and the latest scan.\\
+\code{GET /api/source/:key/interdisciplinary} & Domain coverage, bridge objects, domain-pair summaries, identity/direct-relation/bridge-path candidates, evidence excerpts, source policies, and the latest scan.\\
 \code{POST /api/source/:key/interdisciplinary/analyze} & Runs candidate discovery without writing canonical nodes or edges.\\
-\code{POST /api/source/:key/interdisciplinary/candidates/:candidate_id/review} & Approves or rejects a pending candidate; relation approval requires selected existing evidence.\\
-\code{POST /api/source/:key/interdisciplinary/apply} & Applies approved identity alignments and relations through the dataset-locked reducer.\\
+\code{POST /api/source/:key/interdisciplinary/candidates/:candidate_id/review} & Approves or rejects a pending candidate; direct relations require selected evidence, while bridge paths require independently selected evidence for each segment.\\
+\code{POST /api/source/:key/interdisciplinary/apply} & Applies approved identity alignments, direct relations, and bridge-path segments through the dataset-locked reducer.\\
 \code{GET /api/enrich/books} and \code{GET /api/enrich/book} & Textbook workbench metadata.\\
 \end{longtable}
 }
@@ -745,14 +759,14 @@ The viewer is a React/Vite application built around five work areas:
 
 The architecture and pipeline figures explain backend structure. The four interface figures below use only the repository-authored Synthetic Home Solar Demo. They illustrate public interface and contract behavior rather than textbook extraction accuracy, pipeline completion, or benchmark performance. Figure~\ref{fig:ui-grounded-answer} shows the pre-retrieval question interface; executable grounded-generation behavior is established by the implementation and tests, not by that screenshot.
 
-The graph page first loads \code{/api/meta} and then \code{/api/source/:key/bundle}. Clicking a node loads \code{/api/source/:key/unit/:node_id} and shows the full knowledge unit. The detail view displays relation, evidence, profile, mention, and completeness counters; renders the generated knowledge body with evidence references; separates semantic-core groups, textbook source fragments, structured card sections, relations, domain profiles, evidence, and media; and supports full-screen reading of source fragments. This separation is essential because it keeps the user from mistaking generated explanatory text for the textbook source.
+The graph page first loads \code{/api/meta} and then \code{/api/source/:key/bundle}. Clicking a node loads \code{/api/source/:key/unit/:node_id} and shows the full knowledge unit. The detail view displays relation, evidence, profile, curriculum-projection, mention, and completeness counters; renders the generated knowledge body with evidence references; separates semantic-core groups, textbook source fragments, structured card sections, Chinese relation sentences, disciplinary semantic profiles, curriculum and teaching projections, evidence, and media; and supports full-screen reading of source fragments. This separation is essential because it keeps the user from mistaking generated explanatory text for the textbook source or curriculum placement for disciplinary meaning.
 
-The interdisciplinary workbench keeps discovery and canonical truth visually separate. Summary cards show domain coverage, multi-domain bridge objects, strict cross-domain edges, and pending or approved candidates. Review controls require explicit evidence selection before relation approval, and applying approved candidates requires confirmation because identity alignment can merge canonical records. The versioned public artifact remains read-only and does not expose these database-backed governance operations.
+The multidisciplinary workbench keeps discovery and canonical truth visually separate. Summary cards show domain coverage, explicit bridge objects, strict cross-domain edges, and pending or approved candidates. Review controls show Chinese relation names, require explicit evidence selection before direct-relation approval, and require separate relation and evidence choices for both bridge-path segments. Applying approved candidates requires confirmation because identity alignment can merge canonical records. The versioned public artifact remains read-only and does not expose these database-backed governance operations.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{assets/report/graph-overview.png}
-\caption{Graph view of the repository-authored Synthetic Home Solar Demo. The direct-seeded data set contains nine canonical Knowledge Objects spanning the nine \code{world-v1.2} node kinds and twelve typed relations. The figure demonstrates viewer and graph-contract behavior; it is not an extraction result or evaluation benchmark.}
+\caption{Graph view of the repository-authored Synthetic Home Solar Demo. The directly seeded data set contains nine canonical Knowledge Objects spanning the nine \code{world-v1.3} node kinds and twelve typed relations. The figure demonstrates viewer and graph-contract behavior; it is not an extraction result or evaluation benchmark.}
 \label{fig:ui-graph-overview}
 \end{figure}
 
@@ -916,7 +930,7 @@ The fixture and evaluator provide a development smoke check rather than a paper-
 
 This draft describes the repository state inspected on July 13, 2026. The archival report must identify a release commit or tag that contains the implementation, cited artifacts, and verification record together.
 
-The repository contains a read-only public inspection artifact at \code{artifacts/okm-public-v0.1.0}. Its \code{main} dataset exports 182 Knowledge Objects, 144 typed relations, 537 evidence records, 182 cards, 182 bodies, and 184 stage-scoped pedagogical profiles as JSON, together with a manifest, checksums, JavaScript and Python readers, and a static viewer. This is a preview artifact rather than a cleared data release: the source manifest records bibliographic identity, edition, printing, and ISBN from the local PDF, but the PDF reserves rights and no applicable open license or explicit redistribution permission is recorded. The repository's absent root software license and the artifact's rights notes therefore remain binding release blockers.
+The repository retains a read-only historical inspection artifact at \code{artifacts/okm-public-v0.1.0}. Its \code{main} dataset exports 182 Knowledge Objects, 144 typed relations, 537 evidence records, 182 cards, 182 bodies, and 184 stage-scoped pedagogical profiles as JSON, together with a manifest, checksums, JavaScript and Python readers, and a static viewer. This snapshot predates \code{world-v1.3}; it remains immutable and must not be read as the current Domain Profile or Curriculum Projection contract. The current exporter targets a new \code{v0.2.0} artifact, which is not yet tracked. The historical artifact is a preview rather than a cleared data release: the source manifest records bibliographic identity, edition, printing, and ISBN from the local PDF, but the PDF reserves rights and no applicable open license or explicit redistribution permission is recorded. The repository's absent root software license and the artifact's rights notes therefore remain binding release blockers.
 
 Figures~\ref{fig:ui-graph-overview}--\ref{fig:ui-pipeline-debug} use \code{examples/demo-data}, a repository-authored synthetic home-solar module with nine directly seeded Knowledge Objects, twelve typed relations, and nine synthetic evidence records marked \code{quality_excluded}. It is not a real textbook, a model-extraction run, or an evaluation benchmark. A fresh clone can use this module to exercise database, API, and interface contracts without a model provider.
 
@@ -1024,7 +1038,7 @@ P1c & Subject extraction-template blocks appended to P1 & \code{packages/pipelin
 P1d & Optional project prompt appended to P1 & \code{--prompt} in \code{extract-lesson-openai.ts} and \code{parallel-batch.ts}\\
 P2 & Textbook image relevance classification & \code{packages/pipeline/src/extraction/image-relevance.ts}\\
 P3 & Knowledge node body generation & \code{packages/pipeline/src/unit-bodies/generate-node-bodies.ts}\\
-P4 & School-stage pedagogical-profile generation & \code{packages/pipeline/src/pedagogical-profiles/generate-pedagogical-profiles.ts}\\
+P4 & Curriculum-projection pedagogical-profile generation & \code{packages/pipeline/src/pedagogical-profiles/generate-pedagogical-profiles.ts}\\
 P5 & Runtime grounded generation over retrieved \code{ApiUnit} context & \code{packages/server/src/runtime/grounded-generation.ts}\\
 P6 & Staging-quality retry repair prompt appended to P1 & \code{packages/pipeline/src/cli/server-pipeline-run.ts}\\
 \bottomrule
@@ -1174,9 +1188,9 @@ P3 writes a durable markdown body for one knowledge node from the node row, stru
 7. 输出必须是 JSON，不要输出额外解释。
 \end{prompttranscript}
 
-\subsection{P4: School-Stage Pedagogical Profile Generation}
+\subsection{P4: Curriculum-Scoped Pedagogical Profile Generation}
 
-P4 runs after canonical normalization and knowledge-body generation. It receives one canonical node, one domain-profile and school-stage context, the node card, neighboring relations and nodes, linked evidence, and the allowed evidence identifiers. The fixed instruction text is:
+P4 runs after canonical normalization and knowledge-body generation. It receives one canonical node, one Curriculum Projection with its domain and school-stage context, the node card, neighboring relations and nodes, linked evidence, and the allowed evidence identifiers. Domain Profile semantics may be supplied as context, but the generated teaching data is written only to the Curriculum Projection. The fixed instruction text is:
 
 \begin{prompttranscript}
 你是 Open Knowledge Map 的教学画像生成器。\par
@@ -1262,11 +1276,11 @@ P6 is generated only after staging-quality blocks a lesson/chunk. It is appended
 \section{Schema and API Contract Summary}
 \label{app:schema-api}
 
-This appendix summarizes the executable schema and service contract used by the current repository. It is not a complete restatement of the broader \AINKS{} theory. The executable layer is \code{world-v1.2}; the public unit contract exposed to applications is \code{ApiUnit}.
+This appendix summarizes the executable schema and service contract used by the current repository. It is not a complete restatement of the broader \AINKS{} theory. The executable layer is \code{world-v1.3}; the public unit contract exposed to applications is \code{ApiUnit}.
 
 \subsection{Executable World Schema}
 
-\code{world-v1.2} follows three engineering rules. First, a knowledge object has one controlled top-level kind. Second, object identity, relations, teaching context, and evidence are stored separately. Third, generated explanatory content is not treated as source evidence.
+\code{world-v1.3} follows five engineering rules. First, a Knowledge Object has one canonical identity and one controlled top-level kind. Second, disciplinary semantics, curriculum placement, relations, and evidence are stored separately. Third, each discipline validates roles through its own Domain Schema rather than one universal subject-role list. Fourth, cross-domain meaning uses explicit bridge objects and evidence-backed path segments. Fifth, generated explanatory content is not treated as source evidence.
 
 \begin{table}[H]
 \centering
@@ -1277,14 +1291,17 @@ Schema element & Current executable rule\\
 \midrule
 Node kinds & The legal \code{world_nodes.kind} values are \code{entity}, \code{concept}, \code{property}, \code{process}, \code{event}, \code{method}, \code{rule}, \code{representation}, and \code{resource}.\\
 Semantic core & Rich semantic fields are stored under \code{world_nodes.properties_json.semantic_core}, including \code{core_claims}, \code{formal_expressions}, \code{conditions}, \code{boundaries}, \code{counterexamples}, and \code{misconceptions}.\\
-Relation types & The legal \code{world_edges.type} values are \code{is_a}, \code{instance_of}, \code{part_of}, \code{contains}, \code{has_property}, \code{uses}, \code{produces}, \code{depends_on}, \code{prerequisite_for}, \code{causes}, \code{affects}, \code{represents}, \code{about}, \code{same_as}, and \code{related_to}.\\
-Interdisciplinary boundary & Cross-domain scans write governance candidates only. A reviewed relation must select a legal non-\code{same_as} relation type, direction, and existing textbook evidence before the reducer writes \code{world_edges}; reviewed identity alignment merges canonical identities instead of adding a \code{same_as} edge.\\
-Domain projection & Teaching context is not stored as a new node kind. It is stored in \code{world_domain_profiles}, with \code{domain}, \code{school_stages_json}, \code{curriculum_roles_json}, and \code{properties_json}. New generated data uses the school-stage-keyed \code{pedagogical_profiles_by_stage}; the single \code{pedagogical_profile} object is retained for legacy compatibility.\\
+Relation types & The eighteen active codes are \code{is_a}, \code{instance_of}, \code{part_of}, \code{contains}, \code{has_property}, \code{uses}, \code{produces}, \code{depends_on}, \code{prerequisite_for}, \code{causes}, \code{affects}, \code{represents}, \code{formalizes}, \code{applies_to}, \code{analogous_to}, \code{models}, \code{about}, and \code{related_to}. Chinese names and sentence templates are part of the shared contract; codes remain stable internal identifiers.\\
+Identity boundary & The retired \code{same_as} value is rejected for new writes. Confirmed identity equivalence is represented by canonical node merge and reference remapping.\\
+Multidisciplinary boundary & Cross-domain scans write governance candidates only. A reviewed direct relation must select one active type, direction, and eligible evidence. A bridge path must use an explicit bridge object and separately reviewed evidence for each segment before the reducer writes the single canonical \code{world_edges} table.\\
+Domain Profile & \code{world_domain_profiles} stores a domain, Domain Schema id and version, one legal discipline-specific role, semantic properties, and source references. It does not store curriculum or teaching placement.\\
+Curriculum Projection & \code{world_curriculum_projections} stores curriculum id, domain, school stage, grade band, curriculum roles, source references, and an optional \code{properties_json.pedagogical_profile}.\\
+Source policy & \code{world_source_policies} defines relation-evidence eligibility, explicit-review requirements, and trust tier for each governed source type.\\
 Evidence boundary & Evidence is stored in \code{world_evidence} and connected through mentions, relation source references, cards, bodies, and evidence links. Model-generated prose must cite evidence; it is not itself textbook evidence.\\
 \bottomrule
 \end{tabularx}
-\caption{Core executable rules in \code{world-v1.2}.}
-\label{tab:world-v12-rules}
+\caption{Core executable rules in \code{world-v1.3}.}
+\label{tab:world-v13-rules}
 \end{table}
 
 \begin{table}[H]
@@ -1295,17 +1312,19 @@ Evidence boundary & Evidence is stored in \code{world_evidence} and connected th
 Table or table group & Role in the executable schema\\
 \midrule
 \code{world_nodes} & Stable object identity: id, name, kind, definition, aliases, domains, knowledge form, learning mode, scope, semantic properties, tags, embedding, status, and deprecation boundary.\\
-\code{world_edges} & Typed object relations: relation type, endpoints, directionality, confidence, evidence references, properties, status, and notes.\\
-\code{world_domain_profiles} & Domain, school-stage, curriculum-role, and pedagogical projection for an object without changing its top-level kind. Generated \code{pedagogical_profiles_by_stage} entries include teaching fields, source identifiers, model and prompt provenance, input fingerprint, confidence, and review state.\\
+\code{world_edges} & The single canonical relation table: active relation code, Chinese display metadata derived at the service layer, endpoints, directionality, relation scope, confidence, evidence references, properties, status, and notes.\\
+\code{world_domain_schemas} and \code{world_domain_profiles} & Versioned discipline-specific legal roles and each object's semantic role and properties in a domain, without changing its canonical identity or top-level kind.\\
+\code{world_curriculum_projections} & Curriculum, stage, grade, teaching-role, and pedagogical projection for an object. Generated profiles include teaching fields, source identifiers, model and prompt provenance, input fingerprint, confidence, and review state.\\
+\code{world_source_policies} & Governed source classes and their evidence-use rules.\\
 \code{world_mentions} & Source-level mention records that connect a source location to a node, edge, taxonomy term, or domain profile.\\
 \code{world_evidence} & Source-backed evidence units with source id, anchor, source path, page range, excerpt, locator, modality, extraction method, normalized claims, and properties.\\
-\code{world_evidence_links} & Additional evidence attachment table for edges, domain profiles, mentions, node cards, and node-card sections.\\
+\code{world_evidence_links} & Additional evidence attachment table for edges, domain profiles, curriculum projections, mentions, node cards, and node-card sections.\\
 \code{world_node_cards} & Structured inspectable summaries for nodes, including card sections and evidence references.\\
 \code{world_node_bodies} & Persistent markdown knowledge bodies with media references, evidence references, generation provenance, and status.\\
 \code{world_unit_embeddings} & Complete-unit retrieval text, 1024-dimensional embedding, content hash, embedding-model provenance, and generation timestamp keyed by data set and node.\\
 \code{world_lesson_runs} and \code{world_staging_*} & Lesson/chunk-scoped staging output. Model workers write here before canonical merge and QA.\\
 Pipeline runtime tables & \code{world_pipeline_jobs}, \code{world_pipeline_stages}, \code{world_pipeline_events}, and \code{world_pipeline_workers} store server-launched pipeline state, progress, logs, events, and worker status.\\
-Interdisciplinary governance tables & \code{world_interdisciplinary_runs} stores scan configuration and statistics; \code{world_interdisciplinary_candidates} stores cross-domain node pairs, reasons, proposed relation data, evidence, human review, and application state. These rows are not \code{ApiUnit} relations.\\
+Multidisciplinary governance tables & \code{world_interdisciplinary_runs} stores scan configuration and statistics; \code{world_interdisciplinary_candidates} stores node-alignment, direct-relation, and bridge-path proposals, segment evidence, human review, and application state. These rows are not \code{ApiUnit} relations.\\
 \code{retrieval_candidates} & Candidate context associated with extraction batch anchors and query ids; the runtime's complete-unit vector path uses \code{world_unit_embeddings}.\\
 \bottomrule
 \end{tabularx}
@@ -1325,8 +1344,9 @@ Interdisciplinary governance tables & \code{world_interdisciplinary_runs} stores
 \code{ApiUnit} field & Meaning\\
 \midrule
 \code{node} & Normalized object identity: id, dataset id, name, kind, subkind, definition, aliases, domains, knowledge form, learning mode, scope, properties, external ids, tags, status, deprecation target, timestamps, and notes.\\
-\code{relations.outgoing} and \code{relations.incoming} & Typed graph neighborhood around the object, split by edge direction and including confidence, source references, properties, status, and notes.\\
-\code{domain_profiles} & Domain-specific teaching and curriculum projections for the node. Database \code{properties_json.pedagogical_profiles_by_stage} is exposed as \code{properties.pedagogical_profiles_by_stage}; the legacy single-profile field remains readable for compatibility.\\
+\code{relations.outgoing} and \code{relations.incoming} & Typed graph neighborhood around the object, split by edge direction and including the stable code, Chinese label, confidence, source references, properties, status, and notes.\\
+\code{domain_profiles} & Discipline-specific semantic views: Domain Schema id/version, domain role, semantic properties, source references, and status.\\
+\code{curriculum_projections} & Teaching placement: curriculum, stage, grade, curriculum roles, source references, and the projection's optional pedagogical profile.\\
 \code{mentions} & Source mentions that link the object to textbook or resource locations.\\
 \code{evidence} & Source-backed evidence rows supporting the object. Hidden image evidence is filtered from ordinary unit output when it is rejected, pending, or unresolved uncertain evidence.\\
 \code{media} & Reviewed image media derived from evidence rows, including URL, path, caption, evidence id, source id, anchor, and page range.\\
@@ -1383,7 +1403,7 @@ The repository uses several quality layers because no single check can cover ext
 Gate & What it checks & Blocking behavior\\
 \midrule
 \code{staging-quality} & Extracted lesson/chunk output: nodes and evidence, valid kinds, definitions, profiles, mentions, cards, evidence-backed references, edge legality, and required card sections. An explicit \code{no_knowledge} result instead requires a reason and zero staged artifacts. Synthetic or quality-excluded evidence cannot satisfy coverage. & Blocks affected runs unless invoked in warning-only mode. Non-blocking warnings and review-node ids are persisted; blocked chunks can be retried with a schema-aligned repair prompt.\\
-\code{strict-qa} & Canonical schema and evidence-identifier legality: valid node kinds, domains, learning modes, edge types, directionality, evidence references, required profiles, stage-keyed pedagogical-profile shape and provenance, mentions, cards, card sections, node body format, body source references, and media references. & Returns \code{blocked} when errors exist.\\
+\code{strict-qa} & Canonical schema and evidence-identifier legality: valid node kinds, domains, Domain Schema roles, learning modes, edge types, directionality, evidence references, semantic Domain Profiles, Curriculum Projections, projection-scoped pedagogical-profile shape and provenance, mentions, cards, card sections, node body format, body source references, and media references. & Returns \code{blocked} when errors exist.\\
 \code{graph-integrity} & Canonical graph structure: hard cycles over hierarchical relations, directed-cycle warnings, isolated nodes, and large weakly connected components. & Succeeds by default while reporting warnings; can block on hard cycles when \code{--fail-on-cycles} is used.\\
 \code{quality-dashboard} & Operational metrics: lesson counts, node counts, relation counts, evidence coverage, isolated-node ratio, disconnected components, pending image reviews, merge-review items, interdisciplinary-review items, blocked lessons, and manual pending items. & Does not replace QA gates; it exposes inspection and triage metrics.\\
 Manual review & Human decisions for uncertain image evidence, merge-review cases, and interdisciplinary candidates; relation approval requires selected existing textbook evidence. & Updates stored review state or guides reducer application and follow-up reruns.\\
@@ -1404,13 +1424,14 @@ npm run quality-dashboard -w packages/pipeline -- --dataset-id main --db "$DATAB
 
 \subsection{Strict QA Details}
 
-\code{strict-qa} checks canonical data after merge and normalization. Its current error categories include \code{node}, \code{edge}, \code{domain_profile}, \code{pedagogical_profile}, \code{mention}, \code{node_card}, \code{node_card_section}, and \code{node_body}. It checks, among other things:
+\code{strict-qa} checks canonical data after merge and normalization. Its current error categories include \code{node}, \code{edge}, \code{domain_profile}, \code{curriculum_projection}, \code{pedagogical_profile}, \code{mention}, \code{node_card}, \code{node_card_section}, and \code{node_body}. It checks, among other things:
 
 \begin{itemize}
   \item nodes must have legal kinds, names, definitions, non-empty domains, non-empty learning modes, cards, mentions, and domain profiles;
-  \item edges must use legal types and directionality, reference existing endpoints, and carry evidence source references;
-  \item domain profiles must use legal domains, school stages, curriculum roles, and evidence source references;
-  \item stage-keyed pedagogical profiles must match a declared school stage and contain legal teaching fields; model-generated entries must record model, prompt version, generation time, input fingerprint, review status, confidence, and existing source references;
+  \item edges must use active types and legal directionality, reference existing endpoints, carry evidence source references, and declare an intra-domain, cross-domain, or universal scope;
+  \item domain profiles must reference a valid Domain Schema, use a legal discipline-specific role, avoid teaching-only fields, and carry existing evidence source references;
+  \item curriculum projections must declare curriculum, domain, school stage, grade band, curriculum roles, and existing evidence source references;
+  \item pedagogical profiles must match their containing curriculum projection and contain legal teaching fields; model-generated entries must record model, prompt version, generation time, input fingerprint, review status, confidence, and existing source references;
   \item mentions, node cards, and card sections must cite evidence that exists in \code{world_evidence};
   \item node cards must contain a summary and required sections: \code{definition}, \code{essence}, \code{key_points}, \code{example}, \code{application}, and \code{misconception};
   \item node bodies must use markdown format, contain content, use a legal \code{generated_from} value, cite source references, and declare media references for local markdown images.
@@ -1418,7 +1439,7 @@ npm run quality-dashboard -w packages/pipeline -- --dataset-id main --db "$DATAB
 
 \subsection{Graph Integrity Details}
 
-\code{graph-integrity} separates hard structural problems from diagnostic warnings. The hard cycle check is applied to hierarchical edge types: \code{is_a}, \code{instance_of}, \code{part_of}, \code{contains}, \code{depends_on}, and \code{prerequisite_for}. Directed cycle warnings are computed over other directed relation types except \code{related_to} and \code{same_as}. Isolated nodes and weakly connected components are reported because they indicate graph-construction gaps even when row-level schema is valid.
+\code{graph-integrity} separates hard structural problems from diagnostic warnings. The hard cycle check is applied to hierarchical edge types: \code{is_a}, \code{instance_of}, \code{part_of}, \code{contains}, \code{depends_on}, and \code{prerequisite_for}. Directed cycle warnings are computed over other directed relation types except the undirected \code{related_to} and \code{analogous_to} relations. Isolated nodes and weakly connected components are reported because they indicate graph-construction gaps even when row-level schema is valid.
 
 This distinction is intentional. A graph can pass schema QA and still be weak as a teaching graph if many nodes are isolated or if large components remain disconnected. Those findings should trigger relation extraction, merge, or normalization improvements; they should not automatically delete nodes.
 

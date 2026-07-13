@@ -21,6 +21,7 @@ async function main(argv: string[]): Promise<number> {
       candidates_created: output.candidates_created,
       alignment_candidates: output.alignment_candidates,
       relation_candidates: output.relation_candidates,
+      bridge_path_candidates: output.bridge_path_candidates,
       summary: output.plan.summary,
     };
     process.stdout.write(`${JSON.stringify(printable, null, flags.has("pretty") ? 2 : undefined)}\n`);

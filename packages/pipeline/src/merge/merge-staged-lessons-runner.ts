@@ -4,6 +4,7 @@ import {
   buildFetchStagedRowsQuery,
   buildLoadCanonicalNodesQuery,
   buildLoadExistingDomainProfilesQuery,
+  buildLoadExistingCurriculumProjectionsQuery,
   buildLoadExistingEvidenceIdsQuery,
   buildLoadMergeLessonRunsQuery,
   type MergeStagingTable,
@@ -57,6 +58,7 @@ const STAGING_TABLES: MergeStagingTable[] = [
   "world_staging_nodes",
   "world_staging_edges",
   "world_staging_domain_profiles",
+  "world_staging_curriculum_projections",
   "world_staging_mentions",
   "world_staging_evidence",
   "world_staging_node_cards",
@@ -66,6 +68,7 @@ const STAGED_KEY_BY_TABLE: Record<MergeStagingTable, keyof MergeFetchedStagingRo
   world_staging_nodes: "nodes",
   world_staging_edges: "edges",
   world_staging_domain_profiles: "domain_profiles",
+  world_staging_curriculum_projections: "curriculum_projections",
   world_staging_mentions: "mentions",
   world_staging_evidence: "evidence",
   world_staging_node_cards: "node_cards",
@@ -196,6 +199,7 @@ async function runMergeStagedLessonsWithinTransaction(
   );
   const canonicalNodeRows = await query(buildLoadCanonicalNodesQuery(input.datasetId));
   const existingDomainProfileRows = await query(buildLoadExistingDomainProfilesQuery(input.datasetId));
+  const existingCurriculumProjectionRows = await query(buildLoadExistingCurriculumProjectionsQuery(input.datasetId));
   const existingEvidenceIdRows = await query(buildLoadExistingEvidenceIdsQuery(input.datasetId));
 
   const staged: MergeFetchedStagingRows = {};
@@ -218,6 +222,7 @@ async function runMergeStagedLessonsWithinTransaction(
     lessons: planInput.lessons,
     canonicalNodes: planInput.canonicalNodes,
     existingDomainProfilesById: indexRowsByStringKey(existingDomainProfileRows),
+    existingCurriculumProjectionsById: indexRowsByStringKey(existingCurriculumProjectionRows),
     existingEvidenceIds: evidenceIdsFromRows(existingEvidenceIdRows),
     similarityThreshold: input.similarityThreshold,
     embeddingThreshold: input.embeddingThreshold,

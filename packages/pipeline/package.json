@@ -7,7 +7,7 @@
   "types": "src/index.ts",
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
-    "build": "npm run clean && tsc",
+    "build": "npm run build -w @okm/types && npm run clean && tsc",
     "backfill-embeddings": "npm run build && node dist/cli/backfill-embeddings.js",
     "backfill-unit-embeddings": "npm run build && node dist/cli/backfill-unit-embeddings.js",
     "check": "tsc --noEmit",
@@ -37,6 +37,7 @@
     "test": "npm run build && node --test \"dist/**/*.test.js\""
   },
   "dependencies": {
+    "@okm/types": "0.1.0",
     "postgres": "^3.4.5"
   },
   "devDependencies": {

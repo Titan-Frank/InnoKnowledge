@@ -1,40 +1,39 @@
-# 知识点与知识单元契约
+# 知识对象与知识单元契约
 
 更新日期：2026-07-13
 
-本文是 `ai-nks-v0.1` 在当前工程中的知识单元公开契约。
+状态：`ai-nks-v0.2` 和 `world-v1.3` 的当前公共消费契约。
 
-本文固定 OKM 当前阶段对“知识点”的工程定义。这里的“知识点”不等于教材目录里的一个条目，也不等于图谱中的单个节点。它是面向前端、检索、生成和教学系统使用的完整知识单元视图。
-
-知识节点能否进入正式图谱，应先按 `docs/node-extraction-policy.md` 判断。本文只说明通过准入后的知识对象如何被组织成消费侧知识单元。
+本文固定 Open Knowledge Map 对“知识点”的工程定义。知识点不是教材目录条目，也不是图上的一行节点记录，而是以统一知识对象为身份核心，聚合关系、学科语义、课程教学投影和来源证据后形成的完整视图。
 
 ## 一、核心定义
 
-OKM 中的知识点定义为：
+> 知识单元是以 `world_nodes` 中的统一知识对象为身份核心，聚合正式关系、学科语义画像、课程与教学投影、提及、证据、媒体、原文片段、结构化卡片、知识正文和完整度信号后形成的可追溯消费视图。
 
-> 以 `world_nodes` 中的知识对象骨架为身份核心，聚合关系网络、教学投影、证据、结构化卡片、知识正文、媒体和原文片段后形成的可追溯知识单元视图。
+生产和消费必须分离：
 
-这个定义把生产侧和消费侧分开：
+1. 生产侧按课时抽取、暂存、归并、身份归一和质检；
+2. 消费侧通过 `ApiUnit` 读取完整知识单元；
+3. PDF 或 Markdown 不需要先改造成知识单元再进入抽取流程；
+4. 跨学科候选在正式应用前不进入知识单元的关系集合。
 
-1. 生产侧继续按教材课时抽取、暂存、合并和质检。
-2. 消费侧通过 `ApiUnit` 读取完整知识点。
-3. PDF 或 Markdown 教材不需要先被改造成知识单元再进入抽取流程。
+## 二、对象分工
 
-## 二、术语分工
+| 名称 | 主要职责 | 不承担的职责 |
+|---|---|---|
+| `world_nodes` | 保存统一身份、顶层形态、短定义、适用范围和语义核心 | 不保存全部学科角色、教学内容或来源原文 |
+| `world_edges` | 保存唯一正式关系网络 | 不保存候选关系，不替代证据 |
+| `world_domain_profiles` | 保存对象在一个学科中的语义角色和学科特有属性 | 不保存学段、年级、课程角色或教学画像 |
+| `world_curriculum_projections` | 保存对象在课程、学段和年级中的教学位置与教学画像 | 不改写对象身份和学科本体语义 |
+| `world_mentions`、`world_evidence` | 保存来源提及和可核验证据 | 不自动证明结论被语义蕴含 |
+| `world_node_cards` | 保存结构化摘要和分节说明 | 不等于来源原文 |
+| `world_node_bodies` | 保存面向阅读和生成的知识正文 | 不冒充来源原文，不绕过证据 |
+| `world_interdisciplinary_candidates` | 保存同一对象、直接关系或桥接路径候选及审核状态 | 不是正式关系，不直接进入 `ApiUnit` |
+| `ApiUnit` | 为查看器、检索、生成和智能辅导聚合完整知识单元 | 不作为生产侧中间状态落库 |
 
-| 名称 | 定位 | 主要职责 | 不承担的职责 |
-|---|---|---|---|
-| `world_nodes` | 知识对象骨架 | 保存知识对象的身份、顶层类型、定义、领域、状态和最小语义信息 | 不保存完整正文、全部证据、全部教学内容 |
-| `world_edges` | 关系网络 | 保存知识对象之间的事实关系、结构关系、机制关系、学习关系和表征关系 | 不保存教学画像正文，不替代证据 |
-| `world_domain_profiles` | 教学投影 | 保存同一知识对象在具体领域、学段、课程角色中的教学化信息 | 不改写知识对象本体类型 |
-| `world_node_cards` | 结构化可读表达 | 保存摘要和分节卡片，便于查看、生成正文和快速理解 | 不等于教材原文 |
-| `world_node_bodies` | 持久化知识正文 | 保存面向阅读和生成的 Markdown 正文，并绑定来源证据 | 不冒充课本原文，不绕过证据 |
-| `world_interdisciplinary_candidates` | 跨学科治理候选 | 保存可能的对象对齐或关系，以及发现理由、待选证据和复核状态 | 不是正式关系，不直接进入 `ApiUnit` |
-| `ApiUnit` | 完整知识点视图 | 按 `node_id` 聚合节点、关系、教学投影、证据、正文、卡片、媒体和原文片段 | 不作为抽取中间状态直接写入 canonical 表 |
+## 三、公开结构
 
-## 三、ApiUnit 公开结构
-
-`ApiUnit` 是 `GET /api/source/:key/unit/:node_id` 的返回结构，也是当前项目对“完整知识点”的公开契约。
+`GET /api/source/:key/unit/:node_id` 返回：
 
 ```ts
 interface ApiUnit {
@@ -44,6 +43,7 @@ interface ApiUnit {
     incoming: ApiUnitRelation[];
   };
   domain_profiles: ApiUnitDomainProfile[];
+  curriculum_projections: ApiUnitCurriculumProjection[];
   mentions: ApiMention[];
   evidence: ApiEvidence[];
   media: ApiUnitMedia[];
@@ -54,59 +54,39 @@ interface ApiUnit {
 }
 ```
 
-字段含义如下：
+字段来源：
 
 | 字段 | 含义 | 来源 |
 |---|---|---|
-| `node` | 知识对象骨架，包括 `id`、`name`、`kind`、`definition`、`domains`、`status` 等 | `world_nodes` |
-| `relations.outgoing` | 当前节点指向其他节点的关系 | `world_edges.from_id = node_id` |
-| `relations.incoming` | 其他节点指向当前节点的关系 | `world_edges.to_id = node_id` |
-| `domain_profiles` | 当前知识对象的学科、学段、课程角色和教学画像；数据库列 `properties_json` 在接口中映射为每条画像的 `properties` 字段 | `world_domain_profiles` |
-| `mentions` | 教材或资源中对该知识对象的提及 | `world_mentions` |
-| `evidence` | 支撑该知识对象存在和解释的证据 | `world_evidence` |
-| `media` | 从证据中解析出的图片等媒体资源 | `world_evidence` |
-| `source_fragments` | 课本原文片段，只作为证据和上下文 | `world_evidence` |
+| `node` | 统一知识对象骨架和语义核心 | `world_nodes` |
+| `relations` | 未弃用的正式入边和出边，附中文关系名称 | `world_edges` |
+| `domain_profiles` | 学科、领域模式、模式版本、学科角色和学科属性 | `world_domain_profiles` |
+| `curriculum_projections` | 课程体系、学段、年级、课程角色和教学画像 | `world_curriculum_projections` |
+| `mentions` | 来源中对该对象的提及 | `world_mentions` |
+| `evidence` | 支撑对象、关系、画像、投影、卡片或正文的证据 | `world_evidence` |
+| `media` | 从证据解析出的图片等媒体 | `world_evidence` |
+| `source_fragments` | 来源原文或多模态片段 | `world_evidence` |
 | `card` | 结构化摘要和分节说明 | `world_node_cards` |
-| `body` | 持久化知识正文；没有正文时为空，不临时展开卡片 | `world_node_bodies` |
-| `completeness` | 当前知识单元完整度评分和检查项 | 服务端按 `ApiUnit` 聚合结果计算 |
+| `body` | 持久化知识正文 | `world_node_bodies` |
+| `completeness` | 当前知识单元完整度和逐项质量信号 | 服务端聚合计算 |
 
-`body`、`card`、`source_fragments` 的边界必须保持清楚：
+## 四、统一知识对象
 
-1. `source_fragments` 是课本原文和图片证据。
-2. `card` 是结构化摘要。
-3. `body` 是知识正文，可以由人工维护、卡片展开、模型写作或外部知识单元导入生成，但必须保留 `source_refs`。
-
-`completeness` 用来判断知识单元是否已经适合前端展示、对象级检索和后续生成系统使用。当前检查项包括定义、语义核心、关系、证据、原文片段、领域画像、正文引用、结构化卡片和来源提及。它是质量信号，不替代人工审核。
-
-## 四、当前工程 schema 类型口径
-
-节点顶层类型当前仍使用 `world-v1.2` 工程 schema 中的九类：
+顶层形态保持九类：
 
 ```text
-entity / concept / property / process / event / method / rule / representation / resource
+实体、概念、属性、过程、事件、方法、规则、表征、资源
 ```
 
-关系类型当前仍使用 `world-v1.2` 工程 schema 中的十五类：
+对应的内部代码为 `entity`、`concept`、`property`、`process`、`event`、`method`、`rule`、`representation`、`resource`。代码只用于机器契约。
 
-```text
-is_a / instance_of / part_of / contains / has_property / uses / produces /
-depends_on / prerequisite_for / causes / affects / represents / about /
-same_as / related_to
-```
-
-旧口径中的 `activity`、`principle`、`skill`、`issue` 等不再作为正式顶层类型。确实需要保留时，只能作为历史数据的显示兼容、领域子类、标签或 `properties` 中的扩展信息。
-
-## 五、语义核心
-
-`world_nodes` 仍保持最小主表，不把所有语义字段都摊成数据库列。更完整的语义核心先放在 `world_nodes.properties.semantic_core` 中。
-
-建议结构：
+`world_nodes.properties_json.semantic_core` 承载更完整的稳定语义：
 
 ```json
 {
   "semantic_core": {
     "core_claims": ["核心命题或关键结论"],
-    "formal_expressions": ["公式、符号表达或结构化表达"],
+    "formal_expressions": ["公式、符号或结构化表达"],
     "conditions": ["成立前提"],
     "boundaries": ["适用边界"],
     "counterexamples": ["反例"],
@@ -115,86 +95,116 @@ same_as / related_to
 }
 ```
 
-字段原则：
+`definition` 只回答“它是什么”。公式、条件、边界、反例和常见误解不得全部挤入短定义。
 
-1. `definition` 保持短定义，解决“它是什么”。
-2. `semantic_core.core_claims` 承载更完整的知识骨架。
-3. 公式、边界、反例、常见误解不直接塞进 `definition`。
-4. 每个关键声明后续都应能通过 `source_refs` 或证据链回溯。
+## 五、学科语义画像
 
-## 六、教学画像
+`domain_profiles` 只回答“这个对象在某个学科里是什么”。每条画像包含：
 
-教学画像属于领域投影，不属于节点本体。也就是说，同一知识对象在不同学科、学段里可以有不同教学重点。
+- `domain`：学科；
+- `schema_id` 和 `schema_version`：领域模式及版本；
+- `domain_role`：定义、定理、定律、模型、算法、反应等学科角色；
+- `properties`：学科特有属性；
+- `source_refs`：证据编号；
+- 状态、时间和说明。
 
-在不增加数据库列的前提下，教学画像继续放在数据库列
-`world_domain_profiles.properties_json` 中；服务端返回 `ApiUnit` 时，该列映射为
-`domain_profiles[].properties`。旧数据使用单份
-`properties_json.pedagogical_profile`（接口为 `properties.pedagogical_profile`）；自动生成的数据使用
-`properties_json.pedagogical_profiles_by_stage`（接口为
-`properties.pedagogical_profiles_by_stage`），按学段分别保存，避免同一知识对象在初中和高中共用一份教学内容。
+不同学科使用不同角色集合。共享顶层形态不等于统一所有学科的本体分类。
 
-建议结构：
+## 六、课程与教学投影
+
+`curriculum_projections` 只回答“这个对象在某个课程中怎样被安排和教学”。每条投影包含：
+
+- `curriculum_id`：课程体系编号；
+- `domain`：课程所属学科；
+- `school_stage` 和 `grade_band`：学段与年级；
+- `curriculum_roles`：核心、支撑、首次引入、巩固、迁移、评价等角色；
+- `properties.pedagogical_profile`：该投影唯一的教学画像；
+- `source_refs`、状态、时间和说明。
+
+教学画像结构：
 
 ```json
 {
-  "pedagogical_profiles_by_stage": {
-    "senior-secondary": {
-      "school_stage": "senior-secondary",
-      "grade_band": "grade-11",
-      "learning_objectives": ["学习目标"],
-      "difficulty_level": "intermediate",
-      "diagnostic_questions": ["前置诊断问题"],
-      "common_errors": ["常见错误"],
-      "assessment_tasks": ["评价任务"],
-      "remediation_suggestions": ["补救建议"],
-      "extension_suggestions": ["拓展建议"],
-      "generation": {
-        "generated_from": "model_generation",
-        "model": "模型名称",
-        "prompt_version": "pedagogical-profile-v1",
-        "generated_at": "生成时间",
-        "input_fingerprint": "输入摘要",
-        "review_status": "pending",
-        "confidence": 0.8,
-        "source_refs": ["证据编号"]
-      }
+  "pedagogical_profile": {
+    "school_stage": "senior-secondary",
+    "grade_band": "grade-11",
+    "learning_objectives": ["学习目标"],
+    "difficulty_level": "intermediate",
+    "diagnostic_questions": ["前置诊断问题"],
+    "common_errors": ["常见错误"],
+    "assessment_tasks": ["评价任务"],
+    "remediation_suggestions": ["补救建议"],
+    "extension_suggestions": ["拓展建议"],
+    "generation": {
+      "generated_from": "model_generation",
+      "model": "模型名称",
+      "prompt_version": "pedagogical-profile-v1",
+      "generated_at": "生成时间",
+      "input_fingerprint": "输入摘要",
+      "review_status": "pending",
+      "confidence": 0.8,
+      "source_refs": ["证据编号"]
     }
   }
 }
 ```
 
-字段原则：
+原则：
 
-1. `school_stages` 和 `curriculum_roles` 只说明教学位置。
-2. `pedagogical_profiles_by_stage` 说明不同学段下怎么教、怎么诊断、怎么评价；旧的 `pedagogical_profile` 只用于兼容已有数据。
-3. 价值、伦理、人文讨论等内容不要塞进 `learning_mode`，应放在教学画像或课程活动中。
-4. 自动生成画像必须引用现有证据，记录模型、提示词版本、生成时间、输入摘要、可信度和审核状态。
-5. 已有人工画像和已确认画像不得被自动重跑覆盖；输入没有变化时不重复调用模型。
+1. 一个投影只对应一个课程和学段，不在同一字段中再按学段嵌套；
+2. 学科画像不保存教学画像；
+3. 自动生成内容必须保留输入指纹、模型、提示词版本、置信度、审核状态和证据；
+4. 人工维护或已确认内容不得被自动重跑覆盖；
+5. 证据编号合法不等于内容已经通过语义蕴含验证。
 
-## 七、跨学科候选与 ApiUnit 的边界
+## 七、正式关系
 
-跨学科扫描结果不属于 `ApiUnit.relations`。`world_interdisciplinary_candidates` 是正式图谱外的治理记录：
+`ApiUnit.relations` 只返回已经写入 `world_edges` 且未弃用的关系。接口同时提供内部代码和中文名称，界面以中文显示。
 
-1. `node_alignment` 只有经批准并完成节点归一后，结果才通过规范节点身份反映到 `ApiUnit`。
-2. `relation` 只有经人工选择教材证据、关系类型和方向，并由受事务保护的应用步骤写入 `world_edges` 后，才进入 `ApiUnit.relations`。
-3. 正式跨学科关系的 `properties.interdisciplinary` 保留候选、扫描和复核来源，`evidence_refs` 保留批准时选择的证据编号。
-4. 共享标签、领域对和候选分数不会出现在正式关系中冒充证据。
+当前中文关系为：是一种、是实例、是组成部分、包含、具有属性、使用、产生、依赖、是前置知识、导致、影响、表示、形式化表达、应用于、类似于、建模描述、主题是、相关。
 
-完整治理契约见 `docs/interdisciplinary-knowledge-network.md`。
+完整定义和代码映射见 `docs/ai-nks-v0.2.md`。已停用的 `same_as` 不属于当前关系集，同一对象通过节点归一反映在 `ApiUnit` 中。
 
-## 八、当前工程落点
+## 八、跨学科候选边界
 
-当前前端图上显示的是节点；点开节点后，右侧详情面板通过 `ApiUnit` 展示完整知识点。
+三类跨学科候选都不直接属于 `ApiUnit.relations`：
 
-显示路径：
+1. 同一对象候选批准并应用后，通过规范节点身份反映；
+2. 直接关系候选批准、选择直接证据并应用后，才进入 `world_edges`；
+3. 桥接路径候选的两段都完成关系、方向和直接证据审核并应用后，才作为两条正式关系进入 `world_edges`。
 
-1. 图谱标签来自 `world_nodes.name`。
-2. 详情标题来自节点名称、类型和连接数。
-3. “知识正文”来自 `ApiUnit.body`。
-4. “课本原文”来自 `ApiUnit.source_fragments`。
-5. “结构化卡片”来自 `ApiUnit.card`。
-6. “关系”来自 `ApiUnit.relations`。
-7. “领域画像”来自 `ApiUnit.domain_profiles`。
-8. “完整度”来自 `ApiUnit.completeness`。
+正式跨学科关系在 `properties.interdisciplinary` 中保留候选、扫描和审核来源，在 `source_refs` 中保留审核时选择的证据。
 
-后续新增检索、生成、智能辅导能力时，应优先读取 `ApiUnit`，不要直接拼多张表形成另一套隐含契约。
+## 九、正文、卡片和来源片段
+
+三者边界固定如下：
+
+1. `source_fragments` 是来源原文、图片、表格或公式证据；
+2. `card` 是结构化摘要；
+3. `body` 是知识正文，可由人工维护、卡片展开或模型生成，但必须保留证据引用。
+
+查看器不得把知识正文标成“课本原文”，也不得在正文缺失时临时拼接另一套隐含结构冒充持久化正文。
+
+## 十、完整度
+
+`completeness` 当前检查：
+
+- 短定义和语义核心；
+- 正式关系；
+- 来源证据和来源片段；
+- 学科语义画像；
+- 课程与教学投影；
+- 结构化卡片；
+- 知识正文及正文引用；
+- 来源提及。
+
+完整度是工程质量信号，不替代人工审核和研究评测。
+
+## 十一、消费规则
+
+1. 查看器、检索、带依据生成和后续智能辅导优先读取 `ApiUnit`；
+2. 不直接拼接多张表形成第二套未记录契约；
+3. 用户界面显示中文关系和中文学科角色，内部代码只用于机器交换；
+4. 若向量路径不可用，检索必须明确回退到文本模式；
+5. 生成结果只能引用当前检索上下文中的证据编号；
+6. 候选、待审核画像和已弃用记录不能冒充已确认事实。

@@ -4,12 +4,15 @@ import { makeStableSuffix, normalizeTerm, uniqueStable } from "../shared/pathing
 export type InterdisciplinaryNodeInput = {
   id: string;
   name: string;
+  definition: string;
   kind: string;
   subkind?: string | null;
   aliases: string[];
   domains: string[];
   tags: string[];
   bridgeTags: string[];
+  scope?: string | null;
+  bridgeRole?: "semantic_bridge" | "method_bridge" | "analogy_bridge" | null;
   semanticKey?: string | null;
   embedding: number[];
   evidenceRefs: string[];
@@ -25,11 +28,19 @@ export type InterdisciplinaryEdgeInput = {
 
 export type InterdisciplinaryCandidatePlan = {
   candidate_id: string;
-  candidate_kind: "node_alignment" | "relation";
+  candidate_kind: "node_alignment" | "relation" | "bridge_path";
   from_node_id: string;
   to_node_id: string;
+  bridge_node_id: string | null;
   proposed_edge_type: string | null;
   directionality: "directed" | "undirected" | null;
+  proposed_path: Array<{
+    from_node_id: string;
+    to_node_id: string;
+    relation_type: string;
+    directionality: "directed" | "undirected";
+    evidence_refs: string[];
+  }>;
   confidence: number;
   source_domains: string[];
   target_domains: string[];
@@ -63,6 +74,7 @@ export type InterdisciplinaryAnalysisPlan = {
   candidates: InterdisciplinaryCandidatePlan[];
   alignment_candidates: number;
   relation_candidates: number;
+  bridge_path_candidates: number;
 };
 
 export type InterdisciplinaryAnalysisOptions = {
@@ -98,6 +110,7 @@ export function planInterdisciplinaryAnalysis(
   const existingPairs = new Set(edges.map((edge) => unorderedPairKey(edge.fromId, edge.toId)));
   const candidates = new Map<string, InterdisciplinaryCandidatePlan>();
   const alignmentPairKeys = new Set<string>();
+  const bridgePathPairKeys = new Set<string>();
 
   const alignmentBuckets = [
     ...bucketNodes(nodes, (node) => node.terms, "term", maximumBucketSize),
@@ -147,12 +160,45 @@ export function planInterdisciplinaryAnalysis(
     }
   }
 
+  for (const bridge of nodes.filter(isBridgeNode)) {
+    const bridgeSignals = cleanStrings([...bridge.bridgeTags, ...bridge.terms]);
+    if (bridgeSignals.length === 0) continue;
+    const endpoints = nodes.filter((node) => {
+      if (node.id === bridge.id || isBridgeNode(node)) return false;
+      return intersection(cleanStrings([...node.bridgeTags, ...node.tags]), bridgeSignals).length > 0;
+    });
+    for (const [left, right] of pairs(endpoints)) {
+      if (!isCrossDomainPair(left, right)) continue;
+      const pairKey = unorderedPairKey(left.id, right.id);
+      if (alignmentPairKeys.has(pairKey) || blockedRelationPairs.has(pairKey)) continue;
+      const leftSignals = intersection(cleanStrings([...left.bridgeTags, ...left.tags]), bridgeSignals);
+      const rightSignals = intersection(cleanStrings([...right.bridgeTags, ...right.tags]), bridgeSignals);
+      const evidenceCount = Math.min(left.evidenceRefs.length + bridge.evidenceRefs.length + right.evidenceRefs.length, 12);
+      const confidence = Math.min(
+        0.9,
+        0.56 + Math.min(leftSignals.length + rightSignals.length, 4) * 0.06 + evidenceCount * 0.008,
+      );
+      if (confidence < minimumRelationScore) continue;
+      const candidate = makeBridgePathCandidate(left, bridge, right, confidence, {
+        method: "explicit_bridge_object",
+        bridge_role: bridge.bridgeRole ?? (bridge.scope === "universal" ? "universal_object" : "multi_domain_object"),
+        source_bridge_signals: leftSignals,
+        target_bridge_signals: rightSignals,
+        requires_review: true,
+      });
+      if (excludedCandidateIds.has(candidate.candidate_id)) continue;
+      const previous = candidates.get(candidate.candidate_id);
+      if (!previous || candidate.confidence > previous.confidence) candidates.set(candidate.candidate_id, candidate);
+      bridgePathPairKeys.add(pairKey);
+    }
+  }
+
   const bridgeBuckets = bucketNodes(nodes, (node) => node.bridgeTags, "bridge_tag", maximumBucketSize);
   for (const bucket of bridgeBuckets) {
     for (const [left, right] of pairs(bucket.nodes)) {
       if (!isCrossDomainPair(left, right)) continue;
       const pairKey = unorderedPairKey(left.id, right.id);
-      if (existingPairs.has(pairKey) || alignmentPairKeys.has(pairKey) || blockedRelationPairs.has(pairKey)) continue;
+      if (existingPairs.has(pairKey) || alignmentPairKeys.has(pairKey) || bridgePathPairKeys.has(pairKey) || blockedRelationPairs.has(pairKey)) continue;
       const sharedTags = intersection(left.bridgeTags, right.bridgeTags);
       const evidenceCount = Math.min(left.evidenceRefs.length + right.evidenceRefs.length, 8);
       const confidence = Math.min(0.82, 0.5 + Math.min(sharedTags.length, 3) * 0.08 + evidenceCount * 0.01);
@@ -184,6 +230,7 @@ export function planInterdisciplinaryAnalysis(
     candidates: ordered,
     alignment_candidates: ordered.filter((candidate) => candidate.candidate_kind === "node_alignment").length,
     relation_candidates: ordered.filter((candidate) => candidate.candidate_kind === "relation").length,
+    bridge_path_candidates: ordered.filter((candidate) => candidate.candidate_kind === "bridge_path").length,
   };
 }
 
@@ -200,7 +247,7 @@ export function summarizeInterdisciplinaryGraph(
 
   for (const node of nodes) {
     for (const domain of node.domains) domainCounts.set(domain, (domainCounts.get(domain) ?? 0) + 1);
-    if (node.domains.length < 2) continue;
+    if (!isBridgeNode(node)) continue;
     for (const domain of node.domains) bridgeCounts.set(domain, (bridgeCounts.get(domain) ?? 0) + 1);
     for (const [left, right] of pairs(node.domains)) {
       const key = domainPairKey(left, right);
@@ -235,7 +282,7 @@ export function summarizeInterdisciplinaryGraph(
   }
 
   const bridgeNodes = nodes
-    .filter((node) => node.domains.length > 1)
+    .filter(isBridgeNode)
     .map((node) => ({
       node_id: node.id,
       name: node.name,
@@ -283,6 +330,9 @@ function normalizeNode(node: InterdisciplinaryNodeInput): NormalizedNode {
     tags: cleanStrings(node.tags),
     bridgeTags: cleanStrings(node.bridgeTags),
     evidenceRefs: cleanIdentifiers(node.evidenceRefs),
+    definition: String(node.definition ?? "").trim(),
+    scope: String(node.scope ?? "").trim() || null,
+    bridgeRole: node.bridgeRole ?? null,
     terms: cleanStrings([node.name, ...aliases].map(normalizeTerm)),
   };
 }
@@ -304,14 +354,67 @@ function makeCandidate(
     candidate_kind: kind,
     from_node_id: left.id,
     to_node_id: right.id,
+    bridge_node_id: null,
     proposed_edge_type: input.proposedEdgeType,
     directionality: input.directionality,
+    proposed_path: [],
     confidence: input.confidence,
     source_domains: left.domains,
     target_domains: right.domains,
     evidence_refs: uniqueStable([...left.evidenceRefs, ...right.evidenceRefs]).slice(0, 12),
     rationale: input.rationale,
   };
+}
+
+function makeBridgePathCandidate(
+  leftInput: NormalizedNode,
+  bridge: NormalizedNode,
+  rightInput: NormalizedNode,
+  confidence: number,
+  rationale: Record<string, unknown>,
+): InterdisciplinaryCandidatePlan {
+  const [left, right] = leftInput.id.localeCompare(rightInput.id) <= 0 ? [leftInput, rightInput] : [rightInput, leftInput];
+  const sourceEvidence = uniqueStable([...left.evidenceRefs, ...bridge.evidenceRefs]).slice(0, 8);
+  const targetEvidence = uniqueStable([...bridge.evidenceRefs, ...right.evidenceRefs]).slice(0, 8);
+  return {
+    candidate_id: `interdisciplinary:bridge_path:${makeStableSuffix([left.id, bridge.id, right.id], 12)}`,
+    candidate_kind: "bridge_path",
+    from_node_id: left.id,
+    to_node_id: right.id,
+    bridge_node_id: bridge.id,
+    proposed_edge_type: null,
+    directionality: null,
+    proposed_path: [
+      {
+        from_node_id: left.id,
+        to_node_id: bridge.id,
+        relation_type: "related_to",
+        directionality: "undirected",
+        evidence_refs: sourceEvidence,
+      },
+      {
+        from_node_id: bridge.id,
+        to_node_id: right.id,
+        relation_type: "related_to",
+        directionality: "undirected",
+        evidence_refs: targetEvidence,
+      },
+    ],
+    confidence,
+    source_domains: left.domains,
+    target_domains: right.domains,
+    evidence_refs: uniqueStable([...sourceEvidence, ...targetEvidence]).slice(0, 12),
+    rationale: {
+      ...rationale,
+      bridge_node_id: bridge.id,
+      bridge_node_name: bridge.name,
+      bridge_node_definition: bridge.definition,
+    },
+  };
+}
+
+function isBridgeNode(node: Pick<NormalizedNode, "bridgeRole" | "domains" | "scope">): boolean {
+  return Boolean(node.bridgeRole) || node.scope === "universal" || node.domains.length > 1;
 }
 
 function bucketNodes(

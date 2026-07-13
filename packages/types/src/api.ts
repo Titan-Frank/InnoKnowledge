@@ -1,6 +1,7 @@
 import type {
-  ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit, EdgeType, NodeKind,
+  ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit, ApiUnitCurriculumProjection, NodeKind,
 } from './models.js';
+import type { EdgeType } from './relations.js';
 import type { Framework } from './framework.js';
 import type { PatternLibrary } from './patterns.js';
 import type { OutlineData } from './outline.js';
@@ -56,6 +57,7 @@ export interface BundleResponse {
   nodes: ApiNode[];
   edges: ApiEdge[];
   profiles: ApiProfile[];
+  curriculum_projections: ApiUnitCurriculumProjection[];
   framework: Framework;
   patterns: PatternLibrary;
   books: ApiBookBundle[];
@@ -298,7 +300,7 @@ export interface PipelineQualityDashboardResponse {
   lessons: PipelineQualityLessonRow[];
 }
 
-export type InterdisciplinaryCandidateKind = 'node_alignment' | 'relation';
+export type InterdisciplinaryCandidateKind = 'node_alignment' | 'relation' | 'bridge_path';
 export type InterdisciplinaryCandidateStatus = 'pending' | 'approved' | 'rejected' | 'applied';
 
 export interface InterdisciplinaryRun {
@@ -323,8 +325,14 @@ export interface InterdisciplinaryCandidate {
   to_node_name: string;
   to_node_kind: NodeKind;
   to_node_definition: string;
+  bridge_node_id: string | null;
+  bridge_node_name: string | null;
+  bridge_node_kind: NodeKind | null;
+  bridge_node_definition: string | null;
+  bridge_node_domains: string[];
   proposed_edge_type: EdgeType | null;
   directionality: 'directed' | 'undirected' | null;
+  proposed_path: InterdisciplinaryPathSegment[];
   confidence: number;
   source_domains: string[];
   target_domains: string[];
@@ -336,12 +344,15 @@ export interface InterdisciplinaryCandidate {
   review_notes: string | null;
   reviewed_at: string | null;
   applied_edge_id: string | null;
+  applied_edge_ids: string[];
   created_at: string;
   updated_at: string;
 }
 
 export interface InterdisciplinaryEvidenceSummary {
   evidence_id: string;
+  source_type: string;
+  source_type_label_zh: string;
   source_id: string;
   anchor_ref: string;
   excerpt: string;
@@ -349,6 +360,17 @@ export interface InterdisciplinaryEvidenceSummary {
   modality: string | null;
   page_start: number | null;
   page_end: number | null;
+}
+
+export interface InterdisciplinaryPathSegment {
+  from_node_id: string;
+  from_node_name?: string;
+  to_node_id: string;
+  to_node_name?: string;
+  relation_type: EdgeType;
+  relation_type_label_zh: string;
+  directionality: 'directed' | 'undirected';
+  evidence_refs: string[];
 }
 
 export interface InterdisciplinaryBridgeNode {
@@ -383,6 +405,7 @@ export interface InterdisciplinaryOverviewResponse {
     cross_domain_edge_count: number;
     pending_alignment_count: number;
     pending_relation_count: number;
+    pending_bridge_path_count: number;
     approved_candidate_count: number;
   };
   domains: InterdisciplinaryDomainSummary[];
@@ -405,14 +428,22 @@ export interface InterdisciplinaryAnalyzeResponse {
   candidates_created: number;
   alignment_candidates: number;
   relation_candidates: number;
+  bridge_path_candidates: number;
 }
 
 export interface InterdisciplinaryReviewRequest {
   decision: 'approve' | 'reject';
-  relation_type?: EdgeType;
+  relation_type?: string;
   directionality?: 'directed' | 'undirected';
   reverse_direction?: boolean;
   evidence_ids?: string[];
+  path?: Array<{
+    from_node_id: string;
+    to_node_id: string;
+    relation_type: string;
+    directionality: 'directed' | 'undirected';
+    evidence_ids: string[];
+  }>;
   reviewer?: string;
   notes?: string;
 }
@@ -426,6 +457,7 @@ export interface InterdisciplinaryApplyResponse {
   applied: number;
   alignments_applied: number;
   relations_applied: number;
+  bridge_paths_applied: number;
   skipped: number;
   candidates: Array<{
     candidate_id: string;
@@ -433,6 +465,7 @@ export interface InterdisciplinaryApplyResponse {
     canonical_node_id?: string;
     deprecated_node_ids?: string[];
     edge_id?: string;
+    edge_ids?: string[];
     status: 'applied' | 'skipped';
   }>;
 }

@@ -1,339 +1,36 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "World Domain Profile Schema V1.2",
-  "description": "Domain-specific extension profile for a world knowledge node, used to project the same node into school stages, curriculum roles, and optional pedagogical profile details.",
+  "$id": "https://open-knowledge-map.org/schemas/world-domain-profile-v1.3.json",
+  "title": "World Domain Profile Schema V1.3",
+  "description": "知识对象在某一学科模式中的语义角色。课程、学段和教学画像由课程投影单独表示。",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "id",
-    "node_id",
-    "domain",
-    "status"
-  ],
+  "required": ["id", "node_id", "domain", "schema_id", "schema_version", "domain_role", "status"],
   "properties": {
-    "id": {
-      "type": "string",
-      "pattern": "^[a-z0-9/_:-]+$"
+    "id": { "type": "string", "pattern": "^[a-z0-9/_:-]+$" },
+    "node_id": { "type": "string", "pattern": "^[a-z0-9/_:-]+$" },
+    "domain": { "$ref": "#/$defs/domain" },
+    "schema_id": { "type": "string", "pattern": "^domain:[a-z0-9-]+:v[0-9]+$" },
+    "schema_version": { "type": "string", "minLength": 1 },
+    "domain_role": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "source_refs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
     },
-    "node_id": {
-      "type": "string",
-      "pattern": "^[a-z0-9/_:-]+$"
-    },
+    "properties": { "type": "object", "additionalProperties": true },
+    "status": { "type": "string", "enum": ["draft", "active", "deprecated"] },
+    "notes": { "type": "string" }
+  },
+  "$defs": {
     "domain": {
       "type": "string",
       "enum": [
-        "mathematics",
-        "physics",
-        "chemistry",
-        "biology",
-        "earth-science",
-        "astronomy",
-        "computer-science",
-        "engineering",
-        "language-arts",
-        "linguistics",
-        "literature",
-        "history",
-        "geography",
-        "civics",
-        "economics",
-        "law",
-        "education",
-        "arts",
-        "music",
-        "health",
-        "sports",
-        "philosophy",
-        "general"
+        "mathematics", "physics", "chemistry", "biology", "earth-science", "astronomy",
+        "computer-science", "engineering", "language-arts", "linguistics", "literature",
+        "history", "geography", "civics", "economics", "law", "education", "arts",
+        "music", "health", "sports", "philosophy", "general"
       ]
-    },
-    "school_stages": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "enum": [
-          "primary",
-          "junior-secondary",
-          "senior-secondary",
-          "higher"
-        ]
-      }
-    },
-    "curriculum_roles": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "enum": [
-          "core",
-          "support",
-          "assessment",
-          "practice",
-          "literacy"
-        ]
-      }
-    },
-    "properties": {
-      "type": "object",
-      "additionalProperties": true,
-      "properties": {
-        "pedagogical_profile": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Legacy single-context teaching projection details. New generated data should use pedagogical_profiles_by_stage.",
-          "properties": {
-            "learning_objectives": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "difficulty_level": {
-              "type": "string",
-              "enum": [
-                "introductory",
-                "basic",
-                "intermediate",
-                "advanced",
-                "expert"
-              ]
-            },
-            "diagnostic_questions": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "common_errors": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "assessment_tasks": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "remediation_suggestions": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "extension_suggestions": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        "pedagogical_profiles_by_stage": {
-          "type": "object",
-          "description": "Teaching projection details keyed by school stage so different stages never share one generated profile.",
-          "propertyNames": {
-            "enum": [
-              "primary",
-              "junior-secondary",
-              "senior-secondary",
-              "higher"
-            ]
-          },
-          "additionalProperties": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "school_stage",
-              "learning_objectives",
-              "difficulty_level",
-              "diagnostic_questions",
-              "common_errors",
-              "assessment_tasks",
-              "remediation_suggestions",
-              "extension_suggestions"
-            ],
-            "properties": {
-              "school_stage": {
-                "type": "string",
-                "enum": [
-                  "primary",
-                  "junior-secondary",
-                  "senior-secondary",
-                  "higher"
-                ]
-              },
-              "grade_band": {
-                "type": "string"
-              },
-              "learning_objectives": {
-                "type": "array",
-                "minItems": 1,
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "difficulty_level": {
-                "type": "string",
-                "enum": [
-                  "introductory",
-                  "basic",
-                  "intermediate",
-                  "advanced",
-                  "expert"
-                ]
-              },
-              "diagnostic_questions": {
-                "type": "array",
-                "minItems": 1,
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "common_errors": {
-                "type": "array",
-                "minItems": 1,
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "assessment_tasks": {
-                "type": "array",
-                "minItems": 1,
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "remediation_suggestions": {
-                "type": "array",
-                "minItems": 1,
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "extension_suggestions": {
-                "type": "array",
-                "minItems": 1,
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "generation": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "generated_from"
-                ],
-                "properties": {
-                  "generated_from": {
-                    "type": "string",
-                    "enum": [
-                      "model_generation",
-                      "manual"
-                    ]
-                  },
-                  "model": {
-                    "type": "string"
-                  },
-                  "prompt_version": {
-                    "type": "string"
-                  },
-                  "generated_at": {
-                    "type": "string"
-                  },
-                  "input_fingerprint": {
-                    "type": "string"
-                  },
-                  "review_status": {
-                    "type": "string",
-                    "enum": [
-                      "pending",
-                      "approved",
-                      "rejected"
-                    ]
-                  },
-                  "confidence": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1
-                  },
-                  "source_refs": {
-                    "type": "array",
-                    "minItems": 1,
-                    "uniqueItems": true,
-                    "items": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  }
-                },
-                "allOf": [
-                  {
-                    "if": {
-                      "properties": {
-                        "generated_from": {
-                          "const": "model_generation"
-                        }
-                      },
-                      "required": [
-                        "generated_from"
-                      ]
-                    },
-                    "then": {
-                      "required": [
-                        "model",
-                        "prompt_version",
-                        "generated_at",
-                        "input_fingerprint",
-                        "review_status",
-                        "confidence",
-                        "source_refs"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    "status": {
-      "type": "string",
-      "enum": [
-        "draft",
-        "active",
-        "deprecated"
-      ]
-    },
-    "notes": {
-      "type": "string"
     }
   }
 }

@@ -67,7 +67,7 @@ export function buildLocalCandidatesQuery(options: LocalCandidateQueryOptions): 
   if (options.schoolStage) {
     params.push(options.schoolStage);
     clauses.push(
-      `EXISTS (SELECT 1 FROM world_domain_profiles p WHERE p.dataset_id = n.dataset_id AND p.node_id = n.id AND $${params.length} = ANY(SELECT jsonb_array_elements_text(p.school_stages_json)))`,
+      `EXISTS (SELECT 1 FROM world_curriculum_projections p WHERE p.dataset_id = n.dataset_id AND p.node_id = n.id AND p.status != 'deprecated' AND p.school_stage = $${params.length})`,
     );
   }
 

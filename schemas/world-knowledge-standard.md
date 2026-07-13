@@ -1,329 +1,218 @@
-# World Knowledge Standard V1.2
+# World Knowledge Standard V1.3
 
-状态说明：本文是当前代码和数据库正在执行的 `world-v1.2` 工程 schema 基线说明，不是项目顶层标准版本。当前顶层标准是 `ai-nks-v0.1`，以 `docs/ai-nks-v0.1.md` 为准。
+状态：当前代码、数据库、结构校验和质量检查的工程基线。
 
-这是当前项目的底层统一世界知识分类标准。
+顶层概念标准是 `ai-nks-v0.2`，见 `docs/ai-nks-v0.2.md`。本文规定 `world-v1.3` 的可执行字段、类型、关系、投影、证据和治理规则。
 
-它的目标不是“为某一本教材做标注”，而是建立一套能够稳定承载世界知识、同时可先在 K12 范围内完成验证的最小标准。
+## 一、统一知识对象
 
-这套标准只追求三件事：
+机器结构：`schemas/world-knowledge.schema.json`。
 
-1. 一个知识对象只能先归入一种顶层类型
-2. 分类结构、事实关系、领域教学信息彼此分离
-3. 每个结论都可以回到证据
+必填字段：
 
-## 一、四层结构
+| 字段 | 规则 |
+|---|---|
+| `id` | 数据集内稳定、唯一，符合机器标识格式 |
+| `name` | 非空规范名称 |
+| `kind` | 九类顶层知识形态之一 |
+| `definition` | 非空短定义 |
+| `domains` | 至少一个合法学科 |
+| `status` | 合法治理状态 |
 
-统一知识体系采用四层主结构：
+九类顶层知识形态：
 
-1. 顶层本体
-   回答“这个对象到底是什么”
-2. 概念分类表
-   回答“它属于哪个受控分类体系”
-3. 事实关系层
-   回答“它和别的对象之间是什么关系”
-4. 领域扩展层
-   回答“它在特定领域或学段里如何被教学化、课程化”
+| 中文 | 内部代码 | 典型对象 |
+|---|---|---|
+| 实体 | `entity` | 物质、人物、地点、设备、样本 |
+| 概念 | `concept` | 抽象概念、理论对象、学科术语 |
+| 属性 | `property` | 性质、状态量、可观测特征 |
+| 过程 | `process` | 连续变化、机制、生命过程 |
+| 事件 | `event` | 有时间边界的事件或历史事实 |
+| 方法 | `method` | 算法、步骤、实验或操作方法 |
+| 规则 | `rule` | 定律、公式、原则、约束 |
+| 表征 | `representation` | 图、表、模型、符号、方程 |
+| 资源 | `resource` | 文本、数据集、媒介或工具资源 |
 
-另外有一个跨层的刚性要求：
+`subkind` 只能用于学科内更细分类，不能绕过九类主类。`properties.semantic_core` 用于核心命题、形式表达、成立条件、边界、反例和误解。
 
-- 证据与溯源平面
-  它不是新的主分类层，但所有节点、关系、课程画像都应当能回到出处
+桥接对象仍使用上述统一结构，并可设置：
 
-## 二、顶层本体：9 类
+```text
+bridge_role = semantic_bridge / method_bridge / analogy_bridge
+```
 
-| kind | 含义 | 判断标准 | K12 示例 |
+## 二、学科语义画像
+
+机器结构：
+
+- `schemas/world-domain-schema.schema.json`；
+- `schemas/world-domain-profile.schema.json`。
+
+`world_domain_schemas` 定义学科模式和合法角色。`world_domain_profiles` 必须包含：
+
+- 对象编号；
+- 学科；
+- 模式编号和版本；
+- 合法学科角色；
+- 来源证据；
+- 学科特有属性和治理状态。
+
+学科画像不得包含课程体系、学段、年级、课程角色或教学画像。
+
+当前内置模式：通用、数学、物理、计算机科学、化学、生物学。其他合法学科在新增专用模式前使用通用模式，但角色必须通过质量检查。
+
+## 三、课程与教学投影
+
+机器结构：`schemas/world-curriculum-projection.schema.json`。
+
+`world_curriculum_projections` 必须包含：
+
+- 对象编号；
+- 学科；
+- 课程体系编号；
+- 单一学段；
+- 可选年级范围；
+- 合法课程角色；
+- 来源证据和治理状态。
+
+教学画像放在 `properties.pedagogical_profile`，可以包含：
+
+- 学习目标；
+- 难度；
+- 诊断问题；
+- 常见错误；
+- 评价任务；
+- 补救建议；
+- 拓展建议；
+- 生成来源、模型、提示词版本、时间、输入指纹、置信度、审核状态和证据编号。
+
+一个投影只对应一个课程和学段。不同学段使用不同投影记录。
+
+## 四、正式关系
+
+机器结构：`schemas/world-knowledge-edge.schema.json`。
+
+中文名称是用户和模型的主表达，内部代码是稳定存储标识。
+
+| 中文关系 | 内部代码 | 默认方向 | 使用边界 |
 |---|---|---|---|
-| `entity` | 具体对象 | 能被稳定指称的对象、实体、系统、器官、器材、地点 | 氧气、细胞、地球、显微镜 |
-| `concept` | 抽象概念 | 主要作为理解对象出现的抽象意义单元 | 分数、惯性、民主、递归 |
-| `property` | 属性或可测特征 | 用来描述对象或过程的量、性质、状态 | 密度、速度、温度、颜色 |
-| `process` | 持续过程 | 具有展开性、阶段性、变化性的运行或变化 | 蒸发、光合作用、推理 |
-| `event` | 具体发生 | 可定位到一次发生、一个时段或一次活动 | 辛亥革命、一次实验观察 |
-| `method` | 可复用做法 | 可以被重复执行的步骤、方法、算法、策略 | 过滤法、列方程法、归纳法 |
-| `rule` | 规则或原理 | 具有约束性、规律性、法则性的稳定命题 | 牛顿第一定律、语法规则 |
-| `representation` | 表征形式 | 用于表达知识的符号、图式、模型、图表 | 方程、地图、电路图、句法树 |
-| `resource` | 资源载体 | 承载知识的媒介、材料、文献、课程资源 | 教材、论文、课程、视频 |
-
-## 三、9 类的边界规则
-
-为了保证抽取稳定性，以下规则写死：
-
-1. `三角形`、`细胞`、`地球` 这类可被稳定指称的对象，优先判为 `entity`
-2. `分数`、`惯性`、`公民权利` 这类主要作为理解对象出现的抽象项，优先判为 `concept`
-3. `密度`、`速度`、`温度`、`颜色` 这类属性量，优先判为 `property`
-4. `蒸发`、`光合作用`、`人口迁移` 这类持续展开的变化，优先判为 `process`
-5. `鸦片战争`、`辛亥革命`、`课堂实验` 这类一次发生，优先判为 `event`
-6. `过滤法`、`列方程法`、`归纳法` 这类可复用做法，优先判为 `method`
-7. `牛顿第一定律`、`勾股定理`、`行为规范` 这类稳定规则，优先判为 `rule`
-8. `方程`、`地图`、`五线谱`、`电路图` 这类表达形式，优先判为 `representation`
-9. `教材`、`论文`、`视频` 这类承载知识的东西，优先判为 `resource`
-
-如果一个对象同时像两类，冲突优先顺序如下：
-
-1. 具体发生优先于通用做法
-2. 表征形式优先于普通概念
-3. 属性量优先于普通概念
-4. 稳定规则优先于普通概念
-5. 可指称对象优先于抽象描述
-
-## 四、节点字段：只保留最小集合
-
-每个节点只要求这些字段：
-
-- `id`
-- `name`
-- `kind`
-- `definition`
-- `domains`
-- `status`
-
-可选字段：
+| 是一种 | `is_a` | 有向 | 类型到更一般类型 |
+| 是实例 | `instance_of` | 有向 | 实例到一般类型 |
+| 是组成部分 | `part_of` | 有向 | 部分到整体 |
+| 包含 | `contains` | 有向 | 整体到部分 |
+| 具有属性 | `has_property` | 有向 | 对象到性质 |
+| 使用 | `uses` | 有向 | 方法或过程到所用对象 |
+| 产生 | `produces` | 有向 | 过程或方法到产物 |
+| 依赖 | `depends_on` | 有向 | 依赖者到所依赖对象 |
+| 是前置知识 | `prerequisite_for` | 有向 | 先学对象到后学对象 |
+| 导致 | `causes` | 有向 | 直接原因到结果 |
+| 影响 | `affects` | 有向 | 作用者到受影响对象 |
+| 表示 | `represents` | 有向 | 表征到所指对象 |
+| 形式化表达 | `formalizes` | 有向 | 形式系统到被形式化对象 |
+| 应用于 | `applies_to` | 有向 | 方法或理论到应用对象 |
+| 类似于 | `analogous_to` | 无向 | 有明确结构或机制依据的类比 |
+| 建模描述 | `models` | 有向 | 模型到被建模对象 |
+| 主题是 | `about` | 有向 | 资源或内容到主题对象 |
+| 相关 | `related_to` | 无向 | 稳定但尚未细化的关联 |
 
-- `subkind`
-- `aliases`
-- `knowledge_form`
-- `learning_mode`
-- `scope`
-- `properties`
-- `external_ids`
-- `tags`
-- `notes`
+每条正式关系至少包含：编号、类型、起点、终点、方向、置信度、证据编号和状态。关系两端必须是同一数据集中的现存正式对象。
 
-这里最重要的约束是：
+`same_as` 已停用。新写入会被数据库拒绝；历史记录迁移时标记为弃用。同一身份必须执行节点归一。
 
-- 顶层类型由 `kind` 决定
-- 领域归属由 `domains` 决定
-- 教学取向由 `learning_mode` 决定
-- 检索辅助由 `tags` 决定
+## 五、来源与证据
 
-它们不能互相替代。
+`world_source_policies` 当前定义六类受治理来源：教材、学术论文、百科资料、课程标准、结构化数据库和专家知识。
 
-如果一个知识对象需要更完整的语义核心，不增加 `world_nodes` 主表字段，先放进 `properties.semantic_core`：
+每类来源规定：
 
-- `core_claims`：核心命题或关键结论
-- `formal_expressions`：公式、符号表达、结构化表达
-- `conditions`：成立前提
-- `boundaries`：适用边界
-- `counterexamples`：反例
-- `misconceptions`：常见误解
+- 中文名称；
+- 是否允许支持正式关系；
+- 是否要求额外人工确认；
+- 可信等级；
+- 治理状态。
 
-`definition` 应保持短定义，只回答“它是什么”。公式、边界、反例、常见误解不应全部塞进 `definition`。
+`world_evidence` 保存证据本身，`world_mentions` 保存来源对对象的提及，`world_evidence_links` 保存补充关联。正式对象、关系、学科画像、课程投影、卡片和正文都应能回到证据。
 
-## 五、关系层：只保留 15 类稳定关系
+合成、质量排除、待确认或已拒绝证据不能用于批准跨学科关系。
 
-- `is_a`
-- `instance_of`
-- `part_of`
-- `contains`
-- `has_property`
-- `uses`
-- `produces`
-- `depends_on`
-- `prerequisite_for`
-- `causes`
-- `affects`
-- `represents`
-- `about`
-- `same_as`
-- `related_to`
+## 六、卡片与正文
 
-其中最核心的五组关系是：
+- `world_node_cards` 保存结构化摘要和分节说明；
+- `world_node_bodies` 保存持久化 Markdown 知识正文；
+- 两者都必须保存来源证据编号；
+- 来源原文通过证据和 `source_fragments` 表达，正文不得冒充原文。
 
-- 分类关系：`is_a`、`instance_of`
-- 结构关系：`part_of`、`contains`
-- 机制关系：`causes`、`affects`、`depends_on`
-- 学习关系：`prerequisite_for`
-- 表征关系：`represents`
+## 七、受控分类与标签
 
-## 六、受治理的跨学科发现
+`world_taxonomy_terms` 和 `world_taxonomy_edges` 表达受控分类。标签只用于检索、聚类和候选召回，不承担主分类、学科角色、正式关系或证据职责。
 
-跨学科发现不是第五个知识结构层，而是正式图谱外的治理流程。当前工程使用：
+## 八、跨学科候选
 
-- `world_interdisciplinary_runs` 记录扫描范围、配置和统计。
-- `world_interdisciplinary_candidates` 记录可能的同一对象或跨学科关系，以及发现理由、证据和复核状态。
+候选类型固定为：
 
-治理规则固定为：
+```text
+node_alignment / relation / bridge_path
+```
 
-1. 领域集合有交集的节点对不属于严格跨学科候选。
-2. 名称、别名、语义键和匹配分数只能发现同一对象候选，不能自动合并节点。
-3. 桥接标签和普通标签只能发现关系候选，不能证明关系成立。
-4. 关系候选必须由人工从本标准关系中选择类型、方向与起终点，并至少选择一条未被质量排除的现有教材证据；`same_as` 不在关系候选中使用，同一对象应走身份归一。
-5. 候选只有在批准并由受事务保护的应用步骤写入 `world_edges` 后，才成为正式事实关系。
-6. 同一对象候选批准后执行 canonical 节点归一，不用 `same_as` 边保留两个本应合并的身份。
-7. 正式跨学科边必须保留候选、扫描、复核和证据来源。
+治理规则：
 
-完整流程见 `docs/interdisciplinary-knowledge-network.md`。
+1. 两端学科集合有交集时，不属于严格跨学科对象对；
+2. 名称、别名、语义键和评分只能召回同一对象候选；
+3. 主题标签只能召回直接关系或桥接路径候选；
+4. 同一对象候选批准后执行身份归一；
+5. 直接关系必须选择中文关系、方向和至少一条合格直接证据；
+6. 桥接路径必须包含两段，每段分别选择关系、方向和属于本段的直接证据；
+7. 候选批准后仍需受事务保护的应用步骤；
+8. 正式关系统一写入 `world_edges`；
+9. `world_cross_domain_edges` 只是只读派生视图；
+10. 正式跨学科关系必须保留候选、扫描、审核和证据来源。
 
-## 七、`schema` 和 `tag` 的区别
+## 九、暂存与归并
 
-### `schema`
+课时工作器只能写：
 
-`schema` 是正式结构规则。
+- `world_lesson_runs`；
+- `world_staging_nodes`；
+- `world_staging_edges`；
+- `world_staging_domain_profiles`；
+- `world_staging_curriculum_projections`；
+- 其他 `world_staging_*` 证据、卡片和提及表。
 
-它规定：
+正式 `world_*` 写入、重复项归并、编号重映射、身份归一和最终质量状态属于归并器、规范化阶段及受锁保护的应用步骤。
 
-- 对象类型
-- 必填字段
-- 合法关系
-- 分类表结构
-- 领域扩展结构
+## 十、质量检查
 
-它回答的是：
+严格质量检查至少验证：
 
-- “这个东西到底是什么？”
-- “它能和什么建立什么关系？”
+1. 对象顶层形态、学科和状态合法；
+2. 关系属于当前 18 类且端点存在；
+3. 学科画像引用现存领域模式，角色属于该模式；
+4. 课程投影的课程、学段、年级和课程角色合法；
+5. 教学画像结构、证据和生成元数据合法；
+6. 来源证据存在且符合使用策略；
+7. 正式关系不包含已停用身份关系；
+8. 桥接路径审核后恰好写入两条正式关系；
+9. 对象、关系、卡片、正文、画像和投影的证据引用可解析；
+10. 图中不存在悬空端点和破坏归并映射的记录。
 
-### `tag`
+## 十一、公共消费
 
-`tag` 是检索词，不是主分类结构。
+服务端通过 `ApiUnit` 聚合：
 
-它只负责：
+```text
+node + relations + domain_profiles + curriculum_projections + mentions +
+evidence + media + source_fragments + card + body + completeness
+```
 
-- 帮人找东西
-- 做主题聚合
-- 做粗粒度索引
+关系同时返回内部代码和中文名称。用户界面只以中文关系名称作为主要展示。
 
-它回答的是：
+## 十二、研究边界
 
-- “这个东西大概和什么有关？”
+`world-v1.3` 已经支持受治理的多学科统一表示和可解释桥接路径，但当前实现不自动证明：
 
-因此：
+- 候选关系被证据语义蕴含；
+- 跨学科候选完整；
+- 知识网络在教学上最优；
+- 对象级检索改善真实学习或科研结果。
 
-- `schema` 决定结构真值
-- `tag` 只做检索辅助
-
-## 八、教育学与哲学依据
-
-这套标准不是随意拼出来的，它结合了本体论、知识组织、教育分类、知识哲学四类依据。
-
-### 1. 顶层本体依据：BFO + OWL
-
-采用“先给对象一个稳定本体类型，再谈关系和领域扩展”的思路，主要来自：
-
-- BFO 的上层本体做法：先区分对象、过程等高层存在类型
-- OWL 的知识表示做法：先定义类、关系、约束，再做机器可判定表示
-
-这也是为什么本标准先固定 9 个顶层类，而不是直接拿标签堆。
-
-### 2. 分类表依据：SKOS
-
-概念分类表不直接等于节点本体，而是一个受控词表体系。
-
-这对应 SKOS 的基本思想：
-
-- 分类词条要有唯一标识
-- 分类词条之间要能表达上下位与相关关系
-- 分类词条和知识对象本身要区分
-
-所以本项目里：
-
-- `taxonomy` 是正式分类表
-- `tag` 不是正式分类表
-
-### 3. 教育领域划分依据：UNESCO / ISCED
-
-世界知识虽然统一建模，但“学科归属”“学段归属”仍然需要参考教育领域中的标准划分。
-
-这里采用的思路是：
-
-- 顶层本体尽量跨学科稳定
-- 领域与学段放在扩展层，而不是塞回节点本体
-
-这与 UNESCO/ISCED 一类教育分类标准的做法一致：对象本身和教育编排层面应分离。
-
-领域扩展层中，`school_stages` 和 `curriculum_roles` 只说明教学位置。如果需要描述怎么教、怎么诊断、怎么评价，写入数据库列 `world_domain_profiles.properties_json`。服务端聚合 `ApiUnit` 时，该列映射为 `domain_profiles[].properties`。旧数据使用 `properties_json.pedagogical_profile`（接口为 `properties.pedagogical_profile`）；自动生成数据使用 `properties_json.pedagogical_profiles_by_stage`（接口为 `properties.pedagogical_profiles_by_stage`），按学段分别保存：
-
-- `learning_objectives`：学习目标
-- `difficulty_level`：难度层级
-- `diagnostic_questions`：前置诊断问题
-- `common_errors`：常见错误
-- `assessment_tasks`：评价任务
-- `remediation_suggestions`：补救建议
-- `extension_suggestions`：拓展建议
-
-### 4. 知识形式依据：Ryle 与 Polanyi
-
-`knowledge_form` 只保留两类：
-
-- `propositional`
-- `practical`
-
-这样设计的依据是：
-
-- Ryle 区分“知道某事”和“知道如何做”
-- Polanyi 强调很多能力知识不能完全化成显性命题
-
-因此，世界知识标准不能只收“命题知识”，还必须允许“做法知识”作为正式对象进入图谱。
-
-### 5. 学习方式依据：Anderson 与 Krathwohl
-
-`learning_mode` 采用四类：
-
-- `factual`
-- `conceptual`
-- `procedural`
-- `metacognitive`
-
-原因是这四类直接对应修订版布鲁姆分类中的知识维度。
-
-这里特别做了一个收敛：
-
-- 不再把 `value` 放进 `learning_mode`
-
-因为“价值”更适合作为课程目标、德育目标、领域画像中的扩展信息，而不是知识对象本体上的通用学习维度。
-
-## 九、为什么这套结构更适合做研究
-
-如果目标是发高水平论文，这套结构比单纯标签体系更有研究价值，原因有四个：
-
-1. 它能把“对象是什么”和“对象与什么相关”分开
-2. 它能把“世界知识结构”和“教学使用场景”分开
-3. 它天然支持证据链和可追溯性
-4. 它允许做跨学科、跨教材、跨学段对齐
-
-这意味着它不仅是一个工程格式，还可以支撑下面这些研究问题：
-
-1. 不同教材对同一知识对象的表征差异
-2. 不同学科中共享概念的跨域对齐
-3. K12 到高教之间知识粒度与先修结构的变化
-4. 基于证据约束的教材知识图谱抽取
-5. 统一世界知识本体下的课程画像投影
-
-## 十、建议的研究评测指标
-
-如果后续要投稿，建议至少围绕以下五类指标建立实验：
-
-1. 覆盖率
-   看 K12 知识点是否都能被映射进 9 类之一
-2. 互斥性
-   看同一对象是否能被稳定归入单一主类
-3. 关系合法性
-   看边类型是否符合约束，层级边是否无环
-4. 证据完备性
-   看节点、关系、课程画像是否都能回到证据
-5. 领域投影一致性
-   看同一节点在不同学科、学段中的 profile 是否稳定
-6. 跨学科候选质量
-   在多人裁决金标准上分别评测对象对齐和关系候选的准确率、召回率、证据充分性与人工复核成本
-
-## 十一、当前工程基线的研究主张
-
-当前工程基线的核心主张可以表述为：
-
-1. 世界知识图谱的顶层分类不应直接等同于教材章节或标签体系
-2. 统一知识标准至少应把本体分类、受控分类表、事实关系、领域扩展分开
-3. 教学属性不应污染对象本体，但应通过扩展层投影回来
-4. 证据溯源不应是附属功能，而应是跨层刚性约束
-5. K12 可以作为统一知识标准的第一阶段压力测试场景
-
-## 十二、参考链接
-
-- OWL: [https://www.w3.org/OWL/](https://www.w3.org/OWL/)
-- SKOS: [https://www.w3.org/TR/skos-reference/](https://www.w3.org/TR/skos-reference/)
-- PROV-DM: [https://www.w3.org/TR/prov-dm/](https://www.w3.org/TR/prov-dm/)
-- BFO: [https://github.com/BFO-ontology/BFO](https://github.com/BFO-ontology/BFO)
-- Ryle（Stanford Encyclopedia of Philosophy）: [https://plato.stanford.edu/entries/ryle/knowing-how.html](https://plato.stanford.edu/entries/ryle/knowing-how.html)
-- Polanyi《The Tacit Dimension》: [https://press.uchicago.edu/ucp/books/book/chicago/T/bo6035368.html](https://press.uchicago.edu/ucp/books/book/chicago/T/bo6035368.html)
-- Anderson & Krathwohl 样章 PDF: [https://www.pearsonhighered.com/assets/samplechapter/0/1/3/3/0133830268.pdf](https://www.pearsonhighered.com/assets/samplechapter/0/1/3/3/0133830268.pdf)
-- UNESCO / ISCED: [https://uis.unesco.org/en/topic/international-standard-classification-education-isced](https://uis.unesco.org/en/topic/international-standard-classification-education-isced)
-- OECD Learning Compass 2030: [https://www.oecd.org/en/data/tools/oecd-learning-compass-2030.html](https://www.oecd.org/en/data/tools/oecd-learning-compass-2030.html)
+这些结论需要多人裁决金标准、外部基线、消融实验和真实任务评估。

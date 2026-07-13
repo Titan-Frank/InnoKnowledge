@@ -1,7 +1,7 @@
 id: textbook/general
-version: 1
+version: 2
 name: 通用教材抽取模板
-description: 适用于未明确归入物理、化学、生物等学科的教材，保持 world-v1.2 通用抽取口径。
+description: 适用于未明确归入具体学科的教材，遵循 world-v1.3 的知识对象、学科画像、课程投影和中文关系口径。
 selector:
   subjects:
     - general
@@ -70,8 +70,11 @@ output:
     - causes
     - affects
     - represents
+    - formalizes
+    - applies_to
+    - analogous_to
+    - models
     - about
-    - same_as
     - related_to
 identifiers:
   node_id: "{kind}:{normalized_name}"
@@ -87,11 +90,23 @@ display:
     rule: 规则
     representation: 表征
   edge_labels:
-    is_a: 属于
-    part_of: 组成
-    has_property: 具有性质
+    is_a: 是一种
+    instance_of: 是实例
+    part_of: 是组成部分
+    contains: 包含
+    has_property: 具有属性
+    uses: 使用
+    produces: 产生
+    depends_on: 依赖
+    prerequisite_for: 是前置知识
     causes: 导致
     affects: 影响
+    represents: 表示
+    formalizes: 形式化表达
+    applies_to: 应用于
+    analogous_to: 类似于
+    models: 建模描述
+    about: 主题是
     related_to: 相关
   colors:
     concept: "#8C55FF"

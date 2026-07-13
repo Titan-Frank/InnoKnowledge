@@ -18,7 +18,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = parseArgs(process.argv.slice(2));
 const databaseUrl = args.get("db") ?? process.env.DATABASE_URL ?? "postgresql://okm:okm@127.0.0.1:5432/knowledge";
 const datasetId = args.get("dataset-id") ?? "main";
-const artifactVersion = args.get("artifact-version") ?? "v0.1.0";
+const artifactVersion = args.get("artifact-version") ?? "v0.2.0";
 const outputDir = resolve(repoRoot, args.get("output") ?? `artifacts/okm-public-${artifactVersion}`);
 const allowUnreviewed = args.has("allow-unreviewed");
 const includeMedia = args.has("include-media");
@@ -74,6 +74,9 @@ try {
   const profiles = bundle.profiles
     .filter((profile) => profile.status !== "deprecated" && activeNodeIds.has(String(profile.node_id)))
     .sort((left, right) => String(left.id).localeCompare(String(right.id)));
+  const curriculumProjections = bundle.curriculum_projections
+    .filter((projection) => projection.status !== "deprecated" && activeNodeIds.has(String(projection.node_id)))
+    .sort((left, right) => String(left.id).localeCompare(String(right.id)));
 
   rmSync(join(outputDir, "data"), { recursive: true, force: true });
   mkdirSync(join(outputDir, "data", "units"), { recursive: true });
@@ -82,6 +85,7 @@ try {
   const exportedEvidenceIds = new Set();
   const exportedMentionIds = new Set();
   const exportedProfileIds = new Set();
+  const exportedCurriculumProjectionIds = new Set();
   let exportedCards = 0;
   let exportedBodies = 0;
   for (let index = 0; index < nodes.length; index += 1) {
@@ -93,6 +97,7 @@ try {
     for (const item of unit.evidence) exportedEvidenceIds.add(String(item.id));
     for (const item of unit.mentions) exportedMentionIds.add(String(item.id));
     for (const item of unit.domain_profiles) exportedProfileIds.add(String(item.id));
+    for (const item of unit.curriculum_projections) exportedCurriculumProjectionIds.add(String(item.id));
     if (unit.card) exportedCards += 1;
     if (unit.body) exportedBodies += 1;
     const file = `unit-${String(index + 1).padStart(6, "0")}.json`;
@@ -112,6 +117,7 @@ try {
       (SELECT count(*)::int FROM world_evidence WHERE dataset_id = ${dataset.dataset_id}) AS evidence,
       (SELECT count(*)::int FROM world_mentions WHERE dataset_id = ${dataset.dataset_id}) AS mentions,
       (SELECT count(*)::int FROM world_domain_profiles WHERE dataset_id = ${dataset.dataset_id} AND status != 'deprecated') AS domain_profiles,
+      (SELECT count(*)::int FROM world_curriculum_projections WHERE dataset_id = ${dataset.dataset_id} AND status != 'deprecated') AS curriculum_projections,
       (SELECT count(*)::int FROM world_node_cards WHERE dataset_id = ${dataset.dataset_id} AND status != 'deprecated') AS cards,
       (SELECT count(*)::int FROM world_node_bodies WHERE dataset_id = ${dataset.dataset_id} AND status != 'deprecated') AS bodies
   `;
@@ -122,6 +128,7 @@ try {
     evidence: exportedEvidenceIds.size,
     mentions: exportedMentionIds.size,
     domain_profiles: exportedProfileIds.size,
+    curriculum_projections: exportedCurriculumProjectionIds.size,
     cards: exportedCards,
     bodies: exportedBodies,
   };
@@ -134,6 +141,7 @@ try {
     nodes,
     edges,
     profiles,
+    curriculum_projections: curriculumProjections,
   });
   writeJson(join(outputDir, "data", "units", "index.json"), {
     artifact_version: artifactVersion,
@@ -150,9 +158,9 @@ try {
     generated_from_commit: sourceCommit,
     generated_from_dirty_worktree: sourceWorktreeDirty,
     contracts: {
-      conceptual_standard: "ai-nks-v0.1",
-      executable_schema: String(datasetMetadata.schema_version ?? "world-v1.2"),
-      public_contract: "ApiUnit-v0.1",
+      conceptual_standard: "ai-nks-v0.2",
+      executable_schema: String(datasetMetadata.schema_version ?? "world-v1.3"),
+      public_contract: "ApiUnit-v0.2",
       api_unit_schema: "schemas/api-unit.schema.json",
     },
     source_database: {

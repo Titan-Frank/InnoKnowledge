@@ -1,6 +1,6 @@
 # 提示词清单
 
-更新日期：2026-07-12
+更新日期：2026-07-13
 
 本文整理当前代码仓库中会在运行时发送给模型的提示词。范围只包括真实模型调用链路，不包括测试用例中的假提示词、普通界面文案、类型字段名或研究讨论文档中的概念示例。
 
@@ -97,7 +97,7 @@ P5 使用 Chat Completions 的 JSON object 模式，要求返回 `answer`、`cit
 
 用途：
 
-用两阶段流程抽取当前一个 `lesson/chunk`：第一阶段判断该课时是抽取到知识还是合法无知识，并抽取节点和证据；第二阶段只基于第一阶段结果判断关系。领域画像和节点卡片由后续规范化、补齐和 reducer 流程处理。
+用两阶段流程抽取当前一个 `lesson/chunk`：第一阶段判断该课时是抽取到知识还是合法无知识，并抽取节点和证据；第二阶段只基于第一阶段结果判断关系。学科语义画像、课程投影和节点卡片由后续规范化、补齐和 reducer 流程处理。
 
 ### P1 输入
 
@@ -218,14 +218,17 @@ Chat Completions：
 - resource：资料、文本、工具、数据集、媒介资源。
 
 关系判断：
-- is_a 用于类属关系；instance_of 用于具体实例属于某类。
-- part_of/contains 用于组成和包含。
-- has_property 用于对象具有属性。
-- uses/produces 用于方法或过程使用、产出某对象。
-- depends_on/prerequisite_for 用于依赖和先修。
-- causes/affects 用于因果和影响。
-- represents/about 用于表示对象和论述主题。
-- same_as 只用于高度确定的同一对象；不确定时用 related_to。
+- 优先输出 `allowed_relations` 中的中文名称，系统会归一为稳定内部代码。
+- “是一种”和“是实例”用于类属与实例。
+- “是组成部分”和“包含”用于结构组成。
+- “具有属性”用于对象性质。
+- “使用”和“产生”用于方法或过程的输入与产出。
+- “依赖”和“是前置知识”分别用于机制依赖与学习顺序。
+- “导致”和“影响”用于因果与非充分因果作用。
+- “表示”“形式化表达”和“建模描述”用于不同层次的表征。
+- “应用于”和“类似于”用于跨领域应用与有机制依据的类比。
+- “主题是”和“相关”用于资源主题与尚待细化的稳定关联。
+- 同一身份不是关系；模型不得输出“同一对象”，应交给后续节点归一流程。
 
 学习维度判断：
 - factual：事实、名称、符号、具体信息。
@@ -239,9 +242,10 @@ Chat Completions：
 - semantic_core 可以包含 core_claims、formal_expressions、conditions、boundaries、counterexamples、misconceptions。
 - 没有证据支撑的公式、边界、反例、常见误解不要补。
 
-教学画像：
-- 当前两阶段课时抽取不生成教学画像。
-- domain_profiles 的领域、学段和课程角色先由后处理补齐。
+学科与教学投影：
+- 当前两阶段课时抽取生成基础学科画像和课程投影，但不生成完整教学画像。
+- `domain_profiles` 只输出学科角色和学科特有属性。
+- `curriculum_projections` 输出课程、学段、年级和课程角色。
 - 学习目标、难度、诊断题、常见错误、评价任务、补救建议和拓展建议由 P4 在正式数据归一化后单独生成。
 ```
 
@@ -292,7 +296,8 @@ P1 分两次调用模型。第一阶段 Schema 在 `buildHybridNodeEvidenceRespo
 | `nodes` | 候选知识节点 | `kind` 只能是 `entity/concept/property/process/event/method/rule/representation/resource`；必须有 `definition`、`domains`、`knowledge_form`、`learning_mode`、`scope` 等字段 |
 | `edges` | 候选知识关系 | `type` 必须是 schema 合法关系；必须有 `from`、`to`、`directionality`、`confidence`、`evidence_anchor` |
 | `evidence_units` | 当前课时内可追溯的证据单元 | 必须有 `anchor`、`excerpt`、`locator`、`modality`、`node_ids` |
-| `domain_profiles` | 兼容完整响应结构的领域画像字段 | 当前两阶段流程会先设为空，后处理补齐基础画像，P4 再按学段生成教学画像 |
+| `domain_profiles` | 学科语义画像 | 当前两阶段流程会先设为空，后处理根据学科模式补齐 `schema_id`、`schema_version`、`domain_role` 和专业属性，不写入课程或教学字段 |
+| `curriculum_projections` | 课程与教学投影 | 当前两阶段流程会先设为空，后处理补齐课程、学段、年级和课程角色；P4 在每条投影的 `properties.pedagogical_profile` 中生成教学画像 |
 | `node_cards` | 面向前端展示的节点摘要卡片 | 必须绑定 `node_id` 和 `evidence_anchor`，包含 `summary`、`definition`、`essence`、`key_points`、`example`、`application`、`misconception` |
 | `issues` | 模型主动报告的问题 | 例如证据不足、内容模糊、无法确定分类等 |
 
@@ -416,7 +421,7 @@ P1 分两次调用模型。第一阶段 Schema 在 `buildHybridNodeEvidenceRespo
     {
       "from": "node:dissolution",
       "to": "node:solution",
-      "type": "produces",
+      "type": "产生",
       "directionality": "directed",
       "confidence": 0.86,
       "evidence_anchor": "ev-line-3",
@@ -436,7 +441,17 @@ P1 分两次调用模型。第一阶段 Schema 在 `buildHybridNodeEvidenceRespo
     {
       "node_id": "node:solution",
       "domain": "chemistry",
-      "school_stages": ["junior-secondary"],
+      "domain_role": "model",
+      "properties": {}
+    }
+  ],
+  "curriculum_projections": [
+    {
+      "node_id": "node:solution",
+      "domain": "chemistry",
+      "curriculum_id": "textbook:chemistry-example",
+      "school_stage": "junior-secondary",
+      "grade_band": "grade-9",
       "curriculum_roles": ["core"],
       "properties": {}
     }
@@ -616,7 +631,7 @@ core_content / supporting / decorative / mismatch / uncertain
 后续处理规则：
 
 1. `keep=true` 的图片证据会保留。
-2. `keep=false` 的图片证据会被过滤，并触发相关节点引用、关系引用、领域画像引用和卡片引用的清理。
+2. `keep=false` 的图片证据会被过滤，并触发相关节点引用、关系引用、学科语义画像引用、课程投影引用和卡片引用的清理。
 3. `uncertain` 不等于过滤；提示词明确要求只有无法判断时才使用，并且通常仍是 `keep=true`。
 4. `uncertain` 且未复核，或 `review_status=pending`，只在前端调试页待复核列表显示，普通知识单元详情默认隐藏。
 5. 人工标为核心图、辅助图或保留后写入 `review_status=approved`，普通知识单元详情显示；人工删除后写入 `review_status=rejected`，普通知识单元详情隐藏。
@@ -822,7 +837,7 @@ P3 必须返回一个 JSON 对象。Schema 在 `buildModelNodeBodyResponseSchema
 
 注意：示例中的证据标记应保持和输入证据 ID 一致。实际前端会把 `[evidence:...]` 显示成角标编号，例如 `[1]`。
 
-## 六、P4：按学段生成教学画像
+## 六、P4：按课程投影生成教学画像
 
 来源：
 
@@ -833,25 +848,25 @@ P3 必须返回一个 JSON 对象。Schema 在 `buildModelNodeBodyResponseSchema
 
 用途：
 
-在正式节点完成归一化后，针对每个“领域画像记录＋学段”生成学习目标、难度、诊断、评价、补救和拓展内容。生成结果按学段写入 `world_domain_profiles.properties_json.pedagogical_profiles_by_stage`。
+在正式节点完成归一化后，针对每条课程投影生成学习目标、难度、诊断、评价、补救和拓展内容。结果写入该记录的 `world_curriculum_projections.properties_json.pedagogical_profile`，不会改写学科语义画像。
 
 ### P4 输入
 
 P4 输入包含：
 
-1. 当前领域、学段、年级范围和课程角色。
+1. 当前课程体系、领域、学段、年级范围和课程角色。
 2. 正式知识节点及其语义核心。
 3. 结构化节点卡片。
 4. 当前节点的入边、出边和相关节点名称。
 5. 与本次教材关联的证据片段和允许引用的证据编号。
 
-同一领域画像包含多个学段时，系统会拆成多个独立请求，不能把初中和高中目标写入同一份画像。
+每条课程投影只对应一个学段；初中和高中目标分别存入不同投影，不能共用一份教学画像。
 
 ### P4 提示词
 
 ```text
 你是 Open Knowledge Map 的教学画像生成器。
-任务：根据一个已经规范化的知识对象、指定领域和指定学段，生成可用于教学、诊断和评价的结构化画像。
+任务：根据一个已经规范化的知识对象和指定课程投影（课程、领域、学段与年级），生成可用于教学、诊断和评价的结构化画像。
 
 硬约束：
 1. 知识事实只能来自输入的节点、结构化卡片、关系和证据；不得补充无证据支持的学科事实。
@@ -917,7 +932,7 @@ P4 输入包含：
 
 1. `packages/pipeline/src/extraction/model-lesson-extraction.test.ts` 中的 `"只保留证据充分的节点。"` 是测试用例里的样例补充提示词。
 2. `packages/types/src/patterns.ts` 中的 `prompt: string` 是类型字段，不是仓库内实际提示词内容。
-3. 跨学科候选扫描使用确定性名称、别名、语义键、领域和桥接标签规则，不调用模型，也没有隐藏提示词；正式关系仍需要人工选择教材证据。
+3. 跨学科候选扫描使用确定性名称、别名、语义键、领域、显式桥接对象和主题标签规则，不调用模型，也没有隐藏提示词；正式关系及桥接路径分段仍需要人工选择符合来源策略的直接证据。
 4. embedding 调用只发送待嵌入文本，没有额外自然语言提示词。
 5. MinerU 调用使用参数化请求，没有仓库内自然语言提示词。
 

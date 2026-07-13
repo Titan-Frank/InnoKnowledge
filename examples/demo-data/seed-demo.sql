@@ -10,7 +10,7 @@ INSERT INTO world_datasets (
   dataset_id, dataset_name, schema_version, status, is_active, root_path,
   created_at, updated_at, notes
 ) VALUES (
-  'demo', 'Synthetic Home Solar Demo', 'world-v1.2', 'active', 0,
+  'demo', 'Synthetic Home Solar Demo', 'world-v1.3', 'active', 0,
   'examples/demo-data', '2026-07-12T00:00:00.000Z',
   '2026-07-12T00:00:00.000Z',
   'Fully synthetic repository demo. Not derived from a textbook and not an evaluation benchmark.'
@@ -58,15 +58,15 @@ INSERT INTO world_nodes (
   knowledge_form_json, learning_mode_json, scope, properties_json,
   external_ids_json, tags_json, status, created_at, updated_at, notes
 ) VALUES
-  ('demo','resource/sunlight:demo','Sunlight','resource','energy-source','Radiant energy from the Sun that is available as an input to a solar-energy system.','["solar radiation"]','["physics","energy-systems"]','["declarative"]','["conceptual"]','universal','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Illustrative definition; not engineering advice.'),
-  ('demo','entity/solar-panel:demo','Solar panel','entity','energy-device','A device that receives sunlight and produces electrical energy through photovoltaic conversion.','["photovoltaic panel"]','["physics","energy-systems"]','["declarative"]','["conceptual"]','domain-specific','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Illustrative definition; not engineering advice.'),
-  ('demo','process/photovoltaic-conversion:demo','Photovoltaic conversion','process','energy-conversion','A process that changes part of incoming radiant energy into electrical energy.','["photovoltaic effect"]','["physics","energy-systems"]','["procedural"]','["conceptual"]','domain-specific','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Simplified for demonstration.'),
-  ('demo','concept/electrical-energy:demo','Electrical energy','concept','energy-form','Transferable energy associated with electric charge moving through a circuit.','["electric energy"]','["physics","energy-systems"]','["declarative"]','["conceptual"]','universal','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Simplified for demonstration.'),
-  ('demo','representation/energy-flow-diagram:demo','Energy-flow diagram','representation','diagram','A diagram that shows energy inputs, conversions, outputs, and losses with labeled connections.','["energy flow chart"]','["physics","energy-systems"]','["representational"]','["visual"]','domain-specific','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Illustrative representation.'),
-  ('demo','property/rated-power:demo','Rated power','property','device-rating','The output power assigned to a device under specified reference conditions.','["nameplate power"]','["physics","energy-systems"]','["declarative"]','["conceptual","quantitative"]','domain-specific','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Not a measured rating for any real device.'),
-  ('demo','event/low-sunlight-period:demo','Low-sunlight period','event','operating-condition','A time interval in which less radiant energy reaches a solar panel than under the chosen reference condition.','["reduced irradiance period"]','["physics","energy-systems"]','["situational"]','["conceptual"]','domain-specific','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Illustrative operating condition.'),
-  ('demo','method/daily-energy-estimation:demo','Daily energy estimation','method','calculation-method','A method that estimates daily energy from a suitable power estimate, operating time, and changing conditions.','["daily yield estimate"]','["physics","energy-systems"]','["procedural"]','["quantitative"]','domain-specific','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Illustrative method; not a system-sizing procedure.'),
-  ('demo','rule/energy-balance:demo','Energy-balance rule','rule','conservation-rule','A rule that separates input energy, useful output energy, and conversion losses in an estimate.','["energy accounting rule"]','["physics","energy-systems"]','["declarative","procedural"]','["conceptual","quantitative"]','universal','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Simplified for demonstration.');
+  ('demo','resource/sunlight:demo','Sunlight','resource','energy-source','Radiant energy from the Sun that is available as an input to a solar-energy system.','["solar radiation"]','["physics"]','["propositional"]','["conceptual"]','universal','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain","bridge_role":"semantic_bridge"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Illustrative definition; not engineering advice.'),
+  ('demo','entity/solar-panel:demo','Solar panel','entity','energy-device','A device that receives sunlight and produces electrical energy through photovoltaic conversion.','["photovoltaic panel"]','["physics"]','["propositional"]','["conceptual"]','domain-specific','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Illustrative definition; not engineering advice.'),
+  ('demo','process/photovoltaic-conversion:demo','Photovoltaic conversion','process','energy-conversion','A process that changes part of incoming radiant energy into electrical energy.','["photovoltaic effect"]','["physics"]','["practical"]','["conceptual"]','domain-specific','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Simplified for demonstration.'),
+  ('demo','concept/electrical-energy:demo','Electrical energy','concept','energy-form','Transferable energy associated with electric charge moving through a circuit.','["electric energy"]','["physics"]','["propositional"]','["conceptual"]','universal','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain","bridge_role":"semantic_bridge"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Simplified for demonstration.'),
+  ('demo','representation/energy-flow-diagram:demo','Energy-flow diagram','representation','diagram','A diagram that shows energy inputs, conversions, outputs, and losses with labeled connections.','["energy flow chart"]','["physics"]','["propositional"]','["conceptual"]','domain-specific','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Illustrative representation.'),
+  ('demo','property/rated-power:demo','Rated power','property','device-rating','The output power assigned to a device under specified reference conditions.','["nameplate power"]','["physics"]','["propositional"]','["conceptual"]','domain-specific','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Not a measured rating for any real device.'),
+  ('demo','event/low-sunlight-period:demo','Low-sunlight period','event','operating-condition','A time interval in which less radiant energy reaches a solar panel than under the chosen reference condition.','["reduced irradiance period"]','["physics"]','["propositional"]','["conceptual"]','domain-specific','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Illustrative operating condition.'),
+  ('demo','method/daily-energy-estimation:demo','Daily energy estimation','method','calculation-method','A method that estimates daily energy from a suitable power estimate, operating time, and changing conditions.','["daily yield estimate"]','["physics"]','["practical"]','["procedural"]','domain-specific','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain","bridge_role":"method_bridge"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Illustrative method; not a system-sizing procedure.'),
+  ('demo','rule/energy-balance:demo','Energy-balance rule','rule','conservation-rule','A rule that separates input energy, useful output energy, and conversion losses in an estimate.','["energy accounting rule"]','["physics"]','["propositional","practical"]','["conceptual","procedural"]','universal','{"synthetic":true,"source_origin":"repository_authored_demo","node_layer":"domain","bridge_role":"semantic_bridge"}','{}','["demo","home-solar"]','active','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z','Simplified for demonstration.');
 
 INSERT INTO world_node_terms (dataset_id, node_id, term, term_norm, term_type)
 SELECT dataset_id, id, name, lower(name), 'canonical'
@@ -128,16 +128,62 @@ INSERT INTO world_mentions (
   ('demo','mention/energy-balance:demo','textbook','demo-home-solar','struct:demo-home-solar:chunk:2-4','node','rule/energy-balance:demo','defines','["evidence/energy-balance:demo"]',1.0,'{"synthetic":true}','2026-07-12T00:00:00.000Z','2026-07-12T00:00:00.000Z');
 
 INSERT INTO world_domain_profiles (
-  dataset_id, id, node_id, domain, school_stages_json, curriculum_roles_json,
+  dataset_id, id, node_id, domain, schema_id, schema_version, domain_role,
   source_refs_json, properties_json, status, created_at, updated_at, notes
 )
 SELECT
   'demo', 'profile/' || split_part(n.id, ':', 1) || ':demo', n.id, 'physics',
-  '["secondary"]'::jsonb, '["introductory"]'::jsonb,
+  'domain:physics:v1', '1.0',
+  CASE n.kind
+    WHEN 'resource' THEN 'physical_quantity'
+    WHEN 'entity' THEN 'model'
+    WHEN 'process' THEN 'phenomenon'
+    WHEN 'concept' THEN 'principle'
+    WHEN 'representation' THEN 'model'
+    WHEN 'property' THEN 'physical_quantity'
+    WHEN 'event' THEN 'phenomenon'
+    WHEN 'method' THEN 'measurement_method'
+    WHEN 'rule' THEN 'law'
+    ELSE 'principle'
+  END,
   jsonb_build_array(e.id),
-  '{"synthetic":true,"subject":"physics","grade_band":"secondary","learning_objectives":["Explain the object in a simple energy-flow model."]}'::jsonb,
+  '{"synthetic":true,"subject":"physics"}'::jsonb,
   'active', '2026-07-12T00:00:00.000Z', '2026-07-12T00:00:00.000Z',
-  'Illustrative profile; not aligned to an official curriculum.'
+  'Illustrative semantic Domain Profile.'
+FROM world_nodes n
+JOIN world_mentions m ON m.dataset_id = n.dataset_id AND m.target_type = 'node' AND m.target_id = n.id
+JOIN world_evidence e ON e.dataset_id = m.dataset_id AND e.id = m.source_refs_json->>0
+WHERE n.dataset_id = 'demo';
+
+INSERT INTO world_curriculum_projections (
+  dataset_id, id, node_id, domain, curriculum_id, school_stage, grade_band,
+  curriculum_roles_json, source_refs_json, properties_json, status,
+  created_at, updated_at, notes
+)
+SELECT
+  'demo', 'curriculum/' || split_part(n.id, ':', 1) || ':demo', n.id, 'physics',
+  'demo:home-solar', 'higher', NULL, '["core"]'::jsonb,
+  jsonb_build_array(e.id),
+  jsonb_build_object(
+    'synthetic', true,
+    'pedagogical_profile', jsonb_build_object(
+      'school_stage', 'higher',
+      'learning_objectives', jsonb_build_array('Explain the object in a simplified home-solar energy path.'),
+      'difficulty_level', 'introductory',
+      'diagnostic_questions', jsonb_build_array('What role does this object play in the energy path?'),
+      'common_errors', jsonb_build_array('Treating the simplified demo as a complete engineering model.'),
+      'assessment_tasks', jsonb_build_array('Connect the object to its supported relation and cite the source statement.'),
+      'remediation_suggestions', jsonb_build_array('Return to the definition and synthetic source statement.'),
+      'extension_suggestions', jsonb_build_array('Compare this role with another energy-conversion context.'),
+      'generation', jsonb_build_object(
+        'generated_from', 'manual',
+        'review_status', 'approved',
+        'source_refs', jsonb_build_array(e.id)
+      )
+    )
+  ),
+  'active', '2026-07-12T00:00:00.000Z', '2026-07-12T00:00:00.000Z',
+  'Illustrative curriculum projection; not aligned to an official curriculum.'
 FROM world_nodes n
 JOIN world_mentions m ON m.dataset_id = n.dataset_id AND m.target_type = 'node' AND m.target_id = n.id
 JOIN world_evidence e ON e.dataset_id = m.dataset_id AND e.id = m.source_refs_json->>0
@@ -191,6 +237,9 @@ UNION ALL
 SELECT dataset_id, 'domain_profile', id, source_refs_json->>0, 1
 FROM world_domain_profiles WHERE dataset_id = 'demo'
 UNION ALL
+SELECT dataset_id, 'curriculum_projection', id, source_refs_json->>0, 1
+FROM world_curriculum_projections WHERE dataset_id = 'demo'
+UNION ALL
 SELECT dataset_id, 'node_card', id, source_refs_json->>0, 1
 FROM world_node_cards WHERE dataset_id = 'demo'
 UNION ALL
@@ -203,7 +252,7 @@ INSERT INTO world_lesson_runs (
 ) VALUES (
   'demo', 'lesson-run/home-solar:demo', 'demo-home-solar',
   'struct:demo-home-solar:theme:1', 'merged',
-  '{"nodes":9,"edges":12,"evidence":9,"profiles":9,"mentions":9,"cards":9}'::jsonb,
+  '{"nodes":9,"edges":12,"evidence":9,"domain_profiles":9,"curriculum_projections":9,"mentions":9,"cards":9}'::jsonb,
   '{"synthetic":true,"direct_seed":true,"quality_review_required":false,"quality_warnings":["Synthetic direct seed: no extraction model, reducer, or independent quality review was run."]}'::jsonb,
   '2026-07-12T00:00:00.000Z', '2026-07-12T00:00:00.000Z'
 );
@@ -214,5 +263,7 @@ SELECT
   (SELECT count(*) FROM world_nodes WHERE dataset_id = 'demo') AS nodes,
   (SELECT count(*) FROM world_edges WHERE dataset_id = 'demo') AS edges,
   (SELECT count(*) FROM world_evidence WHERE dataset_id = 'demo') AS evidence,
+  (SELECT count(*) FROM world_domain_profiles WHERE dataset_id = 'demo') AS domain_profiles,
+  (SELECT count(*) FROM world_curriculum_projections WHERE dataset_id = 'demo') AS curriculum_projections,
   (SELECT count(*) FROM world_node_cards WHERE dataset_id = 'demo') AS cards,
   (SELECT count(*) FROM world_node_bodies WHERE dataset_id = 'demo') AS bodies;

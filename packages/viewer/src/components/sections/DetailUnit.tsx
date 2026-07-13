@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { domainRoleLabelZh, domainSchemaFor } from '@okm/types';
 import type { OKMNode } from '@/core/graph/types';
 import { useAppState } from '@/hooks/useAppState';
 import { useUnitLoader } from '@/hooks/useUnitLoader';
@@ -61,23 +62,6 @@ function hasPedagogicalContent(value: Row): boolean {
     value.remediation_suggestions,
     value.extension_suggestions,
   ].some((items) => textList(items).length > 0);
-}
-
-function pedagogicalContexts(properties: Row, fallbackStages: string[]): Array<{ key: string; stage: string; value: Row }> {
-  const byStage = asRecord(properties.pedagogical_profiles_by_stage);
-  const stageOrder = ['primary', 'junior-secondary', 'senior-secondary', 'higher'];
-  const contexts = Object.entries(byStage)
-    .map(([stage, value]) => ({ key: stage, stage, value: asRecord(value) }))
-    .filter((item) => hasPedagogicalContent(item.value))
-    .sort((left, right) => {
-      const leftIndex = stageOrder.indexOf(left.stage);
-      const rightIndex = stageOrder.indexOf(right.stage);
-      return (leftIndex < 0 ? 99 : leftIndex) - (rightIndex < 0 ? 99 : rightIndex);
-    });
-  const legacy = asRecord(properties.pedagogical_profile);
-  if (!hasPedagogicalContent(legacy)) return contexts;
-  const stage = contexts.length === 0 && fallbackStages.length === 1 ? fallbackStages[0]! : '';
-  return [...contexts, { key: 'legacy', stage, value: legacy }];
 }
 
 function generatedDateLabel(value: unknown): string {
@@ -386,6 +370,7 @@ export function DetailUnit({ node }: { node: OKMNode }) {
   const outgoing = asRows(unit.relations?.outgoing);
   const incoming = asRows(unit.relations?.incoming);
   const profiles = asRows(unit.domain_profiles);
+  const curriculumProjections = asRows(unit.curriculum_projections);
   const evidence = asRows(unit.evidence);
   const media = asRows(unit.media);
   const sourceFragments = asRows(unit.source_fragments);
@@ -762,104 +747,102 @@ export function DetailUnit({ node }: { node: OKMNode }) {
 
       {profiles.length > 0 && (
         <section className="rounded-lg border border-border-subtle bg-elevated p-4">
-          <SectionTitle title="领域画像" meta={`${profiles.length} 个`} />
+          <SectionTitle title="学科语义画像" meta={`${profiles.length} 个`} />
           <div className="space-y-2">
             {profiles.map((profile) => {
-              const stages = sourceRefs(profile.school_stages);
-              const roles = sourceRefs(profile.curriculum_roles);
-              const properties = asRecord(profile.properties);
-              const contexts = pedagogicalContexts(properties, stages);
               const domain = text(profile.domain);
+              const schema = domainSchemaFor(domain);
+              const role = text(profile.domain_role);
+              const profileSourceRefs = sourceRefs(profile.source_refs);
               return (
                 <div key={text(profile.id)} className="rounded-lg border border-border-subtle bg-surface p-3">
-                  <div className="text-xs font-medium text-text-primary">{DOMAIN_LABELS[domain] ?? domain}</div>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {stages.map((stage) => (
-                      <span key={stage} className="rounded-full bg-elevated px-2 py-0.5 text-[11px] text-text-muted">
-                        {SCHOOL_STAGE_LABELS[stage] ?? stage}
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-text-primary">
+                    <span>{DOMAIN_LABELS[domain] ?? domain}</span>
+                    {role && <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-normal text-accent">{domainRoleLabelZh(role)}</span>}
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-text-muted">
+                    <span>学科模式：{schema.display_name_zh}</span>
+                    <span>模式版本：{text(profile.schema_version) || schema.version}</span>
+                    {profileSourceRefs.length > 0 && (
+                      <span>
+                        依据 {profileSourceRefs.length} 条证据
+                        {profileSourceRefs.map((evidenceId, index) => renderEvidenceRef(evidenceId, `${text(profile.id)}:evidence:${index}`))}
                       </span>
-                    ))}
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {curriculumProjections.length > 0 && (
+        <section className="rounded-lg border border-border-subtle bg-elevated p-4">
+          <SectionTitle title="课程与教学投影" meta={`${curriculumProjections.length} 个`} />
+          <div className="space-y-2">
+            {curriculumProjections.map((projection) => {
+              const domain = text(projection.domain);
+              const stage = text(projection.school_stage);
+              const roles = sourceRefs(projection.curriculum_roles);
+              const gradeBand = gradeBandLabel(text(projection.grade_band));
+              const properties = asRecord(projection.properties);
+              const pedagogicalProfile = asRecord(properties.pedagogical_profile);
+              const generation = asRecord(pedagogicalProfile.generation);
+              const difficulty = text(pedagogicalProfile.difficulty_level).trim();
+              const generatedFrom = text(generation.generated_from).trim();
+              const reviewStatus = text(generation.review_status).trim();
+              const confidenceValue = generation.confidence == null ? null : Number(generation.confidence);
+              const generatedAt = generatedDateLabel(generation.generated_at);
+              const model = text(generation.model).trim();
+              const projectionSourceRefs = sourceRefs(projection.source_refs);
+              const generationSourceRefs = sourceRefs(generation.source_refs);
+              const allSourceRefs = uniqueValues([...projectionSourceRefs, ...generationSourceRefs]);
+              const pedagogicalGroups = [
+                { title: '学习目标', items: textList(pedagogicalProfile.learning_objectives) },
+                { title: '诊断问题', items: textList(pedagogicalProfile.diagnostic_questions) },
+                { title: '常见错误', items: textList(pedagogicalProfile.common_errors) },
+                { title: '评价任务', items: textList(pedagogicalProfile.assessment_tasks) },
+                { title: '补救建议', items: textList(pedagogicalProfile.remediation_suggestions) },
+                { title: '拓展建议', items: textList(pedagogicalProfile.extension_suggestions) },
+              ].filter((group) => group.items.length > 0);
+              return (
+                <div key={text(projection.id)} className="rounded-lg border border-border-subtle bg-surface p-3">
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-text-primary">
+                    <span>{DOMAIN_LABELS[domain] ?? domain}</span>
+                    {stage && <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">{SCHOOL_STAGE_LABELS[stage] ?? stage}</span>}
+                    {gradeBand && <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">{gradeBand}</span>}
                     {roles.map((role) => (
-                      <span key={role} className="rounded-full bg-elevated px-2 py-0.5 text-[11px] text-text-muted">
+                      <span key={role} className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">
                         {CURRICULUM_ROLE_LABELS[role] ?? role}
                       </span>
                     ))}
+                    {difficulty && <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">难度：{PEDAGOGICAL_DIFFICULTY_LABELS[difficulty] ?? difficulty}</span>}
                   </div>
-                  {contexts.map((context) => {
-                    const generation = asRecord(context.value.generation);
-                    const difficulty = text(context.value.difficulty_level).trim();
-                    const generatedFrom = text(generation.generated_from).trim();
-                    const reviewStatus = text(generation.review_status).trim();
-                    const confidence = Number(generation.confidence);
-                    const generatedAt = generatedDateLabel(generation.generated_at);
-                    const model = text(generation.model).trim();
-                    const contextSourceRefs = sourceRefs(generation.source_refs);
-                    const contextStage = text(context.value.school_stage).trim() || context.stage;
-                    const contextTitle = context.key === 'legacy' && contexts.length > 1
-                      ? '旧版教学画像'
-                      : contextStage
-                        ? `${SCHOOL_STAGE_LABELS[contextStage] ?? contextStage}教学画像`
-                        : '学习与教学';
-                    const gradeBand = gradeBandLabel(text(context.value.grade_band));
-                    const pedagogicalGroups = [
-                      { title: '学习目标', items: textList(context.value.learning_objectives) },
-                      { title: '诊断问题', items: textList(context.value.diagnostic_questions) },
-                      { title: '常见错误', items: textList(context.value.common_errors) },
-                      { title: '评价任务', items: textList(context.value.assessment_tasks) },
-                      { title: '补救建议', items: textList(context.value.remediation_suggestions) },
-                      { title: '拓展建议', items: textList(context.value.extension_suggestions) },
-                    ].filter((group) => group.items.length > 0);
-                    return (
-                      <div key={`${text(profile.id)}:${context.key}`} className="mt-3 border-t border-border-subtle pt-3">
-                        <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs font-medium text-text-primary">
-                          <span>{contextTitle}</span>
-                          {gradeBand && (
-                            <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">
-                              {gradeBand}
-                            </span>
-                          )}
-                          {difficulty && (
-                            <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">
-                              难度：{PEDAGOGICAL_DIFFICULTY_LABELS[difficulty] ?? difficulty}
-                            </span>
-                          )}
-                          {generatedFrom === 'model_generation' && (
-                            <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-normal text-accent">
-                              模型生成
-                            </span>
-                          )}
-                          {generatedFrom === 'manual' && (
-                            <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">
-                              人工维护
-                            </span>
-                          )}
-                          {reviewStatus && (
-                            <span className="rounded-full bg-elevated px-2 py-0.5 text-[11px] font-normal text-text-muted">
-                              {PEDAGOGICAL_REVIEW_STATUS_LABELS[reviewStatus] ?? reviewStatus}
-                            </span>
-                          )}
-                        </div>
-                        {(model || generatedAt || Number.isFinite(confidence) || contextSourceRefs.length > 0) && (
-                          <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-text-muted">
-                            {model && <span>模型：{model}</span>}
-                            {generatedAt && <span>生成：{generatedAt}</span>}
-                            {Number.isFinite(confidence) && <span>可信度：{Math.round(confidence * 100)}%</span>}
-                            {contextSourceRefs.length > 0 && (
-                              <span>
-                                依据 {contextSourceRefs.length} 条证据
-                                {contextSourceRefs.map((evidenceId, index) => renderEvidenceRef(evidenceId, `${text(profile.id)}:${context.key}:evidence:${index}`))}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        <div className="grid gap-2">
-                          {pedagogicalGroups.map((group) => (
-                            <DetailListGroup key={`${text(profile.id)}:${context.key}:${group.title}`} title={group.title} items={group.items} />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-text-muted">
+                    {text(projection.curriculum_id) && <span>课程体系：{text(projection.curriculum_id)}</span>}
+                    {generatedFrom === 'model_generation' && <span className="text-accent">模型生成</span>}
+                    {generatedFrom === 'manual' && <span>人工维护</span>}
+                    {reviewStatus && <span>{PEDAGOGICAL_REVIEW_STATUS_LABELS[reviewStatus] ?? reviewStatus}</span>}
+                    {model && <span>模型：{model}</span>}
+                    {generatedAt && <span>生成：{generatedAt}</span>}
+                    {confidenceValue != null && Number.isFinite(confidenceValue) && <span>可信度：{Math.round(confidenceValue * 100)}%</span>}
+                    {allSourceRefs.length > 0 && (
+                      <span>
+                        依据 {allSourceRefs.length} 条证据
+                        {allSourceRefs.map((evidenceId, index) => renderEvidenceRef(evidenceId, `${text(projection.id)}:evidence:${index}`))}
+                      </span>
+                    )}
+                  </div>
+                  {hasPedagogicalContent(pedagogicalProfile) ? (
+                    <div className="mt-3 grid gap-2">
+                      {pedagogicalGroups.map((group) => (
+                        <DetailListGroup key={`${text(projection.id)}:${group.title}`} title={group.title} items={group.items} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-3 rounded-md border border-dashed border-border-subtle px-3 py-2 text-[11px] text-text-muted">该课程投影尚未补充教学画像。</div>
+                  )}
                 </div>
               );
             })}

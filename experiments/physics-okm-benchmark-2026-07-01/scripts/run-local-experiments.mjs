@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ACTIVE_EDGE_TYPES, EDGE_TYPE_METADATA, normalizeEdgeType } from '@okm/types';
 import postgres from 'postgres';
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -29,23 +30,7 @@ const ALLOWED_NODE_KINDS = new Set([
   'resource',
 ]);
 
-const ALLOWED_EDGE_TYPES = new Set([
-  'is_a',
-  'instance_of',
-  'part_of',
-  'contains',
-  'has_property',
-  'uses',
-  'produces',
-  'depends_on',
-  'prerequisite_for',
-  'causes',
-  'affects',
-  'represents',
-  'about',
-  'same_as',
-  'related_to',
-]);
+const ALLOWED_EDGE_TYPES = new Set(ACTIVE_EDGE_TYPES);
 
 const args = new Set(process.argv.slice(2));
 const envOnly = args.has('--env-check');
@@ -548,7 +533,7 @@ async function runLlmOnlyConstruction(snippets) {
     '你是教材知识图谱抽取器。请只基于给定教材片段抽取知识对象和关系，不要补充课外知识。',
     '返回 JSON，格式为：{"nodes":[{"name":string,"kind":string,"definition":string,"evidence":string[]}],"edges":[{"source":string,"target":string,"type":string,"evidence":string[]}]}。',
     `节点 kind 只能是：${[...ALLOWED_NODE_KINDS].join(', ')}。`,
-    `关系 type 只能是：${[...ALLOWED_EDGE_TYPES].join(', ')}。`,
+    `关系 type 请优先使用中文名称：${ACTIVE_EDGE_TYPES.map((code) => `${EDGE_TYPE_METADATA[code].label_zh}（内部代码 ${code}）`).join('，')}。`,
     'evidence 必须是原文中的短句或短语。',
     '',
     snippets.map((item) => `【${item.id} ${item.title}】\n${item.text}`).join('\n\n---\n\n'),
@@ -1065,13 +1050,16 @@ function normalizePredictedNodes(nodes) {
 
 function normalizePredictedEdges(edges) {
   if (!Array.isArray(edges)) return [];
-  return edges.map((edge, index) => ({
-    id: String(edge?.id || `edge-${index + 1}`),
-    source: cleanCandidateName(String(edge?.source || edge?.from || edge?.from_name || '')),
-    target: cleanCandidateName(String(edge?.target || edge?.to || edge?.to_name || '')),
-    type: ALLOWED_EDGE_TYPES.has(edge?.type) ? edge.type : String(edge?.type || 'related_to'),
-    evidence: Array.isArray(edge?.evidence) ? edge.evidence.map(String) : [edge?.evidence].filter(Boolean).map(String),
-  })).filter((edge) => edge.source && edge.target);
+  return edges.map((edge, index) => {
+    const normalizedType = normalizeEdgeType(edge?.type);
+    return {
+      id: String(edge?.id || `edge-${index + 1}`),
+      source: cleanCandidateName(String(edge?.source || edge?.from || edge?.from_name || '')),
+      target: cleanCandidateName(String(edge?.target || edge?.to || edge?.to_name || '')),
+      type: normalizedType ?? String(edge?.type || 'related_to'),
+      evidence: Array.isArray(edge?.evidence) ? edge.evidence.map(String) : [edge?.evidence].filter(Boolean).map(String),
+    };
+  }).filter((edge) => edge.source && edge.target);
 }
 
 function namesMatch(name, goldNode) {

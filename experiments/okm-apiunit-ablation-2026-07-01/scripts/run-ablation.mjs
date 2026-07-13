@@ -2,6 +2,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ACTIVE_EDGE_TYPES, edgeTypeLabelZh } from '@okm/types';
 import postgres from 'postgres';
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -23,23 +24,7 @@ const ALLOWED_NODE_KINDS = new Set([
   'resource',
 ]);
 
-const ALLOWED_EDGE_TYPES = new Set([
-  'is_a',
-  'instance_of',
-  'part_of',
-  'contains',
-  'has_property',
-  'uses',
-  'produces',
-  'depends_on',
-  'prerequisite_for',
-  'causes',
-  'affects',
-  'represents',
-  'about',
-  'same_as',
-  'related_to',
-]);
+const ALLOWED_EDGE_TYPES = new Set(ACTIVE_EDGE_TYPES);
 
 const VARIANTS = [
   {
@@ -86,7 +71,7 @@ const VARIANTS = [
   },
   {
     id: 'A3',
-    label: 'no domain_profiles / pedagogical_profile',
+    label: 'no domain_profiles / curriculum_projections',
     source: 'canonical',
     retrieval: 'unit_text',
     includeBody: true,
@@ -349,10 +334,11 @@ async function resolveDataset(sql, source) {
 }
 
 async function loadCanonicalStore(sql, datasetId) {
-  const [nodes, edges, profiles, mentions, evidence, cards, bodies] = await Promise.all([
+  const [nodes, edges, profiles, curriculumProjections, mentions, evidence, cards, bodies] = await Promise.all([
     sql`SELECT * FROM world_nodes WHERE dataset_id = ${datasetId} AND status != 'deprecated' ORDER BY id`,
     sql`SELECT * FROM world_edges WHERE dataset_id = ${datasetId} AND status != 'deprecated' ORDER BY id`,
     sql`SELECT * FROM world_domain_profiles WHERE dataset_id = ${datasetId} AND status != 'deprecated' ORDER BY id`,
+    sql`SELECT * FROM world_curriculum_projections WHERE dataset_id = ${datasetId} AND status != 'deprecated' ORDER BY id`,
     sql`SELECT * FROM world_mentions WHERE dataset_id = ${datasetId} ORDER BY id`,
     sql`SELECT * FROM world_evidence WHERE dataset_id = ${datasetId} ORDER BY id`,
     sql`SELECT * FROM world_node_cards WHERE dataset_id = ${datasetId} AND status != 'deprecated' ORDER BY node_id`,
@@ -365,6 +351,7 @@ async function loadCanonicalStore(sql, datasetId) {
   const edgesByFrom = groupBy(edges.map(toRelation), (row) => row.from_id);
   const edgesByTo = groupBy(edges.map(toRelation), (row) => row.to_id);
   const profilesByNode = groupBy(profiles.map(toDomainProfile), (row) => row.node_id);
+  const curriculumProjectionsByNode = groupBy(curriculumProjections.map(toCurriculumProjection), (row) => row.node_id);
   const cardByNode = new Map(cards.map((row) => [row.node_id, toCard(row)]));
   const bodyByNode = new Map(bodies.map((row) => [row.node_id, toBody(row)]));
 
@@ -379,6 +366,7 @@ async function loadCanonicalStore(sql, datasetId) {
         incoming: edgesByTo.get(node.id) ?? [],
       },
       domain_profiles: profilesByNode.get(node.id) ?? [],
+      curriculum_projections: curriculumProjectionsByNode.get(node.id) ?? [],
       mentions: unitMentions,
       evidence: unitEvidence,
       media: [],
@@ -392,10 +380,11 @@ async function loadCanonicalStore(sql, datasetId) {
 }
 
 async function loadStagingStore(sql, datasetId) {
-  const [nodes, edges, profiles, mentions, evidence, cards] = await Promise.all([
+  const [nodes, edges, profiles, curriculumProjections, mentions, evidence, cards] = await Promise.all([
     sql`SELECT * FROM world_staging_nodes WHERE dataset_id = ${datasetId} ORDER BY lesson_run_id, raw_node_id`.catch(() => []),
     sql`SELECT * FROM world_staging_edges WHERE dataset_id = ${datasetId} ORDER BY lesson_run_id, raw_edge_id`.catch(() => []),
     sql`SELECT * FROM world_staging_domain_profiles WHERE dataset_id = ${datasetId} ORDER BY lesson_run_id, raw_profile_id`.catch(() => []),
+    sql`SELECT * FROM world_staging_curriculum_projections WHERE dataset_id = ${datasetId} ORDER BY lesson_run_id, raw_projection_id`.catch(() => []),
     sql`SELECT * FROM world_staging_mentions WHERE dataset_id = ${datasetId} ORDER BY lesson_run_id, raw_mention_id`.catch(() => []),
     sql`SELECT * FROM world_staging_evidence WHERE dataset_id = ${datasetId} ORDER BY lesson_run_id, raw_evidence_id`.catch(() => []),
     sql`SELECT * FROM world_staging_node_cards WHERE dataset_id = ${datasetId} ORDER BY lesson_run_id, raw_card_id`.catch(() => []),
@@ -407,6 +396,7 @@ async function loadStagingStore(sql, datasetId) {
   const edgesByFrom = groupBy(edges.map(toStagingRelation), (row) => row.from_id);
   const edgesByTo = groupBy(edges.map(toStagingRelation), (row) => row.to_id);
   const profilesByNode = groupBy(profiles.map(toStagingDomainProfile), (row) => row.node_id);
+  const curriculumProjectionsByNode = groupBy(curriculumProjections.map(toStagingCurriculumProjection), (row) => row.node_id);
   const cardByNode = new Map(cards.map((row) => [`${row.lesson_run_id}:${row.raw_node_id}`, toStagingCard(row)]));
 
   const units = nodes.map((row) => {
@@ -420,6 +410,7 @@ async function loadStagingStore(sql, datasetId) {
         incoming: edgesByTo.get(node.id) ?? [],
       },
       domain_profiles: profilesByNode.get(node.id) ?? [],
+      curriculum_projections: curriculumProjectionsByNode.get(node.id) ?? [],
       mentions: unitMentions,
       evidence: unitEvidence,
       media: [],
@@ -430,7 +421,7 @@ async function loadStagingStore(sql, datasetId) {
     };
   });
   const store = makeStore('staging', units);
-  store.raw = { nodes, edges, profiles, mentions, evidence, cards };
+  store.raw = { nodes, edges, profiles, curriculumProjections, mentions, evidence, cards };
   return store;
 }
 
@@ -640,6 +631,7 @@ function applyVariant(unit, variant) {
     view.node = nodeSkeleton(view.node);
     view.relations = { outgoing: [], incoming: [] };
     view.domain_profiles = [];
+    view.curriculum_projections = [];
     view.mentions = [];
     view.evidence = [];
     view.media = [];
@@ -652,10 +644,13 @@ function applyVariant(unit, variant) {
   if (!variant.includeBody) view.body = null;
   if (!variant.includeCard) view.card = null;
   if (!variant.includeRelations) view.relations = { outgoing: [], incoming: [] };
-  if (!variant.includeProfiles) view.domain_profiles = [];
+  if (!variant.includeProfiles) {
+    view.domain_profiles = [];
+    view.curriculum_projections = [];
+  }
   if (variant.includeProfiles && !variant.includePedagogicalProfile) {
-    view.domain_profiles = view.domain_profiles.map((profile) => {
-      const next = cloneJson(profile);
+    view.curriculum_projections = view.curriculum_projections.map((projection) => {
+      const next = cloneJson(projection);
       if (next.properties) delete next.properties.pedagogical_profile;
       return next;
     });
@@ -672,6 +667,7 @@ function applyVariant(unit, variant) {
 function stripSourceRefs(view) {
   for (const relation of [...view.relations.outgoing, ...view.relations.incoming]) relation.source_refs = [];
   for (const profile of view.domain_profiles) profile.source_refs = [];
+  for (const projection of view.curriculum_projections) projection.source_refs = [];
   if (view.card) {
     view.card.source_refs = [];
     for (const section of view.card.sections ?? []) section.source_refs = [];
@@ -694,15 +690,20 @@ function unitContextBlock(unit, index, variant) {
   const node = unit.node;
   const relations = variant.includeRelations ? [...unit.relations.outgoing, ...unit.relations.incoming]
     .slice(0, 8)
-    .map((relation) => `${relation.from_id} --${relation.type}--> ${relation.to_id}`)
+    .map((relation) => `${relation.from_id} --${edgeTypeLabelZh(relation.type)}--> ${relation.to_id}`)
     .join('\n') : '';
   const profiles = variant.includeProfiles ? unit.domain_profiles
     .slice(0, 4)
-    .map((profile) => {
-      const pedagogical = profile.properties?.pedagogical_profile
-        ? ` pedagogical_profile=${stringifyCompact(profile.properties.pedagogical_profile)}`
+    .map((profile) => `${profile.domain} ${profile.domain_role} ${stringifyCompact(profile.properties)}`.trim())
+    .filter(Boolean)
+    .join('\n') : '';
+  const curriculumProjections = variant.includeProfiles ? unit.curriculum_projections
+    .slice(0, 4)
+    .map((projection) => {
+      const pedagogical = projection.properties?.pedagogical_profile
+        ? ` pedagogical_profile=${stringifyCompact(projection.properties.pedagogical_profile)}`
         : '';
-      return `${profile.domain} ${profile.school_stages.join(',')} ${profile.curriculum_roles.join(',')}${pedagogical}`.trim();
+      return `${projection.domain} ${projection.curriculum_id} ${projection.school_stage} ${projection.grade_band ?? ''} ${projection.curriculum_roles.join(',')}${pedagogical}`.trim();
     })
     .filter(Boolean)
     .join('\n') : '';
@@ -727,6 +728,7 @@ function unitContextBlock(unit, index, variant) {
     arrayText('aliases', node.aliases),
     arrayText('domains', node.domains),
     profiles ? `domain_profiles:\n${profiles}` : '',
+    curriculumProjections ? `curriculum_projections:\n${curriculumProjections}` : '',
     unit.card?.summary ? `card_summary: ${truncate(unit.card.summary, 700)}` : '',
     cardSections ? `card_sections:\n${cardSections}` : '',
     unit.body?.content ? `body:\n${truncate(unit.body.content, 1200)}` : '',
@@ -750,11 +752,18 @@ function composeRetrievalText(unit) {
     unit.body?.content,
     ...unit.domain_profiles.map((profile) => [
       profile.domain,
-      ...(profile.school_stages ?? []),
-      ...(profile.curriculum_roles ?? []),
+      profile.domain_role,
       stringifyContent(profile.properties),
     ].join(' ')),
-    ...[...unit.relations.outgoing, ...unit.relations.incoming].map((relation) => `${relation.type} ${relation.from_id} ${relation.to_id}`),
+    ...unit.curriculum_projections.map((projection) => [
+      projection.domain,
+      projection.curriculum_id,
+      projection.school_stage,
+      projection.grade_band,
+      ...(projection.curriculum_roles ?? []),
+      stringifyContent(projection.properties),
+    ].join(' ')),
+    ...[...unit.relations.outgoing, ...unit.relations.incoming].map((relation) => `${edgeTypeLabelZh(relation.type)} ${relation.from_id} ${relation.to_id}`),
     ...unit.evidence.map((item) => `${item.id} ${item.excerpt}`),
   ].filter(Boolean).join('\n'));
 }
@@ -908,6 +917,7 @@ function inspectVariantResults(variant, results) {
     source_fragment_count: sum(probes.map((probe) => probe.source_fragment_count)),
     body_count: sum(probes.map((probe) => probe.body_count)),
     domain_profile_count: sum(probes.map((probe) => probe.domain_profile_count)),
+    curriculum_projection_count: sum(probes.map((probe) => probe.curriculum_projection_count)),
     pedagogical_profile_count: sum(probes.map((probe) => probe.pedagogical_profile_count)),
     relation_count: sum(probes.map((probe) => probe.relation_count)),
     card_count: sum(probes.map((probe) => probe.card_count)),
@@ -921,10 +931,10 @@ function inspectVariantResults(variant, results) {
 function componentCheckPassed(variant, probe) {
   if (variant.id === 'A1') return probe.evidence_count === 0 && probe.source_fragment_count === 0;
   if (variant.id === 'A2') return probe.body_count === 0;
-  if (variant.id === 'A3') return probe.domain_profile_count === 0 && probe.pedagogical_profile_count === 0;
+  if (variant.id === 'A3') return probe.domain_profile_count === 0 && probe.curriculum_projection_count === 0 && probe.pedagogical_profile_count === 0;
   if (variant.id === 'A4') return probe.relation_count === 0;
   if (variant.id === 'A6') return true;
-  if (variant.id === 'A7') return probe.evidence_count === 0 && probe.body_count === 0 && probe.domain_profile_count === 0 && probe.relation_count === 0 && probe.card_count === 0;
+  if (variant.id === 'A7') return probe.evidence_count === 0 && probe.body_count === 0 && probe.domain_profile_count === 0 && probe.curriculum_projection_count === 0 && probe.relation_count === 0 && probe.card_count === 0;
   return true;
 }
 
@@ -934,7 +944,8 @@ function inspectHits(hits) {
     source_fragment_count: sum(hits.map((hit) => hit.unit.source_fragments.length)),
     body_count: hits.filter((hit) => hit.unit.body?.content).length,
     domain_profile_count: sum(hits.map((hit) => hit.unit.domain_profiles.length)),
-    pedagogical_profile_count: sum(hits.map((hit) => hit.unit.domain_profiles.filter((profile) => profile.properties?.pedagogical_profile).length)),
+    curriculum_projection_count: sum(hits.map((hit) => hit.unit.curriculum_projections.length)),
+    pedagogical_profile_count: sum(hits.map((hit) => hit.unit.curriculum_projections.filter((projection) => projection.properties?.pedagogical_profile).length)),
     relation_count: sum(hits.map((hit) => hit.unit.relations.outgoing.length + hit.unit.relations.incoming.length)),
     card_count: hits.filter((hit) => hit.unit.card).length,
   };
@@ -1009,7 +1020,7 @@ function summarizeRun(run, retrievalMetrics) {
 }
 
 function scoreStagingConstruction(store) {
-  const raw = store.raw ?? { nodes: [], edges: [], profiles: [], evidence: [], cards: [] };
+  const raw = store.raw ?? { nodes: [], edges: [], profiles: [], curriculumProjections: [], evidence: [], cards: [] };
   const nodeNames = raw.nodes.map((node) => normalizeForMatch(node.name)).filter(Boolean);
   const duplicateCount = nodeNames.length - new Set(nodeNames).size;
   const nodeEvidenceRefs = raw.nodes.flatMap((node) => jsonArray(node.source_refs_json));
@@ -1023,6 +1034,7 @@ function scoreStagingConstruction(store) {
     raw_edges: raw.edges.length,
     raw_evidence: raw.evidence.length,
     raw_domain_profiles: raw.profiles.length,
+    raw_curriculum_projections: raw.curriculumProjections.length,
     raw_cards: raw.cards.length,
     node_f1: null,
     relation_f1: null,
@@ -1177,8 +1189,9 @@ function toDomainProfile(row) {
     dataset_id: row.dataset_id,
     node_id: row.node_id,
     domain: row.domain,
-    school_stages: jsonArray(row.school_stages_json),
-    curriculum_roles: jsonArray(row.curriculum_roles_json),
+    schema_id: row.schema_id,
+    schema_version: row.schema_version,
+    domain_role: row.domain_role,
     source_refs: jsonArray(row.source_refs_json),
     properties: jsonObject(row.properties_json),
     status: row.status,
@@ -1191,7 +1204,40 @@ function toStagingDomainProfile(row) {
     dataset_id: row.dataset_id,
     node_id: `${row.lesson_run_id}:${row.raw_node_id}`,
     domain: row.domain,
-    school_stages: jsonArray(row.school_stages_json),
+    schema_id: row.schema_id,
+    schema_version: row.schema_version,
+    domain_role: row.domain_role,
+    source_refs: jsonArray(row.source_refs_json).map((ref) => `${row.lesson_run_id}:${ref}`),
+    properties: jsonObject(row.properties_json),
+    status: row.status,
+  };
+}
+
+function toCurriculumProjection(row) {
+  return {
+    id: row.id,
+    dataset_id: row.dataset_id,
+    node_id: row.node_id,
+    domain: row.domain,
+    curriculum_id: row.curriculum_id,
+    school_stage: row.school_stage,
+    grade_band: row.grade_band ?? null,
+    curriculum_roles: jsonArray(row.curriculum_roles_json),
+    source_refs: jsonArray(row.source_refs_json),
+    properties: jsonObject(row.properties_json),
+    status: row.status,
+  };
+}
+
+function toStagingCurriculumProjection(row) {
+  return {
+    id: `${row.lesson_run_id}:${row.raw_projection_id}`,
+    dataset_id: row.dataset_id,
+    node_id: `${row.lesson_run_id}:${row.raw_node_id}`,
+    domain: row.domain,
+    curriculum_id: row.curriculum_id,
+    school_stage: row.school_stage,
+    grade_band: row.grade_band ?? null,
     curriculum_roles: jsonArray(row.curriculum_roles_json),
     source_refs: jsonArray(row.source_refs_json).map((ref) => `${row.lesson_run_id}:${ref}`),
     properties: jsonObject(row.properties_json),

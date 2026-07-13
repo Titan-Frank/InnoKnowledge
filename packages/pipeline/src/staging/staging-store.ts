@@ -72,6 +72,7 @@ export type StoreStagingInput = {
   nodesJson: string;
   edgesJson: string;
   domainProfilesJson: string;
+  curriculumProjectionsJson?: string;
   mentionsJson: string;
   evidenceJson: string;
   nodeCardsJson: string;
@@ -89,6 +90,7 @@ export type StoreStagingOutput = {
     nodes: number;
     edges: number;
     domain_profiles: number;
+    curriculum_projections: number;
     mentions: number;
     evidence: number;
     node_cards: number;
@@ -111,6 +113,7 @@ export async function runStoreStaging(input: StoreStagingInput): Promise<StoreSt
       nodes: parseRecordArray(input.nodesJson, "nodes-json"),
       edges: parseRecordArray(input.edgesJson, "edges-json"),
       domainProfiles: parseRecordArray(input.domainProfilesJson, "domain-profiles-json"),
+      curriculumProjections: parseRecordArray(input.curriculumProjectionsJson ?? "[]", "curriculum-projections-json"),
       mentions: parseRecordArray(input.mentionsJson, "mentions-json"),
       evidence: parseRecordArray(input.evidenceJson, "evidence-json"),
       nodeCards: parseRecordArray(input.nodeCardsJson, "node-cards-json"),

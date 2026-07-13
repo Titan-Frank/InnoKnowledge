@@ -1,4 +1,13 @@
-import { cosineSimilarity, makeCanonicalNodeId, makeEvidenceId, makeMentionId, mergeJsonObjects, mergeTextBlocks, mergeUniqueStrings } from "../shared/knowledge.js";
+import {
+  cosineSimilarity,
+  makeCanonicalNodeId,
+  makeCurriculumProjectionId,
+  makeEvidenceId,
+  makeMentionId,
+  mergeJsonObjects,
+  mergeTextBlocks,
+  mergeUniqueStrings,
+} from "../shared/knowledge.js";
 import { addNodeSubkindClassification, choosePrimarySubkind, mergeNodeSubkindClassifications, normalizeNodeSubkind } from "../shared/node-subkind.js";
 import { makeDomainProfileId, makeEdgeId, normalizeTerm } from "../shared/pathing.js";
 
@@ -28,6 +37,11 @@ export type ReplaceEvidenceLinksPlan = {
 };
 
 export type DomainProfileMergePlan = {
+  payload: Record<string, unknown>;
+  evidence_links: ReplaceEvidenceLinksPlan;
+};
+
+export type CurriculumProjectionMergePlan = {
   payload: Record<string, unknown>;
   evidence_links: ReplaceEvidenceLinksPlan;
 };
@@ -383,8 +397,9 @@ export function planDomainProfileMerge(input: {
     id: profileId,
     node_id: input.nodeId,
     domain: input.staged.domain,
-    school_stages_json: mergeUniqueStrings(existing ? asArray(existing.school_stages_json) : [], asArray(pythonOr(input.staged.school_stages_json, []))),
-    curriculum_roles_json: mergeUniqueStrings(existing ? asArray(existing.curriculum_roles_json) : [], asArray(pythonOr(input.staged.curriculum_roles_json, []))),
+    schema_id: requiredString(input.staged.schema_id, "schema_id"),
+    schema_version: requiredString(input.staged.schema_version, "schema_version"),
+    domain_role: requiredString(input.staged.domain_role, "domain_role"),
     source_refs_json: sourceRefs,
     properties_json: mergeJsonObjects(existing ? asRecord(existing.properties_json) : {}, asRecord(pythonOr(input.staged.properties_json, {}))),
     status: "active",
@@ -399,6 +414,63 @@ export function planDomainProfileMerge(input: {
       datasetId: input.datasetId,
       ownerType: "domain_profile",
       ownerId: profileId,
+      evidenceIds: sourceRefs,
+    }),
+  };
+}
+
+export function planCurriculumProjectionMerge(input: {
+  datasetId: string;
+  nodeId: string;
+  staged: Record<string, unknown>;
+  existing?: Record<string, unknown> | null;
+  evidenceIdByRaw: Record<string, string>;
+  existingEvidenceIds?: Iterable<string>;
+  now: string;
+}): CurriculumProjectionMergePlan {
+  const domain = requiredString(input.staged.domain, "domain");
+  const curriculumId = requiredString(input.staged.curriculum_id, "curriculum_id");
+  const schoolStage = requiredString(input.staged.school_stage, "school_stage");
+  const gradeBand = asString(input.staged.grade_band) || null;
+  const projectionId = makeCurriculumProjectionId(
+    input.nodeId,
+    domain,
+    curriculumId,
+    schoolStage,
+    gradeBand,
+  );
+  const existing = input.existing ?? null;
+  const remappedRefs = remapSourceRefs(input.staged.source_refs_json, input.evidenceIdByRaw);
+  const mergedSourceRefs = mergeUniqueStrings(existing ? asArray(existing.source_refs_json) : [], remappedRefs);
+  const sourceRefs = filterExistingEvidenceIds(mergedSourceRefs, input.existingEvidenceIds ?? mergedSourceRefs);
+  const payload = {
+    dataset_id: input.datasetId,
+    id: projectionId,
+    node_id: input.nodeId,
+    domain,
+    curriculum_id: curriculumId,
+    school_stage: schoolStage,
+    grade_band: gradeBand,
+    curriculum_roles_json: mergeUniqueStrings(
+      existing ? asArray(existing.curriculum_roles_json) : [],
+      asArray(pythonOr(input.staged.curriculum_roles_json, [])),
+    ),
+    source_refs_json: sourceRefs,
+    properties_json: mergeJsonObjects(
+      existing ? asRecord(existing.properties_json) : {},
+      asRecord(pythonOr(input.staged.properties_json, {})),
+    ),
+    status: "active",
+    created_at: existing ? pythonGet(existing, "created_at", input.staged.created_at) : input.staged.created_at,
+    updated_at: input.now,
+    notes: mergeTextBlocks(existing ? asString(existing.notes) : "", asString(pythonOr(input.staged.notes, ""))),
+  };
+  return {
+    payload,
+    evidence_links: planReplaceEvidenceLinks({
+      datasetId: input.datasetId,
+      ownerType: "curriculum_projection",
+      ownerId: projectionId,
       evidenceIds: sourceRefs,
     }),
   };

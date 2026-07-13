@@ -264,8 +264,8 @@ function assertSelectStatement(statement: SqlStatement): void {
 
 function assertAllowedPedagogicalProfileWriteStatement(statement: SqlStatement): void {
   const trimmed = statement.sql.trim();
-  if (!/^UPDATE\s+world_domain_profiles\s+AS\s+profile\b[\s\S]+WHERE\s+profile\.dataset_id\s*=\s*\$1[\s\S]+profile\.id\s*=\s*\$2[\s\S]+RETURNING\s+profile\.id\s*$/i.test(trimmed)) {
-    throw new Error(`Pedagogical profile executor refuses statement '${statement.name}' outside world_domain_profiles updates.`);
+  if (!/^UPDATE\s+world_curriculum_projections\s+AS\s+projection\b[\s\S]+WHERE\s+projection\.dataset_id\s*=\s*\$1[\s\S]+projection\.id\s*=\s*\$2[\s\S]+RETURNING\s+projection\.id\s*$/i.test(trimmed)) {
+    throw new Error(`Pedagogical profile executor refuses statement '${statement.name}' outside world_curriculum_projections updates.`);
   }
 }
 

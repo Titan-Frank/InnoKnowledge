@@ -47,6 +47,7 @@ test("writes store staging with Python-compatible output shape", async () => {
     nodes: 1,
     edges: 1,
     domain_profiles: 1,
+    curriculum_projections: 0,
     mentions: 1,
     evidence: 1,
     node_cards: 1,
@@ -108,9 +109,9 @@ test("executes store staging statements in plan order", async () => {
     "delete-world_staging_nodes",
     "delete-world_staging_edges",
     "delete-world_staging_domain_profiles",
+    "delete-world_staging_curriculum_projections",
     "delete-world_staging_mentions",
     "delete-world_staging_evidence",
-    "delete-world_staging_node_cards",
   ]);
   assert.ok(output.statements.includes("insert-world-staging-nodes"));
 });
@@ -163,6 +164,7 @@ test("writes an explicit no_knowledge lesson with empty artifacts", async () => 
     nodes: 0,
     edges: 0,
     domain_profiles: 0,
+    curriculum_projections: 0,
     mentions: 0,
     evidence: 0,
     node_cards: 0,

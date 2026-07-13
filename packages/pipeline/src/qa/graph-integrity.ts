@@ -46,7 +46,7 @@ export type GraphIntegrityResult = {
   issues: GraphIntegrityIssues;
 };
 
-const WARN_ONLY_DIRECTED_EDGE_TYPES = new Set([...VALID_EDGE_TYPES].filter((type) => type !== "related_to" && type !== "same_as"));
+const WARN_ONLY_DIRECTED_EDGE_TYPES = new Set([...VALID_EDGE_TYPES].filter((type) => type !== "related_to"));
 
 export function checkGraphIntegrity(nodes: GraphNodeRow[], edges: GraphEdgeRow[], options: { failOnCycles?: boolean } = {}): GraphIntegrityResult {
   const activeNodes = nodes.filter((node) => node.status !== "deprecated");

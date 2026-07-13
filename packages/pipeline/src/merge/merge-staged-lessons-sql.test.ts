@@ -70,8 +70,9 @@ test("builds merge SQL statements in Python-compatible order without executing t
             {
               raw_node_id: "raw-water",
               domain: "chemistry",
-              school_stages_json: ["junior-secondary"],
-              curriculum_roles_json: ["core"],
+              schema_id: "domain:chemistry:v1",
+              schema_version: "1.0",
+              domain_role: "substance",
               source_refs_json: ["raw-evidence:1"],
               properties_json: {},
               created_at: "profile-created",

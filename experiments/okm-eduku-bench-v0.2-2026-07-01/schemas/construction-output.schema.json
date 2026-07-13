@@ -47,10 +47,16 @@
         "$ref": "#/$defs/semantic_core"
       }
     },
-    "pedagogical_profile": {
+    "domain_profiles": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/pedagogical_profile"
+        "$ref": "#/$defs/domain_profile"
+      }
+    },
+    "curriculum_projections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/curriculum_projection"
       }
     },
     "cost": {
@@ -100,7 +106,7 @@
     "edge": {
       "type": "object",
       "additionalProperties": true,
-      "required": ["source_id", "target_id", "type"],
+      "required": ["source_id", "target_id", "type", "type_label_zh"],
       "properties": {
         "id": {
           "type": "string"
@@ -115,7 +121,19 @@
         },
         "type": {
           "type": "string",
-          "minLength": 1
+          "enum": [
+            "is_a", "instance_of", "part_of", "contains", "has_property", "uses", "produces",
+            "depends_on", "prerequisite_for", "causes", "affects", "represents", "formalizes",
+            "applies_to", "analogous_to", "models", "about", "related_to"
+          ]
+        },
+        "type_label_zh": {
+          "type": "string",
+          "enum": [
+            "是一种", "是实例", "是组成部分", "包含", "具有属性", "使用", "产生", "依赖",
+            "是前置知识", "导致", "影响", "表示", "形式化表达", "应用于", "类似于", "建模描述",
+            "主题是", "相关"
+          ]
         },
         "confidence": {
           "type": "number",
@@ -145,7 +163,7 @@
         },
         "target_type": {
           "type": "string",
-          "enum": ["node", "edge", "semantic_core", "pedagogical_profile", "answer_claim"]
+          "enum": ["node", "edge", "semantic_core", "domain_profile", "curriculum_projection", "pedagogical_profile", "answer_claim"]
         },
         "section_id": {
           "type": "string"
@@ -211,43 +229,91 @@
         }
       }
     },
-    "pedagogical_profile": {
+    "domain_profile": {
       "type": "object",
       "additionalProperties": true,
-      "required": ["node_id"],
+      "required": ["node_id", "domain", "domain_role"],
       "properties": {
         "node_id": {
           "type": "string",
           "minLength": 1
         },
-        "learning_objectives": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "domain": {
+          "type": "string",
+          "minLength": 1
         },
-        "difficulty": {
+        "schema_id": {
           "type": "string"
         },
-        "teaching_roles": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "diagnostic_value": {
+        "schema_version": {
           "type": "string"
         },
-        "remediation_cues": {
+        "domain_role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "properties": {
+          "type": "object"
+        }
+      }
+    },
+    "curriculum_projection": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["node_id", "domain", "curriculum_id", "school_stage"],
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "curriculum_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "school_stage": {
+          "type": "string",
+          "enum": ["primary", "junior-secondary", "senior-secondary", "higher"]
+        },
+        "grade_band": {
+          "type": "string"
+        },
+        "curriculum_roles": {
           "type": "array",
           "items": {
             "type": "string"
           }
         },
-        "likely_misconceptions": {
-          "type": "array",
-          "items": {
-            "type": "string"
+        "pedagogical_profile": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "learning_objectives": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "difficulty_level": {
+              "type": "string"
+            },
+            "diagnostic_questions": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "common_errors": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "assessment_tasks": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "remediation_suggestions": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
           }
         }
       }

@@ -1071,7 +1071,7 @@ async function defaultDatasetInitializer(input: { dbUrl: string; datasetId: stri
       VALUES (
         ${input.datasetId},
         ${input.datasetId},
-        'world-v1.2',
+        'world-v1.3',
         'active',
         0,
         ${rootPath},

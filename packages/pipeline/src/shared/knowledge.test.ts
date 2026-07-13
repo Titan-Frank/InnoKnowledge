@@ -55,10 +55,12 @@ test("merge helpers match Python behavior", () => {
 
 test("validation, source, and vector helpers match Python behavior", () => {
   assert.equal(requireValidEdgeType("is_a"), "is_a");
+  assert.equal(requireValidEdgeType("形式化"), "formalizes");
   assert.throws(
     () => requireValidEdgeType("bad_edge"),
-    /Invalid edge type 'bad_edge'\. Allowed values: about, affects, causes, contains, depends_on, has_property, instance_of, is_a, part_of, prerequisite_for, produces, related_to, represents, same_as, uses/,
+    /无效关系“bad_edge”。允许值：/,
   );
+  assert.throws(() => requireValidEdgeType("same_as"), /无效关系/);
   assert.equal(cosineSimilarity([1, 2, 3], [4, 5, 6]), 0.9746318461970762);
   assert.equal(cosineSimilarity([1, 2], [1]), 0);
   assert.equal(cosineSimilarity([0, 0], [1, 2]), 0);

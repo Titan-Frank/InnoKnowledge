@@ -1,8 +1,9 @@
-import { VALID_EDGE_TYPES, VALID_NODE_KINDS } from "../shared/knowledge.js";
+import { VALID_EDGE_TYPES, VALID_NODE_KINDS, VALID_SCHOOL_STAGES, domainSchemaFor } from "../shared/knowledge.js";
 import type { SqlStatement } from "./staging-sql.js";
 import type {
   LessonRunRow,
   StagingDomainProfileRow,
+  StagingCurriculumProjectionRow,
   StagingEdgeRow,
   StagingEvidenceRow,
   StagingMentionRow,
@@ -37,6 +38,7 @@ export type LessonStagingQualityResult = {
     nodes: number;
     edges: number;
     domain_profiles: number;
+    curriculum_projections: number;
     mentions: number;
     evidence: number;
     node_cards: number;
@@ -72,6 +74,7 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
   const artifactCount = rows.nodes.length
     + rows.edges.length
     + rows.domain_profiles.length
+    + rows.curriculum_projections.length
     + rows.mentions.length
     + rows.evidence.length
     + rows.node_cards.length;
@@ -152,12 +155,38 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
     if (!nodeIds.has(profile.raw_node_id)) {
       errors.push(`Domain profile ${profile.raw_profile_id} references missing node.`);
     }
+    const schema = domainSchemaFor(profile.domain);
+    if (profile.schema_id !== schema.schema_id || profile.schema_version !== schema.version) {
+      errors.push(`Domain profile ${profile.raw_profile_id} has an invalid schema binding.`);
+    }
+    if (!(schema.roles as readonly string[]).includes(profile.domain_role)) {
+      errors.push(`Domain profile ${profile.raw_profile_id} has invalid role ${profile.domain_role}.`);
+    }
     if (profile.source_refs_json.length === 0) {
       warnings.push(`Domain profile ${profile.raw_profile_id} has no source_refs.`);
       reviewNodeIds.add(profile.raw_node_id);
     } else if (!hasQualityEvidenceRef(profile.source_refs_json, qualityEvidenceIds)) {
       warnings.push(`Domain profile ${profile.raw_profile_id} has no quality-eligible source_refs.`);
       reviewNodeIds.add(profile.raw_node_id);
+    }
+  }
+
+  for (const projection of rows.curriculum_projections) {
+    if (!nodeIds.has(projection.raw_node_id)) {
+      errors.push(`Curriculum projection ${projection.raw_projection_id} references missing node.`);
+    }
+    if (!VALID_SCHOOL_STAGES.has(projection.school_stage)) {
+      errors.push(`Curriculum projection ${projection.raw_projection_id} has invalid school stage ${projection.school_stage}.`);
+    }
+    if (!projection.curriculum_id) {
+      errors.push(`Curriculum projection ${projection.raw_projection_id} is missing curriculum_id.`);
+    }
+    if (projection.source_refs_json.length === 0) {
+      warnings.push(`Curriculum projection ${projection.raw_projection_id} has no source_refs.`);
+      reviewNodeIds.add(projection.raw_node_id);
+    } else if (!hasQualityEvidenceRef(projection.source_refs_json, qualityEvidenceIds)) {
+      warnings.push(`Curriculum projection ${projection.raw_projection_id} has no quality-eligible source_refs.`);
+      reviewNodeIds.add(projection.raw_node_id);
     }
   }
 
@@ -403,6 +432,7 @@ type StagingQualityTable =
   | "world_staging_nodes"
   | "world_staging_edges"
   | "world_staging_domain_profiles"
+  | "world_staging_curriculum_projections"
   | "world_staging_mentions"
   | "world_staging_evidence"
   | "world_staging_node_cards";
@@ -418,6 +448,9 @@ async function fetchStagingRowsForLesson(input: {
   const domainProfiles = (
     await input.query(buildSelectStagingRowsQuery({ table: "world_staging_domain_profiles", datasetId: input.datasetId, lessonRunId: input.lessonRunId }))
   ).map(toStagingDomainProfileRow);
+  const curriculumProjections = (
+    await input.query(buildSelectStagingRowsQuery({ table: "world_staging_curriculum_projections", datasetId: input.datasetId, lessonRunId: input.lessonRunId }))
+  ).map(toStagingCurriculumProjectionRow);
   const mentions = (await input.query(buildSelectStagingRowsQuery({ table: "world_staging_mentions", datasetId: input.datasetId, lessonRunId: input.lessonRunId }))).map(toStagingMentionRow);
   const evidence = (await input.query(buildSelectStagingRowsQuery({ table: "world_staging_evidence", datasetId: input.datasetId, lessonRunId: input.lessonRunId }))).map(toStagingEvidenceRow);
   const nodeCards = (await input.query(buildSelectStagingRowsQuery({ table: "world_staging_node_cards", datasetId: input.datasetId, lessonRunId: input.lessonRunId }))).map(toStagingNodeCardRow);
@@ -426,6 +459,7 @@ async function fetchStagingRowsForLesson(input: {
       nodes: nodes.length,
       edges: edges.length,
       domain_profiles: domainProfiles.length,
+      curriculum_projections: curriculumProjections.length,
       mentions: mentions.length,
       evidence: evidence.length,
       node_cards: nodeCards.length,
@@ -433,6 +467,7 @@ async function fetchStagingRowsForLesson(input: {
     nodes,
     edges,
     domain_profiles: domainProfiles,
+    curriculum_projections: curriculumProjections,
     mentions,
     evidence,
     node_cards: nodeCards,
@@ -479,6 +514,18 @@ function toStagingDomainProfileRow(row: RawRecord): StagingDomainProfileRow {
     ...(row as StagingDomainProfileRow),
     raw_profile_id: requiredString(row.raw_profile_id, "raw_profile_id"),
     raw_node_id: requiredString(row.raw_node_id, "raw_node_id"),
+    source_refs_json: stringArray(row.source_refs_json),
+  };
+}
+
+function toStagingCurriculumProjectionRow(row: RawRecord): StagingCurriculumProjectionRow {
+  return {
+    ...(row as StagingCurriculumProjectionRow),
+    raw_projection_id: requiredString(row.raw_projection_id, "raw_projection_id"),
+    raw_node_id: requiredString(row.raw_node_id, "raw_node_id"),
+    curriculum_id: requiredString(row.curriculum_id, "curriculum_id"),
+    school_stage: requiredString(row.school_stage, "school_stage"),
+    curriculum_roles_json: stringArray(row.curriculum_roles_json),
     source_refs_json: stringArray(row.source_refs_json),
   };
 }

@@ -89,7 +89,9 @@ function summarizeConstruction(outputs) {
     const edges = output.edges ?? [];
     const evidenceLinks = output.evidence_links ?? [];
     const semanticCore = output.semantic_core ?? [];
-    const pedagogicalProfile = output.pedagogical_profile ?? [];
+    const domainProfiles = output.domain_profiles ?? [];
+    const curriculumProjections = output.curriculum_projections ?? [];
+    const pedagogicalProfileCount = curriculumProjections.filter((projection) => projection.pedagogical_profile).length;
     const nodeNames = new Set();
     let duplicateNames = 0;
     for (const node of nodes) {
@@ -117,7 +119,9 @@ function summarizeConstruction(outputs) {
       edge_count: edges.length,
       evidence_link_count: evidenceLinks.length,
       semantic_core_count: semanticCore.length,
-      pedagogical_profile_count: pedagogicalProfile.length,
+      domain_profile_count: domainProfiles.length,
+      curriculum_projection_count: curriculumProjections.length,
+      pedagogical_profile_count: pedagogicalProfileCount,
       duplicate_name_count: duplicateNames,
       duplicate_name_rate: ratio(duplicateNames, Math.max(nodes.length, 1)),
       dangling_edge_count: danglingEdges,
@@ -243,6 +247,7 @@ function validateConstructionShape(output) {
     if (!edge.source_id) issues.push(`edges[${index}] missing source_id`);
     if (!edge.target_id) issues.push(`edges[${index}] missing target_id`);
     if (!edge.type) issues.push(`edges[${index}] missing type`);
+    if (!edge.type_label_zh) issues.push(`edges[${index}] missing type_label_zh`);
   }
   return issues;
 }

@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added - 2026-07-13
 
+- Added the `ai-nks-v0.2` multidisciplinary model and executable `world-v1.3` schema: one canonical Knowledge Object identity, semantic Domain Profiles, separate Curriculum Projections, explicit bridge objects, and source-governance policies.
+- Added six executable Domain Schemas and source-policy records for textbooks, papers, encyclopedias, curriculum standards, databases, and expert notes.
+- Added evidence-backed bridge-path candidates whose every segment must be reviewed independently before reducer application.
+- Added Chinese relation names, descriptions, sentence templates, and input aliases for all 18 active relations while retaining stable internal codes.
 - Added deterministic cross-domain scans for possible canonical object alignments and evidence-review-only relations.
 - Added `world_interdisciplinary_runs` and `world_interdisciplinary_candidates` with explicit pending, approved, rejected, and applied governance states.
 - Added dataset-locked application of approved node alignments and evidence-backed relations, preserving review provenance on canonical edges.
@@ -17,11 +21,17 @@ All notable changes to this project will be documented in this file.
 
 ### Changed - 2026-07-13
 
+- Separated disciplinary semantics from teaching placement: `world_domain_profiles` now stores domain roles and domain-specific properties, while `world_curriculum_projections` stores curriculum, stage, grade, teaching roles, and pedagogical profiles.
+- Upgraded extraction, normalization, QA, server queries, API units, public-artifact export, and the viewer to the `world-v1.3` contract.
+- Reframed textbooks as governed teaching projections and evidence sources rather than the ontology that defines knowledge identity.
 - Exposed shared runtime edge-type constants for front-end annotation and review controls; canonical writes continue to validate against the pipeline's executable relation set.
 - Updated current architecture, schema standards, API contracts, prompt inventory, technical reports, and both README files to describe the governed interdisciplinary workflow and its evidence limits.
 
 ### Removed - 2026-07-13
 
+- Retired new `same_as` writes. Confirmed identity equivalence now triggers canonical node merging, and historical rows are migration-only data.
+- Removed the old mixed Domain Profile contract that stored school stages, curriculum roles, and pedagogical profiles inside disciplinary semantics.
+- Removed the superseded `ai-nks-v0.1` standard after replacing its active guidance with `ai-nks-v0.2`.
 - Removed the obsolete broad discussion draft and completed 2026-06-26 next-step plan after consolidating their active boundaries into current standards and implementation documents.
 
 ## [0.1.0] - 2026-07-13
@@ -35,7 +45,7 @@ This version records the first public inspection preview. It is not yet a tagged
 - Added GitHub continuous integration, contribution guidance, a security policy, citation metadata, provenance boundaries, and a public-release checklist.
 - Added root `test` and `verify` commands plus Node.js 22 package metadata.
 - Added a repository-authored populated graph and a one-command demo backed by an isolated PostgreSQL database.
-- Added evidence-linked, pending-review pedagogical-profile generation by school stage, integrated after canonical normalization and exposed through `ApiUnit` domain profiles.
+- Added the first evidence-linked, pending-review pedagogical-profile generation by school stage. That release exposed it through `ApiUnit` domain profiles; the 2026-07-13 upgrade above migrated the current contract to Curriculum Projections.
 - Removed the implicit institutional embedding endpoint; embedding text is sent only after an endpoint is explicitly configured.
 - Restricted the Docker PostgreSQL port binding to the local host.
 

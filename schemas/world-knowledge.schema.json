@@ -1,7 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "World Knowledge Schema V1.2",
-  "description": "Minimal unified node schema for world knowledge, designed to stay simple while covering K12 as the near-term validation target. Version 1.2 aligns learning_mode with the revised Bloom knowledge dimensions.",
+  "$id": "https://open-knowledge-map.org/schemas/world-knowledge-v1.3.json",
+  "title": "World Knowledge Object Schema V1.3",
+  "description": "面向多学科知识网络的统一知识对象结构。学科角色和课程位置由独立投影表示。",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -174,6 +175,10 @@
               }
             }
           }
+        },
+        "bridge_role": {
+          "type": "string",
+          "enum": ["semantic_bridge", "method_bridge", "analogy_bridge"]
         }
       }
     },

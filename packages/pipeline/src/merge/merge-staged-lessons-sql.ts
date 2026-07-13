@@ -1,6 +1,14 @@
 import type { SqlStatement } from "../staging/staging-sql.js";
 import { formatPgvector } from "./merge-nodes.js";
-import type { EdgeMergePlan, DomainProfileMergePlan, EvidenceMergePlan, MentionMergePlan, NodeCardMergePlan, StagedNodeMergePlan } from "./merge-nodes.js";
+import type {
+  CurriculumProjectionMergePlan,
+  DomainProfileMergePlan,
+  EdgeMergePlan,
+  EvidenceMergePlan,
+  MentionMergePlan,
+  NodeCardMergePlan,
+  StagedNodeMergePlan,
+} from "./merge-nodes.js";
 import type { StagedLessonMergePlan, StagedLessonsMergePlan } from "./merge-staged-lesson.js";
 import { buildNodeTermsSqlPlan, type NodeTermRow } from "../shared/node-terms.js";
 
@@ -20,7 +28,6 @@ const JSONB_COLUMNS = new Set([
   "normalized_claims_json",
   "properties_json",
   "rationale_json",
-  "school_stages_json",
   "sections_json",
   "selection_json",
   "source_refs_json",
@@ -68,6 +75,13 @@ function buildLessonMergeStatements(lesson: StagedLessonMergePlan): SqlStatement
   for (const profile of lesson.domain_profiles) {
     statements.push(buildDomainProfileUpsertStatement(profile));
     statements.push(...buildEvidenceLinkStatements(profile.evidence_links.statements, `domain-profile-${profile.payload.id}`));
+  }
+  for (const projection of lesson.curriculum_projections) {
+    statements.push(buildCurriculumProjectionUpsertStatement(projection));
+    statements.push(...buildEvidenceLinkStatements(
+      projection.evidence_links.statements,
+      `curriculum-projection-${projection.payload.id}`,
+    ));
   }
   for (const mention of lesson.mentions) {
     statements.push(buildMentionUpsertStatement(mention));
@@ -256,7 +270,42 @@ function buildDomainProfileUpsertStatement(plan: DomainProfileMergePlan): SqlSta
       "id",
       "node_id",
       "domain",
-      "school_stages_json",
+      "schema_id",
+      "schema_version",
+      "domain_role",
+      "source_refs_json",
+      "properties_json",
+      "status",
+      "created_at",
+      "updated_at",
+      "notes",
+    ],
+    row: plan.payload,
+    conflict: [
+      "ON CONFLICT (dataset_id, id) DO UPDATE SET",
+      "schema_id = EXCLUDED.schema_id,",
+      "schema_version = EXCLUDED.schema_version,",
+      "domain_role = EXCLUDED.domain_role,",
+      "source_refs_json = EXCLUDED.source_refs_json,",
+      "properties_json = EXCLUDED.properties_json,",
+      "updated_at = EXCLUDED.updated_at,",
+      "notes = EXCLUDED.notes",
+    ],
+  });
+}
+
+function buildCurriculumProjectionUpsertStatement(plan: CurriculumProjectionMergePlan): SqlStatement {
+  return buildStatement({
+    name: "upsert-world-curriculum-projection",
+    table: "world_curriculum_projections",
+    columns: [
+      "dataset_id",
+      "id",
+      "node_id",
+      "domain",
+      "curriculum_id",
+      "school_stage",
+      "grade_band",
       "curriculum_roles_json",
       "source_refs_json",
       "properties_json",
@@ -268,10 +317,10 @@ function buildDomainProfileUpsertStatement(plan: DomainProfileMergePlan): SqlSta
     row: plan.payload,
     conflict: [
       "ON CONFLICT (dataset_id, id) DO UPDATE SET",
-      "school_stages_json = EXCLUDED.school_stages_json,",
       "curriculum_roles_json = EXCLUDED.curriculum_roles_json,",
       "source_refs_json = EXCLUDED.source_refs_json,",
       "properties_json = EXCLUDED.properties_json,",
+      "status = EXCLUDED.status,",
       "updated_at = EXCLUDED.updated_at,",
       "notes = EXCLUDED.notes",
     ],

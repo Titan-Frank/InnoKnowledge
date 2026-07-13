@@ -8,6 +8,7 @@ export type MergeFetchedStagingRows = {
   evidence?: RawRecord[];
   edges?: RawRecord[];
   domain_profiles?: RawRecord[];
+  curriculum_projections?: RawRecord[];
   mentions?: RawRecord[];
   node_cards?: RawRecord[];
 };
@@ -40,6 +41,7 @@ export function buildStagedLessonInputs(lessonRuns: RawRecord[], staged: MergeFe
         evidence: rowsForLesson(staged.evidence, lessonRunId),
         edges: rowsForLesson(staged.edges, lessonRunId),
         domain_profiles: rowsForLesson(staged.domain_profiles, lessonRunId),
+        curriculum_projections: rowsForLesson(staged.curriculum_projections, lessonRunId),
         mentions: rowsForLesson(staged.mentions, lessonRunId),
         node_cards: rowsForLesson(staged.node_cards, lessonRunId),
       },

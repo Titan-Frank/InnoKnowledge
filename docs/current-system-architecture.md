@@ -6,7 +6,7 @@
 
 一句话概括：
 
-> 当前系统是一个 TypeScript 优先的教材知识抽取、跨学科治理与知识运行系统：用流水线把 PDF 教材经 MinerU 解析后抽取成证据支撑的统一世界知识图谱，在 PostgreSQL 中扫描并人工复核跨学科候选，再通过 Hono API 提供给 React 查看器浏览、检索、生成和治理；经过筛选的 `ApiUnit` 还可以导出成不依赖数据库的只读公开成果。
+> 当前系统是一个 TypeScript 优先的教材知识抽取、多学科语义建模、跨学科桥接治理与知识运行系统：用流水线把 PDF 教材经 MinerU 解析后抽取成证据支撑的统一知识对象、学科语义画像和课程投影，在 PostgreSQL 中扫描并人工复核同一对象、直接关系和桥接路径，再通过 Hono 接口提供给 React 查看器浏览、检索、生成和治理；经过筛选的 `ApiUnit` 还可以导出成不依赖数据库的只读公开成果。
 
 ## 一、总体结构
 
@@ -15,7 +15,7 @@
 1. 数据输入层：PDF、MinerU 解析结果、教材大纲。
 2. 抽取流水线：按 lesson/chunk 调用模型抽取知识候选，并写入 staging 表。
 3. 归并与治理层：把 staging 结果合并成 canonical 世界知识表，做规范化、跨学科候选发现、人工复核和质量检查。
-4. 存储层：PostgreSQL，保存正式知识图谱、证据、卡片、正文和运行记录。
+4. 存储层：PostgreSQL，保存正式知识网络、学科语义画像、课程投影、证据、卡片、正文和运行记录。
 5. 服务层：Hono API，负责读取 PostgreSQL、组装图谱包、知识单元、搜索结果和流水线状态。
 6. 前端层：React/Vite viewer，负责图谱浏览、知识点详情、跨学科复核、教材工作台和流水线调试。
 
@@ -39,7 +39,7 @@ flowchart TD
   L --> N["generate-node-bodies"]
   N --> O["world_node_bodies"]
   O --> S["generate-pedagogical-profiles"]
-  S --> T["world_domain_profiles 教学画像"]
+  S --> T["world_curriculum_projections 教学画像"]
   T --> W["interdisciplinary_analysis 候选扫描"]
   W --> X["world_interdisciplinary_* 治理表"]
   X --> Y["人工复核"]
@@ -81,14 +81,14 @@ flowchart TD
 
 ## 三、知识体系结构
 
-当前项目顶层标准是 `ai-nks-v0.1`，当前代码执行的底层工程 schema 是 `world-v1.2`，不再使用旧的 `schemas/v2/*` 假设。
+当前项目顶层标准是 `ai-nks-v0.2`，当前代码执行的底层工程结构是 `world-v1.3`，不再使用旧的 `schemas/v2/*` 假设。
 
 这里需要分清两件事：
 
-1. `ai-nks-v0.1` 是当前顶层系统标准，定义 Knowledge Object、Knowledge Unit / ApiUnit、Knowledge Network 和 Knowledge Runtime。
-2. `world-v1.2` 是当前数据库、JSON Schema、pipeline 和 QA 正在使用的工程基线。
+1. `ai-nks-v0.2` 是当前顶层系统标准，定义统一知识对象、学科语义画像、课程投影、显式桥接对象、知识网络和知识运行时。
+2. `world-v1.3` 是当前数据库、机器可读结构、流水线和质量检查正在使用的工程基线。
 
-所以，本节描述的是 `ai-nks-v0.1` 在当前代码中的落地状态，尤其是已经落地的底层图谱结构。完整文档优先级见 `docs/documentation-status.md`。
+所以，本节描述的是 `ai-nks-v0.2` 在当前代码中的落地状态，尤其是已经落地的多学科知识网络结构。完整文档优先级见 `docs/documentation-status.md`。
 
 知识体系被拆成四层，加一个横向证据平面：
 
@@ -136,12 +136,14 @@ entity / concept / property / process / event / method / rule / representation /
 
 事实关系层回答：“知识对象之间有什么稳定关系？”
 
-当前关系类型固定为十五类：
+当前关系类型固定为 18 类。用户和模型看到中文名称，括号内代码只用于内部契约：
 
 ```text
-is_a / instance_of / part_of / contains / has_property / uses / produces /
-depends_on / prerequisite_for / causes / affects / represents / about /
-same_as / related_to
+是一种（is_a）/ 是实例（instance_of）/ 是组成部分（part_of）/ 包含（contains）/
+具有属性（has_property）/ 使用（uses）/ 产生（produces）/ 依赖（depends_on）/
+是前置知识（prerequisite_for）/ 导致（causes）/ 影响（affects）/ 表示（represents）/
+形式化表达（formalizes）/ 应用于（applies_to）/ 类似于（analogous_to）/
+建模描述（models）/ 主题是（about）/ 相关（related_to）
 ```
 
 落点：
@@ -152,15 +154,17 @@ same_as / related_to
 
 ### 4. 领域扩展层
 
-领域扩展层回答：“同一个知识对象进入具体学科、学段和课程后，要补充什么教学信息？”
+学科语义层回答：“同一个知识对象在一个学科中扮演什么语义角色？”课程投影层回答：“它在具体课程、学段和年级中怎样被安排和教学？”
 
-例如，“能量”作为一个知识对象，本体身份不应该被不同教材改写；但它在初中物理、高中物理、化学、生物里的教学重点可以不同。这些差异放在 `world_domain_profiles`。
+例如，“能量”只有一个知识身份；它在物理中可以是物理量，在化学中可以参与反应能量模型，这些语义角色放在 `world_domain_profiles`。初中物理、高中物理或化学课程中的教学重点分别放在 `world_curriculum_projections`。
 
 落点：
 
-- 数据库表：`world_domain_profiles`
-- 教学画像扩展：数据库列 `properties_json` 映射为 `ApiUnit.domain_profiles[].properties`；旧数据使用单份 `pedagogical_profile`，自动数据按学段使用 `pedagogical_profiles_by_stage`
-- 前端展示：知识单元详情里的“领域画像”
+- 领域模式：`world_domain_schemas`
+- 学科语义：`world_domain_profiles`，映射为 `ApiUnit.domain_profiles`
+- 课程与教学：`world_curriculum_projections`，映射为 `ApiUnit.curriculum_projections`
+- 教学画像：`world_curriculum_projections.properties_json.pedagogical_profile`
+- 前端展示：知识单元详情里的“学科语义画像”和“课程与教学投影”
 
 ### 5. 证据与溯源平面
 
@@ -232,7 +236,7 @@ world_textbook_outlines.outline_json
 
 抽取模型收到两类东西：
 
-1. 提示词：告诉模型要抽取节点、关系、证据、领域画像和节点卡片。
+1. 提示词：告诉模型先抽取知识对象和证据，再基于同一批候选判断中文关系；学科语义画像、课程投影和节点卡片由后处理补齐。
 2. JSON Schema：通过 API 请求体约束模型必须返回指定 JSON 结构。
 
 输出不是直接写入正式表，而是先规范化成 staging 行。每个课时还必须给出显式抽取结论：
@@ -277,6 +281,7 @@ lesson worker 只能写：
 - `world_staging_nodes`
 - `world_staging_edges`
 - `world_staging_domain_profiles`
+- `world_staging_curriculum_projections`
 - `world_staging_mentions`
 - `world_staging_evidence`
 - `world_staging_node_cards`
@@ -298,11 +303,11 @@ staging 写入后，系统会执行：
 
 1. `staging-quality`：检查单课时 staging 数据是否完整。
 2. `merge-staged-lessons`：把多个 lesson 的候选节点归并为 canonical 节点。
-3. `normalize`：修正卡片、领域画像、证据引用等后处理。
+3. `normalize`：修正卡片、学科语义画像、课程投影、证据引用等后处理。
 4. `generate-node-bodies`：根据正式节点、卡片和证据生成知识正文。
-5. `generate-pedagogical-profiles`：按“节点＋领域＋学段”生成教学画像。
+5. `generate-pedagogical-profiles`：按“知识对象＋课程投影”生成教学画像。
 6. 可选向量阶段：只在明确配置向量服务时生成节点和完整知识单元向量。
-7. `interdisciplinary-analysis`：在正式图谱上扫描同一对象与跨学科关系候选，只写治理表，不直接修改正式节点或关系。
+7. `interdisciplinary-analysis`：在正式网络上扫描同一对象、直接关系和显式桥接路径候选，只写治理表，不直接修改正式节点或关系。
 8. `strict-qa`：检查 schema 合法性及自动教学画像的字段、学段、生成信息和证据引用。
 9. `graph-integrity`：检查图结构完整性，并可标记 QA 通过。
 10. 质量仪表盘：把跨学科待复核候选计入人工待处理项。
@@ -349,7 +354,7 @@ npm run generate-node-bodies -w packages/pipeline -- \
 
 ### 8. 教学画像生成
 
-一键流水线会在知识正文之后、向量和严格质检之前自动生成教学画像。生成任务以“领域画像记录＋学段”为单位，读取正式节点、结构化卡片、关系和课本证据，结果写入现有 `world_domain_profiles.properties_json.pedagogical_profiles_by_stage`，不增加数据库列。
+一键流水线会在知识正文之后、向量和严格质检之前自动生成教学画像。生成任务以课程投影为单位，读取正式节点、结构化卡片、关系、课程位置和来源证据，结果写入 `world_curriculum_projections.properties_json.pedagogical_profile`。学科语义画像保持纯语义，不再混入教学字段。
 
 ```bash
 npm run generate-pedagogical-profiles -w packages/pipeline -- \
@@ -391,7 +396,10 @@ schemas/pg/knowledge_store.sql
 | `world_edges` | 知识对象之间的关系 |
 | `world_taxonomy_terms` | 受控分类词 |
 | `world_taxonomy_edges` | 分类词之间的上下位或相关关系 |
-| `world_domain_profiles` | 学科、学段、课程角色和教学画像 |
+| `world_domain_schemas` | 各学科允许的角色和学科模式版本 |
+| `world_domain_profiles` | 知识对象的学科语义角色和学科特有属性 |
+| `world_curriculum_projections` | 课程、学段、年级、课程角色和教学画像 |
+| `world_source_policies` | 来源类型、可信等级和关系证据资格策略 |
 | `world_mentions` | 来源中对知识对象的提及 |
 | `world_evidence` | 证据单元 |
 | `world_evidence_links` | 证据和对象之间的补充链接 |
@@ -418,6 +426,7 @@ schemas/pg/knowledge_store.sql
 | `world_staging_nodes` | 单课时候选节点 |
 | `world_staging_edges` | 单课时候选关系 |
 | `world_staging_domain_profiles` | 单课时候选领域画像 |
+| `world_staging_curriculum_projections` | 单课时候选课程、学段、年级和教学角色投影 |
 | `world_staging_mentions` | 单课时候选提及 |
 | `world_staging_evidence` | 单课时候选证据 |
 | `world_staging_node_cards` | 单课时候选卡片 |
@@ -429,7 +438,8 @@ schemas/pg/knowledge_store.sql
 | `world_pipeline_job_events` | 流水线事件记录 |
 | `world_pipeline_worker_states` | 并行课时工作器状态 |
 | `world_interdisciplinary_runs` | 跨学科候选扫描的范围、配置、统计和状态 |
-| `world_interdisciplinary_candidates` | 同一对象或关系候选、发现理由、教材证据和人工复核状态 |
+| `world_interdisciplinary_candidates` | 同一对象、直接关系或桥接路径候选，及桥接对象、逐段证据和人工复核状态 |
+| `world_cross_domain_edges` | 从正式关系与对象学科画像推导出的只读跨学科关系视图 |
 
 ### 4. 数据边界
 
@@ -473,7 +483,7 @@ schemas/pg/knowledge_store.sql
 | `POST /api/source/:key/image-reviews/:evidence_id` | 写入人工图片复核结果 |
 | `GET /api/source/:key/interdisciplinary` | 返回跨学科领域覆盖、桥接节点、候选和证据摘要 |
 | `POST /api/source/:key/interdisciplinary/analyze` | 扫描跨学科候选，不写正式图谱 |
-| `POST /api/source/:key/interdisciplinary/candidates/:candidate_id/review` | 批准或拒绝候选；关系批准必须选择合格教材证据、关系类型、方向和起终点 |
+| `POST /api/source/:key/interdisciplinary/candidates/:candidate_id/review` | 批准或拒绝候选；直接关系选择中文关系、方向和证据，桥接路径逐段提交关系与直接证据 |
 | `POST /api/source/:key/interdisciplinary/apply` | 在事务中应用已批准的节点归一和正式关系 |
 | `GET /api/source/:key/assets/:asset_path` | 提供本地教材图片等资源 |
 | `GET /api/enrich/books`、`GET /api/enrich/book` | 教材工作台相关数据 |
@@ -500,6 +510,7 @@ interface ApiUnit {
     incoming: ApiUnitRelation[];
   };
   domain_profiles: ApiUnitDomainProfile[];
+  curriculum_projections: ApiUnitCurriculumProjection[];
   mentions: ApiMention[];
   evidence: ApiEvidence[];
   media: ApiUnitMedia[];
@@ -517,6 +528,7 @@ interface ApiUnit {
 | `node` | `world_nodes` |
 | `relations` | `world_edges` |
 | `domain_profiles` | `world_domain_profiles` |
+| `curriculum_projections` | `world_curriculum_projections` |
 | `mentions` | `world_mentions` |
 | `evidence` | `world_evidence` |
 | `media` | 从图片证据解析 |
@@ -546,7 +558,7 @@ interface ApiUnit {
 | 流水线调试 | `PipelineDebugPage` | 查看 pipeline 状态、启动抽取、复核图片 |
 | 教材工作台 | `TextbookTreePage` | 查看教材树和教材相关内容 |
 | 标注工作台 | `AnnotationWorkbench` | 查看教材原文并手工补充节点、边和证据 |
-| 跨学科工作台 | `InterdisciplinaryPage` | 扫描、筛选和复核跨学科候选，查看领域覆盖、领域对和桥接节点，并应用已批准结果 |
+| 跨学科工作台 | `InterdisciplinaryPage` | 扫描、筛选和复核三类跨学科候选，查看学科覆盖、学科对和桥接对象，逐段审核桥接路径并应用已批准结果 |
 
 前端启动时会先请求：
 
@@ -572,11 +584,11 @@ POST /api/source/:key/grounded-generate
 
 - 对象概览：知识对象的定义和别名
 - 知识属性：领域、知识形式、修订版布鲁姆知识维度、适用范围和主题标签；主题标签只用于检索与归类，不冒充图谱关系
-- 完整知识单元：聚合 `ApiUnit` 的知识正文、知识骨架、课本原文、结构化卡片、关系和领域画像
+- 完整知识单元：聚合 `ApiUnit` 的知识正文、知识骨架、课本原文、结构化卡片、中文关系、学科语义画像和课程教学投影
 - 教材位置：来自当前数据源中的对象提及
 - 补充属性：未进入正式展示分区的扩展字段，默认折叠
 
-其中知识正文来自 `ApiUnit.body`，课本原文来自 `ApiUnit.source_fragments`，结构化卡片来自 `ApiUnit.card`，关系来自 `ApiUnit.relations`，领域画像来自 `ApiUnit.domain_profiles`，证据和媒体来自 `ApiUnit.evidence`、`ApiUnit.media`。
+其中知识正文来自 `ApiUnit.body`，课本原文来自 `ApiUnit.source_fragments`，结构化卡片来自 `ApiUnit.card`，中文关系来自 `ApiUnit.relations` 的关系标签与句式，学科语义画像来自 `ApiUnit.domain_profiles`，课程教学投影来自 `ApiUnit.curriculum_projections`，证据和媒体来自 `ApiUnit.evidence`、`ApiUnit.media`。
 
 ## 九、提示词与结构化输出
 
@@ -585,11 +597,11 @@ POST /api/source/:key/grounded-generate
 1. P1：两阶段课时知识对象、证据与关系抽取。
 2. P2：教材图片相关性和可见内容判断。
 3. P3：知识正文生成。
-4. P4：按学段生成教学画像。
+4. P4：按课程投影生成该课程、学段和年级下的教学画像。
 5. P5：基于 `ApiUnit` 的带依据生成。
 6. P6：暂存质量失败后的定向重抽补充提示。
 
-跨学科候选扫描不是新的模型调用。它使用确定性名称、别名、语义键、领域和桥接标签规则；标签只负责召回候选，关系成立仍需人工选择教材证据。
+跨学科候选扫描不是新的模型调用。它使用确定性名称、别名、语义键、学科、显式桥接对象和主题标签规则；标签只负责召回候选，关系成立仍需人工选择符合来源策略的直接证据。
 
 但模型输出 JSON 不是只靠提示词。
 
@@ -644,7 +656,7 @@ npm run dev
 
 ## 十一、只读公开成果层
 
-公开成果目录当前为 `artifacts/okm-public-v0.1.0`，由 PostgreSQL 的 `knowledge/main` 导出。它包含：
+仓库目前保留的已生成公开成果目录是历史只读快照 `artifacts/okm-public-v0.1.0`，由当时 PostgreSQL 的 `knowledge/main` 导出。它不代表当前 `ai-nks-v0.2` / `world-v1.3` 契约，也不会为了追随未发布代码而原地改写。当前导出命令已经改为生成新的 `artifacts/okm-public-v0.2.0`，但该新版成果尚未纳入仓库。历史快照包含：
 
 1. `manifest.json`：版本、数量、筛选条件、来源状态和文件入口。
 2. `data/graph.json`：静态图谱。
@@ -653,7 +665,7 @@ npm run dev
 5. `SOURCES.md`、`RIGHTS.md` 和 `SHA256SUMS`：来源边界、权利边界和文件校验值。
 6. JavaScript、Python 读取示例以及复用正式 React 前端构建的只读查看器。
 
-当前 v0.1.0 公开查看口径是 182 个知识对象、144 条关系、537 条导出证据、182 张卡片和 182 篇正文。线上入口是 <https://open-knowledge-map.pages.dev/>。公开模式不连接 PostgreSQL，不提供抽取、标注、教材管理、回答生成和任何写操作。
+历史 v0.1.0 公开查看口径是 182 个知识对象、144 条关系、537 条导出证据、182 张卡片和 182 篇正文。线上入口是 <https://open-knowledge-map.pages.dev/>。公开模式不连接 PostgreSQL，不提供抽取、标注、教材管理、回答生成和任何写操作。
 
 当前来源编号可以从知识单元中恢复，书名、出版社、ISBN、版次和印次可以从本地 PDF 版权页核对，但准确的上游网址和许可证标识仍未写入 `world_source_artifacts`。PDF 本身保留版权，当前没有适用的开放许可证或明确再分发授权。因此它是公开查看成果，不应被描述为已经完成授权的数据集。
 
@@ -685,14 +697,14 @@ viewer 不应该自己理解数据库表结构。它应该消费 `BundleResponse
 
 ### 7. 跨学科候选和正式知识必须分开
 
-扫描结果保存在 `world_interdisciplinary_candidates`，共享标签和匹配分数只用于发现。关系候选必须经过人工选择证据并批准，随后由受数据集锁保护的应用步骤写入 `world_edges`；同一对象候选批准后执行节点归一，不创建虚假的 `same_as` 边。完整契约见 `docs/interdisciplinary-knowledge-network.md`。
+扫描结果保存在 `world_interdisciplinary_candidates`，共享标签和匹配分数只用于发现。直接关系必须选择证据；桥接路径的两段必须分别选择关系、方向和本段直接证据；批准后由受数据集锁保护的应用步骤统一写入 `world_edges`。同一对象候选批准后执行节点归一。完整契约见 `docs/interdisciplinary-knowledge-network.md`。
 
 ## 十三、当前还可以继续加强的点
 
 这部分不是当前架构已经完成的事实，而是从现状自然推出来的改进方向：
 
 1. 把 `ApiUnit` 当成正式公开契约继续稳定下来，避免前端和未来生成系统各自拼表。
-2. 继续收紧 `semantic_core`、`pedagogical_profiles_by_stage` 等扩展字段的 schema，并仅把单份 `pedagogical_profile` 作为历史兼容结构。
+2. 继续收紧 `semantic_core`、领域特有属性和课程教学画像的机器可读结构。
 3. 让 pipeline manifest 更好支持断点续跑和最终状态回写。
 4. 建立多学科、多人裁决的跨学科候选金标准，评测准确率、漏检率和人工复核成本。
 5. 补充对象级检索和生成评测，让知识单元不只可看，还能被稳定调用。

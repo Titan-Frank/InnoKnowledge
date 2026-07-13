@@ -49,7 +49,7 @@ if ! docker compose exec -T postgres psql -U okm -d postgres -tAc \
   docker compose exec -T postgres createdb -U okm "$DEMO_DB_NAME"
 fi
 
-echo "Applying world-v1.2 schema to ${DEMO_DB_NAME}..."
+echo "Applying world-v1.3 schema to ${DEMO_DB_NAME}..."
 docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U okm -d "$DEMO_DB_NAME" \
   < schemas/pg/knowledge_store.sql
 

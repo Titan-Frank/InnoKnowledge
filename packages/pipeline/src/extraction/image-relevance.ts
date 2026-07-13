@@ -138,6 +138,7 @@ export async function filterImageEvidencePayload(
         edges: recordArray(pruned.edges).length,
         mentions: recordArray(pruned.mentions).length,
         domain_profiles: recordArray(pruned.domain_profiles).length,
+        curriculum_projections: recordArray(pruned.curriculum_projections).length,
         node_cards: recordArray(pruned.node_cards).length,
       },
       issues: mergeIssues(payload.issues, issues),
@@ -578,6 +579,7 @@ function pruneDroppedEvidenceRefs(payload: RawRecord, dropped: Set<string>): Raw
     edges: pruneRecords(recordArray(payload.edges), dropped, { dropWhenEmptyAfterPrune: true }),
     mentions: pruneRecords(recordArray(payload.mentions), dropped, { dropWhenEmptyAfterPrune: true }),
     domain_profiles: pruneRecords(recordArray(payload.domain_profiles), dropped, { dropWhenEmptyAfterPrune: false }),
+    curriculum_projections: pruneRecords(recordArray(payload.curriculum_projections), dropped, { dropWhenEmptyAfterPrune: false }),
     node_cards: pruneNodeCards(recordArray(payload.node_cards), dropped),
   };
 }
@@ -622,6 +624,7 @@ function repairPrunedEvidenceReferences(payload: RawRecord): RawRecord {
     edges: repairRecordRefs(recordArray(payload.edges), fallbackEvidenceId),
     mentions: repairedMentions,
     domain_profiles: repairRecordRefs(recordArray(payload.domain_profiles), fallbackEvidenceId),
+    curriculum_projections: repairRecordRefs(recordArray(payload.curriculum_projections), fallbackEvidenceId),
     node_cards: repairNodeCardRefs(recordArray(payload.node_cards), fallbackEvidenceId),
   };
 }

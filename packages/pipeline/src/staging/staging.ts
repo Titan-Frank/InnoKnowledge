@@ -4,6 +4,8 @@ import {
   VALID_KNOWLEDGE_FORMS,
   VALID_NODE_KINDS,
   VALID_SCHOOL_STAGES,
+  defaultDomainRole,
+  domainSchemaFor,
   normalizeLearningModes,
   requireValidEdgeType,
 } from "../shared/knowledge.js";
@@ -50,7 +52,22 @@ export type NormalizedDomainProfile = {
   raw_profile_id: string;
   raw_node_id: string;
   domain: string;
-  school_stages_json: string[];
+  schema_id: string;
+  schema_version: string;
+  domain_role: string;
+  source_refs_json: string[];
+  properties_json: RawRecord;
+  status: string;
+  notes: string;
+};
+
+export type NormalizedCurriculumProjection = {
+  raw_projection_id: string;
+  raw_node_id: string;
+  domain: string;
+  curriculum_id: string;
+  school_stage: string;
+  grade_band: string | null;
   curriculum_roles_json: string[];
   source_refs_json: string[];
   properties_json: RawRecord;
@@ -111,6 +128,7 @@ export type LessonArtifactInput = {
   nodes: RawRecord[];
   edges: RawRecord[];
   domainProfiles: RawRecord[];
+  curriculumProjections?: RawRecord[];
   mentions: RawRecord[];
   evidence: RawRecord[];
   nodeCards: RawRecord[];
@@ -120,6 +138,7 @@ export type NormalizedLessonArtifacts = {
   nodes: NormalizedNode[];
   edges: NormalizedEdge[];
   domain_profiles: NormalizedDomainProfile[];
+  curriculum_projections: NormalizedCurriculumProjection[];
   mentions: NormalizedMention[];
   evidence: NormalizedEvidence[];
   node_cards: NormalizedNodeCard[];
@@ -127,6 +146,7 @@ export type NormalizedLessonArtifacts = {
     nodes: number;
     edges: number;
     domain_profiles: number;
+    curriculum_projections: number;
     mentions: number;
     evidence: number;
     node_cards: number;
@@ -136,15 +156,29 @@ export type NormalizedLessonArtifacts = {
 export function normalizeLessonArtifacts(input: LessonArtifactInput, bookId: string, batchAnchor: string): NormalizedLessonArtifacts {
   let nodes = normalizeNodes(input.nodes);
   const edges = normalizeEdges(input.edges);
-  const domainProfiles = normalizeDomainProfiles(input.domainProfiles);
+  const domainProfiles = normalizeDomainProfiles(input.domainProfiles, nodes);
+  const curriculumProjections = normalizeCurriculumProjections(
+    input.curriculumProjections ?? [],
+    bookId,
+  );
   let mentions = normalizeMentions(input.mentions, bookId, batchAnchor);
   const evidence = normalizeEvidence(input.evidence, bookId, batchAnchor);
   const nodeCards = normalizeNodeCards(input.nodeCards);
-  ({ nodes, mentions } = repairNodeEvidenceMentions({ nodes, domainProfiles, mentions, evidence, nodeCards, bookId, batchAnchor }));
+  ({ nodes, mentions } = repairNodeEvidenceMentions({
+    nodes,
+    domainProfiles,
+    curriculumProjections,
+    mentions,
+    evidence,
+    nodeCards,
+    bookId,
+    batchAnchor,
+  }));
   return {
     nodes,
     edges,
     domain_profiles: domainProfiles,
+    curriculum_projections: curriculumProjections,
     mentions,
     evidence,
     node_cards: nodeCards,
@@ -152,6 +186,7 @@ export function normalizeLessonArtifacts(input: LessonArtifactInput, bookId: str
       nodes: nodes.length,
       edges: edges.length,
       domain_profiles: domainProfiles.length,
+      curriculum_projections: curriculumProjections.length,
       mentions: mentions.length,
       evidence: evidence.length,
       node_cards: nodeCards.length,
@@ -162,6 +197,7 @@ export function normalizeLessonArtifacts(input: LessonArtifactInput, bookId: str
 function repairNodeEvidenceMentions(input: {
   nodes: NormalizedNode[];
   domainProfiles: NormalizedDomainProfile[];
+  curriculumProjections: NormalizedCurriculumProjection[];
   mentions: NormalizedMention[];
   evidence: NormalizedEvidence[];
   nodeCards: NormalizedNodeCard[];
@@ -181,6 +217,7 @@ function repairNodeEvidenceMentions(input: {
 
   for (const node of input.nodes) addRefs(node.raw_node_id, node.source_refs_json);
   for (const profile of input.domainProfiles) addRefs(profile.raw_node_id, profile.source_refs_json);
+  for (const projection of input.curriculumProjections) addRefs(projection.raw_node_id, projection.source_refs_json);
   for (const mention of input.mentions) addRefs(mention.target_raw_id, mention.source_refs_json);
   for (const card of input.nodeCards) {
     addRefs(card.raw_node_id, card.source_refs_json);
@@ -287,7 +324,8 @@ function normalizeDirectionality(value: unknown): "directed" | "undirected" {
   return "directed";
 }
 
-export function normalizeDomainProfiles(domainProfiles: RawRecord[]): NormalizedDomainProfile[] {
+export function normalizeDomainProfiles(domainProfiles: RawRecord[], nodes: NormalizedNode[] = []): NormalizedDomainProfile[] {
+  const nodeKindById = new Map(nodes.map((node) => [node.raw_node_id, node.kind]));
   return domainProfiles.map((profile) => {
     const rawProfileId = stringValue(pickPythonOr(profile.id, profile.raw_profile_id)).trim();
     const rawNodeId = stringValue(pickPythonOr(profile.node_id, profile.raw_node_id)).trim();
@@ -295,18 +333,74 @@ export function normalizeDomainProfiles(domainProfiles: RawRecord[]): Normalized
     if (!rawProfileId || !rawNodeId || !VALID_DOMAINS.has(domain)) {
       throw new Error(`Invalid domain profile payload: ${JSON.stringify(profile)}`);
     }
+    const schema = domainSchemaFor(domain);
+    const domainRole = stringValue(pickPythonOr(profile.domain_role, profile.role)).trim()
+      || defaultDomainRole(domain, nodeKindById.get(rawNodeId));
+    const properties = stripCurriculumProperties(recordValue(profile.properties));
     return {
       raw_profile_id: rawProfileId,
       raw_node_id: rawNodeId,
       domain,
-      school_stages_json: uniqueEnum(profile.school_stages, VALID_SCHOOL_STAGES),
-      curriculum_roles_json: uniqueEnum(profile.curriculum_roles, VALID_CURRICULUM_ROLES),
+      schema_id: stringValue(pickPythonOr(profile.schema_id, schema.schema_id)).trim(),
+      schema_version: stringValue(pickPythonOr(profile.schema_version, schema.version)).trim(),
+      domain_role: domainRole,
       source_refs_json: uniqueStrings(profile.source_refs),
-      properties_json: recordValue(profile.properties),
+      properties_json: properties,
       status: stringValue(pickPythonOr(profile.status, "draft")),
       notes: stringValue(profile.notes).trim(),
     };
   });
+}
+
+export function normalizeCurriculumProjections(
+  curriculumProjections: RawRecord[],
+  bookId = "unknown",
+): NormalizedCurriculumProjection[] {
+  const normalized = curriculumProjections.flatMap((projection) => {
+    const rawProjectionId = stringValue(pickPythonOr(projection.id, projection.raw_projection_id)).trim();
+    const rawNodeId = stringValue(pickPythonOr(projection.node_id, projection.raw_node_id)).trim();
+    const domain = stringValue(projection.domain).trim();
+    const curriculumId = stringValue(pickPythonOr(projection.curriculum_id, `textbook:${bookId}`)).trim();
+    const stages = uniqueEnum(
+      projection.school_stage,
+      VALID_SCHOOL_STAGES,
+    );
+    if (!rawProjectionId || !rawNodeId || !VALID_DOMAINS.has(domain) || !curriculumId || stages.length === 0) {
+      throw new Error(`Invalid curriculum projection payload: ${JSON.stringify(projection)}`);
+    }
+    return stages.map((schoolStage, index) => ({
+      raw_projection_id: stages.length === 1 ? rawProjectionId : `${rawProjectionId}:${index + 1}`,
+      raw_node_id: rawNodeId,
+      domain,
+      curriculum_id: curriculumId,
+      school_stage: schoolStage,
+      grade_band: stringValue(projection.grade_band).trim() || null,
+      curriculum_roles_json: uniqueEnum(
+        projection.curriculum_roles,
+        VALID_CURRICULUM_ROLES,
+      ),
+      source_refs_json: uniqueStrings(projection.source_refs),
+      properties_json: recordValue(projection.properties),
+      status: stringValue(pickPythonOr(projection.status, "draft")),
+      notes: stringValue(projection.notes).trim(),
+    }));
+  });
+
+  return uniqueByKey(normalized, (projection) => projection.raw_projection_id);
+}
+
+function stripCurriculumProperties(properties: RawRecord): RawRecord {
+  const result = { ...properties };
+  for (const key of [
+    "school_stage",
+    "curriculum_roles",
+    "curriculum_id",
+    "grade_band",
+    "pedagogical_profile",
+  ]) {
+    delete result[key];
+  }
+  return result;
 }
 
 export function normalizeMentions(mentions: RawRecord[], bookId: string, anchor: string): NormalizedMention[] {

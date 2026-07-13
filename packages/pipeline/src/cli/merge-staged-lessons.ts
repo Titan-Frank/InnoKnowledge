@@ -119,7 +119,7 @@ export function assertAllowedMergeWriteStatement(statement: SqlStatement): void 
   const allowedTransaction = isTransactionControlSql(trimmed);
   const allowedBusinessWrite =
     /^(INSERT|UPDATE|DELETE)\s+/i.test(trimmed) &&
-    /\b(world_lesson_runs|world_nodes|world_edges|world_domain_profiles|world_mentions|world_evidence|world_node_cards|world_canonical_node_map|world_merge_runs|world_evidence_links|world_node_terms)\b/i.test(
+    /\b(world_lesson_runs|world_nodes|world_edges|world_domain_profiles|world_curriculum_projections|world_mentions|world_evidence|world_node_cards|world_canonical_node_map|world_merge_runs|world_evidence_links|world_node_terms)\b/i.test(
       trimmed,
     );
   if (!allowedTransaction && !allowedBusinessWrite) {

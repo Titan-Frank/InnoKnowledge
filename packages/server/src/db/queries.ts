@@ -1,10 +1,11 @@
 import type { Sql } from './connection.js';
 import type {
   ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit, ApiUnitBody, ApiUnitDomainProfile,
-  ApiUnitMedia, ApiUnitNode, ApiUnitRelation, ApiUnitSourceFragment,
+  ApiUnitCurriculumProjection, ApiUnitMedia, ApiUnitNode, ApiUnitRelation, ApiUnitSourceFragment,
   OutlineData, OutlineItem, PipelineJobEvent, PipelineJobStage, PipelineJobStatusResponse, PipelineResponse,
   PipelineWorkerState,
 } from '@okm/types';
+import { edgeTypeLabelZh } from '@okm/types';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { REPO_ROOT } from '../utils/paths.js';
@@ -79,7 +80,6 @@ export async function loadNodes(sql: Sql, datasetId: string): Promise<ApiNode[]>
       bridge_tags: Array.isArray(parsed.tags) ? parsed.tags : [],
       framework_refs: [],
       profile_refs: [],
-      same_as_refs: [],
       properties: {
         ...properties,
         domains: parsed.domains || [],
@@ -109,6 +109,7 @@ export async function loadEdges(sql: Sql, datasetId: string): Promise<ApiEdge[]>
     return {
       ...parsed,
       edge_type: textValue(parsed.type) || 'related_to',
+      edge_type_label_zh: edgeTypeLabelZh(parsed.type),
       edge_layer: textValue(properties.edge_layer || properties.layer) || undefined,
       from: parsed.from_id,
       to: parsed.to_id,
@@ -127,29 +128,24 @@ export async function loadProfiles(sql: Sql, datasetId: string): Promise<ApiProf
   `;
 
   return rows.map((row: Record<string, unknown>) => {
-    const parsed = worldJsonRow(row, [
-      'school_stages', 'curriculum_roles', 'source_refs', 'properties',
-    ]);
+    const parsed = worldJsonRow(row, ['source_refs', 'properties']);
     const properties = asRecord(parsed.properties);
-    const schoolStages = Array.isArray(parsed.school_stages) ? parsed.school_stages.map(String) : [];
-    const curriculumRoles = Array.isArray(parsed.curriculum_roles) ? parsed.curriculum_roles.map(String) : [];
     const sourceRefs = Array.isArray(parsed.source_refs) ? parsed.source_refs.map(String) : [];
     return {
       ...parsed,
-      subject: textValue(properties.subject) || textValue(parsed.domain),
-      school_stage: schoolStages[0] || textValue(properties.school_stage),
-      grade_band: textValue(properties.grade_band) || schoolStages[0] || '',
-      context_key: textValue(properties.context_key) || `${parsed.domain || 'domain'}:${schoolStages[0] || 'unknown'}`,
-      curriculum_role: curriculumRoles[0] || textValue(properties.curriculum_role),
-      mastery_level: textValue(properties.mastery_level),
-      learning_objectives: Array.isArray(properties.learning_objectives) ? properties.learning_objectives : [],
       framework_refs: Array.isArray(properties.framework_refs) ? properties.framework_refs : [],
-      textbook_refs: sourceRefs,
-      textbook_ids: Array.isArray(properties.textbook_ids) ? properties.textbook_ids : [],
-      assessment_signals: Array.isArray(properties.assessment_signals) ? properties.assessment_signals : [],
       source_refs: sourceRefs,
     } as unknown as ApiProfile;
   });
+}
+
+export async function loadCurriculumProjections(sql: Sql, datasetId: string): Promise<ApiUnitCurriculumProjection[]> {
+  const rows = await sql`
+    SELECT * FROM world_curriculum_projections WHERE dataset_id = ${datasetId} ORDER BY id
+  `;
+  return rows.map((row: Record<string, unknown>) => worldJsonRow(row, [
+    'curriculum_roles', 'source_refs', 'properties',
+  ]) as unknown as ApiUnitCurriculumProjection);
 }
 
 // ── Mentions ──────────────────────────────────────────────
@@ -215,6 +211,16 @@ function worldJsonRow(
   const parsed = stripJsonSuffix(row, fields);
   delete parsed.embedding;
   return parsed;
+}
+
+function withRelationLabel(row: Record<string, unknown>): Record<string, unknown> {
+  const type = textValue(row.type ?? row.edge_type);
+  return {
+    ...row,
+    type,
+    edge_type: type,
+    type_label_zh: edgeTypeLabelZh(type),
+  };
 }
 
 async function loadNodeBody(
@@ -686,6 +692,11 @@ export async function loadUnit(
     WHERE dataset_id = ${datasetId} AND node_id = ${nodeId} AND status != 'deprecated'
     ORDER BY domain, id
   `;
+  const curriculumProjectionRows = await sql`
+    SELECT * FROM world_curriculum_projections
+    WHERE dataset_id = ${datasetId} AND node_id = ${nodeId} AND status != 'deprecated'
+    ORDER BY domain, curriculum_id, school_stage, grade_band, id
+  `;
   const mentionRows = await sql`
     SELECT * FROM world_mentions
     WHERE dataset_id = ${datasetId} AND target_type = 'node' AND target_id = ${nodeId}
@@ -706,6 +717,13 @@ export async function loadUnit(
       WHERE profile.dataset_id = ${datasetId}
         AND profile.node_id = ${nodeId}
         AND profile.status != 'deprecated'
+      UNION
+      SELECT ref.value AS evidence_id
+      FROM world_curriculum_projections AS projection
+      CROSS JOIN LATERAL jsonb_array_elements_text(COALESCE(projection.source_refs_json, '[]'::jsonb)) AS ref(value)
+      WHERE projection.dataset_id = ${datasetId}
+        AND projection.node_id = ${nodeId}
+        AND projection.status != 'deprecated'
       UNION
       SELECT ref.value AS evidence_id
       FROM world_edges AS edge
@@ -771,15 +789,18 @@ export async function loadUnit(
     ]) as unknown as ApiUnitNode,
     relations: {
       outgoing: outgoingRows.map((row: Record<string, unknown>) => (
-        worldJsonRow(row, ['source_refs', 'properties']) as unknown as ApiUnitRelation
+        withRelationLabel(worldJsonRow(row, ['source_refs', 'properties'])) as unknown as ApiUnitRelation
       )),
       incoming: incomingRows.map((row: Record<string, unknown>) => (
-        worldJsonRow(row, ['source_refs', 'properties']) as unknown as ApiUnitRelation
+        withRelationLabel(worldJsonRow(row, ['source_refs', 'properties'])) as unknown as ApiUnitRelation
       )),
     },
     domain_profiles: profileRows.map((row: Record<string, unknown>) => worldJsonRow(row, [
-      'school_stages', 'curriculum_roles', 'source_refs', 'properties',
+      'source_refs', 'properties',
     ]) as unknown as ApiUnitDomainProfile),
+    curriculum_projections: curriculumProjectionRows.map((row: Record<string, unknown>) => worldJsonRow(row, [
+      'curriculum_roles', 'source_refs', 'properties',
+    ]) as unknown as ApiUnitCurriculumProjection),
     mentions: mentionRows.map((row: Record<string, unknown>) => worldJsonRow(row, ['source_refs', 'properties']) as unknown as ApiMention),
     evidence,
     media: mediaFromEvidence(evidenceRecords, sourceKey),
@@ -1251,6 +1272,7 @@ export interface BundlePayload {
   nodes: ApiNode[];
   edges: ApiEdge[];
   profiles: ApiProfile[];
+  curriculum_projections: ApiUnitCurriculumProjection[];
   framework: Record<string, unknown>;
   patterns: Record<string, unknown>;
   books: Array<{
@@ -1308,6 +1330,7 @@ export async function buildBundlePayload(
     nodes: await loadNodes(sql, datasetRow.dataset_id),
     edges: await loadEdges(sql, datasetRow.dataset_id),
     profiles: await loadProfiles(sql, datasetRow.dataset_id),
+    curriculum_projections: await loadCurriculumProjections(sql, datasetRow.dataset_id),
     framework: framework ?? { domains: [] },
     patterns: patterns ?? { patterns: [] },
     books,

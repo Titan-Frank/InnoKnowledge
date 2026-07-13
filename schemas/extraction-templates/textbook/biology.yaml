@@ -1,5 +1,5 @@
 id: textbook/biology
-version: 1
+version: 2
 name: 生物教材抽取模板
 description: 面向生物教材，强调结构、功能、层级、过程、调控、适应和实验观察。
 selector:
@@ -72,6 +72,8 @@ output:
     - causes
     - affects
     - represents
+    - analogous_to
+    - models
     - related_to
 identifiers:
   node_id: "{kind}:{biology_role}:{normalized_name}"
@@ -87,15 +89,17 @@ display:
     rule: 调控规律
     representation: 模式图/模型
   edge_labels:
-    is_a: 属于
-    instance_of: 实例
-    part_of: 层级组成
+    is_a: 是一种
+    instance_of: 是实例
+    part_of: 是组成部分
     contains: 包含
-    has_property: 具有功能/特征
-    depends_on: 依赖条件
+    has_property: 具有属性
+    depends_on: 依赖
     causes: 导致
     affects: 调控/影响
-    represents: 表征
+    represents: 表示
+    analogous_to: 类似于
+    models: 建模描述
     related_to: 相关
   colors:
     entity: "#3782FF"

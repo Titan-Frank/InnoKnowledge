@@ -85,6 +85,7 @@ test("accepts an explicit no_knowledge lesson without calling the relation stage
       nodes: 0,
       edges: 0,
       domain_profiles: 0,
+      curriculum_projections: 0,
       mentions: 0,
       evidence: 0,
       node_cards: 0,
@@ -490,11 +491,11 @@ test("writes successful model output into staging through an injected executor",
                           {
                             node_id: "node:map",
                             domain: "computer-science",
-                            school_stages: ["higher"],
-                            curriculum_roles: ["core"],
+                            domain_role: "computational_model",
                             properties: {},
                           },
                         ],
+                        curriculum_projections: [],
                         node_cards: [
                           {
                             node_id: "node:map",
@@ -532,9 +533,9 @@ test("writes successful model output into staging through an injected executor",
       "delete-world_staging_nodes",
       "delete-world_staging_edges",
       "delete-world_staging_domain_profiles",
+      "delete-world_staging_curriculum_projections",
       "delete-world_staging_mentions",
       "delete-world_staging_evidence",
-      "delete-world_staging_node_cards",
     ]);
     assert.ok(stagedStatements.includes("insert-world-staging-nodes"));
     const payload = JSON.parse(stdout.join("")) as { status: string; staging: { dataset_id: string; statements: string[] }; counts: { nodes: number } };

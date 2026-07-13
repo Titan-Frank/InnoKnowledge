@@ -2,6 +2,7 @@ import type {
   ApiEdge,
   ApiNode,
   ApiProfile,
+  ApiUnitCurriculumProjection,
   ApiUnit,
   BundleResponse,
   MetaResponse,
@@ -27,6 +28,7 @@ export interface PublicArtifactGraph extends Row {
   nodes: ApiNode[];
   edges: ApiEdge[];
   profiles: ApiProfile[];
+  curriculum_projections?: ApiUnitCurriculumProjection[];
 }
 
 export interface PublicArtifactUnitIndex extends Row {
@@ -93,6 +95,7 @@ export function createPublicArtifactBundle(
     nodes: graph.nodes,
     edges: graph.edges,
     profiles: graph.profiles,
+    curriculum_projections: graph.curriculum_projections ?? [],
     framework: { domains: [] },
     patterns: { patterns: [] },
     books: [],

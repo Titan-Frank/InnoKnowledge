@@ -217,6 +217,7 @@ test("keeps an explicit no_knowledge lesson completely empty", () => {
       nodes: 0,
       edges: 0,
       domain_profiles: 0,
+      curriculum_projections: 0,
       mentions: 0,
       evidence: 0,
       node_cards: 0,
@@ -347,7 +348,8 @@ test("converts a model bundle into Python-compatible staging artifacts", () => {
           { from: "node:map", to: "missing", type: "uses", directionality: "directed", confidence: 0.9, evidence_anchor: "ev1", notes: "" },
         ],
         evidence_units: [{ anchor: "ev1", excerpt: "知识图谱是一种表示方法", locator: "line:2", modality: "text", node_ids: ["node:map"] }],
-        domain_profiles: [{ node_id: "node:map", domain: "chemistry", school_stages: [], curriculum_roles: [], properties: {} }],
+        domain_profiles: [{ node_id: "node:map", domain: "chemistry", domain_role: "model", properties: {} }],
+        curriculum_projections: [],
         node_cards: [
           {
             node_id: "node:map",
@@ -371,6 +373,7 @@ test("converts a model bundle into Python-compatible staging artifacts", () => {
       nodes: 2,
       edges: 1,
       domain_profiles: 2,
+      curriculum_projections: 2,
       mentions: 1,
       evidence: 4,
       node_cards: 2,
@@ -456,7 +459,7 @@ test("attaches extraction template metadata and display rules to staging artifac
     const edgeProperties = payload.edges[0]?.properties as Record<string, unknown>;
     const edgeDisplay = edgeProperties.template_display as Record<string, unknown>;
     assert.equal((edgeProperties.extraction_template as Record<string, unknown>).id, "textbook/physics");
-    assert.equal(edgeDisplay.label, "表征");
+    assert.equal(edgeDisplay.label, "表示");
     assert.equal((payload.evidence[0]?.properties as Record<string, Record<string, unknown>>).extraction_template.id, "textbook/physics");
     assert.equal((payload.mentions[0]?.properties as Record<string, Record<string, unknown>>).extraction_template.id, "textbook/physics");
     assert.equal((payload.domain_profiles[0]?.properties as Record<string, Record<string, unknown>>).extraction_template.id, "textbook/physics");

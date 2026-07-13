@@ -557,10 +557,11 @@ function summarizeRelations(unit: ApiUnit): string {
   return [...unit.relations.outgoing, ...unit.relations.incoming]
     .slice(0, 8)
     .map((relation) => {
+      const relationLabel = relation.type_label_zh || relation.type;
       const direction = relation.from_id === unit.node.id
-        ? `${relation.type} -> ${relation.to_id}`
-        : `${relation.from_id} -> ${relation.type}`;
-      return `${direction} confidence=${relation.confidence}`;
+        ? `${unit.node.name} --${relationLabel}--> ${relation.to_id}`
+        : `${relation.from_id} --${relationLabel}--> ${unit.node.name}`;
+      return `${direction}；可信度=${relation.confidence}`;
     })
     .join('\n');
 }

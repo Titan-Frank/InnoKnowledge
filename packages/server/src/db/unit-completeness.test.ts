@@ -37,6 +37,7 @@ function baseUnit(): Omit<ApiUnit, 'completeness'> {
         id: 'e1',
         dataset_id: 'main',
         type: 'represents',
+        type_label_zh: '表示',
         from_id: 'n1',
         to_id: 'n2',
         directionality: 'directed',
@@ -54,7 +55,23 @@ function baseUnit(): Omit<ApiUnit, 'completeness'> {
       dataset_id: 'main',
       node_id: 'n1',
       domain: 'chemistry',
-      school_stages: ['junior_high'],
+      schema_id: 'domain:chemistry:v1',
+      schema_version: '1.0',
+      domain_role: 'law',
+      source_refs: ['ev1'],
+      properties: {},
+      status: 'active',
+      created_at: null,
+      updated_at: null,
+    }],
+    curriculum_projections: [{
+      id: 'cp1',
+      dataset_id: 'main',
+      node_id: 'n1',
+      domain: 'chemistry',
+      curriculum_id: 'textbook:chem-grade8',
+      school_stage: 'junior-secondary',
+      grade_band: '八年级',
       curriculum_roles: ['core'],
       source_refs: ['ev1'],
       properties: {},
@@ -137,6 +154,7 @@ test('scores a complete ApiUnit', () => {
       ['evidence', true],
       ['source_fragments', true],
       ['domain_profiles', true],
+      ['curriculum_projections', true],
       ['body_source_refs', true],
       ['card_summary', true],
       ['mentions', true],
@@ -152,6 +170,7 @@ test('marks missing ApiUnit contract pieces', () => {
   unit.evidence = [];
   unit.source_fragments = [];
   unit.domain_profiles = [];
+  unit.curriculum_projections = [];
   unit.mentions = [];
   unit.card = null;
   unit.body = {
@@ -173,6 +192,7 @@ test('marks missing ApiUnit contract pieces', () => {
       'evidence',
       'source_fragments',
       'domain_profiles',
+      'curriculum_projections',
       'body_source_refs',
       'card_summary',
       'mentions',

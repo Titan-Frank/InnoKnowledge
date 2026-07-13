@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { edgeTypeLabelZh } from "@okm/types";
 
 import { VALID_SCHOOL_STAGES } from "../shared/knowledge.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
@@ -9,11 +10,13 @@ const DIFFICULTY_LEVELS = new Set(["introductory", "basic", "intermediate", "adv
 const PROMPT_VERSION = "pedagogical-profile-v1";
 const MODEL_GENERATED_FROM = "model_generation";
 
-export type PedagogicalDomainProfileRow = {
+export type PedagogicalCurriculumProjectionRow = {
   id: string;
   node_id: string;
   domain: string;
-  school_stages_json?: unknown;
+  curriculum_id: string;
+  school_stage: string;
+  grade_band?: string | null;
   curriculum_roles_json?: unknown;
   source_refs_json?: unknown;
   properties_json?: unknown;
@@ -66,7 +69,7 @@ export type PedagogicalRelationRow = {
 
 export type ModelPedagogicalProfileInput = {
   datasetId: string;
-  profile: PedagogicalDomainProfileRow;
+  projection: PedagogicalCurriculumProjectionRow;
   schoolStage: string;
   gradeBand: string;
   node: PedagogicalNodeRow;
@@ -100,15 +103,15 @@ export type ModelPedagogicalProfileGenerator = (
 
 export type GeneratedPedagogicalProfileUpdate = {
   dataset_id: string;
-  profile_id: string;
-  stage_profiles_json: RawRecord;
-  expected_stage_profiles_json: RawRecord;
+  projection_id: string;
+  pedagogical_profile_json: RawRecord;
+  expected_pedagogical_profile_json: RawRecord | null;
   source_refs_json: string[];
   updated_at: string;
 };
 
 export type PedagogicalProfileFailure = {
-  profile_id: string;
+  projection_id: string;
   node_id: string;
   school_stage: string;
   message: string;
@@ -131,7 +134,7 @@ export type GeneratePedagogicalProfilesDatabaseOutput = {
   dataset_id: string;
   selected: number;
   generated: number;
-  updated_profiles: number;
+  updated_projections: number;
   skipped_existing: number;
   skipped_protected: number;
   skipped_missing_stage: number;
@@ -147,17 +150,17 @@ export type GeneratePedagogicalProfilesDatabaseOutput = {
 export type PedagogicalProfilesQueryExecutor = (statement: SqlStatement) => Promise<RawRecord[]> | RawRecord[];
 export type PedagogicalProfilesExecutor = (statement: SqlStatement) => Promise<RawRecord[] | void> | RawRecord[] | void;
 
-export function buildSelectDomainProfilesForPedagogyQuery(input: {
+export function buildSelectCurriculumProjectionsForPedagogyQuery(input: {
   datasetId: string;
   nodeId?: string | null;
   limit?: number | null;
   bookId?: string | null;
 }): SqlStatement {
   return {
-    name: "select-domain-profiles-for-pedagogy",
+    name: "select-curriculum-projections-for-pedagogy",
     sql: [
-      "SELECT p.id, p.node_id, p.domain, p.school_stages_json, p.curriculum_roles_json, p.source_refs_json, p.properties_json",
-      "FROM world_domain_profiles AS p",
+      "SELECT p.id, p.node_id, p.domain, p.curriculum_id, p.school_stage, p.grade_band, p.curriculum_roles_json, p.source_refs_json, p.properties_json",
+      "FROM world_curriculum_projections AS p",
       "WHERE p.dataset_id = $1",
       "  AND p.status != 'deprecated'",
       "  AND ($2 = '' OR p.node_id = $2)",
@@ -256,7 +259,7 @@ export function buildModelPedagogicalProfilePrompt(input: ModelPedagogicalProfil
   const relatedNodeById = new Map(input.relatedNodes.map((node) => [node.id, node]));
   const instructions = [
     "你是 Open Knowledge Map 的教学画像生成器。",
-    "任务：根据一个已经规范化的知识对象、指定领域和指定学段，生成可用于教学、诊断和评价的结构化画像。",
+    "任务：根据一个已经规范化的知识对象和指定课程投影（课程、领域、学段与年级），生成可用于教学、诊断和评价的结构化画像。",
     "",
     "硬约束：",
     "1. 知识事实只能来自输入的节点、结构化卡片、关系和证据；不得补充无证据支持的学科事实。",
@@ -271,11 +274,12 @@ export function buildModelPedagogicalProfilePrompt(input: ModelPedagogicalProfil
   const userPayload = JSON.stringify({
     dataset_id: input.datasetId,
     teaching_context: {
-      profile_id: input.profile.id,
-      domain: input.profile.domain,
+      projection_id: input.projection.id,
+      curriculum_id: input.projection.curriculum_id,
+      domain: input.projection.domain,
       school_stage: input.schoolStage,
       grade_band: input.gradeBand || null,
-      curriculum_roles: stringArray(input.profile.curriculum_roles_json),
+      curriculum_roles: stringArray(input.projection.curriculum_roles_json),
     },
     node: {
       id: input.node.id,
@@ -301,7 +305,7 @@ export function buildModelPedagogicalProfilePrompt(input: ModelPedagogicalProfil
       const otherId = relation.from_id === input.node.id ? relation.to_id : relation.from_id;
       return {
         direction: relation.from_id === input.node.id ? "outgoing" : "incoming",
-        type: relation.type,
+        type: edgeTypeLabelZh(relation.type),
         other_node_id: otherId,
         other_node_name: relatedNodeById.get(otherId)?.name ?? otherId,
       };
@@ -373,7 +377,7 @@ export function parseModelPedagogicalProfileResultText(text: string): ModelPedag
 
 export async function planModelPedagogicalProfiles(input: {
   datasetId: string;
-  profiles: PedagogicalDomainProfileRow[];
+  projections: PedagogicalCurriculumProjectionRow[];
   nodes: PedagogicalNodeRow[];
   cards: PedagogicalCardRow[];
   mentions: PedagogicalMentionRow[];
@@ -420,32 +424,25 @@ export async function planModelPedagogicalProfiles(input: {
     throw new Error(`Invalid school stage '${requestedSchoolStage}'.`);
   }
 
-  for (const profile of input.profiles) {
-    const declaredStages = uniqueStrings(stringArray(profile.school_stages_json)).filter((stage) => VALID_SCHOOL_STAGES.has(stage));
-    const stages = requestedSchoolStage
-      ? declaredStages.filter((stage) => stage === requestedSchoolStage)
-      : declaredStages;
-    if (stages.length === 0) {
-      skippedMissingStage.push(requestedSchoolStage ? contextKey(profile.id, requestedSchoolStage) : profile.id);
+  for (const projection of input.projections) {
+    const schoolStage = textValue(projection.school_stage);
+    if (!VALID_SCHOOL_STAGES.has(schoolStage) || (requestedSchoolStage && schoolStage !== requestedSchoolStage)) {
+      skippedMissingStage.push(contextKey(projection.id, requestedSchoolStage || schoolStage || "unknown"));
       continue;
     }
-    const node = nodeById.get(profile.node_id);
+    const node = nodeById.get(projection.node_id);
     if (!node) {
-      skippedMissingContext.push(profile.id);
+      skippedMissingContext.push(projection.id);
       continue;
     }
-    const properties = recordValue(profile.properties_json);
-    if (hasLegacyPedagogicalContent(properties.pedagogical_profile)) {
-      for (const stage of stages) skippedProtected.push(contextKey(profile.id, stage));
-      continue;
-    }
-    const existingByStage = recordValue(properties.pedagogical_profiles_by_stage);
+    const properties = recordValue(projection.properties_json);
+    const existing = recordValue(properties.pedagogical_profile);
     const relations = relationsByNodeId.get(node.id) ?? [];
     const relatedNodeIds = uniqueStrings(relations.flatMap((relation) => [relation.from_id, relation.to_id])).filter((id) => id !== node.id);
     const relatedNodes = relatedNodeIds.map((id) => nodeById.get(id)).filter((item): item is PedagogicalNodeRow => Boolean(item));
     const card = cardByNodeId.get(node.id) ?? null;
     const evidenceRows = collectEvidenceForPedagogicalProfile({
-      profile,
+      projection,
       card,
       mentions: mentionsByNodeId.get(node.id) ?? [],
       relations,
@@ -454,48 +451,44 @@ export async function planModelPedagogicalProfiles(input: {
       maxEvidence,
     });
     if (evidenceRows.length === 0) {
-      for (const stage of stages) skippedMissingEvidence.push(contextKey(profile.id, stage));
+      skippedMissingEvidence.push(contextKey(projection.id, schoolStage));
       continue;
     }
-    const gradeBand = textValue(input.gradeBand) || textValue(properties.grade_band);
-
-    for (const schoolStage of stages) {
-      const key = contextKey(profile.id, schoolStage);
-      const modelInput: ModelPedagogicalProfileInput = {
-        datasetId: input.datasetId,
-        profile,
-        schoolStage,
-        gradeBand,
-        node,
-        card,
-        relations,
-        relatedNodes,
-        evidence: evidenceRows,
-      };
-      const fingerprint = pedagogicalInputFingerprint(modelInput, input.modelName);
-      const existing = recordValue(existingByStage[schoolStage]);
-      if (Object.keys(existing).length > 0) {
-        if (isProtectedPedagogicalProfile(existing)) {
-          skippedProtected.push(key);
-          continue;
-        }
-        const generation = recordValue(existing.generation);
-        if (!input.overwriteGenerated && textValue(generation.input_fingerprint) === fingerprint) {
-          skippedExisting.push(key);
-          continue;
-        }
+    const gradeBand = textValue(input.gradeBand) || textValue(projection.grade_band);
+    const key = contextKey(projection.id, schoolStage);
+    const modelInput: ModelPedagogicalProfileInput = {
+      datasetId: input.datasetId,
+      projection,
+      schoolStage,
+      gradeBand,
+      node,
+      card,
+      relations,
+      relatedNodes,
+      evidence: evidenceRows,
+    };
+    const fingerprint = pedagogicalInputFingerprint(modelInput, input.modelName);
+    if (Object.keys(existing).length > 0) {
+      if (isProtectedPedagogicalProfile(existing)) {
+        skippedProtected.push(key);
+        continue;
       }
-      tasks.push({
-        key,
-        profile,
-        schoolStage,
-        gradeBand,
-        modelInput,
-        fingerprint,
-        expectedStageProfile: Object.keys(existing).length > 0 ? existing : null,
-        allowedEvidenceIds: new Set(evidenceRows.map((row) => row.id)),
-      });
+      const generation = recordValue(existing.generation);
+      if (!input.overwriteGenerated && textValue(generation.input_fingerprint) === fingerprint) {
+        skippedExisting.push(key);
+        continue;
+      }
     }
+    tasks.push({
+      key,
+      projection,
+      schoolStage,
+      gradeBand,
+      modelInput,
+      fingerprint,
+      expectedProfile: Object.keys(existing).length > 0 ? existing : null,
+      allowedEvidenceIds: new Set(evidenceRows.map((row) => row.id)),
+    });
   }
 
   const taskResults = await mapWithConcurrency(tasks, input.concurrency ?? 8, async (task) => {
@@ -535,8 +528,8 @@ export async function planModelPedagogicalProfiles(input: {
       return {
         kind: "failure" as const,
         failure: {
-          profile_id: task.profile.id,
-          node_id: task.profile.node_id,
+          projection_id: task.projection.id,
+          node_id: task.projection.node_id,
           school_stage: task.schoolStage,
           message: (error as Error).message,
         },
@@ -544,36 +537,26 @@ export async function planModelPedagogicalProfiles(input: {
     }
   });
 
-  const successesByProfile = new Map<string, Array<Extract<(typeof taskResults)[number], { kind: "success" }>>>();
+  const successesByProjection = new Map<string, Extract<(typeof taskResults)[number], { kind: "success" }>>();
   const modelFailures: PedagogicalProfileFailure[] = [];
   for (const result of taskResults) {
     if (result.kind === "failure") {
       modelFailures.push(result.failure);
       continue;
     }
-    const rows = successesByProfile.get(result.task.profile.id) ?? [];
-    rows.push(result);
-    successesByProfile.set(result.task.profile.id, rows);
+    successesByProjection.set(result.task.projection.id, result);
   }
 
   const rows: GeneratedPedagogicalProfileUpdate[] = [];
-  for (const profile of input.profiles) {
-    const successes = successesByProfile.get(profile.id) ?? [];
-    if (successes.length === 0) continue;
-    const stageProfiles: RawRecord = {};
-    const expectedStageProfiles: RawRecord = {};
-    const generatedSourceRefs: string[] = [];
-    for (const success of successes) {
-      stageProfiles[success.task.schoolStage] = success.stageProfile;
-      expectedStageProfiles[success.task.schoolStage] = success.task.expectedStageProfile;
-      generatedSourceRefs.push(...success.sourceRefs);
-    }
+  for (const projection of input.projections) {
+    const success = successesByProjection.get(projection.id);
+    if (!success) continue;
     rows.push({
       dataset_id: input.datasetId,
-      profile_id: profile.id,
-      stage_profiles_json: stageProfiles,
-      expected_stage_profiles_json: expectedStageProfiles,
-      source_refs_json: uniqueStrings(generatedSourceRefs),
+      projection_id: projection.id,
+      pedagogical_profile_json: success.stageProfile,
+      expected_pedagogical_profile_json: success.task.expectedProfile,
+      source_refs_json: uniqueStrings(success.sourceRefs),
       updated_at: input.now,
     });
   }
@@ -592,62 +575,34 @@ export async function planModelPedagogicalProfiles(input: {
 
 export function buildUpdatePedagogicalProfileStatement(row: GeneratedPedagogicalProfileUpdate): SqlStatement {
   return {
-    name: "update-world-domain-profile-pedagogy",
+    name: "update-world-curriculum-projection-pedagogy",
     sql: [
-      "UPDATE world_domain_profiles AS profile",
-      "SET properties_json = COALESCE(profile.properties_json, '{}'::jsonb) || jsonb_build_object(",
-      "      'pedagogical_profiles_by_stage',",
-      "      (CASE",
-      "        WHEN jsonb_typeof(profile.properties_json -> 'pedagogical_profiles_by_stage') = 'object'",
-      "          THEN profile.properties_json -> 'pedagogical_profiles_by_stage'",
-      "        ELSE '{}'::jsonb",
-      "      END) || $3::jsonb",
-      "    ),",
+      "UPDATE world_curriculum_projections AS projection",
+      "SET properties_json = COALESCE(projection.properties_json, '{}'::jsonb)",
+      "      || jsonb_build_object('pedagogical_profile', $3::jsonb),",
       "    source_refs_json = COALESCE((",
       "      SELECT jsonb_agg(ref ORDER BY ref)",
       "      FROM (",
       "        SELECT value AS ref",
-      "        FROM jsonb_array_elements_text(COALESCE(profile.source_refs_json, '[]'::jsonb)) AS current_ref(value)",
+      "        FROM jsonb_array_elements_text(COALESCE(projection.source_refs_json, '[]'::jsonb)) AS current_ref(value)",
       "        UNION",
       "        SELECT value AS ref",
       "        FROM jsonb_array_elements_text($4::jsonb) AS generated_ref(value)",
       "      ) AS combined_refs",
       "    ), '[]'::jsonb),",
       "    updated_at = $6",
-      "WHERE profile.dataset_id = $1",
-      "  AND profile.id = $2",
-      "  AND profile.status != 'deprecated'",
-      "  AND NOT (",
-      "    COALESCE(jsonb_typeof(profile.properties_json -> 'pedagogical_profile'), '') = 'object'",
-      "    AND COALESCE(profile.properties_json -> 'pedagogical_profile', '{}'::jsonb) != '{}'::jsonb",
-      "  )",
-      "  AND NOT EXISTS (",
-      "    SELECT 1",
-      "    FROM jsonb_each($5::jsonb) AS expected(stage, expected_value)",
-      "    WHERE (",
-      "      expected.expected_value = 'null'::jsonb",
-      "      AND (CASE",
-      "        WHEN jsonb_typeof(profile.properties_json -> 'pedagogical_profiles_by_stage') = 'object'",
-      "          THEN profile.properties_json -> 'pedagogical_profiles_by_stage'",
-      "        ELSE '{}'::jsonb",
-      "      END) ? expected.stage",
-      "    ) OR (",
-      "      expected.expected_value != 'null'::jsonb",
-      "      AND (CASE",
-      "        WHEN jsonb_typeof(profile.properties_json -> 'pedagogical_profiles_by_stage') = 'object'",
-      "          THEN profile.properties_json -> 'pedagogical_profiles_by_stage'",
-      "        ELSE '{}'::jsonb",
-      "      END) -> expected.stage IS DISTINCT FROM expected.expected_value",
-      "    )",
-      "  )",
-      "RETURNING profile.id",
+      "WHERE projection.dataset_id = $1",
+      "  AND projection.id = $2",
+      "  AND projection.status != 'deprecated'",
+      "  AND COALESCE(projection.properties_json -> 'pedagogical_profile', 'null'::jsonb) IS NOT DISTINCT FROM $5::jsonb",
+      "RETURNING projection.id",
     ].join("\n"),
     params: [
       row.dataset_id,
-      row.profile_id,
-      row.stage_profiles_json,
+      row.projection_id,
+      row.pedagogical_profile_json,
       row.source_refs_json,
-      row.expected_stage_profiles_json,
+      row.expected_pedagogical_profile_json,
       row.updated_at,
     ],
   };
@@ -682,12 +637,12 @@ export async function runGeneratePedagogicalProfilesFromDatabase(input: {
 
   const plan = await planModelPedagogicalProfiles({
     datasetId: input.datasetId,
-    profiles: (await query(buildSelectDomainProfilesForPedagogyQuery({
+    projections: (await query(buildSelectCurriculumProjectionsForPedagogyQuery({
       datasetId: input.datasetId,
       nodeId: input.nodeId,
       limit: input.limit,
       bookId: input.bookId,
-    }))).map(toDomainProfileRow),
+    }))).map(toCurriculumProjectionRow),
     nodes: (await query(buildSelectNodesForPedagogyQuery(input.datasetId))).map(toNodeRow),
     cards: (await query(buildSelectCardsForPedagogyQuery(input.datasetId))).map(toCardRow),
     mentions: (await query(buildSelectMentionsForPedagogyQuery(input.datasetId, input.bookId ?? ""))).map(toMentionRow),
@@ -711,7 +666,7 @@ export async function runGeneratePedagogicalProfilesFromDatabase(input: {
       assertRecordRows(statement.name, writtenRows);
       if (writtenRows.length !== 1) {
         throw new Error(
-          `Pedagogical profile '${row.profile_id}' changed while model generation was running; protected the newer database value.`,
+          `Curriculum projection '${row.projection_id}' changed while model generation was running; protected the newer database value.`,
         );
       }
     }
@@ -731,7 +686,7 @@ export async function runGeneratePedagogicalProfilesFromDatabase(input: {
     dataset_id: input.datasetId,
     selected,
     generated: plan.generatedContexts,
-    updated_profiles: plan.rows.length,
+    updated_projections: plan.rows.length,
     skipped_existing: plan.skippedExisting.length,
     skipped_protected: plan.skippedProtected.length,
     skipped_missing_stage: plan.skippedMissingStage.length,
@@ -747,17 +702,17 @@ export async function runGeneratePedagogicalProfilesFromDatabase(input: {
 
 type PedagogicalGenerationTask = {
   key: string;
-  profile: PedagogicalDomainProfileRow;
+  projection: PedagogicalCurriculumProjectionRow;
   schoolStage: string;
   gradeBand: string;
   modelInput: ModelPedagogicalProfileInput;
   fingerprint: string;
-  expectedStageProfile: RawRecord | null;
+  expectedProfile: RawRecord | null;
   allowedEvidenceIds: Set<string>;
 };
 
 function collectEvidenceForPedagogicalProfile(input: {
-  profile: PedagogicalDomainProfileRow;
+  projection: PedagogicalCurriculumProjectionRow;
   card: PedagogicalCardRow | null;
   mentions: PedagogicalMentionRow[];
   relations: PedagogicalRelationRow[];
@@ -765,7 +720,7 @@ function collectEvidenceForPedagogicalProfile(input: {
   evidenceByAnchor: Map<string, PedagogicalEvidenceRow[]>;
   maxEvidence: number;
 }): PedagogicalEvidenceRow[] {
-  const ids = new Set(stringArray(input.profile.source_refs_json));
+  const ids = new Set(stringArray(input.projection.source_refs_json));
   if (input.card) {
     for (const id of stringArray(input.card.source_refs_json)) ids.add(id);
     for (const section of recordArray(input.card.sections_json)) {
@@ -789,10 +744,11 @@ function pedagogicalInputFingerprint(input: ModelPedagogicalProfileInput, modelN
   const value = JSON.stringify({
     prompt_version: PROMPT_VERSION,
     model: modelName,
-    domain: input.profile.domain,
+    domain: input.projection.domain,
+    curriculum_id: input.projection.curriculum_id,
     school_stage: input.schoolStage,
     grade_band: input.gradeBand,
-    curriculum_roles: stringArray(input.profile.curriculum_roles_json),
+    curriculum_roles: stringArray(input.projection.curriculum_roles_json),
     node: input.node,
     card: input.card,
     relations: input.relations,
@@ -805,18 +761,6 @@ function isProtectedPedagogicalProfile(value: RawRecord): boolean {
   const generation = recordValue(value.generation);
   if (textValue(generation.generated_from) !== MODEL_GENERATED_FROM) return true;
   return textValue(generation.review_status) === "approved";
-}
-
-function hasLegacyPedagogicalContent(value: unknown): boolean {
-  const profile = recordValue(value);
-  return [
-    profile.learning_objectives,
-    profile.diagnostic_questions,
-    profile.common_errors,
-    profile.assessment_tasks,
-    profile.remediation_suggestions,
-    profile.extension_suggestions,
-  ].some((item) => stringArray(item).length > 0) || DIFFICULTY_LEVELS.has(textValue(profile.difficulty_level));
 }
 
 function normalizeModelResult(value: unknown): ModelPedagogicalProfileResult {
@@ -938,12 +882,14 @@ function optionalString(value: unknown): string | null {
   return text || null;
 }
 
-function toDomainProfileRow(row: RawRecord): PedagogicalDomainProfileRow {
+function toCurriculumProjectionRow(row: RawRecord): PedagogicalCurriculumProjectionRow {
   return {
     id: requiredString(row.id, "id"),
     node_id: requiredString(row.node_id, "node_id"),
     domain: requiredString(row.domain, "domain"),
-    school_stages_json: row.school_stages_json,
+    curriculum_id: requiredString(row.curriculum_id, "curriculum_id"),
+    school_stage: requiredString(row.school_stage, "school_stage"),
+    grade_band: optionalString(row.grade_band),
     curriculum_roles_json: row.curriculum_roles_json,
     source_refs_json: row.source_refs_json,
     properties_json: row.properties_json,

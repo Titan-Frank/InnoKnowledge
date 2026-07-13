@@ -1,8 +1,9 @@
-import { makeMergeRunId } from "../shared/knowledge.js";
+import { makeCurriculumProjectionId, makeMergeRunId } from "../shared/knowledge.js";
 import { makeDomainProfileId } from "../shared/pathing.js";
 import {
   makeCanonicalCandidate,
   planDomainProfileMerge,
+  planCurriculumProjectionMerge,
   planEdgeMerge,
   planEvidenceMerge,
   planMentionMerge,
@@ -10,6 +11,7 @@ import {
   planStagedNodeMerge,
   type CanonicalNodeCandidate,
   type DomainProfileMergePlan,
+  type CurriculumProjectionMergePlan,
   type EdgeMergePlan,
   type EvidenceMergePlan,
   type MentionMergePlan,
@@ -23,6 +25,7 @@ export type MergeLessonStats = {
   nodes_review: number;
   edges_upserted: number;
   domain_profiles_upserted: number;
+  curriculum_projections_upserted: number;
   mentions_upserted: number;
   evidence_upserted: number;
   evidence_links_upserted: number;
@@ -34,6 +37,7 @@ export type StagedLessonRows = {
   evidence?: Array<Record<string, unknown>>;
   edges?: Array<Record<string, unknown>>;
   domain_profiles?: Array<Record<string, unknown>>;
+  curriculum_projections?: Array<Record<string, unknown>>;
   mentions?: Array<Record<string, unknown>>;
   node_cards?: Array<Record<string, unknown>>;
 };
@@ -46,6 +50,7 @@ export type StagedLessonMergePlan = {
   evidence: EvidenceMergePlan[];
   edges: EdgeMergePlan[];
   domain_profiles: DomainProfileMergePlan[];
+  curriculum_projections: CurriculumProjectionMergePlan[];
   mentions: MentionMergePlan[];
   node_cards: NodeCardMergePlan[];
   stats: MergeLessonStats;
@@ -73,6 +78,7 @@ export function emptyMergeLessonStats(): MergeLessonStats {
     nodes_review: 0,
     edges_upserted: 0,
     domain_profiles_upserted: 0,
+    curriculum_projections_upserted: 0,
     mentions_upserted: 0,
     evidence_upserted: 0,
     evidence_links_upserted: 0,
@@ -87,6 +93,7 @@ export function addMergeLessonStats(left: MergeLessonStats, right: MergeLessonSt
     nodes_review: left.nodes_review + right.nodes_review,
     edges_upserted: left.edges_upserted + right.edges_upserted,
     domain_profiles_upserted: left.domain_profiles_upserted + right.domain_profiles_upserted,
+    curriculum_projections_upserted: left.curriculum_projections_upserted + right.curriculum_projections_upserted,
     mentions_upserted: left.mentions_upserted + right.mentions_upserted,
     evidence_upserted: left.evidence_upserted + right.evidence_upserted,
     evidence_links_upserted: left.evidence_links_upserted + right.evidence_links_upserted,
@@ -100,6 +107,7 @@ export function planStagedLessonsMerge(input: {
   canonicalNodes: CanonicalNodeCandidate[];
   mergeRunId?: string;
   existingDomainProfilesById?: Record<string, Record<string, unknown>>;
+  existingCurriculumProjectionsById?: Record<string, Record<string, unknown>>;
   existingEvidenceIds?: Iterable<string>;
   similarityThreshold?: number;
   embeddingThreshold?: number;
@@ -122,6 +130,7 @@ export function planStagedLessonsMerge(input: {
   const mergeRunId = input.mergeRunId ?? makeMergeRunId(input.datasetId, selection);
   const canonicalNodes = cloneCanonicalCandidates(input.canonicalNodes);
   const existingDomainProfilesById: Record<string, Record<string, unknown>> = { ...(input.existingDomainProfilesById ?? {}) };
+  const existingCurriculumProjectionsById: Record<string, Record<string, unknown>> = { ...(input.existingCurriculumProjectionsById ?? {}) };
   const existingEvidenceIds = new Set(input.existingEvidenceIds ?? []);
   let stats = emptyMergeLessonStats();
   const lessons: StagedLessonMergePlan[] = [];
@@ -134,6 +143,7 @@ export function planStagedLessonsMerge(input: {
       staged: lesson.staged,
       canonicalNodes,
       existingDomainProfilesById,
+      existingCurriculumProjectionsById,
       existingEvidenceIds,
       similarityThreshold: input.similarityThreshold,
       embeddingThreshold: input.embeddingThreshold,
@@ -152,6 +162,10 @@ export function planStagedLessonsMerge(input: {
     for (const profilePlan of plan.domain_profiles) {
       const id = stringValue(profilePlan.payload.id);
       if (id) existingDomainProfilesById[id] = profilePlan.payload;
+    }
+    for (const projectionPlan of plan.curriculum_projections) {
+      const id = stringValue(projectionPlan.payload.id);
+      if (id) existingCurriculumProjectionsById[id] = projectionPlan.payload;
     }
   }
 
@@ -173,6 +187,7 @@ export function planStagedLessonMerge(input: {
   staged: StagedLessonRows;
   canonicalNodes: CanonicalNodeCandidate[];
   existingDomainProfilesById?: Record<string, Record<string, unknown>>;
+  existingCurriculumProjectionsById?: Record<string, Record<string, unknown>>;
   existingEvidenceIds?: Iterable<string>;
   similarityThreshold?: number;
   embeddingThreshold?: number;
@@ -261,6 +276,30 @@ export function planStagedLessonMerge(input: {
     stats.evidence_links_upserted += plan.evidence_links.inserted;
   }
 
+  const curriculumProjections: CurriculumProjectionMergePlan[] = [];
+  for (const row of input.staged.curriculum_projections ?? []) {
+    const rawNodeId = stringValue(row.raw_node_id);
+    const nodeId = rawNodeId ? nodeMap[rawNodeId] : undefined;
+    const domain = stringValue(row.domain);
+    const curriculumId = stringValue(row.curriculum_id);
+    const schoolStage = stringValue(row.school_stage);
+    if (!nodeId || !domain || !curriculumId || !schoolStage) continue;
+    const gradeBand = stringValue(row.grade_band);
+    const projectionId = makeCurriculumProjectionId(nodeId, domain, curriculumId, schoolStage, gradeBand);
+    const plan = planCurriculumProjectionMerge({
+      datasetId: input.datasetId,
+      nodeId,
+      staged: row,
+      existing: input.existingCurriculumProjectionsById?.[projectionId] ?? null,
+      evidenceIdByRaw,
+      existingEvidenceIds: knownEvidenceIds,
+      now: input.now,
+    });
+    curriculumProjections.push(plan);
+    stats.curriculum_projections_upserted += 1;
+    stats.evidence_links_upserted += plan.evidence_links.inserted;
+  }
+
   const mentions: MentionMergePlan[] = [];
   for (const row of input.staged.mentions ?? []) {
     const plan = planMentionMerge({
@@ -302,6 +341,7 @@ export function planStagedLessonMerge(input: {
     evidence,
     edges,
     domain_profiles: domainProfiles,
+    curriculum_projections: curriculumProjections,
     mentions,
     node_cards: nodeCards,
     stats,

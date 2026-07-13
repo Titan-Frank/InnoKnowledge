@@ -2,7 +2,7 @@
 
 This directory contains a small, fully repository-authored graph for testing the public viewer without a model API or third-party source material.
 
-The demo models a simplified home-solar energy path. It contains 9 knowledge objects, one for each `world-v1.2` node kind, plus 12 typed relations, 9 evidence records, 9 mentions, 9 domain profiles, 9 cards, and 9 knowledge bodies. The source prose in `source.md` is synthetic and was written for this repository.
+The demo models a simplified home-solar energy path. It contains 9 knowledge objects, one for each `world-v1.3` node kind, plus 12 typed relations, 9 evidence records, 9 mentions, 9 semantic Domain Profiles, 9 Curriculum Projections, 9 cards, and 9 knowledge bodies. The source prose in `source.md` is synthetic and was written for this repository.
 
 ## Run it
 
@@ -25,7 +25,7 @@ npm run demo:seed
 
 ## Interpretation boundary
 
-- The `source_type = 'textbook'` value is used because the current viewer's source-tree interface recognizes that source category. The demo module is not a real textbook.
+- The `source_type = 'textbook'` value exercises the governed textbook-source path. The artifact metadata explicitly states that this repository-authored module is not a real textbook.
 - Evidence is marked `synthetic` and `quality_excluded`. It demonstrates traceability and complete `ApiUnit` assembly, not extraction accuracy.
 - The lesson run is marked as a direct seed and remains at `merged`; it does not claim that model extraction, reducer execution, strict quality checks, or independent review took place.
 - The facts are deliberately simple and illustrative. Do not use the module for system sizing, electrical installation, or engineering advice.
