@@ -1,0 +1,1424 @@
+{
+  "body": {
+    "content": "## 定义\n元电荷是指电荷的最小基本单位，通常用符号 $e$ 表示。任何带电体所带的电荷量都是元电荷 $e$ 的整数倍。[evidence:auto-7bd482ef8be7]\n\n## 核心解释\n物体所带电荷的多少称为电荷量，符号为 $Q$ 或 $q$。电荷量是标量，通常规定正电荷的电荷量为正值，负电荷的电荷量为负值。[evidence:auto-0cfb7f969216] 实验与理论表明，电荷量并不是任意连续的数值，而是存在一个不可再分的最小单元，即元电荷。[evidence:auto-048c5692ae0f] 单个质子携带的电荷量为 $+e$，单个电子携带的电荷量为 $-e$。[evidence:auto-048c5692ae0f] 这揭示了宏观与微观带电体电荷的量子化特性。\n\n## 关键要点\n- **数值与单位**：元电荷的通常取值为 $e = 1.6 \\times 10^{-19} \\text{ C}$。电荷量的国际单位是库仑（C）。[evidence:auto-7bd482ef8be7][evidence:auto-0cfb7f969216]\n- **数学表达**：带电体的电荷量可表示为 $Q = n \\cdot e$，其中 $n$ 为整数（$n \\in \\mathbb{Z}$）。[evidence:auto-048c5692ae0f]\n- **物理本质**：元电荷本身并不是指电子或质子等具体粒子，而是电荷量的基本计量单元。[evidence:auto-048c5692ae0f]\n\n## 易错点\n- **概念混淆**：容易将“元电荷”直接等同于“电子”或“质子”。实际上，电子和质子只是携带了 $-e$ 或 $+e$ 电荷量的实物粒子，而元电荷仅是一个表示电荷量最小单位的物理概念。[evidence:auto-048c5692ae0f]\n- **正负号含义**：电荷量的正负仅表示电荷的电性（正极性或负极性），并不表示矢量的方向，因为电荷量本身是标量。[evidence:auto-0cfb7f969216]",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "property/physical_constant:auto-00fd8cffd8c1",
+    "properties": {
+      "card_title": "元电荷",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-7bd482ef8be7",
+      "evidence:auto-048c5692ae0f",
+      "evidence:auto-0cfb7f969216"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:40:33+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-4c130c62d6ac",
+    "mention_refs": [],
+    "node_id": "property/physical_constant:auto-00fd8cffd8c1",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "电荷的最小基本单位。任何带电体所带电荷都是 e 的整数倍。符号 e。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-f4e889107bbf"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "电荷的最小基本单位。任何带电体所带电荷都是 e 的整数倍。符号 e。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-f4e889107bbf"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "电荷的最小基本单位。任何带电体所带电荷都是 e 的整数倍。符号 e。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-f4e889107bbf"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "元电荷"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-f4e889107bbf"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "静电现象 电荷 & 电荷的相互作用 库仑定律"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-f4e889107bbf"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-f4e889107bbf"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-f4e889107bbf"
+    ],
+    "status": "active",
+    "summary": "电荷的最小基本单位。任何带电体所带电荷都是 e 的整数倍。符号 e。",
+    "title": "元电荷",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 9,
+    "score": 100,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-996ebefacf54",
+      "node_id": "property/physical_constant:auto-00fd8cffd8c1",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "提供一组电荷量数据（含 e 的整数倍与非整数倍），要求学生筛选出可能的带电量并写出 Q/n 的完整计算过程。",
+              "给出一段包含“电子就是元电荷”表述的短文，要求学生找出概念混淆点，并用元电荷的边界条件进行书面修正。",
+              "结合验电器金属箔张角变化的实验情境，要求学生定性描述电荷转移过程中物体带电量始终保持为 e 整数倍的特征。"
+            ],
+            "common_errors": [
+              "将元电荷等同于某种具体微观粒子（如误认为元电荷就是电子或质子）。",
+              "在应用 Q = n·e 计算时忽视科学计数法的数量级换算，导致得出非整数 n 值仍判定为合法电荷量。",
+              "认为电荷量可以连续取值，忽略所有宏观/微观带电体电荷量均为 e 整数倍的量子化条件。"
+            ],
+            "diagnostic_questions": [
+              "某物体带电量为 3.5 × 10^-19 C，该电荷量是否合理？请结合元电荷定义说明判断依据。",
+              "元电荷是否等同于电子？请从物理量属性与粒子实体的边界进行解释。"
+            ],
+            "difficulty_level": "basic",
+            "extension_suggestions": [
+              "结合库仑定律推导，说明宏观静电现象中电荷相互作用力为何呈现离散阶跃特征。",
+              "引导学生查阅电荷守恒定律，分析摩擦起电或感应起电过程中得失电子数 n 与元电荷 e 的定量关系。",
+              "探讨半导体或离子导体中载流子电荷量仍满足 Q = n·e 条件，拓展量子化概念在不同介质中的普适性。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T10:12:46+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "038b72222cfa4213394c5e1cbdda0d5e697a9f446ea9106aec15d57971149d36",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-7bd482ef8be7",
+                "evidence:auto-048c5692ae0f",
+                "evidence:auto-0cfb7f969216"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "准确陈述元电荷的定义、符号及标准数值（e = 1.60 × 10^-19 C）。",
+              "运用公式 Q = n·e 判断给定电荷量是否符合量子化条件，并计算对应的整数 n。",
+              "辨析元电荷与具体带电粒子（电子/质子）的物理意义差异，明确指出元电荷仅表示电荷量的基本单位。"
+            ],
+            "remediation_suggestions": [
+              "利用密立根油滴实验的原理图或历史数据，直观呈现电荷量测量的离散性，强化“最小基本单位”而非“实体粒子”的认知。",
+              "设计“电荷量合法性检验”专项练习，引导学生规范使用除法 Q/e 进行运算，重点训练科学计数法处理与整数判定技能。",
+              "通过对比表格厘清“元电荷(e)”“电子电荷量(-e)”“质子电荷量(e)”的数值关系与概念边界，避免符号与物理实体混淆。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-048c5692ae0f",
+        "evidence:auto-0cfb7f969216",
+        "evidence:auto-7bd482ef8be7",
+        "evidence:auto-f4e889107bbf"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:12:46+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "物体所带电荷的电荷量不是任意的，而是某个最小电荷量的整数倍。人们把最小电荷量叫做元电荷（elementary charge），用符号 e 来表示，通常 e 取 $1.6 \\times 10^{-19}$ C。任何带电体所带电荷都是 e 的整数倍。实验表明，单个质子携带的电荷量为 e，单个电子携带的电荷量则为 -e。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-048c5692ae0f",
+      "locator": "line:80",
+      "modality": "equation",
+      "normalized_claims": [
+        "物体所带电荷的电荷量不是任意的，而是某个最小电荷量的整数倍。人们把最小电荷量叫做元电荷（elementary charge），用符号 e 来表示，通常 e 取 $1.6 \\times 10^{-19}$ C。任何带电体所带电荷都是 e 的整"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "不同带电体带电的多少往往是不同的。物体所带电荷的多少叫做电荷量（amount of electric charge），用符号 Q 或 q 表示。电荷量是标量，我们通常取正电荷的电荷量为正值，取负电荷的电荷量为负值。电荷量的国际单位是库仑，简称库；符号为 C。库仑是一个相当大的电荷量单位，因此通常还用微库作电荷量单位，符号为 $\\mu C$ 。库仑和微库的换算关系是",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-0cfb7f969216",
+      "locator": "line:74",
+      "modality": "equation",
+      "normalized_claims": [
+        "不同带电体带电的多少往往是不同的。物体所带电荷的多少叫做电荷量（amount of electric charge），用符号 Q 或 q 表示。电荷量是标量，我们通常取正电荷的电荷量为正值，取负电荷的电荷量为负值。电荷量的国际单位是库仑，简"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 9-3 所示，一对用绝缘柱支撑的不带电的导体 $A$ 和 $B$ 彼此接触， $A$ 、 $B$ 下方均连有两片闭合的金属箔。观察下列几种情况下金属箔的变化情况。① 把带正电荷的物体 $C$ 移近导体 $A$ ；② 把 $A$ 和 $B$ 分开，然后移去 $C$ ；③ 再让 $A$ 和 $B$ 接触。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-0dd9625bef27",
+      "locator": "line:34",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图 9-3 所示，一对用绝缘柱支撑的不带电的导体 $A$ 和 $B$ 彼此接触， $A$ 、 $B$ 下方均连有两片闭合的金属箔。观察下列几种情况下金属箔的变化情况。① 把带正电荷的物体 $C$ 移近导体 $A$ ；② 把 $A$ 和 $"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "电荷间存在相互作用：同号电荷间相互排斥，异号电荷间相互吸引。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-1885a1345f16",
+      "locator": "line:8",
+      "modality": "text",
+      "normalized_claims": [
+        "电荷间存在相互作用：同号电荷间相互排斥，异号电荷间相互吸引。"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/564efe82b62d4e373af3272c3c789b89833699b04c8b878d636fe73a03805283.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-20c5daacf417",
+      "locator": "line:46",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/564efe82b62d4e373af3272c3c789b89833699b04c8b878d636fe73a03805283.jpg)"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 187,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/564efe82b62d4e373af3272c3c789b89833699b04c8b878d636fe73a03805283.jpg",
+          "reason": "图片内容是静电感应实验中的带电体B。结合上下文标题“感应起电”和后文“图9-3 静电感应现象”，以及前文(a)(b)和后文(c)(d)的组图标记，这张图显然是图9-3的一部分，用于展示实验器材或实验过程的某一个片段（带电体）。它辅助说明了感应起电的原理，属于过程片段或局部展示。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个放置在绝缘支架上的红色长条形物体，标记为B，表面标有正号（+），表示这是一个带正电的带电体。",
+          "width": 131
+        },
+        "path": "images/564efe82b62d4e373af3272c3c789b89833699b04c8b878d636fe73a03805283.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "使用验电器时，将带电体接触验电器的金属球，根据下方金属箔张角的变化可定性显示金属球所带的电荷量的多少。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-283294a8f8db",
+      "locator": "line:80",
+      "modality": "text",
+      "normalized_claims": [
+        "使用验电器时，将带电体接触验电器的金属球，根据下方金属箔张角的变化可定性显示金属球所带的电荷量的多少。"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/9314dc683aa9eff2eb9d903d1f20e264d46680832bc4d0dd7c6caed0e7d4941a.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-3c8b2e3d7ee3",
+      "locator": "line:66",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/9314dc683aa9eff2eb9d903d1f20e264d46680832bc4d0dd7c6caed0e7d4941a.jpg)"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 412,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/9314dc683aa9eff2eb9d903d1f20e264d46680832bc4d0dd7c6caed0e7d4941a.jpg",
+          "reason": "图片内容与教材上下文高度对应。前文提到'为了观察静电现象，人们设计了许多专门产生静电的设备，如图 9-4 所示就是两种常用的起电机'，后文明确标注了'(b) 范德格拉夫起电机'和'图9-4 两种常用的起电机'。这张图片正是图9-4中的(b)部分，展示了具体的静电实验器材，属于辅助说明性质的器材照片。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一台范德格拉夫起电机（Van de Graaff generator）的实物照片。该设备由顶部的巨大金属半球形电极、中间的绝缘支柱和传送带系统、以及底部的带有开关和接线柱的控制箱组成。",
+          "width": 171
+        },
+        "path": "images/9314dc683aa9eff2eb9d903d1f20e264d46680832bc4d0dd7c6caed0e7d4941a.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "使用数字式静电计时，按下数字式静电计的调零按键将电荷量的显示归零。将物体接触数字式静电计的金属球，数字式静电计的屏幕定量显示金属球所带的电荷量。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-549fd77be511",
+      "locator": "line:83",
+      "modality": "text",
+      "normalized_claims": [
+        "使用数字式静电计时，按下数字式静电计的调零按键将电荷量的显示归零。将物体接触数字式静电计的金属球，数字式静电计的屏幕定量显示金属球所带的电荷量。"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/746f40dacbecb9381e7a39f3153cac4b5560f24755336948e99e5cc5fe4f706e.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-647bced77477",
+      "locator": "line:90",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/746f40dacbecb9381e7a39f3153cac4b5560f24755336948e99e5cc5fe4f706e.jpg)"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 460,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/746f40dacbecb9381e7a39f3153cac4b5560f24755336948e99e5cc5fe4f706e.jpg",
+          "reason": "图片是密立根油滴实验的装置图，直接对应前文中提到的'他设计的实验装置如图9-5所示'以及后文的图注'图9-5 密立根油滴实验'。该图片展示了测定元电荷的核心实验结构（喷雾器、平行极板、电源、观察系统），属于物理学科中的经典实验装置，是解释前文元电荷测定过程的关键内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了密立根油滴实验的装置示意图。主要包含一个圆柱形容器，上方有喷雾器向容器内喷洒微粒（油滴）；容器中间有一块标为A的正极板，下方有一块标为B的负极板，两板连接直流电源；左侧有光源照射，右侧有目镜用于观察；图中虚线和点展示了油滴在极板间运动的轨迹。",
+          "width": 625
+        },
+        "path": "images/746f40dacbecb9381e7a39f3153cac4b5560f24755336948e99e5cc5fe4f706e.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/493ddcd056dfb8910ad76bf9662187f59031c9cc9f1adbae084b1d020fbd72ae.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6a1654451559",
+      "locator": "line:63",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/493ddcd056dfb8910ad76bf9662187f59031c9cc9f1adbae084b1d020fbd72ae.jpg)"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 351,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/493ddcd056dfb8910ad76bf9662187f59031c9cc9f1adbae084b1d020fbd72ae.jpg",
+          "reason": "图片与上下文紧密对应。前文提到“为了观察静电现象，人们设计了许多专门产生静电的设备，如图 9-4 所示就是两种常用的起电机”，后文明确标注该图为“(a) 手摇起电机”。该图片作为实验器材的实物展示，辅助说明了产生静电的设备，属于 supporting 级别的知识证据。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个手摇静电起电机（实物装置），包含一个带有手柄的大型透明轮盘、扇形金属感应片、两个竖立的金属圆柱体（集电器）以及木质底座。",
+          "width": 462
+        },
+        "path": "images/493ddcd056dfb8910ad76bf9662187f59031c9cc9f1adbae084b1d020fbd72ae.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "人们把最小电荷量叫做元电荷，用符号 e 来表示，通常 e 取 1.6 × 10^-19 C。任何带电体所带电荷都是 e 的整数倍。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-7bd482ef8be7",
+      "locator": "line:67",
+      "modality": "text",
+      "normalized_claims": [
+        "人们把最小电荷量叫做元电荷，用符号 e 来表示，通常 e 取 1.6 × 10^-19 C。任何带电体所带电荷都是 e 的整数倍。"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "对于一个孤立系统，不论发生什么样的物理过程，系统内电荷总量保持不变。电荷可以从一个物体转移到其他物体，或者从物体的一部分转移到其他部分，但在转移过程中电荷的总量保持不变。这就是电荷守恒定律。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-863b366a7915",
+      "locator": "line:53",
+      "modality": "text",
+      "normalized_claims": [
+        "对于一个孤立系统，不论发生什么样的物理过程，系统内电荷总量保持不变。电荷可以从一个物体转移到其他物体，或者从物体的一部分转移到其他部分，但在转移过程中电荷的总量保持不变。这就是电荷守恒定律。"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/d633bcad4b2681f089085611e9799f3d2fab2a40790446c5072e4094a70377d6.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-8709c77c966a",
+      "locator": "line:49",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/d633bcad4b2681f089085611e9799f3d2fab2a40790446c5072e4094a70377d6.jpg)"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 184,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/d633bcad4b2681f089085611e9799f3d2fab2a40790446c5072e4094a70377d6.jpg",
+          "reason": "图片是静电感应实验（图9-3）的关键步骤示意图，展示了导体A和B分开的状态。这与标题“感应起电”及后文描述的实验过程（“把A和B分开”）直接对应，用于解释感应起电的核心原理，属于直接表达实验和概念的核心内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了两个标记为A和B的金属导体（圆柱体）分别放置在绝缘支架上，两者之间有明显的间隙，导体下方悬挂着金属箔片。",
+          "width": 218
+        },
+        "path": "images/d633bcad4b2681f089085611e9799f3d2fab2a40790446c5072e4094a70377d6.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/9df34405c62ccd73fdfcdd4ff66d73e9f1f20e18a3c701e47ca3d5cd7b30aaf0.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-9522116bebfa",
+      "locator": "line:21",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/9df34405c62ccd73fdfcdd4ff66d73e9f1f20e18a3c701e47ca3d5cd7b30aaf0.jpg)"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 5,
+          "height": 393,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/9df34405c62ccd73fdfcdd4ff66d73e9f1f20e18a3c701e47ca3d5cd7b30aaf0.jpg",
+          "reason": "图片内容展示了用毛皮摩擦橡胶棒的过程，这与前文中提到的“如图9-2所示，当橡胶棒和毛皮在一起互相摩擦时”完全对应，同时也符合标题“摩擦起电”。这是教材中用于解释摩擦起电微观原理（电子转移）的关键实验演示图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一只手拿着黑色的棒状物体（看似橡胶棒），另一只手拿着灰色的毛皮状物体正在对其进行摩擦。背景为蓝色。",
+          "width": 401
+        },
+        "path": "images/9df34405c62ccd73fdfcdd4ff66d73e9f1f20e18a3c701e47ca3d5cd7b30aaf0.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n1 \\mu \\mathrm{C} = 1 0 ^ {- 6} \\mathrm{C}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-9fe5b3f3b043",
+      "locator": "line:78",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n1 \\mu \\mathrm{C} = 1 0 ^ {- 6} \\mathrm{C}\n$$"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "美国科学家密立根在 1907—1913 年间首次测定了元电荷的电荷量... 当油滴所受的重力与极板间电场的作用力平衡时，油滴可静止悬浮于电场中。经过反复实验，得出结论：油滴的电荷量是某个最小固定值的整数倍...",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a071e1d64a2f",
+      "locator": "line:70",
+      "modality": "text",
+      "normalized_claims": [
+        "美国科学家密立根在 1907—1913 年间首次测定了元电荷的电荷量... 当油滴所受的重力与极板间电场的作用力平衡时，油滴可静止悬浮于电场中。经过反复实验，得出结论：油滴的电荷量是某个最小固定值的整数倍..."
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/6787213a2661322db3205e2969395c419441cce76e54d47dd7d12043c54f72b9.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-a0f097b19440",
+      "locator": "line:36",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/6787213a2661322db3205e2969395c419441cce76e54d47dd7d12043c54f72b9.jpg)"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 92,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/6787213a2661322db3205e2969395c419441cce76e54d47dd7d12043c54f72b9.jpg",
+          "reason": "图片内容（带正电荷物体C向右移动）与前文描述的感应起电实验步骤①“把带正电荷的物体C移近导体A”完全对应。虽然图片可能只是整个实验装置图（图9-3）的局部或步骤示意图，未展示导体A、B及金属箔的变化，但它清晰地展示了产生感应起电的关键外部条件（外电场源及其运动），属于实验流程的辅助说明，因此保留为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一只手拿着一根灰色的棒状物体，物体右端有一个粉色的圆圈，内部标有“+”号，下方标有字母“C”。物体上方有一个黑色的水平箭头指向右侧。",
+          "width": 112
+        },
+        "path": "images/6787213a2661322db3205e2969395c419441cce76e54d47dd7d12043c54f72b9.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "1 μC = 10^-6 C",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a63ad5ad43b2",
+      "locator": "line:66",
+      "modality": "equation",
+      "normalized_claims": [
+        "1 μC = 10^-6 C"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "美国科学家密立根（R. A. Millikan，1868—1953）在 1907—1913 年间首次测定了元电荷的电荷量，为此获得了 1923 年的诺贝尔物理学奖。他设计的实验装置如图 9-5 所示，实验中用一个喷雾器向一个透明的圆柱形容器里喷入带电油滴；容器中的 $A$ 、 $B$ 板分别连接电源的两极，使 $A$ 板为正极板、 $B$ 板为负极板；带负电的油滴在 $A$ 、 $B$ 之间受重力、电场力和空气阻力的作用而运动，可以通过改变极板间的电压来控制油滴的运动。当油滴所受的重力与极板间电场的作用力平衡时，油滴可静止悬浮于电场中。为测得电荷量，还需测得油滴质量。两极板间不加电压，油滴受重力作用而加速下降。由于",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-a91386adf041",
+      "locator": "line:84",
+      "modality": "equation",
+      "normalized_claims": [
+        "美国科学家密立根（R. A. Millikan，1868—1953）在 1907—1913 年间首次测定了元电荷的电荷量，为此获得了 1923 年的诺贝尔物理学奖。他设计的实验装置如图 9-5 所示，实验中用一个喷雾器向一个透明的圆柱形容器"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/564dedaa4c644b850e5f6315c5178bc351ecdb050527938289f9dd0841a568f7.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b24362bfe6bb",
+      "locator": "line:24",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/564dedaa4c644b850e5f6315c5178bc351ecdb050527938289f9dd0841a568f7.jpg)"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 390,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/564dedaa4c644b850e5f6315c5178bc351ecdb050527938289f9dd0841a568f7.jpg",
+          "reason": "图片直观展示了毛皮摩擦橡胶棒后的带电情况（橡胶棒带负电，毛皮带正电），与前文描述的“毛皮上的电子转移到橡胶棒上...”及标题“摩擦起电”完全对应，属于核心概念图示。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了橡胶棒和毛皮，橡胶棒表面标有负号（-），毛皮表面标有正号（+），并标注了“橡胶棒”和“毛皮”。",
+          "width": 407
+        },
+        "path": "images/564dedaa4c644b850e5f6315c5178bc351ecdb050527938289f9dd0841a568f7.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/e8729d67c99ced29f3bd742af8c5a1ce05185b80920f5622ba43354aad8cb887.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b6411722995d",
+      "locator": "line:41",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/e8729d67c99ced29f3bd742af8c5a1ce05185b80920f5622ba43354aad8cb887.jpg)"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 193,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/e8729d67c99ced29f3bd742af8c5a1ce05185b80920f5622ba43354aad8cb887.jpg",
+          "reason": "图片内容与前文描述的实验步骤①“把带正电荷的物体C移近导体A”形成直接对应。它作为该步骤的示意图，直观地展示了静电感应发生时导体两端的电荷分布规律（近端感应异种电荷，远端感应同种电荷），辅助说明了感应起电的实验过程和现象。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个静电感应实验的示意图。左侧有一个带正电的球体（标有“+”），右侧有两个彼此接触、放置在绝缘柱上的导体A和B。导体A靠近带电体的一端标有负号（“-”），导体B远离带电体的一端标有正号（“+”）。导体下方画有金属箔片。",
+          "width": 292
+        },
+        "path": "images/e8729d67c99ced29f3bd742af8c5a1ce05185b80920f5622ba43354aad8cb887.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "接触起电是指带电体和不带电的物体相接触而使后者带电的现象。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-c2bc44f92fe8",
+      "locator": "line:26",
+      "modality": "text",
+      "normalized_claims": [
+        "接触起电是指带电体和不带电的物体相接触而使后者带电的现象。"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "大量实验发现，若将一个带电体靠近一个不带电的导体，该导体在靠近带电体的一端聚集了与带电体相反的电荷，而远离带电体的一端聚集了与带电体相同的电荷。这种现象叫做静电感应。通过静电感应使金属导体带电的过程叫做感应起电。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-c7a7cf476366",
+      "locator": "line:48",
+      "modality": "text",
+      "normalized_claims": [
+        "大量实验发现，若将一个带电体靠近一个不带电的导体，该导体在靠近带电体的一端聚集了与带电体相反的电荷，而远离带电体的一端聚集了与带电体相同的电荷。这种现象叫做静电感应。通过静电感应使金属导体带电的过程叫做感应起电。"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/00ea524a4686e835f0e901666e154289fd09df2321c6628a606870a2e9ea1d68.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-d08b9fff68d1",
+      "locator": "line:101",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/00ea524a4686e835f0e901666e154289fd09df2321c6628a606870a2e9ea1d68.jpg)"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 203,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/00ea524a4686e835f0e901666e154289fd09df2321c6628a606870a2e9ea1d68.jpg",
+          "reason": "图片内容直接对应前文提到的'实验器材包括验电器（图9-6）'以及后文的标题'图9-6 用验电器检测物体是否带电'。图片不仅展示了验电器的关键结构（金属球、金属杆、金属箔），还演示了带电体接触金属球的操作过程，是理解该实验器材构造及工作原理的核心图像。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了验电器的结构示意图，清晰标注了顶部的'金属球'、中间的'金属杆'以及底部的'金属箔'。图中还描绘了一只手拿着一个细长的物体（带电体）正在接触验电器顶部的金属球。",
+          "width": 326
+        },
+        "path": "images/00ea524a4686e835f0e901666e154289fd09df2321c6628a606870a2e9ea1d68.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "现在得到的元电荷的精确值在 2019 年更正为： $e=1.602\\ 176\\ 634\\times10^{-19}\\ C$ ，一般情况下可取值 $e=1.60\\times10^{-19}\\ C$ 。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-d5a0ece1946c",
+      "locator": "line:88",
+      "modality": "equation",
+      "normalized_claims": [
+        "现在得到的元电荷的精确值在 2019 年更正为： $e=1.602\\ 176\\ 634\\times10^{-19}\\ C$ ，一般情况下可取值 $e=1.60\\times10^{-19}\\ C$ 。"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/d2759ff7548d1f473d6f5269dfffbb3012f3581eae7b8c476d8e5cabe74866d2.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e08b9f5a066f",
+      "locator": "line:44",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/d2759ff7548d1f473d6f5269dfffbb3012f3581eae7b8c476d8e5cabe74866d2.jpg)"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 190,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/d2759ff7548d1f473d6f5269dfffbb3012f3581eae7b8c476d8e5cabe74866d2.jpg",
+          "reason": "图片内容与标题“3. 感应起电”高度相关。它直接展示了感应起电实验的核心装置（导体A和绝缘支架）以及电荷分布情况（两端带负电），属于教材中解释该物理概念的关键实验示意图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个放置在绝缘支架上的水平金属导体棒，标记为A。导体棒的左端和右端都标有负号（-），左端还有一个向上的箭头。这是一个演示静电感应或感应起电现象的物理实验示意图。",
+          "width": 134
+        },
+        "path": "images/d2759ff7548d1f473d6f5269dfffbb3012f3581eae7b8c476d8e5cabe74866d2.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "物体所带电荷的多少叫做电荷量，用符号 Q 或 q 表示。电荷量是标量，我们通常取正电荷的电荷量为正值，取负电荷的电荷量为负值。电荷量的国际单位是库仑，简称库；符号为 C。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ec275adb604e",
+      "locator": "line:60",
+      "modality": "text",
+      "normalized_claims": [
+        "物体所带电荷的多少叫做电荷量，用符号 Q 或 q 表示。电荷量是标量，我们通常取正电荷的电荷量为正值，取负电荷的电荷量为负值。电荷量的国际单位是库仑，简称库；符号为 C。"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/aad9719c9cb3b1b997905ac36bad966b81e4dcca6c000e87906cd8e2fa9c570b.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ec924df0283a",
+      "locator": "line:38",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/aad9719c9cb3b1b997905ac36bad966b81e4dcca6c000e87906cd8e2fa9c570b.jpg)"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 190,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/aad9719c9cb3b1b997905ac36bad966b81e4dcca6c000e87906cd8e2fa9c570b.jpg",
+          "reason": "图片是前文描述的‘感应起电’实验装置图。前文提到‘一对用绝缘柱支撑的不带电的导体A和B彼此接触，A、B下方均连有两片闭合的金属箔’，图片完美对应这一描述，展示了实验的初始状态，是理解后续感应起电过程的核心素材。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了两个标记为A和B的金属导体，它们彼此接触并放置在两个绝缘柱上。导体下方各垂着一片闭合的金属箔。",
+          "width": 221
+        },
+        "path": "images/aad9719c9cb3b1b997905ac36bad966b81e4dcca6c000e87906cd8e2fa9c570b.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "在生活中静电现象是十分常见的。比如章导图所示的摩擦过的梳子可以吸引细小水流；摩擦后的气球可使猫毛竖起；冬天脱毛衣的时候常会听到“噼噼啪啪”的声音，黑暗中还能看见毛衣“冒火星”；有时候用钥匙去开门或触摸金属门把手的时候会突然感觉被刺了一下；自然界中的闪电等都是静电现象。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f4e889107bbf",
+      "locator": "line:2",
+      "modality": "text",
+      "normalized_claims": [
+        "在生活中静电现象是十分常见的。比如章导图所示的摩擦过的梳子可以吸引细小水流；摩擦后的气球可使猫毛竖起；冬天脱毛衣的时候常会听到“噼噼啪啪”的声音，黑暗中还能看见毛衣“冒火星”；有时候用钥匙去开门或触摸金属门把手的时候会突然感觉被刺了一下；自"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "excerpt": "两个物体发生摩擦时，得到电子的物体带负电，失去电子的物体带正电。在日常生活中所说的摩擦起电实质上就是两种物体间相互摩擦而使电子转移的过程。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-fd4d2c2dca51",
+      "locator": "line:14",
+      "modality": "text",
+      "normalized_claims": [
+        "两个物体发生摩擦时，得到电子的物体带负电，失去电子的物体带正电。在日常生活中所说的摩擦起电实质上就是两种物体间相互摩擦而使电子转移的过程。"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:40:33+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-8ba88755a22b",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-7bd482ef8be7"
+      ],
+      "source_type": "textbook",
+      "target_id": "property/physical_constant:auto-00fd8cffd8c1",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "基本电荷",
+      "Elementary charge"
+    ],
+    "created_at": "2026-06-29T05:40:33+00:00",
+    "dataset_id": "main",
+    "definition": "电荷的最小基本单位。任何带电体所带电荷都是 e 的整数倍。符号 e。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "property/physical_constant:auto-00fd8cffd8c1",
+    "kind": "property",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "元电荷",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "subkinds": [
+          "physical_constant"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "非具体粒子，而是电荷量的基本单元"
+        ],
+        "conditions": [
+          "所有宏观/微观带电体电荷量均为此值的整数倍"
+        ],
+        "formal_expressions": [
+          "e = 1.60 × 10^-19 C",
+          "Q = n·e (n∈Z)"
+        ]
+      },
+      "template_display": {
+        "color": "#FFB400",
+        "label": "物理量",
+        "template_id": "textbook/physics",
+        "type_key": "property"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "physical_constant",
+    "tags": [
+      "高中物理",
+      "必修三",
+      "静电场"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:40:33+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "property/physical_quantity:auto-d560efd553af",
+        "id": "edge:auto-c0deaa43ea75",
+        "notes": "电荷量的取值依赖于元电荷的整数倍，体现电荷的量子化特征。",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "依赖条件",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-7bd482ef8be7"
+        ],
+        "status": "active",
+        "to_id": "property/physical_constant:auto-00fd8cffd8c1",
+        "type": "depends_on",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:40:33+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "method/physics_experiment:auto-f61094ea2657",
+        "id": "edge:auto-ffc7c87b59c8",
+        "notes": "密立根油滴实验通过测量带电油滴受力平衡状态，首次精确测定并产出元电荷的数值。",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "产生",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-a071e1d64a2f"
+        ],
+        "status": "active",
+        "to_id": "property/physical_constant:auto-00fd8cffd8c1",
+        "type": "produces",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ],
+    "outgoing": []
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第一节 静电现象 电荷\n\n在生活中静电现象是十分常见的。比如章导图所示的摩擦过的梳子可以吸引细小水流；摩擦后的气球可使猫毛竖起（图9-1）；冬天脱毛衣的时候常会听到“噼噼啪啪”的声音，黑暗中还能看见毛衣“冒火星”；有时候用钥匙去开门或触摸金属门把手的时候会突然感觉被刺了一下；自然界中的闪电等都是静电现象。\n\n## 大家谈\n\n日常生活中你还经历过哪些静电现象？\n\n我们已经知道，电荷分为两种：正电荷和负电荷。电荷间存在相互作用：同号电荷间相互排斥，异号电荷间相互吸引。\n\n\n\n## 静电是如何产生的？\n\n静电可通过物体间的摩擦、接触、感应等方法来产生。\n\n## 1. 摩擦起电\n\n物体是由分子、原子组合而成，而原子的基本结构为原子核和核外的电子，原子核由质子和中子组成。科学家们发现质子带的电荷为正电荷，中子不带电，而电子带负电荷。在正常状况下，一个原子的核内质子与核外电子正、负电荷彼此平衡，物体对外表现不出带电性。但是，如果物体受到摩擦的作用，就会使原子中的电子发生转移而使自身的正负电荷不平衡，从而使物体呈现带电性。两个物体发生摩擦时，得到电子的物体带负电，失去电子的物体带正电。在日常生活中所说的摩擦起电实质上就是两种物体间相互摩擦而使电子转移的过程。如图9-2所示，当橡胶棒和毛皮在一起互相摩擦时，毛皮上的电子转移到橡胶棒上，橡胶棒得到电子导致带负电荷，毛皮失去电子导致带正电荷。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n图9-2 摩擦起电  \n(b)\n\n## 2. 接触起电\n\n接触起电是指带电体和不带电的物体相接触而使后者带电的现象。例如，用毛皮摩擦过的橡胶棒与验电器接触，使验电器带电，这就是接触起电的例子。\n\n## 3. 感应起电\n\n如图 9-3 所示，一对用绝缘柱支撑的不带电的导体 $A$ 和 $B$ 彼此接触， $A$ 、 $B$ 下方均连有两片闭合的金属箔。观察下列几种情况下金属箔的变化情况。① 把带正电荷的物体 $C$ 移近导体 $A$ ；② 把 $A$ 和 $B$ 分开，然后移去 $C$ ；③ 再让 $A$ 和 $B$ 接触。\n\n[source image omitted from static artifact]\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)\n\n[source image omitted from static artifact]\n\n[source image omitted from static artifact]  \n(c)\n\n[source image omitted from static artifact]  \n(d)  \n图9-3 静电感应现象\n\n我们可观察到带电体 C 移近导体 A 时，A、B 下方的金属箔张开；把 A 和 B 分开，然后移去 C 时，可观察到 A、B 下方的金属箔仍然继续张开；再让 A 和 B 接触时，可观察到 A、B 下方的金属箔立即闭合。这说明带电体 C 移近导体 A 时，导体 A 和 B 带上了异号电荷。\n\n大量实验发现，若将一个带电体靠近一个不带电的导体，该导体在靠近带电体的一端聚集了与带电体相反的电荷，而远离带电体的一端聚集了与带电体相同的电荷。这种现象叫做静电感应（electrostatic induction）。通过静电感应使金属导体带电的过程叫做感应起电。\n\n摩擦起电、接触起电、感应起电从本质上都源于物质的原子中的电子在不同物体间或者同一物体的不同部分间发生了转移，它们之间电荷的总量并没有发生变化。\n\n物理学中往往把研究的物体或物体的集合作为一个系统。对于一个孤立系统，不论发生什么样的物理过程，系统内电荷总量保持不变。电荷可以从一个物体转移到其他物体，或者从物体的一部分转移到其他部分，但在转移过程中电荷的总量保持不变。这就是电荷守恒定律（law of conservation of charge），它是物理学的一条基本定律。现代物理研究表明，在粒子的相互作用过程中，电荷是可以产生和消失的，然而电荷守恒定律依然成立。例如，在正、负电子对的产生与湮灭过程中，正、负电荷总量始终为零。\n\n为了观察静电现象，人们设计了许多专门产生静电的设备，如图 9-4 所示就是两种常用的起电机。\n\n[source image omitted from static artifact]  \n(a) 手摇起电机\n\n[source image omitted from static artifact]  \n(b) 范德格拉夫起电机  \n图9-4 两种常用的起电机\n\n\n\n## 如何描述物体所带电荷的多少?\n\n不同带电体带电的多少往往是不同的。物体所带电荷的多少叫做电荷量（amount of electric charge），用符号 Q 或 q 表示。电荷量是标量，我们通常取正电荷的电荷量为正值，取负电荷的电荷量为负值。电荷量的国际单位是库仑，简称库；符号为 C。库仑是一个相当大的电荷量单位，因此通常还用微库作电荷量单位，符号为 $\\mu C$ 。库仑和微库的换算关系是\n\n$$\n1 \\mu \\mathrm{C} = 1 0 ^ {- 6} \\mathrm{C}\n$$\n\n物体所带电荷的电荷量不是任意的，而是某个最小电荷量的整数倍。人们把最小电荷量叫做元电荷（elementary charge），用符号 e 来表示，通常 e 取 $1.6 \\times 10^{-19}$ C。任何带电体所带电荷都是 e 的整数倍。实验表明，单个质子携带的电荷量为 e，单个电子携带的电荷量则为 -e。\n\n## 拓展视野\n\n美国科学家密立根（R. A. Millikan，1868—1953）在 1907—1913 年间首次测定了元电荷的电荷量，为此获得了 1923 年的诺贝尔物理学奖。他设计的实验装置如图 9-5 所示，实验中用一个喷雾器向一个透明的圆柱形容器里喷入带电油滴；容器中的 $A$ 、 $B$ 板分别连接电源的两极，使 $A$ 板为正极板、 $B$ 板为负极板；带负电的油滴在 $A$ 、 $B$ 之间受重力、电场力和空气阻力的作用而运动，可以通过改变极板间的电压来控制油滴的运动。当油滴所受的重力与极板间电场的作用力平衡时，油滴可静止悬浮于电场中。为测得电荷量，还需测得油滴质量。两极板间不加电压，油滴受重力作用而加速下降。由于\n\n空气阻力的作用，下降一段距离达到某一速度后，油滴所受的重力与阻力平衡，油滴将匀速下降，通过计算得到油滴的质量。经过反复实验，得出结论：油滴的电荷量是某个最小固定值的整数倍，这个最小固定值就是单个电子的电荷量的绝对值。\n\n现在得到的元电荷的精确值在 2019 年更正为： $e=1.602\\ 176\\ 634\\times10^{-19}\\ C$ ，一般情况下可取值 $e=1.60\\times10^{-19}\\ C$ 。\n\n[source image omitted from static artifact]  \n图9-5 密立根油滴实验\n\n## 自主活动\n\n实验器材包括验电器（图9-6）、数字式静电计（图9-7）、玻璃棒、橡胶棒、丝绸、毛皮。\n\n使用验电器或数字式静电计观察、测量摩擦后物体的带电情况。\n\n使用验电器时，将带电体\n\n[source image omitted from static artifact]  \n图9-6 用验电器检测物体是否带电\n\n  \n图9-7 用数字式静电计检测物体所带的电荷量\n\n接触验电器的金属球，根据下方金属箔张角的变化可定性显示金属球所带的电荷量的多少。\n\n使用数字式静电计时，按下数字式静电计的调零按键将电荷量的显示归零。将物体接触数字式静电计的金属球，数字式静电计的屏幕定量显示金属球所带的电荷量。\n\n## 问题②思考\n\n1. 木髓球是一种由轻质材料制成、外部涂一层石墨或铝的轻质小球。现有一个悬挂在绝缘线上的木髓球，如何判断木髓球是带正电荷、带负电荷还是不带电？\n\n2. 某次雷雨时一次闪电从云层向地面输送了 $32 \\mathrm{C}$ 的负电荷，在这个过程中有多少个电子到达地面？\n\n3. 高速飞行的飞机机身会带上静电；当飞机靠近带电的云层时，飞机靠近云的一侧会带上与之相反的电荷。试分析上述两种情况下机身带电的主要原因。\n\n4. 四个完全相同、相互间隔较远的导体球，A 球所带电荷量为 +16 Q，B 球所带电荷量为 -32 Q，C 球所带电荷量为 +48 Q，D 球不带电荷。首先，将 D 球接触 A 球后分开；然后，将 D 球接触 B 球后分开；最后，将 D 球接触 C 球后分开。问：D 球上最终的电荷量是多少？\n\n5. 密立根通过实验测得了元电荷的电荷量为 $e = 1.602 \\times 10^{-19}$ C。实际测量时测得的部分油滴电荷量的数据如表 9-1 所示，通过对这些实验数据作分析，给出结论。\n\n表9-1\n\n<table><tr><td>序号</td><td>电荷量</td><td>序号</td><td>电荷量</td><td>序号</td><td>电荷量</td></tr><tr><td>1</td><td> $6.563 \\times 10^{-19} \\text{C}$ </td><td>4</td><td> $13.13 \\times 10^{-19} \\text{C}$ </td><td>7</td><td> $19.71 \\times 10^{-19} \\text{C}$ </td></tr><tr><td>2</td><td> $8.204 \\times 10^{-19} \\text{C}$ </td><td>5</td><td> $16.48 \\times 10^{-19} \\text{C}$ </td><td>8</td><td> $22.89 \\times 10^{-19} \\text{C}$ </td></tr><tr><td>3</td><td> $11.50 \\times 10^{-19} \\text{C}$ </td><td>6</td><td> $18.08 \\times 10^{-19} \\text{C}$ </td><td>9</td><td> $26.13 \\times 10^{-19} \\text{C}$ </td></tr></table>\n\n  \n图9-8 库仑扭秤实验装置图手稿",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:9-1-a:source-markdown",
+          "locator": "静电现象 电荷 & 电荷的相互作用 库仑定律",
+          "modality": "text",
+          "page_end": 12,
+          "page_start": 2,
+          "properties": {
+            "md_end": 257,
+            "md_start": 129,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:9-1-a",
+            "outline_title": "静电现象 电荷 & 电荷的相互作用 库仑定律",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 257,
+      "md_start": 129,
+      "modalities": [
+        "equation",
+        "text",
+        "image",
+        "table"
+      ],
+      "page_end": 12,
+      "page_start": 2,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第一节 静电现象 电荷\n\n在生活中静电现象是十分常见的。比如章导图所示的摩擦过的梳子可以吸引细小水流；摩擦后的气球可使猫毛竖起（图9-1）；冬天脱毛衣的时候常会听到“噼噼啪啪”的声音，黑暗中还能看见毛衣“冒火星”；有时候用钥匙去开门或触摸金属门把手的时候会突然感觉被刺了一下；自然界中的闪电等都是静电现象。\n\n## 大家谈\n\n日常生活中你还经历过哪些静电现象？\n\n我们已经知道，电荷分为两种：正电荷和负电荷。电荷间存在相互作用：同号电荷间相互排斥，异号电荷间相互吸引。\n\n\n\n## 静电是如何产生的？\n\n静电可通过物体间的摩擦、接触、感应等方法来产生。\n\n## 1. 摩擦起电\n\n物体是由分子、原子组合而成，而原子的基本结构为原子核和核外的电子，原子核由质子和中子组成。科学家们发现质子带的电荷为正电荷，中子不带电，而电子带负电荷。在正常状况下，一个原子的核内质子与核外电子正、负电荷彼此平衡，物体对外表现不出带电性。但是，如果物体受到摩擦的作用，就会使原子中的电子发生转移而使自身的正负电荷不平衡，从而使物体呈现带电性。两个物体发生摩擦时，得到电子的物体带负电，失去电子的物体带正电。在日常生活中所说的摩擦起电实质上就是两种物体间相互摩擦而使电子转移的过程。如图9-2所示，当橡胶棒和毛皮在一起互相摩擦时，毛皮上的电子转移到橡胶棒上，橡胶棒得到电子导致带负电荷，毛皮失去电子导致带正电荷。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n图9-2 摩擦起电  \n(b)\n\n## 2. 接触起电\n\n接触起电是指带电体和不带电的物体相接触而使后者带电的现象。例如，用毛皮摩擦过的橡胶棒与验电器接触，使验电器带电，这就是接触起电的例子。\n\n## 3. 感应起电\n\n如图 9-3 所示，一对用绝缘柱支撑的不带电的导体 $A$ 和 $B$ 彼此接触， $A$ 、 $B$ 下方均连有两片闭合的金属箔。观察下列几种情况下金属箔的变化情况。① 把带正电荷的物体 $C$ 移近导体 $A$ ；② 把 $A$ 和 $B$ 分开，然后移去 $C$ ；③ 再让 $A$ 和 $B$ 接触。\n\n[source image omitted from static artifact]\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)\n\n[source image omitted from static artifact]\n\n[source image omitted from static artifact]  \n(c)\n\n[source image omitted from static artifact]  \n(d)  \n图9-3 静电感应现象\n\n我们可观察到带电体 C 移近导体 A 时，A、B 下方的金属箔张开；把 A 和 B 分开，然后移去 C 时，可观察到 A、B 下方的金属箔仍然继续张开；再让 A 和 B 接触时，可观察到 A、B 下方的金属箔立即闭合。这说明带电体 C 移近导体 A 时，导体 A 和 B 带上了异号电荷。\n\n大量实验发现，若将一个带电体靠近一个不带电的导体，该导体在靠近带电体的一端聚集了与带电体相反的电荷，而远离带电体的一端聚集了与带电体相同的电荷。这种现象叫做静电感应（electrostatic induction）。通过静电感应使金属导体带电的过程叫做感应起电。\n\n摩擦起电、接触起电、感应起电从本质上都源于物质的原子中的电子在不同物体间或者同一物体的不同部分间发生了转移，它们之间电荷的总量并没有发生变化。\n\n物理学中往往把研究的物体或物体的集合作为一个系统。对于一个孤立系统，不论发生什么样的物理过程，系统内电荷总量保持不变。电荷可以从一个物体转移到其他物体，或者从物体的一部分转移到其他部分，但在转移过程中电荷的总量保持不变。这就是电荷守恒定律（law of conservation of charge），它是物理学的一条基本定律。现代物理研究表明，在粒子的相互作用过程中，电荷是可以产生和消失的，然而电荷守恒定律依然成立。例如，在正、负电子对的产生与湮灭过程中，正、负电荷总量始终为零。\n\n为了观察静电现象，人们设计了许多专门产生静电的设备，如图 9-4 所示就是两种常用的起电机。\n\n[source image omitted from static artifact]  \n(a) 手摇起电机\n\n[source image omitted from static artifact]  \n(b) 范德格拉夫起电机  \n图9-4 两种常用的起电机\n\n\n\n## 如何描述物体所带电荷的多少?\n\n不同带电体带电的多少往往是不同的。物体所带电荷的多少叫做电荷量（amount of electric charge），用符号 Q 或 q 表示。电荷量是标量，我们通常取正电荷的电荷量为正值，取负电荷的电荷量为负值。电荷量的国际单位是库仑，简称库；符号为 C。库仑是一个相当大的电荷量单位，因此通常还用微库作电荷量单位，符号为 $\\mu C$ 。库仑和微库的换算关系是\n\n$$\n1 \\mu \\mathrm{C} = 1 0 ^ {- 6} \\mathrm{C}\n$$\n\n物体所带电荷的电荷量不是任意的，而是某个最小电荷量的整数倍。人们把最小电荷量叫做元电荷（elementary charge），用符号 e 来表示，通常 e 取 $1.6 \\times 10^{-19}$ C。任何带电体所带电荷都是 e 的整数倍。实验表明，单个质子携带的电荷量为 e，单个电子携带的电荷量则为 -e。\n\n## 拓展视野\n\n美国科学家密立根（R. A. Millikan，1868—1953）在 1907—1913 年间首次测定了元电荷的电荷量，为此获得了 1923 年的诺贝尔物理学奖。他设计的实验装置如图 9-5 所示，实验中用一个喷雾器向一个透明的圆柱形容器里喷入带电油滴；容器中的 $A$ 、 $B$ 板分别连接电源的两极，使 $A$ 板为正极板、 $B$ 板为负极板；带负电的油滴在 $A$ 、 $B$ 之间受重力、电场力和空气阻力的作用而运动，可以通过改变极板间的电压来控制油滴的运动。当油滴所受的重力与极板间电场的作用力平衡时，油滴可静止悬浮于电场中。为测得电荷量，还需测得油滴质量。两极板间不加电压，油滴受重力作用而加速下降。由于\n\n空气阻力的作用，下降一段距离达到某一速度后，油滴所受的重力与阻力平衡，油滴将匀速下降，通过计算得到油滴的质量。经过反复实验，得出结论：油滴的电荷量是某个最小固定值的整数倍，这个最小固定值就是单个电子的电荷量的绝对值。\n\n现在得到的元电荷的精确值在 2019 年更正为： $e=1.602\\ 176\\ 634\\times10^{-19}\\ C$ ，一般情况下可取值 $e=1.60\\times10^{-19}\\ C$ 。\n\n[source image omitted from static artifact]  \n图9-5 密立根油滴实验\n\n## 自主活动\n\n实验器材包括验电器（图9-6）、数字式静电计（图9-7）、玻璃棒、橡胶棒、丝绸、毛皮。\n\n使用验电器或数字式静电计观察、测量摩擦后物体的带电情况。\n\n使用验电器时，将带电体\n\n[source image omitted from static artifact]  \n图9-6 用验电器检测物体是否带电\n\n  \n图9-7 用数字式静电计检测物体所带的电荷量\n\n接触验电器的金属球，根据下方金属箔张角的变化可定性显示金属球所带的电荷量的多少。\n\n使用数字式静电计时，按下数字式静电计的调零按键将电荷量的显示归零。将物体接触数字式静电计的金属球，数字式静电计的屏幕定量显示金属球所带的电荷量。\n\n## 问题②思考\n\n1. 木髓球是一种由轻质材料制成、外部涂一层石墨或铝的轻质小球。现有一个悬挂在绝缘线上的木髓球，如何判断木髓球是带正电荷、带负电荷还是不带电？\n\n2. 某次雷雨时一次闪电从云层向地面输送了 $32 \\mathrm{C}$ 的负电荷，在这个过程中有多少个电子到达地面？\n\n3. 高速飞行的飞机机身会带上静电；当飞机靠近带电的云层时，飞机靠近云的一侧会带上与之相反的电荷。试分析上述两种情况下机身带电的主要原因。\n\n4. 四个完全相同、相互间隔较远的导体球，A 球所带电荷量为 +16 Q，B 球所带电荷量为 -32 Q，C 球所带电荷量为 +48 Q，D 球不带电荷。首先，将 D 球接触 A 球后分开；然后，将 D 球接触 B 球后分开；最后，将 D 球接触 C 球后分开。问：D 球上最终的电荷量是多少？\n\n5. 密立根通过实验测得了元电荷的电荷量为 $e = 1.602 \\times 10^{-19}$ C。实际测量时测得的部分油滴电荷量的数据如表 9-1 所示，通过对这些实验数据作分析，给出结论。\n\n表9-1\n\n<table><tr><td>序号</td><td>电荷量</td><td>序号</td><td>电荷量</td><td>序号</td><td>电荷量</td></tr><tr><td>1</td><td> $6.563 \\times 10^{-19} \\text{C}$ </td><td>4</td><td> $13.13 \\times 10^{-19} \\text{C}$ </td><td>7</td><td> $19.71 \\times 10^{-19} \\text{C}$ </td></tr><tr><td>2</td><td> $8.204 \\times 10^{-19} \\text{C}$ </td><td>5</td><td> $16.48 \\times 10^{-19} \\text{C}$ </td><td>8</td><td> $22.89 \\times 10^{-19} \\text{C}$ </td></tr><tr><td>3</td><td> $11.50 \\times 10^{-19} \\text{C}$ </td><td>6</td><td> $18.08 \\times 10^{-19} \\text{C}$ </td><td>9</td><td> $26.13 \\times 10^{-19} \\text{C}$ </td></tr></table>\n\n  \n图9-8 库仑扭秤实验装置图手稿",
+      "title": "静电现象 电荷 & 电荷的相互作用 库仑定律"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "artifact_id": "okm-public-artifact",
+  "artifact_version": "v0.1.0",
+  "contracts": {
+    "api_unit_schema": "schemas/api-unit.schema.json",
+    "conceptual_standard": "ai-nks-v0.1",
+    "executable_schema": "world-v1.2",
+    "public_contract": "ApiUnit-v0.1"
+  },
+  "counts": {
+    "bodies": 182,
+    "cards": 182,
+    "domain_profiles": 184,
+    "edges": 144,
+    "evidence": 537,
+    "mentions": 248,
+    "nodes": 182
+  },
+  "files": {
+    "checksum_list": "SHA256SUMS",
+    "graph": "data/graph.json",
+    "javascript_example": "examples/javascript/read-unit.mjs",
+    "python_example": "examples/python/read_unit.py",
+    "unit_index": "data/units/index.json",
+    "viewer": "viewer/index.html"
+  },
+  "generated_at": "2026-07-13T03:34:42.016Z",
+  "generated_from_commit": "5e9799569095d47630d4962253725581feaef5fa",
+  "generated_from_dirty_worktree": true,
+  "rights": {
+    "evaluation_status": "candidate-snapshot-not-a-benchmark",
+    "publication_status": "candidate-rights-review-required",
+    "redistribution": "not-cleared-for-public-redistribution",
+    "repository_license": "not-selected",
+    "source_clearance": "review-required",
+    "source_rights_statuses": []
+  },
+  "selection": {
+    "edges": "status != deprecated and both endpoints exported",
+    "media": "omitted from static artifact",
+    "nodes": "status != deprecated",
+    "units": "one current ApiUnit per exported node"
+  },
+  "source_database": {
+    "database_counts": {
+      "bodies": 182,
+      "cards": 184,
+      "domain_profiles": 184,
+      "edges": 144,
+      "evidence": 538,
+      "mentions": 248,
+      "nodes": 182
+    },
+    "dataset_id": "main",
+    "dataset_name": "main",
+    "root_path": "data/main",
+    "sources": []
+  }
+}

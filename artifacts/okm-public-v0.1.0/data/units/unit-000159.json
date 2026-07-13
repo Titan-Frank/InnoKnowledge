@@ -1,0 +1,3312 @@
+{
+  "body": {
+    "content": "## 定义\n磁感线（又称磁力线）是物理学中为了形象描述磁场方向和强弱而引入的假想曲线。穿过某一面积的磁感线条数与该区域的磁通量成正比`[evidence:auto-a3515e4573aa]`。由于磁场本身是一种无法被人类感官直接觉察的物质形态，引入磁感线这一几何模型有助于直观理解其分布规律`[evidence:auto-cc627c99b34a]`。\n\n## 核心解释\n磁感线通过几何特征定性表征磁场的核心属性：\n- **方向与强弱**：磁感线上任意一点的切线方向即为该点的磁场方向（小磁针静止时 N 极指向）；线条的疏密程度直观反映磁场强弱，越密集处磁场越强。\n- **空间形态**：磁感线是闭合曲线。在磁体外部，它们从 N 极出来回到 S 极；在磁体内部，则从 S 极指向 N 极，形成完整回路`[evidence:auto-a3515e4573aa]`。此外，空间中任意两条磁感线永远不会相交`[evidence:auto-a3515e4573aa]`。\n\n## 示例或应用\n地球周围存在大范围磁场，其分布宛如一个巨大的条形磁体。在地磁场作用下，指南针会调整取向并顺着地磁场的磁感线排列，其 N 极指向地磁南极，S 极指向地磁北极`[evidence:auto-384ad7f6185b]`。这一宏观现象正是磁感线模型在现实中的典型应用。\n\n## 易错点\n- **假想而非实体**：磁感线仅是人为构建的可视化工具，并非真实存在于空间中的物理线条，磁场才是客观存在的物质`[evidence:auto-cc627c99b34a]`。\n- **线间仍有磁场**：虽然图纸上只画出有限的几条代表线，但任意两条磁感线之间的空白区域依然充满磁场，绝不能认为线间无磁场`[evidence:auto-a3515e4573aa]`。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "representation/物理模型:auto-790a12487f84",
+    "properties": {
+      "card_title": "磁感线",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-a3515e4573aa",
+      "evidence:auto-cc627c99b34a",
+      "evidence:auto-384ad7f6185b"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:44:00+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-a16ea57b45fa",
+    "mention_refs": [],
+    "node_id": "representation/物理模型:auto-790a12487f84",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "物理学中用来形象描述磁场方向和强弱的假想曲线。疏密程度表示磁场强弱，切线方向表示该点磁场方向（即小磁针静止时N极指向）。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-cc627c99b34a"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "物理学中用来形象描述磁场方向和强弱的假想曲线。疏密程度表示磁场强弱，切线方向表示该点磁场方向（即小磁针静止时N极指向）。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-cc627c99b34a"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "物理学中用来形象描述磁场方向和强弱的假想曲线。疏密程度表示磁场强弱，切线方向表示该点磁场方向（即小磁针静止时N极指向）。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-cc627c99b34a"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "磁感线"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-cc627c99b34a"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "磁现象 磁感线"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-cc627c99b34a"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-cc627c99b34a"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-cc627c99b34a"
+    ],
+    "status": "active",
+    "summary": "物理学中用来形象描述磁场方向和强弱的假想曲线。疏密程度表示磁场强弱，切线方向表示该点磁场方向（即小磁针静止时N极指向）。",
+    "title": "磁感线",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 9,
+    "score": 100,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-d8413810acc7",
+      "node_id": "representation/物理模型:auto-790a12487f84",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "提供不同疏密分布的磁感线平面图，要求学生标出磁场最强与最弱区域，并简述判断依据。",
+              "给出局部磁感线分布及小磁针静止位置，要求学生补全切线方向并解释其物理含义。",
+              "展示一幅包含相交磁感线或中断磁感线的错误图示，要求学生找出错误并依据模型边界进行修正。"
+            ],
+            "common_errors": [
+              "误将磁感线视为真实存在的物质实体，忽略其作为假想几何模型的本质。",
+              "认为磁感线可以相交，或误判磁感线之间的空白区域不存在磁场。",
+              "混淆磁场方向与磁感线切线方向的关系，如将小磁针S极指向当作该点磁场方向。"
+            ],
+            "diagnostic_questions": [
+              "图中某区域磁感线较稀疏，能否直接得出该区域无磁场的结论？为什么？",
+              "若两条磁感线相交于一点，该点的小磁针N极将如何指向？这与磁场定义是否矛盾？",
+              "磁感线是真实存在的曲线吗？它与铁屑实验中观察到的图案有何本质区别？"
+            ],
+            "difficulty_level": "intermediate",
+            "extension_suggestions": [
+              "引导学生将磁感线疏密与磁通量概念建立联系，理解穿过同一面积的线条数变化对磁通量计算的意义。",
+              "对比匀强磁场中平行等间距磁感线的特征，分析其与非匀强磁场分布的几何差异。",
+              "结合地磁场模型，探讨指南针N极指向与地理南北极之间的偏角现象及其物理成因。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T09:48:38+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "56b261dc5745a28e8a4e3a4e1758b72ceaa438193c9248e966a46699bf2494d5",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-a3515e4573aa",
+                "evidence:auto-cc627c99b34a",
+                "evidence:auto-24b5a09c96a2"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能利用磁感线的疏密程度定性判断指定区域磁场的相对强弱。",
+              "能根据小磁针静止时N极指向，正确画出磁感线切线方向并描述磁场方向。",
+              "能结合磁感线闭合且不相交的特性，准确说明两条磁感线之间仍存在磁场的事实。"
+            ],
+            "remediation_suggestions": [
+              "利用铁屑显示磁场法实验对比直观现象与磁感线模型，强化假想曲线与真实磁场的映射关系。",
+              "结合右手螺旋定则与闭合特性，通过动态板演引导学生区分磁体内部与外部的磁感线走向。",
+              "设置边界辨析任务，明确疏密仅用于定性比较，防止学生将几何图形直接等同于定量物理量。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-24b5a09c96a2",
+        "evidence:auto-331da9eecd48",
+        "evidence:auto-a3515e4573aa",
+        "evidence:auto-cc627c99b34a"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T09:48:38+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "利用磁石制成的 “司南” 是世界上最早使用的指南针。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-1e97b1711d7a",
+      "locator": "line:10",
+      "modality": "text",
+      "normalized_claims": [
+        "利用磁石制成的 “司南” 是世界上最早使用的指南针。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/679274bb599c58123128fcb49b4b0b9e3363227dbcd3798d2f0d597620ad3f3d.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-2f6869caa44c",
+      "locator": "line:84",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/679274bb599c58123128fcb49b4b0b9e3363227dbcd3798d2f0d597620ad3f3d.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 790,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/679274bb599c58123128fcb49b4b0b9e3363227dbcd3798d2f0d597620ad3f3d.jpg",
+          "reason": "图片内容与后文紧密对应，后文第一句即为图注：'图11-7 中国科学院强磁场科学中心的“稳态强磁场实验装置（SHMFF）”'。该图片作为磁在科学研究领域应用的具体实例（器材/装置照片），辅助说明了强磁场装置的功能及其在材料科学、生物医学等领域的作用，属于 supporting 类型的证据。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个大型科学实验装置，主体是一个巨大的白色圆柱形容器，带有蓝色环带和标志，周围由灰色金属支架支撑，底部连接着管道。左侧有一个螺旋楼梯通向高处平台。",
+          "width": 1306
+        },
+        "path": "images/679274bb599c58123128fcb49b4b0b9e3363227dbcd3798d2f0d597620ad3f3d.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "地球周围存在一个大范围的磁场，宛如一个大的条形磁体。在地磁场的作用下，指南针会调整方向，使其取向顺着地磁场的磁感线，N极指向地磁南极；S极指向地磁北极。地磁南极在地理北极附近；地磁北极在地理南极附近。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-384ad7f6185b",
+      "locator": "line:43",
+      "modality": "text",
+      "normalized_claims": [
+        "地球周围存在一个大范围的磁场，宛如一个大的条形磁体。在地磁场的作用下，指南针会调整方向，使其取向顺着地磁场的磁感线，N极指向地磁南极；S极指向地磁北极。地磁南极在地理北极附近；地磁北极在地理南极附近。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "天然磁石主要成分是四氧化三铁。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-421d4fecb09a",
+      "locator": "line:16",
+      "modality": "text",
+      "normalized_claims": [
+        "天然磁石主要成分是四氧化三铁。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "大部分科学家认为，当地球内部液态铁质流围绕着地核中心旋转时，如果突然发生变化，其流动方向倒转，就会引发磁极倒转现象。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-488c13907b4c",
+      "locator": "line:59",
+      "modality": "text",
+      "normalized_claims": [
+        "大部分科学家认为，当地球内部液态铁质流围绕着地核中心旋转时，如果突然发生变化，其流动方向倒转，就会引发磁极倒转现象。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "到目前为止具有最强磁力的永久磁体是钕磁体，也称为钕铁硼磁体。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-4d8fedf83591",
+      "locator": "line:17",
+      "modality": "text",
+      "normalized_claims": [
+        "到目前为止具有最强磁力的永久磁体是钕磁体，也称为钕铁硼磁体。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "地磁两极与地理两极不完全重合，地磁轴和地球自转轴之间的夹角约为11°。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-64d2da18ec9f",
+      "locator": "line:44",
+      "modality": "text",
+      "normalized_claims": [
+        "地磁两极与地理两极不完全重合，地磁轴和地球自转轴之间的夹角约为11°。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "在条形磁体周围撒上的铁屑会呈现有规则的排列",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-97bd104f76f9",
+      "locator": "line:25",
+      "modality": "text",
+      "normalized_claims": [
+        "在条形磁体周围撒上的铁屑会呈现有规则的排列"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "磁感线是闭合曲线，磁体外部的磁感线是从 N 极出来，回到磁体的 S 极，内部是从 S 极到 N 极。任意两条磁感线不相交，两条磁感线之间的区域仍然有磁场。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a3515e4573aa",
+      "locator": "line:33",
+      "modality": "text",
+      "normalized_claims": [
+        "磁感线是闭合曲线，磁体外部的磁感线是从 N 极出来，回到磁体的 S 极，内部是从 S 极到 N 极。任意两条磁感线不相交，两条磁感线之间的区域仍然有磁场。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "我们将地球表面水平放置的指南针静止时N极所指的方向与地球北极方向之间的夹角称为磁偏角，地球表面不同地区磁偏角是不相同的。不仅如此，由于地球磁极的缓慢移动，磁偏角也在缓慢变化。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a60f591bec09",
+      "locator": "line:45",
+      "modality": "text",
+      "normalized_claims": [
+        "我们将地球表面水平放置的指南针静止时N极所指的方向与地球北极方向之间的夹角称为磁偏角，地球表面不同地区磁偏角是不相同的。不仅如此，由于地球磁极的缓慢移动，磁偏角也在缓慢变化。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/f1a3d6dd7220311d2f5b476699583d5e8f157e06eb1207e44bbc4cb9123f34f9.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ae02d27464a5",
+      "locator": "line:30",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/f1a3d6dd7220311d2f5b476699583d5e8f157e06eb1207e44bbc4cb9123f34f9.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 273,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/f1a3d6dd7220311d2f5b476699583d5e8f157e06eb1207e44bbc4cb9123f34f9.jpg",
+          "reason": "图片内容直接对应后文中的“图11-5 条形磁体外部的磁感线”。它直观地展示了磁感线从N极出发回到S极的分布规律，是解释磁场形象描述的核心模型图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个条形磁体，左端为S极（蓝色），右端为N极（红色）。磁体周围画有带箭头的闭合曲线（磁感线），箭头方向从N极指出，曲线弯曲回到S极，直观展示了条形磁体外部的磁场分布情况。",
+          "width": 381
+        },
+        "path": "images/f1a3d6dd7220311d2f5b476699583d5e8f157e06eb1207e44bbc4cb9123f34f9.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/a4a8f3924182e578a4f9a4da9da49747113976b664ee0921244fa8a40f26089b.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-bcf6aef3412f",
+      "locator": "line:35",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/a4a8f3924182e578a4f9a4da9da49747113976b664ee0921244fa8a40f26089b.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 59,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/a4a8f3924182e578a4f9a4da9da49747113976b664ee0921244fa8a40f26089b.jpg",
+          "reason": "图片是一个问号图标，与标题“如何形象地描述磁场？”中的疑问语气形成合理对应，起到引导读者思考或作为小结栏目标识的作用。虽然图片本身不包含具体的物理知识（如磁感线图），但它与上下文（标题）紧密相关，属于辅助说明材料。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片显示一个紫色的圆形图标，中间有一个白色的问号。",
+          "width": 62
+        },
+        "path": "images/a4a8f3924182e578a4f9a4da9da49747113976b664ee0921244fa8a40f26089b.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/c066df03e5cefdc27ddd985f2ade129a22c82eb923756c3ac6261e628a45bb82.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c10f4931772c",
+      "locator": "line:11",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/c066df03e5cefdc27ddd985f2ade129a22c82eb923756c3ac6261e628a45bb82.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 267,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/c066df03e5cefdc27ddd985f2ade129a22c82eb923756c3ac6261e628a45bb82.jpg",
+          "reason": "图片内容为一个银色圆柱形磁铁（典型的人造强磁体外观）。虽然图片位于介绍古代磁学历史（司南、指南针）之后，但在介绍“天然磁石”和“现代人造磁体”之前。后文明确提到了“现代工业上可以制造出各种各样的人造磁体...钕磁体”，这张图片作为磁体的实物照片，与上下文关于磁体形态、从古代磁石到现代人造磁体的发展讨论紧密相关。尽管它可能不是后文指明的图11-2（图11-2在后文另有指定），但它展示了磁体的典型样貌，起到了辅助说明磁体实物形态的作用。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个银色的圆柱形物体，中间有一个圆孔，放置在白色背景上。从外观和光泽判断，这很可能是一个现代工业制造的人造强磁体（如钕铁硼磁铁）。",
+          "width": 398
+        },
+        "path": "images/c066df03e5cefdc27ddd985f2ade129a22c82eb923756c3ac6261e628a45bb82.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/87a5cad0c7d7f18de0507096a786dcf9d4215449139ddbaf00910eddd633cc63.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c5e8d1e9ea51",
+      "locator": "line:41",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/87a5cad0c7d7f18de0507096a786dcf9d4215449139ddbaf00910eddd633cc63.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 426,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/87a5cad0c7d7f18de0507096a786dcf9d4215449139ddbaf00910eddd633cc63.jpg",
+          "reason": "该图片是教材上下文中明确引用的“图11-6”，且后文直接给出了图名“地理两极与地磁两极不重合”。图片内容直观地展示了地磁场的结构、地磁南北极与地理南北极的位置对应关系（地磁南极在地理北极附近等）以及地磁轴与地理轴的夹角，完美对应了前文中关于“地球周围存在一个大范围的磁场，宛如一个大的条形磁体”的描述，属于核心知识概念图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了地球的磁场分布模型。图中有一个蓝色的球体代表地球，内部有一个灰色的长方体代表地磁体，上端标为S，下端标为N。外部画有粉色的磁感线，呈闭合曲线分布。图片标注了“地理北极”（上方）、“地理南极”（下方），以及“磁南极”（靠近地理北极）、“磁北极”（靠近地理南极）。同时用虚线标示出地轴和磁轴，显示两者之间存在夹角，不重合。",
+          "width": 404
+        },
+        "path": "images/87a5cad0c7d7f18de0507096a786dcf9d4215449139ddbaf00910eddd633cc63.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "磁场是物质的一种形态，但这类物质形态并不能像实物一样为人类的感官直接觉察。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-cc627c99b34a",
+      "locator": "line:3",
+      "modality": "text",
+      "normalized_claims": [
+        "磁场是物质的一种形态，但这类物质形态并不能像实物一样为人类的感官直接觉察。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "磁场的强弱和方向可以形象地用磁感线来描述：磁感线的疏密程度表示磁场的强弱，磁感线越密集的地方磁场就越强；磁感线的切线方向表示该点的磁场方向，即放在该处小磁针静止时的N极所指的方向。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-d12a2be767fe",
+      "locator": "line:24",
+      "modality": "text",
+      "normalized_claims": [
+        "磁场的强弱和方向可以形象地用磁感线来描述：磁感线的疏密程度表示磁场的强弱，磁感线越密集的地方磁场就越强；磁感线的切线方向表示该点的磁场方向，即放在该处小磁针静止时的N极所指的方向。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "基于磁场的核磁共振技术成像（图 11-3）及磁疗技术也广泛用于医学临床。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-d1c9e39776f6",
+      "locator": "line:20",
+      "modality": "text",
+      "normalized_claims": [
+        "基于磁场的核磁共振技术成像（图 11-3）及磁疗技术也广泛用于医学临床。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/7c4ace974edfdd8cb46a704aa8006e508d63adfa95a01eeb9161c3d0612aa1d5.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-db7892508788",
+      "locator": "line:18",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/7c4ace974edfdd8cb46a704aa8006e508d63adfa95a01eeb9161c3d0612aa1d5.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 273,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/7c4ace974edfdd8cb46a704aa8006e508d63adfa95a01eeb9161c3d0612aa1d5.jpg",
+          "reason": "图片内容清晰地展示了核磁共振（MRI）扫描的过程和设备，与上下文前文提到的“基于磁场的核磁共振技术成像（图 11-3）”以及后文紧接着的标题“图11-3 核磁共振断层成像仪”完全对应。虽然这是教材中的正式插图，但作为展示具体医疗器材和应用场景的照片，主要起辅助说明磁现象在医学领域应用的作用，符合规则中对于“照片、器材、场景”归类为supporting的描述。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个医疗检查场景，一名患者躺在检查床上，身体部分进入一个大型圆筒状的医疗设备（核磁共振扫描仪）中，旁边有一位身穿白大褂的医护人员正在操作或监护。",
+          "width": 395
+        },
+        "path": "images/7c4ace974edfdd8cb46a704aa8006e508d63adfa95a01eeb9161c3d0612aa1d5.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "在人类生活中处处可遇到磁场。随着科学技术的发展，磁技术已经渗透到了我们的日常生活和工农业生产技术的各个方面。磁浮列车（图 11-1）就是一种现代高科技轨道交通工具。世界上第一条商业运营的磁浮列车线路在上海浦东新区运行，其列车的最高速度达 $430 \\mathrm{~km} / \\mathrm{h}$ 。磁场是物质的一种形态，但这类物质形态并不能像实物一样为人类的感官直接觉察。历史上人类对磁场的研究是从磁铁的磁性及其相互作用开始的，我国古代对磁现象的研究成果丰硕，对人类文明影响深远。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-df40c5705120",
+      "locator": "line:3",
+      "modality": "equation",
+      "normalized_claims": [
+        "在人类生活中处处可遇到磁场。随着科学技术的发展，磁技术已经渗透到了我们的日常生活和工农业生产技术的各个方面。磁浮列车（图 11-1）就是一种现代高科技轨道交通工具。世界上第一条商业运营的磁浮列车线路在上海浦东新区运行，其列车的最高速度达 $"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "科学家发现地球磁场的方向并不是恒定不变的，它的南北磁极曾经对换过位置，这就是“磁极倒转”现象。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e7c9dd16d153",
+      "locator": "line:53",
+      "modality": "text",
+      "normalized_claims": [
+        "科学家发现地球磁场的方向并不是恒定不变的，它的南北磁极曾经对换过位置，这就是“磁极倒转”现象。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "磁浮列车（图 11-1）就是一种现代高科技轨道交通工具。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ea640cd87c9b",
+      "locator": "line:4",
+      "modality": "text",
+      "normalized_claims": [
+        "磁浮列车（图 11-1）就是一种现代高科技轨道交通工具。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/2f2701437f64e10eede0a06d3098eaa97d491c2c845209c911e23fbcb441cf05.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-eee20a1dcd7e",
+      "locator": "line:27",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/2f2701437f64e10eede0a06d3098eaa97d491c2c845209c911e23fbcb441cf05.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 240,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/2f2701437f64e10eede0a06d3098eaa97d491c2c845209c911e23fbcb441cf05.jpg",
+          "reason": "图片内容与教材上下文高度对应。前文明确提到“在条形磁体周围撒上的铁屑会呈现有规则的排列（图11-4）”，后文紧接着标注“图11-4 条形磁体周围铁屑分布情况”，且图片ID与上下文中的图11-4对应。这张图片展示了磁体周围铁屑排列的实验现象，作为辅助说明材料，用于直观呈现磁场分布，从而引出后文关于磁感线这一形象描述工具的定义。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片显示一个长条形磁铁（一端红色，一端蓝色）放置在撒满黑色铁屑的表面上。铁屑在磁铁周围形成了有规律的曲线排列，显示出磁场分布的形态。",
+          "width": 392
+        },
+        "path": "images/2f2701437f64e10eede0a06d3098eaa97d491c2c845209c911e23fbcb441cf05.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "将磁传感器（收集所在位置磁场的磁感应强度数据）与计算机相连接。... 合上开关，记录磁传感器探测管的前端插入螺线管内部的距离 d 与相应磁感应强度 B 的测量值，绘制 B-d 曲线。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-1a867717b8fb",
+      "locator": "line:60",
+      "modality": "text",
+      "normalized_claims": [
+        "将磁传感器（收集所在位置磁场的磁感应强度数据）与计算机相连接。... 合上开关，记录磁传感器探测管的前端插入螺线管内部的距离 d 与相应磁感应强度 B 的测量值，绘制 B-d 曲线。"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "实验表明通电直导线周围磁场的磁感线是一些和导线垂直的平面上以导线为圆心的同心圆；靠近导线处的磁感线较密，磁场较强，离开导线越远磁感线越疏，磁场越弱。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-2ded9b1b80d6",
+      "locator": "line:17",
+      "modality": "text",
+      "normalized_claims": [
+        "实验表明通电直导线周围磁场的磁感线是一些和导线垂直的平面上以导线为圆心的同心圆；靠近导线处的磁感线较密，磁场较强，离开导线越远磁感线越疏，磁场越弱。"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/3131299860f9e7c5493afe54252b35c5ac1000055f67e45f29d8895a7a32412c.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-30277d0d9495",
+      "locator": "line:120",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/3131299860f9e7c5493afe54252b35c5ac1000055f67e45f29d8895a7a32412c.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 398,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/3131299860f9e7c5493afe54252b35c5ac1000055f67e45f29d8895a7a32412c.jpg",
+          "reason": "图片内容与前文提到的“如图11-15所示的半自动式智能通道闸”完全对应，且后文紧接着出现了图注“图11-15 电磁铁控制的智能通道闸”。该图片属于STSE（科学·技术·社会·环境）栏目下的实物照片，用于辅助说明电磁铁在实际生活（门禁系统）中的应用，符合保留为supporting的标准。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个不锈钢材质的三杆转闸（智能通道闸），这是常见的门禁控制设备。",
+          "width": 295
+        },
+        "path": "images/3131299860f9e7c5493afe54252b35c5ac1000055f67e45f29d8895a7a32412c.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "假定我们将长度 $\\Delta l$ 足够短的电流元 $I\\Delta l$ 放在磁场中的任意点 P，如果电流元受到的最大磁场力为 F，则我们可以用 F 与 $I\\Delta l$ 之比来定义 P 点描述磁场大小和方向的物理量——磁感应强度（magnetic induction）",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-331da9eecd48",
+      "locator": "line:44",
+      "modality": "text",
+      "normalized_claims": [
+        "假定我们将长度 $\\Delta l$ 足够短的电流元 $I\\Delta l$ 放在磁场中的任意点 P，如果电流元受到的最大磁场力为 F，则我们可以用 F 与 $I\\Delta l$ 之比来定义 P 点描述磁场大小和方向的物理量——磁感应强度"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "通常，我们用 “⊗” 和 “⊙” 分别表示通电导线中垂直于纸面向内和垂直于纸面向外的电流方向。用 “×” 和 “•” 分别表示垂直于纸面向内和垂直于纸面向外的磁场方向。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-3a762ebaf5e3",
+      "locator": "line:22",
+      "modality": "text",
+      "normalized_claims": [
+        "通常，我们用 “⊗” 和 “⊙” 分别表示通电导线中垂直于纸面向内和垂直于纸面向外的电流方向。用 “×” 和 “•” 分别表示垂直于纸面向内和垂直于纸面向外的磁场方向。"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "安培观察到通电螺线管的磁场和条形磁体的磁场很相似，提出了分子电流假说。安培认为在分子等物质微粒的内部，存在着一种环形电流——分子电流，使每个分子成为微小的磁体... 当外界磁场作用后，分子电流的取向大致相同... 所有分子电流的总效果显示出宏观的磁性。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-3bded7370379",
+      "locator": "line:33",
+      "modality": "text",
+      "normalized_claims": [
+        "安培观察到通电螺线管的磁场和条形磁体的磁场很相似，提出了分子电流假说。安培认为在分子等物质微粒的内部，存在着一种环形电流——分子电流，使每个分子成为微小的磁体... 当外界磁场作用后，分子电流的取向大致相同... 所有分子电流的总效果显示出"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "大量的实验都表明，通电直导线中电流方向与其周围磁场的方向满足右手螺旋定则：用右手握住通电直导线，让大拇指指向电流的方向，四指的指向就是磁感线的环绕方向，如图11-8（b）所示。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-3c71cdbbccf9",
+      "locator": "line:20",
+      "modality": "text",
+      "normalized_claims": [
+        "大量的实验都表明，通电直导线中电流方向与其周围磁场的方向满足右手螺旋定则：用右手握住通电直导线，让大拇指指向电流的方向，四指的指向就是磁感线的环绕方向，如图11-8（b）所示。"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "<table><tr><td>地点</td><td>磁感应强度</td></tr><tr><td>中子星表面</td><td> $10^{8}$  T</td></tr><tr><td>钕磁体附近</td><td> $10^{0}$  T</td></tr><tr><td>小条形磁体附近</td><td> $10^{-2}$  T</td></tr><tr><td>地球表面</td><td> $10^{-5}$  T</td></tr><tr><td>星际空间</td><td> $10^{-10}$  T</td></tr><tr><td>磁屏蔽室内</td><td> $10^{-14}$  T</td></tr></table>",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-3e66aa65cfc1",
+      "locator": "line:51",
+      "modality": "table",
+      "normalized_claims": [
+        "<table><tr><td>地点</td><td>磁感应强度</td></tr><tr><td>中子星表面</td><td> $10^{8}$  T</td></tr><tr><td>钕磁体附近</td><td> $10^{0}$  T<"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "与定义电场强度类似，假定我们将长度 $\\Delta l$ 足够短的电流元 $I\\Delta l$ 放在磁场中的任意点 P，如果电流元受到的最大磁场力为 F，则我们可以用 F 与 $I\\Delta l$ 之比来定义 P 点描述磁场大小和方向的物理量——磁感应强度（magnetic induction）",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-4788b672d8d0",
+      "locator": "line:71",
+      "modality": "equation",
+      "normalized_claims": [
+        "与定义电场强度类似，假定我们将长度 $\\Delta l$ 足够短的电流元 $I\\Delta l$ 放在磁场中的任意点 P，如果电流元受到的最大磁场力为 F，则我们可以用 F 与 $I\\Delta l$ 之比来定义 P 点描述磁场大小和方向的"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/12aac451bc9c9ba659df065026b845af58f1e0ef4b74321d5091be0f924af31e.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-489f5c5c2d38",
+      "locator": "line:35",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/12aac451bc9c9ba659df065026b845af58f1e0ef4b74321d5091be0f924af31e.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 156,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/12aac451bc9c9ba659df065026b845af58f1e0ef4b74321d5091be0f924af31e.jpg",
+          "reason": "该图片对应教材中的图11-9(b)。前文明确描述了图11-9(b)的内容为“通电直导线所在平面上的磁场分布”，且解释了越靠近导线磁场越强。图片内容（电流向上，左侧向外、右侧向里的磁场）完全符合安培定则（右手螺旋定则）对直线电流磁场的描述，是本章讲解磁场方向判断的核心图示。后文的“(b)”标签也直接指代此图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一根竖直放置的导线，标有向上的电流方向箭头和字母I。导线左侧有两列粉色圆点（•），表示磁场方向垂直纸面向外；导线右侧有两列粉色叉号（×），表示磁场方向垂直纸面向里。",
+          "width": 145
+        },
+        "path": "images/12aac451bc9c9ba659df065026b845af58f1e0ef4b74321d5091be0f924af31e.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "磁场强弱和方向处处相同的磁场称为匀强磁场。匀强磁场的磁感线是一系列疏密间隔相同的、同方向的平行直线。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-5ac7a44e9ea8",
+      "locator": "line:65",
+      "modality": "text",
+      "normalized_claims": [
+        "磁场强弱和方向处处相同的磁场称为匀强磁场。匀强磁场的磁感线是一系列疏密间隔相同的、同方向的平行直线。"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "电磁铁是通电产生磁性的一种装置，其结构为在铁芯的外部缠绕通电线圈。... 一般而言，电磁铁所产生的磁场与电流大小、线圈匝数及铁芯都有关。... 往往采用消磁较快的软铁或硅钢材料来制作电磁铁。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-755aefd3d6c7",
+      "locator": "line:70",
+      "modality": "text",
+      "normalized_claims": [
+        "电磁铁是通电产生磁性的一种装置，其结构为在铁芯的外部缠绕通电线圈。... 一般而言，电磁铁所产生的磁场与电流大小、线圈匝数及铁芯都有关。... 往往采用消磁较快的软铁或硅钢材料来制作电磁铁。"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/68410edd96829ffa13c8d3ffebd155e619ebee8d02a284822f991515589000c9.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-7560ec41b00f",
+      "locator": "line:59",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/68410edd96829ffa13c8d3ffebd155e619ebee8d02a284822f991515589000c9.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 204,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/68410edd96829ffa13c8d3ffebd155e619ebee8d02a284822f991515589000c9.jpg",
+          "reason": "图片对应教材中的图11-11(b)。前文明确提到“当外界磁场作用后，分子电流的取向大致相同，如图11-11（b）所示”，后文紧接着标注“(b)”和“图11-11 分子电流假说示意图”。该图片直接展示了安培分子电流假说中磁化后的微观模型，解释了宏观磁性的来源，属于核心概念图示。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个圆柱体（代表磁体或通电螺线管截面），内部排列着多行环形电流符号（圆圈加箭头）。大部分电流的方向是一致的（主要呈顺时针方向），只有极少数电流方向相反或杂乱，直观地表现了分子电流取向大致相同的状态。",
+          "width": 434
+        },
+        "path": "images/68410edd96829ffa13c8d3ffebd155e619ebee8d02a284822f991515589000c9.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/48eb04f8ee720b87e0ad2f352fd3390715d4bb95078cf4b179e1c157ffb01dba.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-7d1c0f69dc37",
+      "locator": "line:109",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/48eb04f8ee720b87e0ad2f352fd3390715d4bb95078cf4b179e1c157ffb01dba.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 5,
+          "height": 215,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/48eb04f8ee720b87e0ad2f352fd3390715d4bb95078cf4b179e1c157ffb01dba.jpg",
+          "reason": "该图片是教材中的图11-14，直接对应后文标题“图11-14 蹄形磁体两磁极间的磁场”。前文明确提到“较大的蹄形磁体两磁极间的磁场...都可以近似看作匀强磁场”，并引用了该图作为铁屑显示磁场分布和磁感线的示例。图片通过实验照片和理论模型相结合的方式，直观地展示了匀强磁场的特征，属于核心教学内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片包含两部分内容：左侧是一张黑白照片，展示了一个蹄形磁铁周围撒满铁屑的场景，铁屑在磁极附近排列密集，在两极之间排列较为平行；右侧是一张彩色的磁感线示意图，对应左侧的蹄形磁铁（上红N下蓝S），展示了磁感线从N极出发回到S极的分布，特别是在两极中间区域，磁感线是平行的直线。",
+          "width": 581
+        },
+        "path": "images/48eb04f8ee720b87e0ad2f352fd3390715d4bb95078cf4b179e1c157ffb01dba.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/c0a1e92cc88fab64c57a4149c0935f3f92c22723a982dc62f50055bfbe6f623b.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-834b0a1ba1a3",
+      "locator": "line:129",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/c0a1e92cc88fab64c57a4149c0935f3f92c22723a982dc62f50055bfbe6f623b.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 298,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/c0a1e92cc88fab64c57a4149c0935f3f92c22723a982dc62f50055bfbe6f623b.jpg",
+          "reason": "图片内容与教材上下文高度相关。前文问题2明确提出“指出图11-16中导线接通电流后小磁针的偏转情况”，且前文问题1也讨论了奥斯特实验。图片展示的正是通电直导线下方小磁针的模型，结合后文出现的“图11-16”标签，可判定该图片即为习题所需的图11-16（或其一部分），作为思考题的配图供学生分析。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个物理实验示意图：一条水平直线代表导线，上方标有电流方向箭头及符号I；导线正下方有一个小磁针，标有S极（蓝色）和N极（红色），磁针静止时N极指向右侧。这是典型的奥斯特实验装置图。",
+          "width": 318
+        },
+        "path": "images/c0a1e92cc88fab64c57a4149c0935f3f92c22723a982dc62f50055bfbe6f623b.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "让一根粗直导线竖直穿过一块均匀撒有铁屑的水平纸板中央。接上直流电源后，轻轻敲击纸板就可以清楚显示出通电导线周围铁屑的分布情况。我们可以发现，当导线中通过电流时，纸板上的铁屑将环绕着这根导线形成一个个同心圆",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-85330c143549",
+      "locator": "line:9",
+      "modality": "text",
+      "normalized_claims": [
+        "让一根粗直导线竖直穿过一块均匀撒有铁屑的水平纸板中央。接上直流电源后，轻轻敲击纸板就可以清楚显示出通电导线周围铁屑的分布情况。我们可以发现，当导线中通过电流时，纸板上的铁屑将环绕着这根导线形成一个个同心圆"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nB = \\frac {F}{I \\Delta l}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-85b11ea13c45",
+      "locator": "line:75",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nB = \\frac {F}{I \\Delta l}\n$$"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "将螺线管串接 $10\\Omega$ 电阻和开关后接入3节 $1.5\\mathrm{V}$ 干电池组成的电源，如图11-12(a)所示。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-85e73accbaa2",
+      "locator": "line:87",
+      "modality": "equation",
+      "normalized_claims": [
+        "将螺线管串接 $10\\Omega$ 电阻和开关后接入3节 $1.5\\mathrm{V}$ 干电池组成的电源，如图11-12(a)所示。"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "直到19世纪20年代，丹麦著名物理学家奥斯特发现了电流的磁效应后才开启了电磁学研究的新纪元。... 通电导线在周围空间产生的磁场也会对其中的磁体产生磁场力的作用；反之，通电导线在磁场中也会受到磁场力的作用。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a15b627686d4",
+      "locator": "line:3",
+      "modality": "text",
+      "normalized_claims": [
+        "直到19世纪20年代，丹麦著名物理学家奥斯特发现了电流的磁效应后才开启了电磁学研究的新纪元。... 通电导线在周围空间产生的磁场也会对其中的磁体产生磁场力的作用；反之，通电导线在磁场中也会受到磁场力的作用。"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "磁感应强度的单位是特斯拉，简称特，符号为 T。磁感应强度是矢量，在某一点磁感应强度的方向就是放在该点可以在任意方向自由转动的小磁针 N 极的指向，也是磁感线在该点的切线方向。磁场中某处磁感应强度的大小和方向是磁场本身的性质，与其中是否存在电流元及电流的大小无关。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a7020327d7f8",
+      "locator": "line:49",
+      "modality": "text",
+      "normalized_claims": [
+        "磁感应强度的单位是特斯拉，简称特，符号为 T。磁感应强度是矢量，在某一点磁感应强度的方向就是放在该点可以在任意方向自由转动的小磁针 N 极的指向，也是磁感线在该点的切线方向。磁场中某处磁感应强度的大小和方向是磁场本身的性质，与其中是否存在电"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/1805ba818320f97bcda0aecae2a119ea26efe361201cd695c6f7ea88904bd2da.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b15b7aeb96a6",
+      "locator": "line:106",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/1805ba818320f97bcda0aecae2a119ea26efe361201cd695c6f7ea88904bd2da.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 204,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/1805ba818320f97bcda0aecae2a119ea26efe361201cd695c6f7ea88904bd2da.jpg",
+          "reason": "图片直接展示了“两个平行异名磁极间的磁场”分布（左侧为铁屑实验现象，右侧为磁感线模型），这与前文中提到的“靠得很近的两个平行异名磁极之间中央部分的磁场...都可以近似看作匀强磁场”以及“如图 11-13...所示”完全对应。同时，后文明确标注了“图11-13 两个平行异名磁极间的磁场”，说明此图即为图11-13，是解释匀强磁场实例的核心图示。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片包含左右两部分。左侧是一张黑白照片，显示了铁屑在磁场中的分布，呈现出两个磁极之间排列整齐的平行纹理。右侧是一个示意图，展示了两个平行放置的磁极（左红标N，右蓝标S）之间平行的磁感线，箭头从左指向右。",
+          "width": 665
+        },
+        "path": "images/1805ba818320f97bcda0aecae2a119ea26efe361201cd695c6f7ea88904bd2da.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$B = \\frac {F}{I \\Delta l}$$",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-b17545af6c83",
+      "locator": "line:48",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$B = \\frac {F}{I \\Delta l}$$"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/f5f7207921301cc18546e0ebe95a85de201bb45a8f7943907a87f82648ccc9b3.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b300f5d611fc",
+      "locator": "line:32",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/f5f7207921301cc18546e0ebe95a85de201bb45a8f7943907a87f82648ccc9b3.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 173,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/f5f7207921301cc18546e0ebe95a85de201bb45a8f7943907a87f82648ccc9b3.jpg",
+          "reason": "图片内容与前文描述完全对应。前文提到“如图 11-9（a）所示为通电直导线附近磁场的俯视图，中间导线中的电流方向垂直于纸面向外；载流直导线垂直平面上磁场呈同心圆状的分布”，当前图片正是展示了这一物理模型（电流向外，磁感线为逆时针同心圆），是解释通电直导线磁场方向的核心插图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了通电直导线周围的磁感线分布俯视图。中心有一个圆点符号（表示电流垂直纸面向外），周围环绕着呈逆时针方向的同心圆磁感线。",
+          "width": 167
+        },
+        "path": "images/f5f7207921301cc18546e0ebe95a85de201bb45a8f7943907a87f82648ccc9b3.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "<table><tr><td>地点</td><td>磁感应强度</td></tr><tr><td>中子星表面</td><td> $10^{8}$  T</td></tr><tr><td>钕磁体附近</td><td> $10^{0}$  T</td></tr><tr><td>小条形磁体附近</td><td> $10^{-2}$  T</td></tr><tr><td>地球表面</td><td> $10^{-5}$  T</td></tr><tr><td>星际空间</td><td> $10^{-10}$  T</td></tr><tr><td>磁屏蔽室内</td><td> $10^{-14}$  T</td></tr></table>",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b76503e15de2",
+      "locator": "line:83",
+      "modality": "equation",
+      "normalized_claims": [
+        "<table><tr><td>地点</td><td>磁感应强度</td></tr><tr><td>中子星表面</td><td> $10^{8}$  T</td></tr><tr><td>钕磁体附近</td><td> $10^{0}$  T<"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/91d8f4734cec18c70bcc7409655083a0a274a2b54908cd308d5c66e7bf72b795.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-be99c2ac2345",
+      "locator": "line:56",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/91d8f4734cec18c70bcc7409655083a0a274a2b54908cd308d5c66e7bf72b795.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 207,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/91d8f4734cec18c70bcc7409655083a0a274a2b54908cd308d5c66e7bf72b795.jpg",
+          "reason": "该图片是安培分子电流假说的核心示意图。前文明确提到'通常情况下磁体分子的分子电流取向是杂乱无章的，如图11-11（a）所示'，而这张图片正是展示了这种'杂乱无章'的状态，直观地解释了为什么在未被磁化时，物质内部的磁场互相抵消，对外不显磁性。它是理解磁现象微观本质的关键证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个半透明的圆柱体（代表一段物质），其内部充满了许多方向杂乱无章的环形箭头。这些箭头模拟了微观层面的环形电流（分子电流），它们有的顺时针，有的逆时针，有的向上，有的向下，彼此取向不一致。",
+          "width": 434
+        },
+        "path": "images/91d8f4734cec18c70bcc7409655083a0a274a2b54908cd308d5c66e7bf72b795.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "可以用右手螺旋定则来判断通电螺线管环绕的电流方向与螺线管内部磁场方向之间的关系，如图11-10（a）所示。... 环形电流内部磁场方向也可以用右手螺旋定则来判断。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-c2c8aeff1d0c",
+      "locator": "line:28",
+      "modality": "text",
+      "normalized_claims": [
+        "可以用右手螺旋定则来判断通电螺线管环绕的电流方向与螺线管内部磁场方向之间的关系，如图11-10（a）所示。... 环形电流内部磁场方向也可以用右手螺旋定则来判断。"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "通电密绕直螺线管内部的磁场，靠得很近的两个平行异名磁极之间中央部分的磁场，或者较大的蹄形磁体两磁极间的磁场，都可以近似看作匀强磁场",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-c7bfea00d7cb",
+      "locator": "line:65",
+      "modality": "text",
+      "normalized_claims": [
+        "通电密绕直螺线管内部的磁场，靠得很近的两个平行异名磁极之间中央部分的磁场，或者较大的蹄形磁体两磁极间的磁场，都可以近似看作匀强磁场"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/b0c55514b64f81dbbf3e2497f5ec73110cf28dd0bc992fc1b4ac915debaaf938.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ceae482daa09",
+      "locator": "line:18",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/b0c55514b64f81dbbf3e2497f5ec73110cf28dd0bc992fc1b4ac915debaaf938.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 323,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/b0c55514b64f81dbbf3e2497f5ec73110cf28dd0bc992fc1b4ac915debaaf938.jpg",
+          "reason": "图片内容直接响应了标题“通电直导线周围的磁场方向如何判断？”。它直观地展示了通电直导线周围磁感线呈同心圆分布的特征，小磁针的指向，以及利用右手螺旋定则（安培定则）判断磁场方向的核心方法。这是该知识点最核心的图解。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了通电直导线周围磁场分布及判断方法的示意图。图中有一根竖直导线，标有向上的电流I。导线穿过水平纸板，纸板上画有以导线为圆心的同心圆（磁感线）以及几个小磁针指示磁场方向。图下方有一只手握住导线，演示右手螺旋定则（安培定则）：大拇指指向电流方向，四指弯曲方向与磁感线方向一致。",
+          "width": 301
+        },
+        "path": "images/b0c55514b64f81dbbf3e2497f5ec73110cf28dd0bc992fc1b4ac915debaaf938.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/216808903b0e0fd99332e2e7cd13bb44361573caf3736b4fbb7773b1482c4e86.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-d4524d4daeed",
+      "locator": "line:15",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/216808903b0e0fd99332e2e7cd13bb44361573caf3736b4fbb7773b1482c4e86.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 362,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/216808903b0e0fd99332e2e7cd13bb44361573caf3736b4fbb7773b1482c4e86.jpg",
+          "reason": "图片内容与前文描述的'通电导线周围铁屑的分布情况...形成一个个同心圆'完全一致，且后文明确标注为'图11-8 (a)'，是展示载流直导线磁场分布的核心实验插图，直接对应教材中关于通电直导线周围磁场的知识点。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了通电直导线周围铁屑的分布情况。一根黑色导线竖直穿过中心，周围的铁屑排列成以导线为圆心的同心圆图案，直观地显示了磁场的分布形态。",
+          "width": 362
+        },
+        "path": "images/216808903b0e0fd99332e2e7cd13bb44361573caf3736b4fbb7773b1482c4e86.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/5d5f439b27aee4a2b0b8f250cc6b9a94fd842e31d602017b9a5d24fa90cb3d2c.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-d6d249fb5c55",
+      "locator": "line:46",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/5d5f439b27aee4a2b0b8f250cc6b9a94fd842e31d602017b9a5d24fa90cb3d2c.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 285,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/5d5f439b27aee4a2b0b8f250cc6b9a94fd842e31d602017b9a5d24fa90cb3d2c.jpg",
+          "reason": "前文提到'如果螺线管很长，而且绕得很密，其内部的磁感线就近似为平行于螺线管轴线的、同方向、间隔均匀的直线，如图11-10（b）所示'，紧接着就是这张图片，且后文标注了'(b)'，说明此图即为图11-10的(b)部分。图片直接展示了通电螺线管的磁感线模型，特别是内部磁场近似平行直线的核心物理概念，与上下文高度对应。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个通电螺线管的磁场分布示意图。螺线管线圈绕在圆柱体上，标有电流方向I（左侧流入，右侧流出）。螺线管内部画有平行且间隔均匀的直线磁感线，外部画有从左侧N极出发回到右侧S极的闭合曲线磁感线。",
+          "width": 459
+        },
+        "path": "images/5d5f439b27aee4a2b0b8f250cc6b9a94fd842e31d602017b9a5d24fa90cb3d2c.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/fc76c47ff8f20eef37e8f8840c089d03b7fbead77cffc45a486f83a9b09c2689.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-eee697c5b6a1",
+      "locator": "line:96",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/fc76c47ff8f20eef37e8f8840c089d03b7fbead77cffc45a486f83a9b09c2689.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 167,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/fc76c47ff8f20eef37e8f8840c089d03b7fbead77cffc45a486f83a9b09c2689.jpg",
+          "reason": "图片是教材图11-12的(b)部分。前文明确提到“调节磁传感器的高度，使探测管正好处在螺线管的轴线上，如图 11-12（b）所示”，后文紧接着出现了“(b)”以及图注“图11-12 用磁传感器研究通电螺线管内部的磁感应强度”。图片内容与上下文紧密对应，展示了实验器材（螺线管、磁传感器）的具体摆放位置和连接状态，属于辅助说明实验步骤的场景/器材图。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个物理实验装置的特写。左侧是一个水平放置的通电螺线管（铜线圈绕在圆柱体上，连接着红色电池），右侧是一个深蓝色的磁传感器设备。两者之间有一根细长的金属探测管，水平指向螺线管的中心轴线。图片上方标注了文字“探测管”和“磁传感器”。",
+          "width": 479
+        },
+        "path": "images/fc76c47ff8f20eef37e8f8840c089d03b7fbead77cffc45a486f83a9b09c2689.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/2e5b9f7c97e30b125fbf930c194066d8b7370b38e55c72c17fb175f520450f1d.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f78d0f499a08",
+      "locator": "line:93",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/2e5b9f7c97e30b125fbf930c194066d8b7370b38e55c72c17fb175f520450f1d.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 254,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/2e5b9f7c97e30b125fbf930c194066d8b7370b38e55c72c17fb175f520450f1d.jpg",
+          "reason": "图片是实验电路图，展示了螺线管、电阻、开关和电源的串联连接方式。这与前文描述的“将螺线管串接 10Ω 电阻和开关后接入...电源，如图11-12(a)所示”完全对应。它是图11-12“用磁传感器研究通电螺线管内部的磁感应强度”实验的一部分（部分a），主要起辅助说明实验电路结构的作用，且相关连接细节在前文中已有文字描述。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个简单的串联电路图。电路包含一个直流电源（电池符号）、一个断开的开关、一个标有“10 Ω”的电阻以及一个螺线管（线圈符号）。图片下方标记为“(a)”。",
+          "width": 301
+        },
+        "path": "images/2e5b9f7c97e30b125fbf930c194066d8b7370b38e55c72c17fb175f520450f1d.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/f8441040ff249a410828160c3c34af8d6dae5c04c9941981c93ccd9d0f51327c.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ffad318a7ab5",
+      "locator": "line:43",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/f8441040ff249a410828160c3c34af8d6dae5c04c9941981c93ccd9d0f51327c.jpg)"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 301,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/f8441040ff249a410828160c3c34af8d6dae5c04c9941981c93ccd9d0f51327c.jpg",
+          "reason": "前文明确提到“可以用右手螺旋定则来判断通电螺线管环绕的电流方向与螺线管内部磁场方向之间的关系，如图11-10（a）所示”，而该图片正是右手握住螺线管的示意图，完美对应了前文描述的定则。后文紧接着出现了“(a)”和“图11-10 通电螺线管的磁感线”，进一步证实了该图即为教材中的图11-10(a)，是解释通电螺线管磁场分布和判断磁极的核心图示。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一只右手握住通电螺线管，四指弯曲方向与导线上的电流方向（I）一致，大拇指指向螺线管左侧并标注为N极，右侧标注为S极。螺线管周围画有粉红色的闭合曲线（磁感线），箭头指示磁场方向。这是右手螺旋定则（安培定则）在通电螺线管上的应用示意图。",
+          "width": 459
+        },
+        "path": "images/f8441040ff249a410828160c3c34af8d6dae5c04c9941981c93ccd9d0f51327c.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 11-21 所示，面积为 S 的平面与匀强磁场方向不垂直。若平面的法线方向与磁场方向的夹角为 $\\theta$ ，则该平面在垂直于磁场方向上的投影面积",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-0082441ad35b",
+      "locator": "line:32",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图 11-21 所示，面积为 S 的平面与匀强磁场方向不垂直。若平面的法线方向与磁场方向的夹角为 $\\theta$ ，则该平面在垂直于磁场方向上的投影面积"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n1 \\mathrm{Wb} = 1 \\mathrm{T} \\cdot \\mathrm{m} ^ {2}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-10b1cd9c87dd",
+      "locator": "line:26",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n1 \\mathrm{Wb} = 1 \\mathrm{T} \\cdot \\mathrm{m} ^ {2}\n$$"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 $m^{2}$ ，则",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-11b165389051",
+      "locator": "line:22",
+      "modality": "equation",
+      "normalized_claims": [
+        "在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 $m^{2}$ ，则"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/77e5e786c4f625b489ea1182607d7fc494842e4206fa760196931b89cce2a77e.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-1891a8ea3844",
+      "locator": "line:38",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/77e5e786c4f625b489ea1182607d7fc494842e4206fa760196931b89cce2a77e.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 203,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/77e5e786c4f625b489ea1182607d7fc494842e4206fa760196931b89cce2a77e.jpg",
+          "reason": "该图片是教材中的'图11-21'，与前文'如图 11-21 所示...'及后文'图11-21 平面与磁场方向不垂直...'完全对应。图片直观地表达了磁通量计算的核心几何概念：当平面不垂直于磁场时，有效面积是其在垂直磁场方向上的投影面积S'。这是推导公式 Φ = B S cosθ 的关键视觉证据，属于直接表达物理概念和结构的图片。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个物理示意图：匀强磁场B（粉色箭头水平向右）穿过一个倾斜的平面S（蓝色区域）。图中用虚线勾勒出了平面S在垂直于磁场方向上的投影区域S'（灰色），并标注了平面法线（虚线）与磁场方向（水平虚线）之间的夹角θ。",
+          "width": 328
+        },
+        "path": "images/77e5e786c4f625b489ea1182607d7fc494842e4206fa760196931b89cce2a77e.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/30bda14b317fe452c1347ed97f532356444109e460b48657b9f2d97e199e68b9.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-1cf383ef0434",
+      "locator": "line:63",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/30bda14b317fe452c1347ed97f532356444109e460b48657b9f2d97e199e68b9.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 56,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/30bda14b317fe452c1347ed97f532356444109e460b48657b9f2d97e199e68b9.jpg",
+          "reason": "该图片是一个问号图标，在教材中通常作为'思考'或'问题'栏目的引导符号。它与后文'除了上述法拉第的实验外，还有什么办法可以产生感应电流？'形成了合理的对应关系，起到了引出探究问题和提示读者注意的作用。虽然图片本身不包含具体的物理知识，但作为辅助说明上下文结构的图标，符合保留为 supporting 的条件。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片显示一个紫色的圆形图标，中间包含一个白色的问号。",
+          "width": 62
+        },
+        "path": "images/30bda14b317fe452c1347ed97f532356444109e460b48657b9f2d97e199e68b9.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "设在磁感应强度为 B 的匀强磁场中，有一个面积为 S 且与磁场方向垂直的平面，磁感应强度 B 与面积 S 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 Φ 表示，即",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-24b5a09c96a2",
+      "locator": "line:9",
+      "modality": "text",
+      "normalized_claims": [
+        "设在磁感应强度为 B 的匀强磁场中，有一个面积为 S 且与磁场方向垂直的平面，磁感应强度 B 与面积 S 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 Φ 表示，即"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "Φ = B S",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-2e56bc0e60ad",
+      "locator": "line:11-13",
+      "modality": "equation",
+      "normalized_claims": [
+        "Φ = B S"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "法拉第把他发现的这种由磁产生电流的现象正式定名为电磁感应（electromagnetic induction）现象，产生的电流就叫做感应电流（induction current）。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-361c0aaeb3b4",
+      "locator": "line:36-38",
+      "modality": "text",
+      "normalized_claims": [
+        "法拉第把他发现的这种由磁产生电流的现象正式定名为电磁感应（electromagnetic induction）现象，产生的电流就叫做感应电流（induction current）。"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nS ^ {\\prime} = S \\cos \\theta\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-3c249fb5f570",
+      "locator": "line:36",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nS ^ {\\prime} = S \\cos \\theta\n$$"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/eabdec216007ef93b80e7ac2a4805f1e3df767f26810075ea01bfe1f9c384165.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-48f79568842b",
+      "locator": "line:60",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/eabdec216007ef93b80e7ac2a4805f1e3df767f26810075ea01bfe1f9c384165.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 332,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/eabdec216007ef93b80e7ac2a4805f1e3df767f26810075ea01bfe1f9c384165.jpg",
+          "reason": "图片是法拉第发现电磁感应现象的经典实验装置图（对应文中提到的图11-23）。前文详细描述了该实验过程：在软铁环A侧接电源，B侧接电流计，观察指针偏转。后文紧接着给出了图片的标题“图11-23 法拉第实验示意图”。图片内容与上下文完全对应，直观展示了电磁感应现象的产生条件，属于核心知识点证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了法拉第电磁感应实验的示意图。一个闭合的软铁环上绕有两个线圈，分别标记为A和B。线圈A连接着直流电源（电池符号）和开关，线圈B连接着一个灵敏电流计。",
+          "width": 529
+        },
+        "path": "images/eabdec216007ef93b80e7ac2a4805f1e3df767f26810075ea01bfe1f9c384165.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "由 $\\Phi = BS$ 可得 $B = \\frac{\\Phi}{S}$ 。由此可知磁感应强度数值上等于穿过垂直于磁场方向单位面积的磁通量，因此也常把磁感应强度叫做磁通密度。上式虽然得自匀强磁场，同样适用于非匀强磁场的一般情况。由于我们约定磁场较强处磁感线较密集，磁场较弱处磁感线较稀疏，可以看出在给定的磁场中穿过某一面积的磁感线的条数与穿过该面积的磁通量成正比，即磁通量越大，穿过相同面积的磁感线越多。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-5cfd4fd0a723",
+      "locator": "line:28",
+      "modality": "equation",
+      "normalized_claims": [
+        "由 $\\Phi = BS$ 可得 $B = \\frac{\\Phi}{S}$ 。由此可知磁感应强度数值上等于穿过垂直于磁场方向单位面积的磁通量，因此也常把磁感应强度叫做磁通密度。上式虽然得自匀强磁场，同样适用于非匀强磁场的一般情况。由于我们约"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "若平面的法线方向与磁场方向的夹角为 θ ，则该平面在垂直于磁场方向上的投影面积 S' = S cosθ ... 通过平面 S 的磁通量等于通过平面 S 在垂直于磁场方向上的投影区域 S' 的磁通量，即 Φ = B S' = B S cosθ",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-645f747ec7cc",
+      "locator": "line:28-34",
+      "modality": "text",
+      "normalized_claims": [
+        "若平面的法线方向与磁场方向的夹角为 θ ，则该平面在垂直于磁场方向上的投影面积 S' = S cosθ ... 通过平面 S 的磁通量等于通过平面 S 在垂直于磁场方向上的投影区域 S' 的磁通量，即 Φ = B S' = B S cosθ"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "以上实验和其他事实都表明：只要通过闭合导体回路的磁通量发生变化，闭合导体回路中就会产生感应电流。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-714e0fbdf717",
+      "locator": "line:68",
+      "modality": "text",
+      "normalized_claims": [
+        "以上实验和其他事实都表明：只要通过闭合导体回路的磁通量发生变化，闭合导体回路中就会产生感应电流。"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "由于我们约定磁场较强处磁感线较密集，磁场较弱处磁感线较稀疏，可以看出在给定的磁场中穿过某一面积的磁感线的条数与穿过该面积的磁通量成正比",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-7152a604983d",
+      "locator": "line:24",
+      "modality": "text",
+      "normalized_claims": [
+        "由于我们约定磁场较强处磁感线较密集，磁场较弱处磁感线较稀疏，可以看出在给定的磁场中穿过某一面积的磁感线的条数与穿过该面积的磁通量成正比"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\Phi = B S\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-779c5f792265",
+      "locator": "line:15",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\Phi = B S\n$$"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/f3ebd0a1362e4c0449ac8604422a48b660ba5759c0b54498ac44fb5572e800ca.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-77a6b25e2c49",
+      "locator": "line:86",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/f3ebd0a1362e4c0449ac8604422a48b660ba5759c0b54498ac44fb5572e800ca.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 370,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/f3ebd0a1362e4c0449ac8604422a48b660ba5759c0b54498ac44fb5572e800ca.jpg",
+          "reason": "图片是教材中的图11-25，展示了“研究电磁感应现象”的核心实验装置。前文详细描述了按照该图连接电路的具体步骤（“按照图 11-25 将灵敏电流计和线圈 B 连接...”），后文标题也明确标注为“图11-25 研究电磁感应现象实验”。图片直接表达了实验的结构和电路连接方式，是进行后续自主活动和填写实验记录表的基础，属于核心内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个研究电磁感应现象的实验电路连接图。图中包含电源、开关、滑动变阻器、两个同轴放置的线圈（线圈A在线圈B内部）以及一个灵敏电流计。线圈A与电源、开关、滑动变阻器串联组成一个回路，线圈B与灵敏电流计串联组成另一个独立的闭合回路。",
+          "width": 481
+        },
+        "path": "images/f3ebd0a1362e4c0449ac8604422a48b660ba5759c0b54498ac44fb5572e800ca.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "磁通量是标量，如果设定磁感应强度指向右方时穿过这一面积的磁通量为正，那么，磁感应强度指向左方时穿过这一面积的磁通量就为负。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-7c66ee234e6c",
+      "locator": "line:16",
+      "modality": "text",
+      "normalized_claims": [
+        "磁通量是标量，如果设定磁感应强度指向右方时穿过这一面积的磁通量为正，那么，磁感应强度指向左方时穿过这一面积的磁通量就为负。"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "经过近十年的艰苦探索，1831年，法拉第对此终于有所发现。如图11-23所示，在软铁环的 $A$ 侧接好导线，把 $B$ 侧的线圈接到",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-8bd849eb9dcc",
+      "locator": "line:56",
+      "modality": "equation",
+      "normalized_claims": [
+        "经过近十年的艰苦探索，1831年，法拉第对此终于有所发现。如图11-23所示，在软铁环的 $A$ 侧接好导线，把 $B$ 侧的线圈接到"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\Phi = B S ^ {\\prime} = B S \\mathrm{cos} \\theta\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-a961590b77c2",
+      "locator": "line:45",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\Phi = B S ^ {\\prime} = B S \\mathrm{cos} \\theta\n$$"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图11-23所示，在软铁环的 A 侧接好导线，把 B 侧的线圈接到灵敏电流计上...当 A 侧电路接通的瞬间，法拉第看到 B 侧灵敏电流计的指针立即明显偏转",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-b6678f7e9114",
+      "locator": "line:36",
+      "modality": "text",
+      "normalized_claims": [
+        "如图11-23所示，在软铁环的 A 侧接好导线，把 B 侧的线圈接到灵敏电流计上...当 A 侧电路接通的瞬间，法拉第看到 B 侧灵敏电流计的指针立即明显偏转"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图11-20所示，设在磁感应强度为 $B$ 的匀强磁场中，有一个面积为 $S$ 且与磁场方向垂直的平面，磁感应强度 $B$ 与面积 $S$ 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 $\\Phi$ 表示，即",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b7bda39518c7",
+      "locator": "line:11",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图11-20所示，设在磁感应强度为 $B$ 的匀强磁场中，有一个面积为 $S$ 且与磁场方向垂直的平面，磁感应强度 $B$ 与面积 $S$ 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 $\\Phi$ 表示，即"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/826e555fa2a01cbe591df6b234e2e70d3b3b94b1341c0ef8950f65e2bf9ceb7f.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c428523ceb49",
+      "locator": "line:78",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/826e555fa2a01cbe591df6b234e2e70d3b3b94b1341c0ef8950f65e2bf9ceb7f.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 250,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/826e555fa2a01cbe591df6b234e2e70d3b3b94b1341c0ef8950f65e2bf9ceb7f.jpg",
+          "reason": "图片直接对应前文提到的“图 11-24”，展示了研究电磁感应现象的核心实验装置（条形磁体、线圈、灵敏电流计及其连接方式）。它直观地表达了产生感应电流的实验结构和操作过程（磁体插入线圈），属于教材中关于电磁感应现象的关键实验内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个电磁感应实验的装置示意图。左侧是一个线圈（标记为B），其上方有一个红蓝双色的条形磁体，并标有向下的箭头，表示磁体正在向下插入线圈。右侧是一个灵敏电流计（标记为G），指针指在刻度盘中央。线圈B的两端通过导线连接到灵敏电流计的接线柱上，构成了一个闭合回路。",
+          "width": 296
+        },
+        "path": "images/826e555fa2a01cbe591df6b234e2e70d3b3b94b1341c0ef8950f65e2bf9ceb7f.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/0e2362e9b376b76ddf76c61e99311d1e502e4892465d12160255037b2a64deed.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c5ec74208d60",
+      "locator": "line:17",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/0e2362e9b376b76ddf76c61e99311d1e502e4892465d12160255037b2a64deed.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 1,
+          "height": 248,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/0e2362e9b376b76ddf76c61e99311d1e502e4892465d12160255037b2a64deed.jpg",
+          "reason": "图片是教材中的图11-20，直观展示了磁通量的定义场景：匀强磁场垂直穿过平面。图片内容与标题“什么是磁通量？”及前文公式“Φ=BS”完全对应，是解释该物理概念的核心示意图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个矩形平面（标记为S）垂直放置在一组平行的粉色箭头（代表磁场B）中，下方标注了公式Φ=BS。",
+          "width": 279
+        },
+        "path": "images/0e2362e9b376b76ddf76c61e99311d1e502e4892465d12160255037b2a64deed.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/0933bf8203e42648890b3b72873c2d7e10bddd0f3afbaece8c1a827a5420f747.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e46f4e85c8b0",
+      "locator": "line:49",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/0933bf8203e42648890b3b72873c2d7e10bddd0f3afbaece8c1a827a5420f747.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 326,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/0933bf8203e42648890b3b72873c2d7e10bddd0f3afbaece8c1a827a5420f747.jpg",
+          "reason": "前文提到了'英国物理学家法拉第（图11-22）'，当前图片即为法拉第的肖像，与上下文引用直接对应。作为'拓展视野'栏目中介绍科学史人物的辅助材料，保留为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张男性人物肖像画，画中人物头发灰白，穿着深色外套和白色领结，背景为深色，具有19世纪肖像画的风格。",
+          "width": 270
+        },
+        "path": "images/0933bf8203e42648890b3b72873c2d7e10bddd0f3afbaece8c1a827a5420f747.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "由图可知，通过平面 S 的磁通量等于通过平面 S 在垂直于磁场方向上的投影区域 $S'$ 的磁通量，即",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e84e06524eea",
+      "locator": "line:41",
+      "modality": "equation",
+      "normalized_claims": [
+        "由图可知，通过平面 S 的磁通量等于通过平面 S 在垂直于磁场方向上的投影区域 $S'$ 的磁通量，即"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/8867f3d03ee84528fcfd7ef5431c846dff2f5b1432965ae6ea12b4d7c207d0ed.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f1aa4ef1a9e7",
+      "locator": "line:101",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/8867f3d03ee84528fcfd7ef5431c846dff2f5b1432965ae6ea12b4d7c207d0ed.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 398,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/8867f3d03ee84528fcfd7ef5431c846dff2f5b1432965ae6ea12b4d7c207d0ed.jpg",
+          "reason": "图片直接展示了“条形磁体插入线圈”这一核心物理实验场景及磁感线分布，与前文描述的“在如图 11-24 所示的实验中，条形磁体插入线圈，线圈中的磁场均由弱变强”完全对应。它是理解电磁感应现象（磁通量变化产生感应电流）的关键视觉证据，属于直接表达实验和结构的图片。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个物理实验示意图：一个条形磁铁（上端S极，下端N极）正向下插入一个螺线管线圈。图中画有红色的磁感线，显示磁场从N极出发穿过线圈内部，箭头指示磁铁的运动方向向下，表明线圈内的磁通量正在增加。",
+          "width": 196
+        },
+        "path": "images/8867f3d03ee84528fcfd7ef5431c846dff2f5b1432965ae6ea12b4d7c207d0ed.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 m² ，则 1 Wb = 1 T·m²",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ffb24d41498b",
+      "locator": "line:18-20",
+      "modality": "text",
+      "normalized_claims": [
+        "在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 m² ，则 1 Wb = 1 T·m²"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-89f0e5a5a02f",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-d12a2be767fe"
+      ],
+      "source_type": "textbook",
+      "target_id": "representation/物理模型:auto-790a12487f84",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-cdfae9bcccfb",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-a3515e4573aa"
+      ],
+      "source_type": "textbook",
+      "target_id": "representation/物理模型:auto-790a12487f84",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-d3837e78b6bc",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-a7020327d7f8"
+      ],
+      "source_type": "textbook",
+      "target_id": "representation/物理模型:auto-790a12487f84",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-15efd658d91d",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-2ded9b1b80d6"
+      ],
+      "source_type": "textbook",
+      "target_id": "representation/物理模型:auto-790a12487f84",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:44:18+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-b41f922923b4",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-3a762ebaf5e3"
+      ],
+      "source_type": "textbook",
+      "target_id": "representation/物理模型:auto-790a12487f84",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-4c0ba9ea229e",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-7152a604983d"
+      ],
+      "source_type": "textbook",
+      "target_id": "representation/物理模型:auto-790a12487f84",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "磁力线",
+      "磁感线"
+    ],
+    "created_at": "2026-06-29T05:44:00+00:00",
+    "dataset_id": "main",
+    "definition": "描述磁场方向和强弱的假想曲线，穿过某一面积的磁感线条数与磁通量成正比。\n\n物理学中用来形象描述磁场方向和强弱的假想曲线。疏密程度表示磁场强弱，切线方向表示该点磁场方向（即小磁针静止时N极指向）。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "representation/物理模型:auto-790a12487f84",
+    "kind": "representation",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "磁感线",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "raw_subkinds": [
+          "物理模型"
+        ],
+        "subkinds": [
+          "physical_model"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "直观表征磁通量大小的几何工具，非真实存在",
+          "假想曲线并非实际存在",
+          "任意两条不相交",
+          "两条线之间区域仍有磁场",
+          "闭合曲线"
+        ],
+        "conditions": [
+          "疏密表示磁场强弱",
+          "切线表示磁场方向",
+          "用于描述稳恒磁场分布"
+        ],
+        "formal_expressions": []
+      },
+      "semantic_key": "磁感线",
+      "template_display": {
+        "color": "#5580CC",
+        "label": "图像/模型",
+        "template_id": "textbook/physics",
+        "type_key": "representation"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "physical_model",
+    "tags": [
+      "高中物理",
+      "场模型",
+      "可视化",
+      "模型",
+      "定性描述"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [
+      {
+        "confidence": 0.8,
+        "created_at": "2026-06-29T05:44:18+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "concept/理想化模型:auto-1ecf3544625d",
+        "id": "edge:auto-59ff6e78eb1a",
+        "notes": "匀强磁场具有疏密间隔相同、同方向平行直线的磁感线分布特征。",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "具有物理量",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-5ac7a44e9ea8"
+        ],
+        "status": "active",
+        "to_id": "representation/物理模型:auto-790a12487f84",
+        "type": "has_property",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.8,
+        "created_at": "2026-06-29T05:44:18+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "method/实验观测方法:auto-3e4a6eb9a9fc",
+        "id": "edge:auto-3cff57ca5e33",
+        "notes": "该方法通过铁屑受力排列，产生直观显示磁场空间分布的图案，对应磁感线模型。",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "产生",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-85330c143549"
+        ],
+        "status": "active",
+        "to_id": "representation/物理模型:auto-790a12487f84",
+        "type": "produces",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.8,
+        "created_at": "2026-06-29T05:44:18+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "rule/方向判断法则:auto-4cd61f31c658",
+        "id": "edge:auto-7a1f5161f06a",
+        "notes": "右手螺旋定则表征并用于判断通电直导线周围磁感线的环绕方向。",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-3c71cdbbccf9"
+        ],
+        "status": "active",
+        "to_id": "representation/物理模型:auto-790a12487f84",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ],
+    "outgoing": [
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:47:51+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "representation/物理模型:auto-790a12487f84",
+        "id": "edge:auto-fe62d0379c77",
+        "notes": "磁感线用于形象描述磁场的强弱和方向",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-d12a2be767fe"
+        ],
+        "status": "active",
+        "to_id": "concept/基础概念:auto-a661553d4ea5",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:44:00+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "representation/物理模型:auto-790a12487f84",
+        "id": "edge:auto-61d4f830d9fc",
+        "notes": "穿过面积的磁感线条数正比于磁通量，磁感线模型表征磁通量大小",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-7152a604983d"
+        ],
+        "status": "active",
+        "to_id": "property/物理量:auto-97532de81b17",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.8,
+        "created_at": "2026-06-29T05:44:18+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "representation/物理模型:auto-790a12487f84",
+        "id": "edge:auto-21ee26d32f2b",
+        "notes": "磁感线的切线方向表征该点磁感应强度的方向。",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-a7020327d7f8"
+        ],
+        "status": "active",
+        "to_id": "property/矢量物理量:auto-c7e0c204335c",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ]
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第一节 磁现象 磁感线\n\n在人类生活中处处可遇到磁场。随着科学技术的发展，磁技术已经渗透到了我们的日常生活和工农业生产技术的各个方面。磁浮列车（图 11-1）就是一种现代高科技轨道交通工具。世界上第一条商业运营的磁浮列车线路在上海浦东新区运行，其列车的最高速度达 $430 \\mathrm{~km} / \\mathrm{h}$ 。磁场是物质的一种形态，但这类物质形态并不能像实物一样为人类的感官直接觉察。历史上人类对磁场的研究是从磁铁的磁性及其相互作用开始的，我国古代对磁现象的研究成果丰硕，对人类文明影响深远。\n\n\n\n## 为什么说我国是对磁现象认识最早的国家之一？\n\n公元前 4 世纪左右成书的《管子·地数篇》中就有 “上有慈石者，其下有铜金” 的记载，这是关于磁的最早记载。古代的人们就发现了磁石只能吸铁，而不能吸金、银、铜等其他金属的现象，并将能吸铁的磁石形象地比喻为慈母对子女的关爱呵护。利用磁石制成的 “司南” 是世界上最早使用的指南针。东汉王充在《论衡·是应篇》中记有 “司南之杓，投之于地，其柢指南” \\*。南宋后，以磁针为主要结构的罗盘在航海中被普遍使用。到了明代，遂有郑和下西洋远航到非洲东海岸之壮举。中国指南针约于12世纪末13世纪初由海路传入阿拉伯，又由阿拉伯传到欧洲。指南针的传播，正如英国哲学家培根所说的那样，在促进人类航海事业发展和改变世界面貌上产生了巨大的影响。\n\n[source image omitted from static artifact]\n\n天然磁石主要成分是四氧化三铁。现代工业上可以制造出各种各样的人造磁体，20世纪70年代制造出稀土强磁材料使得磁性元件更加小型化，到目前为止具有最强磁力的永久磁体是钕磁体，也称为钕铁硼磁体（图11-2）。\n\n在生命体中也存在磁现象，有人认为信鸽识途归巢、候鸟千里迁徙等就是利用地磁场辨别方向。人体及器官也有磁性，利用电子技术及超导量子干涉技术可得到心磁图、脑磁图、肺磁图及人体磁场分布。基于磁场的核磁共振技术成像（图 11-3）及磁疗技术也广泛用于医学临床。\n\n图11-2 钕磁体  \n[source image omitted from static artifact]  \n图11-3 核磁共振断层成像仪\n\n\n\n## 如何形象地描述磁场？\n\n在磁体周围存在磁场。在条形磁体周围撒上的铁屑会呈现有规则的排列（图11-4）。磁场的强弱和方向可以形象地用磁感线来描述：磁感线的疏密程度表示磁场的强弱，磁感线越密集的地方磁场就越强；磁感线的切线方向表示该点的磁场方向，即放在该处小磁针静止时的N极所指的方向。\n\n[source image omitted from static artifact]  \n图11-4 条形磁体周围铁屑分布情况\n\n[source image omitted from static artifact]  \n图11-5 条形磁体外部的磁感线\n\n磁感线是闭合曲线，磁体外部的磁感线是从 N 极出来，回到磁体的 S 极，内部是从 S 极到 N 极。任意两条磁感线不相交，两条磁感线之间的区域仍然有磁场。如图 11-5 所示为条形磁体外部的磁感线。\n\n[source image omitted from static artifact]\n\n## 指南针指向地球南极吗？\n\n如图11-6所示，地球周围存在一个大范围的磁场，宛如一个大的条形磁体。在地磁场的作用下，指南针会调整方向，使其取向顺着地磁场的磁感线，N极指向地磁南极；S极指向地磁北极。地磁南极在地理北极附近；地磁北极在地理南极附近。地磁两极与地理两极不完全重合，地磁轴和地球自转轴之间的夹角约为11°。我们将地球表面水平放置的指南针静止时N极所指的方向与地球北极方向之间的夹角称为磁偏角，地球表面不同地区磁偏角是不相同的。不仅如此，由于地球磁极的缓慢移动，磁偏角也在缓慢变化。\n\n[source image omitted from static artifact]  \n图11-6 地理两极与地磁两极不重合\n\n我国宋代科学家沈括是历史上第一个提出磁偏角现象的人，他在《梦溪笔谈》中记载了地磁偏角现象：“方家以磁石磨针锋，则能指南，然常微偏东，不全南也。”\\*较系统地研究磁偏现象原始理论的是英国人吉尔伯特。磁偏角的发现对指南针在航海方面的应用十分重要。\n\n## 拓展视野\n\n科学家发现地球磁场的方向并不是恒定不变的，它的南北磁极曾经对换过位置，这就是“磁极倒转”现象。\n\n在地球的几十亿年历史中，磁极倒转事件发生多次。仅在最近的450万年里，就出现了4个磁场极性不同的时期。有两次和现在基本一样，是“正向期”，即地磁北极在地理南极附近，地磁南极在地理北极附近。还有两次则是和现在正好相反的“反向期”。在每一个磁性时期里，有时还会发生短暂的磁极倒转现象。\n\n为什么会出现地磁极变化呢？地球磁场反复变化有什么规律吗？迄今科学家们仍然没有得出统一的结论。大部分科学家认为，当地球内部液态铁质流围绕着地核中心旋转时，如果突然发生变化，其流动方向倒转，就会引发磁极倒转现象。\n\n地球磁场的倒转是否有一定的规律可循，是否可以预报？由于地心变化太过复杂，更难于直接观测，迄今人们仍未得出结论。\n\n## 问题②思考\n\n1. 在条形磁体外部靠近中央位置处有没有磁场？如何判断？\n\n2. 假设将指南针移到地球地心处，则指南针 N 极将指向什么方向？\n\n3. 通过学习磁场和磁感线，某同学总结了如下几个结论。试判断这些说法是否正确，并简述理由。\n\n(1) 磁感线是铁屑组成的。\n\n(2) 磁感线是磁体周围空间实际存在的曲线。\n\n(3) 磁场是看不见摸不着的，但是可以借助小磁针感知它的存在。\n\n(4) 地磁场的磁感线是从地球南极附近发出回到地球北极附近。\n\n4. 判断下列关于磁场的说法是否正确，并简述理由。\n\n(1) 两个磁极之间总是直接发生相互作用的。\n\n(2) 磁场是为了解释磁极间相互作用而人为规定的。\n\n(3) 磁场是特殊物质，它对放入其中的磁性物体有力的作用。\n\n(4) 由于磁场弱处磁感线疏，所以两条磁感线之间没有磁场。\n\n5. 日常生活中磁的应用给我们带来了方便，想想还有哪些地方可以应用磁性？\n\n[source image omitted from static artifact]  \n图11-7 中国科学院强磁场科学中心的“稳态强磁场实验装置（SHMFF）”",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:11-1-a:source-markdown",
+          "locator": "磁现象 磁感线",
+          "modality": "text",
+          "page_end": 99,
+          "page_start": 96,
+          "properties": {
+            "md_end": 2861,
+            "md_start": 2776,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+            "outline_title": "磁现象 磁感线",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 2861,
+      "md_start": 2776,
+      "modalities": [
+        "text",
+        "image",
+        "equation"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第一节 磁现象 磁感线\n\n在人类生活中处处可遇到磁场。随着科学技术的发展，磁技术已经渗透到了我们的日常生活和工农业生产技术的各个方面。磁浮列车（图 11-1）就是一种现代高科技轨道交通工具。世界上第一条商业运营的磁浮列车线路在上海浦东新区运行，其列车的最高速度达 $430 \\mathrm{~km} / \\mathrm{h}$ 。磁场是物质的一种形态，但这类物质形态并不能像实物一样为人类的感官直接觉察。历史上人类对磁场的研究是从磁铁的磁性及其相互作用开始的，我国古代对磁现象的研究成果丰硕，对人类文明影响深远。\n\n\n\n## 为什么说我国是对磁现象认识最早的国家之一？\n\n公元前 4 世纪左右成书的《管子·地数篇》中就有 “上有慈石者，其下有铜金” 的记载，这是关于磁的最早记载。古代的人们就发现了磁石只能吸铁，而不能吸金、银、铜等其他金属的现象，并将能吸铁的磁石形象地比喻为慈母对子女的关爱呵护。利用磁石制成的 “司南” 是世界上最早使用的指南针。东汉王充在《论衡·是应篇》中记有 “司南之杓，投之于地，其柢指南” \\*。南宋后，以磁针为主要结构的罗盘在航海中被普遍使用。到了明代，遂有郑和下西洋远航到非洲东海岸之壮举。中国指南针约于12世纪末13世纪初由海路传入阿拉伯，又由阿拉伯传到欧洲。指南针的传播，正如英国哲学家培根所说的那样，在促进人类航海事业发展和改变世界面貌上产生了巨大的影响。\n\n[source image omitted from static artifact]\n\n天然磁石主要成分是四氧化三铁。现代工业上可以制造出各种各样的人造磁体，20世纪70年代制造出稀土强磁材料使得磁性元件更加小型化，到目前为止具有最强磁力的永久磁体是钕磁体，也称为钕铁硼磁体（图11-2）。\n\n在生命体中也存在磁现象，有人认为信鸽识途归巢、候鸟千里迁徙等就是利用地磁场辨别方向。人体及器官也有磁性，利用电子技术及超导量子干涉技术可得到心磁图、脑磁图、肺磁图及人体磁场分布。基于磁场的核磁共振技术成像（图 11-3）及磁疗技术也广泛用于医学临床。\n\n图11-2 钕磁体  \n[source image omitted from static artifact]  \n图11-3 核磁共振断层成像仪\n\n\n\n## 如何形象地描述磁场？\n\n在磁体周围存在磁场。在条形磁体周围撒上的铁屑会呈现有规则的排列（图11-4）。磁场的强弱和方向可以形象地用磁感线来描述：磁感线的疏密程度表示磁场的强弱，磁感线越密集的地方磁场就越强；磁感线的切线方向表示该点的磁场方向，即放在该处小磁针静止时的N极所指的方向。\n\n[source image omitted from static artifact]  \n图11-4 条形磁体周围铁屑分布情况\n\n[source image omitted from static artifact]  \n图11-5 条形磁体外部的磁感线\n\n磁感线是闭合曲线，磁体外部的磁感线是从 N 极出来，回到磁体的 S 极，内部是从 S 极到 N 极。任意两条磁感线不相交，两条磁感线之间的区域仍然有磁场。如图 11-5 所示为条形磁体外部的磁感线。\n\n[source image omitted from static artifact]\n\n## 指南针指向地球南极吗？\n\n如图11-6所示，地球周围存在一个大范围的磁场，宛如一个大的条形磁体。在地磁场的作用下，指南针会调整方向，使其取向顺着地磁场的磁感线，N极指向地磁南极；S极指向地磁北极。地磁南极在地理北极附近；地磁北极在地理南极附近。地磁两极与地理两极不完全重合，地磁轴和地球自转轴之间的夹角约为11°。我们将地球表面水平放置的指南针静止时N极所指的方向与地球北极方向之间的夹角称为磁偏角，地球表面不同地区磁偏角是不相同的。不仅如此，由于地球磁极的缓慢移动，磁偏角也在缓慢变化。\n\n[source image omitted from static artifact]  \n图11-6 地理两极与地磁两极不重合\n\n我国宋代科学家沈括是历史上第一个提出磁偏角现象的人，他在《梦溪笔谈》中记载了地磁偏角现象：“方家以磁石磨针锋，则能指南，然常微偏东，不全南也。”\\*较系统地研究磁偏现象原始理论的是英国人吉尔伯特。磁偏角的发现对指南针在航海方面的应用十分重要。\n\n## 拓展视野\n\n科学家发现地球磁场的方向并不是恒定不变的，它的南北磁极曾经对换过位置，这就是“磁极倒转”现象。\n\n在地球的几十亿年历史中，磁极倒转事件发生多次。仅在最近的450万年里，就出现了4个磁场极性不同的时期。有两次和现在基本一样，是“正向期”，即地磁北极在地理南极附近，地磁南极在地理北极附近。还有两次则是和现在正好相反的“反向期”。在每一个磁性时期里，有时还会发生短暂的磁极倒转现象。\n\n为什么会出现地磁极变化呢？地球磁场反复变化有什么规律吗？迄今科学家们仍然没有得出统一的结论。大部分科学家认为，当地球内部液态铁质流围绕着地核中心旋转时，如果突然发生变化，其流动方向倒转，就会引发磁极倒转现象。\n\n地球磁场的倒转是否有一定的规律可循，是否可以预报？由于地心变化太过复杂，更难于直接观测，迄今人们仍未得出结论。\n\n## 问题②思考\n\n1. 在条形磁体外部靠近中央位置处有没有磁场？如何判断？\n\n2. 假设将指南针移到地球地心处，则指南针 N 极将指向什么方向？\n\n3. 通过学习磁场和磁感线，某同学总结了如下几个结论。试判断这些说法是否正确，并简述理由。\n\n(1) 磁感线是铁屑组成的。\n\n(2) 磁感线是磁体周围空间实际存在的曲线。\n\n(3) 磁场是看不见摸不着的，但是可以借助小磁针感知它的存在。\n\n(4) 地磁场的磁感线是从地球南极附近发出回到地球北极附近。\n\n4. 判断下列关于磁场的说法是否正确，并简述理由。\n\n(1) 两个磁极之间总是直接发生相互作用的。\n\n(2) 磁场是为了解释磁极间相互作用而人为规定的。\n\n(3) 磁场是特殊物质，它对放入其中的磁性物体有力的作用。\n\n(4) 由于磁场弱处磁感线疏，所以两条磁感线之间没有磁场。\n\n5. 日常生活中磁的应用给我们带来了方便，想想还有哪些地方可以应用磁性？\n\n[source image omitted from static artifact]  \n图11-7 中国科学院强磁场科学中心的“稳态强磁场实验装置（SHMFF）”",
+      "title": "磁现象 磁感线"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第二节 电流的磁场 磁感应强度\n\n早期人们对磁现象没有进行系统的科学探究和测量，仅仅停留在对磁极间相互作用和地球磁性等表面现象的观察上。直到19世纪20年代，丹麦著名物理学家奥斯特发现了电流的磁效应后才开启了电磁学研究的新纪元。\n\n与天然磁体的磁场相比，电流产生的磁场的强弱和方向容易控制和调节，在科学研究和实际中有更多的应用；电磁起重机、电话、电动机、发电机、电磁继电器、磁浮列车、电子门锁、智能通道闸和电磁流量计等都离不开电流产生的磁场。中国科学院强磁场科学中心建成的强磁场实验装置（图11-7）为我国电子材料、铁基超导体、新型拓扑超导体、非常规超导体、低维体系量子效应及输运研究、生物大分子在疾病中的分子机制、肿瘤发病机理和小分子药物作用机制等研究提供了有力的支持。\n\n\n\n## 通电直导线周围的磁场方向如何判断？\n\n让一根粗直导线竖直穿过一块均匀撒有铁屑的水平纸板中央。接上直流电源后，轻轻敲击纸板就可以清楚显示出通电导线周围铁屑的分布情况。我们可以发现，当导线中通过\n\n电流时，纸板上的铁屑将环绕着这根导线形成一个个同心圆，如图 11-8 (a) 所示。清除铁屑后在纸板上画一个以中央为圆心的圆，再将一小磁针放在水平纸板上，导线接通直流电源，沿圆周移动小磁针的位置，观察小磁针 N 极的指向，并把小磁针的指向画在纸板的相应位置上。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)  \n图11-8 载流直导线周围的铁屑分布和磁场\n\n实验表明通电直导线周围磁场的磁\n\n感线是一些和导线垂直的平面上以导线为圆心的同心圆；靠近导线处的磁感线较密，磁场较强，离开导线越远磁感线越疏，磁场越弱。\n\n大量的实验都表明，通电直导线中电流方向与其周围磁场的方向满足右手螺旋定则：用右手握住通电直导线，让大拇指指向电流的方向，四指的指向就是磁感线的环绕方向，如图11-8（b）所示。\n\n通常，我们用 “⊗” 和 “⊙” 分别表示通电导线中垂直于纸面向内和垂直于纸面向外的电流方向。用 “×” 和 “•” 分别表示垂直于纸面向内和垂直于纸面向外的磁场方向。\n\n如图 11-9（a）所示为通电直导线附近磁场的俯视图，中间导线中的电流方向垂直于纸面向外；载流直导线垂直平面上磁场呈同心圆状的分布。如图 11-9（b）所示为通电直导线所在平面上的磁场分布，越靠近导线磁场越强，越远离导线磁场越弱。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)  \n图11-9 直线电流周围的磁感线\n\n通电螺线管周围也有磁场，类似于条形磁体周围的\n\n磁场。可以用右手螺旋定则来判断通电螺线管环绕的电流方向与螺线管内部磁场方向之间的关系，如图11-10（a）所示。如果螺线管很长，而且绕得很密，其内部的磁感线就近似为平行于螺线管轴线的、同方向、间隔均匀的直线，如图11-10（b）所示。通电螺线管的磁场可以看成是由许多环形电流的磁场叠加而成的，环形电流内部磁场方向也可以用右手螺旋定则来判断。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)  \n图11-10 通电螺线管的磁感线\n\n## 拓展视野\n\n安培观察到通电螺线管的磁场和条形磁体的磁场很相似，提出了分子电流假说。\n\n安培认为在分子等物质微粒的内部，存在着一种环形电流——分子电流，使每个分子成为微小的磁体，分子的两侧相当于两个磁极。通常情况下磁体分子的分子电流取向是杂乱无章的，如图11-11（a）所示。它们产生的磁场互相抵消，对外不显磁性。当外界磁场作用后，分子电流的取向大致相同，如图11-11（b）所示。在垂直于导体的平面上，相邻分子间的电流作用抵消，所有分子电流的总效果显示出宏观的磁性。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)  \n图11-11 分子电流假说示意图\n\n安培的分子电流假说与现代原子分子结构的概念相符合，分子电流对应核外电子绕核旋转形成的电流；除了能够解释软铁棒被磁化的现象以外，还能够解释磁体受到高温或猛烈敲击会失去磁性的现象，这是由于分子电流的取向由大致相同变成杂乱无章所致。\n\n\n\n## 如何定量地描述磁场的强弱？\n\n磁体在周围空间产生磁场，另一块磁体在此磁场中会受到磁场力的作用。通电导线在周围空间产生的磁场也会对其中的磁体产生磁场力的作用；反之，通电导线在磁场中也会受到磁场力的作用。\n\n与定义电场强度类似，假定我们将长度 $\\Delta l$ 足够短的电流元 $I\\Delta l$ 放在磁场中的任意点 P，如果电流元受到的最大磁场力为 F，则我们可以用 F 与 $I\\Delta l$ 之比来定义 P 点描述磁场大小和方向的物理量——磁感应强度（magnetic induction）\n\n$$\nB = \\frac {F}{I \\Delta l}\n$$\n\n磁感应强度的单位是特斯拉，简称特，符号为 T。磁感应强度是矢量，在某一点磁感应强度的方向就是放在该点可以在任意方向自由转动的小磁针 N 极的指向，也是磁感线在该点的切线方向。磁场中某处磁感应强度的大小和方向是磁场本身的性质，与其中是否存在电流元及电流的大小无关。\n\n实际情形中，磁场的强弱可以有很大的区别。表11-1列出了一些磁场的磁感应强度大小的近似值。\n\n表 11-1 一些磁场的磁感应强度大小的近似值\n\n<table><tr><td>地点</td><td>磁感应强度</td></tr><tr><td>中子星表面</td><td> $10^{8}$  T</td></tr><tr><td>钕磁体附近</td><td> $10^{0}$  T</td></tr><tr><td>小条形磁体附近</td><td> $10^{-2}$  T</td></tr><tr><td>地球表面</td><td> $10^{-5}$  T</td></tr><tr><td>星际空间</td><td> $10^{-10}$  T</td></tr><tr><td>磁屏蔽室内</td><td> $10^{-14}$  T</td></tr></table>\n\n## 自主活动\n\n将螺线管串接 $10\\Omega$ 电阻和开关后接入3节 $1.5\\mathrm{V}$ 干电池组成的电源，如图11-12(a)所示。\n\n将磁传感器（收集所在位置磁场的磁感应强度数据）与计算机相连接。\n\n螺线管放置在水平桌面上，调节磁传感器的高度，使探测管正好处在螺线管的轴线上，如图 11-12（b）所示。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)  \n图11-12 用磁传感器研究通电螺线管内部的磁感应强度\n\n合上开关，记录磁传感器探测管的前端插入螺线管内部的距离 d 与相应磁感应强度 B 的测量值，绘制 B-d 曲线。\n\n从实验结果不难发现，在通电螺线管中心轴线上靠近中央处的磁感应强度几乎不随位置变化。\n\n磁场强弱和方向处处相同的磁场称为匀强磁场。匀强磁场的磁感线是一系列疏密间隔相同的、同方向的平行直线。通电密绕直螺线管内部的磁场，靠得很近的两个平行异名磁极之间中央部分的磁场，或者较大的蹄形磁体两磁极间的磁场，都可以近似看作匀强磁场，如图 11-13 和图 11-14 所示分别为铁屑显示的部分区域近似存在匀强磁场的磁场分布和磁感线。\n\n[source image omitted from static artifact]  \n图11-13 两个平行异名磁极间的磁场\n\n[source image omitted from static artifact]  \n图11-14 蹄形磁体两磁极间的磁场\n\n磁体是科学研究的工具。借助强磁场有助于我们“看到”物质本性和科学规律。强磁场是半导体、超导、特殊功能材料和器件研究不可缺少的条件，同时强磁场下的核磁共振，又是生命科学、医学研究的必要工具。2017年9月，中国科学院强磁场科学中心成功建成“稳态强磁场实验装置”。在此建设过程中，取得了一系列成就，成功研制了由内部水冷磁体和外部超导磁体组合而成的混合磁体，最大磁感应强度达43 T。另外，该中心建成了国际首创水冷磁体扫描隧道显微镜系统、扫描隧道－磁力－原子力组合显微镜系统，以及强磁场下低温、超高压实验系统，使得我国稳态强磁场相关实验条件达到国际领先水平。\n\n## STSE\n\n电磁铁是通电产生磁性的一种装置，其结构为在铁芯的外部缠绕通电线圈。工业上使用起重电磁铁吊运钢材、铁砂等导磁材料，或者用电磁铁作电磁机械手夹持钢铁等导磁材料。在实际生活中电磁铁是电磁继电器、电磁阀门、电子门锁、智能通道闸和电磁流量计等的核心部件之一。如图11-15所示的半自动式智能通道闸就是通过电磁铁来控制机芯的运转和停止的。\n\n一般而言，电磁铁所产生的磁场与电流大小、线圈匝数及铁芯都有关。另外，为了使电磁铁断电后立即消磁，往往采用消磁较快的软铁或硅钢材料来制作电磁铁。这样的电磁铁在通电时有磁性，断电后立即失去磁性；磁性的强弱能用电流的大小来控制；磁极可以由电流的方向来控制。\n\n[source image omitted from static artifact]  \n图11-15 电磁铁控制的智能通道闸\n\n## 问题②思考\n\n1. 在奥斯特电流磁效应的实验中，水平放置的通电直导线如果不恰好沿南北方向平行地放在小磁针的上方，能否发现小磁针的偏转？\n\n2. 指出图 11-16 中导线接通电流后小磁针的偏转情况。\n\n[source image omitted from static artifact]  \n(a)\n\n  \n(b)  \n图11-16\n\n3. 若电流元 $I\\Delta l$ 在某空间 P 点受到的最大磁场力为 F，该处的磁感应强度多大？如果电流元的电流增大，P 点处的磁感应强度是否相应增大？如果撤去电流元，该处的磁感应强度是否变化？\n\n4. 如图 11-17 所示，ab、cd 是两根在同一竖直平面内的长直导线，在两导线中央悬挂一个小磁针，小磁针与两根直导线静止在同一竖直平面内。当两导线中通以大小相等的电流时，小磁针 N 极垂直于纸面向外转动，则导线 ab 中电流方向如何？导线 cd 中电流方向如何？若导线 ab 中电流方向是 $b \\to a$ ，如何才能使小磁针 N 极仍然垂直于纸面向外转动？\n\n  \n图11-17\n\n5. 如图 11-18 所示, $AB$ 是一根通电导线且绕了一个圈, 处于纸面所在的平面上,导线下有一个小磁针, 通电时 N 极指向纸外。试在纸面上画出导线附近 $M 、 P 、 Q$ 处磁感应强度的方向 (用 “•” 或 “×” 表示), 简述判断的理由。\n\n  \n图11-18\n\n  \n图11-19 “华龙一号”核能发电机",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:11-2-a:source-markdown",
+          "locator": "电流的磁场 磁感应强度",
+          "modality": "text",
+          "page_end": 105,
+          "page_start": 100,
+          "properties": {
+            "md_end": 3011,
+            "md_start": 2862,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:11-2-a",
+            "outline_title": "电流的磁场 磁感应强度",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 3011,
+      "md_start": 2862,
+      "modalities": [
+        "text",
+        "image",
+        "table",
+        "equation"
+      ],
+      "page_end": 105,
+      "page_start": 100,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第二节 电流的磁场 磁感应强度\n\n早期人们对磁现象没有进行系统的科学探究和测量，仅仅停留在对磁极间相互作用和地球磁性等表面现象的观察上。直到19世纪20年代，丹麦著名物理学家奥斯特发现了电流的磁效应后才开启了电磁学研究的新纪元。\n\n与天然磁体的磁场相比，电流产生的磁场的强弱和方向容易控制和调节，在科学研究和实际中有更多的应用；电磁起重机、电话、电动机、发电机、电磁继电器、磁浮列车、电子门锁、智能通道闸和电磁流量计等都离不开电流产生的磁场。中国科学院强磁场科学中心建成的强磁场实验装置（图11-7）为我国电子材料、铁基超导体、新型拓扑超导体、非常规超导体、低维体系量子效应及输运研究、生物大分子在疾病中的分子机制、肿瘤发病机理和小分子药物作用机制等研究提供了有力的支持。\n\n\n\n## 通电直导线周围的磁场方向如何判断？\n\n让一根粗直导线竖直穿过一块均匀撒有铁屑的水平纸板中央。接上直流电源后，轻轻敲击纸板就可以清楚显示出通电导线周围铁屑的分布情况。我们可以发现，当导线中通过\n\n电流时，纸板上的铁屑将环绕着这根导线形成一个个同心圆，如图 11-8 (a) 所示。清除铁屑后在纸板上画一个以中央为圆心的圆，再将一小磁针放在水平纸板上，导线接通直流电源，沿圆周移动小磁针的位置，观察小磁针 N 极的指向，并把小磁针的指向画在纸板的相应位置上。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)  \n图11-8 载流直导线周围的铁屑分布和磁场\n\n实验表明通电直导线周围磁场的磁\n\n感线是一些和导线垂直的平面上以导线为圆心的同心圆；靠近导线处的磁感线较密，磁场较强，离开导线越远磁感线越疏，磁场越弱。\n\n大量的实验都表明，通电直导线中电流方向与其周围磁场的方向满足右手螺旋定则：用右手握住通电直导线，让大拇指指向电流的方向，四指的指向就是磁感线的环绕方向，如图11-8（b）所示。\n\n通常，我们用 “⊗” 和 “⊙” 分别表示通电导线中垂直于纸面向内和垂直于纸面向外的电流方向。用 “×” 和 “•” 分别表示垂直于纸面向内和垂直于纸面向外的磁场方向。\n\n如图 11-9（a）所示为通电直导线附近磁场的俯视图，中间导线中的电流方向垂直于纸面向外；载流直导线垂直平面上磁场呈同心圆状的分布。如图 11-9（b）所示为通电直导线所在平面上的磁场分布，越靠近导线磁场越强，越远离导线磁场越弱。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)  \n图11-9 直线电流周围的磁感线\n\n通电螺线管周围也有磁场，类似于条形磁体周围的\n\n磁场。可以用右手螺旋定则来判断通电螺线管环绕的电流方向与螺线管内部磁场方向之间的关系，如图11-10（a）所示。如果螺线管很长，而且绕得很密，其内部的磁感线就近似为平行于螺线管轴线的、同方向、间隔均匀的直线，如图11-10（b）所示。通电螺线管的磁场可以看成是由许多环形电流的磁场叠加而成的，环形电流内部磁场方向也可以用右手螺旋定则来判断。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)  \n图11-10 通电螺线管的磁感线\n\n## 拓展视野\n\n安培观察到通电螺线管的磁场和条形磁体的磁场很相似，提出了分子电流假说。\n\n安培认为在分子等物质微粒的内部，存在着一种环形电流——分子电流，使每个分子成为微小的磁体，分子的两侧相当于两个磁极。通常情况下磁体分子的分子电流取向是杂乱无章的，如图11-11（a）所示。它们产生的磁场互相抵消，对外不显磁性。当外界磁场作用后，分子电流的取向大致相同，如图11-11（b）所示。在垂直于导体的平面上，相邻分子间的电流作用抵消，所有分子电流的总效果显示出宏观的磁性。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)  \n图11-11 分子电流假说示意图\n\n安培的分子电流假说与现代原子分子结构的概念相符合，分子电流对应核外电子绕核旋转形成的电流；除了能够解释软铁棒被磁化的现象以外，还能够解释磁体受到高温或猛烈敲击会失去磁性的现象，这是由于分子电流的取向由大致相同变成杂乱无章所致。\n\n\n\n## 如何定量地描述磁场的强弱？\n\n磁体在周围空间产生磁场，另一块磁体在此磁场中会受到磁场力的作用。通电导线在周围空间产生的磁场也会对其中的磁体产生磁场力的作用；反之，通电导线在磁场中也会受到磁场力的作用。\n\n与定义电场强度类似，假定我们将长度 $\\Delta l$ 足够短的电流元 $I\\Delta l$ 放在磁场中的任意点 P，如果电流元受到的最大磁场力为 F，则我们可以用 F 与 $I\\Delta l$ 之比来定义 P 点描述磁场大小和方向的物理量——磁感应强度（magnetic induction）\n\n$$\nB = \\frac {F}{I \\Delta l}\n$$\n\n磁感应强度的单位是特斯拉，简称特，符号为 T。磁感应强度是矢量，在某一点磁感应强度的方向就是放在该点可以在任意方向自由转动的小磁针 N 极的指向，也是磁感线在该点的切线方向。磁场中某处磁感应强度的大小和方向是磁场本身的性质，与其中是否存在电流元及电流的大小无关。\n\n实际情形中，磁场的强弱可以有很大的区别。表11-1列出了一些磁场的磁感应强度大小的近似值。\n\n表 11-1 一些磁场的磁感应强度大小的近似值\n\n<table><tr><td>地点</td><td>磁感应强度</td></tr><tr><td>中子星表面</td><td> $10^{8}$  T</td></tr><tr><td>钕磁体附近</td><td> $10^{0}$  T</td></tr><tr><td>小条形磁体附近</td><td> $10^{-2}$  T</td></tr><tr><td>地球表面</td><td> $10^{-5}$  T</td></tr><tr><td>星际空间</td><td> $10^{-10}$  T</td></tr><tr><td>磁屏蔽室内</td><td> $10^{-14}$  T</td></tr></table>\n\n## 自主活动\n\n将螺线管串接 $10\\Omega$ 电阻和开关后接入3节 $1.5\\mathrm{V}$ 干电池组成的电源，如图11-12(a)所示。\n\n将磁传感器（收集所在位置磁场的磁感应强度数据）与计算机相连接。\n\n螺线管放置在水平桌面上，调节磁传感器的高度，使探测管正好处在螺线管的轴线上，如图 11-12（b）所示。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)  \n图11-12 用磁传感器研究通电螺线管内部的磁感应强度\n\n合上开关，记录磁传感器探测管的前端插入螺线管内部的距离 d 与相应磁感应强度 B 的测量值，绘制 B-d 曲线。\n\n从实验结果不难发现，在通电螺线管中心轴线上靠近中央处的磁感应强度几乎不随位置变化。\n\n磁场强弱和方向处处相同的磁场称为匀强磁场。匀强磁场的磁感线是一系列疏密间隔相同的、同方向的平行直线。通电密绕直螺线管内部的磁场，靠得很近的两个平行异名磁极之间中央部分的磁场，或者较大的蹄形磁体两磁极间的磁场，都可以近似看作匀强磁场，如图 11-13 和图 11-14 所示分别为铁屑显示的部分区域近似存在匀强磁场的磁场分布和磁感线。\n\n[source image omitted from static artifact]  \n图11-13 两个平行异名磁极间的磁场\n\n[source image omitted from static artifact]  \n图11-14 蹄形磁体两磁极间的磁场\n\n磁体是科学研究的工具。借助强磁场有助于我们“看到”物质本性和科学规律。强磁场是半导体、超导、特殊功能材料和器件研究不可缺少的条件，同时强磁场下的核磁共振，又是生命科学、医学研究的必要工具。2017年9月，中国科学院强磁场科学中心成功建成“稳态强磁场实验装置”。在此建设过程中，取得了一系列成就，成功研制了由内部水冷磁体和外部超导磁体组合而成的混合磁体，最大磁感应强度达43 T。另外，该中心建成了国际首创水冷磁体扫描隧道显微镜系统、扫描隧道－磁力－原子力组合显微镜系统，以及强磁场下低温、超高压实验系统，使得我国稳态强磁场相关实验条件达到国际领先水平。\n\n## STSE\n\n电磁铁是通电产生磁性的一种装置，其结构为在铁芯的外部缠绕通电线圈。工业上使用起重电磁铁吊运钢材、铁砂等导磁材料，或者用电磁铁作电磁机械手夹持钢铁等导磁材料。在实际生活中电磁铁是电磁继电器、电磁阀门、电子门锁、智能通道闸和电磁流量计等的核心部件之一。如图11-15所示的半自动式智能通道闸就是通过电磁铁来控制机芯的运转和停止的。\n\n一般而言，电磁铁所产生的磁场与电流大小、线圈匝数及铁芯都有关。另外，为了使电磁铁断电后立即消磁，往往采用消磁较快的软铁或硅钢材料来制作电磁铁。这样的电磁铁在通电时有磁性，断电后立即失去磁性；磁性的强弱能用电流的大小来控制；磁极可以由电流的方向来控制。\n\n[source image omitted from static artifact]  \n图11-15 电磁铁控制的智能通道闸\n\n## 问题②思考\n\n1. 在奥斯特电流磁效应的实验中，水平放置的通电直导线如果不恰好沿南北方向平行地放在小磁针的上方，能否发现小磁针的偏转？\n\n2. 指出图 11-16 中导线接通电流后小磁针的偏转情况。\n\n[source image omitted from static artifact]  \n(a)\n\n  \n(b)  \n图11-16\n\n3. 若电流元 $I\\Delta l$ 在某空间 P 点受到的最大磁场力为 F，该处的磁感应强度多大？如果电流元的电流增大，P 点处的磁感应强度是否相应增大？如果撤去电流元，该处的磁感应强度是否变化？\n\n4. 如图 11-17 所示，ab、cd 是两根在同一竖直平面内的长直导线，在两导线中央悬挂一个小磁针，小磁针与两根直导线静止在同一竖直平面内。当两导线中通以大小相等的电流时，小磁针 N 极垂直于纸面向外转动，则导线 ab 中电流方向如何？导线 cd 中电流方向如何？若导线 ab 中电流方向是 $b \\to a$ ，如何才能使小磁针 N 极仍然垂直于纸面向外转动？\n\n  \n图11-17\n\n5. 如图 11-18 所示, $AB$ 是一根通电导线且绕了一个圈, 处于纸面所在的平面上,导线下有一个小磁针, 通电时 N 极指向纸外。试在纸面上画出导线附近 $M 、 P 、 Q$ 处磁感应强度的方向 (用 “•” 或 “×” 表示), 简述判断的理由。\n\n  \n图11-18\n\n  \n图11-19 “华龙一号”核能发电机",
+      "title": "电流的磁场 磁感应强度"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第三节 磁通量 电磁感应现象\n\n电力工业是一个国家经济发展的命脉，2019年，我国发电装机容量已达19亿千瓦。电力的获得依赖于煤炭、水力、风力、核燃料等能源的转换。正是由于物理学家发现了磁场与电场之间的联系，才使得其他形式的能转变成电能成为现实。磁场有何性质？它与电场有何联系呢？\n\n为了进一步研究磁场的性质，以及磁场与电场之间存在的关系，物理学家引入了磁通量的概念。\n\n\n\n## 什么是磁通量？\n\n如图11-20所示，设在磁感应强度为 $B$ 的匀强磁场中，有一个面积为 $S$ 且与磁场方向垂直的平面，磁感应强度 $B$ 与面积 $S$ 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 $\\Phi$ 表示，即\n\n$$\n\\Phi = B S\n$$\n\n[source image omitted from static artifact]  \n图11-20 磁通量\n\n磁通量是标量，如果设定磁感应强度指向右方时穿过这一面积的磁通量为正，那么，磁感应强度指向左方时穿过这一面积的磁通量就为负。\n\n在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 $m^{2}$ ，则\n\n$$\n1 \\mathrm{Wb} = 1 \\mathrm{T} \\cdot \\mathrm{m} ^ {2}\n$$\n\n由 $\\Phi = BS$ 可得 $B = \\frac{\\Phi}{S}$ 。由此可知磁感应强度数值上等于穿过垂直于磁场方向单位面积的磁通量，因此也常把磁感应强度叫做磁通密度。上式虽然得自匀强磁场，同样适用于非匀强磁场的一般情况。由于我们约定磁场较强处磁感线较密集，磁场较弱处磁感线较稀疏，可以看出在给定的磁场中穿过某一面积的磁感线的条数与穿过该面积的磁通量成正比，即磁通量越大，穿过相同面积的磁感线越多。\n\n## 拓展视野\n\n如图 11-21 所示，面积为 S 的平面与匀强磁场方向不垂直。若平面的法线方向与磁场方向的夹角为 $\\theta$ ，则该平面在垂直于磁场方向上的投影面积\n\n$$\nS ^ {\\prime} = S \\cos \\theta\n$$\n\n[source image omitted from static artifact]  \n图11-21 平面与磁场方向不垂直\n\n由图可知，通过平面 S 的磁通量等于通过平面 S 在垂直于磁场方向上的投影区域 $S'$ 的磁通量，即\n\n$$\n\\Phi = B S ^ {\\prime} = B S \\mathrm{cos} \\theta\n$$\n\n奥斯特发现电流磁效应的实验揭示了电现象与磁现象之间的联系。自然界的许多规律都具有对称性，对称性是人类认识自然界的一个重要法则。那么电和磁是否也具有对称性？英国物理学家法拉第（图11-22）就认为电与磁应该是一对和谐的对称现象。\n\n[source image omitted from static artifact]\n\n  \n图11-22 法拉第（M. Faraday，1791—1867）\n\n## 既然电流可以产生磁场，反过来磁场能否产生电流呢？\n\n经过近十年的艰苦探索，1831年，法拉第对此终于有所发现。如图11-23所示，在软铁环的 $A$ 侧接好导线，把 $B$ 侧的线圈接到\n\n灵敏电流计上，再把 A 侧的线圈接到电池组上；当 A 侧电路接通的瞬间，法拉第看到 B 侧灵敏电流计的指针立即明显偏转，这就表明 B 侧的线圈中出现了电流；当 A 侧电路断开时，他又看到指针向相反方向偏转。由于通电线圈产生磁场，法拉第把他发现的这种由磁产生电流的现象正式定名为电磁感应（electromagnetic induction）现象，产生的电流就叫做感应电流（induction current）。\n\n[source image omitted from static artifact]  \n图11-23 法拉第实验示意图\n\n[source image omitted from static artifact]\n\n## 产生感应电流的条件是什么？\n\n除了上述法拉第的实验外，还有什么办法可以产生感应电流？\n\n## 自主活动\n\n准备一根条形磁体，按照如图 11-24 所示先将灵敏电流计和线圈 B 连接组成闭合回路，观察灵敏电流计的指针是否偏转。灵敏电流计的指针发生偏转说明在线圈 B 内产生了感应电流。\n\n按照表 11-2 中的实验操作，将观察到的结果填入表中。\n\n在这一实验中，发现什么情况下能够产生感应电流？线圈 B 内什么物理量发生了变化？\n\n图11-24 研究电磁感应现象实验  \n[source image omitted from static artifact]\n\n按照图 11-25 将灵敏电流计和线圈 B 连接成闭合回路。线圈 A 通过滑动变阻器和开关连接到电源上，组成另一个闭合回路。将线圈 A 插在线圈 B 里面，再将软铁棒插在线圈 A 中。\n\n按照表 11-3 中的实验操作，将观察的实验结果填入表格中。\n\n在这一实验中，发现什么情况下能够产生感应电流？线圈 B 内什么物理量发生了变化？\n\n[source image omitted from static artifact]  \n图11-25 研究电磁感应现象实验\n\n表 11-2 实验现象记录表\n\n<table><tr><td>磁体的动作</td><td>灵敏电流计指针是否偏转</td></tr><tr><td>插入线圈</td><td></td></tr><tr><td>停在线圈中</td><td></td></tr><tr><td>从线圈中抽出</td><td></td></tr></table>\n\n表 11-3 实验现象记录表\n\n<table><tr><td>开关、滑动变阻器的状态</td><td>灵敏电流计指针是否偏转</td></tr><tr><td>开关闭合瞬间</td><td></td></tr><tr><td>开关闭合时,滑动变阻器的滑片静止</td><td></td></tr><tr><td>开关闭合时,滑动变阻器的滑片快速滑动</td><td></td></tr><tr><td>开关断开瞬间</td><td></td></tr></table>\n\n在如图 11-24 所示的实验中，条形磁体插入线圈，线圈中的磁场均由弱变强；条形磁体从线圈中抽出，线圈中的磁场均由强变弱，如图 11-26 所示。这两种情况下，线圈中都产生了感应电流。\n\n在如图 11-25 所示的实验中，开关闭合或断开的瞬间，或者在开关闭合、滑动变阻器的滑动头快速滑动时，线圈 A 中电流都会迅速变化，产生的磁场也迅速变化。由于线圈 A 与线圈 B 套在一起，使线圈 B 中磁场的强弱也迅速变化，如图 11-27 所示，这时，线圈 B 中产生了感应电流。\n\n[source image omitted from static artifact]  \n(a)\n\n  \n(b)\n\n  \n(a)\n\n  \n(b)  \n图11-26 条形磁体插入或者抽出线圈，使线圈内的磁场强弱发生变化  \n图11-27 线圈 $A$ 中电流的变化使线圈 $B$ 中的磁场变化\n\n从上述两个实验还可以发现：无论磁体还是通电线圈，只要能使线圈 B 内的磁场强弱变化，就会在线圈 B 中产生感应电流。\n\n线圈内的磁场强弱发生变化时，是否一定产生感应电流？将一块条形磁体固定在一个特殊圆锥曲面的上端，该圆锥外曲面的形状恰好沿着条形磁体的磁感线（图11-28）。将一根导线两端连接微电流传感器的输入端（或者灵敏电流计）；再将导线环绕在圆锥外曲面的下端。沿曲面拉动导线，使导线沿着圆锥外曲面向上滑动。该导线组成的闭合回路内的磁场变强，但是微电流传感器（或者灵敏电流计）却没有检测到感应电流。\n\n  \n图11-28 沿着特殊圆锥外曲面向上滑动的闭合回路\n\n## 大家谈\n\n为什么线圈内的磁场变强时，却没有产生感应电流呢？\n\n以上实验和其他事实都表明：只要通过闭合导体回路的磁通量发生变化，闭合导体回路中就会产生感应电流。\n\n新中国成立以来，我国电力工业在火力发电、水力发电、风力发电和核能发电等领域都取得了举世瞩目的成就。尤其在核能发电领域，我国自主研发的第三代核电“华龙一号”发电机（图11-19）具有多项设计创新，其安全指标和技术性能都达到了国际三代核电技术的先进水平。但归根结底，无论是火力发电、水力发电、风力发电，还是核电站的发电，都是利用了电磁感应的基本原理。\n\n## 问题②思考\n\n1. 如图 11-29 所示，在匀强磁场中有一个矩形闭合线框，判断在下列情况下线框中是否产生感应电流，并说明理由。\n\n(1) 如图 (a) 所示, 保持线框平面始终与磁感线垂直, 线框在磁场中由上向下运动。\n\n(2) 如图 (b) 所示, 保持线框平面始终与磁感线垂直, 线框在磁场中由左向右运动。\n\n(3) 如图 (c) 所示, 保持线框平面始终与磁感线平行, 线框在磁场中由左向右运动。\n\n(4) 如图 (d) 所示, 线框绕轴线 $O O^{\\prime}$ 转动。\n\n  \n(a)\n\n  \n(b)  \n图11-29\n\n  \n(c)\n\n  \n(d)\n\n2. 如图 11-30 所示，围绕条形磁体中央有两个面积大小不同且处于同一平面内的线圈 $a$ 和 $b$ 。试比较通过的线圈 $a$ 与线圈 $b$ 的磁通量大小，并简述理由。\n\n\n\n3. 甲、乙两同学关于磁通量有不同的看法。甲同学认为：根据磁通量的计算公式 $\\Phi = BS$ ，在匀强磁场中，线圈的面积越大磁通量一定越大；乙同学认为：在非匀强磁场中，线圈的面积越大磁通量越小。试对甲、乙两位同学的看法作出评价。\n\n图11-30\n\n4. 如图 11-31 所示，空间固定一条形磁体，有三个金属环 $a$ 、 $b$ 、 $c$ ，则：\n\n(1) 若圆环 $a$ 由无穷远向右移到靠近条形磁体的 $\\mathbf{N}$ 极, 通过圆环 $a$ 的磁通量如何变化?\n\n\n\n(2) 若圆环 $a$ 由条形磁体的 $\\mathrm{N}$ 极通过条形磁体移到\n\n图11-31\n\nS 极，通过圆环 a 的磁通量如何变化？\n\n(3) 若垂直于地面的圆环 $b$ 从条形磁体的中央位置竖直下落, 通过圆环 $b$ 的磁通量如何变化?\n\n(4) 若在条形磁体附近, 环面平行于地面的圆环 $c$ 从条形磁体右边的位置 1 下降到位置 3 , 通过圆环 $c$ 的磁通量如何变化?\n\n(5) 若在条形磁体附近, 圆环 $c$ 从条形磁体右边的位置 1 , 沿着水平方向移到磁体左边, 通过圆环 $c$ 的磁通量如何变化?\n\n5. 如图 11-32 所示，在无限长的通电直导线附近放置一矩形线圈，与导线处在同一平面内，且线圈中的上下两条边与导线平行。则当线圈做下列三种不同方向的平行移动时，线圈内能否产生感应电流？\n\n  \n图11-32\n\n(1) 线圈平行移动的方向与导线中电流的方向一致。\n\n(2) 线圈平行移动的方向与导线中电流的方向垂直，并保持线圈与导线在同一平面内。\n\n(3) 线圈平行移动的方向垂直于纸面向上。\n\n6. 如图 11-33 所示是研究电磁感应现象实验所需的器材。试用笔画线代替导线，将带有铁芯的线圈 $A$ 、电源、滑动变阻器和开关连接成回路，将灵敏电流计和线圈 $B$ 连接成另一个回路。简述在实验中采用不同的元器件改变线圈 $B$ 回路的磁通量，使回路产生感应电流的四种不同方式。\n\n  \n图11-33\n\n  \n图11-34 中国北斗卫星导航系统示意图",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:11-3-a:source-markdown",
+          "locator": "磁通量 电磁感应现象",
+          "modality": "text",
+          "page_end": 111,
+          "page_start": 106,
+          "properties": {
+            "md_end": 3210,
+            "md_start": 3012,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+            "outline_title": "磁通量 电磁感应现象",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 3210,
+      "md_start": 3012,
+      "modalities": [
+        "equation",
+        "image",
+        "text",
+        "table"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第三节 磁通量 电磁感应现象\n\n电力工业是一个国家经济发展的命脉，2019年，我国发电装机容量已达19亿千瓦。电力的获得依赖于煤炭、水力、风力、核燃料等能源的转换。正是由于物理学家发现了磁场与电场之间的联系，才使得其他形式的能转变成电能成为现实。磁场有何性质？它与电场有何联系呢？\n\n为了进一步研究磁场的性质，以及磁场与电场之间存在的关系，物理学家引入了磁通量的概念。\n\n\n\n## 什么是磁通量？\n\n如图11-20所示，设在磁感应强度为 $B$ 的匀强磁场中，有一个面积为 $S$ 且与磁场方向垂直的平面，磁感应强度 $B$ 与面积 $S$ 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 $\\Phi$ 表示，即\n\n$$\n\\Phi = B S\n$$\n\n[source image omitted from static artifact]  \n图11-20 磁通量\n\n磁通量是标量，如果设定磁感应强度指向右方时穿过这一面积的磁通量为正，那么，磁感应强度指向左方时穿过这一面积的磁通量就为负。\n\n在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 $m^{2}$ ，则\n\n$$\n1 \\mathrm{Wb} = 1 \\mathrm{T} \\cdot \\mathrm{m} ^ {2}\n$$\n\n由 $\\Phi = BS$ 可得 $B = \\frac{\\Phi}{S}$ 。由此可知磁感应强度数值上等于穿过垂直于磁场方向单位面积的磁通量，因此也常把磁感应强度叫做磁通密度。上式虽然得自匀强磁场，同样适用于非匀强磁场的一般情况。由于我们约定磁场较强处磁感线较密集，磁场较弱处磁感线较稀疏，可以看出在给定的磁场中穿过某一面积的磁感线的条数与穿过该面积的磁通量成正比，即磁通量越大，穿过相同面积的磁感线越多。\n\n## 拓展视野\n\n如图 11-21 所示，面积为 S 的平面与匀强磁场方向不垂直。若平面的法线方向与磁场方向的夹角为 $\\theta$ ，则该平面在垂直于磁场方向上的投影面积\n\n$$\nS ^ {\\prime} = S \\cos \\theta\n$$\n\n[source image omitted from static artifact]  \n图11-21 平面与磁场方向不垂直\n\n由图可知，通过平面 S 的磁通量等于通过平面 S 在垂直于磁场方向上的投影区域 $S'$ 的磁通量，即\n\n$$\n\\Phi = B S ^ {\\prime} = B S \\mathrm{cos} \\theta\n$$\n\n奥斯特发现电流磁效应的实验揭示了电现象与磁现象之间的联系。自然界的许多规律都具有对称性，对称性是人类认识自然界的一个重要法则。那么电和磁是否也具有对称性？英国物理学家法拉第（图11-22）就认为电与磁应该是一对和谐的对称现象。\n\n[source image omitted from static artifact]\n\n  \n图11-22 法拉第（M. Faraday，1791—1867）\n\n## 既然电流可以产生磁场，反过来磁场能否产生电流呢？\n\n经过近十年的艰苦探索，1831年，法拉第对此终于有所发现。如图11-23所示，在软铁环的 $A$ 侧接好导线，把 $B$ 侧的线圈接到\n\n灵敏电流计上，再把 A 侧的线圈接到电池组上；当 A 侧电路接通的瞬间，法拉第看到 B 侧灵敏电流计的指针立即明显偏转，这就表明 B 侧的线圈中出现了电流；当 A 侧电路断开时，他又看到指针向相反方向偏转。由于通电线圈产生磁场，法拉第把他发现的这种由磁产生电流的现象正式定名为电磁感应（electromagnetic induction）现象，产生的电流就叫做感应电流（induction current）。\n\n[source image omitted from static artifact]  \n图11-23 法拉第实验示意图\n\n[source image omitted from static artifact]\n\n## 产生感应电流的条件是什么？\n\n除了上述法拉第的实验外，还有什么办法可以产生感应电流？\n\n## 自主活动\n\n准备一根条形磁体，按照如图 11-24 所示先将灵敏电流计和线圈 B 连接组成闭合回路，观察灵敏电流计的指针是否偏转。灵敏电流计的指针发生偏转说明在线圈 B 内产生了感应电流。\n\n按照表 11-2 中的实验操作，将观察到的结果填入表中。\n\n在这一实验中，发现什么情况下能够产生感应电流？线圈 B 内什么物理量发生了变化？\n\n图11-24 研究电磁感应现象实验  \n[source image omitted from static artifact]\n\n按照图 11-25 将灵敏电流计和线圈 B 连接成闭合回路。线圈 A 通过滑动变阻器和开关连接到电源上，组成另一个闭合回路。将线圈 A 插在线圈 B 里面，再将软铁棒插在线圈 A 中。\n\n按照表 11-3 中的实验操作，将观察的实验结果填入表格中。\n\n在这一实验中，发现什么情况下能够产生感应电流？线圈 B 内什么物理量发生了变化？\n\n[source image omitted from static artifact]  \n图11-25 研究电磁感应现象实验\n\n表 11-2 实验现象记录表\n\n<table><tr><td>磁体的动作</td><td>灵敏电流计指针是否偏转</td></tr><tr><td>插入线圈</td><td></td></tr><tr><td>停在线圈中</td><td></td></tr><tr><td>从线圈中抽出</td><td></td></tr></table>\n\n表 11-3 实验现象记录表\n\n<table><tr><td>开关、滑动变阻器的状态</td><td>灵敏电流计指针是否偏转</td></tr><tr><td>开关闭合瞬间</td><td></td></tr><tr><td>开关闭合时,滑动变阻器的滑片静止</td><td></td></tr><tr><td>开关闭合时,滑动变阻器的滑片快速滑动</td><td></td></tr><tr><td>开关断开瞬间</td><td></td></tr></table>\n\n在如图 11-24 所示的实验中，条形磁体插入线圈，线圈中的磁场均由弱变强；条形磁体从线圈中抽出，线圈中的磁场均由强变弱，如图 11-26 所示。这两种情况下，线圈中都产生了感应电流。\n\n在如图 11-25 所示的实验中，开关闭合或断开的瞬间，或者在开关闭合、滑动变阻器的滑动头快速滑动时，线圈 A 中电流都会迅速变化，产生的磁场也迅速变化。由于线圈 A 与线圈 B 套在一起，使线圈 B 中磁场的强弱也迅速变化，如图 11-27 所示，这时，线圈 B 中产生了感应电流。\n\n[source image omitted from static artifact]  \n(a)\n\n  \n(b)\n\n  \n(a)\n\n  \n(b)  \n图11-26 条形磁体插入或者抽出线圈，使线圈内的磁场强弱发生变化  \n图11-27 线圈 $A$ 中电流的变化使线圈 $B$ 中的磁场变化\n\n从上述两个实验还可以发现：无论磁体还是通电线圈，只要能使线圈 B 内的磁场强弱变化，就会在线圈 B 中产生感应电流。\n\n线圈内的磁场强弱发生变化时，是否一定产生感应电流？将一块条形磁体固定在一个特殊圆锥曲面的上端，该圆锥外曲面的形状恰好沿着条形磁体的磁感线（图11-28）。将一根导线两端连接微电流传感器的输入端（或者灵敏电流计）；再将导线环绕在圆锥外曲面的下端。沿曲面拉动导线，使导线沿着圆锥外曲面向上滑动。该导线组成的闭合回路内的磁场变强，但是微电流传感器（或者灵敏电流计）却没有检测到感应电流。\n\n  \n图11-28 沿着特殊圆锥外曲面向上滑动的闭合回路\n\n## 大家谈\n\n为什么线圈内的磁场变强时，却没有产生感应电流呢？\n\n以上实验和其他事实都表明：只要通过闭合导体回路的磁通量发生变化，闭合导体回路中就会产生感应电流。\n\n新中国成立以来，我国电力工业在火力发电、水力发电、风力发电和核能发电等领域都取得了举世瞩目的成就。尤其在核能发电领域，我国自主研发的第三代核电“华龙一号”发电机（图11-19）具有多项设计创新，其安全指标和技术性能都达到了国际三代核电技术的先进水平。但归根结底，无论是火力发电、水力发电、风力发电，还是核电站的发电，都是利用了电磁感应的基本原理。\n\n## 问题②思考\n\n1. 如图 11-29 所示，在匀强磁场中有一个矩形闭合线框，判断在下列情况下线框中是否产生感应电流，并说明理由。\n\n(1) 如图 (a) 所示, 保持线框平面始终与磁感线垂直, 线框在磁场中由上向下运动。\n\n(2) 如图 (b) 所示, 保持线框平面始终与磁感线垂直, 线框在磁场中由左向右运动。\n\n(3) 如图 (c) 所示, 保持线框平面始终与磁感线平行, 线框在磁场中由左向右运动。\n\n(4) 如图 (d) 所示, 线框绕轴线 $O O^{\\prime}$ 转动。\n\n  \n(a)\n\n  \n(b)  \n图11-29\n\n  \n(c)\n\n  \n(d)\n\n2. 如图 11-30 所示，围绕条形磁体中央有两个面积大小不同且处于同一平面内的线圈 $a$ 和 $b$ 。试比较通过的线圈 $a$ 与线圈 $b$ 的磁通量大小，并简述理由。\n\n\n\n3. 甲、乙两同学关于磁通量有不同的看法。甲同学认为：根据磁通量的计算公式 $\\Phi = BS$ ，在匀强磁场中，线圈的面积越大磁通量一定越大；乙同学认为：在非匀强磁场中，线圈的面积越大磁通量越小。试对甲、乙两位同学的看法作出评价。\n\n图11-30\n\n4. 如图 11-31 所示，空间固定一条形磁体，有三个金属环 $a$ 、 $b$ 、 $c$ ，则：\n\n(1) 若圆环 $a$ 由无穷远向右移到靠近条形磁体的 $\\mathbf{N}$ 极, 通过圆环 $a$ 的磁通量如何变化?\n\n\n\n(2) 若圆环 $a$ 由条形磁体的 $\\mathrm{N}$ 极通过条形磁体移到\n\n图11-31\n\nS 极，通过圆环 a 的磁通量如何变化？\n\n(3) 若垂直于地面的圆环 $b$ 从条形磁体的中央位置竖直下落, 通过圆环 $b$ 的磁通量如何变化?\n\n(4) 若在条形磁体附近, 环面平行于地面的圆环 $c$ 从条形磁体右边的位置 1 下降到位置 3 , 通过圆环 $c$ 的磁通量如何变化?\n\n(5) 若在条形磁体附近, 圆环 $c$ 从条形磁体右边的位置 1 , 沿着水平方向移到磁体左边, 通过圆环 $c$ 的磁通量如何变化?\n\n5. 如图 11-32 所示，在无限长的通电直导线附近放置一矩形线圈，与导线处在同一平面内，且线圈中的上下两条边与导线平行。则当线圈做下列三种不同方向的平行移动时，线圈内能否产生感应电流？\n\n  \n图11-32\n\n(1) 线圈平行移动的方向与导线中电流的方向一致。\n\n(2) 线圈平行移动的方向与导线中电流的方向垂直，并保持线圈与导线在同一平面内。\n\n(3) 线圈平行移动的方向垂直于纸面向上。\n\n6. 如图 11-33 所示是研究电磁感应现象实验所需的器材。试用笔画线代替导线，将带有铁芯的线圈 $A$ 、电源、滑动变阻器和开关连接成回路，将灵敏电流计和线圈 $B$ 连接成另一个回路。简述在实验中采用不同的元器件改变线圈 $B$ 回路的磁通量，使回路产生感应电流的四种不同方式。\n\n  \n图11-33\n\n  \n图11-34 中国北斗卫星导航系统示意图",
+      "title": "磁通量 电磁感应现象"
+    }
+  ]
+}

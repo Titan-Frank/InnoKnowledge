@@ -1,0 +1,2259 @@
+{
+  "body": {
+    "content": "## 定义\n电阻（resistance）是一个物理量，表示导体对电流阻碍作用的大小，通常用字母 $R$ 表示[evidence:auto-98d877898557]。电阻是导体本身的一种特性[evidence:auto-98d877898557]。电阻的数值越大，表示该导体对电流的阻碍作用越强[evidence:auto-0cd860c77e8d]。\n\n## 核心解释\n不同的导体，其电阻大小一般不同[evidence:auto-98d877898557]。例如，将形状相同的细铁丝换成细铜丝，测得的电阻值就会发生变化[evidence:auto-0cd860c77e8d]。此外，同一根导体的电阻也会因其几何形状的改变而不同，如将细铁丝对折头尾相连后再接入电路，其电阻值与直接接入时相比会发生改变[evidence:auto-0cd860c77e8d]。这说明电阻不仅与导体的材料有关，还与其长度和横截面积等尺寸因素密切相关。\n\n## 影响因素与电阻定律\n导体电阻的定量关系遵循电阻定律（law of resistance），其表达式为 $R = \\rho \\frac{L}{S}$[evidence:auto-08e498f532d9]。式中，$L$ 代表导体的长度，$S$ 代表导体的横截面积，$\\rho$ 称为材料的电阻率（resistivity）[evidence:auto-09af29bb1742]。\n电阻率的单位是欧姆·米（$\\Omega\\cdot m$）[evidence:auto-09af29bb1742]。不同材料的电阻率 $\\rho$ 各不相同，该数值由导体自身的材料性质决定，直观反映了材料的导电性能[evidence:auto-32bf1c0d13f0]。在温度保持一定的前提下，对于同一种材料而言，其电阻率 $\\rho$ 为定值[evidence:auto-09af29bb1742]。因此，在实际计算导体的电阻 $R$ 时，必须明确该导体的电阻率 $\\rho$、长度 $L$ 以及横截面积 $S$[evidence:auto-08e498f532d9]。\n\n## 实验探究方法\n在探究导体电阻与横截面积之间的关系时，通常采用控制变量法。实验过程中，选取材料及长度相同、但横截面积不同的电阻丝，分别接入电路的指定两端[evidence:auto-34109df72a15]。通过记录电压表和电流表的示数，可以计算出各电阻丝的阻值 $R$[evidence:auto-34109df72a15]。随后，绘制电阻丝阻值 $R$ 与横截面积 $S$ 的 $R-S$ 图像，即可直观判断导体电阻与横截面积之间的变化规律[evidence:auto-34109df72a15]。\n\n## 关键要点\n- 电阻是导体本身的固有属性，用于量化其对电流的阻碍作用，符号为 $R$[evidence:auto-98d877898557]。\n- 电阻定律 $R = \\rho \\frac{L}{S}$ 揭示了电阻与材料电阻率、长度及横截面积的定量关系[evidence:auto-08e498f532d9]。\n- 电阻率 $\\rho$ 由材料性质决定，反映导电性能，在温度一定时同种材料的 $\\rho$ 不变[evidence:auto-32bf1c0d13f0]。\n- 实验测定电阻常采用伏安法，并通过控制变量法与图像法分析电阻与几何尺寸的关系[evidence:auto-34109df72a15]。\n\n## 定义\n电阻（resistance，亦称导体电阻）是指导体中自由电子在定向运动时，与晶体点阵上的原子实发生碰撞，从而对电子流动形成的阻碍作用[evidence:auto-f4c47bb65bd3]。\n\n## 核心解释\n电阻的微观成因在于自由电子与晶格原子实之间的频繁碰撞[evidence:auto-f4c47bb65bd3]。在外部电场驱动下，电子试图做定向移动，但碰撞过程不断消耗电子的动能，形成对电流的阻碍。这种阻碍作用限制了电荷在一定电压下的无限流动，同时伴随着能量形式的转化：电场能因碰撞转化为晶格的内能，宏观上直接表现为电阻元件在通电过程中的发热现象[evidence:auto-f4c47bb65bd3]。\n\n## 关键要点\n- **阻碍特性**：电阻的核心物理意义是对电荷定向运动的限制，它决定了电路中外加电压与电流之间的关系边界。\n- **能量转化**：电阻不仅是电流的“通道限制器”，更是电能向内能（热能）转化的关键机制。\n- **等效化简**：在分析复杂电路时，多个电阻的组合可以通过等效替代的方法化简为单一电阻或简单电路结构，从而简化计算流程[evidence:auto-3c4211d168f5]。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "property/electrical_quantity:auto-f621655c976e",
+    "properties": {
+      "card_title": "电阻",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-98d877898557",
+      "evidence:auto-0cd860c77e8d",
+      "evidence:auto-08e498f532d9",
+      "evidence:auto-09af29bb1742",
+      "evidence:auto-32bf1c0d13f0",
+      "evidence:auto-34109df72a15",
+      "evidence:auto-f4c47bb65bd3",
+      "evidence:auto-3c4211d168f5"
+    ],
+    "status": "active",
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:44:35+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-42bbd44fe5fe",
+    "mention_refs": [],
+    "node_id": "property/electrical_quantity:auto-f621655c976e",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "自由电子与晶体点阵上的原子实碰撞，对电子定向运动形成的阻碍作用。也是电阻元件通电时发热的原因。",
+          "表示导体对电流阻碍作用大小的物理量，是导体本身的一种特性。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-f99502022ae4",
+          "evidence:auto-98d877898557"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "自由电子与晶体点阵上的原子实碰撞，对电子定向运动形成的阻碍作用。也是电阻元件通电时发热的原因。",
+          "表示导体对电流阻碍作用大小的物理量，是导体本身的一种特性。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-f99502022ae4",
+          "evidence:auto-98d877898557"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "自由电子与晶体点阵上的原子实碰撞，对电子定向运动形成的阻碍作用。也是电阻元件通电时发热的原因。",
+          "表示导体对电流阻碍作用大小的物理量，是导体本身的一种特性。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-f99502022ae4",
+          "evidence:auto-98d877898557"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "电阻"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-f99502022ae4",
+          "evidence:auto-98d877898557"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "简单串联、并联组合电路",
+          "电阻定律"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-f99502022ae4",
+          "evidence:auto-98d877898557"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-f99502022ae4",
+          "evidence:auto-98d877898557"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-f99502022ae4",
+      "evidence:auto-98d877898557"
+    ],
+    "status": "active",
+    "summary": "自由电子与晶体点阵上的原子实碰撞，对电子定向运动形成的阻碍作用。也是电阻元件通电时发热的原因。\n\n表示导体对电流阻碍作用大小的物理量，是导体本身的一种特性。",
+    "title": "电阻",
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "completeness": {
+    "passed": 8,
+    "score": 89,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点缺少 semantic_core 语义骨架。",
+        "passed": false,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-69c52f9bc8d6",
+      "node_id": "property/electrical_quantity:auto-f621655c976e",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "任务1（对应目标1）：绘制电子在导体晶格中定向移动的受力与碰撞示意图，并标注动能转化为内能的能量流向。",
+              "任务2（对应目标2）：提供同一导体在不同电压下的U-I数据表，要求学生计算各次电阻值，并撰写一段论证说明该特性不随外加条件改变。",
+              "任务3（对应目标3）：给出一个由两个电阻并联后与第三个电阻串联的组合电路图，要求画出等效电路图并推导总电阻表达式。"
+            ],
+            "common_errors": [
+              "误将欧姆定律变形公式 R=U/I 视为电阻的决定式，认为电阻与电压成正比、与电流成反比。",
+              "混淆宏观物理量的定义与微观产生机制，无法将‘电子碰撞阻碍’与‘电能转化为内能（发热）’建立因果联系。",
+              "在处理组合电路时，错误记忆并联等效公式（如误用串联相加形式），或无法正确识别电路的分步等效结构。"
+            ],
+            "diagnostic_questions": [
+              "为什么物理学中将电阻定义为导体本身的特性，而不是由通过的电流或两端电压决定？",
+              "从微观角度看，自由电子与晶体点阵原子实的碰撞如何同时解释‘阻碍电流’和‘元件发热’两个现象？",
+              "在并联电路中添加新的支路电阻时，电路的总等效电阻会发生怎样的变化？为什么？"
+            ],
+            "difficulty_level": "intermediate",
+            "extension_suggestions": [
+              "引导学生将电阻的微观碰撞模型与温度对导体电阻的影响建立关联，探讨晶格热振动加剧如何增加碰撞频率。",
+              "结合电阻定律的表示关系，让学生从材料属性（电阻率）与几何尺寸两个维度，深化对‘导体本身特性’的理解。",
+              "鼓励学生分析实际电阻器（如滑动变阻器）的结构，说明其如何通过改变接入电路的导体长度来调节电阻值。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T10:39:11+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "f35b07613dbbfbcd9a160c3467bc2105c0380396a8fb125881f954d0f7ae33e6",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-98d877898557",
+                "evidence:auto-f4c47bb65bd3",
+                "evidence:auto-0bc03c8cda44"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能够结合微观机制（自由电子与原子实碰撞）口头或书面解释电阻的产生原因及通电发热现象。",
+              "能够通过分析实验数据或给定条件，准确判断电阻是导体本身的特性，并说明其与电压、电流大小无关。",
+              "能够识别简单串并联电路结构，并运用等效电阻替换方法完成电路分析与计算。"
+            ],
+            "remediation_suggestions": [
+              "采用‘宏观现象-微观模型’双线并进策略：先通过伏安法实验数据确立电阻的‘本身特性’，再引入教材插图与证据原文中的碰撞模型，打通微观机制。",
+              "设置对比辨析活动：提供金属导体与绝缘体的微观结构简图，引导学生讨论晶格排列与自由电子密度对碰撞频率的影响，强化概念边界。",
+              "利用组合电路例题（如证据中的R1、R2并联再与R3串联），指导学生执行‘局部等效→整体还原’的分析步骤，避免死记硬背复杂公式。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-0bc03c8cda44",
+        "evidence:auto-98d877898557",
+        "evidence:auto-f4c47bb65bd3",
+        "evidence:auto-f99502022ae4"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:39:11+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "\\frac {1}{R ^ {\\prime}} & = \\frac {1}{R _ {1}} + \\frac {1}{R _ {2}} \\\\ R ^ {\\prime} & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}}",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-0bc03c8cda44",
+      "locator": "line:80-82",
+      "modality": "equation",
+      "normalized_claims": [
+        "\\frac {1}{R ^ {\\prime}} & = \\frac {1}{R _ {1}} + \\frac {1}{R _ {2}} \\\\ R ^ {\\prime} & = \\frac {R _ {1} R _ {2}}{R _ {1}"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "表 10-1 常见电路元器件的名称及符号 ... 电源 ... 电阻器 ... 电容器 ... 开关 ... 滑动变阻器 ...",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-1cfffd605767",
+      "locator": "line:13-20",
+      "modality": "text",
+      "normalized_claims": [
+        "表 10-1 常见电路元器件的名称及符号 ... 电源 ... 电阻器 ... 电容器 ... 开关 ... 滑动变阻器 ..."
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/bedd860c67b411a0aaeed2f5a0be308d559fc8b002eb65a080ebccd058b123c5.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-21116f73fa76",
+      "locator": "line:11",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/bedd860c67b411a0aaeed2f5a0be308d559fc8b002eb65a080ebccd058b123c5.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 351,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/bedd860c67b411a0aaeed2f5a0be308d559fc8b002eb65a080ebccd058b123c5.jpg",
+          "reason": "图片内容与前文描述完全一致。前文明确指出“如图 10-2 所示是一些常见的电路元器件，自左至右依次为小型电动机、电感器、电容器、电阻器、三极管和二极管”，这正是图片展示的六个实物。后文紧接着是“图10-2 常见的电路元器件”的标题及元器件符号表。该图片是教材本章节（小结/常见的电路元器件有哪些？）的核心展示材料，用于直观呈现知识点。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了六个电子元件的实物照片，从左至右依次为：一个带轴的红黑线小型直流电动机、一个绕有铜线的环形电感器、一个橙色的圆盘形电容器、一个带有色环的圆柱形电阻器、一个黑色三引脚的三极管以及一个黑色带银色环的二极管。",
+          "width": 790
+        },
+        "path": "images/bedd860c67b411a0aaeed2f5a0be308d559fc8b002eb65a080ebccd058b123c5.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "分析：这个组合电路为 $R_{1}$ 与 $R_{2}$ 并联后再与 $R_{3}$ 串联。将 $R_{1}$ 、 $R_{2}$ 按照并联关系等效为电阻 $R'$ ，则原电路可等效为如图 10-7 所示的 $R'$ 与 $R_{3}$ 的串联电路，这样就可以求解电路的总阻值了。可先将原电路等效为如图 10-7 所示的串联电路，然后再根据串并联电路特点逐步还原求解。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-21cba1be7722",
+      "locator": "line:76",
+      "modality": "equation",
+      "normalized_claims": [
+        "分析：这个组合电路为 $R_{1}$ 与 $R_{2}$ 并联后再与 $R_{3}$ 串联。将 $R_{1}$ 、 $R_{2}$ 按照并联关系等效为电阻 $R'$ ，则原电路可等效为如图 10-7 所示的 $R'$ 与 $R_{3}$ 的"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/2a7e6a7912e4ad91c6ce169f9d08d45171620b6b4930675932ddac4f53acd358.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-2c8496a90127",
+      "locator": "line:20",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/2a7e6a7912e4ad91c6ce169f9d08d45171620b6b4930675932ddac4f53acd358.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 290,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/2a7e6a7912e4ad91c6ce169f9d08d45171620b6b4930675932ddac4f53acd358.jpg",
+          "reason": "图片内容直接展示了前文表格中列出的‘电源’、‘开关’、‘电灯’等电路元器件的实物形态，并呈现了它们组成的基本电路结构。这与标题‘常见的电路元器件有哪些’以及后文‘图10-3 简单电路’紧密对应，是物理教学中展示电路实物结构的核心素材。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个由电池盒（作为电源）、一个单刀单掷开关（闸刀开关，处于断开状态）和一个带底座的小灯泡（用电器）通过蓝色导线串联连接而成的实物电路。",
+          "width": 554
+        },
+        "path": "images/2a7e6a7912e4ad91c6ce169f9d08d45171620b6b4930675932ddac4f53acd358.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "等效电路是将一个复杂的组合电路通过电阻等效等方法，化简成具有与原电路功能相同的简单电路。...“等效”的目的是为了在电路分析时，通过等效替代，简化分析过程。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-3c4211d168f5",
+      "locator": "line:96-98",
+      "modality": "text",
+      "normalized_claims": [
+        "等效电路是将一个复杂的组合电路通过电阻等效等方法，化简成具有与原电路功能相同的简单电路。...“等效”的目的是为了在电路分析时，通过等效替代，简化分析过程。"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "在国际单位制中，电流的单位是安培，简称安，符号为 A。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-444c5ffdc267",
+      "locator": "line:40",
+      "modality": "text",
+      "normalized_claims": [
+        "在国际单位制中，电流的单位是安培，简称安，符号为 A。"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\begin{array}{r l} R _ {\\text {总}} & = R ^ {\\prime} + R _ {3} \\\\ & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} + R _ {3} \\\\ & = \\left(\\frac {2 0 \\times 3 0}{2 0 + 3 0} + 8\\right) \\Omega \\\\ & = 2 0 \\Omega \\end{array}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-4e0e32f3e564",
+      "locator": "line:90",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\begin{array}{r l} R _ {\\text {总}} & = R ^ {\\prime} + R _ {3} \\\\ & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} + R _"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "闭合开关后，由欧姆定律得，电路中的总电流，即流过 $R_{3}$ 的电流",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-4e3c12eb05d6",
+      "locator": "line:98",
+      "modality": "equation",
+      "normalized_claims": [
+        "闭合开关后，由欧姆定律得，电路中的总电流，即流过 $R_{3}$ 的电流"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nI _ {3} = I = \\frac {U}{R _ {\\text {总}}} = \\frac {2 0}{2 0} \\mathrm{A} = 1 \\mathrm{A}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-7833d0f684a5",
+      "locator": "line:102",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nI _ {3} = I = \\frac {U}{R _ {\\text {总}}} = \\frac {2 0}{2 0} \\mathrm{A} = 1 \\mathrm{A}\n$$"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/29754a0e39c46328beaf812ce8965a7da06bf4895499638a2f2ccc493eb6cabf.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-7f135fdfdb59",
+      "locator": "line:32",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/29754a0e39c46328beaf812ce8965a7da06bf4895499638a2f2ccc493eb6cabf.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 223,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/29754a0e39c46328beaf812ce8965a7da06bf4895499638a2f2ccc493eb6cabf.jpg",
+          "reason": "该图片直接对应后文中的'图10-5 存在电场时导体中电子的运动'。它直观地展示了电流形成的微观物理模型：在电场E的作用下，自由电子在热运动（黑色箭头）的基础上叠加了逆电场方向的漂移运动（红色箭头），从而形成宏观电流I。这是解释'电流是如何形成的'这一核心概念的关键图示，属于直接表达物理模型和机制的内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个圆柱形导体的微观模型。内部有排列整齐的大蓝色球体（带正号，代表原子实/正离子）。分布着许多小灰色球体（带负号，代表自由电子）。电子的运动状态通过两种箭头表示：黑色的杂乱箭头代表无规则热运动，红色的较小箭头代表定向的漂移速度。左侧有一个向左的大箭头标记为E（电场），下方有一个向右的大箭头标记为I（电流）。",
+          "width": 482
+        },
+        "path": "images/29754a0e39c46328beaf812ce8965a7da06bf4895499638a2f2ccc493eb6cabf.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/8fecf2c5af3f438785beab0c4735e3279d3a1686488cd3312e06204ad983a951.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-852e3c4cc23e",
+      "locator": "line:29",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/8fecf2c5af3f438785beab0c4735e3279d3a1686488cd3312e06204ad983a951.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 195,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/8fecf2c5af3f438785beab0c4735e3279d3a1686488cd3312e06204ad983a951.jpg",
+          "reason": "图片内容与上下文高度对应。前文详细描述了金属导体中存在“原子实”和“自由电子”，且自由电子做“无规则热运动”。后文紧接着给出了图注“图10-4 导体中自由电子的热运动”。该图片作为核心概念模型，直接展示了电流形成前的微观状态（无规则热运动），是解释“电流是如何形成的”这一节的关键知识证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了金属导体的微观结构模型。图中包含规则排列的带正电的蓝色球体，标注为“原子实”；以及散布其中、带有指向不同方向箭头的带负电小球，标注为“自由电子”，直观表现了电子的无规则运动。",
+          "width": 548
+        },
+        "path": "images/8fecf2c5af3f438785beab0c4735e3279d3a1686488cd3312e06204ad983a951.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "解： $R_{1}$ 与 $R_{2}$ 并联，则 $R_{1}$ 、 $R_{2}$ 与等效电阻 $R'$ 之间的关系为",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-938f208d93e0",
+      "locator": "line:78",
+      "modality": "equation",
+      "normalized_claims": [
+        "解： $R_{1}$ 与 $R_{2}$ 并联，则 $R_{1}$ 、 $R_{2}$ 与等效电阻 $R'$ 之间的关系为"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nI = \\frac {Q}{t}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-9ca28175a30a",
+      "locator": "line:42",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nI = \\frac {Q}{t}\n$$"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "设流过电阻 $R_{1}$ 的电流为 $I_{1}$ ，流过电阻 $R_{2}$ 的电流为 $I_{2}$ ，由于 $R_{1}$ 与 $R_{2}$ 并联，有 \\frac {I _ {1}}{I _ {2}} = \\frac {R _ {2}}{R _ {1}} ... I _ {1} + I _ {2} = I",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a57e320aa5c8",
+      "locator": "line:106-108",
+      "modality": "equation",
+      "normalized_claims": [
+        "设流过电阻 $R_{1}$ 的电流为 $I_{1}$ ，流过电阻 $R_{2}$ 的电流为 $I_{2}$ ，由于 $R_{1}$ 与 $R_{2}$ 并联，有 \\frac {I _ {1}}{I _ {2}} = \\frac {R _ {"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "示例 把阻值分别为 $R_{1}=20\\ \\Omega$ 、 $R_{2}=30\\ \\Omega$ 、 $R_{3}=8\\ \\Omega$ 的三个电阻连接成如图 10-6 所示的组合电路，电路的总阻值为多少？若电源电压 U=20 V，则闭合开关后，流过每个电阻的电流大小分别为多少？",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c17948d9d202",
+      "locator": "line:68",
+      "modality": "equation",
+      "normalized_claims": [
+        "示例 把阻值分别为 $R_{1}=20\\ \\Omega$ 、 $R_{2}=30\\ \\Omega$ 、 $R_{3}=8\\ \\Omega$ 的三个电阻连接成如图 10-6 所示的组合电路，电路的总阻值为多少？若电源电压 U=20 V，则闭合"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/71ed33ddd577c11b033f20bc55b3949a612f2449fffd7d7a57d4666179fc02ae.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-cc72adcd3c4b",
+      "locator": "line:62",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/71ed33ddd577c11b033f20bc55b3949a612f2449fffd7d7a57d4666179fc02ae.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 56,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/71ed33ddd577c11b033f20bc55b3949a612f2449fffd7d7a57d4666179fc02ae.jpg",
+          "reason": "该图片是一个问号图标，通常用于教材中的“思考”、“问题”或“拓展视野”栏目。结合标题路径中的“拓展视野”以及前文关于电阻微观解释的内容，该图标很可能作为栏目标识或引导读者思考的提示。根据核心规则，图片内容与标题/栏目形成对应，属于辅助说明性质的 supporting 证据。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片显示一个紫色的圆形图标，中间包含一个白色的问号。",
+          "width": 62
+        },
+        "path": "images/71ed33ddd577c11b033f20bc55b3949a612f2449fffd7d7a57d4666179fc02ae.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\begin{array}{r l} \\frac {1}{R ^ {\\prime}} & = \\frac {1}{R _ {1}} + \\frac {1}{R _ {2}} \\\\ R ^ {\\prime} & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} \\end{array}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-cdff9d35f6dd",
+      "locator": "line:84",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\begin{array}{r l} \\frac {1}{R ^ {\\prime}} & = \\frac {1}{R _ {1}} + \\frac {1}{R _ {2}} \\\\ R ^ {\\prime} & = \\frac {R _"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "电流方向上的两点间存在电势差，这个电势差就是电路中这两点间的电压（voltage）。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-d51a1f657510",
+      "locator": "line:48-50",
+      "modality": "text",
+      "normalized_claims": [
+        "电流方向上的两点间存在电势差，这个电势差就是电路中这两点间的电压（voltage）。"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/79e712b1fa72ee7fd63f13637934516e4ad2318f96365608b7c0110b1d377f6f.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e067ee795374",
+      "locator": "line:73",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/79e712b1fa72ee7fd63f13637934516e4ad2318f96365608b7c0110b1d377f6f.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 245,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/79e712b1fa72ee7fd63f13637934516e4ad2318f96365608b7c0110b1d377f6f.jpg",
+          "reason": "该图片是教材中示例题（图10-6）的后续分析图（图10-7），展示了将复杂的串并联组合电路（R1与R2并联后再与R3串联）等效简化为R'与R3串联的过程。根据规则，属于“例题配图”或“过程片段”，用于辅助说明解题思路，因此保留为supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张电路示意图，显示了一个简单的串联电路，包含电源E、开关S以及两个串联的电阻R'和R3。",
+          "width": 326
+        },
+        "path": "images/79e712b1fa72ee7fd63f13637934516e4ad2318f96365608b7c0110b1d377f6f.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "一般情况下，金属导体中的自由电子大约以 $10^{5} \\mathrm{~m} / \\mathrm{s}$ 的速率做永不停息的无规则热运动...若导体中存在电场，在电场力的作用下，导体中的自由电子获得与电场方向相反的加速度...最终获得沿加速度方向一定的速度，这一速度称为漂移速度...便形成了和电场方向相同的电流。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e13893873253",
+      "locator": "line:25-35",
+      "modality": "text",
+      "normalized_claims": [
+        "一般情况下，金属导体中的自由电子大约以 $10^{5} \\mathrm{~m} / \\mathrm{s}$ 的速率做永不停息的无规则热运动...若导体中存在电场，在电场力的作用下，导体中的自由电子获得与电场方向相反的加速度...最终获得沿加"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "将用电器同时采用串联和并联的方式组合起来形成的电路叫做串联、并联组合电路。实际生活中大部分电路都是采用串联、并联组合电路的方式连接的。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e87b0f7b0246",
+      "locator": "line:62-64",
+      "modality": "text",
+      "normalized_claims": [
+        "将用电器同时采用串联和并联的方式组合起来形成的电路叫做串联、并联组合电路。实际生活中大部分电路都是采用串联、并联组合电路的方式连接的。"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "为了简单起见，我们以金属导体为例讨论。如图 10-4 所示，在金属导体中，有“固定”在晶体结构点阵上失去电子的原子，我们把它称为原子实。还有大量的自由电子，这些电子是金属导体内的自由电荷。一般情况下，金属导体中的自由电子大约以 $10^{5} \\mathrm{~m} / \\mathrm{s}$ 的速率做永不停息的无规则热运动，做热运动的自由电子向各个方向运动的机会均等，从宏观上看，不会形成电流。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ebd9077a63c3",
+      "locator": "line:27",
+      "modality": "equation",
+      "normalized_claims": [
+        "为了简单起见，我们以金属导体为例讨论。如图 10-4 所示，在金属导体中，有“固定”在晶体结构点阵上失去电子的原子，我们把它称为原子实。还有大量的自由电子，这些电子是金属导体内的自由电荷。一般情况下，金属导体中的自由电子大约以 $10^{5"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "又 $R'$ 与 $R_{3}$ 串联，因此电路中总电阻 ... R _ {\\text {总}} & = R ^ {\\prime} + R _ {3}",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ed5839a71a21",
+      "locator": "line:86-88",
+      "modality": "equation",
+      "normalized_claims": [
+        "又 $R'$ 与 $R_{3}$ 串联，因此电路中总电阻 ... R _ {\\text {总}} & = R ^ {\\prime} + R _ {3}"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "集成电路是一种微型电子器件或部件。采用一定的工艺，把一个电路中所需的晶体管、电阻、电容等元件及布线互连在一起，制作在一小块或几小块半导体晶片或介质基片上...具有重量轻、体积小、性能好和能耗小等多项明显优势。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f058d57e368c",
+      "locator": "line:116-118",
+      "modality": "text",
+      "normalized_claims": [
+        "集成电路是一种微型电子器件或部件。采用一定的工艺，把一个电路中所需的晶体管、电阻、电容等元件及布线互连在一起，制作在一小块或几小块半导体晶片或介质基片上...具有重量轻、体积小、性能好和能耗小等多项明显优势。"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/5e052bc2a6d3607118b2dc248e6ad7fa88e480bedba59548b8cd7ebf0f0cbda1.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f4096fff7938",
+      "locator": "line:70",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/5e052bc2a6d3607118b2dc248e6ad7fa88e480bedba59548b8cd7ebf0f0cbda1.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 276,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/5e052bc2a6d3607118b2dc248e6ad7fa88e480bedba59548b8cd7ebf0f0cbda1.jpg",
+          "reason": "图片是教材中‘示例’部分所引用的‘图10-6’。它直观地展示了题目中描述的三个电阻（R1、R2、R3）的连接方式：R1与R2并联后再与R3串联。这与后文的‘图10-6 组合电路图’标题及分析文字完全对应，是理解例题和串并联组合电路概念的核心证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "这是一个电路图，包含电源E、开关S以及三个电阻R1、R2、R3。电路结构显示电阻R1和R2并联连接，然后这一并联部分与电阻R3串联。",
+          "width": 332
+        },
+        "path": "images/5e052bc2a6d3607118b2dc248e6ad7fa88e480bedba59548b8cd7ebf0f0cbda1.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "自由电子与晶体点阵上的原子实碰撞，形成对电子定向运动的阻碍作用，这就是“电阻”产生的原因，也是电阻元件在通电时发热的原因。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f4c47bb65bd3",
+      "locator": "line:56-58",
+      "modality": "text",
+      "normalized_claims": [
+        "自由电子与晶体点阵上的原子实碰撞，形成对电子定向运动的阻碍作用，这就是“电阻”产生的原因，也是电阻元件在通电时发热的原因。"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "物理学中规定，通过导体某一横截面的电荷量 Q 与所用时间 t 之比称为电流（electric current），用符号 I 表示，即 I = Q/t",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f99502022ae4",
+      "locator": "line:36-38",
+      "modality": "text",
+      "normalized_claims": [
+        "物理学中规定，通过导体某一横截面的电荷量 Q 与所用时间 t 之比称为电流（electric current），用符号 I 表示，即 I = Q/t"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "又 $R'$ 与 $R_{3}$ 串联，因此电路中总电阻",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-fdbb2e631ff2",
+      "locator": "line:86",
+      "modality": "equation",
+      "normalized_claims": [
+        "又 $R'$ 与 $R_{3}$ 串联，因此电路中总电阻"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "分析：由电阻定律公式 $R = \\rho \\frac{L}{S}$ 可知，若求铁丝的电阻 $R$ ，必须知道铁丝的电阻率 $\\rho$ 、长度 $L$ 和横截面积 $S$ 。其中 $\\rho$ 可以由表10-2查得， $L$ 已知， $S$ 则要通过铁丝的质量 $m$ 、密度 $D$ 和长度 $L$ 来求得。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-08e498f532d9",
+      "locator": "line:49",
+      "modality": "equation",
+      "normalized_claims": [
+        "分析：由电阻定律公式 $R = \\rho \\frac{L}{S}$ 可知，若求铁丝的电阻 $R$ ，必须知道铁丝的电阻率 $\\rho$ 、长度 $L$ 和横截面积 $S$ 。其中 $\\rho$ 可以由表10-2查得， $L$ 已知， $S$"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "这就是电阻定律（law of resistance）。式中 $\\rho$ 叫做材料的电阻率（resistivity），电阻率的单位是欧姆·米，符号为 $\\Omega\\cdot m$ 。不同材料的电阻率 $\\rho$ 是不同的，它的数值是由导体的材料性质所决定的，反映了材料的导电性能。在一定的温度下，对同一种材料而言， $\\rho$ 不变。如表 10-2 所示为一些常见导体材料在温度为 $20^{\\circ}C$ 时的电阻率。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-09af29bb1742",
+      "locator": "line:41",
+      "modality": "equation",
+      "normalized_claims": [
+        "这就是电阻定律（law of resistance）。式中 $\\rho$ 叫做材料的电阻率（resistivity），电阻率的单位是欧姆·米，符号为 $\\Omega\\cdot m$ 。不同材料的电阻率 $\\rho$ 是不同的，它的数值是由导"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图10-13所示，在用伏安法测一根细铁丝的电阻时，我们发现，将其两端直接接入电路和将铁丝对折头尾相连再接入电路，两次测得的电阻值不同。若将细铁丝换成形状相同的细铜丝，测得铜丝的电阻值与铁丝的也不同。我们知道，电阻（resistance）是一个物理量，表示导体对电流阻碍作用的大小，通常用 $R$ 表示；电阻是导体本身的一种特性，不同的导体，电阻大小一般不同；电阻越大，表示导体对电流的阻碍作用越大。同样的铁丝为什么两次测量的电阻值不同呢？相同形状的铁丝与铜丝的电阻值为什么又不同呢？",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-0cd860c77e8d",
+      "locator": "line:3",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图10-13所示，在用伏安法测一根细铁丝的电阻时，我们发现，将其两端直接接入电路和将铁丝对折头尾相连再接入电路，两次测得的电阻值不同。若将细铁丝换成形状相同的细铜丝，测得铜丝的电阻值与铁丝的也不同。我们知道，电阻（resistance）是"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/b26cb5a8262e7579ef787243b9adbfe3e59901895977d2f3d74a2c093ca1cabb.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-1f41c078fe32",
+      "locator": "line:20",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/b26cb5a8262e7579ef787243b9adbfe3e59901895977d2f3d74a2c093ca1cabb.jpg)"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 276,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/b26cb5a8262e7579ef787243b9adbfe3e59901895977d2f3d74a2c093ca1cabb.jpg",
+          "reason": "图片内容与上下文高度对应。前文详细描述了实验步骤：'采用粗细均匀的长金属电阻丝，按如图10-14所示的电路连接。不断改变导线与电阻丝的接触点 A 的位置...'，这正是图中展示的电路结构（通过移动A改变接入电路的电阻丝长度）。后文紧接着给出了图片标题'图10-14 研究金属导体电阻与长度的关系'。该图直接展示了研究电阻与长度关系的实验装置（伏安法测电阻），属于核心实验内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张物理实验电路图。电路包含电源E、开关S、定值电阻R0、电流表A和电压表V。主要部分是一根水平放置的长金属电阻丝，其左端与电源负极（经过R0）相连，右端未接入主回路但通过一个可移动的接触点A接入电路。电压表并联在电阻丝左端与接触点A之间，电流表串联在接触点A之后的支路中。",
+          "width": 456
+        },
+        "path": "images/b26cb5a8262e7579ef787243b9adbfe3e59901895977d2f3d74a2c093ca1cabb.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "式中 $\\rho$ 叫做材料的电阻率（resistivity），电阻率的单位是欧姆·米... 不同材料的电阻率 $\\rho$ 是不同的，它的数值是由导体的材料性质所决定的，反映了材料的导电性能。在一定的温度下，对同一种材料而言， $\\rho$ 不变",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-32bf1c0d13f0",
+      "locator": "line:41-45",
+      "modality": "text",
+      "normalized_claims": [
+        "式中 $\\rho$ 叫做材料的电阻率（resistivity），电阻率的单位是欧姆·米... 不同材料的电阻率 $\\rho$ 是不同的，它的数值是由导体的材料性质所决定的，反映了材料的导电性能。在一定的温度下，对同一种材料而言， $\\rho"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "采用材料及长度相同、横截面积不同的电阻丝，分别接入如图10-15所示的电路 $a$ 、 $b$ 两端。记录电压表及电流表的示数，计算出电阻丝阻值 $R$ ，绘制电阻丝阻值 $R$ 与横截面积 $S$ 的 $R - S$ 图像，从而判断导体电阻与横截面积间的关系。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-34109df72a15",
+      "locator": "line:25",
+      "modality": "equation",
+      "normalized_claims": [
+        "采用材料及长度相同、横截面积不同的电阻丝，分别接入如图10-15所示的电路 $a$ 、 $b$ 两端。记录电压表及电流表的示数，计算出电阻丝阻值 $R$ ，绘制电阻丝阻值 $R$ 与横截面积 $S$ 的 $R - S$ 图像，从而判断导体电"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/5548cee20d61dd9b5597fb85f880f416266e5f3ef0dd437551ab2a599f868c2b.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-3d4302935df0",
+      "locator": "line:79",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/5548cee20d61dd9b5597fb85f880f416266e5f3ef0dd437551ab2a599f868c2b.jpg)"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 324,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/5548cee20d61dd9b5597fb85f880f416266e5f3ef0dd437551ab2a599f868c2b.jpg",
+          "reason": "图片是研究小灯泡伏安特性曲线的实验电路图。前文明确指出“按如图10-16所示的电路研究小灯泡的 I-U 特性曲线”，后文紧接着给出了该图的标题“图10-16 研究小灯泡的电压、电流关系”。图片内容与上下文紧密对应，直接展示了实验的电路结构，属于核心知识内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张物理实验电路图，包含电源E、开关S、滑动变阻器R（分压式接法）、电流表A、电压表V和小灯泡L。",
+          "width": 329
+        },
+        "path": "images/5548cee20d61dd9b5597fb85f880f416266e5f3ef0dd437551ab2a599f868c2b.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "利用电压表、电流表、温度传感器，按如图10-16所示的电路研究小灯泡的 $I - U$ 特性曲线。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-40bf325b2725",
+      "locator": "line:75",
+      "modality": "equation",
+      "normalized_claims": [
+        "利用电压表、电流表、温度传感器，按如图10-16所示的电路研究小灯泡的 $I - U$ 特性曲线。"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/8c2ad702fdde328fa5fc32d4905285b7f3d297501560d2bc1aa92ae99c566a99.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-5c3f95b62daf",
+      "locator": "line:5",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/8c2ad702fdde328fa5fc32d4905285b7f3d297501560d2bc1aa92ae99c566a99.jpg)"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 332,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/8c2ad702fdde328fa5fc32d4905285b7f3d297501560d2bc1aa92ae99c566a99.jpg",
+          "reason": "图片对应教材中的图10-13。前文提到'如图10-13所示，在用伏安法测一根细铁丝的电阻时...'，后文明确标注'图10-13 伏安法测细铁丝的电阻'。图片展示了测量电阻的具体电路连接方式，用于辅助说明前文提到的实验现象（直接接入与对折接入电阻不同），并为后续探究电阻定律（R与L的关系）提供实验基础。虽然它是正式插图，但主要起辅助说明实验方法和场景的作用，故判定为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张物理电路图，展示了伏安法测电阻的装置。电路包含电源（标有E）、开关（S）、滑动变阻器（P）、电流表（A）、电压表（V）以及被测元件“细铁丝”。电压表并联在细铁丝两端，电流表串联在干路中。",
+          "width": 323
+        },
+        "path": "images/8c2ad702fdde328fa5fc32d4905285b7f3d297501560d2bc1aa92ae99c566a99.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "示例 一根长 $L = 10 \\mathrm{~m}$ 的铁丝, 质量 $m = 0.156 \\mathrm{~kg}$ 。试求其在温度为 $20^{\\circ} \\mathrm{C}$ 时的电阻。(铁的密度 $D = 7.8 \\times 10^{3} \\mathrm{~kg} / \\mathrm{m}^{3}$ )",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6038983ab95d",
+      "locator": "line:47",
+      "modality": "equation",
+      "normalized_claims": [
+        "示例 一根长 $L = 10 \\mathrm{~m}$ 的铁丝, 质量 $m = 0.156 \\mathrm{~kg}$ 。试求其在温度为 $20^{\\circ} \\mathrm{C}$ 时的电阻。(铁的密度 $D = 7.8 \\times"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nR = \\rho \\frac {D L ^ {2}}{m} = \\frac {1 . 0 \\times 1 0 ^ {- 7} \\times 7 . 8 \\times 1 0 ^ {3} \\times 1 0 ^ {2}}{0 . 1 5 6} \\Omega = 0. 5 \\Omega\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6a1238e1fd60",
+      "locator": "line:61",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nR = \\rho \\frac {D L ^ {2}}{m} = \\frac {1 . 0 \\times 1 0 ^ {- 7} \\times 7 . 8 \\times 1 0 ^ {3} \\times 1 0 ^ {2}}{0 . 1"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nR = \\rho \\frac {L}{S}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6eb1bf57dc7e",
+      "locator": "line:39",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nR = \\rho \\frac {L}{S}\n$$"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "电阻器（resistor）是用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件，在日常生活中也常常被直接称为电阻",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-919f0bcdaf7e",
+      "locator": "line:88",
+      "modality": "text",
+      "normalized_claims": [
+        "电阻器（resistor）是用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件，在日常生活中也常常被直接称为电阻"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "实验表明：在温度不变时，导体的电阻 R 与导体的长度 L 成正比，与导体的横截面积 S 成反比... $$R = \\rho \\frac {L}{S}$$ 这就是电阻定律",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-925d743e2b6a",
+      "locator": "line:37-40",
+      "modality": "text",
+      "normalized_claims": [
+        "实验表明：在温度不变时，导体的电阻 R 与导体的长度 L 成正比，与导体的横截面积 S 成反比... $$R = \\rho \\frac {L}{S}$$ 这就是电阻定律"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图10-13所示，在用伏安法测一根细铁丝的电阻时... 图10-13 伏安法测细铁丝的电阻",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-96f2d055fa4d",
+      "locator": "line:3-6",
+      "modality": "text",
+      "normalized_claims": [
+        "如图10-13所示，在用伏安法测一根细铁丝的电阻时... 图10-13 伏安法测细铁丝的电阻"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "电阻（resistance）是一个物理量，表示导体对电流阻碍作用的大小，通常用 $R$ 表示；电阻是导体本身的一种特性，不同的导体，电阻大小一般不同",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-98d877898557",
+      "locator": "line:3",
+      "modality": "text",
+      "normalized_claims": [
+        "电阻（resistance）是一个物理量，表示导体对电流阻碍作用的大小，通常用 $R$ 表示；电阻是导体本身的一种特性，不同的导体，电阻大小一般不同"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nS = \\frac {m}{D L}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ac9c2faaf628",
+      "locator": "line:55",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nS = \\frac {m}{D L}\n$$"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "<table><tr><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td></tr><tr><td>银</td><td> $1.6 \\times 10^{-8}$ </td><td>铁</td><td> $1.0 \\times 10^{-7}$ </td></tr><tr><td>铜</td><td> $1.7 \\times 10^{-8}$ </td><td>汞</td><td> $9.6 \\times 10^{-7}$ </td></tr><tr><td>铝</td><td> $2.9 \\times 10^{-8}$ </td><td>锰铜合金 *</td><td> $4.4 \\times 10^{-7}$ </td></tr><tr><td>钨</td><td> $5.3 \\times 10^{-8}$ </td><td>镍铜合金 **</td><td> $5.0 \\times 10^{-7}$ </td></tr><tr><td>铂</td><td> $1.0 \\times 10^{-7}$ </td><td>镍铬合金 ***</td><td> $1.0 \\times 10^{-6}$ </td></tr></table>",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b0488a4d19e5",
+      "locator": "line:45",
+      "modality": "equation",
+      "normalized_claims": [
+        "<table><tr><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td></tr><tr><t"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "表 10-2 一些常见导体材料在温度为 ${20}^{ \\circ  }\\mathrm{C}$ 时的电阻率",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b41f145f7f89",
+      "locator": "line:43",
+      "modality": "equation",
+      "normalized_claims": [
+        "表 10-2 一些常见导体材料在温度为 ${20}^{ \\circ  }\\mathrm{C}$ 时的电阻率"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/fbaebe63455292221843049ec21474fbbe6130c80a5c927a5f7c21cf490d24a6.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c94b790c6689",
+      "locator": "line:82",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/fbaebe63455292221843049ec21474fbbe6130c80a5c927a5f7c21cf490d24a6.jpg)"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 5,
+          "height": 356,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/fbaebe63455292221843049ec21474fbbe6130c80a5c927a5f7c21cf490d24a6.jpg",
+          "reason": "图片内容为前文明确指出的“图10-17”，即小灯泡的 I-U 特性曲线。后文紧接着对该图线进行详细分析，指出“从 I-U 图线不是一条直线可知，电阻不是一个常数”，并解释了电阻随温度变化的规律。该图片是实验数据的直接呈现，是理解本节核心物理概念（非线性电阻、温度对电阻影响）的关键证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个 I-U 坐标系图表。横轴表示电压 U/V，纵轴表示电流 I/A。图中有一条红色的曲线穿过多个数据点，曲线并非直线，随着电压增加，电流增加但斜率逐渐减小，直观反映了小灯泡电流与电压的非线性关系。",
+          "width": 457
+        },
+        "path": "images/fbaebe63455292221843049ec21474fbbe6130c80a5c927a5f7c21cf490d24a6.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "图10-17 小灯泡 $I - U$ 特性曲线",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-cfe0873b6c4c",
+      "locator": "line:83",
+      "modality": "equation",
+      "normalized_claims": [
+        "图10-17 小灯泡 $I - U$ 特性曲线"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "某些金属、合金和化合物在温度降到绝对零度附近某一特定温度时，电阻会突然减小到无法测量，这种现象叫做超导现象。由正常状态转变为超导状态的温度称为这种物质的临界温度",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-dd94f6f52ad9",
+      "locator": "line:95-96",
+      "modality": "text",
+      "normalized_claims": [
+        "某些金属、合金和化合物在温度降到绝对零度附近某一特定温度时，电阻会突然减小到无法测量，这种现象叫做超导现象。由正常状态转变为超导状态的温度称为这种物质的临界温度"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "采用横截面积、长度相同但材料不同的金属电阻丝，分别连入如图10-15所示的电路 $a$ 、 $b$ 两端。通过记录电压表、电流表的示数，计算电阻丝阻值 $R$ ，判断材质是否影响电阻阻值。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e48b1b17348e",
+      "locator": "line:33",
+      "modality": "equation",
+      "normalized_claims": [
+        "采用横截面积、长度相同但材料不同的金属电阻丝，分别连入如图10-15所示的电路 $a$ 、 $b$ 两端。通过记录电压表、电流表的示数，计算电阻丝阻值 $R$ ，判断材质是否影响电阻阻值。"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "从 I-U 图线不是一条直线可知，电阻不是一个常数... 灯丝电阻随温度升高而增大。电阻随温度的变化主要是由于导体材料的电阻率随温度发生了变化",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e518e682aed5",
+      "locator": "line:84-87",
+      "modality": "text",
+      "normalized_claims": [
+        "从 I-U 图线不是一条直线可知，电阻不是一个常数... 灯丝电阻随温度升高而增大。电阻随温度的变化主要是由于导体材料的电阻率随温度发生了变化"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/65dc270465a397553f13a6d8a59cbb0b43f4946d29f9c4f298740b3b5591cdd0.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f10775c3f0b7",
+      "locator": "line:27",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/65dc270465a397553f13a6d8a59cbb0b43f4946d29f9c4f298740b3b5591cdd0.jpg)"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 381,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/65dc270465a397553f13a6d8a59cbb0b43f4946d29f9c4f298740b3b5591cdd0.jpg",
+          "reason": "图片即为教材文本中提到的“图10-15”。前文明确描述了实验步骤：“采用材料及长度相同、横截面积不同的电阻丝，分别接入如图10-15所示的电路a、b两端”，后文紧接着给出了图片标题“图10-15 研究金属导体电阻与横截面积大小的关系”。图片直接展示了该探究实验的核心电路连接方式和器材示意，与上下文完全对应，属于核心实验内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个物理实验电路图。电路包含电源E、开关S、定值电阻R0、电流表A和电压表V。电压表并联在a、b两点之间。在a、b上方绘制了三根长度相同但粗细（横截面积）不同的金属电阻丝，示意将不同电阻丝接入a、b端进行实验。",
+          "width": 406
+        },
+        "path": "images/65dc270465a397553f13a6d8a59cbb0b43f4946d29f9c4f298740b3b5591cdd0.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "利用电压表、电流表、温度传感器，按如图10-16所示的电路研究小灯泡的 $I - U$ 特性曲线... 图10-17 小灯泡 $I - U$ 特性曲线",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f96923bf2b5d",
+      "locator": "line:75-83",
+      "modality": "text",
+      "normalized_claims": [
+        "利用电压表、电流表、温度传感器，按如图10-16所示的电路研究小灯泡的 $I - U$ 特性曲线... 图10-17 小灯泡 $I - U$ 特性曲线"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-8a67c9f09c31",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-f4c47bb65bd3"
+      ],
+      "source_type": "textbook",
+      "target_id": "property/electrical_quantity:auto-f621655c976e",
+      "target_type": "node",
+      "updated_at": "2026-07-02T08:17:02+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-44862ed60b39",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "defines",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-98d877898557"
+      ],
+      "source_type": "textbook",
+      "target_id": "property/electrical_quantity:auto-f621655c976e",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "resistance",
+      "导体电阻",
+      "R"
+    ],
+    "created_at": "2026-06-29T05:44:35+00:00",
+    "dataset_id": "main",
+    "definition": "自由电子与晶体点阵上的原子实碰撞，对电子定向运动形成的阻碍作用。也是电阻元件通电时发热的原因。\n\n表示导体对电流阻碍作用大小的物理量，是导体本身的一种特性。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "property/electrical_quantity:auto-f621655c976e",
+    "kind": "property",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "电阻",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "raw_subkinds": [
+          "阻碍作用"
+        ],
+        "subkinds": [
+          "resistance_effect",
+          "electrical_quantity"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "merged_from": [
+        "property/阻碍作用:auto-9881d0ebf819"
+      ],
+      "semantic_core": {
+        "boundaries": "一定外加电压下，电阻阻碍电流无限增大，并将电场能转化为内能（发热）",
+        "conditions": "电子与晶格原子实发生频繁碰撞",
+        "formal_expressions": []
+      },
+      "template_display": {
+        "color": "#FFB400",
+        "label": "物理量",
+        "template_id": "textbook/physics",
+        "type_key": "property"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "electrical_quantity",
+    "tags": [
+      "电阻成因",
+      "能量转化",
+      "基础物理量",
+      "电学",
+      "导体特性"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:44:35+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "concept/physical_phenomenon:auto-fab7f2e33efa",
+        "id": "edge:auto-a7db0bba4a4c",
+        "notes": "温度变化会影响导体的电阻值，灯丝电阻随温度升高而增大",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "影响",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-e518e682aed5"
+        ],
+        "status": "active",
+        "to_id": "property/electrical_quantity:auto-f621655c976e",
+        "type": "affects",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:44:35+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "entity/electronic_component:auto-c4027ef13d1d",
+        "id": "edge:auto-180904135c4a",
+        "notes": "电阻器作为电子元件，其核心物理性质是具有一定的电阻",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "具有物理量",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-919f0bcdaf7e"
+        ],
+        "status": "active",
+        "to_id": "property/electrical_quantity:auto-f621655c976e",
+        "type": "has_property",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.85,
+        "created_at": "2026-06-29T05:44:35+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "method/experimental_method:auto-04863a595336",
+        "id": "edge:auto-b7f0501cef06",
+        "notes": "伏安法用于测量并产生导体的电阻数据",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "产生",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-96f2d055fa4d"
+        ],
+        "status": "active",
+        "to_id": "property/electrical_quantity:auto-f621655c976e",
+        "type": "produces",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:44:35+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "rule/physical_law:auto-1af76b1640e4",
+        "id": "edge:auto-a033740fb441",
+        "notes": "电阻定律表征了导体电阻与长度、横截面积及材料的定量关系",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-925d743e2b6a"
+        ],
+        "status": "active",
+        "to_id": "property/electrical_quantity:auto-f621655c976e",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ],
+    "outgoing": [
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:39:48+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "property/electrical_quantity:auto-f621655c976e",
+        "id": "edge:auto-aa919345260d",
+        "notes": "电阻对电荷定向移动产生阻碍作用",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "影响",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-f4c47bb65bd3"
+        ],
+        "status": "active",
+        "to_id": "process/微观物理过程:auto-f65d9c506495",
+        "type": "affects",
+        "updated_at": "2026-07-02T08:17:02+00:00"
+      },
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:44:35+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "property/electrical_quantity:auto-f621655c976e",
+        "id": "edge:auto-148ecdc67898",
+        "notes": "根据电阻定律，导体的电阻大小依赖于材料的电阻率",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "依赖条件",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-925d743e2b6a"
+        ],
+        "status": "active",
+        "to_id": "property/material_property:auto-9bfec6a2a38a",
+        "type": "depends_on",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ]
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第一节 简单串联、并联组合电路\n\n夜晚的上海浦东陆家嘴（图 10-1）灯光璀璨，美丽壮观。实现这些照明效果，需要使用各种各样的电路元器件搭建电路。\n\n\n\n## 常见的电路元器件有哪些？\n\n如图 10-2 所示是一些常见的电路元器件，自左至右依次为小型电动机、电感器、电容器、电阻器、三极管和二极管。如表 10-1 所示为电路中常见元器件的名称及符号。\n\n[source image omitted from static artifact]  \n图10-2 常见的电路元器件\n\n表 10-1 常见电路元器件的名称及符号\n\n<table><tr><td>名称</td><td>图形符号</td><td>名称</td><td>图形符号</td><td>名称</td><td>图形符号</td></tr><tr><td>电源</td><td><img src=\"images/33b58865b680ecdc1676ef50ae1506aed3448a260ba7fbeb3695a85b7a0fe968.jpg\"/></td><td>电阻器</td><td><img src=\"images/6d6f45c2c2f23b3525aa3760c9bfb56b770df8e173f72a40aa41c99f3ff6967e.jpg\"/></td><td>电容器</td><td>—||—</td></tr><tr><td>开关</td><td><img src=\"images/8b1c49339042d8f3d2c1883f7c579e0259874ab983fdcd5ef7f3bd38ac93f90c.jpg\"/></td><td>可调电阻器</td><td><img src=\"images/dae644bcdeac2efec78caf2e834c9c97288b812dcabef1cbbd15165c62ade815.jpg\"/></td><td>可变电容器</td><td>—||—</td></tr><tr><td>电灯</td><td><img src=\"images/e199c0cb23341e5cc64e70f6ddb4cdbe62fec80289874ceeda68f8f367b9d3e8.jpg\"/></td><td>滑动变阻器</td><td><img src=\"images/fbd43de0a2c90ccf087ea22037aeffd2f515c9369bee3fad784809fd042c5935.jpg\"/></td><td>空心线圈</td><td>—___</td></tr><tr><td>电动机</td><td><img src=\"images/52e2c0911e4228907229f4406c19459f325d35f0f4bc3dd43836d561eeb70854.jpg\"/></td><td>晶体二极管</td><td><img src=\"images/e1826de7bd69a22f3a109a79b8c2281047ccb308c300d20422d0f2ed1cbe82b1.jpg\"/></td><td>铁芯线圈</td><td>—___</td></tr></table>\n\n各种元器件连接在一起形成电路（electric circuit）。初中我们已学过一个简单的电路由电源、用电器、开关、导线组成，如图 10-3 所示。其中电源提供电能；用电器消耗电能；导线提供电流通道，起到输送电能的作用；开关控制电路的通、断，若开关闭合，电路中即有电流通过。\n\n[source image omitted from static artifact]  \n图10-3 简单电路\n\n\n\n## 电流是如何形成的？\n\n为了简单起见，我们以金属导体为例讨论。如图 10-4 所示，在金属导体中，有“固定”在晶体结构点阵上失去电子的原子，我们把它称为原子实。还有大量的自由电子，这些电子是金属导体内的自由电荷。一般情况下，金属导体中的自由电子大约以 $10^{5} \\mathrm{~m} / \\mathrm{s}$ 的速率做永不停息的无规则热运动，做热运动的自由电子向各个方向运动的机会均等，从宏观上看，不会形成电流。\n\n[source image omitted from static artifact]  \n图10-4 导体中自由电子的热运动\n\n[source image omitted from static artifact]  \n图10-5 存在电场时导体中电子的运动  \n(说明：漂移速度远小于热运动速度，图中代表漂移速度的红色箭头仅为示意，不代表实际大小)\n\n若导体中存在电场，在电场力的作用下，导体中的自由电子获得与电场方向相反的加速度。自由电子在加速运动过程中和原子实频繁碰撞，持续加速受到阻碍，最终获得沿加速度方向一定的速度，这一速度称为漂移速度，如图 10-5 所示。电子的漂移速度很小，比热运动的速度小许多个量级。但由于漂移速度的存在，使导体内的自由电子从整体上发生了逆电场方向的定向移动，便形成了和电场方向相同的电流。\n\n物理学中规定，通过导体某一横截面的电荷量 Q 与所用时间 t 之比称为电流（electric current），用符号 I 表示，即\n\n$$\nI = \\frac {Q}{t}\n$$\n\n在国际单位制中，电流的单位是安培，简称安，符号为 A。\n\n## 大家谈\n\n导体中的自由电子在电场力的作用下获得漂移速度。由于电场力持续存在，该速度是否会持续增大，从而使导体中的电流持续增大呢？\n\n\n\n## 电路中的电压如何理解?\n\n我们知道导体中的自由电荷是在电场力的作用下才发生定向移动的。正电荷在电场力的作用下从电势高处向电势低处运动，我们规定正电荷定向移动的方向为电流的方向，因此，沿着电流的方向电势逐渐降低。电流方向上的两点间存在电势差，这个电势差就是电路中这两点间的电压（voltage）。\n\n## 拓展视野\n\n当对金属导体两端施加电压时，金属内部就建立起电场并形成和电场方向相同的电流。虽然导体内一直存在电场对电子加速，但是电子的漂移速度却不会无限增加。这是因为电子会和原子实发生碰撞，这种碰撞对电子的定向运动形成“阻碍”。加速与碰撞两种作用同时存在，结果便是一定的电场下，电子获得一定的漂移速度。所以电流不会无限增大，即一定的外加电压形成一定的电流。\n\n另一方面，电场对电子加速必对电子做功，使所有电子的总动能增加。在电子与原子实碰撞过程中，电子的一部分动能传递给原子实，使原子实在点阵位置上的热振动加剧，表现为导体获得热量，温度升高。由此可见，自由电子与晶体点阵上的原子实碰撞，形成对电子定向运动的阻碍作用，这就是“电阻”产生的原因，也是电阻元件在通电时发热的原因。\n\n[source image omitted from static artifact]\n\n## 什么是串联、并联组合电路？\n\n初中时我们已经学过了两个用电器的串联或并联，当用电器的数目超过两个，用电器间的连接方式会比较复杂，可能既有串联又有并联。将用电器同时采用串联和并联的方式组合起来形成的电路叫做串联、并联组合电路。实际生活中大部分电路都是采用串联、并联组合电路的方式连接的。\n\n示例 把阻值分别为 $R_{1}=20\\ \\Omega$ 、 $R_{2}=30\\ \\Omega$ 、 $R_{3}=8\\ \\Omega$ 的三个电阻连接成如图 10-6 所示的组合电路，电路的总阻值为多少？若电源电压 U=20 V，则闭合开关后，流过每个电阻的电流大小分别为多少？\n\n[source image omitted from static artifact]  \n图10-6 组合电路图\n\n[source image omitted from static artifact]  \n图10-7 等效电路图\n\n分析：这个组合电路为 $R_{1}$ 与 $R_{2}$ 并联后再与 $R_{3}$ 串联。将 $R_{1}$ 、 $R_{2}$ 按照并联关系等效为电阻 $R'$ ，则原电路可等效为如图 10-7 所示的 $R'$ 与 $R_{3}$ 的串联电路，这样就可以求解电路的总阻值了。可先将原电路等效为如图 10-7 所示的串联电路，然后再根据串并联电路特点逐步还原求解。\n\n解： $R_{1}$ 与 $R_{2}$ 并联，则 $R_{1}$ 、 $R_{2}$ 与等效电阻 $R'$ 之间的关系为\n\n因此\n\n$$\n\\begin{array}{r l} \\frac {1}{R ^ {\\prime}} & = \\frac {1}{R _ {1}} + \\frac {1}{R _ {2}} \\\\ R ^ {\\prime} & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} \\end{array}\n$$\n\n又 $R'$ 与 $R_{3}$ 串联，因此电路中总电阻\n\n$$\n\\begin{array}{r l} R _ {\\text {总}} & = R ^ {\\prime} + R _ {3} \\\\ & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} + R _ {3} \\\\ & = \\left(\\frac {2 0 \\times 3 0}{2 0 + 3 0} + 8\\right) \\Omega \\\\ & = 2 0 \\Omega \\end{array}\n$$\n\n## 助一臂\n\n等效电路是将一个复杂的组合电路通过电阻等效等方法，化简成具有与原电路功能相同的简单电路。这个简单的电路，称作原复杂电路的等效电路。\n\n“等效”的目的是为了在电路分析时，通过等效替代，简化分析过程。之前学习的平均速度、力的合成等都是等效替代思想的应用。\n\n闭合开关后，由欧姆定律得，电路中的总电流，即流过 $R_{3}$ 的电流\n\n$$\nI _ {3} = I = \\frac {U}{R _ {\\text {总}}} = \\frac {2 0}{2 0} \\mathrm{A} = 1 \\mathrm{A}\n$$\n\n设流过电阻 $R_{1}$ 的电流为 $I_{1}$ ，流过电阻 $R_{2}$ 的电流为 $I_{2}$ ，由于 $R_{1}$ 与 $R_{2}$ 并联，有\n\n$$\n\\frac {I _ {1}}{I _ {2}} = \\frac {R _ {2}}{R _ {1}}\n$$\n\n又则\n\n$$\nI _ {1} + I _ {2} = I = 1 \\mathrm{A}\n$$\n\n$$\nI _ {1} = 0. 6 \\mathrm{A}, I _ {2} = 0. 4 \\mathrm{A}\n$$\n\n## STSE\n\n集成电路是一种微型电子器件或部件。采用一定的工艺，把一个电路中所需的晶体管、电阻、电容等元件及布线互连在一起，制作在一小块或几小块半导体晶片或介质基片上，然后封装在一个管壳内，成为具有所需电路功能的微型结构。如图10-8所示为一款封装后的集成电路。集成电路的诞生，使电子技术发生了划时代的革命。集成电路与由分立元件组装的普通电路相比，具有重量轻、体积小、性能好和能耗小等多项明显优势。\n\n  \n图10-8 集成电路\n\n在集成电路的制造过程中，光刻技术是一个非常重要的环节，它决定了集成电路的集成度，即单位面积上的元器件数目。随着集成度需求的不断提升，光刻技术正在逼近物理极限。在集成电路未来的发展中，人类想要突破极限，就需要新的技术和解决方案。\n\n## 问题②思考\n\n1. 如图 10-9 所示是一块电路板，指出至少 2 种电路元件，并说出其名称。\n\n  \n图10-9\n\n2. 石墨是元素碳的一种同素异形体，每个碳原子的周边连结着另外3个碳原子，单层石墨碳原子的排列方式呈蜂巢式的六边形平面结构，如图10-10所示。每个碳原子最外层有4个价电子，其中3个电子与周围的碳原子形成3个共价键，剩余的1个电子能够自由移动。\n\n  \n图10-10\n\n(1) 由上述材料判断石墨能否导电, 若能导电, 则形成定向移动的带电微粒是什么?\n\n(2) 查阅金刚石的结构, 判断其能否导电?\n\n3. 当雷雨云聚集的电荷达到一定的数量时，在带电的云层与云层之间或者带电的云层与地面之间能形成很强的电场，足以把空气击穿，同时激发出耀眼的闪光，这就是人们常说的闪电。若一次闪电放电的电荷量大小是 $300 \\, C$ ，放电的时间是 $0.005 \\, s$ ，则这次闪电放电时的平均电流为多大？\n\n4. 如图 10-11 所示为某控制电路的一部分。已知 $AA'$ 间的输入电压为 $24 \\mathrm{~V}$ ，如果电阻 $R = 6 \\mathrm{k} \\Omega$ ， $R_{1} = 6 \\mathrm{k} \\Omega$ ， $R_{2} = 3 \\mathrm{k} \\Omega$ ，则 $BB'$ 输出的电压可能为多少？\n\n5. 有三只阻值均为 $6 \\Omega$ 的电阻, 取其中的一只、两只或三只使用, 通过不同的连接方式, 共可获得多少种不同的阻值, 分别为多少?\n\n  \n图10-11\n\n  \n图10-12 形形色色的电阻器",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:10-1-a:source-markdown",
+          "locator": "简单串联、并联组合电路",
+          "modality": "text",
+          "page_end": 54,
+          "page_start": 49,
+          "properties": {
+            "md_end": 1651,
+            "md_start": 1496,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+            "outline_title": "简单串联、并联组合电路",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 1651,
+      "md_start": 1496,
+      "modalities": [
+        "equation",
+        "text",
+        "image",
+        "table"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第一节 简单串联、并联组合电路\n\n夜晚的上海浦东陆家嘴（图 10-1）灯光璀璨，美丽壮观。实现这些照明效果，需要使用各种各样的电路元器件搭建电路。\n\n\n\n## 常见的电路元器件有哪些？\n\n如图 10-2 所示是一些常见的电路元器件，自左至右依次为小型电动机、电感器、电容器、电阻器、三极管和二极管。如表 10-1 所示为电路中常见元器件的名称及符号。\n\n[source image omitted from static artifact]  \n图10-2 常见的电路元器件\n\n表 10-1 常见电路元器件的名称及符号\n\n<table><tr><td>名称</td><td>图形符号</td><td>名称</td><td>图形符号</td><td>名称</td><td>图形符号</td></tr><tr><td>电源</td><td><img src=\"images/33b58865b680ecdc1676ef50ae1506aed3448a260ba7fbeb3695a85b7a0fe968.jpg\"/></td><td>电阻器</td><td><img src=\"images/6d6f45c2c2f23b3525aa3760c9bfb56b770df8e173f72a40aa41c99f3ff6967e.jpg\"/></td><td>电容器</td><td>—||—</td></tr><tr><td>开关</td><td><img src=\"images/8b1c49339042d8f3d2c1883f7c579e0259874ab983fdcd5ef7f3bd38ac93f90c.jpg\"/></td><td>可调电阻器</td><td><img src=\"images/dae644bcdeac2efec78caf2e834c9c97288b812dcabef1cbbd15165c62ade815.jpg\"/></td><td>可变电容器</td><td>—||—</td></tr><tr><td>电灯</td><td><img src=\"images/e199c0cb23341e5cc64e70f6ddb4cdbe62fec80289874ceeda68f8f367b9d3e8.jpg\"/></td><td>滑动变阻器</td><td><img src=\"images/fbd43de0a2c90ccf087ea22037aeffd2f515c9369bee3fad784809fd042c5935.jpg\"/></td><td>空心线圈</td><td>—___</td></tr><tr><td>电动机</td><td><img src=\"images/52e2c0911e4228907229f4406c19459f325d35f0f4bc3dd43836d561eeb70854.jpg\"/></td><td>晶体二极管</td><td><img src=\"images/e1826de7bd69a22f3a109a79b8c2281047ccb308c300d20422d0f2ed1cbe82b1.jpg\"/></td><td>铁芯线圈</td><td>—___</td></tr></table>\n\n各种元器件连接在一起形成电路（electric circuit）。初中我们已学过一个简单的电路由电源、用电器、开关、导线组成，如图 10-3 所示。其中电源提供电能；用电器消耗电能；导线提供电流通道，起到输送电能的作用；开关控制电路的通、断，若开关闭合，电路中即有电流通过。\n\n[source image omitted from static artifact]  \n图10-3 简单电路\n\n\n\n## 电流是如何形成的？\n\n为了简单起见，我们以金属导体为例讨论。如图 10-4 所示，在金属导体中，有“固定”在晶体结构点阵上失去电子的原子，我们把它称为原子实。还有大量的自由电子，这些电子是金属导体内的自由电荷。一般情况下，金属导体中的自由电子大约以 $10^{5} \\mathrm{~m} / \\mathrm{s}$ 的速率做永不停息的无规则热运动，做热运动的自由电子向各个方向运动的机会均等，从宏观上看，不会形成电流。\n\n[source image omitted from static artifact]  \n图10-4 导体中自由电子的热运动\n\n[source image omitted from static artifact]  \n图10-5 存在电场时导体中电子的运动  \n(说明：漂移速度远小于热运动速度，图中代表漂移速度的红色箭头仅为示意，不代表实际大小)\n\n若导体中存在电场，在电场力的作用下，导体中的自由电子获得与电场方向相反的加速度。自由电子在加速运动过程中和原子实频繁碰撞，持续加速受到阻碍，最终获得沿加速度方向一定的速度，这一速度称为漂移速度，如图 10-5 所示。电子的漂移速度很小，比热运动的速度小许多个量级。但由于漂移速度的存在，使导体内的自由电子从整体上发生了逆电场方向的定向移动，便形成了和电场方向相同的电流。\n\n物理学中规定，通过导体某一横截面的电荷量 Q 与所用时间 t 之比称为电流（electric current），用符号 I 表示，即\n\n$$\nI = \\frac {Q}{t}\n$$\n\n在国际单位制中，电流的单位是安培，简称安，符号为 A。\n\n## 大家谈\n\n导体中的自由电子在电场力的作用下获得漂移速度。由于电场力持续存在，该速度是否会持续增大，从而使导体中的电流持续增大呢？\n\n\n\n## 电路中的电压如何理解?\n\n我们知道导体中的自由电荷是在电场力的作用下才发生定向移动的。正电荷在电场力的作用下从电势高处向电势低处运动，我们规定正电荷定向移动的方向为电流的方向，因此，沿着电流的方向电势逐渐降低。电流方向上的两点间存在电势差，这个电势差就是电路中这两点间的电压（voltage）。\n\n## 拓展视野\n\n当对金属导体两端施加电压时，金属内部就建立起电场并形成和电场方向相同的电流。虽然导体内一直存在电场对电子加速，但是电子的漂移速度却不会无限增加。这是因为电子会和原子实发生碰撞，这种碰撞对电子的定向运动形成“阻碍”。加速与碰撞两种作用同时存在，结果便是一定的电场下，电子获得一定的漂移速度。所以电流不会无限增大，即一定的外加电压形成一定的电流。\n\n另一方面，电场对电子加速必对电子做功，使所有电子的总动能增加。在电子与原子实碰撞过程中，电子的一部分动能传递给原子实，使原子实在点阵位置上的热振动加剧，表现为导体获得热量，温度升高。由此可见，自由电子与晶体点阵上的原子实碰撞，形成对电子定向运动的阻碍作用，这就是“电阻”产生的原因，也是电阻元件在通电时发热的原因。\n\n[source image omitted from static artifact]\n\n## 什么是串联、并联组合电路？\n\n初中时我们已经学过了两个用电器的串联或并联，当用电器的数目超过两个，用电器间的连接方式会比较复杂，可能既有串联又有并联。将用电器同时采用串联和并联的方式组合起来形成的电路叫做串联、并联组合电路。实际生活中大部分电路都是采用串联、并联组合电路的方式连接的。\n\n示例 把阻值分别为 $R_{1}=20\\ \\Omega$ 、 $R_{2}=30\\ \\Omega$ 、 $R_{3}=8\\ \\Omega$ 的三个电阻连接成如图 10-6 所示的组合电路，电路的总阻值为多少？若电源电压 U=20 V，则闭合开关后，流过每个电阻的电流大小分别为多少？\n\n[source image omitted from static artifact]  \n图10-6 组合电路图\n\n[source image omitted from static artifact]  \n图10-7 等效电路图\n\n分析：这个组合电路为 $R_{1}$ 与 $R_{2}$ 并联后再与 $R_{3}$ 串联。将 $R_{1}$ 、 $R_{2}$ 按照并联关系等效为电阻 $R'$ ，则原电路可等效为如图 10-7 所示的 $R'$ 与 $R_{3}$ 的串联电路，这样就可以求解电路的总阻值了。可先将原电路等效为如图 10-7 所示的串联电路，然后再根据串并联电路特点逐步还原求解。\n\n解： $R_{1}$ 与 $R_{2}$ 并联，则 $R_{1}$ 、 $R_{2}$ 与等效电阻 $R'$ 之间的关系为\n\n因此\n\n$$\n\\begin{array}{r l} \\frac {1}{R ^ {\\prime}} & = \\frac {1}{R _ {1}} + \\frac {1}{R _ {2}} \\\\ R ^ {\\prime} & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} \\end{array}\n$$\n\n又 $R'$ 与 $R_{3}$ 串联，因此电路中总电阻\n\n$$\n\\begin{array}{r l} R _ {\\text {总}} & = R ^ {\\prime} + R _ {3} \\\\ & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} + R _ {3} \\\\ & = \\left(\\frac {2 0 \\times 3 0}{2 0 + 3 0} + 8\\right) \\Omega \\\\ & = 2 0 \\Omega \\end{array}\n$$\n\n## 助一臂\n\n等效电路是将一个复杂的组合电路通过电阻等效等方法，化简成具有与原电路功能相同的简单电路。这个简单的电路，称作原复杂电路的等效电路。\n\n“等效”的目的是为了在电路分析时，通过等效替代，简化分析过程。之前学习的平均速度、力的合成等都是等效替代思想的应用。\n\n闭合开关后，由欧姆定律得，电路中的总电流，即流过 $R_{3}$ 的电流\n\n$$\nI _ {3} = I = \\frac {U}{R _ {\\text {总}}} = \\frac {2 0}{2 0} \\mathrm{A} = 1 \\mathrm{A}\n$$\n\n设流过电阻 $R_{1}$ 的电流为 $I_{1}$ ，流过电阻 $R_{2}$ 的电流为 $I_{2}$ ，由于 $R_{1}$ 与 $R_{2}$ 并联，有\n\n$$\n\\frac {I _ {1}}{I _ {2}} = \\frac {R _ {2}}{R _ {1}}\n$$\n\n又则\n\n$$\nI _ {1} + I _ {2} = I = 1 \\mathrm{A}\n$$\n\n$$\nI _ {1} = 0. 6 \\mathrm{A}, I _ {2} = 0. 4 \\mathrm{A}\n$$\n\n## STSE\n\n集成电路是一种微型电子器件或部件。采用一定的工艺，把一个电路中所需的晶体管、电阻、电容等元件及布线互连在一起，制作在一小块或几小块半导体晶片或介质基片上，然后封装在一个管壳内，成为具有所需电路功能的微型结构。如图10-8所示为一款封装后的集成电路。集成电路的诞生，使电子技术发生了划时代的革命。集成电路与由分立元件组装的普通电路相比，具有重量轻、体积小、性能好和能耗小等多项明显优势。\n\n  \n图10-8 集成电路\n\n在集成电路的制造过程中，光刻技术是一个非常重要的环节，它决定了集成电路的集成度，即单位面积上的元器件数目。随着集成度需求的不断提升，光刻技术正在逼近物理极限。在集成电路未来的发展中，人类想要突破极限，就需要新的技术和解决方案。\n\n## 问题②思考\n\n1. 如图 10-9 所示是一块电路板，指出至少 2 种电路元件，并说出其名称。\n\n  \n图10-9\n\n2. 石墨是元素碳的一种同素异形体，每个碳原子的周边连结着另外3个碳原子，单层石墨碳原子的排列方式呈蜂巢式的六边形平面结构，如图10-10所示。每个碳原子最外层有4个价电子，其中3个电子与周围的碳原子形成3个共价键，剩余的1个电子能够自由移动。\n\n  \n图10-10\n\n(1) 由上述材料判断石墨能否导电, 若能导电, 则形成定向移动的带电微粒是什么?\n\n(2) 查阅金刚石的结构, 判断其能否导电?\n\n3. 当雷雨云聚集的电荷达到一定的数量时，在带电的云层与云层之间或者带电的云层与地面之间能形成很强的电场，足以把空气击穿，同时激发出耀眼的闪光，这就是人们常说的闪电。若一次闪电放电的电荷量大小是 $300 \\, C$ ，放电的时间是 $0.005 \\, s$ ，则这次闪电放电时的平均电流为多大？\n\n4. 如图 10-11 所示为某控制电路的一部分。已知 $AA'$ 间的输入电压为 $24 \\mathrm{~V}$ ，如果电阻 $R = 6 \\mathrm{k} \\Omega$ ， $R_{1} = 6 \\mathrm{k} \\Omega$ ， $R_{2} = 3 \\mathrm{k} \\Omega$ ，则 $BB'$ 输出的电压可能为多少？\n\n5. 有三只阻值均为 $6 \\Omega$ 的电阻, 取其中的一只、两只或三只使用, 通过不同的连接方式, 共可获得多少种不同的阻值, 分别为多少?\n\n  \n图10-11\n\n  \n图10-12 形形色色的电阻器",
+      "title": "简单串联、并联组合电路"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第二节 电阻定律\n\n如图10-13所示，在用伏安法测一根细铁丝的电阻时，我们发现，将其两端直接接入电路和将铁丝对折头尾相连再接入电路，两次测得的电阻值不同。若将细铁丝换成形状相同的细铜丝，测得铜丝的电阻值与铁丝的也不同。我们知道，电阻（resistance）是一个物理量，表示导体对电流阻碍作用的大小，通常用 $R$ 表示；电阻是导体本身的一种特性，不同的导体，电阻大小一般不同；电阻越大，表示导体对电流的阻碍作用越大。同样的铁丝为什么两次测量的电阻值不同呢？相同形状的铁丝与铜丝的电阻值为什么又不同呢？\n\n[source image omitted from static artifact]  \n图10-13 伏安法测细铁丝的电阻\n\n## 大家谈\n\n一段金属导体的电阻由哪些因素决定？有怎样的定量关系？请猜测、提出假设并说明假设的依据。\n\n\n\n## 一段金属导体电阻与长度、横截面积等因素有怎样的定量关系？\n\n## 1. 研究金属导体电阻与长度的关系\n\n采用粗细均匀的长金属电阻丝，按如图10-14所示的电路连接。不断改变导线与电阻丝的接触点 A 的位置，依次记录电压表、电流表的示数及连入电路的电阻丝的长度 L，随后根据电压表、电流表的示数计算连入电路部分的电阻丝的电阻值 R，最终绘制 R-L 图像，判断导体电阻与长度的关系。\n\n[source image omitted from static artifact]  \n图10-14 研究金属导体电阻与长度的关系\n\n## 2. 研究金属导体电阻与横截面积大小的关系\n\n采用材料及长度相同、横截面积不同的电阻丝，分别接入如图10-15所示的电路 $a$ 、 $b$ 两端。记录电压表及电流表的示数，计算出电阻丝阻值 $R$ ，绘制电阻丝阻值 $R$ 与横截面积 $S$ 的 $R - S$ 图像，从而判断导体电阻与横截面积间的关系。\n\n[source image omitted from static artifact]  \n图10-15 研究金属导体电阻  \n与横截面积大小的关系\n\n## 3. 研究金属导体的电阻与材料的关系\n\n采用横截面积、长度相同但材料不同的金属电阻丝，分别连入如图10-15所示的电路 $a$ 、 $b$ 两端。通过记录电压表、电流表的示数，计算电阻丝阻值 $R$ ，判断材质是否影响电阻阻值。\n\n实验表明：在温度不变时，导体的电阻 R 与导体的长度 L 成正比，与导体的横截面积 S 成反比，与构成它的材料有关，即\n\n$$\nR = \\rho \\frac {L}{S}\n$$\n\n这就是电阻定律（law of resistance）。式中 $\\rho$ 叫做材料的电阻率（resistivity），电阻率的单位是欧姆·米，符号为 $\\Omega\\cdot m$ 。不同材料的电阻率 $\\rho$ 是不同的，它的数值是由导体的材料性质所决定的，反映了材料的导电性能。在一定的温度下，对同一种材料而言， $\\rho$ 不变。如表 10-2 所示为一些常见导体材料在温度为 $20^{\\circ}C$ 时的电阻率。\n\n表 10-2 一些常见导体材料在温度为 ${20}^{ \\circ  }\\mathrm{C}$ 时的电阻率\n\n<table><tr><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td></tr><tr><td>银</td><td> $1.6 \\times 10^{-8}$ </td><td>铁</td><td> $1.0 \\times 10^{-7}$ </td></tr><tr><td>铜</td><td> $1.7 \\times 10^{-8}$ </td><td>汞</td><td> $9.6 \\times 10^{-7}$ </td></tr><tr><td>铝</td><td> $2.9 \\times 10^{-8}$ </td><td>锰铜合金 *</td><td> $4.4 \\times 10^{-7}$ </td></tr><tr><td>钨</td><td> $5.3 \\times 10^{-8}$ </td><td>镍铜合金 **</td><td> $5.0 \\times 10^{-7}$ </td></tr><tr><td>铂</td><td> $1.0 \\times 10^{-7}$ </td><td>镍铬合金 ***</td><td> $1.0 \\times 10^{-6}$ </td></tr></table>\n\n示例 一根长 $L = 10 \\mathrm{~m}$ 的铁丝, 质量 $m = 0.156 \\mathrm{~kg}$ 。试求其在温度为 $20^{\\circ} \\mathrm{C}$ 时的电阻。(铁的密度 $D = 7.8 \\times 10^{3} \\mathrm{~kg} / \\mathrm{m}^{3}$ )\n\n分析：由电阻定律公式 $R = \\rho \\frac{L}{S}$ 可知，若求铁丝的电阻 $R$ ，必须知道铁丝的电阻率 $\\rho$ 、长度 $L$ 和横截面积 $S$ 。其中 $\\rho$ 可以由表10-2查得， $L$ 已知， $S$ 则要通过铁丝的质量 $m$ 、密度 $D$ 和长度 $L$ 来求得。\n\n解：设铁丝的体积为 V，横截面积为 S，由 m = DV = DSL 得\n\n$$\nS = \\frac {m}{D L}\n$$\n\n将上式代入电阻定律公式，则铁丝的电阻\n\n$$\nR = \\rho \\frac {D L ^ {2}}{m} = \\frac {1 . 0 \\times 1 0 ^ {- 7} \\times 7 . 8 \\times 1 0 ^ {3} \\times 1 0 ^ {2}}{0 . 1 5 6} \\Omega = 0. 5 \\Omega\n$$\n\n## 大家谈\n\n导体的电阻和电阻率有何区别？\n\n\n\n## 温度对导体的电阻有何影响？\n\n前面讨论电阻和电阻率时我们都假定 “温度不变”，那么温度对导体的电阻有何影响呢？下面我们就先来做一个实验。\n\n## 自主活动\n\n利用电压表、电流表、温度传感器，按如图10-16所示的电路研究小灯泡的 $I - U$ 特性曲线。\n\n实验时，闭合开关，缓慢调节滑动变阻器阻值，记录电压 U、电流 I 的数据，并相应记录此时小灯泡周围的温度值。得到的实验 I-U 图线如图 10-17 所示。\n\n[source image omitted from static artifact]  \n图10-16 研究小灯泡的电压、电流关系\n\n[source image omitted from static artifact]  \n图10-17 小灯泡 $I - U$ 特性曲线\n\n从 I-U 图线不是一条直线可知，电阻不是一个常数。由实验可知，随着流过小灯泡的电流的增加，小灯泡灯丝的温度逐渐升高。温度对灯丝的电阻存在影响，灯丝温度变化时，它的电阻发生了变化。从实验获得的图线可知，灯丝电阻随温度升高而增大。小灯泡的灯丝在正常发光时的电阻值比不发光时大很多。电阻随温度的变化主要是由于导体材料的电阻率随温度发生了变化。尽管如此，在中学物理中，除非特别指出，一般不考虑温度对电阻变化的影响。\n\n利用金属的电阻跟温度的关系，可以制成电阻温度计。通常用铂电阻丝做成的温度计叫做铂温度计，它比汞温度计更精确，且测量范围更广。\n\n电阻器（resistor）是用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件，在日常生活中也常常被直接称为电阻。人们根据电阻定律，设计生产出各种各样的电阻器（图10-12）来满足社会生产生活实际需要。作为重要基础电子元件，电阻器在工业生产中有着重要而且广泛的应用。\n\n## STSE\n\n1911 年，荷兰物理学家昂内斯（H. K. Onnes，1853—1926）发现，当汞温度降到 4.15 K（-269 ℃）附近时，电阻会突然降到零。之后，又有科学家发现，某些金属、合金和化合物在温度降到绝对零度附近某一特定温度时，电阻会突然减小到无法测量，这种现象叫做超导现象。由正常状态转变为超导状态的温度称为这种物质的临界温度。现在已发现，大多数金属元素以及数以千计的合金、化合物都在不同条件下显示出超导性。\n\n超导体可以通过大电流，并产生强磁场，因此在电磁设备中有着广泛的应用，如核磁共振成像仪、加速器等。不过超导现象大规模应用遇到的主要障碍是超导所要求的低温。如果能得到在室温下呈现超导现象的材料，就会使世界发生巨大的变化。\n\n我国著名物理学家赵忠贤（1941—）从1976年开始从事探索高温超导体的研究，1983年开始研究氧化物超导体BPB系统及重费米子超导性，1986年底在Ba-La-Cu-O系统研究中，注意到杂质的影响，并于1987年参与发现了液氮温区超导体。1987年2月，他所在的小组独立地发现了液氮温区超导体，并首先向世界上公布了其化学成分Ba-Y-Cu-O。这个研究成果推动了超导研究。现在，许多科学家正在研究超导。\n\n## 问题②思考\n\n1. 导致电路烧毁的故障，经常发生在插座处。试说明可能的原因。\n\n2. 某实验室需要绕制一个总阻值是 $50 \\Omega$ 的滑动变阻器。根据表10-2的数据，计算需要用多长的横截面积是 $0.02 \\mathrm{~mm}^{2}$ 的镍铬线？\n\n3. 观察滑动变阻器的外观，说出图 10-18 中各字母标识的部件的名称，并解释滑动变阻器能改变电阻的原因。\n\n  \n图10-18\n\n  \n图10-19\n\n4. 将四个定值电阻 $a$ 、 $b$ 、 $c$ 、 $d$ 分别接入电路，测得电流、电压值如图 10-19 中相应的点所示。试指出其中阻值最接近的两个电阻，并简述理由。\n\n5. 两根长短、粗细都相同的导体，一根是铜丝，另一根材料未知。若将这两根导体串接在电路中，发现另一根导线两端的电压约为铜丝两端电压的30倍，试问另一根导线是用何种材料制成的？\n\n6. 研究表明，人体中的水分绝大部分存在于血液、肌肉及内脏中，而脂肪中含水量极低，因此脂肪部分比肌肉和人体其他组织电阻率更高。电子脂肪秤是一种测量人体脂肪百分率、水分百分率、骨骼质量等数据的产品。脂肪秤的表面隐藏有两个电极片，使用时人需要赤脚站立在脂肪秤上。根据上述资料，建立简单物理模型，猜测脂肪秤的工作原理，并查找资料对脂肪秤测量的准确性进行评价。\n\n  \n图10-20 汽车后挡风玻璃上的电阻丝",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:10-2-a:source-markdown",
+          "locator": "电阻定律",
+          "modality": "text",
+          "page_end": 59,
+          "page_start": 55,
+          "properties": {
+            "md_end": 1772,
+            "md_start": 1652,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+            "outline_title": "电阻定律",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 1772,
+      "md_start": 1652,
+      "modalities": [
+        "equation",
+        "image",
+        "text",
+        "table"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第二节 电阻定律\n\n如图10-13所示，在用伏安法测一根细铁丝的电阻时，我们发现，将其两端直接接入电路和将铁丝对折头尾相连再接入电路，两次测得的电阻值不同。若将细铁丝换成形状相同的细铜丝，测得铜丝的电阻值与铁丝的也不同。我们知道，电阻（resistance）是一个物理量，表示导体对电流阻碍作用的大小，通常用 $R$ 表示；电阻是导体本身的一种特性，不同的导体，电阻大小一般不同；电阻越大，表示导体对电流的阻碍作用越大。同样的铁丝为什么两次测量的电阻值不同呢？相同形状的铁丝与铜丝的电阻值为什么又不同呢？\n\n[source image omitted from static artifact]  \n图10-13 伏安法测细铁丝的电阻\n\n## 大家谈\n\n一段金属导体的电阻由哪些因素决定？有怎样的定量关系？请猜测、提出假设并说明假设的依据。\n\n\n\n## 一段金属导体电阻与长度、横截面积等因素有怎样的定量关系？\n\n## 1. 研究金属导体电阻与长度的关系\n\n采用粗细均匀的长金属电阻丝，按如图10-14所示的电路连接。不断改变导线与电阻丝的接触点 A 的位置，依次记录电压表、电流表的示数及连入电路的电阻丝的长度 L，随后根据电压表、电流表的示数计算连入电路部分的电阻丝的电阻值 R，最终绘制 R-L 图像，判断导体电阻与长度的关系。\n\n[source image omitted from static artifact]  \n图10-14 研究金属导体电阻与长度的关系\n\n## 2. 研究金属导体电阻与横截面积大小的关系\n\n采用材料及长度相同、横截面积不同的电阻丝，分别接入如图10-15所示的电路 $a$ 、 $b$ 两端。记录电压表及电流表的示数，计算出电阻丝阻值 $R$ ，绘制电阻丝阻值 $R$ 与横截面积 $S$ 的 $R - S$ 图像，从而判断导体电阻与横截面积间的关系。\n\n[source image omitted from static artifact]  \n图10-15 研究金属导体电阻  \n与横截面积大小的关系\n\n## 3. 研究金属导体的电阻与材料的关系\n\n采用横截面积、长度相同但材料不同的金属电阻丝，分别连入如图10-15所示的电路 $a$ 、 $b$ 两端。通过记录电压表、电流表的示数，计算电阻丝阻值 $R$ ，判断材质是否影响电阻阻值。\n\n实验表明：在温度不变时，导体的电阻 R 与导体的长度 L 成正比，与导体的横截面积 S 成反比，与构成它的材料有关，即\n\n$$\nR = \\rho \\frac {L}{S}\n$$\n\n这就是电阻定律（law of resistance）。式中 $\\rho$ 叫做材料的电阻率（resistivity），电阻率的单位是欧姆·米，符号为 $\\Omega\\cdot m$ 。不同材料的电阻率 $\\rho$ 是不同的，它的数值是由导体的材料性质所决定的，反映了材料的导电性能。在一定的温度下，对同一种材料而言， $\\rho$ 不变。如表 10-2 所示为一些常见导体材料在温度为 $20^{\\circ}C$ 时的电阻率。\n\n表 10-2 一些常见导体材料在温度为 ${20}^{ \\circ  }\\mathrm{C}$ 时的电阻率\n\n<table><tr><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td></tr><tr><td>银</td><td> $1.6 \\times 10^{-8}$ </td><td>铁</td><td> $1.0 \\times 10^{-7}$ </td></tr><tr><td>铜</td><td> $1.7 \\times 10^{-8}$ </td><td>汞</td><td> $9.6 \\times 10^{-7}$ </td></tr><tr><td>铝</td><td> $2.9 \\times 10^{-8}$ </td><td>锰铜合金 *</td><td> $4.4 \\times 10^{-7}$ </td></tr><tr><td>钨</td><td> $5.3 \\times 10^{-8}$ </td><td>镍铜合金 **</td><td> $5.0 \\times 10^{-7}$ </td></tr><tr><td>铂</td><td> $1.0 \\times 10^{-7}$ </td><td>镍铬合金 ***</td><td> $1.0 \\times 10^{-6}$ </td></tr></table>\n\n示例 一根长 $L = 10 \\mathrm{~m}$ 的铁丝, 质量 $m = 0.156 \\mathrm{~kg}$ 。试求其在温度为 $20^{\\circ} \\mathrm{C}$ 时的电阻。(铁的密度 $D = 7.8 \\times 10^{3} \\mathrm{~kg} / \\mathrm{m}^{3}$ )\n\n分析：由电阻定律公式 $R = \\rho \\frac{L}{S}$ 可知，若求铁丝的电阻 $R$ ，必须知道铁丝的电阻率 $\\rho$ 、长度 $L$ 和横截面积 $S$ 。其中 $\\rho$ 可以由表10-2查得， $L$ 已知， $S$ 则要通过铁丝的质量 $m$ 、密度 $D$ 和长度 $L$ 来求得。\n\n解：设铁丝的体积为 V，横截面积为 S，由 m = DV = DSL 得\n\n$$\nS = \\frac {m}{D L}\n$$\n\n将上式代入电阻定律公式，则铁丝的电阻\n\n$$\nR = \\rho \\frac {D L ^ {2}}{m} = \\frac {1 . 0 \\times 1 0 ^ {- 7} \\times 7 . 8 \\times 1 0 ^ {3} \\times 1 0 ^ {2}}{0 . 1 5 6} \\Omega = 0. 5 \\Omega\n$$\n\n## 大家谈\n\n导体的电阻和电阻率有何区别？\n\n\n\n## 温度对导体的电阻有何影响？\n\n前面讨论电阻和电阻率时我们都假定 “温度不变”，那么温度对导体的电阻有何影响呢？下面我们就先来做一个实验。\n\n## 自主活动\n\n利用电压表、电流表、温度传感器，按如图10-16所示的电路研究小灯泡的 $I - U$ 特性曲线。\n\n实验时，闭合开关，缓慢调节滑动变阻器阻值，记录电压 U、电流 I 的数据，并相应记录此时小灯泡周围的温度值。得到的实验 I-U 图线如图 10-17 所示。\n\n[source image omitted from static artifact]  \n图10-16 研究小灯泡的电压、电流关系\n\n[source image omitted from static artifact]  \n图10-17 小灯泡 $I - U$ 特性曲线\n\n从 I-U 图线不是一条直线可知，电阻不是一个常数。由实验可知，随着流过小灯泡的电流的增加，小灯泡灯丝的温度逐渐升高。温度对灯丝的电阻存在影响，灯丝温度变化时，它的电阻发生了变化。从实验获得的图线可知，灯丝电阻随温度升高而增大。小灯泡的灯丝在正常发光时的电阻值比不发光时大很多。电阻随温度的变化主要是由于导体材料的电阻率随温度发生了变化。尽管如此，在中学物理中，除非特别指出，一般不考虑温度对电阻变化的影响。\n\n利用金属的电阻跟温度的关系，可以制成电阻温度计。通常用铂电阻丝做成的温度计叫做铂温度计，它比汞温度计更精确，且测量范围更广。\n\n电阻器（resistor）是用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件，在日常生活中也常常被直接称为电阻。人们根据电阻定律，设计生产出各种各样的电阻器（图10-12）来满足社会生产生活实际需要。作为重要基础电子元件，电阻器在工业生产中有着重要而且广泛的应用。\n\n## STSE\n\n1911 年，荷兰物理学家昂内斯（H. K. Onnes，1853—1926）发现，当汞温度降到 4.15 K（-269 ℃）附近时，电阻会突然降到零。之后，又有科学家发现，某些金属、合金和化合物在温度降到绝对零度附近某一特定温度时，电阻会突然减小到无法测量，这种现象叫做超导现象。由正常状态转变为超导状态的温度称为这种物质的临界温度。现在已发现，大多数金属元素以及数以千计的合金、化合物都在不同条件下显示出超导性。\n\n超导体可以通过大电流，并产生强磁场，因此在电磁设备中有着广泛的应用，如核磁共振成像仪、加速器等。不过超导现象大规模应用遇到的主要障碍是超导所要求的低温。如果能得到在室温下呈现超导现象的材料，就会使世界发生巨大的变化。\n\n我国著名物理学家赵忠贤（1941—）从1976年开始从事探索高温超导体的研究，1983年开始研究氧化物超导体BPB系统及重费米子超导性，1986年底在Ba-La-Cu-O系统研究中，注意到杂质的影响，并于1987年参与发现了液氮温区超导体。1987年2月，他所在的小组独立地发现了液氮温区超导体，并首先向世界上公布了其化学成分Ba-Y-Cu-O。这个研究成果推动了超导研究。现在，许多科学家正在研究超导。\n\n## 问题②思考\n\n1. 导致电路烧毁的故障，经常发生在插座处。试说明可能的原因。\n\n2. 某实验室需要绕制一个总阻值是 $50 \\Omega$ 的滑动变阻器。根据表10-2的数据，计算需要用多长的横截面积是 $0.02 \\mathrm{~mm}^{2}$ 的镍铬线？\n\n3. 观察滑动变阻器的外观，说出图 10-18 中各字母标识的部件的名称，并解释滑动变阻器能改变电阻的原因。\n\n  \n图10-18\n\n  \n图10-19\n\n4. 将四个定值电阻 $a$ 、 $b$ 、 $c$ 、 $d$ 分别接入电路，测得电流、电压值如图 10-19 中相应的点所示。试指出其中阻值最接近的两个电阻，并简述理由。\n\n5. 两根长短、粗细都相同的导体，一根是铜丝，另一根材料未知。若将这两根导体串接在电路中，发现另一根导线两端的电压约为铜丝两端电压的30倍，试问另一根导线是用何种材料制成的？\n\n6. 研究表明，人体中的水分绝大部分存在于血液、肌肉及内脏中，而脂肪中含水量极低，因此脂肪部分比肌肉和人体其他组织电阻率更高。电子脂肪秤是一种测量人体脂肪百分率、水分百分率、骨骼质量等数据的产品。脂肪秤的表面隐藏有两个电极片，使用时人需要赤脚站立在脂肪秤上。根据上述资料，建立简单物理模型，猜测脂肪秤的工作原理，并查找资料对脂肪秤测量的准确性进行评价。\n\n  \n图10-20 汽车后挡风玻璃上的电阻丝",
+      "title": "电阻定律"
+    }
+  ]
+}

@@ -1,0 +1,1168 @@
+{
+  "body": {
+    "content": "## 定义\n磁场是物质的一种形态，存在于磁体或电流周围空间，对放入其中的磁性物体或电流产生力的作用，且无法被人类感官直接觉察 [evidence:auto-cc627c99b34a]。\n\n## 核心解释\n磁场具有物质性，但其存在形式不同于常规实物。地球周围存在大范围磁场，可类比为一个巨型条形磁体。在地磁场作用下，指南针的N极会指向地磁南极（位于地理北极附近），S极则指向地磁北极（位于地理南极附近） [evidence:auto-384ad7f6185b]。地磁轴与地球自转轴存在约11°的夹角，二者并不完全重合 [evidence:auto-64d2da18ec9f]。\n\n## 关键要点\n- 天然磁石的主要化学成分为四氧化三铁 [evidence:auto-421d4fecb09a]\n- 目前已知最强永久磁体为钕铁硼磁体（钕磁体） [evidence:auto-4d8fedf83591]\n- 磁极倒转现象可能与地核内液态铁流动方向突变有关 [evidence:auto-488c13907b4c]\n\n## 示例或应用\n中国古代利用天然磁石制成的「司南」是世界上最早的指南针，通过地磁场作用实现方向指示功能 [evidence:auto-1e97b1711d7a]。现代指南针的工作原理同样基于磁场对磁性物体的定向作用，其指针始终沿地磁场磁感线方向排列 [evidence:auto-384ad7f6185b]。\n\n## 易错点\n需注意地磁两极与地理两极的位置差异：地磁南极实际位于地理北极区域附近，而地磁北极位于地理南极区域附近 [evidence:auto-384ad7f6185b]。此外，地磁轴并非与地球自转轴完全重合，二者存在约11°的倾角 [evidence:auto-64d2da18ec9f]。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "concept/基础概念:auto-a661553d4ea5",
+    "properties": {
+      "card_title": "磁场",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-cc627c99b34a",
+      "evidence:auto-384ad7f6185b",
+      "evidence:auto-64d2da18ec9f",
+      "evidence:auto-421d4fecb09a",
+      "evidence:auto-4d8fedf83591",
+      "evidence:auto-488c13907b4c",
+      "evidence:auto-1e97b1711d7a"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:47:51+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-f7947ea2bbcf",
+    "mention_refs": [],
+    "node_id": "concept/基础概念:auto-a661553d4ea5",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "物质的一种形态，存在于磁体或电流周围空间，对放入其中的磁性物体或电流有力的作用，不能为人类感官直接觉察。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-cc627c99b34a"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "物质的一种形态，存在于磁体或电流周围空间，对放入其中的磁性物体或电流有力的作用，不能为人类感官直接觉察。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-cc627c99b34a"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "物质的一种形态，存在于磁体或电流周围空间，对放入其中的磁性物体或电流有力的作用，不能为人类感官直接觉察。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-cc627c99b34a"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "磁场"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-cc627c99b34a"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "磁现象 磁感线"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-cc627c99b34a"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-cc627c99b34a"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-cc627c99b34a"
+    ],
+    "status": "active",
+    "summary": "物质的一种形态，存在于磁体或电流周围空间，对放入其中的磁性物体或电流有力的作用，不能为人类感官直接觉察。",
+    "title": "磁场",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 9,
+    "score": 100,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-13a5abd00c69",
+      "node_id": "concept/基础概念:auto-a661553d4ea5",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "提供一段关于磁场性质的描述文本，要求学生划出体现“物质性”与“不可直接觉察”的关键句，并判断正误。",
+              "给出条形磁体周围铁屑排列的图片，要求绘制磁感线分布示意图，并标注任意一点磁场对放置小磁针N极的作用力方向。",
+              "设置地磁场情境，要求画出地球表面某点的地磁场方向矢量，并书面说明该点指南针静止时两极分别指向的地磁极名称。"
+            ],
+            "common_errors": [
+              "误认为磁场因不可见、不可触就不属于物质范畴，忽视其传递磁相互作用的物质性本质。",
+              "将磁感线当作真实存在的物理实体，而非人为引入的描述磁场方向与强弱的方法论模型。",
+              "混淆地理两极与地磁两极的空间对应关系，错误推断指南针N极直接指向地理北极而非地磁南极。"
+            ],
+            "diagnostic_questions": [
+              "磁场看不见摸不着，它是否属于物质？请结合定义说明理由。",
+              "磁感线是真实存在于磁场中的曲线吗？它在描述磁场时起什么作用？",
+              "指南针的N极为什么指向地理北极附近？请用地磁极与地理极的关系进行解释。"
+            ],
+            "difficulty_level": "basic",
+            "extension_suggestions": [
+              "结合核磁共振成像技术案例，讨论磁场在现代医疗中如何体现“对电流或磁性物质有力的作用”这一核心本质。",
+              "阅读地磁极倒转假说内容，引导学生思考地球内部液态铁质流运动与宏观磁场变化之间的关联，拓展场源认知。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T09:48:38+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "f735ca11f6390142994b385e3598f5f976793ffc27cd1c1ddaf7d8be2a0ee606",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-cc627c99b34a",
+                "evidence:auto-384ad7f6185b",
+                "evidence:auto-64d2da18ec9f"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能够准确陈述磁场的定义，并明确区分其“具有物质性”与“不能为人类感官直接觉察”的物理边界。",
+              "能够借助铁屑分布实验现象或磁感线模型，描述磁场对放入其中的磁性物体产生力的作用效果。",
+              "能够根据地磁场分布特征，解释指南针N极指向地磁南极、S极指向地磁北极的受力取向规律。"
+            ],
+            "remediation_suggestions": [
+              "通过演示“铁屑分布实验”将不可见的磁场作用可视化，引导学生从受力现象反推场物质的存在，建立“效应证物”的科学思维。",
+              "对比实物粒子与场物质，着重剖析“不能为感官直接觉察”的认知边界，利用教材原文破除“看不见即不存在”的前科学概念。",
+              "利用地磁场与指南针的互动案例，配合空间示意图厘清地磁轴与地理轴的11°夹角及磁极反向对应关系，强化空间受力分析与模型转换能力。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-384ad7f6185b",
+        "evidence:auto-64d2da18ec9f",
+        "evidence:auto-cc627c99b34a"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T09:48:38+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "利用磁石制成的 “司南” 是世界上最早使用的指南针。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-1e97b1711d7a",
+      "locator": "line:10",
+      "modality": "text",
+      "normalized_claims": [
+        "利用磁石制成的 “司南” 是世界上最早使用的指南针。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/679274bb599c58123128fcb49b4b0b9e3363227dbcd3798d2f0d597620ad3f3d.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-2f6869caa44c",
+      "locator": "line:84",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/679274bb599c58123128fcb49b4b0b9e3363227dbcd3798d2f0d597620ad3f3d.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 790,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/679274bb599c58123128fcb49b4b0b9e3363227dbcd3798d2f0d597620ad3f3d.jpg",
+          "reason": "图片内容与后文紧密对应，后文第一句即为图注：'图11-7 中国科学院强磁场科学中心的“稳态强磁场实验装置（SHMFF）”'。该图片作为磁在科学研究领域应用的具体实例（器材/装置照片），辅助说明了强磁场装置的功能及其在材料科学、生物医学等领域的作用，属于 supporting 类型的证据。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个大型科学实验装置，主体是一个巨大的白色圆柱形容器，带有蓝色环带和标志，周围由灰色金属支架支撑，底部连接着管道。左侧有一个螺旋楼梯通向高处平台。",
+          "width": 1306
+        },
+        "path": "images/679274bb599c58123128fcb49b4b0b9e3363227dbcd3798d2f0d597620ad3f3d.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "地球周围存在一个大范围的磁场，宛如一个大的条形磁体。在地磁场的作用下，指南针会调整方向，使其取向顺着地磁场的磁感线，N极指向地磁南极；S极指向地磁北极。地磁南极在地理北极附近；地磁北极在地理南极附近。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-384ad7f6185b",
+      "locator": "line:43",
+      "modality": "text",
+      "normalized_claims": [
+        "地球周围存在一个大范围的磁场，宛如一个大的条形磁体。在地磁场的作用下，指南针会调整方向，使其取向顺着地磁场的磁感线，N极指向地磁南极；S极指向地磁北极。地磁南极在地理北极附近；地磁北极在地理南极附近。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "天然磁石主要成分是四氧化三铁。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-421d4fecb09a",
+      "locator": "line:16",
+      "modality": "text",
+      "normalized_claims": [
+        "天然磁石主要成分是四氧化三铁。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "大部分科学家认为，当地球内部液态铁质流围绕着地核中心旋转时，如果突然发生变化，其流动方向倒转，就会引发磁极倒转现象。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-488c13907b4c",
+      "locator": "line:59",
+      "modality": "text",
+      "normalized_claims": [
+        "大部分科学家认为，当地球内部液态铁质流围绕着地核中心旋转时，如果突然发生变化，其流动方向倒转，就会引发磁极倒转现象。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "到目前为止具有最强磁力的永久磁体是钕磁体，也称为钕铁硼磁体。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-4d8fedf83591",
+      "locator": "line:17",
+      "modality": "text",
+      "normalized_claims": [
+        "到目前为止具有最强磁力的永久磁体是钕磁体，也称为钕铁硼磁体。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "地磁两极与地理两极不完全重合，地磁轴和地球自转轴之间的夹角约为11°。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-64d2da18ec9f",
+      "locator": "line:44",
+      "modality": "text",
+      "normalized_claims": [
+        "地磁两极与地理两极不完全重合，地磁轴和地球自转轴之间的夹角约为11°。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "在条形磁体周围撒上的铁屑会呈现有规则的排列",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-97bd104f76f9",
+      "locator": "line:25",
+      "modality": "text",
+      "normalized_claims": [
+        "在条形磁体周围撒上的铁屑会呈现有规则的排列"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "磁感线是闭合曲线，磁体外部的磁感线是从 N 极出来，回到磁体的 S 极，内部是从 S 极到 N 极。任意两条磁感线不相交，两条磁感线之间的区域仍然有磁场。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a3515e4573aa",
+      "locator": "line:33",
+      "modality": "text",
+      "normalized_claims": [
+        "磁感线是闭合曲线，磁体外部的磁感线是从 N 极出来，回到磁体的 S 极，内部是从 S 极到 N 极。任意两条磁感线不相交，两条磁感线之间的区域仍然有磁场。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "我们将地球表面水平放置的指南针静止时N极所指的方向与地球北极方向之间的夹角称为磁偏角，地球表面不同地区磁偏角是不相同的。不仅如此，由于地球磁极的缓慢移动，磁偏角也在缓慢变化。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a60f591bec09",
+      "locator": "line:45",
+      "modality": "text",
+      "normalized_claims": [
+        "我们将地球表面水平放置的指南针静止时N极所指的方向与地球北极方向之间的夹角称为磁偏角，地球表面不同地区磁偏角是不相同的。不仅如此，由于地球磁极的缓慢移动，磁偏角也在缓慢变化。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/f1a3d6dd7220311d2f5b476699583d5e8f157e06eb1207e44bbc4cb9123f34f9.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ae02d27464a5",
+      "locator": "line:30",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/f1a3d6dd7220311d2f5b476699583d5e8f157e06eb1207e44bbc4cb9123f34f9.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 273,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/f1a3d6dd7220311d2f5b476699583d5e8f157e06eb1207e44bbc4cb9123f34f9.jpg",
+          "reason": "图片内容直接对应后文中的“图11-5 条形磁体外部的磁感线”。它直观地展示了磁感线从N极出发回到S极的分布规律，是解释磁场形象描述的核心模型图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个条形磁体，左端为S极（蓝色），右端为N极（红色）。磁体周围画有带箭头的闭合曲线（磁感线），箭头方向从N极指出，曲线弯曲回到S极，直观展示了条形磁体外部的磁场分布情况。",
+          "width": 381
+        },
+        "path": "images/f1a3d6dd7220311d2f5b476699583d5e8f157e06eb1207e44bbc4cb9123f34f9.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/a4a8f3924182e578a4f9a4da9da49747113976b664ee0921244fa8a40f26089b.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-bcf6aef3412f",
+      "locator": "line:35",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/a4a8f3924182e578a4f9a4da9da49747113976b664ee0921244fa8a40f26089b.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 59,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/a4a8f3924182e578a4f9a4da9da49747113976b664ee0921244fa8a40f26089b.jpg",
+          "reason": "图片是一个问号图标，与标题“如何形象地描述磁场？”中的疑问语气形成合理对应，起到引导读者思考或作为小结栏目标识的作用。虽然图片本身不包含具体的物理知识（如磁感线图），但它与上下文（标题）紧密相关，属于辅助说明材料。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片显示一个紫色的圆形图标，中间有一个白色的问号。",
+          "width": 62
+        },
+        "path": "images/a4a8f3924182e578a4f9a4da9da49747113976b664ee0921244fa8a40f26089b.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/c066df03e5cefdc27ddd985f2ade129a22c82eb923756c3ac6261e628a45bb82.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c10f4931772c",
+      "locator": "line:11",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/c066df03e5cefdc27ddd985f2ade129a22c82eb923756c3ac6261e628a45bb82.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 267,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/c066df03e5cefdc27ddd985f2ade129a22c82eb923756c3ac6261e628a45bb82.jpg",
+          "reason": "图片内容为一个银色圆柱形磁铁（典型的人造强磁体外观）。虽然图片位于介绍古代磁学历史（司南、指南针）之后，但在介绍“天然磁石”和“现代人造磁体”之前。后文明确提到了“现代工业上可以制造出各种各样的人造磁体...钕磁体”，这张图片作为磁体的实物照片，与上下文关于磁体形态、从古代磁石到现代人造磁体的发展讨论紧密相关。尽管它可能不是后文指明的图11-2（图11-2在后文另有指定），但它展示了磁体的典型样貌，起到了辅助说明磁体实物形态的作用。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个银色的圆柱形物体，中间有一个圆孔，放置在白色背景上。从外观和光泽判断，这很可能是一个现代工业制造的人造强磁体（如钕铁硼磁铁）。",
+          "width": 398
+        },
+        "path": "images/c066df03e5cefdc27ddd985f2ade129a22c82eb923756c3ac6261e628a45bb82.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/87a5cad0c7d7f18de0507096a786dcf9d4215449139ddbaf00910eddd633cc63.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c5e8d1e9ea51",
+      "locator": "line:41",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/87a5cad0c7d7f18de0507096a786dcf9d4215449139ddbaf00910eddd633cc63.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 426,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/87a5cad0c7d7f18de0507096a786dcf9d4215449139ddbaf00910eddd633cc63.jpg",
+          "reason": "该图片是教材上下文中明确引用的“图11-6”，且后文直接给出了图名“地理两极与地磁两极不重合”。图片内容直观地展示了地磁场的结构、地磁南北极与地理南北极的位置对应关系（地磁南极在地理北极附近等）以及地磁轴与地理轴的夹角，完美对应了前文中关于“地球周围存在一个大范围的磁场，宛如一个大的条形磁体”的描述，属于核心知识概念图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了地球的磁场分布模型。图中有一个蓝色的球体代表地球，内部有一个灰色的长方体代表地磁体，上端标为S，下端标为N。外部画有粉色的磁感线，呈闭合曲线分布。图片标注了“地理北极”（上方）、“地理南极”（下方），以及“磁南极”（靠近地理北极）、“磁北极”（靠近地理南极）。同时用虚线标示出地轴和磁轴，显示两者之间存在夹角，不重合。",
+          "width": 404
+        },
+        "path": "images/87a5cad0c7d7f18de0507096a786dcf9d4215449139ddbaf00910eddd633cc63.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "磁场是物质的一种形态，但这类物质形态并不能像实物一样为人类的感官直接觉察。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-cc627c99b34a",
+      "locator": "line:3",
+      "modality": "text",
+      "normalized_claims": [
+        "磁场是物质的一种形态，但这类物质形态并不能像实物一样为人类的感官直接觉察。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "磁场的强弱和方向可以形象地用磁感线来描述：磁感线的疏密程度表示磁场的强弱，磁感线越密集的地方磁场就越强；磁感线的切线方向表示该点的磁场方向，即放在该处小磁针静止时的N极所指的方向。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-d12a2be767fe",
+      "locator": "line:24",
+      "modality": "text",
+      "normalized_claims": [
+        "磁场的强弱和方向可以形象地用磁感线来描述：磁感线的疏密程度表示磁场的强弱，磁感线越密集的地方磁场就越强；磁感线的切线方向表示该点的磁场方向，即放在该处小磁针静止时的N极所指的方向。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "基于磁场的核磁共振技术成像（图 11-3）及磁疗技术也广泛用于医学临床。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-d1c9e39776f6",
+      "locator": "line:20",
+      "modality": "text",
+      "normalized_claims": [
+        "基于磁场的核磁共振技术成像（图 11-3）及磁疗技术也广泛用于医学临床。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/7c4ace974edfdd8cb46a704aa8006e508d63adfa95a01eeb9161c3d0612aa1d5.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-db7892508788",
+      "locator": "line:18",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/7c4ace974edfdd8cb46a704aa8006e508d63adfa95a01eeb9161c3d0612aa1d5.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 273,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/7c4ace974edfdd8cb46a704aa8006e508d63adfa95a01eeb9161c3d0612aa1d5.jpg",
+          "reason": "图片内容清晰地展示了核磁共振（MRI）扫描的过程和设备，与上下文前文提到的“基于磁场的核磁共振技术成像（图 11-3）”以及后文紧接着的标题“图11-3 核磁共振断层成像仪”完全对应。虽然这是教材中的正式插图，但作为展示具体医疗器材和应用场景的照片，主要起辅助说明磁现象在医学领域应用的作用，符合规则中对于“照片、器材、场景”归类为supporting的描述。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个医疗检查场景，一名患者躺在检查床上，身体部分进入一个大型圆筒状的医疗设备（核磁共振扫描仪）中，旁边有一位身穿白大褂的医护人员正在操作或监护。",
+          "width": 395
+        },
+        "path": "images/7c4ace974edfdd8cb46a704aa8006e508d63adfa95a01eeb9161c3d0612aa1d5.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "在人类生活中处处可遇到磁场。随着科学技术的发展，磁技术已经渗透到了我们的日常生活和工农业生产技术的各个方面。磁浮列车（图 11-1）就是一种现代高科技轨道交通工具。世界上第一条商业运营的磁浮列车线路在上海浦东新区运行，其列车的最高速度达 $430 \\mathrm{~km} / \\mathrm{h}$ 。磁场是物质的一种形态，但这类物质形态并不能像实物一样为人类的感官直接觉察。历史上人类对磁场的研究是从磁铁的磁性及其相互作用开始的，我国古代对磁现象的研究成果丰硕，对人类文明影响深远。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-df40c5705120",
+      "locator": "line:3",
+      "modality": "equation",
+      "normalized_claims": [
+        "在人类生活中处处可遇到磁场。随着科学技术的发展，磁技术已经渗透到了我们的日常生活和工农业生产技术的各个方面。磁浮列车（图 11-1）就是一种现代高科技轨道交通工具。世界上第一条商业运营的磁浮列车线路在上海浦东新区运行，其列车的最高速度达 $"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "科学家发现地球磁场的方向并不是恒定不变的，它的南北磁极曾经对换过位置，这就是“磁极倒转”现象。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e7c9dd16d153",
+      "locator": "line:53",
+      "modality": "text",
+      "normalized_claims": [
+        "科学家发现地球磁场的方向并不是恒定不变的，它的南北磁极曾经对换过位置，这就是“磁极倒转”现象。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "磁浮列车（图 11-1）就是一种现代高科技轨道交通工具。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ea640cd87c9b",
+      "locator": "line:4",
+      "modality": "text",
+      "normalized_claims": [
+        "磁浮列车（图 11-1）就是一种现代高科技轨道交通工具。"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/2f2701437f64e10eede0a06d3098eaa97d491c2c845209c911e23fbcb441cf05.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-eee20a1dcd7e",
+      "locator": "line:27",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/2f2701437f64e10eede0a06d3098eaa97d491c2c845209c911e23fbcb441cf05.jpg)"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 240,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/2f2701437f64e10eede0a06d3098eaa97d491c2c845209c911e23fbcb441cf05.jpg",
+          "reason": "图片内容与教材上下文高度对应。前文明确提到“在条形磁体周围撒上的铁屑会呈现有规则的排列（图11-4）”，后文紧接着标注“图11-4 条形磁体周围铁屑分布情况”，且图片ID与上下文中的图11-4对应。这张图片展示了磁体周围铁屑排列的实验现象，作为辅助说明材料，用于直观呈现磁场分布，从而引出后文关于磁感线这一形象描述工具的定义。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片显示一个长条形磁铁（一端红色，一端蓝色）放置在撒满黑色铁屑的表面上。铁屑在磁铁周围形成了有规律的曲线排列，显示出磁场分布的形态。",
+          "width": 392
+        },
+        "path": "images/2f2701437f64e10eede0a06d3098eaa97d491c2c845209c911e23fbcb441cf05.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:47:51+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-6e7882eb7abf",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "defines",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-cc627c99b34a"
+      ],
+      "source_type": "textbook",
+      "target_id": "concept/基础概念:auto-a661553d4ea5",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "磁力场"
+    ],
+    "created_at": "2026-06-29T05:47:51+00:00",
+    "dataset_id": "main",
+    "definition": "物质的一种形态，存在于磁体或电流周围空间，对放入其中的磁性物体或电流有力的作用，不能为人类感官直接觉察。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "concept/基础概念:auto-a661553d4ea5",
+    "kind": "concept",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "磁场",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "raw_subkinds": [
+          "基础概念"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "不能为感官直接觉察",
+          "具有物质性",
+          "传递磁相互作用"
+        ],
+        "conditions": [],
+        "formal_expressions": []
+      },
+      "template_display": {
+        "label": "物理概念",
+        "template_id": "textbook/physics",
+        "type_key": "concept"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": null,
+    "tags": [
+      "基础概念",
+      "物质性",
+      "不可见"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:47:51+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "method/演示实验:auto-a9d612e5c565",
+        "id": "edge:auto-87482bd5172f",
+        "notes": "铁屑有规则排列呈现磁场分布特征",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-97bd104f76f9"
+        ],
+        "status": "active",
+        "to_id": "concept/基础概念:auto-a661553d4ea5",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:47:51+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "representation/物理模型:auto-790a12487f84",
+        "id": "edge:auto-fe62d0379c77",
+        "notes": "磁感线用于形象描述磁场的强弱和方向",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-d12a2be767fe"
+        ],
+        "status": "active",
+        "to_id": "concept/基础概念:auto-a661553d4ea5",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:47:51+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "method/医疗技术:auto-5e1ba270dfb8",
+        "id": "edge:auto-bb625d681d8e",
+        "notes": "核磁共振成像技术基于磁场原理",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "使用",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-d1c9e39776f6"
+        ],
+        "status": "active",
+        "to_id": "concept/基础概念:auto-a661553d4ea5",
+        "type": "uses",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ],
+    "outgoing": []
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第一节 磁现象 磁感线\n\n在人类生活中处处可遇到磁场。随着科学技术的发展，磁技术已经渗透到了我们的日常生活和工农业生产技术的各个方面。磁浮列车（图 11-1）就是一种现代高科技轨道交通工具。世界上第一条商业运营的磁浮列车线路在上海浦东新区运行，其列车的最高速度达 $430 \\mathrm{~km} / \\mathrm{h}$ 。磁场是物质的一种形态，但这类物质形态并不能像实物一样为人类的感官直接觉察。历史上人类对磁场的研究是从磁铁的磁性及其相互作用开始的，我国古代对磁现象的研究成果丰硕，对人类文明影响深远。\n\n\n\n## 为什么说我国是对磁现象认识最早的国家之一？\n\n公元前 4 世纪左右成书的《管子·地数篇》中就有 “上有慈石者，其下有铜金” 的记载，这是关于磁的最早记载。古代的人们就发现了磁石只能吸铁，而不能吸金、银、铜等其他金属的现象，并将能吸铁的磁石形象地比喻为慈母对子女的关爱呵护。利用磁石制成的 “司南” 是世界上最早使用的指南针。东汉王充在《论衡·是应篇》中记有 “司南之杓，投之于地，其柢指南” \\*。南宋后，以磁针为主要结构的罗盘在航海中被普遍使用。到了明代，遂有郑和下西洋远航到非洲东海岸之壮举。中国指南针约于12世纪末13世纪初由海路传入阿拉伯，又由阿拉伯传到欧洲。指南针的传播，正如英国哲学家培根所说的那样，在促进人类航海事业发展和改变世界面貌上产生了巨大的影响。\n\n[source image omitted from static artifact]\n\n天然磁石主要成分是四氧化三铁。现代工业上可以制造出各种各样的人造磁体，20世纪70年代制造出稀土强磁材料使得磁性元件更加小型化，到目前为止具有最强磁力的永久磁体是钕磁体，也称为钕铁硼磁体（图11-2）。\n\n在生命体中也存在磁现象，有人认为信鸽识途归巢、候鸟千里迁徙等就是利用地磁场辨别方向。人体及器官也有磁性，利用电子技术及超导量子干涉技术可得到心磁图、脑磁图、肺磁图及人体磁场分布。基于磁场的核磁共振技术成像（图 11-3）及磁疗技术也广泛用于医学临床。\n\n图11-2 钕磁体  \n[source image omitted from static artifact]  \n图11-3 核磁共振断层成像仪\n\n\n\n## 如何形象地描述磁场？\n\n在磁体周围存在磁场。在条形磁体周围撒上的铁屑会呈现有规则的排列（图11-4）。磁场的强弱和方向可以形象地用磁感线来描述：磁感线的疏密程度表示磁场的强弱，磁感线越密集的地方磁场就越强；磁感线的切线方向表示该点的磁场方向，即放在该处小磁针静止时的N极所指的方向。\n\n[source image omitted from static artifact]  \n图11-4 条形磁体周围铁屑分布情况\n\n[source image omitted from static artifact]  \n图11-5 条形磁体外部的磁感线\n\n磁感线是闭合曲线，磁体外部的磁感线是从 N 极出来，回到磁体的 S 极，内部是从 S 极到 N 极。任意两条磁感线不相交，两条磁感线之间的区域仍然有磁场。如图 11-5 所示为条形磁体外部的磁感线。\n\n[source image omitted from static artifact]\n\n## 指南针指向地球南极吗？\n\n如图11-6所示，地球周围存在一个大范围的磁场，宛如一个大的条形磁体。在地磁场的作用下，指南针会调整方向，使其取向顺着地磁场的磁感线，N极指向地磁南极；S极指向地磁北极。地磁南极在地理北极附近；地磁北极在地理南极附近。地磁两极与地理两极不完全重合，地磁轴和地球自转轴之间的夹角约为11°。我们将地球表面水平放置的指南针静止时N极所指的方向与地球北极方向之间的夹角称为磁偏角，地球表面不同地区磁偏角是不相同的。不仅如此，由于地球磁极的缓慢移动，磁偏角也在缓慢变化。\n\n[source image omitted from static artifact]  \n图11-6 地理两极与地磁两极不重合\n\n我国宋代科学家沈括是历史上第一个提出磁偏角现象的人，他在《梦溪笔谈》中记载了地磁偏角现象：“方家以磁石磨针锋，则能指南，然常微偏东，不全南也。”\\*较系统地研究磁偏现象原始理论的是英国人吉尔伯特。磁偏角的发现对指南针在航海方面的应用十分重要。\n\n## 拓展视野\n\n科学家发现地球磁场的方向并不是恒定不变的，它的南北磁极曾经对换过位置，这就是“磁极倒转”现象。\n\n在地球的几十亿年历史中，磁极倒转事件发生多次。仅在最近的450万年里，就出现了4个磁场极性不同的时期。有两次和现在基本一样，是“正向期”，即地磁北极在地理南极附近，地磁南极在地理北极附近。还有两次则是和现在正好相反的“反向期”。在每一个磁性时期里，有时还会发生短暂的磁极倒转现象。\n\n为什么会出现地磁极变化呢？地球磁场反复变化有什么规律吗？迄今科学家们仍然没有得出统一的结论。大部分科学家认为，当地球内部液态铁质流围绕着地核中心旋转时，如果突然发生变化，其流动方向倒转，就会引发磁极倒转现象。\n\n地球磁场的倒转是否有一定的规律可循，是否可以预报？由于地心变化太过复杂，更难于直接观测，迄今人们仍未得出结论。\n\n## 问题②思考\n\n1. 在条形磁体外部靠近中央位置处有没有磁场？如何判断？\n\n2. 假设将指南针移到地球地心处，则指南针 N 极将指向什么方向？\n\n3. 通过学习磁场和磁感线，某同学总结了如下几个结论。试判断这些说法是否正确，并简述理由。\n\n(1) 磁感线是铁屑组成的。\n\n(2) 磁感线是磁体周围空间实际存在的曲线。\n\n(3) 磁场是看不见摸不着的，但是可以借助小磁针感知它的存在。\n\n(4) 地磁场的磁感线是从地球南极附近发出回到地球北极附近。\n\n4. 判断下列关于磁场的说法是否正确，并简述理由。\n\n(1) 两个磁极之间总是直接发生相互作用的。\n\n(2) 磁场是为了解释磁极间相互作用而人为规定的。\n\n(3) 磁场是特殊物质，它对放入其中的磁性物体有力的作用。\n\n(4) 由于磁场弱处磁感线疏，所以两条磁感线之间没有磁场。\n\n5. 日常生活中磁的应用给我们带来了方便，想想还有哪些地方可以应用磁性？\n\n[source image omitted from static artifact]  \n图11-7 中国科学院强磁场科学中心的“稳态强磁场实验装置（SHMFF）”",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:11-1-a:source-markdown",
+          "locator": "磁现象 磁感线",
+          "modality": "text",
+          "page_end": 99,
+          "page_start": 96,
+          "properties": {
+            "md_end": 2861,
+            "md_start": 2776,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:11-1-a",
+            "outline_title": "磁现象 磁感线",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 2861,
+      "md_start": 2776,
+      "modalities": [
+        "text",
+        "image",
+        "equation"
+      ],
+      "page_end": 99,
+      "page_start": 96,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第一节 磁现象 磁感线\n\n在人类生活中处处可遇到磁场。随着科学技术的发展，磁技术已经渗透到了我们的日常生活和工农业生产技术的各个方面。磁浮列车（图 11-1）就是一种现代高科技轨道交通工具。世界上第一条商业运营的磁浮列车线路在上海浦东新区运行，其列车的最高速度达 $430 \\mathrm{~km} / \\mathrm{h}$ 。磁场是物质的一种形态，但这类物质形态并不能像实物一样为人类的感官直接觉察。历史上人类对磁场的研究是从磁铁的磁性及其相互作用开始的，我国古代对磁现象的研究成果丰硕，对人类文明影响深远。\n\n\n\n## 为什么说我国是对磁现象认识最早的国家之一？\n\n公元前 4 世纪左右成书的《管子·地数篇》中就有 “上有慈石者，其下有铜金” 的记载，这是关于磁的最早记载。古代的人们就发现了磁石只能吸铁，而不能吸金、银、铜等其他金属的现象，并将能吸铁的磁石形象地比喻为慈母对子女的关爱呵护。利用磁石制成的 “司南” 是世界上最早使用的指南针。东汉王充在《论衡·是应篇》中记有 “司南之杓，投之于地，其柢指南” \\*。南宋后，以磁针为主要结构的罗盘在航海中被普遍使用。到了明代，遂有郑和下西洋远航到非洲东海岸之壮举。中国指南针约于12世纪末13世纪初由海路传入阿拉伯，又由阿拉伯传到欧洲。指南针的传播，正如英国哲学家培根所说的那样，在促进人类航海事业发展和改变世界面貌上产生了巨大的影响。\n\n[source image omitted from static artifact]\n\n天然磁石主要成分是四氧化三铁。现代工业上可以制造出各种各样的人造磁体，20世纪70年代制造出稀土强磁材料使得磁性元件更加小型化，到目前为止具有最强磁力的永久磁体是钕磁体，也称为钕铁硼磁体（图11-2）。\n\n在生命体中也存在磁现象，有人认为信鸽识途归巢、候鸟千里迁徙等就是利用地磁场辨别方向。人体及器官也有磁性，利用电子技术及超导量子干涉技术可得到心磁图、脑磁图、肺磁图及人体磁场分布。基于磁场的核磁共振技术成像（图 11-3）及磁疗技术也广泛用于医学临床。\n\n图11-2 钕磁体  \n[source image omitted from static artifact]  \n图11-3 核磁共振断层成像仪\n\n\n\n## 如何形象地描述磁场？\n\n在磁体周围存在磁场。在条形磁体周围撒上的铁屑会呈现有规则的排列（图11-4）。磁场的强弱和方向可以形象地用磁感线来描述：磁感线的疏密程度表示磁场的强弱，磁感线越密集的地方磁场就越强；磁感线的切线方向表示该点的磁场方向，即放在该处小磁针静止时的N极所指的方向。\n\n[source image omitted from static artifact]  \n图11-4 条形磁体周围铁屑分布情况\n\n[source image omitted from static artifact]  \n图11-5 条形磁体外部的磁感线\n\n磁感线是闭合曲线，磁体外部的磁感线是从 N 极出来，回到磁体的 S 极，内部是从 S 极到 N 极。任意两条磁感线不相交，两条磁感线之间的区域仍然有磁场。如图 11-5 所示为条形磁体外部的磁感线。\n\n[source image omitted from static artifact]\n\n## 指南针指向地球南极吗？\n\n如图11-6所示，地球周围存在一个大范围的磁场，宛如一个大的条形磁体。在地磁场的作用下，指南针会调整方向，使其取向顺着地磁场的磁感线，N极指向地磁南极；S极指向地磁北极。地磁南极在地理北极附近；地磁北极在地理南极附近。地磁两极与地理两极不完全重合，地磁轴和地球自转轴之间的夹角约为11°。我们将地球表面水平放置的指南针静止时N极所指的方向与地球北极方向之间的夹角称为磁偏角，地球表面不同地区磁偏角是不相同的。不仅如此，由于地球磁极的缓慢移动，磁偏角也在缓慢变化。\n\n[source image omitted from static artifact]  \n图11-6 地理两极与地磁两极不重合\n\n我国宋代科学家沈括是历史上第一个提出磁偏角现象的人，他在《梦溪笔谈》中记载了地磁偏角现象：“方家以磁石磨针锋，则能指南，然常微偏东，不全南也。”\\*较系统地研究磁偏现象原始理论的是英国人吉尔伯特。磁偏角的发现对指南针在航海方面的应用十分重要。\n\n## 拓展视野\n\n科学家发现地球磁场的方向并不是恒定不变的，它的南北磁极曾经对换过位置，这就是“磁极倒转”现象。\n\n在地球的几十亿年历史中，磁极倒转事件发生多次。仅在最近的450万年里，就出现了4个磁场极性不同的时期。有两次和现在基本一样，是“正向期”，即地磁北极在地理南极附近，地磁南极在地理北极附近。还有两次则是和现在正好相反的“反向期”。在每一个磁性时期里，有时还会发生短暂的磁极倒转现象。\n\n为什么会出现地磁极变化呢？地球磁场反复变化有什么规律吗？迄今科学家们仍然没有得出统一的结论。大部分科学家认为，当地球内部液态铁质流围绕着地核中心旋转时，如果突然发生变化，其流动方向倒转，就会引发磁极倒转现象。\n\n地球磁场的倒转是否有一定的规律可循，是否可以预报？由于地心变化太过复杂，更难于直接观测，迄今人们仍未得出结论。\n\n## 问题②思考\n\n1. 在条形磁体外部靠近中央位置处有没有磁场？如何判断？\n\n2. 假设将指南针移到地球地心处，则指南针 N 极将指向什么方向？\n\n3. 通过学习磁场和磁感线，某同学总结了如下几个结论。试判断这些说法是否正确，并简述理由。\n\n(1) 磁感线是铁屑组成的。\n\n(2) 磁感线是磁体周围空间实际存在的曲线。\n\n(3) 磁场是看不见摸不着的，但是可以借助小磁针感知它的存在。\n\n(4) 地磁场的磁感线是从地球南极附近发出回到地球北极附近。\n\n4. 判断下列关于磁场的说法是否正确，并简述理由。\n\n(1) 两个磁极之间总是直接发生相互作用的。\n\n(2) 磁场是为了解释磁极间相互作用而人为规定的。\n\n(3) 磁场是特殊物质，它对放入其中的磁性物体有力的作用。\n\n(4) 由于磁场弱处磁感线疏，所以两条磁感线之间没有磁场。\n\n5. 日常生活中磁的应用给我们带来了方便，想想还有哪些地方可以应用磁性？\n\n[source image omitted from static artifact]  \n图11-7 中国科学院强磁场科学中心的“稳态强磁场实验装置（SHMFF）”",
+      "title": "磁现象 磁感线"
+    }
+  ]
+}

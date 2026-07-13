@@ -1,0 +1,1117 @@
+{
+  "body": {
+    "content": "## 定义\n电场力对电荷做的功等于电荷电势能的减少量，功是电势能变化的量度[evidence:auto-e57dcbc08801]。\n\n## 核心解释\n在静电场中移动电荷时，静电力做的功与路径无关，只与电荷的起始位置和终止位置有关[evidence:auto-47ce861d00f8]。由于这一特性与重力做功与路径无关的性质类似，电荷在电场中同样具有势能，称为电势能[evidence:auto-47ce861d00f8]。需要强调的是，电势能并非只属于电荷本身，而是电荷与场源电荷相互作用的能量，同属于该两者构成的体系[evidence:auto-1000a9ff264e]。与重力势能类似，电势能具有相对性，通常规定离场源电荷无穷远处或大地表面的电势能为零，只有电势能的变化量才具有绝对的物理意义[evidence:auto-1000a9ff264e]。\n\n## 关键要点\n1. **数学表达**：将点电荷从电场中 A 点移到 B 点，电场力做功 $W_{AB} = E_{pA} - E_{pB}$[evidence:auto-e57dcbc08801]。其中 $E_{pA}$ 为 A 点电势能，$E_{pB}$ 为 B 点电势能[evidence:auto-31f5a5aeb2c8]。电势能的变化量定义为 $\\Delta E_{p} = E_{pB} - E_{pA}$[evidence:auto-2d2a04c4c55a]。因此，电场力做功与电势能变化量的关系可统一表示为 $W_{AB} = - \\Delta E_{p}$[evidence:auto-e57dcbc08801]。\n2. **正负号法则**：电场力做正功时，电荷的电势能减少；电场力做负功时，电荷的电势能增加[evidence:auto-e57dcbc08801]。\n\n## 示例或应用\n以负电荷在电场中的移动为例：若负电荷放在 A 点，受到的电场力方向向左，当将其从 A 点移至 B 点的过程中，电场力做负功，导致电势能增加，即 $E_{pA} < E_{pB}$，说明该负电荷在 B 点的电势能更大[evidence:auto-0f33e4ace3a4]。\n\n## 易错点\n- **混淆做功正负与电势能增减**：务必牢记 $W_{AB} = - \\Delta E_{p}$ 的负号含义，电场力做正功对应电势能减小，做负功对应电势能增大[evidence:auto-e57dcbc08801]。\n- **误认为电势能仅属于试探电荷**：电势能是电荷与场源电荷共同拥有的相互作用能，不能脱离场源电荷单独讨论试探电荷的电势能[evidence:auto-1000a9ff264e]。\n- **忽视电势能的相对性**：某点的电势能大小依赖于零势能面的选择，但两点间的电势能差值（变化量）是绝对的，与零势能面的选取无关[evidence:auto-1000a9ff264e]。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "rule/功能关系:auto-9403794b8d45",
+    "properties": {
+      "card_title": "电场力做功与电势能变化关系",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-e57dcbc08801",
+      "evidence:auto-47ce861d00f8",
+      "evidence:auto-1000a9ff264e",
+      "evidence:auto-31f5a5aeb2c8",
+      "evidence:auto-2d2a04c4c55a",
+      "evidence:auto-0f33e4ace3a4"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:39:26+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-b0899d8f8cf7",
+    "mention_refs": [],
+    "node_id": "rule/功能关系:auto-9403794b8d45",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "电场力对电荷做的功等于电荷电势能的减少量，功是电势能变化的量度。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-47ce861d00f8"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "电场力对电荷做的功等于电荷电势能的减少量，功是电势能变化的量度。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-47ce861d00f8"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "电场力对电荷做的功等于电荷电势能的减少量，功是电势能变化的量度。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-47ce861d00f8"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "电场力做功与电势能变化关系"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-47ce861d00f8"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "电势能 电势"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-47ce861d00f8"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-47ce861d00f8"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-47ce861d00f8"
+    ],
+    "status": "active",
+    "summary": "电场力对电荷做的功等于电荷电势能的减少量，功是电势能变化的量度。",
+    "title": "电场力做功与电势能变化关系",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 9,
+    "score": 100,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-cdf406e5f2b6",
+      "node_id": "rule/功能关系:auto-9403794b8d45",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "给定静电场中两点位置及正/负试探电荷的移动过程，要求学生：①判断电场力做功正负；②写出 W_AB = E_pA - E_pB 关系式；③定量计算电势能变化量 ΔE_p 并解释物理含义。"
+            ],
+            "common_errors": [
+              "混淆电场力做功正负与电势能增减的对应关系，误认为电场力做正功时电势能增加。",
+              "在代入 W_AB = E_pA - E_pB 时搞反正、末状态电势能位置，导致 ΔE_p 符号计算错误。",
+              "忽视该规律仅适用于静电场且做功与路径无关的边界条件，错误推广至非保守场或认为功依赖移动路径。"
+            ],
+            "diagnostic_questions": [
+              "若正电荷在静电场中从A点移至B点，电场力做正功，该电荷的电势能如何变化？请结合 W_AB = E_pA - E_pB 说明理由。",
+              "负电荷沿电场线方向移动时，电场力做功正负如何？电势能变化量 ΔE_p 的符号与大小由什么决定？"
+            ],
+            "difficulty_level": "intermediate",
+            "extension_suggestions": [
+              "对比电场力做功与电势能变化、重力做功与重力势能变化的异同，深化对保守力场功能关系的理解。",
+              "结合电势定义式 φ = Ep/q，推导电场力做功与电势差的关系，为后续学习铺垫。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T10:12:46+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "4b0edc17b6971827ac75da61e60407bb4ffa003e5a84df4c5dcebaa6abdbb4cd",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-e57dcbc08801",
+                "evidence:auto-0f33e4ace3a4",
+                "evidence:auto-47ce861d00f8"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能准确表述电场力做功与电势能变化的定量关系公式 W_AB = -ΔE_p 及其物理意义。",
+              "能根据电荷正负与移动方向判断电场力做功正负，并据此定性分析电势能的增减趋势。",
+              "能运用功能关系公式计算静电场中电荷移动时的电势能变化量，并说明计算结果的正负含义。"
+            ],
+            "remediation_suggestions": [
+              "利用重力做功与重力势能变化的类比，引导学生迁移建构电场力做功与电势能变化的功能关系。",
+              "结合电场线与电荷受力方向示意图，通过受力分析强化‘做正功电势能减少、做负功电势能增加’的条件判断。",
+              "强调电势能的相对性（需规定零势面）与变化量的绝对性，避免学生将某点电势能绝对值误作变化量代入公式。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-0f33e4ace3a4",
+        "evidence:auto-47ce861d00f8",
+        "evidence:auto-e57dcbc08801"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:12:46+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "(2) 负电荷 $q_{2}$ 放在 $A$ 点, 受到的电场力方向向左, 从 $A$ 点移至 $B$ 点的过程中, 电场力做负功, 电势能增加, 所以 $E_{\\mathrm{p} A} < E_{\\mathrm{p} B}$ , 即负电荷 $q_{2}$ 在 $B$ 点电势能大。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-0f33e4ace3a4",
+      "locator": "line:79",
+      "modality": "equation",
+      "normalized_claims": [
+        "(2) 负电荷 $q_{2}$ 放在 $A$ 点, 受到的电场力方向向左, 从 $A$ 点移至 $B$ 点的过程中, 电场力做负功, 电势能增加, 所以 $E_{\\mathrm{p} A} < E_{\\mathrm{p} B}$ , 即负电"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "通常我们把电荷在离场源电荷无穷远处的电势能规定为零，或把电荷在大地表面上的电势能规定为零。而且电势能也和重力势能一样只有相对意义，电势能的变化量才有绝对物理意义。必须强调，就像重力势能属于重物和地球构成的体系一样，电荷的电势能并非只属于该电荷，而是该电荷和场源电荷相互作用的能量，同属于该电荷和场源电荷。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-1000a9ff264e",
+      "locator": "line:36-38",
+      "modality": "text",
+      "normalized_claims": [
+        "通常我们把电荷在离场源电荷无穷远处的电势能规定为零，或把电荷在大地表面上的电势能规定为零。而且电势能也和重力势能一样只有相对意义，电势能的变化量才有绝对物理意义。必须强调，就像重力势能属于重物和地球构成的体系一样，电荷的电势能并非只属于该电"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "$\\varphi = \\frac {E _ {\\mathrm{p}}}{q}$。电势的国际单位是伏特，简称伏，用符号 V 表示，1 V = 1 J/C。电势 $\\varphi$ 是标量，只有大小，没有方向，但有正、负之分，正、负只表示比零电势高还是低。若将正试探电荷沿电场线方向移至无穷远处，电场力做正功，电势能逐渐减小，电势逐渐降低。因此，沿着电场线方向，电势越来越低。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-10dcda5dadec",
+      "locator": "line:93-104",
+      "modality": "equation",
+      "normalized_claims": [
+        "$\\varphi = \\frac {E _ {\\mathrm{p}}}{q}$。电势的国际单位是伏特，简称伏，用符号 V 表示，1 V = 1 J/C。电势 $\\varphi$ 是标量，只有大小，没有方向，但有正、负之分，正、负只表示比零电"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "示例 1 如图 9-30 所示，在某正点电荷的电场中，沿电场线有 A、B 两点。若将一个正电荷 $q_{1}$ 从 A 点移至无穷远处，电场力做了 $3.0 \\times 10^{-6} \\mathrm{~J}$ 的功；若将正电荷 $q_{1}$ 从 B 点移至无穷远处，电场力做了 $1.5 \\times 10^{-6} \\mathrm{~J}$ 的功。则：",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-274eeea6fe54",
+      "locator": "line:60",
+      "modality": "equation",
+      "normalized_claims": [
+        "示例 1 如图 9-30 所示，在某正点电荷的电场中，沿电场线有 A、B 两点。若将一个正电荷 $q_{1}$ 从 A 点移至无穷远处，电场力做了 $3.0 \\times 10^{-6} \\mathrm{~J}$ 的功；若将正电荷 $q_{"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\Delta E _ {\\mathrm{p}} = E _ {\\mathrm{pB}} - E _ {\\mathrm{pA}}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-2d2a04c4c55a",
+      "locator": "line:46",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\Delta E _ {\\mathrm{p}} = E _ {\\mathrm{pB}} - E _ {\\mathrm{pA}}\n$$"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "$E_{pA}$ 为 A 点电势能， $E_{pB}$ 为 B 点电势能。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-31f5a5aeb2c8",
+      "locator": "line:40",
+      "modality": "equation",
+      "normalized_claims": [
+        "$E_{pA}$ 为 A 点电势能， $E_{pB}$ 为 B 点电势能。"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\begin{array}{l} E _ {\\mathrm{pA}} = 3. 0 \\times 1 0 ^ {- 6} \\mathrm{J} \\\\ E _ {\\mathrm{pB}} = 1. 5 \\times 1 0 ^ {- 6} \\mathrm{J} \\end{array}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-3c80e83cca50",
+      "locator": "line:77",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\begin{array}{l} E _ {\\mathrm{pA}} = 3. 0 \\times 1 0 ^ {- 6} \\mathrm{J} \\\\ E _ {\\mathrm{pB}} = 1. 5 \\times 1 0 ^ {- 6"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/118eb81c0dd73d8c57f69c088c75ebe24ae63466d7f5cf84184380b2f3706550.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-411b623a56ae",
+      "locator": "line:16",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/118eb81c0dd73d8c57f69c088c75ebe24ae63466d7f5cf84184380b2f3706550.jpg)"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 243,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/118eb81c0dd73d8c57f69c088c75ebe24ae63466d7f5cf84184380b2f3706550.jpg",
+          "reason": "图片内容（匀强电场中电荷沿不同路径移动）直接对应前文“如图 9-29（b）所示...匀强电场...试探电荷 +q 从 A 点移动到 B 点”的描述。它是解释“电场力做功与路径无关”这一核心物理概念的关键模型图，用于类比重力势能从而引入电势能。尽管图片左下角有“(a)”标签，但结合后文的“(b)”及上下文逻辑，此图显然是图9-29中展示电场做功的部分，属于核心知识证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了竖直向下的匀强电场（标有E），其中有一个正电荷+q位于点A。图中画出了从A点移动到B点的三条不同路径（直线、折线、曲线）。左侧标出了A、B两点间的竖直距离d，并标出了电场力qE的方向。图片左下角可见标签“(a)”，但这可能与图片作为图9-29(b)（电场做功）的上下文对应关系存在排版或截图上的混淆，但图片内容明确为电场模型。",
+          "width": 226
+        },
+        "path": "images/118eb81c0dd73d8c57f69c088c75ebe24ae63466d7f5cf84184380b2f3706550.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "电势能是标量，通常用符号 $E_{p}$ 表示；电势能的单位是焦耳，符号 J。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-4135384b005a",
+      "locator": "line:22",
+      "modality": "text",
+      "normalized_claims": [
+        "电势能是标量，通常用符号 $E_{p}$ 表示；电势能的单位是焦耳，符号 J。"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "不仅匀强电场的电场力做功与电荷移动的路径无关，一般静电场的电场力做功也同样与路径无关。因此，我们可以得到这样的结论：在电场中移动电荷时，静电力做的功只与电荷的起始位置和终止位置有关。由于重力做功与路径无关，物体具有重力势能。与此类似，在静电场中电场力对其中移动的电荷做功也与路径无关，只决定于始末位置，因此，电荷在电场中也具有势能。这种势能就叫做电势能（electric potential energy）。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-47ce861d00f8",
+      "locator": "line:16-18",
+      "modality": "text",
+      "normalized_claims": [
+        "不仅匀强电场的电场力做功与电荷移动的路径无关，一般静电场的电场力做功也同样与路径无关。因此，我们可以得到这样的结论：在电场中移动电荷时，静电力做的功只与电荷的起始位置和终止位置有关。由于重力做功与路径无关，物体具有重力势能。与此类似，在静电"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "电荷在电场中沿垂直于电场方向移动时电场力不做功，电荷的电势能不发生变化，说明电场中的这些点的电势相等。电场中电势相同的各点构成的面叫做等势面（equipotential surface）。可见，等势面一定跟电场强度的方向垂直。等势面和电场线相似，也是用来形象地描述电场的。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-49614684f228",
+      "locator": "line:106-108",
+      "modality": "text",
+      "normalized_claims": [
+        "电荷在电场中沿垂直于电场方向移动时电场力不做功，电荷的电势能不发生变化，说明电场中的这些点的电势相等。电场中电势相同的各点构成的面叫做等势面（equipotential surface）。可见，等势面一定跟电场强度的方向垂直。等势面和电场线"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nW _ {A B} = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-58237af0bd1f",
+      "locator": "line:38",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nW _ {A B} = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B}\n$$"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nW _ {A B} = - \\Delta E _ {\\mathrm{p}}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-64077e2b6f1a",
+      "locator": "line:52",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nW _ {A B} = - \\Delta E _ {\\mathrm{p}}\n$$"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 9-29（b）所示，在一个电场强度为 $E$ 的匀强电场中，沿着不同的路径把试探电荷 $+q$ 从 $A$ 点移动到 $B$ 点。由于匀强电场的电场力为恒力，不论 $+q$ 经由什么路径从 $A$ 点移动到 $B$ 点，电场力所做的功都是一样的。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-695ff613df73",
+      "locator": "line:11",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图 9-29（b）所示，在一个电场强度为 $E$ 的匀强电场中，沿着不同的路径把试探电荷 $+q$ 从 $A$ 点移动到 $B$ 点。由于匀强电场的电场力为恒力，不论 $+q$ 经由什么路径从 $A$ 点移动到 $B$ 点，电场力所做的功"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "(1) 该电荷在 $A$ 、 $B$ 两点的电势能为多大?",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-84d7c44c2036",
+      "locator": "line:65",
+      "modality": "equation",
+      "normalized_claims": [
+        "(1) 该电荷在 $A$ 、 $B$ 两点的电势能为多大?"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/b71d17f92f7f8dee5cdf8466ed3447703169e5a4afb732a944ad90b9628e87af.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-8e567fe0bd09",
+      "locator": "line:13",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/b71d17f92f7f8dee5cdf8466ed3447703169e5a4afb732a944ad90b9628e87af.jpg)"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 237,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/b71d17f92f7f8dee5cdf8466ed3447703169e5a4afb732a944ad90b9628e87af.jpg",
+          "reason": "该图片对应前文提到的“图 9-29（a）”，直观展示了“重力做功与重物的移动路径无关”这一物理规律。这是教材为了通过类比法引入“电场力做功与路径无关”（进而引出电势能概念）而设置的核心示意图，直接表达了物理模型和关键结论。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个物理示意图，描述物体从点 A 移动到点 B 的过程。物体受到竖直向下的重力 G，A、B 两点之间的垂直高度差标记为 h。图中画出了三条不同的路径（包括直线和曲线），箭头指示了运动方向，底部还有水平位移的示意。",
+          "width": 215
+        },
+        "path": "images/b71d17f92f7f8dee5cdf8466ed3447703169e5a4afb732a944ad90b9628e87af.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "解：（1）正电荷 $q_{1}$ 在 A 点受到的电场力方向向右，电荷从 A 点至无穷远处的过程中，电场力做正功、电势能减小至零，所以 A 点的电势能 $E_{pA}$ 大于零。则",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-96c014514d98",
+      "locator": "line:71",
+      "modality": "equation",
+      "normalized_claims": [
+        "解：（1）正电荷 $q_{1}$ 在 A 点受到的电场力方向向右，电荷从 A 点至无穷远处的过程中，电场力做正功、电势能减小至零，所以 A 点的电势能 $E_{pA}$ 大于零。则"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "电势能是标量，通常用符号 $E_{p}$ 表示；电势能的单位是焦耳，符号 J。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-a5354832a904",
+      "locator": "line:22",
+      "modality": "equation",
+      "normalized_claims": [
+        "电势能是标量，通常用符号 $E_{p}$ 表示；电势能的单位是焦耳，符号 J。"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "进一步的研究表明，在一个确定的电场中，不同电荷在场中同一位置的电势能与其电荷量之比是一定的，即 $\\frac{E_{p1}}{q_{1}} = \\frac{E_{p2}}{q_{2}} = \\cdots = \\frac{E_{pn}}{q_{n}}$。这个比仅由电场决定，和电场强度一样，它与试探电荷置入与否无关。可见，这个比像电场强度从电场力的角度描述电场一样，从能量的角度客观地反映了电场的性质。在电场中，任意一点电荷的电势能 $E_{p}$ 和它所带的电荷量 q 之比叫做这一点的电势 (electric potential)。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-b0d79ba5a055",
+      "locator": "line:89-95",
+      "modality": "text",
+      "normalized_claims": [
+        "进一步的研究表明，在一个确定的电场中，不同电荷在场中同一位置的电势能与其电荷量之比是一定的，即 $\\frac{E_{p1}}{q_{1}} = \\frac{E_{p2}}{q_{2}} = \\cdots = \\frac{E_{pn}}{q_"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "(2) 如果将一个电荷量为 $q_{2}$ 的负电荷从 A 移至 B，则该负电荷在 A、B 两点中哪一点电势能大？",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b49a887c3693",
+      "locator": "line:67",
+      "modality": "equation",
+      "normalized_claims": [
+        "(2) 如果将一个电荷量为 $q_{2}$ 的负电荷从 A 移至 B，则该负电荷在 A、B 两点中哪一点电势能大？"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "将点电荷在电场中由 A 点移到 B 点，电场力做功 $W_{AB} = E_{pA} - E_{pB}$。点电荷在电场中从 A 点移到 B 点，这个点电荷的电势能的变化量 $\\Delta E_{p} = E_{pB} - E_{pA}$。因此，电场力对电荷做功与电荷的电势能变化量的关系为 $W_{AB} = - \\Delta E_{p}$。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e57dcbc08801",
+      "locator": "line:38-52",
+      "modality": "equation",
+      "normalized_claims": [
+        "将点电荷在电场中由 A 点移到 B 点，电场力做功 $W_{AB} = E_{pA} - E_{pB}$。点电荷在电场中从 A 点移到 B 点，这个点电荷的电势能的变化量 $\\Delta E_{p} = E_{pB} - E_{pA}$。因"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "进一步的研究表明，在一个确定的电场中，不同电荷在场中同一位置的电势能与其电荷量之比是一定的，即 $\\frac{E_{p1}}{q_{1}} = \\frac{E_{p2}}{q_{2}} = \\frac{E_{p3}}{q_{3}} = \\cdots = \\frac{E_{pn}}{q_{n}}$ 。这个比仅由电场决定，和电场强度一样，它与试探电荷置入与否无关。可见，这个比像电场强度从电场力的角度描述电场一样，从能量的角度客观地反映了电场的性质。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f283c8d06627",
+      "locator": "line:89",
+      "modality": "equation",
+      "normalized_claims": [
+        "进一步的研究表明，在一个确定的电场中，不同电荷在场中同一位置的电势能与其电荷量之比是一定的，即 $\\frac{E_{p1}}{q_{1}} = \\frac{E_{p2}}{q_{2}} = \\frac{E_{p3}}{q_{3}} = \\c"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/1779c03ff74d33137ee7c4ccfb09ccc51e9721da3a72aa2cdc9849affeca92d0.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f48b245d32d0",
+      "locator": "line:62",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/1779c03ff74d33137ee7c4ccfb09ccc51e9721da3a72aa2cdc9849affeca92d0.jpg)"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 207,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/1779c03ff74d33137ee7c4ccfb09ccc51e9721da3a72aa2cdc9849affeca92d0.jpg",
+          "reason": "图片是教材中“示例 1”的配图（图 9-30）。前文明确引用了该图（“如图 9-30 所示”），描述了在正点电荷电场中 A、B 两点的情况。后文基于此图提出了关于电势能的计算问题。虽然图片直观展示了电场分布和点的位置，但在有详细文字描述和数据的例题中，它主要起辅助说明和视觉化的作用，符合“例题配图”的特征，因此归类为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了发散状的电场线，表示正点电荷的电场。中间有一条直的电场线，上面标记了两个点 A 和 B，A 在左侧（靠近场源），B 在右侧。",
+          "width": 429
+        },
+        "path": "images/1779c03ff74d33137ee7c4ccfb09ccc51e9721da3a72aa2cdc9849affeca92d0.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "excerpt": "同理， $B$ 点电势能",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f799dc9c6409",
+      "locator": "line:73",
+      "modality": "equation",
+      "normalized_claims": [
+        "同理， $B$ 点电势能"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:39:26+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-d0f005617fef",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-e57dcbc08801"
+      ],
+      "source_type": "textbook",
+      "target_id": "rule/功能关系:auto-9403794b8d45",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "W=-ΔEp",
+      "电场力功能原理"
+    ],
+    "created_at": "2026-06-29T05:39:26+00:00",
+    "dataset_id": "main",
+    "definition": "电场力对电荷做的功等于电荷电势能的减少量，功是电势能变化的量度。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "rule/功能关系:auto-9403794b8d45",
+    "kind": "rule",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "电场力做功与电势能变化关系",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "raw_subkinds": [
+          "功能关系"
+        ],
+        "subkinds": [
+          "functional_relation"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "适用于静电场中任意两点间移动电荷的过程",
+          "与重力做功与重力势能变化关系形式一致"
+        ],
+        "conditions": [
+          "电场力做正功，电势能减少；电场力做负功，电势能增加"
+        ],
+        "formal_expressions": [
+          "W_AB = E_pA - E_pB",
+          "W_AB = -ΔE_p",
+          "ΔE_p = E_pB - E_pA"
+        ]
+      },
+      "template_display": {
+        "color": "#8C55FF",
+        "label": "规律/公式",
+        "template_id": "textbook/physics",
+        "type_key": "rule"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "functional_relation",
+    "tags": [
+      "core_formula",
+      "energy_transformation",
+      "sign_convention"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [],
+    "outgoing": [
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:39:26+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "rule/功能关系:auto-9403794b8d45",
+        "id": "edge:auto-79393413a982",
+        "notes": "该规律通过公式 $W_{AB} = - \\Delta E_{p}$ 定量表征电场力做功与电势能变化之间的关系。",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-e57dcbc08801"
+        ],
+        "status": "active",
+        "to_id": "property/能量:auto-bc041489968d",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ]
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第四节 电势能 电势\n\n闪电（图9-28）是一种常见的自然现象，是带电的云层与云层之间、带电的云层与地面之间强烈的放电现象。据估计，每秒约有几十到上百次的闪电击中地球表面。一次闪电在短时间内释放出很多能量，这一能量来自放电电荷的电势能。\n\n\n\n## 什么是电势能？\n\n我们已经知道，地球上的物体因为受到地球引力作用具有重力势能而能做功，重力做功与重物的移动路径无关，如图 9-29（a）所示。\n\n如图 9-29（b）所示，在一个电场强度为 $E$ 的匀强电场中，沿着不同的路径把试探电荷 $+q$ 从 $A$ 点移动到 $B$ 点。由于匀强电场的电场力为恒力，不论 $+q$ 经由什么路径从 $A$ 点移动到 $B$ 点，电场力所做的功都是一样的。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)  \n图9-29 重力与电场力做功特点类比\n\n不仅匀强电场的电场力做功与电荷移动的路径无关，一般静电场的电场力做功也同样与路径无关。因此，我们可以得到这样的结论：在电场中移动电荷时，静电力做的功只与电荷的起始位置和终止位置有关。由于重力做功与路径无关，物体具有重力势能。与此类似，在静电场中电场力对其中移动的电荷做功也与路径无关，只决定于始末位置，因此，电荷在电场中也具有势能。这种势能就叫做电势能（electric potential energy）。\n\n电势能是标量，通常用符号 $E_{p}$ 表示；电势能的单位是焦耳，符号 J。\n\n## 拓展视野\n\n引力做功与路径无关源自万有引力定律，两质点间的万有引力沿质点间的连线方向，与彼此间距离的二次方成反比，即万有引力是各向同性的有心力。同引力一样，以库仑定律描述的电荷间的静电力同样具有各向同性的有心力的特点，也具有做功和电荷移动路径无关的特点。万有引力是保守力，静电力也是保守力。\n\n\n\n## 电场力做功与电势能变化之间有何关系？\n\n功是能量变化的量度，当地球上的物体从一个位置移动到另一个位置时，若重力做正功，则物体的重力势能减少；若重力做负功，则物体的重力势能增加。同样，当电场中的电荷从一个位置移动到另一个位置时，若电场力做正功，则电荷的电势能减少；若电场力做负功，则电荷的电势能增加。\n\n将点电荷在电场中由 A 点移到 B 点，电场力做功\n\n$$\nW _ {A B} = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B}\n$$\n\n$E_{pA}$ 为 A 点电势能， $E_{pB}$ 为 B 点电势能。\n\n点电荷在电场中从 A 点移到 B 点，这个点电荷的电势能的变化量\n\n$$\n\\Delta E _ {\\mathrm{p}} = E _ {\\mathrm{pB}} - E _ {\\mathrm{pA}}\n$$\n\n因此，电场力对电荷做功与电荷的电势能变化量的关系为\n\n$$\nW _ {A B} = - \\Delta E _ {\\mathrm{p}}\n$$\n\n重力势能的大小等于物体从现有位置移动到重力势能为零处的过程中重力所做的功。与此类似，电荷 q 在电场中某点的电势能在数值上等于把此电荷从该点移动到电势能为零处电场力所做的功。\n\n通常我们把电荷在离场源电荷无穷远处的电势能规定为零，或把电荷在大地表面上的电势能规定为零。而且电势能也和重力势能一样只有相对意义，电势能的变化量才有绝对物理意义。\n\n必须强调，就像重力势能属于重物和地球构成的体系一样，电荷的电势能并非只属于该电荷，而是该电荷和场源电荷相互作用的能量，同属于该电荷和场源电荷。通常为了方便而简称为某电荷的电势能。\n\n示例 1 如图 9-30 所示，在某正点电荷的电场中，沿电场线有 A、B 两点。若将一个正电荷 $q_{1}$ 从 A 点移至无穷远处，电场力做了 $3.0 \\times 10^{-6} \\mathrm{~J}$ 的功；若将正电荷 $q_{1}$ 从 B 点移至无穷远处，电场力做了 $1.5 \\times 10^{-6} \\mathrm{~J}$ 的功。则：\n\n[source image omitted from static artifact]  \n图9-30 分析电荷在电场中的电势能\n\n(1) 该电荷在 $A$ 、 $B$ 两点的电势能为多大?\n\n(2) 如果将一个电荷量为 $q_{2}$ 的负电荷从 A 移至 B，则该负电荷在 A、B 两点中哪一点电势能大？\n\n分析：电荷 q 在电场中某点的电势能在数值上等于把电荷从这点移动到无穷远处电场力所做的功。\n\n解：（1）正电荷 $q_{1}$ 在 A 点受到的电场力方向向右，电荷从 A 点至无穷远处的过程中，电场力做正功、电势能减小至零，所以 A 点的电势能 $E_{pA}$ 大于零。则\n\n同理， $B$ 点电势能\n\n$$\n\\begin{array}{l} E _ {\\mathrm{pA}} = 3. 0 \\times 1 0 ^ {- 6} \\mathrm{J} \\\\ E _ {\\mathrm{pB}} = 1. 5 \\times 1 0 ^ {- 6} \\mathrm{J} \\end{array}\n$$\n\n(2) 负电荷 $q_{2}$ 放在 $A$ 点, 受到的电场力方向向左, 从 $A$ 点移至 $B$ 点的过程中, 电场力做负功, 电势能增加, 所以 $E_{\\mathrm{p} A} < E_{\\mathrm{p} B}$ , 即负电荷 $q_{2}$ 在 $B$ 点电势能大。\n\n由示例 1 可知，在同一电场中，同样从 A 点到 B 点分别移动正电荷与负电荷时，相应的电势能的变化是相反的。\n\n\n\n## 如何从能量的角度描述电场的性质？\n\n同一物体在地球上不同位置的重力势能不尽相同，不同物体在地球上同一位置的重力势能也不尽相同。类似地，根据电场力做功与电势能变化的关系可知，同一电荷在电场中的不同位置上的电势能不尽相同，不同电荷在电场中的同一位置上的电势能也不尽相同。\n\n进一步的研究表明，在一个确定的电场中，不同电荷在场中同一位置的电势能与其电荷量之比是一定的，即 $\\frac{E_{p1}}{q_{1}} = \\frac{E_{p2}}{q_{2}} = \\frac{E_{p3}}{q_{3}} = \\cdots = \\frac{E_{pn}}{q_{n}}$ 。这个比仅由电场决定，和电场强度一样，它与试探电荷置入与否无关。可见，这个比像电场强度从电场力的角度描述电场一样，从能量的角度客观地反映了电场的性质。\n\n在电场中，任意一点电荷的电势能 $E_{p}$ 和它所带的电荷量 q 之比叫做这一点的电势 (electric potential)。电势通常用符号 $\\varphi$ 来表示，则\n\n$$\n\\varphi = \\frac {E _ {\\mathrm{p}}}{q}\n$$\n\n电势的国际单位是伏特，简称伏，用符号 V 表示，1 V = 1 J/C。\n\n由上式可看出电势的物理意义。电场中任意一点的电势数值上等于单位正电荷在该点\n\n所具有的电势能。\n\n电势跟电势能一样，其数值不具有绝对意义，只具有相对意义。只有规定了某处的电势为零后，才能确定电场中其他各点的电势的值。\n\n电势 $\\varphi$ 是标量，只有大小，没有方向，但有正、负之分，正、负只表示比零电势高还是低。若将正试探电荷沿电场线方向移至无穷远处，电场力做正功，电势能逐渐减小，电势逐渐降低。因此，沿着电场线方向，电势越来越低。\n\n示例 2 在点电荷 +Q 的电场中，沿电场线方向有 A、B 两点。若将一个电荷量为 $1 \\times 10^{-8}$ C 的正电荷 q 从 A 点缓慢移至无穷远处，电场力做了 $3.0 \\times 10^{-6}$ J 的功；若将该正电荷从 B 点缓慢移至无穷远处，电场力做了 $1.5 \\times 10^{-6}$ J 的功。则 A、B 两点的电势各为多少？\n\n分析：电场中任意一点的电势数值上等于单位正电荷在该点所具有的电势能。\n\n解：设正电荷 q 在 A 点的电势能为 $E_{pA}$ 、在 B 点的电势能为 $E_{pB}$ 。由于点电荷 q 与产生电场的点电荷均为正电荷，因此在 q 从 A 点移至无穷远的过程中，电场力做正功、电势能减小至零，A 点的电势能 $E_{pA}$ 大于零，可得\n\n$$\nE _ {\\mathrm{pA}} = 3. 0 \\times 1 0 ^ {- 6} \\mathrm{J}\n$$\n\n同理，B 点的电势能\n\n$$\nE _ {\\mathrm{p} B} = 1. 5 \\times 1 0 ^ {- 6} \\mathrm{J}\n$$\n\n则 $A$ 点的电势\n\n$$\n\\varphi_ {A} = \\frac {E _ {\\mathrm{p} A}}{q} = \\frac {3 . 0 \\times 1 0 ^ {- 6}}{1 . 0 \\times 1 0 ^ {- 8}} \\mathrm{V} = 3. 0 \\times 1 0 ^ {2} \\mathrm{V}\n$$\n\n$B$ 点的电势\n\n$$\n\\varphi_ {B} = \\frac {E _ {\\mathrm{p} B}}{q} = \\frac {1 . 5 \\times 1 0 ^ {- 6}}{1 . 0 \\times 1 0 ^ {- 8}} \\mathrm{V} = 1. 5 \\times 1 0 ^ {2} \\mathrm{V}\n$$\n\n## 大家谈\n\n如试探电荷为负电荷是否还能得到关于电势能和电势的讨论中得到的结论？\n\n已知电场中某一点的电势为 $\\varphi$ ，则处于该点的点电荷 q 所具有的电势能\n\n$$\nE _ {\\mathrm{p}} = q \\varphi\n$$\n\n电荷在电场中沿垂直于电场方向移动时电场力不做功，电荷的电势能不发生变化，说明电场中的这些点的电势相等。电场中电势相同的各点构成的面叫做等势面（equipotential surface）。可见，等势面一定跟电场强度的方向垂直。等势面和电场线相似，也是用来形象地描述电场的。\n\n如图 9-31 所示是几种常见电场的等势面（图中虚线为等势面的截面图）和电场线。图中，两个相邻等势面间的电势之差是相等的。\n\n  \n(a) 匀强电场\n\n  \n(b) 点电荷的电场\n\n  \n(c) 等量异号电荷的电场  \n图9-31 几种常见电场的等势面和电场线\n\n  \n(d) 等量同号电荷的电场\n\n## 问题②思考\n\n1. 有两个带正电的点电荷 $Q_{1}$ 、 $Q_{2}$ 分别位于 $A$ 、 $B$ 两点，若保持电荷 $Q_{2}$ 静止，并使 $Q_{1}$ 分别沿着图9-32中 $a$ 、 $b$ 、 $c$ 三条不同的路径移动到位置 $C$ 。在此过程中，电场力是否对 $Q_{1}$ 做功？如做功，做的是正功还是负功？ $Q_{1}$ 沿三条不同路径移动到 $C$ 点的过程中，电场力对 $Q_{1}$ 所做功的大小关系如何？ $A$ 、 $C$ 两点哪点电势高？\n\n  \n图9-32\n\n2. 电场中 A 点放有电荷量为 $+1 \\times 10^{-8}$ C 的点电荷 $q_{1}$ 。若 $q_{1}$ 的电势能为 $2 \\times 10^{-6}$ J，A 点的电势为多大？若移走该点电荷，A 点的电势为多大？若在 A 点放另一电荷量为 $-3 \\times 10^{-8}$ C 的点电荷 $q_{2}$ ，则 $q_{2}$ 的电势能为多大？\n\n3. 有两个等量异号电荷，如图9-31（c）所示。在图中找出电势为正、电势为负和电势为零的区域。如将一个负电荷置于此电场中，在哪个区域电势能为正值？(取无穷远处的电势为零)\n\n4. 如图 9-33 所示，在真空中有两个等量同号的正点电荷 $q_{1}$ 、 $q_{2}$ ，分别置于 $A$ 、 $B$ 两点， $DC$ 为 $AB$ 连线的中垂线。将一负电荷 $q_{3}$ 由 $C$ 点沿中垂线移动到无穷远的过程中， $q_{3}$ 的电势能如何变化？电势如何变化？简述理由。\n\n  \n图9-33\n\n5. 在如图 9-34 所示的 4 种情况中, 图 (b) 和图 (d) 中 $a$ 、 $b$ 为两点电荷连线中垂线上关于 $O$ 点对称的两点。分别描述 4 种情况中 $a$ 、 $b$ 两点的电势和电场强度的关系。\n\n  \n(a) 带等量异号电荷平行金属板\n\n  \n(b) 两等量同号电荷\n\n图9-34  \n  \n(c) 正点电荷\n\n  \n(d) 两等量异号电荷\n\n  \n图9-35 北京正负电子对撞机的双储存环",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:9-4-a:source-markdown",
+          "locator": "电势能 电势",
+          "modality": "text",
+          "page_end": 25,
+          "page_start": 20,
+          "properties": {
+            "md_end": 809,
+            "md_start": 615,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:9-4-a",
+            "outline_title": "电势能 电势",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 809,
+      "md_start": 615,
+      "modalities": [
+        "equation",
+        "text",
+        "image"
+      ],
+      "page_end": 25,
+      "page_start": 20,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第四节 电势能 电势\n\n闪电（图9-28）是一种常见的自然现象，是带电的云层与云层之间、带电的云层与地面之间强烈的放电现象。据估计，每秒约有几十到上百次的闪电击中地球表面。一次闪电在短时间内释放出很多能量，这一能量来自放电电荷的电势能。\n\n\n\n## 什么是电势能？\n\n我们已经知道，地球上的物体因为受到地球引力作用具有重力势能而能做功，重力做功与重物的移动路径无关，如图 9-29（a）所示。\n\n如图 9-29（b）所示，在一个电场强度为 $E$ 的匀强电场中，沿着不同的路径把试探电荷 $+q$ 从 $A$ 点移动到 $B$ 点。由于匀强电场的电场力为恒力，不论 $+q$ 经由什么路径从 $A$ 点移动到 $B$ 点，电场力所做的功都是一样的。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)  \n图9-29 重力与电场力做功特点类比\n\n不仅匀强电场的电场力做功与电荷移动的路径无关，一般静电场的电场力做功也同样与路径无关。因此，我们可以得到这样的结论：在电场中移动电荷时，静电力做的功只与电荷的起始位置和终止位置有关。由于重力做功与路径无关，物体具有重力势能。与此类似，在静电场中电场力对其中移动的电荷做功也与路径无关，只决定于始末位置，因此，电荷在电场中也具有势能。这种势能就叫做电势能（electric potential energy）。\n\n电势能是标量，通常用符号 $E_{p}$ 表示；电势能的单位是焦耳，符号 J。\n\n## 拓展视野\n\n引力做功与路径无关源自万有引力定律，两质点间的万有引力沿质点间的连线方向，与彼此间距离的二次方成反比，即万有引力是各向同性的有心力。同引力一样，以库仑定律描述的电荷间的静电力同样具有各向同性的有心力的特点，也具有做功和电荷移动路径无关的特点。万有引力是保守力，静电力也是保守力。\n\n\n\n## 电场力做功与电势能变化之间有何关系？\n\n功是能量变化的量度，当地球上的物体从一个位置移动到另一个位置时，若重力做正功，则物体的重力势能减少；若重力做负功，则物体的重力势能增加。同样，当电场中的电荷从一个位置移动到另一个位置时，若电场力做正功，则电荷的电势能减少；若电场力做负功，则电荷的电势能增加。\n\n将点电荷在电场中由 A 点移到 B 点，电场力做功\n\n$$\nW _ {A B} = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B}\n$$\n\n$E_{pA}$ 为 A 点电势能， $E_{pB}$ 为 B 点电势能。\n\n点电荷在电场中从 A 点移到 B 点，这个点电荷的电势能的变化量\n\n$$\n\\Delta E _ {\\mathrm{p}} = E _ {\\mathrm{pB}} - E _ {\\mathrm{pA}}\n$$\n\n因此，电场力对电荷做功与电荷的电势能变化量的关系为\n\n$$\nW _ {A B} = - \\Delta E _ {\\mathrm{p}}\n$$\n\n重力势能的大小等于物体从现有位置移动到重力势能为零处的过程中重力所做的功。与此类似，电荷 q 在电场中某点的电势能在数值上等于把此电荷从该点移动到电势能为零处电场力所做的功。\n\n通常我们把电荷在离场源电荷无穷远处的电势能规定为零，或把电荷在大地表面上的电势能规定为零。而且电势能也和重力势能一样只有相对意义，电势能的变化量才有绝对物理意义。\n\n必须强调，就像重力势能属于重物和地球构成的体系一样，电荷的电势能并非只属于该电荷，而是该电荷和场源电荷相互作用的能量，同属于该电荷和场源电荷。通常为了方便而简称为某电荷的电势能。\n\n示例 1 如图 9-30 所示，在某正点电荷的电场中，沿电场线有 A、B 两点。若将一个正电荷 $q_{1}$ 从 A 点移至无穷远处，电场力做了 $3.0 \\times 10^{-6} \\mathrm{~J}$ 的功；若将正电荷 $q_{1}$ 从 B 点移至无穷远处，电场力做了 $1.5 \\times 10^{-6} \\mathrm{~J}$ 的功。则：\n\n[source image omitted from static artifact]  \n图9-30 分析电荷在电场中的电势能\n\n(1) 该电荷在 $A$ 、 $B$ 两点的电势能为多大?\n\n(2) 如果将一个电荷量为 $q_{2}$ 的负电荷从 A 移至 B，则该负电荷在 A、B 两点中哪一点电势能大？\n\n分析：电荷 q 在电场中某点的电势能在数值上等于把电荷从这点移动到无穷远处电场力所做的功。\n\n解：（1）正电荷 $q_{1}$ 在 A 点受到的电场力方向向右，电荷从 A 点至无穷远处的过程中，电场力做正功、电势能减小至零，所以 A 点的电势能 $E_{pA}$ 大于零。则\n\n同理， $B$ 点电势能\n\n$$\n\\begin{array}{l} E _ {\\mathrm{pA}} = 3. 0 \\times 1 0 ^ {- 6} \\mathrm{J} \\\\ E _ {\\mathrm{pB}} = 1. 5 \\times 1 0 ^ {- 6} \\mathrm{J} \\end{array}\n$$\n\n(2) 负电荷 $q_{2}$ 放在 $A$ 点, 受到的电场力方向向左, 从 $A$ 点移至 $B$ 点的过程中, 电场力做负功, 电势能增加, 所以 $E_{\\mathrm{p} A} < E_{\\mathrm{p} B}$ , 即负电荷 $q_{2}$ 在 $B$ 点电势能大。\n\n由示例 1 可知，在同一电场中，同样从 A 点到 B 点分别移动正电荷与负电荷时，相应的电势能的变化是相反的。\n\n\n\n## 如何从能量的角度描述电场的性质？\n\n同一物体在地球上不同位置的重力势能不尽相同，不同物体在地球上同一位置的重力势能也不尽相同。类似地，根据电场力做功与电势能变化的关系可知，同一电荷在电场中的不同位置上的电势能不尽相同，不同电荷在电场中的同一位置上的电势能也不尽相同。\n\n进一步的研究表明，在一个确定的电场中，不同电荷在场中同一位置的电势能与其电荷量之比是一定的，即 $\\frac{E_{p1}}{q_{1}} = \\frac{E_{p2}}{q_{2}} = \\frac{E_{p3}}{q_{3}} = \\cdots = \\frac{E_{pn}}{q_{n}}$ 。这个比仅由电场决定，和电场强度一样，它与试探电荷置入与否无关。可见，这个比像电场强度从电场力的角度描述电场一样，从能量的角度客观地反映了电场的性质。\n\n在电场中，任意一点电荷的电势能 $E_{p}$ 和它所带的电荷量 q 之比叫做这一点的电势 (electric potential)。电势通常用符号 $\\varphi$ 来表示，则\n\n$$\n\\varphi = \\frac {E _ {\\mathrm{p}}}{q}\n$$\n\n电势的国际单位是伏特，简称伏，用符号 V 表示，1 V = 1 J/C。\n\n由上式可看出电势的物理意义。电场中任意一点的电势数值上等于单位正电荷在该点\n\n所具有的电势能。\n\n电势跟电势能一样，其数值不具有绝对意义，只具有相对意义。只有规定了某处的电势为零后，才能确定电场中其他各点的电势的值。\n\n电势 $\\varphi$ 是标量，只有大小，没有方向，但有正、负之分，正、负只表示比零电势高还是低。若将正试探电荷沿电场线方向移至无穷远处，电场力做正功，电势能逐渐减小，电势逐渐降低。因此，沿着电场线方向，电势越来越低。\n\n示例 2 在点电荷 +Q 的电场中，沿电场线方向有 A、B 两点。若将一个电荷量为 $1 \\times 10^{-8}$ C 的正电荷 q 从 A 点缓慢移至无穷远处，电场力做了 $3.0 \\times 10^{-6}$ J 的功；若将该正电荷从 B 点缓慢移至无穷远处，电场力做了 $1.5 \\times 10^{-6}$ J 的功。则 A、B 两点的电势各为多少？\n\n分析：电场中任意一点的电势数值上等于单位正电荷在该点所具有的电势能。\n\n解：设正电荷 q 在 A 点的电势能为 $E_{pA}$ 、在 B 点的电势能为 $E_{pB}$ 。由于点电荷 q 与产生电场的点电荷均为正电荷，因此在 q 从 A 点移至无穷远的过程中，电场力做正功、电势能减小至零，A 点的电势能 $E_{pA}$ 大于零，可得\n\n$$\nE _ {\\mathrm{pA}} = 3. 0 \\times 1 0 ^ {- 6} \\mathrm{J}\n$$\n\n同理，B 点的电势能\n\n$$\nE _ {\\mathrm{p} B} = 1. 5 \\times 1 0 ^ {- 6} \\mathrm{J}\n$$\n\n则 $A$ 点的电势\n\n$$\n\\varphi_ {A} = \\frac {E _ {\\mathrm{p} A}}{q} = \\frac {3 . 0 \\times 1 0 ^ {- 6}}{1 . 0 \\times 1 0 ^ {- 8}} \\mathrm{V} = 3. 0 \\times 1 0 ^ {2} \\mathrm{V}\n$$\n\n$B$ 点的电势\n\n$$\n\\varphi_ {B} = \\frac {E _ {\\mathrm{p} B}}{q} = \\frac {1 . 5 \\times 1 0 ^ {- 6}}{1 . 0 \\times 1 0 ^ {- 8}} \\mathrm{V} = 1. 5 \\times 1 0 ^ {2} \\mathrm{V}\n$$\n\n## 大家谈\n\n如试探电荷为负电荷是否还能得到关于电势能和电势的讨论中得到的结论？\n\n已知电场中某一点的电势为 $\\varphi$ ，则处于该点的点电荷 q 所具有的电势能\n\n$$\nE _ {\\mathrm{p}} = q \\varphi\n$$\n\n电荷在电场中沿垂直于电场方向移动时电场力不做功，电荷的电势能不发生变化，说明电场中的这些点的电势相等。电场中电势相同的各点构成的面叫做等势面（equipotential surface）。可见，等势面一定跟电场强度的方向垂直。等势面和电场线相似，也是用来形象地描述电场的。\n\n如图 9-31 所示是几种常见电场的等势面（图中虚线为等势面的截面图）和电场线。图中，两个相邻等势面间的电势之差是相等的。\n\n  \n(a) 匀强电场\n\n  \n(b) 点电荷的电场\n\n  \n(c) 等量异号电荷的电场  \n图9-31 几种常见电场的等势面和电场线\n\n  \n(d) 等量同号电荷的电场\n\n## 问题②思考\n\n1. 有两个带正电的点电荷 $Q_{1}$ 、 $Q_{2}$ 分别位于 $A$ 、 $B$ 两点，若保持电荷 $Q_{2}$ 静止，并使 $Q_{1}$ 分别沿着图9-32中 $a$ 、 $b$ 、 $c$ 三条不同的路径移动到位置 $C$ 。在此过程中，电场力是否对 $Q_{1}$ 做功？如做功，做的是正功还是负功？ $Q_{1}$ 沿三条不同路径移动到 $C$ 点的过程中，电场力对 $Q_{1}$ 所做功的大小关系如何？ $A$ 、 $C$ 两点哪点电势高？\n\n  \n图9-32\n\n2. 电场中 A 点放有电荷量为 $+1 \\times 10^{-8}$ C 的点电荷 $q_{1}$ 。若 $q_{1}$ 的电势能为 $2 \\times 10^{-6}$ J，A 点的电势为多大？若移走该点电荷，A 点的电势为多大？若在 A 点放另一电荷量为 $-3 \\times 10^{-8}$ C 的点电荷 $q_{2}$ ，则 $q_{2}$ 的电势能为多大？\n\n3. 有两个等量异号电荷，如图9-31（c）所示。在图中找出电势为正、电势为负和电势为零的区域。如将一个负电荷置于此电场中，在哪个区域电势能为正值？(取无穷远处的电势为零)\n\n4. 如图 9-33 所示，在真空中有两个等量同号的正点电荷 $q_{1}$ 、 $q_{2}$ ，分别置于 $A$ 、 $B$ 两点， $DC$ 为 $AB$ 连线的中垂线。将一负电荷 $q_{3}$ 由 $C$ 点沿中垂线移动到无穷远的过程中， $q_{3}$ 的电势能如何变化？电势如何变化？简述理由。\n\n  \n图9-33\n\n5. 在如图 9-34 所示的 4 种情况中, 图 (b) 和图 (d) 中 $a$ 、 $b$ 为两点电荷连线中垂线上关于 $O$ 点对称的两点。分别描述 4 种情况中 $a$ 、 $b$ 两点的电势和电场强度的关系。\n\n  \n(a) 带等量异号电荷平行金属板\n\n  \n(b) 两等量同号电荷\n\n图9-34  \n  \n(c) 正点电荷\n\n  \n(d) 两等量异号电荷\n\n  \n图9-35 北京正负电子对撞机的双储存环",
+      "title": "电势能 电势"
+    }
+  ]
+}

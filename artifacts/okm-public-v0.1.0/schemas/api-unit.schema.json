@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Titan-Frank/Open-Knowledge-Map/blob/main/artifacts/okm-public-v0.1.0/schemas/api-unit.schema.json",
+  "title": "Open Knowledge Map ApiUnit v0.1",
+  "description": "Public consumption contract for one complete governed knowledge object.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "node",
+    "relations",
+    "domain_profiles",
+    "mentions",
+    "evidence",
+    "media",
+    "source_fragments",
+    "card",
+    "body",
+    "completeness"
+  ],
+  "properties": {
+    "node": { "$ref": "#/$defs/node" },
+    "relations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outgoing", "incoming"],
+      "properties": {
+        "outgoing": { "type": "array", "items": { "$ref": "#/$defs/relation" } },
+        "incoming": { "type": "array", "items": { "$ref": "#/$defs/relation" } }
+      }
+    },
+    "domain_profiles": { "type": "array", "items": { "$ref": "#/$defs/domainProfile" } },
+    "mentions": { "type": "array", "items": { "$ref": "#/$defs/mention" } },
+    "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } },
+    "media": { "type": "array", "items": { "$ref": "#/$defs/media" } },
+    "source_fragments": { "type": "array", "items": { "$ref": "#/$defs/sourceFragment" } },
+    "card": { "anyOf": [{ "$ref": "#/$defs/card" }, { "type": "null" }] },
+    "body": { "anyOf": [{ "$ref": "#/$defs/body" }, { "type": "null" }] },
+    "completeness": { "$ref": "#/$defs/completeness" }
+  },
+  "$defs": {
+    "stringArray": { "type": "array", "items": { "type": "string" } },
+    "node": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "dataset_id", "name", "kind", "definition", "status"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "dataset_id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "kind": {
+          "enum": ["entity", "concept", "property", "process", "event", "method", "rule", "representation", "resource"]
+        },
+        "subkind": { "type": ["string", "null"] },
+        "definition": { "type": "string" },
+        "aliases": { "$ref": "#/$defs/stringArray" },
+        "domains": { "$ref": "#/$defs/stringArray" },
+        "knowledge_form": { "$ref": "#/$defs/stringArray" },
+        "learning_mode": { "$ref": "#/$defs/stringArray" },
+        "properties": { "type": "object" },
+        "tags": { "$ref": "#/$defs/stringArray" },
+        "status": { "type": "string" }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "dataset_id", "type", "from_id", "to_id", "directionality", "source_refs", "status"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "dataset_id": { "type": "string", "minLength": 1 },
+        "type": {
+          "enum": ["is_a", "instance_of", "part_of", "contains", "has_property", "uses", "produces", "depends_on", "prerequisite_for", "causes", "affects", "represents", "about", "same_as", "related_to"]
+        },
+        "from_id": { "type": "string", "minLength": 1 },
+        "to_id": { "type": "string", "minLength": 1 },
+        "directionality": { "enum": ["directed", "undirected"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "source_refs": { "$ref": "#/$defs/stringArray" },
+        "properties": { "type": "object" },
+        "status": { "type": "string" }
+      }
+    },
+    "domainProfile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "dataset_id", "node_id", "domain", "school_stages", "curriculum_roles", "source_refs", "properties", "status"],
+      "properties": {
+        "id": { "type": "string" },
+        "dataset_id": { "type": "string" },
+        "node_id": { "type": "string" },
+        "domain": { "type": "string" },
+        "school_stages": {
+          "type": "array",
+          "items": { "enum": ["primary", "junior-secondary", "senior-secondary", "higher"] }
+        },
+        "curriculum_roles": { "$ref": "#/$defs/stringArray" },
+        "source_refs": { "$ref": "#/$defs/stringArray" },
+        "properties": { "type": "object" },
+        "status": { "type": "string" }
+      }
+    },
+    "mention": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "dataset_id", "source_id", "anchor_ref", "target_type", "target_id", "source_refs"],
+      "properties": {
+        "id": { "type": "string" },
+        "dataset_id": { "type": "string" },
+        "source_id": { "type": "string" },
+        "anchor_ref": { "type": "string" },
+        "target_type": { "type": "string" },
+        "target_id": { "type": "string" },
+        "source_refs": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "dataset_id", "source_id", "anchor_ref", "modality", "properties"],
+      "properties": {
+        "id": { "type": "string" },
+        "dataset_id": { "type": "string" },
+        "source_id": { "type": "string" },
+        "anchor_ref": { "type": "string" },
+        "excerpt": { "type": ["string", "null"] },
+        "locator": { "type": ["string", "null"] },
+        "modality": { "type": "string" },
+        "properties": { "type": "object" }
+      }
+    },
+    "media": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "kind", "url", "evidence_id", "source_id", "anchor_ref"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "const": "image" },
+        "url": { "type": "string" },
+        "evidence_id": { "type": "string" },
+        "source_id": { "type": "string" },
+        "anchor_ref": { "type": "string" }
+      }
+    },
+    "sourceFragment": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["source_id", "anchor_ref", "modalities", "excerpts"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "anchor_ref": { "type": "string" },
+        "modalities": { "$ref": "#/$defs/stringArray" },
+        "excerpts": { "type": "array", "items": { "$ref": "#/$defs/sourceExcerpt" } }
+      }
+    },
+    "sourceExcerpt": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "excerpt", "modality"],
+      "properties": {
+        "id": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "locator": { "type": ["string", "null"] },
+        "modality": { "type": "string" },
+        "properties": { "type": "object" }
+      }
+    },
+    "card": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["node_id", "sections", "source_refs", "status"],
+      "properties": {
+        "node_id": { "type": "string" },
+        "summary": { "type": ["string", "null"] },
+        "sections": { "type": "array" },
+        "source_refs": { "$ref": "#/$defs/stringArray" },
+        "status": { "type": "string" }
+      }
+    },
+    "body": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["format", "content", "media_refs", "source_refs", "generated_from", "properties", "status"],
+      "properties": {
+        "node_id": { "type": "string" },
+        "format": { "const": "markdown" },
+        "content": { "type": "string" },
+        "media_refs": { "type": "array" },
+        "source_refs": { "$ref": "#/$defs/stringArray" },
+        "generated_from": { "enum": ["manual", "card_expansion", "imported_unit", "model_generation"] },
+        "properties": { "type": "object" },
+        "status": { "type": "string" }
+      }
+    },
+    "completeness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["score", "passed", "total", "signals"],
+      "properties": {
+        "score": { "type": "number", "minimum": 0, "maximum": 100 },
+        "passed": { "type": "integer", "minimum": 0 },
+        "total": { "type": "integer", "minimum": 0 },
+        "signals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "label", "passed", "severity", "message"],
+            "properties": {
+              "key": { "type": "string" },
+              "label": { "type": "string" },
+              "passed": { "type": "boolean" },
+              "severity": { "enum": ["required", "recommended"] },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

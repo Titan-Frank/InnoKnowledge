@@ -1,0 +1,1348 @@
+{
+  "body": {
+    "content": "## 定义\n场源电荷是指能够产生电场的电荷。在静电学的研究框架中，通常将发出电场作用、决定周围空间电场分布的电荷称为场源电荷。[evidence:auto-48911a2441b9]\n\n## 核心解释\n电场是带电体周围空间存在的一种特殊物质，电荷间的相互作用正是通过电场来传递的。[evidence:auto-c6c7c1f74ae1] 为了定量研究某个点电荷（例如点电荷 A）周围电场的性质，必须在电场中引入另一个电荷（例如点电荷 B）。为了保证测量结果的准确性，引入的电荷 B 的电荷量必须足够小，以确保其对原有电场的影响可以忽略不计。在此设定下，电荷 B 被称为试探电荷，而原本产生该电场的电荷 A 则被明确定义为场源电荷。[evidence:auto-39a7d4add92b] 场源电荷保持静止时，其周围空间会形成特定分布的电场，且该电场的强度与性质完全由场源电荷本身的电量及位置决定。\n\n## 关键要点\n- **电场强度的计算**：对于真空中的点电荷场源 $q$，其在距离 $r$ 处产生的电场强度大小可由库仑定律推导得出，表达式为 $E = k \\frac{q}{r^2}$。[evidence:auto-074feb90799c]\n- **方向规律**：电场强度的方向直接取决于场源电荷的电性。若场源电荷 $q$ 为正电荷，电场强度方向沿径向远离场源；若 $q$ 为负电荷，电场强度方向则指向场源电荷。[evidence:auto-074feb90799c]\n- **电场线描述**：电场线是描述场源电荷产生电场的直观工具。电场线为有方向的曲线，起始于正电荷（或无穷远），终止于负电荷（或无穷远）。曲线上任意一点的切线方向与该点正电荷受力方向一致，与负电荷受力方向相反；电场线的疏密程度则大致反映电场的强弱，密集处场强较大，稀疏处场强较小。[evidence:auto-0fea65dfac75]\n- **定义式与比值性质**：电场中某点的电场强度 $E$ 定义为试探电荷在该点所受电场力 $F$ 与其电荷量 $q$ 的比值，即 $E = \\frac{F}{q}$。[evidence:auto-21393838f79a] 该比值是电场本身的属性，仅由场源电荷决定，与试探电荷的有无及电量大小无关。\n\n## 示例或应用\n在实际的物理问题中，场源电荷通常被视为固定不动的实体。例如，设有一个固定的点电荷 $q_1$ 作为场源，在其左侧 $A$ 点放置一个电荷量为 $-1 \\times 10^{-9} \\mathrm{C}$ 的负电荷 $q_2$ 作为试探电荷。通过实验测得 $q_2$ 受到的电场力 $F$ 大小为 $2 \\times 10^{-5} \\mathrm{N}$，方向水平向右。结合电场强度的定义式，即可准确计算出 $A$ 点由场源电荷 $q_1$ 激发的电场强度，并进一步推断场源电荷的电性与电量分布情况。[evidence:auto-0c703df7d7f0]",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "concept/physical_charge:auto-fbc01f569124",
+    "properties": {
+      "card_title": "场源电荷",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-48911a2441b9",
+      "evidence:auto-c6c7c1f74ae1",
+      "evidence:auto-39a7d4add92b",
+      "evidence:auto-074feb90799c",
+      "evidence:auto-0fea65dfac75",
+      "evidence:auto-21393838f79a",
+      "evidence:auto-0c703df7d7f0"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:40:46+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-5074132590f4",
+    "mention_refs": [],
+    "node_id": "concept/physical_charge:auto-fbc01f569124",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "产生电场的电荷。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-c6c7c1f74ae1"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "产生电场的电荷。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-c6c7c1f74ae1"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "产生电场的电荷。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-c6c7c1f74ae1"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "场源电荷"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-c6c7c1f74ae1"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "电场力 电场强度"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-c6c7c1f74ae1"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-c6c7c1f74ae1"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-c6c7c1f74ae1"
+    ],
+    "status": "active",
+    "summary": "产生电场的电荷。",
+    "title": "场源电荷",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 8,
+    "score": 89,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点缺少 semantic_core 语义骨架。",
+        "passed": false,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-4863daeb6eb7",
+      "node_id": "concept/physical_charge:auto-fbc01f569124",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "给定固定点电荷与移动小电荷的相互作用图示，正确标识场源电荷，并简述判断依据。",
+              "在坐标系中绘制正、负场源电荷周围指定位置的电场强度方向示意图。",
+              "通过替换不同电荷量或电性的试探电荷进行推理计算，验证该点电场强度数值与方向保持不变。"
+            ],
+            "common_errors": [
+              "混淆产生电场与检验电场的角色，误将受力电荷当作场源电荷。",
+              "认为电场强度的大小或方向会随试探电荷电荷量或正负的改变而改变。",
+              "误以为电场是试探电荷与场源电荷相互作用时才临时产生，撤去试探电荷后电场消失。"
+            ],
+            "diagnostic_questions": [
+              "若试探电荷的电荷量较大，会对场源电荷产生的原电场造成什么影响？",
+              "撤去试探电荷后，原位置的电场强度是否变为零？为什么？",
+              "电场强度的方向是由场源电荷决定的，还是由放入的试探电荷电性决定的？"
+            ],
+            "difficulty_level": "basic",
+            "extension_suggestions": [
+              "引导学生从场的物质性出发，对比引力场源质量与电场源电荷的异同。",
+              "结合电场叠加原理，初步探讨多个场源电荷共存时电场分布的合成规律。",
+              "设计探究活动，分析实际带电体（非点电荷）在宏观尺度下等效场源电荷的建立方法。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T10:12:46+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "02a2591d360d90d799ef18990287afee5612d53b15b8f91918617d8c5907d3b7",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-39a7d4add92b",
+                "evidence:auto-c6c7c1f74ae1",
+                "evidence:auto-074feb90799c"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "准确区分场源电荷与试探电荷的概念，说明试探电荷电荷量需足够小的原因。",
+              "根据场源电荷的电性与位置，判断其周围电场强度的方向与空间分布特征。",
+              "结合物理模型与公式，阐明电场强度由场源电荷本身决定，不随试探电荷的改变而变化。"
+            ],
+            "remediation_suggestions": [
+              "依托教材图示与公式推导，强化“场源电荷产场、试探电荷验场”的职能边界。",
+              "利用电场线分布动画，直观呈现场源电荷电性对空间电场方向的决定作用。",
+              "设置“撤除试探电荷后场是否依然存在”的辨析任务，巩固场作为客观物质形态的概念。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-074feb90799c",
+        "evidence:auto-39a7d4add92b",
+        "evidence:auto-48911a2441b9",
+        "evidence:auto-c6c7c1f74ae1"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:12:46+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "真空中点电荷 q 产生电场，由库仑定律可得在距其 r 处的电场强度 E = k q / r^2。若 q 为正电荷，电场强度的方向远离 q；若 q 为负电荷，电场强度的方向指向 q。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-074feb90799c",
+      "locator": "line:98-100",
+      "modality": "equation",
+      "normalized_claims": [
+        "真空中点电荷 q 产生电场，由库仑定律可得在距其 r 处的电场强度 E = k q / r^2。若 q 为正电荷，电场强度的方向远离 q；若 q 为负电荷，电场强度的方向指向 q。"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "示例 1 如图 9-20 所示，有一固定的点电荷 $q_1$ ， $q_1$ 左方的 $A$ 点处有一个负电荷 $q_2$ ，其电荷量为 $-1 \\times 10^{-9} \\mathrm{C}$ 。测出 $q_2$ 受到的电场力 $F$ 为 $2 \\times 10^{-5} \\mathrm{~N}$ ，方向水平向右。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-0c703df7d7f0",
+      "locator": "line:86",
+      "modality": "equation",
+      "normalized_claims": [
+        "示例 1 如图 9-20 所示，有一固定的点电荷 $q_1$ ， $q_1$ 左方的 $A$ 点处有一个负电荷 $q_2$ ，其电荷量为 $-1 \\times 10^{-9} \\mathrm{C}$ 。测出 $q_2$ 受到的电场力 $F$"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "电场线是有方向的曲线；电场线起始于正电荷（或无穷远），终止于负电荷（或无穷远）；曲线上每一点的切线方向与正电荷在该点所受的电场力的方向相同，与负电荷在该点所受的电场力的方向相反；电场线的疏密可以大致反映电场的强弱，电场线密集的地方电场强，稀疏的地方电场弱。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-0fea65dfac75",
+      "locator": "line:22-23",
+      "modality": "text",
+      "normalized_claims": [
+        "电场线是有方向的曲线；电场线起始于正电荷（或无穷远），终止于负电荷（或无穷远）；曲线上每一点的切线方向与正电荷在该点所受的电场力的方向相同，与负电荷在该点所受的电场力的方向相反；电场线的疏密可以大致反映电场的强弱，电场线密集的地方电场强，稀"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nE = \\frac {F}{q}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-21393838f79a",
+      "locator": "line:80",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nE = \\frac {F}{q}\n$$"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/196869ceccc8325cc3e3c6566b3ffca2e16ec57cddf3d3c7944b314c1b1e8024.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-36be747df98f",
+      "locator": "line:35",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/196869ceccc8325cc3e3c6566b3ffca2e16ec57cddf3d3c7944b314c1b1e8024.jpg)"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 151,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/196869ceccc8325cc3e3c6566b3ffca2e16ec57cddf3d3c7944b314c1b1e8024.jpg",
+          "reason": "图片内容直接对应前文描述的“模拟静电场电场力的大致分布”实验。前文介绍了利用悬浮在绝缘液体中的颗粒来模拟电场线，而这张图片正是该实验的具体展示（异种电荷情况），属于图9-17“模拟电场线”的核心组成部分，直接表达了电场线这一物理概念。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了静电场模拟实验的一个场景。图中有两个黑色的圆形电极，分别标有负号（-）和正号（+）。在两个电极周围，细小的颗粒（如前文提到的奎宁晶体或头发屑）沿着特定的曲线排列，形成了从正极出发终止于负极的图案，直观地模拟了异种电荷之间的电场线分布。",
+          "width": 223
+        },
+        "path": "images/196869ceccc8325cc3e3c6566b3ffca2e16ec57cddf3d3c7944b314c1b1e8024.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 9-19 所示，为了研究点电荷 $A$ 周围电场力的性质，我们需要在电场中引入另一个点电荷 $B$ 。点电荷 $B$ 的电荷量必须足够小，以致可忽略其对电场的影响，我们把点电荷 $A$ 称为场源电荷，点电荷 $B$ 称为试探电荷。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-39a7d4add92b",
+      "locator": "line:67",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图 9-19 所示，为了研究点电荷 $A$ 周围电场力的性质，我们需要在电场中引入另一个点电荷 $B$ 。点电荷 $B$ 的电荷量必须足够小，以致可忽略其对电场的影响，我们把点电荷 $A$ 称为场源电荷，点电荷 $B$ 称为试探电荷。"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "图9-20 负电荷在 $A$ 点所受电场力",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-3b988b44d5bd",
+      "locator": "line:89",
+      "modality": "equation",
+      "normalized_claims": [
+        "图9-20 负电荷在 $A$ 点所受电场力"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "研究表明，如果在空间中有几个点电荷同时存在，这时在空间的某一点的电场强度等于各个点电荷单独存在时在该点产生的电场的电场强度的矢量和，这叫做电场的叠加原理。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-426505d4ac9e",
+      "locator": "line:102-103",
+      "modality": "text",
+      "normalized_claims": [
+        "研究表明，如果在空间中有几个点电荷同时存在，这时在空间的某一点的电场强度等于各个点电荷单独存在时在该点产生的电场的电场强度的矢量和，这叫做电场的叠加原理。"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "上海科技馆智慧之光展区内有一“怒发冲冠”（图9-15）的项目，通过 $2 \\times 10^{5} \\mathrm{~V}$ 的高压演示了静电现象。站在绝缘地板上的长发女士，手摸着范德格拉夫起电机的金属球罩，范德格拉夫起电机产生大量电荷，这位女士的长发就会立刻张开，呈现了怒发冲冠的情景。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-4421c9f8f6b3",
+      "locator": "line:3",
+      "modality": "equation",
+      "normalized_claims": [
+        "上海科技馆智慧之光展区内有一“怒发冲冠”（图9-15）的项目，通过 $2 \\times 10^{5} \\mathrm{~V}$ 的高压演示了静电现象。站在绝缘地板上的长发女士，手摸着范德格拉夫起电机的金属球罩，范德格拉夫起电机产生大量电荷，"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "点电荷 B 的电荷量必须足够小，以致可忽略其对电场的影响，我们把点电荷 A 称为场源电荷，点电荷 B 称为试探电荷。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-48911a2441b9",
+      "locator": "line:55-56",
+      "modality": "text",
+      "normalized_claims": [
+        "点电荷 B 的电荷量必须足够小，以致可忽略其对电场的影响，我们把点电荷 A 称为场源电荷，点电荷 B 称为试探电荷。"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/513db565c5f0a020e1c21a122fcffea13b161917a3cb7154e797ee9edded971d.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-50647ca7cccf",
+      "locator": "line:50",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/513db565c5f0a020e1c21a122fcffea13b161917a3cb7154e797ee9edded971d.jpg)"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 240,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/513db565c5f0a020e1c21a122fcffea13b161917a3cb7154e797ee9edded971d.jpg",
+          "reason": "图片内容为正点电荷的电场线示意图。结合后文明确标注的“图9-18 典型电场线”以及前文出现的(a)(b)图序列，这张图显然是该“典型电场线”系列图的一部分（通常对应正点电荷）。它直接展示了电场线的分布规律和方向，是物理学中电场概念的核心图示，属于主要结论或概念表达。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个正点电荷（中心标有“+”号的圆）及其周围的电场线分布。蓝色的电场线呈放射状从中心向外发散，箭头指向远离正电荷的方向，形象地描绘了正电荷产生的电场结构。",
+          "width": 176
+        },
+        "path": "images/513db565c5f0a020e1c21a122fcffea13b161917a3cb7154e797ee9edded971d.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "当试探电荷 B 的位置不变而电荷量 q 发生变化时，其受到的电场力 F 也随之变化，但电场力 F 与试探电荷的电荷量 q 之比 $\\frac{F}{q}$ 不变。如果再将试探电荷 B 放在电场中的其他位置，F 与 q 之比与放在前一位置时 F 与 q 之比则一般是不同的。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6b066d0387a7",
+      "locator": "line:74",
+      "modality": "equation",
+      "normalized_claims": [
+        "当试探电荷 B 的位置不变而电荷量 q 发生变化时，其受到的电场力 F 也随之变化，但电场力 F 与试探电荷的电荷量 q 之比 $\\frac{F}{q}$ 不变。如果再将试探电荷 B 放在电场中的其他位置，F 与 q 之比与放在前一位置时"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/3157bd50befdda9d8ec2da626a5045b55f6b62b6896690bd795f88950a5ef4f4.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-731a056f262c",
+      "locator": "line:88",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/3157bd50befdda9d8ec2da626a5045b55f6b62b6896690bd795f88950a5ef4f4.jpg)"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 76,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/3157bd50befdda9d8ec2da626a5045b55f6b62b6896690bd795f88950a5ef4f4.jpg",
+          "reason": "图片是教材中“示例 1”的配图（对应后文提到的图9-20）。前文文字描述了“有一固定的点电荷q1，q1左方的A点处有一个负电荷q2...测出q2受到的电场力F...方向水平向右”，图片直观地展示了这一物理情景（电荷位置及力的方向）。后文基于此图提出了关于电场强度的计算问题。作为例题的配图，它辅助说明了题目条件，属于supporting类别。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张物理示意图，展示了两个点电荷的位置关系和受力情况。左侧有一个点标记为A和q2，右侧有一个点标记为q1。两点之间有一条水平虚线连接。从左侧q2处引出一个指向右侧的蓝色箭头，标记为F，表示电场力的方向。",
+          "width": 295
+        },
+        "path": "images/3157bd50befdda9d8ec2da626a5045b55f6b62b6896690bd795f88950a5ef4f4.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/d179d9a207e4c7a2c9623ab083d980301b00c535aee42923aa46558ed867f272.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-7565970976b4",
+      "locator": "line:37",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/d179d9a207e4c7a2c9623ab083d980301b00c535aee42923aa46558ed867f272.jpg)"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 151,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/d179d9a207e4c7a2c9623ab083d980301b00c535aee42923aa46558ed867f272.jpg",
+          "reason": "图片内容与上下文高度对应。前文描述了利用头发屑在蓖麻油中模拟静电场电场力分布的实验，后文标注为“图9-17 模拟电场线”。这张图片直观地展示了两个正电荷周围电场线的模拟实验现象，属于核心实验内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了物理实验场景：两个标有“+”号的黑色圆形电极，周围悬浮的细小纤维（头发屑）呈放射状排列，模拟了两个同种正电荷周围的电场分布。",
+          "width": 231
+        },
+        "path": "images/d179d9a207e4c7a2c9623ab083d980301b00c535aee42923aa46558ed867f272.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "两块正对放置的相同的平行金属极板，若板间距离远小于极板的线度，在两板之间能构建出一个电场强度处处相同的电场。当两板分别带有等量的正电荷和负电荷时，极板间（除边缘附近外）的电场强度在不同位置大小和方向都不变",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-87572ada5698",
+      "locator": "line:128-129",
+      "modality": "text",
+      "normalized_claims": [
+        "两块正对放置的相同的平行金属极板，若板间距离远小于极板的线度，在两板之间能构建出一个电场强度处处相同的电场。当两板分别带有等量的正电荷和负电荷时，极板间（除边缘附近外）的电场强度在不同位置大小和方向都不变"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/6ae54e40c92f96571f790eeab186c391a847c85f99a844de28bdc430927007b6.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-8ddcbc2a56f8",
+      "locator": "line:47",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/6ae54e40c92f96571f790eeab186c391a847c85f99a844de28bdc430927007b6.jpg)"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 217,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/6ae54e40c92f96571f790eeab186c391a847c85f99a844de28bdc430927007b6.jpg",
+          "reason": "图片内容展示了负点电荷的电场线模型，与前文提到的“得到如图 9-18 所示的电场线”直接对应。结合后文的“(a)”、“(b)”、“(c)”标签，可知这是图9-18的一部分，用于展示不同电荷分布下的电场线情况，属于核心概念图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个中心带有负号（-）的蓝色球体，周围有八条带箭头的直线从四周指向中心球体，这是典型的负点电荷电场线分布示意图。",
+          "width": 209
+        },
+        "path": "images/6ae54e40c92f96571f790eeab186c391a847c85f99a844de28bdc430927007b6.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "只要有电荷存在，电荷的周围就存在着电场。电场的基本性质是能够对放入其中的电荷有力的作用，这种力就叫做电场力（electric field force）。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-8e4d2917a0f0",
+      "locator": "line:14-15",
+      "modality": "text",
+      "normalized_claims": [
+        "只要有电荷存在，电荷的周围就存在着电场。电场的基本性质是能够对放入其中的电荷有力的作用，这种力就叫做电场力（electric field force）。"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "电场强度 E 是矢量。物理学中规定，电场中某点电场强度的方向跟正电荷在该点所受电场力的方向相同。上式是电场强度的定义式，表明了电场强度的物理意义，其数值上等于单位正电荷所受的电场力。但电场强度是由电场本身决定的物理量，它与试探电荷置入电场与否无关。电场强度的国际单位是 N/C",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-8f0f84c600ac",
+      "locator": "line:66-70",
+      "modality": "text",
+      "normalized_claims": [
+        "电场强度 E 是矢量。物理学中规定，电场中某点电场强度的方向跟正电荷在该点所受电场力的方向相同。上式是电场强度的定义式，表明了电场强度的物理意义，其数值上等于单位正电荷所受的电场力。但电场强度是由电场本身决定的物理量，它与试探电荷置入电场与"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/ec3ecff5c4dbf150ae990266debdbfacf3db10bad3ee9d6ae9f2477847e5c6e5.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-930cf65103f9",
+      "locator": "line:56",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/ec3ecff5c4dbf150ae990266debdbfacf3db10bad3ee9d6ae9f2477847e5c6e5.jpg)"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 226,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/ec3ecff5c4dbf150ae990266debdbfacf3db10bad3ee9d6ae9f2477847e5c6e5.jpg",
+          "reason": "该图片是教材中‘图9-18 典型电场线’的(d)部分（根据后文'(d)'推断），直接展示了等量异种点电荷电场线的结构分布，属于物理学科中关于电场性质的核心概念模型。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了等量异种点电荷的电场线分布图。左侧为红色带正号（+）的球体，右侧为蓝色带负号（-）的球体。蓝色的电场线从正电荷出发，弯曲指向负电荷，或者延伸至无穷远。",
+          "width": 384
+        },
+        "path": "images/ec3ecff5c4dbf150ae990266debdbfacf3db10bad3ee9d6ae9f2477847e5c6e5.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/2b92541eb685e65b83d234cdb006d24d2f7a0e6bd4dfe878d00e6a57872a11e7.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-9aafb7950f50",
+      "locator": "line:32",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/2b92541eb685e65b83d234cdb006d24d2f7a0e6bd4dfe878d00e6a57872a11e7.jpg)"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 154,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/2b92541eb685e65b83d234cdb006d24d2f7a0e6bd4dfe878d00e6a57872a11e7.jpg",
+          "reason": "前文详细描述了通过悬浮针状晶体或头发屑来模拟静电场的实验（“如图 9-17 所示...”），指出其排列走向顺着电场力方向。当前图片正是该实验现象的直观展示，对应了前文中关于电场线起始于正电荷、呈辐射状分布的描述。作为教材“自主活动”板块中的实验照片，它主要用于辅助说明和验证电场线的分布规律。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个标有“+”号的黑色圆形物体（代表正电荷），周围悬浮在介质中的细小针状物体（如头发屑或晶体）呈辐射状向外排列，形象地模拟了正点电荷周围的电场线分布。",
+          "width": 217
+        },
+        "path": "images/2b92541eb685e65b83d234cdb006d24d2f7a0e6bd4dfe878d00e6a57872a11e7.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/2b8f0fd57f8b00fe72d6d4d3df17ac4a4eaf253066150310da8cbc8934727a73.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-a0467eaee177",
+      "locator": "line:25",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/2b8f0fd57f8b00fe72d6d4d3df17ac4a4eaf253066150310da8cbc8934727a73.jpg)"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 265,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/2b8f0fd57f8b00fe72d6d4d3df17ac4a4eaf253066150310da8cbc8934727a73.jpg",
+          "reason": "该图片是图9-16，直接对应前文中关于电场线性质的描述，特别是‘曲线上每一点的切线方向与正电荷在该点所受的电场力的方向相同，与负电荷在该点所受的电场力的方向相反’这一核心概念。它通过可视化的方式解释了电场线的方向和受力关系，属于物理模型和概念的直接表达。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一条带箭头的蓝色曲线，代表电场线。曲线上标有两个点A和B。在A点放置了负电荷（-q），并画出了其受到的电场力 $F_A$，方向沿曲线切线向后（与电场线箭头方向相反）。在B点放置了正电荷（+q），并画出了其受到的电场力 $F_B$，方向沿曲线切线向前（与电场线箭头方向相同）。",
+          "width": 448
+        },
+        "path": "images/2b8f0fd57f8b00fe72d6d4d3df17ac4a4eaf253066150310da8cbc8934727a73.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/40476fe628bd99a43ea573299758672a8292adacd3c849d6142e7f36f05b8332.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b9e90d481866",
+      "locator": "line:71",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/40476fe628bd99a43ea573299758672a8292adacd3c849d6142e7f36f05b8332.jpg)"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 353,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/40476fe628bd99a43ea573299758672a8292adacd3c849d6142e7f36f05b8332.jpg",
+          "reason": "图片直接对应前文描述的'保持场源电荷A不动，移动试探电荷B，观察其在不同位置的受力情况'，以及后文的图注'图9-19 试探电荷在电场中受力'。该图是教材中用于引出'电场强度'定义的核心模型图，展示了试探电荷在电场中不同位置受力方向和大小可能不同的物理事实，属于直接表达概念和模型的核心内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了物理电场模型：左侧是一个标有'A'的场源正电荷，右侧展示了试探电荷'B'（标有'+q'）在两个不同位置的情况。上方位置B受到力F2，下方位置B受到力F1，两个力的方向不同，直观反映了点电荷周围电场力的分布特征。",
+          "width": 423
+        },
+        "path": "images/40476fe628bd99a43ea573299758672a8292adacd3c849d6142e7f36f05b8332.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "法拉第在研究电场时，采用了电场线（electric field lines）来描述电场。电场线是为了直观形象地描述电场分布而在电场中引入的一些假想的曲线。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-c2bc4456357e",
+      "locator": "line:19-21",
+      "modality": "text",
+      "normalized_claims": [
+        "法拉第在研究电场时，采用了电场线（electric field lines）来描述电场。电场线是为了直观形象地描述电场分布而在电场中引入的一些假想的曲线。"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "带电体周围空间存在一种物质，这种物质称为电场（electric field）。电荷间的相互作用就是靠电场来传递的。场是物质存在的一种形态。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-c6c7c1f74ae1",
+      "locator": "line:7-10",
+      "modality": "text",
+      "normalized_claims": [
+        "带电体周围空间存在一种物质，这种物质称为电场（electric field）。电荷间的相互作用就是靠电场来传递的。场是物质存在的一种形态。"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/07002aeaa66dd473e88654e19323461934e5f74112a308e48e81724586830f15.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ce4d38cd72c3",
+      "locator": "line:44",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/07002aeaa66dd473e88654e19323461934e5f74112a308e48e81724586830f15.jpg)"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 212,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/07002aeaa66dd473e88654e19323461934e5f74112a308e48e81724586830f15.jpg",
+          "reason": "图片展示了正点电荷的理想化电场线分布，直接对应前文中提到的“把上述自主活动观察到的模拟电场线分布作理想化的描绘，得到如图 9-18 所示的电场线”。这是电场章节的核心概念图示。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片中心是一个带有正号（+）的圆圈，周围分布着八条向外辐射的蓝色直线箭头，展示了正点电荷的电场线分布。",
+          "width": 209
+        },
+        "path": "images/07002aeaa66dd473e88654e19323461934e5f74112a308e48e81724586830f15.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/ee852c25d3fd1308f1a23076694026ed3cb01bf9a644ad03fb9e263ca5e9dcc8.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-d0248b1b1ab3",
+      "locator": "line:52",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/ee852c25d3fd1308f1a23076694026ed3cb01bf9a644ad03fb9e263ca5e9dcc8.jpg)"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 240,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/ee852c25d3fd1308f1a23076694026ed3cb01bf9a644ad03fb9e263ca5e9dcc8.jpg",
+          "reason": "图片清晰展示了正点电荷的电场线分布模型。结合上下文中的“(a)”，“(b)”，“(c)”标记以及后文出现的“图9-18 典型电场线”，可以判断该图属于教材中展示典型电场线分布的核心插图序列之一。它直接表达了电场线从正电荷出发这一重要的物理概念和模型，因此作为核心内容保留。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个中心带有正号（+）的圆，周围有许多蓝色的箭头呈放射状向外发散，这是正点电荷的电场线示意图。",
+          "width": 170
+        },
+        "path": "images/ee852c25d3fd1308f1a23076694026ed3cb01bf9a644ad03fb9e263ca5e9dcc8.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "我们把在某个区域内各处电场强度大小相等、方向相同的电场称为匀强电场。匀强电场的电场线是相互平行疏密相同的直线。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-eb7247336ddc",
+      "locator": "line:130-131",
+      "modality": "text",
+      "normalized_claims": [
+        "我们把在某个区域内各处电场强度大小相等、方向相同的电场称为匀强电场。匀强电场的电场线是相互平行疏密相同的直线。"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "当试探电荷 B 的位置不变而电荷量 q 发生变化时，其受到的电场力 F 也随之变化，但电场力 F 与试探电荷的电荷量 q 之比 F/q 不变。...因此，我们将放入电场中某点的电荷所受的电场力 F 和其电荷量 q 之比叫做该点的电场强度，用符号 E 表示。即 E = F/q",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f43fe53a7250",
+      "locator": "line:60-65",
+      "modality": "text",
+      "normalized_claims": [
+        "当试探电荷 B 的位置不变而电荷量 q 发生变化时，其受到的电场力 F 也随之变化，但电场力 F 与试探电荷的电荷量 q 之比 F/q 不变。...因此，我们将放入电场中某点的电荷所受的电场力 F 和其电荷量 q 之比叫做该点的电场强度，用"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "excerpt": "我们把相对观察者静止的电荷产生的电场叫做静电场（electrostatic field）。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f85a0a875368",
+      "locator": "line:12",
+      "modality": "text",
+      "normalized_claims": [
+        "我们把相对观察者静止的电荷产生的电场叫做静电场（electrostatic field）。"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:40:46+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-02b3a74abb7a",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-48911a2441b9"
+      ],
+      "source_type": "textbook",
+      "target_id": "concept/physical_charge:auto-fbc01f569124",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "source charge"
+    ],
+    "created_at": "2026-06-29T05:40:46+00:00",
+    "dataset_id": "main",
+    "definition": "产生电场的电荷。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "concept/physical_charge:auto-fbc01f569124",
+    "kind": "concept",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "场源电荷",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "subkinds": [
+          "physical_charge"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": "保持不动时，其周围空间形成特定分布的电场；电场强度由其本身决定。"
+      },
+      "template_display": {
+        "label": "物理概念",
+        "template_id": "textbook/physics",
+        "type_key": "concept"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "physical_charge",
+    "tags": [
+      "高中物理",
+      "必修三",
+      "电场成因"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [],
+    "outgoing": [
+      {
+        "confidence": 0.85,
+        "created_at": "2026-06-29T05:40:46+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "concept/physical_charge:auto-fbc01f569124",
+        "id": "edge:auto-c44f7b1eb3bf",
+        "notes": "场源电荷是产生原电场的电荷",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "产生",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-48911a2441b9"
+        ],
+        "status": "active",
+        "to_id": "concept/physical_field:auto-4375e077c8b3",
+        "type": "produces",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ]
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第三节 电场力 电场强度\n\n上海科技馆智慧之光展区内有一“怒发冲冠”（图9-15）的项目，通过 $2 \\times 10^{5} \\mathrm{~V}$ 的高压演示了静电现象。站在绝缘地板上的长发女士，手摸着范德格拉夫起电机的金属球罩，范德格拉夫起电机产生大量电荷，这位女士的长发就会立刻张开，呈现了怒发冲冠的情景。\n\n\n\n## 电荷间的相互作用如何传递？\n\n带电体周围空间存在一种物质，这种物质称为电场（electric field）。电荷间的相互作用就是靠电场来传递的。场的概念对早先的传统观念是一个重大的突破。现在，场的概念已经成为现代物理学中最重要的基本概念之一。\n\n场是物质存在的一种形态。电场是一种看不见也摸不到的物质。然而，电场却无处不在，几乎弥漫于整个宇宙。人类的生活也时刻离不开各种场：重力场、磁场、电场等。在信息化时代，信息的形成、传递、储存都离不开场。我们把相对观察者静止的电荷产生的电场叫做静电场（electrostatic field）。\n\n只要有电荷存在，电荷的周围就存在着电场。电场的基本性质是能够对放入其中的电荷有力的作用，这种力就叫做电场力（electric field force）。\n\n\n\n## 如何形象描述电场?\n\n电场虽看不见、摸不着，但我们仍然可以利用电场对放入其中的电荷有力的作用来探究电场的分布特征。\n\n在初中物理学习中，我们已经使用磁感线来形象地描述磁场。法拉第在研究电场时，采用了电场线（electric field lines）来描述电场。电场线是为了直观形象地描述电场分布\n\n而在电场中引入的一些假想的曲线。如图 9-16 所示，电场线是有方向的曲线；电场线起始于正电荷（或无穷远），终止于负电荷（或无穷远）；曲线上每一点的切线方向与正电荷在该点所受的电场力的方向相同，与负电荷在该点所受的电场力的方向相反；电场线的疏密可以大致反映电场的强弱，电场线密集的地方电场强，稀疏的地方电场弱。\n\n[source image omitted from static artifact]  \n图9-16 电场线\n\n## 自主活动\n\n如图 9-17 所示，把奎宁（一类植物树皮中的生物碱）的针状晶体或头发屑悬浮在蓖麻油或洗洁精中，并把高电压加到两个电极上。电极是电荷集中的地方，其周围存在电场。针状晶体或头发屑因受到电场力的作用而有规律地排列。它们的排列走向顺着电场力的方向，从而可以形象地模拟静电场电场力的大致分布，好像一条条的曲线。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]\n\n[source image omitted from static artifact]  \n(b)  \n(c)  \n图9-17 模拟电场线\n\n把上述自主活动观察到的模拟电场线分布作理想化的描绘，得到如图 9-18 所示的电场线。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)\n\n[source image omitted from static artifact]\n\n[source image omitted from static artifact]  \n(c)  \n图9-18 典型电场线\n\n[source image omitted from static artifact]  \n(d)\n\n## 大家谈\n\n如图 9-18 所示的典型电场线分布有何特点？如何与如图 9-17 所示的模拟电场线相对应？\n\n\n\n## 如何定量描述电场力的性质?\n\n如图 9-19 所示，为了研究点电荷 $A$ 周围电场力的性质，我们需要在电场中引入另一个点电荷 $B$ 。点电荷 $B$ 的电荷量必须足够小，以致可忽略其对电场的影响，我们把点电荷 $A$ 称为场源电荷，点电荷 $B$ 称为试探电荷。\n\n保持场源电荷 A 不动，移动试探电荷 B，观察其在不同位置的受力情况。可以看出试探电荷 B 在电场不同位置所受电场力的大小、方向一般是不同的，这反映了电场中各点的电场强弱和方向是不同的。\n\n[source image omitted from static artifact]  \n图9-19 试探电荷在电场中受力\n\n当试探电荷 B 的位置不变而电荷量 q 发生变化时，其受到的电场力 F 也随之变化，但电场力 F 与试探电荷的电荷量 q 之比 $\\frac{F}{q}$ 不变。如果再将试探电荷 B 放在电场中的其他位置，F 与 q 之比与放在前一位置时 F 与 q 之比则一般是不同的。\n\n这个比的大小可以反映电场中不同点的电场的强弱程度。因此，我们将放入电场中某点的电荷所受的电场力 F 和其电荷量 q 之比叫做该点的电场强度，用符号 E 表示。即\n\n$$\nE = \\frac {F}{q}\n$$\n\n电场强度 E 是矢量。物理学中规定，电场中某点电场强度的方向跟正电荷在该点所受电场力的方向相同。上式是电场强度的定义式，表明了电场强度的物理意义，其数值上等于单位正电荷所受的电场力。但电场强度是由电场本身决定的物理量，它与试探电荷置入电场与否无关。电场强度的国际单位是 N/C，读作牛每库。\n\n如果已知电场中某一点的电场强度 E，那么，放在该点的点电荷 q 所受到的电场力 F 的大小就是 qE，F 的方向则取决于电场的方向和点电荷 q 的正负。\n\n示例 1 如图 9-20 所示，有一固定的点电荷 $q_1$ ， $q_1$ 左方的 $A$ 点处有一个负电荷 $q_2$ ，其电荷量为 $-1 \\times 10^{-9} \\mathrm{C}$ 。测出 $q_2$ 受到的电场力 $F$ 为 $2 \\times 10^{-5} \\mathrm{~N}$ ，方向水平向右。\n\n[source image omitted from static artifact]  \n图9-20 负电荷在 $A$ 点所受电场力\n\n(1) 求点电荷 $q_{1}$ 产生的电场在 A 点的电场强度。\n\n(2) 如把 $A$ 点电荷的电荷量 $q_{2}$ 变为 $5q_{2}$ , 其他条件不变, 求 $q_{1}$ 产生的电场在 $A$ 点的电场强度和该 $5q_{2}$ 电荷受到的电场力。\n\n分析：可利用电场强度的定义式计算空间某点处的电场强度，但这只是对电场强度的一种间接反映，实际上电荷在空间某处电场的强弱仅由场源电荷本身决定，与试探电荷的有无或电荷量的大小无关。试探电荷受到的电场力大小由所在处的电场强度和自身所带电荷量所决定。在计算中电荷量取绝对值，电场强度的方向由电荷所受电场力的方向来判断。\n\n解: (1) 已知放入 $q_{1}$ 的电场中 $A$ 点的电荷所受的电场力 $F$ 和该电荷所带电荷量 $q_{2}$ , 由电场强度的定义式, 可得 $A$ 点的电场强度的大小\n\n$$\nE = \\frac {F}{| q _ {2} |} = \\frac {2 \\times 1 0 ^ {- 5}}{1 \\times 1 0 ^ {- 9}} \\mathrm{N/C} = 2 \\times 1 0 ^ {4} \\mathrm{N/C}\n$$\n\n由于负电荷所受电场力的方向跟该点的电场强度方向相反，可知 A 点的电场强度方向水平向左。\n\n(2) 电场强度的大小只与电场本身性质有关，也就是只与产生该电场的场源电荷有关，而与放入电场的试探电荷无关。即使放在 A 点的电荷的电荷量变化了， $q_{1}$ 产生的电场在 A 点的电场强度也不会发生变化，仍为 $2 \\times 10^{4}$ N/C，方向为水平向左。\n\n放入 A 点的电荷变为 $5q_{2}$ ，则该电荷受到的电场力大小为\n\n$$\nF ^ {\\prime} = 5 \\left| q _ {2} \\right| \\cdot E = 5 \\times 1 0 ^ {- 9} \\times 2 \\times 1 0 ^ {4} \\mathrm{N} = 1 \\times 1 0 ^ {- 4} \\mathrm{N}\n$$\n\n方向为水平向右。\n\n真空中点电荷 q 产生电场，由库仑定律可得在距其 r 处的电场强度\n\n$$\nE = k \\frac {q}{r ^ {2}}\n$$\n\n若 q 为正电荷，电场强度的方向远离 q；若 q 为负电荷，电场强度的方向指向 q。\n\n研究表明，如果在空间中有几个点电荷同时存在，这时在空间的某一点的电场强度等于各个点电荷单独存在时在该点产生的电场的电场强度的矢量和，这叫做电场的叠加原理。\n\n示例 2 如图 9-21 (a) 所示, 真空中相距 $2r$ 的点电荷 $A$ 、 $B$ 带电荷量分别为 $+q$ 和 $-q$ 。求:\n\n(1) 两点电荷连线中点 O 的电场强度。\n\n(2) 在 A、B 连线上，点电荷 B 的外侧且与点电荷 B 之间的距离为 r 的 P 点处的电场强度。\n\n  \n图9-21 电场的叠加\n\n分析：由于有两个点电荷产生的电场同时存在，因此要利用电场的叠加原理来计算 O 点与 P 点的电场强度。\n\n如图 9-21（b）所示，O 点电场强度由电荷 A 产生的电场在该点的电场强度 $E_{A}$ 和电荷 B 产生的电场在该点的电场强度 $E_{B}$ 叠加而成；同样，P 点电场强度是由电荷 A 产生的电场在该点的电场强度 $E_{A}'$ 和电荷 B 产生的电场在该点的电场强度 $E_{B}'$ 叠加而成。\n\n解：（1）由于点电荷 +q 与 -q 的电场同时存在，由图 9-21（b）所示。两个电荷分别产生的电场在 O 点的电场强度 $E_{A}$ 、 $E_{B}$ 方向相同，根据电场的叠加原理可知，O 点的电场强度大小\n\n$$\n\\begin{array}{r l} E _ {O} & = E _ {A} + E _ {B} \\\\ & = k \\frac {q}{r ^ {2}} + k \\frac {q}{r ^ {2}} \\\\ & = 2 k \\frac {q}{r ^ {2}} \\end{array}\n$$\n\nO 点的电场强度方向为由 O 指向 B。\n\n(2) 由图9-21 (b) 可知, 两个点电荷产生的电场同时存在, 但因为 $E_{B}^{\\prime}$ 方向向左, $E_{A}^{\\prime}$ 方向向右, $E_{B}^{\\prime} > E_{A}^{\\prime}$ , 所以根据电场的叠加原理可得, $P$ 点的电场强度大小\n\n$$\n\\begin{array}{r l} E _ {P} & = E _ {B} ^ {\\prime} - E _ {A} ^ {\\prime} \\\\ & = k \\frac {q}{r ^ {2}} - k \\frac {q}{(3 r) ^ {2}} \\\\ & = k \\frac {8 q}{9 r ^ {2}} \\end{array}\n$$\n\nP 点的电场强度方向为由 P 指向 B。\n\n\n\n## 是否能产生电场强度处处相同的电场？\n\n两块正对放置的相同的平行金属极板，若板间距离远小于极板的线度，在两板之间能构建出一个电场强度处处相同的电场。当两板分别带有等量的正电荷和负电荷时，极板间（除边缘附近外）的电场强度在不同位置大小和方向都不变，如图9-22所示。我们把在某个区域内各处电场强度大小相等、方向相同的电场称为匀强电场。匀强电场的电场线是相互平行疏密相同的直线。\n\n  \n图9-22 带等量异号电荷的平行金属板间的电场\n\n## 问题②思考\n\n1. 判断以下关于电场的说法是否正确，简述理由。\n\n(1) 电场只是一个理想模型，实际上并不存在。\n\n(2) 电场中的电场线不是人为画出的，而是实际存在的。\n\n(3) 电场的基本性质就是对放入其中的电荷有力的作用。\n\n2. 我们已经知道, 电荷量分别为 $q_{1} 、 q_{2}$ 的两个点电荷距离为 $r$ 时, 它们之间的静电作用力 $F = k \\frac{q_{1} q_{2}}{r^{2}}$ , 其中 $k$ 为静电力常量。当 $q_{1}$ 和 $r$ 一定时, $F$ 与 $q_{2}$ 之间的关系可用图9-23中的哪条图线表示?\n\n  \n图9-23\n\n3. 如图 9-24 所示, 在两个等量异号点电荷产生的电场中有 $A 、 B 、 C$ 三点, 都在两个电荷的连线上, $B$ 处于两点电荷连线的中点, $A B = B C$ , 均等于两点电荷距离的 $\\frac{1}{4}$ 。若某正电荷先后放在 $A 、 B 、 C$ 三点, 该电荷在 $A 、 B 、 C$ 三点所受的电场力大小、方向关系如何?\n\n  \n图9-24\n\n4. 图 9-25 中各方框内给出的均是电场的部分电场线，它们分别对应哪种电荷系统周围的电场线？\n\n  \n(a)\n\n  \n(b)\n\n  \n(c)  \n图9-25\n\n  \n(d)\n\n  \n(e)\n\n(d)\n\n5. 固定在 $A$ 、 $B$ 两点的带电粒子, 分别如图 9-26 (a)、(b)、(c)、(d) 所示。在两带电粒子连线上的 $A$ 点的左侧附近有一个负电荷。在图 9-26 中哪些情况下, 负电荷可能处于平衡状态? 简述理由。\n\n  \n(c)\n\n  \n图9-26\n\n  \n图9-27\n\n6. 点电荷分布在两个半径不同的同心圆周上，所带电荷量如图 9-27 所示。写出圆心处电场强度的表达式；若在圆心放一个电荷量大小为 $q$ 的负电荷，它所受电场力为多大，方向如何？\n\n  \n图9-28 城市上空的闪电",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:9-3-a:source-markdown",
+          "locator": "电场力 电场强度",
+          "modality": "text",
+          "page_end": 19,
+          "page_start": 13,
+          "properties": {
+            "md_end": 614,
+            "md_start": 397,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:9-3-a",
+            "outline_title": "电场力 电场强度",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 614,
+      "md_start": 397,
+      "modalities": [
+        "equation",
+        "text",
+        "image",
+        "table"
+      ],
+      "page_end": 19,
+      "page_start": 13,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第三节 电场力 电场强度\n\n上海科技馆智慧之光展区内有一“怒发冲冠”（图9-15）的项目，通过 $2 \\times 10^{5} \\mathrm{~V}$ 的高压演示了静电现象。站在绝缘地板上的长发女士，手摸着范德格拉夫起电机的金属球罩，范德格拉夫起电机产生大量电荷，这位女士的长发就会立刻张开，呈现了怒发冲冠的情景。\n\n\n\n## 电荷间的相互作用如何传递？\n\n带电体周围空间存在一种物质，这种物质称为电场（electric field）。电荷间的相互作用就是靠电场来传递的。场的概念对早先的传统观念是一个重大的突破。现在，场的概念已经成为现代物理学中最重要的基本概念之一。\n\n场是物质存在的一种形态。电场是一种看不见也摸不到的物质。然而，电场却无处不在，几乎弥漫于整个宇宙。人类的生活也时刻离不开各种场：重力场、磁场、电场等。在信息化时代，信息的形成、传递、储存都离不开场。我们把相对观察者静止的电荷产生的电场叫做静电场（electrostatic field）。\n\n只要有电荷存在，电荷的周围就存在着电场。电场的基本性质是能够对放入其中的电荷有力的作用，这种力就叫做电场力（electric field force）。\n\n\n\n## 如何形象描述电场?\n\n电场虽看不见、摸不着，但我们仍然可以利用电场对放入其中的电荷有力的作用来探究电场的分布特征。\n\n在初中物理学习中，我们已经使用磁感线来形象地描述磁场。法拉第在研究电场时，采用了电场线（electric field lines）来描述电场。电场线是为了直观形象地描述电场分布\n\n而在电场中引入的一些假想的曲线。如图 9-16 所示，电场线是有方向的曲线；电场线起始于正电荷（或无穷远），终止于负电荷（或无穷远）；曲线上每一点的切线方向与正电荷在该点所受的电场力的方向相同，与负电荷在该点所受的电场力的方向相反；电场线的疏密可以大致反映电场的强弱，电场线密集的地方电场强，稀疏的地方电场弱。\n\n[source image omitted from static artifact]  \n图9-16 电场线\n\n## 自主活动\n\n如图 9-17 所示，把奎宁（一类植物树皮中的生物碱）的针状晶体或头发屑悬浮在蓖麻油或洗洁精中，并把高电压加到两个电极上。电极是电荷集中的地方，其周围存在电场。针状晶体或头发屑因受到电场力的作用而有规律地排列。它们的排列走向顺着电场力的方向，从而可以形象地模拟静电场电场力的大致分布，好像一条条的曲线。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]\n\n[source image omitted from static artifact]  \n(b)  \n(c)  \n图9-17 模拟电场线\n\n把上述自主活动观察到的模拟电场线分布作理想化的描绘，得到如图 9-18 所示的电场线。\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)\n\n[source image omitted from static artifact]\n\n[source image omitted from static artifact]  \n(c)  \n图9-18 典型电场线\n\n[source image omitted from static artifact]  \n(d)\n\n## 大家谈\n\n如图 9-18 所示的典型电场线分布有何特点？如何与如图 9-17 所示的模拟电场线相对应？\n\n\n\n## 如何定量描述电场力的性质?\n\n如图 9-19 所示，为了研究点电荷 $A$ 周围电场力的性质，我们需要在电场中引入另一个点电荷 $B$ 。点电荷 $B$ 的电荷量必须足够小，以致可忽略其对电场的影响，我们把点电荷 $A$ 称为场源电荷，点电荷 $B$ 称为试探电荷。\n\n保持场源电荷 A 不动，移动试探电荷 B，观察其在不同位置的受力情况。可以看出试探电荷 B 在电场不同位置所受电场力的大小、方向一般是不同的，这反映了电场中各点的电场强弱和方向是不同的。\n\n[source image omitted from static artifact]  \n图9-19 试探电荷在电场中受力\n\n当试探电荷 B 的位置不变而电荷量 q 发生变化时，其受到的电场力 F 也随之变化，但电场力 F 与试探电荷的电荷量 q 之比 $\\frac{F}{q}$ 不变。如果再将试探电荷 B 放在电场中的其他位置，F 与 q 之比与放在前一位置时 F 与 q 之比则一般是不同的。\n\n这个比的大小可以反映电场中不同点的电场的强弱程度。因此，我们将放入电场中某点的电荷所受的电场力 F 和其电荷量 q 之比叫做该点的电场强度，用符号 E 表示。即\n\n$$\nE = \\frac {F}{q}\n$$\n\n电场强度 E 是矢量。物理学中规定，电场中某点电场强度的方向跟正电荷在该点所受电场力的方向相同。上式是电场强度的定义式，表明了电场强度的物理意义，其数值上等于单位正电荷所受的电场力。但电场强度是由电场本身决定的物理量，它与试探电荷置入电场与否无关。电场强度的国际单位是 N/C，读作牛每库。\n\n如果已知电场中某一点的电场强度 E，那么，放在该点的点电荷 q 所受到的电场力 F 的大小就是 qE，F 的方向则取决于电场的方向和点电荷 q 的正负。\n\n示例 1 如图 9-20 所示，有一固定的点电荷 $q_1$ ， $q_1$ 左方的 $A$ 点处有一个负电荷 $q_2$ ，其电荷量为 $-1 \\times 10^{-9} \\mathrm{C}$ 。测出 $q_2$ 受到的电场力 $F$ 为 $2 \\times 10^{-5} \\mathrm{~N}$ ，方向水平向右。\n\n[source image omitted from static artifact]  \n图9-20 负电荷在 $A$ 点所受电场力\n\n(1) 求点电荷 $q_{1}$ 产生的电场在 A 点的电场强度。\n\n(2) 如把 $A$ 点电荷的电荷量 $q_{2}$ 变为 $5q_{2}$ , 其他条件不变, 求 $q_{1}$ 产生的电场在 $A$ 点的电场强度和该 $5q_{2}$ 电荷受到的电场力。\n\n分析：可利用电场强度的定义式计算空间某点处的电场强度，但这只是对电场强度的一种间接反映，实际上电荷在空间某处电场的强弱仅由场源电荷本身决定，与试探电荷的有无或电荷量的大小无关。试探电荷受到的电场力大小由所在处的电场强度和自身所带电荷量所决定。在计算中电荷量取绝对值，电场强度的方向由电荷所受电场力的方向来判断。\n\n解: (1) 已知放入 $q_{1}$ 的电场中 $A$ 点的电荷所受的电场力 $F$ 和该电荷所带电荷量 $q_{2}$ , 由电场强度的定义式, 可得 $A$ 点的电场强度的大小\n\n$$\nE = \\frac {F}{| q _ {2} |} = \\frac {2 \\times 1 0 ^ {- 5}}{1 \\times 1 0 ^ {- 9}} \\mathrm{N/C} = 2 \\times 1 0 ^ {4} \\mathrm{N/C}\n$$\n\n由于负电荷所受电场力的方向跟该点的电场强度方向相反，可知 A 点的电场强度方向水平向左。\n\n(2) 电场强度的大小只与电场本身性质有关，也就是只与产生该电场的场源电荷有关，而与放入电场的试探电荷无关。即使放在 A 点的电荷的电荷量变化了， $q_{1}$ 产生的电场在 A 点的电场强度也不会发生变化，仍为 $2 \\times 10^{4}$ N/C，方向为水平向左。\n\n放入 A 点的电荷变为 $5q_{2}$ ，则该电荷受到的电场力大小为\n\n$$\nF ^ {\\prime} = 5 \\left| q _ {2} \\right| \\cdot E = 5 \\times 1 0 ^ {- 9} \\times 2 \\times 1 0 ^ {4} \\mathrm{N} = 1 \\times 1 0 ^ {- 4} \\mathrm{N}\n$$\n\n方向为水平向右。\n\n真空中点电荷 q 产生电场，由库仑定律可得在距其 r 处的电场强度\n\n$$\nE = k \\frac {q}{r ^ {2}}\n$$\n\n若 q 为正电荷，电场强度的方向远离 q；若 q 为负电荷，电场强度的方向指向 q。\n\n研究表明，如果在空间中有几个点电荷同时存在，这时在空间的某一点的电场强度等于各个点电荷单独存在时在该点产生的电场的电场强度的矢量和，这叫做电场的叠加原理。\n\n示例 2 如图 9-21 (a) 所示, 真空中相距 $2r$ 的点电荷 $A$ 、 $B$ 带电荷量分别为 $+q$ 和 $-q$ 。求:\n\n(1) 两点电荷连线中点 O 的电场强度。\n\n(2) 在 A、B 连线上，点电荷 B 的外侧且与点电荷 B 之间的距离为 r 的 P 点处的电场强度。\n\n  \n图9-21 电场的叠加\n\n分析：由于有两个点电荷产生的电场同时存在，因此要利用电场的叠加原理来计算 O 点与 P 点的电场强度。\n\n如图 9-21（b）所示，O 点电场强度由电荷 A 产生的电场在该点的电场强度 $E_{A}$ 和电荷 B 产生的电场在该点的电场强度 $E_{B}$ 叠加而成；同样，P 点电场强度是由电荷 A 产生的电场在该点的电场强度 $E_{A}'$ 和电荷 B 产生的电场在该点的电场强度 $E_{B}'$ 叠加而成。\n\n解：（1）由于点电荷 +q 与 -q 的电场同时存在，由图 9-21（b）所示。两个电荷分别产生的电场在 O 点的电场强度 $E_{A}$ 、 $E_{B}$ 方向相同，根据电场的叠加原理可知，O 点的电场强度大小\n\n$$\n\\begin{array}{r l} E _ {O} & = E _ {A} + E _ {B} \\\\ & = k \\frac {q}{r ^ {2}} + k \\frac {q}{r ^ {2}} \\\\ & = 2 k \\frac {q}{r ^ {2}} \\end{array}\n$$\n\nO 点的电场强度方向为由 O 指向 B。\n\n(2) 由图9-21 (b) 可知, 两个点电荷产生的电场同时存在, 但因为 $E_{B}^{\\prime}$ 方向向左, $E_{A}^{\\prime}$ 方向向右, $E_{B}^{\\prime} > E_{A}^{\\prime}$ , 所以根据电场的叠加原理可得, $P$ 点的电场强度大小\n\n$$\n\\begin{array}{r l} E _ {P} & = E _ {B} ^ {\\prime} - E _ {A} ^ {\\prime} \\\\ & = k \\frac {q}{r ^ {2}} - k \\frac {q}{(3 r) ^ {2}} \\\\ & = k \\frac {8 q}{9 r ^ {2}} \\end{array}\n$$\n\nP 点的电场强度方向为由 P 指向 B。\n\n\n\n## 是否能产生电场强度处处相同的电场？\n\n两块正对放置的相同的平行金属极板，若板间距离远小于极板的线度，在两板之间能构建出一个电场强度处处相同的电场。当两板分别带有等量的正电荷和负电荷时，极板间（除边缘附近外）的电场强度在不同位置大小和方向都不变，如图9-22所示。我们把在某个区域内各处电场强度大小相等、方向相同的电场称为匀强电场。匀强电场的电场线是相互平行疏密相同的直线。\n\n  \n图9-22 带等量异号电荷的平行金属板间的电场\n\n## 问题②思考\n\n1. 判断以下关于电场的说法是否正确，简述理由。\n\n(1) 电场只是一个理想模型，实际上并不存在。\n\n(2) 电场中的电场线不是人为画出的，而是实际存在的。\n\n(3) 电场的基本性质就是对放入其中的电荷有力的作用。\n\n2. 我们已经知道, 电荷量分别为 $q_{1} 、 q_{2}$ 的两个点电荷距离为 $r$ 时, 它们之间的静电作用力 $F = k \\frac{q_{1} q_{2}}{r^{2}}$ , 其中 $k$ 为静电力常量。当 $q_{1}$ 和 $r$ 一定时, $F$ 与 $q_{2}$ 之间的关系可用图9-23中的哪条图线表示?\n\n  \n图9-23\n\n3. 如图 9-24 所示, 在两个等量异号点电荷产生的电场中有 $A 、 B 、 C$ 三点, 都在两个电荷的连线上, $B$ 处于两点电荷连线的中点, $A B = B C$ , 均等于两点电荷距离的 $\\frac{1}{4}$ 。若某正电荷先后放在 $A 、 B 、 C$ 三点, 该电荷在 $A 、 B 、 C$ 三点所受的电场力大小、方向关系如何?\n\n  \n图9-24\n\n4. 图 9-25 中各方框内给出的均是电场的部分电场线，它们分别对应哪种电荷系统周围的电场线？\n\n  \n(a)\n\n  \n(b)\n\n  \n(c)  \n图9-25\n\n  \n(d)\n\n  \n(e)\n\n(d)\n\n5. 固定在 $A$ 、 $B$ 两点的带电粒子, 分别如图 9-26 (a)、(b)、(c)、(d) 所示。在两带电粒子连线上的 $A$ 点的左侧附近有一个负电荷。在图 9-26 中哪些情况下, 负电荷可能处于平衡状态? 简述理由。\n\n  \n(c)\n\n  \n图9-26\n\n  \n图9-27\n\n6. 点电荷分布在两个半径不同的同心圆周上，所带电荷量如图 9-27 所示。写出圆心处电场强度的表达式；若在圆心放一个电荷量大小为 $q$ 的负电荷，它所受电场力为多大，方向如何？\n\n  \n图9-28 城市上空的闪电",
+      "title": "电场力 电场强度"
+    }
+  ]
+}

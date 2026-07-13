@@ -1,0 +1,1287 @@
+{
+  "body": {
+    "content": "## 定义\n设在磁感应强度为 $B$ 的匀强磁场中，有一个面积为 $S$ 且与磁场方向垂直的平面，磁感应强度 $B$ 与面积 $S$ 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 $\\Phi$ 表示 `[evidence:auto-24b5a09c96a2]`。\n\n## 公式表达\n$$\\Phi = B S$$ `[evidence:auto-2e56bc0e60ad]`\n\n## 适用条件\n该基础计算模型有明确的物理边界限制 `[evidence:auto-24b5a09c96a2]`：\n- 磁场分布必须为匀强磁场 `[evidence:auto-24b5a09c96a2]`。\n- 所考察的平面必须与磁场方向严格垂直 `[evidence:auto-24b5a09c96a2]`。\n\n## 单位与换算\n在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 $m^{2}$ `[evidence:auto-11b165389051]`。结合公式中各物理量的单位关系，可得出磁通量的单位换算关系：\n$$1 \\mathrm{Wb} = 1 \\mathrm{T} \\cdot \\mathrm{m} ^ {2}$$ `[evidence:auto-10b1cd9c87dd]`",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "rule/物理公式:auto-82d877c75ed6",
+    "properties": {
+      "card_title": "磁通量定义式",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-24b5a09c96a2",
+      "evidence:auto-2e56bc0e60ad",
+      "evidence:auto-11b165389051",
+      "evidence:auto-10b1cd9c87dd"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:44:00+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-a0294b0903db",
+    "mention_refs": [],
+    "node_id": "rule/物理公式:auto-82d877c75ed6",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "匀强磁场中，平面与磁场方向垂直时的磁通量计算关系。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-24b5a09c96a2"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "匀强磁场中，平面与磁场方向垂直时的磁通量计算关系。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-24b5a09c96a2"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "匀强磁场中，平面与磁场方向垂直时的磁通量计算关系。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-24b5a09c96a2"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "磁通量定义式"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-24b5a09c96a2"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "磁通量 电磁感应现象"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-24b5a09c96a2"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-24b5a09c96a2"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-24b5a09c96a2"
+    ],
+    "status": "active",
+    "summary": "匀强磁场中，平面与磁场方向垂直时的磁通量计算关系。",
+    "title": "磁通量定义式",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 9,
+    "score": 100,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-9daec498c1bb",
+      "node_id": "rule/物理公式:auto-82d877c75ed6",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "提供一组匀强磁场 B 和垂直面积 S 的具体数据，要求计算磁通量 Φ 的值，并写出 1 Wb = 1 T·m² 的单位推导过程。",
+              "给出三个不同摆放状态（垂直、倾斜、平行）的平面在匀强磁场中的示意图，要求圈出可直接使用 Φ = B·S 计算的情境，并说明判断依据。",
+              "提供一段关于电磁感应现象的基础描述文本，要求提取其中的磁通量计算条件，并列出对应的公式及物理量含义。"
+            ],
+            "common_errors": [
+              "忽略“匀强磁场”与“平面垂直”的双重限制，在磁场分布不均或平面倾斜时直接代入 Φ = B·S 计算。",
+              "混淆磁通量单位（Wb）与磁感应强度单位（T），导致计算结果量纲错误或数值缺失面积因子。",
+              "将公式适用范围泛化，误认为该定义式可计算任意曲面或非基础平面模型的磁通量。"
+            ],
+            "diagnostic_questions": [
+              "磁通量定义式 Φ = B·S 成立必须同时满足哪两个物理条件？",
+              "若平面法线与磁场方向存在夹角，能否直接套用该定义式？为什么？",
+              "磁通量的国际单位制符号是什么？它与 B 和 S 的单位之间有何数量关系？"
+            ],
+            "difficulty_level": "basic",
+            "extension_suggestions": [
+              "引导学生观察非垂直情境下的投影面积变化，为后续学习 Φ = B·S·cosθ 建立直观铺垫。",
+              "结合电磁感应现象的定性描述，讨论磁通量变化与感应电流产生的逻辑关联。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T10:12:46+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "c70cfab69d205a7426c6175d31b7ea031a9be4e4f457dc1b41963d3225c3e0ea",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-24b5a09c96a2",
+                "evidence:auto-2e56bc0e60ad",
+                "evidence:auto-10b1cd9c87dd"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能准确识别匀强磁场中平面与磁场方向垂直的前提条件，并规范写出磁通量定义式 Φ = B·S。",
+              "能根据给定的磁感应强度 B 和垂直面积 S 的数值，正确计算磁通量并独立完成韦伯（Wb）与特斯拉·平方米（T·m²）的单位换算。",
+              "能结合示意图或文字情境，判断给定物理模型是否满足该定义式的适用边界，排除非垂直或非匀强磁场干扰。"
+            ],
+            "remediation_suggestions": [
+              "利用教材图示强化“垂直投影”概念，通过对比演示平面倾斜时公式的失效边界，建立条件敏感性。",
+              "设计量纲一致性专项训练，结合 1 Wb = 1 T·m² 的证据引导学生养成书写单位换算的习惯。",
+              "在衔接电磁感应现象教学前，先通过条件判断题夯实定义式前提，防止知识迁移时发生情境误配。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-10b1cd9c87dd",
+        "evidence:auto-11b165389051",
+        "evidence:auto-24b5a09c96a2",
+        "evidence:auto-2e56bc0e60ad"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:12:46+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 11-21 所示，面积为 S 的平面与匀强磁场方向不垂直。若平面的法线方向与磁场方向的夹角为 $\\theta$ ，则该平面在垂直于磁场方向上的投影面积",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-0082441ad35b",
+      "locator": "line:32",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图 11-21 所示，面积为 S 的平面与匀强磁场方向不垂直。若平面的法线方向与磁场方向的夹角为 $\\theta$ ，则该平面在垂直于磁场方向上的投影面积"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n1 \\mathrm{Wb} = 1 \\mathrm{T} \\cdot \\mathrm{m} ^ {2}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-10b1cd9c87dd",
+      "locator": "line:26",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n1 \\mathrm{Wb} = 1 \\mathrm{T} \\cdot \\mathrm{m} ^ {2}\n$$"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 $m^{2}$ ，则",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-11b165389051",
+      "locator": "line:22",
+      "modality": "equation",
+      "normalized_claims": [
+        "在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 $m^{2}$ ，则"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/77e5e786c4f625b489ea1182607d7fc494842e4206fa760196931b89cce2a77e.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-1891a8ea3844",
+      "locator": "line:38",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/77e5e786c4f625b489ea1182607d7fc494842e4206fa760196931b89cce2a77e.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 203,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/77e5e786c4f625b489ea1182607d7fc494842e4206fa760196931b89cce2a77e.jpg",
+          "reason": "该图片是教材中的'图11-21'，与前文'如图 11-21 所示...'及后文'图11-21 平面与磁场方向不垂直...'完全对应。图片直观地表达了磁通量计算的核心几何概念：当平面不垂直于磁场时，有效面积是其在垂直磁场方向上的投影面积S'。这是推导公式 Φ = B S cosθ 的关键视觉证据，属于直接表达物理概念和结构的图片。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个物理示意图：匀强磁场B（粉色箭头水平向右）穿过一个倾斜的平面S（蓝色区域）。图中用虚线勾勒出了平面S在垂直于磁场方向上的投影区域S'（灰色），并标注了平面法线（虚线）与磁场方向（水平虚线）之间的夹角θ。",
+          "width": 328
+        },
+        "path": "images/77e5e786c4f625b489ea1182607d7fc494842e4206fa760196931b89cce2a77e.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/30bda14b317fe452c1347ed97f532356444109e460b48657b9f2d97e199e68b9.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-1cf383ef0434",
+      "locator": "line:63",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/30bda14b317fe452c1347ed97f532356444109e460b48657b9f2d97e199e68b9.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 56,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/30bda14b317fe452c1347ed97f532356444109e460b48657b9f2d97e199e68b9.jpg",
+          "reason": "该图片是一个问号图标，在教材中通常作为'思考'或'问题'栏目的引导符号。它与后文'除了上述法拉第的实验外，还有什么办法可以产生感应电流？'形成了合理的对应关系，起到了引出探究问题和提示读者注意的作用。虽然图片本身不包含具体的物理知识，但作为辅助说明上下文结构的图标，符合保留为 supporting 的条件。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片显示一个紫色的圆形图标，中间包含一个白色的问号。",
+          "width": 62
+        },
+        "path": "images/30bda14b317fe452c1347ed97f532356444109e460b48657b9f2d97e199e68b9.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "设在磁感应强度为 B 的匀强磁场中，有一个面积为 S 且与磁场方向垂直的平面，磁感应强度 B 与面积 S 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 Φ 表示，即",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-24b5a09c96a2",
+      "locator": "line:9",
+      "modality": "text",
+      "normalized_claims": [
+        "设在磁感应强度为 B 的匀强磁场中，有一个面积为 S 且与磁场方向垂直的平面，磁感应强度 B 与面积 S 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 Φ 表示，即"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "Φ = B S",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-2e56bc0e60ad",
+      "locator": "line:11-13",
+      "modality": "equation",
+      "normalized_claims": [
+        "Φ = B S"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "法拉第把他发现的这种由磁产生电流的现象正式定名为电磁感应（electromagnetic induction）现象，产生的电流就叫做感应电流（induction current）。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-361c0aaeb3b4",
+      "locator": "line:36-38",
+      "modality": "text",
+      "normalized_claims": [
+        "法拉第把他发现的这种由磁产生电流的现象正式定名为电磁感应（electromagnetic induction）现象，产生的电流就叫做感应电流（induction current）。"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nS ^ {\\prime} = S \\cos \\theta\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-3c249fb5f570",
+      "locator": "line:36",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nS ^ {\\prime} = S \\cos \\theta\n$$"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/eabdec216007ef93b80e7ac2a4805f1e3df767f26810075ea01bfe1f9c384165.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-48f79568842b",
+      "locator": "line:60",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/eabdec216007ef93b80e7ac2a4805f1e3df767f26810075ea01bfe1f9c384165.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 332,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/eabdec216007ef93b80e7ac2a4805f1e3df767f26810075ea01bfe1f9c384165.jpg",
+          "reason": "图片是法拉第发现电磁感应现象的经典实验装置图（对应文中提到的图11-23）。前文详细描述了该实验过程：在软铁环A侧接电源，B侧接电流计，观察指针偏转。后文紧接着给出了图片的标题“图11-23 法拉第实验示意图”。图片内容与上下文完全对应，直观展示了电磁感应现象的产生条件，属于核心知识点证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了法拉第电磁感应实验的示意图。一个闭合的软铁环上绕有两个线圈，分别标记为A和B。线圈A连接着直流电源（电池符号）和开关，线圈B连接着一个灵敏电流计。",
+          "width": 529
+        },
+        "path": "images/eabdec216007ef93b80e7ac2a4805f1e3df767f26810075ea01bfe1f9c384165.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "由 $\\Phi = BS$ 可得 $B = \\frac{\\Phi}{S}$ 。由此可知磁感应强度数值上等于穿过垂直于磁场方向单位面积的磁通量，因此也常把磁感应强度叫做磁通密度。上式虽然得自匀强磁场，同样适用于非匀强磁场的一般情况。由于我们约定磁场较强处磁感线较密集，磁场较弱处磁感线较稀疏，可以看出在给定的磁场中穿过某一面积的磁感线的条数与穿过该面积的磁通量成正比，即磁通量越大，穿过相同面积的磁感线越多。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-5cfd4fd0a723",
+      "locator": "line:28",
+      "modality": "equation",
+      "normalized_claims": [
+        "由 $\\Phi = BS$ 可得 $B = \\frac{\\Phi}{S}$ 。由此可知磁感应强度数值上等于穿过垂直于磁场方向单位面积的磁通量，因此也常把磁感应强度叫做磁通密度。上式虽然得自匀强磁场，同样适用于非匀强磁场的一般情况。由于我们约"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "若平面的法线方向与磁场方向的夹角为 θ ，则该平面在垂直于磁场方向上的投影面积 S' = S cosθ ... 通过平面 S 的磁通量等于通过平面 S 在垂直于磁场方向上的投影区域 S' 的磁通量，即 Φ = B S' = B S cosθ",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-645f747ec7cc",
+      "locator": "line:28-34",
+      "modality": "text",
+      "normalized_claims": [
+        "若平面的法线方向与磁场方向的夹角为 θ ，则该平面在垂直于磁场方向上的投影面积 S' = S cosθ ... 通过平面 S 的磁通量等于通过平面 S 在垂直于磁场方向上的投影区域 S' 的磁通量，即 Φ = B S' = B S cosθ"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "以上实验和其他事实都表明：只要通过闭合导体回路的磁通量发生变化，闭合导体回路中就会产生感应电流。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-714e0fbdf717",
+      "locator": "line:68",
+      "modality": "text",
+      "normalized_claims": [
+        "以上实验和其他事实都表明：只要通过闭合导体回路的磁通量发生变化，闭合导体回路中就会产生感应电流。"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "由于我们约定磁场较强处磁感线较密集，磁场较弱处磁感线较稀疏，可以看出在给定的磁场中穿过某一面积的磁感线的条数与穿过该面积的磁通量成正比",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-7152a604983d",
+      "locator": "line:24",
+      "modality": "text",
+      "normalized_claims": [
+        "由于我们约定磁场较强处磁感线较密集，磁场较弱处磁感线较稀疏，可以看出在给定的磁场中穿过某一面积的磁感线的条数与穿过该面积的磁通量成正比"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\Phi = B S\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-779c5f792265",
+      "locator": "line:15",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\Phi = B S\n$$"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/f3ebd0a1362e4c0449ac8604422a48b660ba5759c0b54498ac44fb5572e800ca.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-77a6b25e2c49",
+      "locator": "line:86",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/f3ebd0a1362e4c0449ac8604422a48b660ba5759c0b54498ac44fb5572e800ca.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 370,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/f3ebd0a1362e4c0449ac8604422a48b660ba5759c0b54498ac44fb5572e800ca.jpg",
+          "reason": "图片是教材中的图11-25，展示了“研究电磁感应现象”的核心实验装置。前文详细描述了按照该图连接电路的具体步骤（“按照图 11-25 将灵敏电流计和线圈 B 连接...”），后文标题也明确标注为“图11-25 研究电磁感应现象实验”。图片直接表达了实验的结构和电路连接方式，是进行后续自主活动和填写实验记录表的基础，属于核心内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个研究电磁感应现象的实验电路连接图。图中包含电源、开关、滑动变阻器、两个同轴放置的线圈（线圈A在线圈B内部）以及一个灵敏电流计。线圈A与电源、开关、滑动变阻器串联组成一个回路，线圈B与灵敏电流计串联组成另一个独立的闭合回路。",
+          "width": 481
+        },
+        "path": "images/f3ebd0a1362e4c0449ac8604422a48b660ba5759c0b54498ac44fb5572e800ca.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "磁通量是标量，如果设定磁感应强度指向右方时穿过这一面积的磁通量为正，那么，磁感应强度指向左方时穿过这一面积的磁通量就为负。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-7c66ee234e6c",
+      "locator": "line:16",
+      "modality": "text",
+      "normalized_claims": [
+        "磁通量是标量，如果设定磁感应强度指向右方时穿过这一面积的磁通量为正，那么，磁感应强度指向左方时穿过这一面积的磁通量就为负。"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "经过近十年的艰苦探索，1831年，法拉第对此终于有所发现。如图11-23所示，在软铁环的 $A$ 侧接好导线，把 $B$ 侧的线圈接到",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-8bd849eb9dcc",
+      "locator": "line:56",
+      "modality": "equation",
+      "normalized_claims": [
+        "经过近十年的艰苦探索，1831年，法拉第对此终于有所发现。如图11-23所示，在软铁环的 $A$ 侧接好导线，把 $B$ 侧的线圈接到"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\Phi = B S ^ {\\prime} = B S \\mathrm{cos} \\theta\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-a961590b77c2",
+      "locator": "line:45",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\Phi = B S ^ {\\prime} = B S \\mathrm{cos} \\theta\n$$"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图11-23所示，在软铁环的 A 侧接好导线，把 B 侧的线圈接到灵敏电流计上...当 A 侧电路接通的瞬间，法拉第看到 B 侧灵敏电流计的指针立即明显偏转",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-b6678f7e9114",
+      "locator": "line:36",
+      "modality": "text",
+      "normalized_claims": [
+        "如图11-23所示，在软铁环的 A 侧接好导线，把 B 侧的线圈接到灵敏电流计上...当 A 侧电路接通的瞬间，法拉第看到 B 侧灵敏电流计的指针立即明显偏转"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图11-20所示，设在磁感应强度为 $B$ 的匀强磁场中，有一个面积为 $S$ 且与磁场方向垂直的平面，磁感应强度 $B$ 与面积 $S$ 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 $\\Phi$ 表示，即",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b7bda39518c7",
+      "locator": "line:11",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图11-20所示，设在磁感应强度为 $B$ 的匀强磁场中，有一个面积为 $S$ 且与磁场方向垂直的平面，磁感应强度 $B$ 与面积 $S$ 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 $\\Phi$ 表示，即"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/826e555fa2a01cbe591df6b234e2e70d3b3b94b1341c0ef8950f65e2bf9ceb7f.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c428523ceb49",
+      "locator": "line:78",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/826e555fa2a01cbe591df6b234e2e70d3b3b94b1341c0ef8950f65e2bf9ceb7f.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 250,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/826e555fa2a01cbe591df6b234e2e70d3b3b94b1341c0ef8950f65e2bf9ceb7f.jpg",
+          "reason": "图片直接对应前文提到的“图 11-24”，展示了研究电磁感应现象的核心实验装置（条形磁体、线圈、灵敏电流计及其连接方式）。它直观地表达了产生感应电流的实验结构和操作过程（磁体插入线圈），属于教材中关于电磁感应现象的关键实验内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个电磁感应实验的装置示意图。左侧是一个线圈（标记为B），其上方有一个红蓝双色的条形磁体，并标有向下的箭头，表示磁体正在向下插入线圈。右侧是一个灵敏电流计（标记为G），指针指在刻度盘中央。线圈B的两端通过导线连接到灵敏电流计的接线柱上，构成了一个闭合回路。",
+          "width": 296
+        },
+        "path": "images/826e555fa2a01cbe591df6b234e2e70d3b3b94b1341c0ef8950f65e2bf9ceb7f.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/0e2362e9b376b76ddf76c61e99311d1e502e4892465d12160255037b2a64deed.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c5ec74208d60",
+      "locator": "line:17",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/0e2362e9b376b76ddf76c61e99311d1e502e4892465d12160255037b2a64deed.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 1,
+          "height": 248,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/0e2362e9b376b76ddf76c61e99311d1e502e4892465d12160255037b2a64deed.jpg",
+          "reason": "图片是教材中的图11-20，直观展示了磁通量的定义场景：匀强磁场垂直穿过平面。图片内容与标题“什么是磁通量？”及前文公式“Φ=BS”完全对应，是解释该物理概念的核心示意图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个矩形平面（标记为S）垂直放置在一组平行的粉色箭头（代表磁场B）中，下方标注了公式Φ=BS。",
+          "width": 279
+        },
+        "path": "images/0e2362e9b376b76ddf76c61e99311d1e502e4892465d12160255037b2a64deed.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/0933bf8203e42648890b3b72873c2d7e10bddd0f3afbaece8c1a827a5420f747.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e46f4e85c8b0",
+      "locator": "line:49",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/0933bf8203e42648890b3b72873c2d7e10bddd0f3afbaece8c1a827a5420f747.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 326,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/0933bf8203e42648890b3b72873c2d7e10bddd0f3afbaece8c1a827a5420f747.jpg",
+          "reason": "前文提到了'英国物理学家法拉第（图11-22）'，当前图片即为法拉第的肖像，与上下文引用直接对应。作为'拓展视野'栏目中介绍科学史人物的辅助材料，保留为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张男性人物肖像画，画中人物头发灰白，穿着深色外套和白色领结，背景为深色，具有19世纪肖像画的风格。",
+          "width": 270
+        },
+        "path": "images/0933bf8203e42648890b3b72873c2d7e10bddd0f3afbaece8c1a827a5420f747.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "由图可知，通过平面 S 的磁通量等于通过平面 S 在垂直于磁场方向上的投影区域 $S'$ 的磁通量，即",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e84e06524eea",
+      "locator": "line:41",
+      "modality": "equation",
+      "normalized_claims": [
+        "由图可知，通过平面 S 的磁通量等于通过平面 S 在垂直于磁场方向上的投影区域 $S'$ 的磁通量，即"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/8867f3d03ee84528fcfd7ef5431c846dff2f5b1432965ae6ea12b4d7c207d0ed.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f1aa4ef1a9e7",
+      "locator": "line:101",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/8867f3d03ee84528fcfd7ef5431c846dff2f5b1432965ae6ea12b4d7c207d0ed.jpg)"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 398,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/8867f3d03ee84528fcfd7ef5431c846dff2f5b1432965ae6ea12b4d7c207d0ed.jpg",
+          "reason": "图片直接展示了“条形磁体插入线圈”这一核心物理实验场景及磁感线分布，与前文描述的“在如图 11-24 所示的实验中，条形磁体插入线圈，线圈中的磁场均由弱变强”完全对应。它是理解电磁感应现象（磁通量变化产生感应电流）的关键视觉证据，属于直接表达实验和结构的图片。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个物理实验示意图：一个条形磁铁（上端S极，下端N极）正向下插入一个螺线管线圈。图中画有红色的磁感线，显示磁场从N极出发穿过线圈内部，箭头指示磁铁的运动方向向下，表明线圈内的磁通量正在增加。",
+          "width": 196
+        },
+        "path": "images/8867f3d03ee84528fcfd7ef5431c846dff2f5b1432965ae6ea12b4d7c207d0ed.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "excerpt": "在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 m² ，则 1 Wb = 1 T·m²",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ffb24d41498b",
+      "locator": "line:18-20",
+      "modality": "text",
+      "normalized_claims": [
+        "在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 m² ，则 1 Wb = 1 T·m²"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-eb9af1d4bd47",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "defines",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-24b5a09c96a2"
+      ],
+      "source_type": "textbook",
+      "target_id": "rule/物理公式:auto-82d877c75ed6",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:44:00+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-5bf656e5466f",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-2e56bc0e60ad"
+      ],
+      "source_type": "textbook",
+      "target_id": "rule/物理公式:auto-82d877c75ed6",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [],
+    "created_at": "2026-06-29T05:44:00+00:00",
+    "dataset_id": "main",
+    "definition": "匀强磁场中，平面与磁场方向垂直时的磁通量计算关系。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "rule/物理公式:auto-82d877c75ed6",
+    "kind": "rule",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "磁通量定义式",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "raw_subkinds": [
+          "物理公式"
+        ],
+        "subkinds": [
+          "physical_formula"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "基础计算模型，B为磁感应强度，S为面积"
+        ],
+        "conditions": [
+          "匀强磁场",
+          "平面与磁场方向垂直"
+        ],
+        "formal_expressions": [
+          "Φ = B·S"
+        ]
+      },
+      "template_display": {
+        "color": "#8C55FF",
+        "label": "规律/公式",
+        "template_id": "textbook/physics",
+        "type_key": "rule"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "physical_formula",
+    "tags": [
+      "高中物理",
+      "匀强磁场",
+      "公式推导"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [],
+    "outgoing": [
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:44:00+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "rule/物理公式:auto-82d877c75ed6",
+        "id": "edge:auto-1f537a9c8fb3",
+        "notes": "公式Φ=BS定量表征匀强磁场中垂直平面的磁通量",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-2e56bc0e60ad"
+        ],
+        "status": "active",
+        "to_id": "property/物理量:auto-97532de81b17",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ]
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第三节 磁通量 电磁感应现象\n\n电力工业是一个国家经济发展的命脉，2019年，我国发电装机容量已达19亿千瓦。电力的获得依赖于煤炭、水力、风力、核燃料等能源的转换。正是由于物理学家发现了磁场与电场之间的联系，才使得其他形式的能转变成电能成为现实。磁场有何性质？它与电场有何联系呢？\n\n为了进一步研究磁场的性质，以及磁场与电场之间存在的关系，物理学家引入了磁通量的概念。\n\n\n\n## 什么是磁通量？\n\n如图11-20所示，设在磁感应强度为 $B$ 的匀强磁场中，有一个面积为 $S$ 且与磁场方向垂直的平面，磁感应强度 $B$ 与面积 $S$ 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 $\\Phi$ 表示，即\n\n$$\n\\Phi = B S\n$$\n\n[source image omitted from static artifact]  \n图11-20 磁通量\n\n磁通量是标量，如果设定磁感应强度指向右方时穿过这一面积的磁通量为正，那么，磁感应强度指向左方时穿过这一面积的磁通量就为负。\n\n在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 $m^{2}$ ，则\n\n$$\n1 \\mathrm{Wb} = 1 \\mathrm{T} \\cdot \\mathrm{m} ^ {2}\n$$\n\n由 $\\Phi = BS$ 可得 $B = \\frac{\\Phi}{S}$ 。由此可知磁感应强度数值上等于穿过垂直于磁场方向单位面积的磁通量，因此也常把磁感应强度叫做磁通密度。上式虽然得自匀强磁场，同样适用于非匀强磁场的一般情况。由于我们约定磁场较强处磁感线较密集，磁场较弱处磁感线较稀疏，可以看出在给定的磁场中穿过某一面积的磁感线的条数与穿过该面积的磁通量成正比，即磁通量越大，穿过相同面积的磁感线越多。\n\n## 拓展视野\n\n如图 11-21 所示，面积为 S 的平面与匀强磁场方向不垂直。若平面的法线方向与磁场方向的夹角为 $\\theta$ ，则该平面在垂直于磁场方向上的投影面积\n\n$$\nS ^ {\\prime} = S \\cos \\theta\n$$\n\n[source image omitted from static artifact]  \n图11-21 平面与磁场方向不垂直\n\n由图可知，通过平面 S 的磁通量等于通过平面 S 在垂直于磁场方向上的投影区域 $S'$ 的磁通量，即\n\n$$\n\\Phi = B S ^ {\\prime} = B S \\mathrm{cos} \\theta\n$$\n\n奥斯特发现电流磁效应的实验揭示了电现象与磁现象之间的联系。自然界的许多规律都具有对称性，对称性是人类认识自然界的一个重要法则。那么电和磁是否也具有对称性？英国物理学家法拉第（图11-22）就认为电与磁应该是一对和谐的对称现象。\n\n[source image omitted from static artifact]\n\n  \n图11-22 法拉第（M. Faraday，1791—1867）\n\n## 既然电流可以产生磁场，反过来磁场能否产生电流呢？\n\n经过近十年的艰苦探索，1831年，法拉第对此终于有所发现。如图11-23所示，在软铁环的 $A$ 侧接好导线，把 $B$ 侧的线圈接到\n\n灵敏电流计上，再把 A 侧的线圈接到电池组上；当 A 侧电路接通的瞬间，法拉第看到 B 侧灵敏电流计的指针立即明显偏转，这就表明 B 侧的线圈中出现了电流；当 A 侧电路断开时，他又看到指针向相反方向偏转。由于通电线圈产生磁场，法拉第把他发现的这种由磁产生电流的现象正式定名为电磁感应（electromagnetic induction）现象，产生的电流就叫做感应电流（induction current）。\n\n[source image omitted from static artifact]  \n图11-23 法拉第实验示意图\n\n[source image omitted from static artifact]\n\n## 产生感应电流的条件是什么？\n\n除了上述法拉第的实验外，还有什么办法可以产生感应电流？\n\n## 自主活动\n\n准备一根条形磁体，按照如图 11-24 所示先将灵敏电流计和线圈 B 连接组成闭合回路，观察灵敏电流计的指针是否偏转。灵敏电流计的指针发生偏转说明在线圈 B 内产生了感应电流。\n\n按照表 11-2 中的实验操作，将观察到的结果填入表中。\n\n在这一实验中，发现什么情况下能够产生感应电流？线圈 B 内什么物理量发生了变化？\n\n图11-24 研究电磁感应现象实验  \n[source image omitted from static artifact]\n\n按照图 11-25 将灵敏电流计和线圈 B 连接成闭合回路。线圈 A 通过滑动变阻器和开关连接到电源上，组成另一个闭合回路。将线圈 A 插在线圈 B 里面，再将软铁棒插在线圈 A 中。\n\n按照表 11-3 中的实验操作，将观察的实验结果填入表格中。\n\n在这一实验中，发现什么情况下能够产生感应电流？线圈 B 内什么物理量发生了变化？\n\n[source image omitted from static artifact]  \n图11-25 研究电磁感应现象实验\n\n表 11-2 实验现象记录表\n\n<table><tr><td>磁体的动作</td><td>灵敏电流计指针是否偏转</td></tr><tr><td>插入线圈</td><td></td></tr><tr><td>停在线圈中</td><td></td></tr><tr><td>从线圈中抽出</td><td></td></tr></table>\n\n表 11-3 实验现象记录表\n\n<table><tr><td>开关、滑动变阻器的状态</td><td>灵敏电流计指针是否偏转</td></tr><tr><td>开关闭合瞬间</td><td></td></tr><tr><td>开关闭合时,滑动变阻器的滑片静止</td><td></td></tr><tr><td>开关闭合时,滑动变阻器的滑片快速滑动</td><td></td></tr><tr><td>开关断开瞬间</td><td></td></tr></table>\n\n在如图 11-24 所示的实验中，条形磁体插入线圈，线圈中的磁场均由弱变强；条形磁体从线圈中抽出，线圈中的磁场均由强变弱，如图 11-26 所示。这两种情况下，线圈中都产生了感应电流。\n\n在如图 11-25 所示的实验中，开关闭合或断开的瞬间，或者在开关闭合、滑动变阻器的滑动头快速滑动时，线圈 A 中电流都会迅速变化，产生的磁场也迅速变化。由于线圈 A 与线圈 B 套在一起，使线圈 B 中磁场的强弱也迅速变化，如图 11-27 所示，这时，线圈 B 中产生了感应电流。\n\n[source image omitted from static artifact]  \n(a)\n\n  \n(b)\n\n  \n(a)\n\n  \n(b)  \n图11-26 条形磁体插入或者抽出线圈，使线圈内的磁场强弱发生变化  \n图11-27 线圈 $A$ 中电流的变化使线圈 $B$ 中的磁场变化\n\n从上述两个实验还可以发现：无论磁体还是通电线圈，只要能使线圈 B 内的磁场强弱变化，就会在线圈 B 中产生感应电流。\n\n线圈内的磁场强弱发生变化时，是否一定产生感应电流？将一块条形磁体固定在一个特殊圆锥曲面的上端，该圆锥外曲面的形状恰好沿着条形磁体的磁感线（图11-28）。将一根导线两端连接微电流传感器的输入端（或者灵敏电流计）；再将导线环绕在圆锥外曲面的下端。沿曲面拉动导线，使导线沿着圆锥外曲面向上滑动。该导线组成的闭合回路内的磁场变强，但是微电流传感器（或者灵敏电流计）却没有检测到感应电流。\n\n  \n图11-28 沿着特殊圆锥外曲面向上滑动的闭合回路\n\n## 大家谈\n\n为什么线圈内的磁场变强时，却没有产生感应电流呢？\n\n以上实验和其他事实都表明：只要通过闭合导体回路的磁通量发生变化，闭合导体回路中就会产生感应电流。\n\n新中国成立以来，我国电力工业在火力发电、水力发电、风力发电和核能发电等领域都取得了举世瞩目的成就。尤其在核能发电领域，我国自主研发的第三代核电“华龙一号”发电机（图11-19）具有多项设计创新，其安全指标和技术性能都达到了国际三代核电技术的先进水平。但归根结底，无论是火力发电、水力发电、风力发电，还是核电站的发电，都是利用了电磁感应的基本原理。\n\n## 问题②思考\n\n1. 如图 11-29 所示，在匀强磁场中有一个矩形闭合线框，判断在下列情况下线框中是否产生感应电流，并说明理由。\n\n(1) 如图 (a) 所示, 保持线框平面始终与磁感线垂直, 线框在磁场中由上向下运动。\n\n(2) 如图 (b) 所示, 保持线框平面始终与磁感线垂直, 线框在磁场中由左向右运动。\n\n(3) 如图 (c) 所示, 保持线框平面始终与磁感线平行, 线框在磁场中由左向右运动。\n\n(4) 如图 (d) 所示, 线框绕轴线 $O O^{\\prime}$ 转动。\n\n  \n(a)\n\n  \n(b)  \n图11-29\n\n  \n(c)\n\n  \n(d)\n\n2. 如图 11-30 所示，围绕条形磁体中央有两个面积大小不同且处于同一平面内的线圈 $a$ 和 $b$ 。试比较通过的线圈 $a$ 与线圈 $b$ 的磁通量大小，并简述理由。\n\n\n\n3. 甲、乙两同学关于磁通量有不同的看法。甲同学认为：根据磁通量的计算公式 $\\Phi = BS$ ，在匀强磁场中，线圈的面积越大磁通量一定越大；乙同学认为：在非匀强磁场中，线圈的面积越大磁通量越小。试对甲、乙两位同学的看法作出评价。\n\n图11-30\n\n4. 如图 11-31 所示，空间固定一条形磁体，有三个金属环 $a$ 、 $b$ 、 $c$ ，则：\n\n(1) 若圆环 $a$ 由无穷远向右移到靠近条形磁体的 $\\mathbf{N}$ 极, 通过圆环 $a$ 的磁通量如何变化?\n\n\n\n(2) 若圆环 $a$ 由条形磁体的 $\\mathrm{N}$ 极通过条形磁体移到\n\n图11-31\n\nS 极，通过圆环 a 的磁通量如何变化？\n\n(3) 若垂直于地面的圆环 $b$ 从条形磁体的中央位置竖直下落, 通过圆环 $b$ 的磁通量如何变化?\n\n(4) 若在条形磁体附近, 环面平行于地面的圆环 $c$ 从条形磁体右边的位置 1 下降到位置 3 , 通过圆环 $c$ 的磁通量如何变化?\n\n(5) 若在条形磁体附近, 圆环 $c$ 从条形磁体右边的位置 1 , 沿着水平方向移到磁体左边, 通过圆环 $c$ 的磁通量如何变化?\n\n5. 如图 11-32 所示，在无限长的通电直导线附近放置一矩形线圈，与导线处在同一平面内，且线圈中的上下两条边与导线平行。则当线圈做下列三种不同方向的平行移动时，线圈内能否产生感应电流？\n\n  \n图11-32\n\n(1) 线圈平行移动的方向与导线中电流的方向一致。\n\n(2) 线圈平行移动的方向与导线中电流的方向垂直，并保持线圈与导线在同一平面内。\n\n(3) 线圈平行移动的方向垂直于纸面向上。\n\n6. 如图 11-33 所示是研究电磁感应现象实验所需的器材。试用笔画线代替导线，将带有铁芯的线圈 $A$ 、电源、滑动变阻器和开关连接成回路，将灵敏电流计和线圈 $B$ 连接成另一个回路。简述在实验中采用不同的元器件改变线圈 $B$ 回路的磁通量，使回路产生感应电流的四种不同方式。\n\n  \n图11-33\n\n  \n图11-34 中国北斗卫星导航系统示意图",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:11-3-a:source-markdown",
+          "locator": "磁通量 电磁感应现象",
+          "modality": "text",
+          "page_end": 111,
+          "page_start": 106,
+          "properties": {
+            "md_end": 3210,
+            "md_start": 3012,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:11-3-a",
+            "outline_title": "磁通量 电磁感应现象",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 3210,
+      "md_start": 3012,
+      "modalities": [
+        "equation",
+        "image",
+        "text",
+        "table"
+      ],
+      "page_end": 111,
+      "page_start": 106,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第三节 磁通量 电磁感应现象\n\n电力工业是一个国家经济发展的命脉，2019年，我国发电装机容量已达19亿千瓦。电力的获得依赖于煤炭、水力、风力、核燃料等能源的转换。正是由于物理学家发现了磁场与电场之间的联系，才使得其他形式的能转变成电能成为现实。磁场有何性质？它与电场有何联系呢？\n\n为了进一步研究磁场的性质，以及磁场与电场之间存在的关系，物理学家引入了磁通量的概念。\n\n\n\n## 什么是磁通量？\n\n如图11-20所示，设在磁感应强度为 $B$ 的匀强磁场中，有一个面积为 $S$ 且与磁场方向垂直的平面，磁感应强度 $B$ 与面积 $S$ 的乘积叫做穿过这个平面的磁通量（magnetic flux），简称磁通，用 $\\Phi$ 表示，即\n\n$$\n\\Phi = B S\n$$\n\n[source image omitted from static artifact]  \n图11-20 磁通量\n\n磁通量是标量，如果设定磁感应强度指向右方时穿过这一面积的磁通量为正，那么，磁感应强度指向左方时穿过这一面积的磁通量就为负。\n\n在国际单位制中，磁通量的单位是韦伯，简称韦，符号是 Wb；面积的单位是 $m^{2}$ ，则\n\n$$\n1 \\mathrm{Wb} = 1 \\mathrm{T} \\cdot \\mathrm{m} ^ {2}\n$$\n\n由 $\\Phi = BS$ 可得 $B = \\frac{\\Phi}{S}$ 。由此可知磁感应强度数值上等于穿过垂直于磁场方向单位面积的磁通量，因此也常把磁感应强度叫做磁通密度。上式虽然得自匀强磁场，同样适用于非匀强磁场的一般情况。由于我们约定磁场较强处磁感线较密集，磁场较弱处磁感线较稀疏，可以看出在给定的磁场中穿过某一面积的磁感线的条数与穿过该面积的磁通量成正比，即磁通量越大，穿过相同面积的磁感线越多。\n\n## 拓展视野\n\n如图 11-21 所示，面积为 S 的平面与匀强磁场方向不垂直。若平面的法线方向与磁场方向的夹角为 $\\theta$ ，则该平面在垂直于磁场方向上的投影面积\n\n$$\nS ^ {\\prime} = S \\cos \\theta\n$$\n\n[source image omitted from static artifact]  \n图11-21 平面与磁场方向不垂直\n\n由图可知，通过平面 S 的磁通量等于通过平面 S 在垂直于磁场方向上的投影区域 $S'$ 的磁通量，即\n\n$$\n\\Phi = B S ^ {\\prime} = B S \\mathrm{cos} \\theta\n$$\n\n奥斯特发现电流磁效应的实验揭示了电现象与磁现象之间的联系。自然界的许多规律都具有对称性，对称性是人类认识自然界的一个重要法则。那么电和磁是否也具有对称性？英国物理学家法拉第（图11-22）就认为电与磁应该是一对和谐的对称现象。\n\n[source image omitted from static artifact]\n\n  \n图11-22 法拉第（M. Faraday，1791—1867）\n\n## 既然电流可以产生磁场，反过来磁场能否产生电流呢？\n\n经过近十年的艰苦探索，1831年，法拉第对此终于有所发现。如图11-23所示，在软铁环的 $A$ 侧接好导线，把 $B$ 侧的线圈接到\n\n灵敏电流计上，再把 A 侧的线圈接到电池组上；当 A 侧电路接通的瞬间，法拉第看到 B 侧灵敏电流计的指针立即明显偏转，这就表明 B 侧的线圈中出现了电流；当 A 侧电路断开时，他又看到指针向相反方向偏转。由于通电线圈产生磁场，法拉第把他发现的这种由磁产生电流的现象正式定名为电磁感应（electromagnetic induction）现象，产生的电流就叫做感应电流（induction current）。\n\n[source image omitted from static artifact]  \n图11-23 法拉第实验示意图\n\n[source image omitted from static artifact]\n\n## 产生感应电流的条件是什么？\n\n除了上述法拉第的实验外，还有什么办法可以产生感应电流？\n\n## 自主活动\n\n准备一根条形磁体，按照如图 11-24 所示先将灵敏电流计和线圈 B 连接组成闭合回路，观察灵敏电流计的指针是否偏转。灵敏电流计的指针发生偏转说明在线圈 B 内产生了感应电流。\n\n按照表 11-2 中的实验操作，将观察到的结果填入表中。\n\n在这一实验中，发现什么情况下能够产生感应电流？线圈 B 内什么物理量发生了变化？\n\n图11-24 研究电磁感应现象实验  \n[source image omitted from static artifact]\n\n按照图 11-25 将灵敏电流计和线圈 B 连接成闭合回路。线圈 A 通过滑动变阻器和开关连接到电源上，组成另一个闭合回路。将线圈 A 插在线圈 B 里面，再将软铁棒插在线圈 A 中。\n\n按照表 11-3 中的实验操作，将观察的实验结果填入表格中。\n\n在这一实验中，发现什么情况下能够产生感应电流？线圈 B 内什么物理量发生了变化？\n\n[source image omitted from static artifact]  \n图11-25 研究电磁感应现象实验\n\n表 11-2 实验现象记录表\n\n<table><tr><td>磁体的动作</td><td>灵敏电流计指针是否偏转</td></tr><tr><td>插入线圈</td><td></td></tr><tr><td>停在线圈中</td><td></td></tr><tr><td>从线圈中抽出</td><td></td></tr></table>\n\n表 11-3 实验现象记录表\n\n<table><tr><td>开关、滑动变阻器的状态</td><td>灵敏电流计指针是否偏转</td></tr><tr><td>开关闭合瞬间</td><td></td></tr><tr><td>开关闭合时,滑动变阻器的滑片静止</td><td></td></tr><tr><td>开关闭合时,滑动变阻器的滑片快速滑动</td><td></td></tr><tr><td>开关断开瞬间</td><td></td></tr></table>\n\n在如图 11-24 所示的实验中，条形磁体插入线圈，线圈中的磁场均由弱变强；条形磁体从线圈中抽出，线圈中的磁场均由强变弱，如图 11-26 所示。这两种情况下，线圈中都产生了感应电流。\n\n在如图 11-25 所示的实验中，开关闭合或断开的瞬间，或者在开关闭合、滑动变阻器的滑动头快速滑动时，线圈 A 中电流都会迅速变化，产生的磁场也迅速变化。由于线圈 A 与线圈 B 套在一起，使线圈 B 中磁场的强弱也迅速变化，如图 11-27 所示，这时，线圈 B 中产生了感应电流。\n\n[source image omitted from static artifact]  \n(a)\n\n  \n(b)\n\n  \n(a)\n\n  \n(b)  \n图11-26 条形磁体插入或者抽出线圈，使线圈内的磁场强弱发生变化  \n图11-27 线圈 $A$ 中电流的变化使线圈 $B$ 中的磁场变化\n\n从上述两个实验还可以发现：无论磁体还是通电线圈，只要能使线圈 B 内的磁场强弱变化，就会在线圈 B 中产生感应电流。\n\n线圈内的磁场强弱发生变化时，是否一定产生感应电流？将一块条形磁体固定在一个特殊圆锥曲面的上端，该圆锥外曲面的形状恰好沿着条形磁体的磁感线（图11-28）。将一根导线两端连接微电流传感器的输入端（或者灵敏电流计）；再将导线环绕在圆锥外曲面的下端。沿曲面拉动导线，使导线沿着圆锥外曲面向上滑动。该导线组成的闭合回路内的磁场变强，但是微电流传感器（或者灵敏电流计）却没有检测到感应电流。\n\n  \n图11-28 沿着特殊圆锥外曲面向上滑动的闭合回路\n\n## 大家谈\n\n为什么线圈内的磁场变强时，却没有产生感应电流呢？\n\n以上实验和其他事实都表明：只要通过闭合导体回路的磁通量发生变化，闭合导体回路中就会产生感应电流。\n\n新中国成立以来，我国电力工业在火力发电、水力发电、风力发电和核能发电等领域都取得了举世瞩目的成就。尤其在核能发电领域，我国自主研发的第三代核电“华龙一号”发电机（图11-19）具有多项设计创新，其安全指标和技术性能都达到了国际三代核电技术的先进水平。但归根结底，无论是火力发电、水力发电、风力发电，还是核电站的发电，都是利用了电磁感应的基本原理。\n\n## 问题②思考\n\n1. 如图 11-29 所示，在匀强磁场中有一个矩形闭合线框，判断在下列情况下线框中是否产生感应电流，并说明理由。\n\n(1) 如图 (a) 所示, 保持线框平面始终与磁感线垂直, 线框在磁场中由上向下运动。\n\n(2) 如图 (b) 所示, 保持线框平面始终与磁感线垂直, 线框在磁场中由左向右运动。\n\n(3) 如图 (c) 所示, 保持线框平面始终与磁感线平行, 线框在磁场中由左向右运动。\n\n(4) 如图 (d) 所示, 线框绕轴线 $O O^{\\prime}$ 转动。\n\n  \n(a)\n\n  \n(b)  \n图11-29\n\n  \n(c)\n\n  \n(d)\n\n2. 如图 11-30 所示，围绕条形磁体中央有两个面积大小不同且处于同一平面内的线圈 $a$ 和 $b$ 。试比较通过的线圈 $a$ 与线圈 $b$ 的磁通量大小，并简述理由。\n\n\n\n3. 甲、乙两同学关于磁通量有不同的看法。甲同学认为：根据磁通量的计算公式 $\\Phi = BS$ ，在匀强磁场中，线圈的面积越大磁通量一定越大；乙同学认为：在非匀强磁场中，线圈的面积越大磁通量越小。试对甲、乙两位同学的看法作出评价。\n\n图11-30\n\n4. 如图 11-31 所示，空间固定一条形磁体，有三个金属环 $a$ 、 $b$ 、 $c$ ，则：\n\n(1) 若圆环 $a$ 由无穷远向右移到靠近条形磁体的 $\\mathbf{N}$ 极, 通过圆环 $a$ 的磁通量如何变化?\n\n\n\n(2) 若圆环 $a$ 由条形磁体的 $\\mathrm{N}$ 极通过条形磁体移到\n\n图11-31\n\nS 极，通过圆环 a 的磁通量如何变化？\n\n(3) 若垂直于地面的圆环 $b$ 从条形磁体的中央位置竖直下落, 通过圆环 $b$ 的磁通量如何变化?\n\n(4) 若在条形磁体附近, 环面平行于地面的圆环 $c$ 从条形磁体右边的位置 1 下降到位置 3 , 通过圆环 $c$ 的磁通量如何变化?\n\n(5) 若在条形磁体附近, 圆环 $c$ 从条形磁体右边的位置 1 , 沿着水平方向移到磁体左边, 通过圆环 $c$ 的磁通量如何变化?\n\n5. 如图 11-32 所示，在无限长的通电直导线附近放置一矩形线圈，与导线处在同一平面内，且线圈中的上下两条边与导线平行。则当线圈做下列三种不同方向的平行移动时，线圈内能否产生感应电流？\n\n  \n图11-32\n\n(1) 线圈平行移动的方向与导线中电流的方向一致。\n\n(2) 线圈平行移动的方向与导线中电流的方向垂直，并保持线圈与导线在同一平面内。\n\n(3) 线圈平行移动的方向垂直于纸面向上。\n\n6. 如图 11-33 所示是研究电磁感应现象实验所需的器材。试用笔画线代替导线，将带有铁芯的线圈 $A$ 、电源、滑动变阻器和开关连接成回路，将灵敏电流计和线圈 $B$ 连接成另一个回路。简述在实验中采用不同的元器件改变线圈 $B$ 回路的磁通量，使回路产生感应电流的四种不同方式。\n\n  \n图11-33\n\n  \n图11-34 中国北斗卫星导航系统示意图",
+      "title": "磁通量 电磁感应现象"
+    }
+  ]
+}

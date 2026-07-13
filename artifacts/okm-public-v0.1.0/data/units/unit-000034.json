@@ -1,0 +1,1238 @@
+{
+  "body": {
+    "content": "## 定义\n半导体是一类电阻率介于绝缘体和金属之间的材料，其导电性能极易受温度、光照等外界环境条件的影响。\n\n## 核心解释\n从电阻率的大小来看，半导体的导电能力处于导体和绝缘体之间。具体而言，锗、硅、硒、氧化铜、硼等材料的电阻率比绝缘体小，但比金属大，这类材料被统称为半导体 [evidence:auto-0e5707425e81]。\n半导体的一个显著特点是其电阻率并非固定不变，而是常随周围各种环境条件的改变而变化 [evidence:auto-0e5707425e81]。这种对环境的高度敏感性具体表现为热敏特性和光敏特性：温度升高时，其电阻率通常会减小；光照强度的改变也能显著影响其电阻率。基于这些特性，半导体在现代电子元件（如热敏电阻、光敏电阻）中发挥着重要作用。\n\n## 关键要点\n* **电阻率区间**：介于金属与绝缘体之间。\n* **环境敏感性**：导电性能随温度、光照等外界条件显著变化。\n* **典型材料**：锗、硅、硒、氧化铜、硼等。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "concept/材料类别:auto-afcaa8326198",
+    "properties": {
+      "card_title": "半导体",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-0e5707425e81"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:41:31+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-fca5e70211af",
+    "mention_refs": [],
+    "node_id": "concept/材料类别:auto-afcaa8326198",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "电阻率介于绝缘体和金属之间的材料，其导电性能极易受温度、光照等外界环境条件影响。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-a5a6da11e701"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "电阻率介于绝缘体和金属之间的材料，其导电性能极易受温度、光照等外界环境条件影响。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-a5a6da11e701"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "电阻率介于绝缘体和金属之间的材料，其导电性能极易受温度、光照等外界环境条件影响。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-a5a6da11e701"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "半导体"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-a5a6da11e701"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "测量金属丝的电阻率"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-a5a6da11e701"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-a5a6da11e701"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-a5a6da11e701"
+    ],
+    "status": "active",
+    "summary": "电阻率介于绝缘体和金属之间的材料，其导电性能极易受温度、光照等外界环境条件影响。",
+    "title": "半导体",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 9,
+    "score": 100,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-1770d9275880",
+      "node_id": "concept/材料类别:auto-afcaa8326198",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "提供铜、硅、橡胶的电阻率数据及变化曲线，要求按材料类别排序并阐述分类依据",
+              "设计简易验证方案，利用光敏元件记录光照强度改变时的电阻变化数据",
+              "绘制对比图表，从‘电阻率区间’和‘环境敏感度’两个维度准确区分导体、半导体与绝缘体"
+            ],
+            "common_errors": [
+              "误认为半导体的电阻率是固定常数，忽略其随环境条件显著变化的特性",
+              "混淆半导体与金属的导电能力边界，错误判断半导体电阻率优于或等于金属",
+              "将长度测量工具的精度原理（如游标卡尺错位放大）与材料电学性质错误关联"
+            ],
+            "diagnostic_questions": [
+              "根据定义，锗和硅的电阻率为何既不同于绝缘体也不同于金属？",
+              "当外界温度升高或光照增强时，半导体的导电性能通常呈现怎样的变化趋势？",
+              "金属丝阻值由材料电阻率、长度和横截面积决定，这一规律能否直接用于解释半导体的导电特性？"
+            ],
+            "difficulty_level": "basic",
+            "extension_suggestions": [
+              "结合证据原文中的锗、硅等实例，利用数轴或对比图表直观呈现电阻率的大小区间，强化‘介于两者之间’的认知边界",
+              "通过演示热敏电阻或光敏电阻随环境变化的实时数据，将抽象的‘导电性能易受环境影响’转化为可观察的实验现象",
+              "在复习长度测量工具时，明确切割其与材料电学性质的知识边界，避免学生将测量精度概念迁移至半导体导电机制中"
+            ],
+            "generation": {
+              "confidence": 0.85,
+              "generated_at": "2026-07-12T09:48:38+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "835c0cda8c824382c28c0e490e6d71c4d39332548cd90e811889176a8de20c6f",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-0e5707425e81",
+                "evidence:auto-a5a6da11e701"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能准确表述半导体电阻率介于绝缘体与金属之间的相对范围",
+              "能结合具体实例说明温度或光照变化对半导体导电性能的影响规律",
+              "能清晰区分半导体与金属导体在电阻率大小及环境敏感度上的核心差异"
+            ],
+            "remediation_suggestions": [
+              "利用数轴直观呈现电阻率大小区间，结合教材中的锗、硅等实例强化‘介于两者之间’的定性认知",
+              "通过热敏/光敏电阻演示实验，将‘导电性能易受环境影响’转化为可观测的数据变化，避免纯理论灌输",
+              "明确划定材料电学性质与测量工具原理的知识边界，防止学生将螺旋放大或错位测量概念迁移至半导体机制中"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-0e5707425e81",
+        "evidence:auto-a5a6da11e701"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T09:48:38+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/b5afaed133e9dc7ae9c1c79c4bf43be065a08a478c392991fac984b732df034c.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-067ecf23111b",
+      "locator": "line:87",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/b5afaed133e9dc7ae9c1c79c4bf43be065a08a478c392991fac984b732df034c.jpg)"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 307,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/b5afaed133e9dc7ae9c1c79c4bf43be065a08a478c392991fac984b732df034c.jpg",
+          "reason": "图片展示了螺旋测微器的局部结构（固定套筒和活动套筒）及刻度。结合上下文，前文介绍了螺旋测微器原理，后文紧接着是“(b) 读数”以及图10-26的说明。这张图对应图10-26 (b)，作为局部截图和读数示例的配图，辅助说明了螺旋测微器的读数方法和精度，符合 supporting 中“局部截图”、“例题配图”的定义。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "螺旋测微器（千分尺）的局部特写，清晰展示了“固定套筒”和“活动套筒”的刻度部分。固定套筒可见毫米刻度线，活动套筒可见微分刻度（如0, 45）。",
+          "width": 312
+        },
+        "path": "images/b5afaed133e9dc7ae9c1c79c4bf43be065a08a478c392991fac984b732df034c.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "游标尺上的刻度间距 $x$ 比主尺上的刻度间距 $y$ 略小一点。一般游标尺上的 $n$ 个刻度间距等于主尺上（ $n - 1$ ）个刻度间距，即 $$ n x = (n - 1) y $$ 由此可知，游标上的刻度间距与主尺的刻度间距相差 $\\frac{1}{n}$ mm，这就是游标尺的精度。...游标卡尺是利用主尺的单位刻度（1 mm）与游标尺的单位刻度之间固定的微量差值来提高测量精度的，即采取了错位放大法提高了测量的精度。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-06c8fe3fe0fd",
+      "locator": "line:56-77",
+      "modality": "text",
+      "normalized_claims": [
+        "游标尺上的刻度间距 $x$ 比主尺上的刻度间距 $y$ 略小一点。一般游标尺上的 $n$ 个刻度间距等于主尺上（ $n - 1$ ）个刻度间距，即 $$ n x = (n - 1) y $$ 由此可知，游标上的刻度间距与主尺的刻度间距相差"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "根据实验数据，绘制 U-I 图像，由图线的斜率得出金属丝的阻值 R。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-08be68874057",
+      "locator": "line:115",
+      "modality": "text",
+      "normalized_claims": [
+        "根据实验数据，绘制 U-I 图像，由图线的斜率得出金属丝的阻值 R。"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "螺旋测微器 [图 10-26 (a)] 是依据螺旋放大的原理制成的。该原理类似于在盘旋式楼梯上行走时，走过的距离与上升高度间存在放大关系，即螺杆在螺母中旋转一周的同时即沿着旋转轴线方向前进（后退）一个螺距的距离。在螺旋测微器中，可动刻度的一圈为 50 格，而旋转一圈，螺杆前进（后退）0.5 mm，即为固定刻度中的一小格，所以，螺旋测微器可精确测量的最小刻度为 $\\frac{0.5}{50}$ mm = 0.01 mm。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-09c486734bcd",
+      "locator": "line:82",
+      "modality": "equation",
+      "normalized_claims": [
+        "螺旋测微器 [图 10-26 (a)] 是依据螺旋放大的原理制成的。该原理类似于在盘旋式楼梯上行走时，走过的距离与上升高度间存在放大关系，即螺杆在螺母中旋转一周的同时即沿着旋转轴线方向前进（后退）一个螺距的距离。在螺旋测微器中，可动刻度的一"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "可见，锗、硅、硒、氧化铜、硼等的电阻率比绝缘体小而比金属大，这类材料称为半导体。半导体的电阻率常随周围各种环境条件的改变而变化。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-0e5707425e81",
+      "locator": "line:127-128",
+      "modality": "text",
+      "normalized_claims": [
+        "可见，锗、硅、硒、氧化铜、硼等的电阻率比绝缘体小而比金属大，这类材料称为半导体。半导体的电阻率常随周围各种环境条件的改变而变化。"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "测量工具的分度值（测量工具所能测量的最小值）决定了测量工具所能达到的精度。通常情况下，刻度尺的分度值为 $1\\mathrm{mm}$ ，游标卡尺的分度值有 $0.1\\mathrm{mm}$ 、 $0.05\\mathrm{mm}$ 和 $0.02\\mathrm{mm}$ 三种，螺旋测微器的分度值一般为 $0.01\\mathrm{mm}$ 。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-0eb21166ef3e",
+      "locator": "line:20",
+      "modality": "text",
+      "normalized_claims": [
+        "测量工具的分度值（测量工具所能测量的最小值）决定了测量工具所能达到的精度。通常情况下，刻度尺的分度值为 $1\\mathrm{mm}$ ，游标卡尺的分度值有 $0.1\\mathrm{mm}$ 、 $0.05\\mathrm{mm}$ 和 $0."
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "长度是物理学中的基本物理量之一。长度的测量是最基本的测量，测量工具众多，最常用的工具是刻度尺。另外，也可以使用游标卡尺（图10-21）和螺旋测微器（图10-22）等。测量工具的分度值（测量工具所能测量的最小值）决定了测量工具所能达到的精度。通常情况下，刻度尺的分度值为 $1\\mathrm{mm}$ ，游标卡尺的分度值有 $0.1\\mathrm{mm}$ 、 $0.05\\mathrm{mm}$ 和 $0.02\\mathrm{mm}$ 三种，螺旋测微器的分度值一般为 $0.01\\mathrm{mm}$ 。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-186997aa61e0",
+      "locator": "line:21",
+      "modality": "equation",
+      "normalized_claims": [
+        "长度是物理学中的基本物理量之一。长度的测量是最基本的测量，测量工具众多，最常用的工具是刻度尺。另外，也可以使用游标卡尺（图10-21）和螺旋测微器（图10-22）等。测量工具的分度值（测量工具所能测量的最小值）决定了测量工具所能达到的精度。"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "游标尺上的刻度间距 $x$ 比主尺上的刻度间距 $y$ 略小一点。一般游标尺上的 $n$ 个刻度间距等于主尺上（ $n - 1$ ）个刻度间距，即",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-19d5aa9ef539",
+      "locator": "line:64",
+      "modality": "equation",
+      "normalized_claims": [
+        "游标尺上的刻度间距 $x$ 比主尺上的刻度间距 $y$ 略小一点。一般游标尺上的 $n$ 个刻度间距等于主尺上（ $n - 1$ ）个刻度间距，即"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/c8de5d986abf52f2b4dd8635ff52567799075827d70c4f7614a7e554d897a864.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-352b5d6daf67",
+      "locator": "line:72",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/c8de5d986abf52f2b4dd8635ff52567799075827d70c4f7614a7e554d897a864.jpg)"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 193,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/c8de5d986abf52f2b4dd8635ff52567799075827d70c4f7614a7e554d897a864.jpg",
+          "reason": "图片直接展示了前文所述“分度值0.1 mm的游标卡尺”的结构（主尺与游标尺的刻度关系），对应前文关于游标卡尺测量原理（错位放大法）的讲解，且后文明确标注该图为“图10-24 分度值为0.1mm的游标卡尺的刻度线”。这是理解该物理测量工具原理的核心结构图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了游标卡尺的刻度示意图。上方是标有“主尺”和“cm”单位的主尺，可见0、1、2刻度。下方是标有“游标尺”和“0.1 mm”精度的游标尺，可见0到10的刻度。",
+          "width": 509
+        },
+        "path": "images/c8de5d986abf52f2b4dd8635ff52567799075827d70c4f7614a7e554d897a864.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nn x = (n - 1) y\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-3c8552f5db5a",
+      "locator": "line:68",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nn x = (n - 1) y\n$$"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "图10-24 分度值为 $0.1\\mathrm{mm}$ 的游标卡尺的刻度线",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-4cf0ed3bc218",
+      "locator": "line:73",
+      "modality": "equation",
+      "normalized_claims": [
+        "图10-24 分度值为 $0.1\\mathrm{mm}$ 的游标卡尺的刻度线"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/e6089d0545a618b3c7af634dfc74651968dc132f61411064c50b008c3391ef43.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-741a6c2a9ad5",
+      "locator": "line:23",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/e6089d0545a618b3c7af634dfc74651968dc132f61411064c50b008c3391ef43.jpg)"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 545,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/e6089d0545a618b3c7af634dfc74651968dc132f61411064c50b008c3391ef43.jpg",
+          "reason": "图片直接展示了游标卡尺的结构和各个部件的名称，属于“结构”类知识。这与教材章节标题“学生实验一：长度测量及其测量工具的选用”紧密相关，也是前文中提到的“游标卡尺（图10-21）”的具体图解。认识测量工具的结构是进行物理实验和正确选用工具的核心基础，因此作为核心内容保留。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个数字显示游标卡尺的结构示意图，并带有详细的中文标注。标注的部件包括：内径测量爪、外径测量爪、限位螺丝、电池安装处、尺身、深度测量、开关键、置零键和推动滚轮。显示屏上显示的数字读数为 20.05 mm。",
+          "width": 1190
+        },
+        "path": "images/e6089d0545a618b3c7af634dfc74651968dc132f61411064c50b008c3391ef43.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "游标卡尺作为一种被广泛使用的高精度测量工具，可以测量物体的长度、内径、外径及深度等。它是由主尺和附在主尺上能滑动的游标尺两部分构成，如图10-23所示。游标尺上的刻度线越多，测量的精确程度就越高。如分度值为 $0.1\\mathrm{mm}$ 、 $0.05\\mathrm{mm}$ 、",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-7451c4ec5cee",
+      "locator": "line:57",
+      "modality": "equation",
+      "normalized_claims": [
+        "游标卡尺作为一种被广泛使用的高精度测量工具，可以测量物体的长度、内径、外径及深度等。它是由主尺和附在主尺上能滑动的游标尺两部分构成，如图10-23所示。游标尺上的刻度线越多，测量的精确程度就越高。如分度值为 $0.1\\mathrm{mm}$"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "若有一根长为 $L$ 、直径为 $d$ 的金属丝，则可以根据电阻定律 $R = \\rho \\frac{L}{S}$ ，得其电阻率 $\\rho = \\frac{SR}{L}$ ，又 $S = \\pi \\left(\\frac{d}{2}\\right)^2$ ，所以可得 $$ \\rho = \\frac {\\pi d ^ {2} R}{4 L} $$",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-77bac52f7f38",
+      "locator": "line:8-12",
+      "modality": "equation",
+      "normalized_claims": [
+        "若有一根长为 $L$ 、直径为 $d$ 的金属丝，则可以根据电阻定律 $R = \\rho \\frac{L}{S}$ ，得其电阻率 $\\rho = \\frac{SR}{L}$ ，又 $S = \\pi \\left(\\frac{d}{2}\\rig"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "本实验采用伏安法测量金属丝阻值 R，电路图如图 10-27 所示。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-80721a3ed43f",
+      "locator": "line:107",
+      "modality": "text",
+      "normalized_claims": [
+        "本实验采用伏安法测量金属丝阻值 R，电路图如图 10-27 所示。"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 10-25 所示的游标卡尺的精度为 $\\frac{1}{50} \\mathrm{~mm}$ ，即 $0.02 \\mathrm{~mm}$ 。在读数时，先从主尺上读得游标尺的零刻度线所在的整数分度值（ $25 \\mathrm{~mm}$ ）；再到游标尺上找与主尺刻度线准确对齐的游标刻度线（第 11 根刻度线）；求得游标尺的分度值 $11 \\times \\frac{1}{50} = 0.22 \\mathrm{~mm}$ ；最后得到测量值 $25 + 0.22 = 25.22 \\mathrm{~mm}$ 。由于使用游标卡尺测量长度时没有进行估读，只是判断刻度线的对齐与否，因此其测量误差即为游标尺的精度值，本例中为 $0.02 \\mathrm{~mm}$ 。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-8b6a2ea13fd8",
+      "locator": "line:78",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图 10-25 所示的游标卡尺的精度为 $\\frac{1}{50} \\mathrm{~mm}$ ，即 $0.02 \\mathrm{~mm}$ 。在读数时，先从主尺上读得游标尺的零刻度线所在的整数分度值（ $25 \\mathrm{~mm}$"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/060ba67ab6d535c529c6d582818174bfd3b868ee361c46a7f436612b3a63f58e.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-9c80422cf05f",
+      "locator": "line:26",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/060ba67ab6d535c529c6d582818174bfd3b868ee361c46a7f436612b3a63f58e.jpg)"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 384,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/060ba67ab6d535c529c6d582818174bfd3b868ee361c46a7f436612b3a63f58e.jpg",
+          "reason": "图片内容直接对应后文的图注“图10-22 数字显示螺旋测微器”以及前文提到的测量工具介绍。作为“学生实验一：长度测量及其测量工具的选用”中的核心测量仪器，该图详细展示了螺旋测微器的结构及各部件名称，属于直接表达“结构”的知识证据，是实验操作的基础。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个数字显示螺旋测微器的结构示意图，详细标注了各个部件名称，包括测砧、测微螺杆、锁紧装置、固定套筒、旋钮、可动刻度、显示屏（显示0.000mm）、电源开关和微调旋钮。",
+          "width": 695
+        },
+        "path": "images/060ba67ab6d535c529c6d582818174bfd3b868ee361c46a7f436612b3a63f58e.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "我们已经知道金属丝的长度和横截面积一定时，其阻值取决于金属材料的电阻率。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a5a6da11e701",
+      "locator": "line:3",
+      "modality": "text",
+      "normalized_claims": [
+        "我们已经知道金属丝的长度和横截面积一定时，其阻值取决于金属材料的电阻率。"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/00952b6d5ccefa179cb113064de3ae60307dd33568699a65a9b09afe3e5cc07c.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-bb37b49f4db4",
+      "locator": "line:75",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/00952b6d5ccefa179cb113064de3ae60307dd33568699a65a9b09afe3e5cc07c.jpg)"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 187,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/00952b6d5ccefa179cb113064de3ae60307dd33568699a65a9b09afe3e5cc07c.jpg",
+          "reason": "该图片对应教材中的图10-25（后文明确提到'如图10-25所示'），展示了分度值为0.02mm游标卡尺的读数细节。虽然它是讲解读数方法的重要示例，但从图片形式来看，它属于局部截图和实物照片，主要起辅助说明作用，用于配合后文讲解'主尺读数25mm'以及'游标尺第11根刻度线对齐'的具体过程。根据规则，局部截图和例题配图应归类为supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了游标卡尺的刻度局部特写。上方蓝色区域为主尺，可见数字2、3、4（代表厘米）；下方白色区域为游标尺，可见数字0、1、2、3、4。游标尺的0刻度线位于主尺2.5cm（25mm）刻度右侧。",
+          "width": 487
+        },
+        "path": "images/00952b6d5ccefa179cb113064de3ae60307dd33568699a65a9b09afe3e5cc07c.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "由此可知，游标上的刻度间距与主尺的刻度间距相差 $\\frac{1}{n}$ mm，这就是游标尺的精度。以分度值0.1 mm的游标卡尺为例，如图10-24所示，游标尺上有10个等分刻度，总长9 mm，因此游标尺的每一分度为0.9 mm，比主尺上的最小分度小0.1 mm。当测量爪并拢时，主尺和游标尺的零刻度线对齐，两者的第一条刻度线相差0.1 mm，第二条刻度线相差0.2 mm，……，第10条刻度线相差1 mm，即游标的第10条刻度线恰好与主尺的9 mm刻度线对齐。若测量时测量爪的卡口间距为0.3 mm，游标尺就要向右移动0.3 mm，使得它第3条刻度线恰好与尺身的3 mm刻度线对齐。这样就将主尺上读数时所涉及的估读问题转化为确定主尺上的刻度线与游标尺上的哪条刻度线对齐的问题。所以，游标卡尺是利用主尺的单位刻度（1 mm）与游标尺的单位刻度之间固定的微量差值来提高测量精度的，即采取了错位放大法提高了测量的精度。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c08c7acaf6d8",
+      "locator": "line:70",
+      "modality": "equation",
+      "normalized_claims": [
+        "由此可知，游标上的刻度间距与主尺的刻度间距相差 $\\frac{1}{n}$ mm，这就是游标尺的精度。以分度值0.1 mm的游标卡尺为例，如图10-24所示，游标尺上有10个等分刻度，总长9 mm，因此游标尺的每一分度为0.9 mm，比主尺"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "因此，要测得金属丝的电阻率 $\\rho$ ，需要先测得金属丝的长度 L、直径 d 和电阻 R。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c881bbb241fb",
+      "locator": "line:15",
+      "modality": "equation",
+      "normalized_claims": [
+        "因此，要测得金属丝的电阻率 $\\rho$ ，需要先测得金属丝的长度 L、直径 d 和电阻 R。"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "若有一根长为 $L$ 、直径为 $d$ 的金属丝，则可以根据电阻定律 $R = \\rho \\frac{L}{S}$ ，得其电阻率 $\\rho = \\frac{SR}{L}$ ，又 $S = \\pi \\left(\\frac{d}{2}\\right)^2$ ，所以可得",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-cc218c435c0c",
+      "locator": "line:9",
+      "modality": "equation",
+      "normalized_claims": [
+        "若有一根长为 $L$ 、直径为 $d$ 的金属丝，则可以根据电阻定律 $R = \\rho \\frac{L}{S}$ ，得其电阻率 $\\rho = \\frac{SR}{L}$ ，又 $S = \\pi \\left(\\frac{d}{2}\\rig"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "螺旋测微器 [图 10-26 (a)] 是依据螺旋放大的原理制成的。...可动刻度的一圈为 50 格，而旋转一圈，螺杆前进（后退）0.5 mm...螺旋测微器可精确测量的最小刻度为 $\\frac{0.5}{50}$ mm = 0.01 mm。...再加上估读，其测量精度值可达到 0.001 mm。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-cf731ce923ab",
+      "locator": "line:81-97",
+      "modality": "text",
+      "normalized_claims": [
+        "螺旋测微器 [图 10-26 (a)] 是依据螺旋放大的原理制成的。...可动刻度的一圈为 50 格，而旋转一圈，螺杆前进（后退）0.5 mm...螺旋测微器可精确测量的最小刻度为 $\\frac{0.5}{50}$ mm = 0.01 mm"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "图10-25 分度值为 $0.02\\mathrm{mm}$ 的游标卡尺的读数",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-d1ec7f23760b",
+      "locator": "line:76",
+      "modality": "equation",
+      "normalized_claims": [
+        "图10-25 分度值为 $0.02\\mathrm{mm}$ 的游标卡尺的读数"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/a26451499c51c6bcd6c47b73a883951299a7d01614937d794ee0f53e6bd796fa.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-d240a14abd72",
+      "locator": "line:61",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/a26451499c51c6bcd6c47b73a883951299a7d01614937d794ee0f53e6bd796fa.jpg)"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 292,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/a26451499c51c6bcd6c47b73a883951299a7d01614937d794ee0f53e6bd796fa.jpg",
+          "reason": "图片即前文提到的“图10-23”，直接展示了游标卡尺的构造（主尺和游标尺），这是本节“游标卡尺的测量原理”的核心对象。图片直观呈现了前文描述的仪器结构，并为后文解释刻度间距关系（nx=(n-1)y）提供了必要的视觉模型。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张游标卡尺的结构示意图。图中标注了“主尺”和“游标尺”两部分。游标尺上方标注了精度“0.02 mm”。可以看到主尺以厘米为单位，游标尺上有精细的刻度线（50分度）。",
+          "width": 901
+        },
+        "path": "images/a26451499c51c6bcd6c47b73a883951299a7d01614937d794ee0f53e6bd796fa.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\rho = \\frac {\\pi d ^ {2} R}{4 L}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-dd477ea55719",
+      "locator": "line:13",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\rho = \\frac {\\pi d ^ {2} R}{4 L}\n$$"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/81f0ee6c7febd63b2797786a4aace3da4dd81be99110420c6a625f9181931540.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f77620a38e00",
+      "locator": "line:84",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/81f0ee6c7febd63b2797786a4aace3da4dd81be99110420c6a625f9181931540.jpg)"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 264,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/81f0ee6c7febd63b2797786a4aace3da4dd81be99110420c6a625f9181931540.jpg",
+          "reason": "图片展示了螺旋测微器的实物结构。前文在介绍原理时引用了“[图 10-26 (a)]”，后文紧接着标注“(a) 实物”并给出总标题“图10-26 螺旋测微器”，图片与上下文对应关系明确。根据规则，作为器材照片/实物图，虽然展示了结构，但主要起辅助说明作用，归类为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "螺旋测微器（千分尺）的实物图。左侧C形框架上印有“0-25”和“0.01mm”，表明测量范围和精度。右侧展示了带有固定刻度（可见0, 5等数字）和可动刻度（可见30, 35, 40等数字）的套筒，以及末端的旋钮。",
+          "width": 618
+        },
+        "path": "images/81f0ee6c7febd63b2797786a4aace3da4dd81be99110420c6a625f9181931540.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:41:31+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-a6091cd04600",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-0e5707425e81"
+      ],
+      "source_type": "textbook",
+      "target_id": "concept/材料类别:auto-afcaa8326198",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [],
+    "created_at": "2026-06-29T05:41:31+00:00",
+    "dataset_id": "main",
+    "definition": "电阻率介于绝缘体和金属之间的材料，其导电性能极易受温度、光照等外界环境条件影响。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "concept/材料类别:auto-afcaa8326198",
+    "kind": "concept",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "半导体",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "raw_subkinds": [
+          "材料类别"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "电阻率随温度升高而减小（热敏特性）",
+          "光照可显著改变电阻率（光敏特性）"
+        ],
+        "conditions": [
+          "纯净单晶结构",
+          "杂质掺杂可改变导电类型"
+        ],
+        "formal_expressions": []
+      },
+      "template_display": {
+        "label": "物理概念",
+        "template_id": "textbook/physics",
+        "type_key": "concept"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": null,
+    "tags": [
+      "热敏电阻",
+      "光敏电阻",
+      "现代电子元件"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [],
+    "outgoing": [
+      {
+        "confidence": 0.8,
+        "created_at": "2026-06-29T05:41:31+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "concept/材料类别:auto-afcaa8326198",
+        "id": "edge:auto-e54a9b887983",
+        "notes": "半导体材料具有特定的电阻率物理量，且该量易随环境条件变化。",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "具有物理量",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-0e5707425e81"
+        ],
+        "status": "active",
+        "to_id": "property/material_property:auto-9bfec6a2a38a",
+        "type": "has_property",
+        "updated_at": "2026-07-02T08:17:02+00:00"
+      }
+    ]
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第三节 测量金属丝的电阻率\n\n细心观察，你会发现汽车的后挡风玻璃上有一条条的细线，如图 10-20 所示，其实这些细线是金属电阻丝。当挡风玻璃起雾、起霜时，汽车对挡风玻璃上的电阻丝通电加热可以起到除雾化霜的作用。我们已经知道金属丝的长度和横截面积一定时，其阻值取决于金属材料的电阻率。本节我们将通过实验测量金属丝的电阻率。\n\n\n\n## 金属丝的电阻率如何测量?\n\n若有一根长为 $L$ 、直径为 $d$ 的金属丝，则可以根据电阻定律 $R = \\rho \\frac{L}{S}$ ，得其电阻率 $\\rho = \\frac{SR}{L}$ ，又 $S = \\pi \\left(\\frac{d}{2}\\right)^2$ ，所以可得\n\n$$\n\\rho = \\frac {\\pi d ^ {2} R}{4 L}\n$$\n\n因此，要测得金属丝的电阻率 $\\rho$ ，需要先测得金属丝的长度 L、直径 d 和电阻 R。\n\n## 学生实验\n\n## 学生实验一：长度测量及其测量工具的选用\n\n长度是物理学中的基本物理量之一。长度的测量是最基本的测量，测量工具众多，最常用的工具是刻度尺。另外，也可以使用游标卡尺（图10-21）和螺旋测微器（图10-22）等。测量工具的分度值（测量工具所能测量的最小值）决定了测量工具所能达到的精度。通常情况下，刻度尺的分度值为 $1\\mathrm{mm}$ ，游标卡尺的分度值有 $0.1\\mathrm{mm}$ 、 $0.05\\mathrm{mm}$ 和 $0.02\\mathrm{mm}$ 三种，螺旋测微器的分度值一般为 $0.01\\mathrm{mm}$ 。\n\n[source image omitted from static artifact]  \n图10-21 数字显示游标卡尺\n\n[source image omitted from static artifact]  \n图10-22 数字显示螺旋测微器\n\n测量长度时要根据不同的场景和要求选择不同的工具。应尽量选择测量工具的量程大于被测物体长度，避免多次测量的累加造成的测量精确度下降；测量工具的分度值要小于测量精度的要求。如金属丝的长度可用刻度尺测量，但金属丝的直径用刻度尺测量则满足不了精度的要求，会造成较大的误差，因此需要选用精度更高的游标卡尺或螺旋测微器对金属丝直径进行测量。\n\n## 实验原理与方案\n\n用刻度尺测量金属丝的长度，用数字显示螺旋测微器测量金属丝的直径。多次测量取平均值以减少误差。\n\n## 实验操作和数据收集\n\n1. 用刻度尺测量金属丝的长度，将数据记录在表 10-3 中；\n\n2. 用数字显示螺旋测微器测量金属丝横截面的直径。打开电源开关，在测砧与测微螺杆接触时进行调零；将金属丝置于测砧与测微螺杆之间；旋转旋钮，当测砧即将夹紧金属丝时，改旋微调旋钮使测砧夹紧金属丝，将显示屏上显示的金属丝直径数值记录在表10-3中。\n\n表 10-3 实验数据记录表\n\n<table><tr><td>实验序号</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>平均值</td></tr><tr><td>金属丝长度 l/mm</td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>金属丝直径 d/mm</td><td></td><td></td><td></td><td></td><td></td><td></td></tr></table>\n\n## 实验结论\n\n金属丝的长度 l 为 \\_\\_\\_\\_；金属丝的直径 d 为 \\_\\_\\_\\_。\n\n## 交流与讨论\n\n也可用游标卡尺测金属丝的直径。各组交流使用不同测量仪器的体会，讨论提高测量准确度的方法。\n\n## 拓展视野\n\n## 1. 游标卡尺的测量原理\n\n游标卡尺作为一种被广泛使用的高精度测量工具，可以测量物体的长度、内径、外径及深度等。它是由主尺和附在主尺上能滑动的游标尺两部分构成，如图10-23所示。游标尺上的刻度线越多，测量的精确程度就越高。如分度值为 $0.1\\mathrm{mm}$ 、 $0.05\\mathrm{mm}$ 、\n\n0.02 mm 的游标卡尺的游标尺上分别有 10 条、20 条、50 条刻度线。那么，游标卡尺是如何实现测量精度的提高的呢？\n\n[source image omitted from static artifact]  \n图10-23 游标卡尺\n\n游标尺上的刻度间距 $x$ 比主尺上的刻度间距 $y$ 略小一点。一般游标尺上的 $n$ 个刻度间距等于主尺上（ $n - 1$ ）个刻度间距，即\n\n$$\nn x = (n - 1) y\n$$\n\n由此可知，游标上的刻度间距与主尺的刻度间距相差 $\\frac{1}{n}$ mm，这就是游标尺的精度。以分度值0.1 mm的游标卡尺为例，如图10-24所示，游标尺上有10个等分刻度，总长9 mm，因此游标尺的每一分度为0.9 mm，比主尺上的最小分度小0.1 mm。当测量爪并拢时，主尺和游标尺的零刻度线对齐，两者的第一条刻度线相差0.1 mm，第二条刻度线相差0.2 mm，……，第10条刻度线相差1 mm，即游标的第10条刻度线恰好与主尺的9 mm刻度线对齐。若测量时测量爪的卡口间距为0.3 mm，游标尺就要向右移动0.3 mm，使得它第3条刻度线恰好与尺身的3 mm刻度线对齐。这样就将主尺上读数时所涉及的估读问题转化为确定主尺上的刻度线与游标尺上的哪条刻度线对齐的问题。所以，游标卡尺是利用主尺的单位刻度（1 mm）与游标尺的单位刻度之间固定的微量差值来提高测量精度的，即采取了错位放大法提高了测量的精度。\n\n[source image omitted from static artifact]  \n图10-24 分度值为 $0.1\\mathrm{mm}$ 的游标卡尺的刻度线\n\n[source image omitted from static artifact]  \n图10-25 分度值为 $0.02\\mathrm{mm}$ 的游标卡尺的读数\n\n如图 10-25 所示的游标卡尺的精度为 $\\frac{1}{50} \\mathrm{~mm}$ ，即 $0.02 \\mathrm{~mm}$ 。在读数时，先从主尺上读得游标尺的零刻度线所在的整数分度值（ $25 \\mathrm{~mm}$ ）；再到游标尺上找与主尺刻度线准确对齐的游标刻度线（第 11 根刻度线）；求得游标尺的分度值 $11 \\times \\frac{1}{50} = 0.22 \\mathrm{~mm}$ ；最后得到测量值 $25 + 0.22 = 25.22 \\mathrm{~mm}$ 。由于使用游标卡尺测量长度时没有进行估读，只是判断刻度线的对齐与否，因此其测量误差即为游标尺的精度值，本例中为 $0.02 \\mathrm{~mm}$ 。\n\n## 2. 螺旋测微器的测量原理\n\n螺旋测微器 [图 10-26 (a)] 是依据螺旋放大的原理制成的。该原理类似于在盘旋式楼梯上行走时，走过的距离与上升高度间存在放大关系，即螺杆在螺母中旋转一周的同时即沿着旋转轴线方向前进（后退）一个螺距的距离。在螺旋测微器中，可动刻度的一圈为 50 格，而旋转一圈，螺杆前进（后退）0.5 mm，即为固定刻度中的一小格，所以，螺旋测微器可精确测量的最小刻度为 $\\frac{0.5}{50}$ mm = 0.01 mm。\n\n[source image omitted from static artifact]  \n(a) 实物\n\n[source image omitted from static artifact]  \n(b) 读数  \n图10-26 螺旋测微器\n\n如图 10-26（b）所示的螺旋测微器（局部）螺距为 0.5 mm，活动套筒（可动刻度）的周界被等分为 50 格，故活动套筒转动 1 格，螺杆相应地移动 0.01 mm，再加上估读，其测量精度值可达到 0.001 mm。读数时，先读固定套筒（刻度）上标尺的数值，再加上活动套筒上标尺的数值。应特别注意活动套筒上的示数是否过 0，过 0 则加 0.5，不过 0 则不能加 0.5。如图 10-26（b）所示，虽然固定套筒上的 5.5 mm 刻度线已经可以看到，但活动套筒上的示数尚未过 0，因此读数应为 $5.0 + 0.474 = 5.474 \\, mm$ ，而非 $5.5 + 0.474 = 5.974 \\, mm$ 。\n\n## 学生实验\n\n## 学生实验二：测量金属丝的电阻率\n\n## 实验原理与方案\n\n要测得金属丝的电阻率，在金属丝的长度和直径的测量基础上，还需要进一步测出金属丝的电阻 R。本实验采用伏安法测量金属丝阻值 R，电路图如图 10-27 所示。\n\n## 实验装置与方法\n\n本实验要用到学生稳压电源、电压表、电流表、滑动变阻器、待测金属丝等实验器材。\n\n  \n图10-27 实验电路图\n\n## 实验操作和数据收集\n\n根据图10-27连接电路，闭合开关，调节滑动变阻器，设计表格，记录多组电压、电流值。\n\n## 数据分析\n\n根据实验数据，绘制 U-I 图像，由图线的斜率得出金属丝的阻值 R。\n\n根据测得的金属丝长度、直径和阻值计算金属丝的电阻率。\n\n## 实验结论\n\n金属丝的电阻率 $\\rho =$ \\_\\_\\_\\_ 。\n\n## 交流与讨论\n\n与其他实验小组分享、比较同一金属丝电阻率的测量结果，并通过查表对比标准值与所测金属丝电阻率的差异。\n\n分析实验误差产生的原因，提出减少实验误差的方法。\n\n## STSE\n\n把各种材料的电阻率由小到大排列起来，如图 10-28 所示。\n\n  \n图10-28 各种材料的电阻率\n\n可见，锗、硅、硒、氧化铜、硼等的电阻率比绝缘体小而比金属大，这类材料称为半导体。\n\n半导体的电阻率常随周围各种环境条件的改变而变化。利用半导体的电阻率随温度升高而减小的特性，可以制成热敏电阻。如图 10-29 所示是一个用热敏电阻制成的半导体体温计，灵敏度、精确度都比较高。\n\n热敏电阻还广泛应用于电子器件的自动调节和控制，是自动化设备的一种重要元件。\n\n  \n图10-29 电子体温计\n\n有的半导体材料在光照下，电阻率也会改变，这类半导体材料可制成光敏电阻。它也是自动控制、遥测技术中的重要元件。例如，若机器上装有光敏电阻控制的制动装置，使一束光照射在光敏电阻上，操作时，若手伸入了危险区，光路就被截断，光敏电阻阻值迅速增大。通过控制电路，机器立刻自动停止运转，从而保证操作工人的安全。在货物传送带旁安装光敏电阻控制的计数器，就可对货物自动计数。\n\n## 问题②思考\n\n1. 根据 “测量金属丝的电阻率” 的实验，判断下列操作是否正确，并对错误的操作做出修改。\n\n(1) 用刻度尺多次测量金属丝的全长, 算出其平均值。\n\n(2) 用螺旋测微器在金属丝上一个部位测量直径。\n\n(3) 实验中尽可能保持金属丝的温度不变。\n\n2. 某段导线的电阻是 $2 \\Omega$ ，如果把它均匀拉长到原来的 1.2 倍，这段导线的电阻将变为多少？\n\n3. 某同学为了测定自动铅笔笔芯的电阻率做了以下实验：他取出一根直径为 0.7 mm 的自动铅笔笔芯，用刻度尺测出笔芯的长度为 11.0 cm，又用 “伏安法” 测得其电阻阻值为 25.1 Ω。计算铅笔芯的电阻率并提出 1\\~2 个在实验中可能产生误差的原因。\n\n4. 将若干张相同的纸叠放在一起，用刻度尺测量出其总厚度，然后除以张数，可以得到一张纸的厚度。受此方法启发，如何用刻度尺测出一根细电阻丝的直径？写出测量方法，并用字母表示出测量值。若该电阻丝的总电阻为 R，总长度为 l，试写出该电阻丝的电阻率的表达式。\n\n5. 长江口涨潮时海水倒灌，出现所谓“咸潮”现象，使得崇明岛的水质受到影响。如果海水的电阻随长度、横截面积的变化规律与金属导体相同。设计一个测量海水电阻率的实验方案以研究“咸潮”出现的规律。\n\n  \n图10-30 飞机仪表盘",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:10-3-a:source-markdown",
+          "locator": "测量金属丝的电阻率",
+          "modality": "text",
+          "page_end": 66,
+          "page_start": 60,
+          "properties": {
+            "md_end": 1938,
+            "md_start": 1773,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:10-3-a",
+            "outline_title": "测量金属丝的电阻率",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 1938,
+      "md_start": 1773,
+      "modalities": [
+        "image",
+        "text",
+        "equation",
+        "table"
+      ],
+      "page_end": 66,
+      "page_start": 60,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第三节 测量金属丝的电阻率\n\n细心观察，你会发现汽车的后挡风玻璃上有一条条的细线，如图 10-20 所示，其实这些细线是金属电阻丝。当挡风玻璃起雾、起霜时，汽车对挡风玻璃上的电阻丝通电加热可以起到除雾化霜的作用。我们已经知道金属丝的长度和横截面积一定时，其阻值取决于金属材料的电阻率。本节我们将通过实验测量金属丝的电阻率。\n\n\n\n## 金属丝的电阻率如何测量?\n\n若有一根长为 $L$ 、直径为 $d$ 的金属丝，则可以根据电阻定律 $R = \\rho \\frac{L}{S}$ ，得其电阻率 $\\rho = \\frac{SR}{L}$ ，又 $S = \\pi \\left(\\frac{d}{2}\\right)^2$ ，所以可得\n\n$$\n\\rho = \\frac {\\pi d ^ {2} R}{4 L}\n$$\n\n因此，要测得金属丝的电阻率 $\\rho$ ，需要先测得金属丝的长度 L、直径 d 和电阻 R。\n\n## 学生实验\n\n## 学生实验一：长度测量及其测量工具的选用\n\n长度是物理学中的基本物理量之一。长度的测量是最基本的测量，测量工具众多，最常用的工具是刻度尺。另外，也可以使用游标卡尺（图10-21）和螺旋测微器（图10-22）等。测量工具的分度值（测量工具所能测量的最小值）决定了测量工具所能达到的精度。通常情况下，刻度尺的分度值为 $1\\mathrm{mm}$ ，游标卡尺的分度值有 $0.1\\mathrm{mm}$ 、 $0.05\\mathrm{mm}$ 和 $0.02\\mathrm{mm}$ 三种，螺旋测微器的分度值一般为 $0.01\\mathrm{mm}$ 。\n\n[source image omitted from static artifact]  \n图10-21 数字显示游标卡尺\n\n[source image omitted from static artifact]  \n图10-22 数字显示螺旋测微器\n\n测量长度时要根据不同的场景和要求选择不同的工具。应尽量选择测量工具的量程大于被测物体长度，避免多次测量的累加造成的测量精确度下降；测量工具的分度值要小于测量精度的要求。如金属丝的长度可用刻度尺测量，但金属丝的直径用刻度尺测量则满足不了精度的要求，会造成较大的误差，因此需要选用精度更高的游标卡尺或螺旋测微器对金属丝直径进行测量。\n\n## 实验原理与方案\n\n用刻度尺测量金属丝的长度，用数字显示螺旋测微器测量金属丝的直径。多次测量取平均值以减少误差。\n\n## 实验操作和数据收集\n\n1. 用刻度尺测量金属丝的长度，将数据记录在表 10-3 中；\n\n2. 用数字显示螺旋测微器测量金属丝横截面的直径。打开电源开关，在测砧与测微螺杆接触时进行调零；将金属丝置于测砧与测微螺杆之间；旋转旋钮，当测砧即将夹紧金属丝时，改旋微调旋钮使测砧夹紧金属丝，将显示屏上显示的金属丝直径数值记录在表10-3中。\n\n表 10-3 实验数据记录表\n\n<table><tr><td>实验序号</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>平均值</td></tr><tr><td>金属丝长度 l/mm</td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>金属丝直径 d/mm</td><td></td><td></td><td></td><td></td><td></td><td></td></tr></table>\n\n## 实验结论\n\n金属丝的长度 l 为 \\_\\_\\_\\_；金属丝的直径 d 为 \\_\\_\\_\\_。\n\n## 交流与讨论\n\n也可用游标卡尺测金属丝的直径。各组交流使用不同测量仪器的体会，讨论提高测量准确度的方法。\n\n## 拓展视野\n\n## 1. 游标卡尺的测量原理\n\n游标卡尺作为一种被广泛使用的高精度测量工具，可以测量物体的长度、内径、外径及深度等。它是由主尺和附在主尺上能滑动的游标尺两部分构成，如图10-23所示。游标尺上的刻度线越多，测量的精确程度就越高。如分度值为 $0.1\\mathrm{mm}$ 、 $0.05\\mathrm{mm}$ 、\n\n0.02 mm 的游标卡尺的游标尺上分别有 10 条、20 条、50 条刻度线。那么，游标卡尺是如何实现测量精度的提高的呢？\n\n[source image omitted from static artifact]  \n图10-23 游标卡尺\n\n游标尺上的刻度间距 $x$ 比主尺上的刻度间距 $y$ 略小一点。一般游标尺上的 $n$ 个刻度间距等于主尺上（ $n - 1$ ）个刻度间距，即\n\n$$\nn x = (n - 1) y\n$$\n\n由此可知，游标上的刻度间距与主尺的刻度间距相差 $\\frac{1}{n}$ mm，这就是游标尺的精度。以分度值0.1 mm的游标卡尺为例，如图10-24所示，游标尺上有10个等分刻度，总长9 mm，因此游标尺的每一分度为0.9 mm，比主尺上的最小分度小0.1 mm。当测量爪并拢时，主尺和游标尺的零刻度线对齐，两者的第一条刻度线相差0.1 mm，第二条刻度线相差0.2 mm，……，第10条刻度线相差1 mm，即游标的第10条刻度线恰好与主尺的9 mm刻度线对齐。若测量时测量爪的卡口间距为0.3 mm，游标尺就要向右移动0.3 mm，使得它第3条刻度线恰好与尺身的3 mm刻度线对齐。这样就将主尺上读数时所涉及的估读问题转化为确定主尺上的刻度线与游标尺上的哪条刻度线对齐的问题。所以，游标卡尺是利用主尺的单位刻度（1 mm）与游标尺的单位刻度之间固定的微量差值来提高测量精度的，即采取了错位放大法提高了测量的精度。\n\n[source image omitted from static artifact]  \n图10-24 分度值为 $0.1\\mathrm{mm}$ 的游标卡尺的刻度线\n\n[source image omitted from static artifact]  \n图10-25 分度值为 $0.02\\mathrm{mm}$ 的游标卡尺的读数\n\n如图 10-25 所示的游标卡尺的精度为 $\\frac{1}{50} \\mathrm{~mm}$ ，即 $0.02 \\mathrm{~mm}$ 。在读数时，先从主尺上读得游标尺的零刻度线所在的整数分度值（ $25 \\mathrm{~mm}$ ）；再到游标尺上找与主尺刻度线准确对齐的游标刻度线（第 11 根刻度线）；求得游标尺的分度值 $11 \\times \\frac{1}{50} = 0.22 \\mathrm{~mm}$ ；最后得到测量值 $25 + 0.22 = 25.22 \\mathrm{~mm}$ 。由于使用游标卡尺测量长度时没有进行估读，只是判断刻度线的对齐与否，因此其测量误差即为游标尺的精度值，本例中为 $0.02 \\mathrm{~mm}$ 。\n\n## 2. 螺旋测微器的测量原理\n\n螺旋测微器 [图 10-26 (a)] 是依据螺旋放大的原理制成的。该原理类似于在盘旋式楼梯上行走时，走过的距离与上升高度间存在放大关系，即螺杆在螺母中旋转一周的同时即沿着旋转轴线方向前进（后退）一个螺距的距离。在螺旋测微器中，可动刻度的一圈为 50 格，而旋转一圈，螺杆前进（后退）0.5 mm，即为固定刻度中的一小格，所以，螺旋测微器可精确测量的最小刻度为 $\\frac{0.5}{50}$ mm = 0.01 mm。\n\n[source image omitted from static artifact]  \n(a) 实物\n\n[source image omitted from static artifact]  \n(b) 读数  \n图10-26 螺旋测微器\n\n如图 10-26（b）所示的螺旋测微器（局部）螺距为 0.5 mm，活动套筒（可动刻度）的周界被等分为 50 格，故活动套筒转动 1 格，螺杆相应地移动 0.01 mm，再加上估读，其测量精度值可达到 0.001 mm。读数时，先读固定套筒（刻度）上标尺的数值，再加上活动套筒上标尺的数值。应特别注意活动套筒上的示数是否过 0，过 0 则加 0.5，不过 0 则不能加 0.5。如图 10-26（b）所示，虽然固定套筒上的 5.5 mm 刻度线已经可以看到，但活动套筒上的示数尚未过 0，因此读数应为 $5.0 + 0.474 = 5.474 \\, mm$ ，而非 $5.5 + 0.474 = 5.974 \\, mm$ 。\n\n## 学生实验\n\n## 学生实验二：测量金属丝的电阻率\n\n## 实验原理与方案\n\n要测得金属丝的电阻率，在金属丝的长度和直径的测量基础上，还需要进一步测出金属丝的电阻 R。本实验采用伏安法测量金属丝阻值 R，电路图如图 10-27 所示。\n\n## 实验装置与方法\n\n本实验要用到学生稳压电源、电压表、电流表、滑动变阻器、待测金属丝等实验器材。\n\n  \n图10-27 实验电路图\n\n## 实验操作和数据收集\n\n根据图10-27连接电路，闭合开关，调节滑动变阻器，设计表格，记录多组电压、电流值。\n\n## 数据分析\n\n根据实验数据，绘制 U-I 图像，由图线的斜率得出金属丝的阻值 R。\n\n根据测得的金属丝长度、直径和阻值计算金属丝的电阻率。\n\n## 实验结论\n\n金属丝的电阻率 $\\rho =$ \\_\\_\\_\\_ 。\n\n## 交流与讨论\n\n与其他实验小组分享、比较同一金属丝电阻率的测量结果，并通过查表对比标准值与所测金属丝电阻率的差异。\n\n分析实验误差产生的原因，提出减少实验误差的方法。\n\n## STSE\n\n把各种材料的电阻率由小到大排列起来，如图 10-28 所示。\n\n  \n图10-28 各种材料的电阻率\n\n可见，锗、硅、硒、氧化铜、硼等的电阻率比绝缘体小而比金属大，这类材料称为半导体。\n\n半导体的电阻率常随周围各种环境条件的改变而变化。利用半导体的电阻率随温度升高而减小的特性，可以制成热敏电阻。如图 10-29 所示是一个用热敏电阻制成的半导体体温计，灵敏度、精确度都比较高。\n\n热敏电阻还广泛应用于电子器件的自动调节和控制，是自动化设备的一种重要元件。\n\n  \n图10-29 电子体温计\n\n有的半导体材料在光照下，电阻率也会改变，这类半导体材料可制成光敏电阻。它也是自动控制、遥测技术中的重要元件。例如，若机器上装有光敏电阻控制的制动装置，使一束光照射在光敏电阻上，操作时，若手伸入了危险区，光路就被截断，光敏电阻阻值迅速增大。通过控制电路，机器立刻自动停止运转，从而保证操作工人的安全。在货物传送带旁安装光敏电阻控制的计数器，就可对货物自动计数。\n\n## 问题②思考\n\n1. 根据 “测量金属丝的电阻率” 的实验，判断下列操作是否正确，并对错误的操作做出修改。\n\n(1) 用刻度尺多次测量金属丝的全长, 算出其平均值。\n\n(2) 用螺旋测微器在金属丝上一个部位测量直径。\n\n(3) 实验中尽可能保持金属丝的温度不变。\n\n2. 某段导线的电阻是 $2 \\Omega$ ，如果把它均匀拉长到原来的 1.2 倍，这段导线的电阻将变为多少？\n\n3. 某同学为了测定自动铅笔笔芯的电阻率做了以下实验：他取出一根直径为 0.7 mm 的自动铅笔笔芯，用刻度尺测出笔芯的长度为 11.0 cm，又用 “伏安法” 测得其电阻阻值为 25.1 Ω。计算铅笔芯的电阻率并提出 1\\~2 个在实验中可能产生误差的原因。\n\n4. 将若干张相同的纸叠放在一起，用刻度尺测量出其总厚度，然后除以张数，可以得到一张纸的厚度。受此方法启发，如何用刻度尺测出一根细电阻丝的直径？写出测量方法，并用字母表示出测量值。若该电阻丝的总电阻为 R，总长度为 l，试写出该电阻丝的电阻率的表达式。\n\n5. 长江口涨潮时海水倒灌，出现所谓“咸潮”现象，使得崇明岛的水质受到影响。如果海水的电阻随长度、横截面积的变化规律与金属导体相同。设计一个测量海水电阻率的实验方案以研究“咸潮”出现的规律。\n\n  \n图10-30 飞机仪表盘",
+      "title": "测量金属丝的电阻率"
+    }
+  ]
+}

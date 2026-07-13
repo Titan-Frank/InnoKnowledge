@@ -1,0 +1,1330 @@
+{
+  "body": {
+    "content": "## 定义\n千瓦时（符号：kW·h）是日常生活中常用的电功（电能）计量单位。[evidence:auto-832fd2b762c3]\n\n## 核心解释\n电能转化成其他形式的能的过程实际上就是电流做功的过程。[evidence:auto-14ca6649089a] 我们把电流所做的功叫做电功，电流做了多少功就表示有多少电能转化成其他形式的能。[evidence:auto-13efa3e50f5d] 千瓦时正是用于计量这一过程中消耗或转化的电能。[evidence:auto-832fd2b762c3]\n\n## 关键要点\n- **物理意义**：1 kW·h等于电功率为1 kW的用电器连续工作1 h所消耗的电能。[evidence:auto-832fd2b762c3]\n- **单位换算**：1 kW·h = 1 kW × 1 h = 3.6 × 10^6 J。\n\n## 示例或应用\n在实际计算中，电功通常由功率与时间的乘积得出。例如，某用电器功率为1100 W，工作1800 s所做的电功为 $W = 1100 \\times 1800 \\, \\mathrm{J} = 1.98 \\times 10^6 \\, \\mathrm{J}$。[evidence:auto-228a935e2900] 该结果在家庭及工业电能消耗计量中，常换算为千瓦时以便日常使用。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "concept/physical_unit:auto-a8d0d8421740",
+    "properties": {
+      "card_title": "千瓦时",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-832fd2b762c3",
+      "evidence:auto-14ca6649089a",
+      "evidence:auto-13efa3e50f5d",
+      "evidence:auto-228a935e2900"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:42:03+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-ab41a1d4b2e7",
+    "mention_refs": [],
+    "node_id": "concept/physical_unit:auto-a8d0d8421740",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "日常生活中常用的电功（电能）计量单位。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-13efa3e50f5d"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "日常生活中常用的电功（电能）计量单位。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-13efa3e50f5d"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "日常生活中常用的电功（电能）计量单位。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-13efa3e50f5d"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "千瓦时"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-13efa3e50f5d"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "电功、电功率及焦耳定律"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-13efa3e50f5d"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-13efa3e50f5d"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-13efa3e50f5d"
+    ],
+    "status": "active",
+    "summary": "日常生活中常用的电功（电能）计量单位。",
+    "title": "千瓦时",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 9,
+    "score": 100,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-9c322993aefb",
+      "node_id": "concept/physical_unit:auto-a8d0d8421740",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "给定一个额定功率为 1.2 kW 的空调连续运行 3 小时，要求学生计算其耗电量，并分别以 kW·h 和 J 为单位给出结果。",
+              "提供一份包含电灯（0.06 kW×5 h）、冰箱（0.15 kW×24 h）的家庭用电清单，要求汇总计算总耗电量并换算为焦耳。",
+              "判断一组包含功率、时间、电能计算式的单位匹配正误，并说明千瓦时在电功计量中的适用条件。"
+            ],
+            "common_errors": [
+              "混淆电功与电功率单位，误将“千瓦时”当作功率单位或直接代入瞬时功率公式。",
+              "单位换算时遗漏时间量纲转换，错误地将 1 kW·h 直接等同于 1000 J 或其他数值。",
+              "脱离“家庭及工业电能消耗计量”的应用边界，在微观电路分析或非累积性电学问题中强行使用千瓦时。"
+            ],
+            "diagnostic_questions": [
+              "1 kW·h 具体对应怎样的物理过程？",
+              "千瓦（kW）与千瓦时（kW·h）在物理量和单位上有什么区别？",
+              "将 1.5 kW·h 换算为国际单位制中的焦耳，计算过程与结果是什么？"
+            ],
+            "difficulty_level": "basic",
+            "extension_suggestions": [
+              "结合电费计价单，设计阶梯电价下的月度用电量估算任务，强化千瓦时在经济生活中的应用价值。",
+              "对比焦耳定律中的热量计算（J）与电功计算（kW·h），探讨纯电阻电路中电能与内能转化的单位统一方法。",
+              "引入能效标识（如一级能效空调的 kW·h/年），引导学生从单位耗电量角度分析用电器的节能特性。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T10:12:46+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "7026d6f03be53451bf47e4591cd6c2afc9bdff0dc281b2dbeceaf7eba627a413",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-832fd2b762c3",
+                "evidence:auto-13efa3e50f5d"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能准确叙述千瓦时作为电功（电能）计量单位的物理意义及其与焦耳的换算关系（1 kW·h = 3.6 × 10^6 J）。",
+              "能结合用电器的电功率（kW）与工作时间（h），利用 W = P × t 公式正确计算消耗的电能。",
+              "能在家庭或工业用电情境中，明确千瓦时的应用边界，并将其与电功率单位进行区分。"
+            ],
+            "remediation_suggestions": [
+              "利用家用电能表读数对比案例，直观建立“1 kW 用电器工作 1 h 消耗 1 度电”的生活化认知锚点。",
+              "采用单位量纲分析法，强制学生在 W = P × t 计算前统一功率与时间单位，强化 1 kW·h = 1000 W × 3600 s 的推导过程。",
+              "设置情境辨析练习，明确千瓦时仅适用于宏观累积电能计量，引导学生在理论计算中优先使用国际单位制（焦耳）。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-13efa3e50f5d",
+        "evidence:auto-228a935e2900",
+        "evidence:auto-832fd2b762c3"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:12:46+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nI = \\frac {P}{U} = \\frac {1 1 0 0}{2 2 0} \\mathrm{A} = 5 \\mathrm{A}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-027290ffb938",
+      "locator": "line:46",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nI = \\frac {P}{U} = \\frac {1 1 0 0}{2 2 0} \\mathrm{A} = 5 \\mathrm{A}\n$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "我们把电流所做的功叫做电功（electric work）。电流做了多少功就表示有多少电能转化成其他形式的能。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-13efa3e50f5d",
+      "locator": "line:9",
+      "modality": "text",
+      "normalized_claims": [
+        "我们把电流所做的功叫做电功（electric work）。电流做了多少功就表示有多少电能转化成其他形式的能。"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "电能转化成其他形式的能的过程实际上就是电流做功的过程。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-14ca6649089a",
+      "locator": "line:2",
+      "modality": "text",
+      "normalized_claims": [
+        "电能转化成其他形式的能的过程实际上就是电流做功的过程。"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nQ = P t = 1 0 0 0 \\times 6 0 \\mathrm{J} = 6. 0 \\times 1 0 ^ {4} \\mathrm{J}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-1aab46554917",
+      "locator": "line:86",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nQ = P t = 1 0 0 0 \\times 6 0 \\mathrm{J} = 6. 0 \\times 1 0 ^ {4} \\mathrm{J}\n$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nP = \\frac {Q}{t} = I ^ {2} R\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-1ce5a47efd54",
+      "locator": "line:74",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nP = \\frac {Q}{t} = I ^ {2} R\n$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$Q = I ^ {2} R t$$",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-222cdacecbaa",
+      "locator": "line:63",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$Q = I ^ {2} R t$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nW = P t = 1 1 0 0 \\times 1 8 0 0 \\mathrm{J} = 1. 9 8 \\times 1 0 ^ {6} \\mathrm{J}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-228a935e2900",
+      "locator": "line:52",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nW = P t = 1 1 0 0 \\times 1 8 0 0 \\mathrm{J} = 1. 9 8 \\times 1 0 ^ {6} \\mathrm{J}\n$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "根据 $P = UI = \\frac{U^{2}}{R}$ ，可得电热水器的电阻",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-342f9d751402",
+      "locator": "line:88",
+      "modality": "equation",
+      "normalized_claims": [
+        "根据 $P = UI = \\frac{U^{2}}{R}$ ，可得电热水器的电阻"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "通常把电流流过导体时产生的热量称为电热，也叫做焦耳热。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-3910e2852552",
+      "locator": "line:65",
+      "modality": "text",
+      "normalized_claims": [
+        "通常把电流流过导体时产生的热量称为电热，也叫做焦耳热。"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "电流通过导体产生的热量与所用时间之比叫做热功率，其表达式为 $$P = \\frac {Q}{t} = I ^ {2} R$$",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-466438e1d554",
+      "locator": "line:67-70",
+      "modality": "text",
+      "normalized_claims": [
+        "电流通过导体产生的热量与所用时间之比叫做热功率，其表达式为 $$P = \\frac {Q}{t} = I ^ {2} R$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "电功率的单位是瓦特，简称瓦，符号是 W。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-4c724e5c3f6f",
+      "locator": "line:24",
+      "modality": "text",
+      "normalized_claims": [
+        "电功率的单位是瓦特，简称瓦，符号是 W。"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/ffe1f6fd2224db3ab4e1412309f87d0e96c38eaf598c56b81e1a6b0c20971466.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-566a71752b90",
+      "locator": "line:35",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/ffe1f6fd2224db3ab4e1412309f87d0e96c38eaf598c56b81e1a6b0c20971466.jpg)"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 409,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/ffe1f6fd2224db3ab4e1412309f87d0e96c38eaf598c56b81e1a6b0c20971466.jpg",
+          "reason": "前文明确指出“如图 10-61 所示是一台电风扇的铭牌，说说铭牌上标识的电学量及其含义”，后文标题也为“图10-61 某电风扇的铭牌”。图片内容与上下文完全对应。虽然图片包含了铭牌数据和线路结构，但在此处（小结/大家谈栏目）主要作为引导学生讨论铭牌含义的辅助素材（实物/文档截图），属于补充材料或场景说明，而非核心理论推导的示意图，故归类为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片左侧为电风扇铭牌，包含产品名称、额定电压220V、额定功率50W、规格400mm、额定频率50Hz等参数，以及CCC标志。图片右侧为电风扇的线路图，展示了风扇电机、琴键开关（红橙灰线对应3210档）、定时器、热熔断器、电容器、电源插头线（棕L蓝N）的连接方式。",
+          "width": 981
+        },
+        "path": "images/ffe1f6fd2224db3ab4e1412309f87d0e96c38eaf598c56b81e1a6b0c20971466.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nQ = I ^ {2} R t\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-5d7fcb1d32d4",
+      "locator": "line:68",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nQ = I ^ {2} R t\n$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nR = \\frac {U ^ {2}}{P} = \\frac {2 2 0 ^ {2}}{1 0 0 0} \\Omega = 4 8. 4 \\Omega\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-5fa649ebe296",
+      "locator": "line:92",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nR = \\frac {U ^ {2}}{P} = \\frac {2 2 0 ^ {2}}{1 0 0 0} \\Omega = 4 8. 4 \\Omega\n$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nP = U I\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-734a1785e520",
+      "locator": "line:27",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nP = U I\n$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "分析：电流可由 $I = \\frac{P}{U}$ 求解，消耗的电能即为这段时间电流做的电功。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-7ada7136ea92",
+      "locator": "line:40",
+      "modality": "equation",
+      "normalized_claims": [
+        "分析：电流可由 $I = \\frac{P}{U}$ 求解，消耗的电能即为这段时间电流做的电功。"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "电功的单位是焦耳，简称焦，符号是 J。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-82931ae89806",
+      "locator": "line:14",
+      "modality": "text",
+      "normalized_claims": [
+        "电功的单位是焦耳，简称焦，符号是 J。"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "日常生活中经常使用的电功单位是千瓦·时 $(\\mathrm{kW}\\cdot\\mathrm{h})$ 。1 kW·h等于电功率为1 kW的用电器连续工作1 h所消耗的电能。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-832fd2b762c3",
+      "locator": "line:46",
+      "modality": "text",
+      "normalized_claims": [
+        "日常生活中经常使用的电功单位是千瓦·时 $(\\mathrm{kW}\\cdot\\mathrm{h})$ 。1 kW·h等于电功率为1 kW的用电器连续工作1 h所消耗的电能。"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "浴霸连续正常工作时间 $t = 30 \\, min = 1800 \\, s$ ，消耗电能",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-89dd5ef2d086",
+      "locator": "line:48",
+      "modality": "equation",
+      "normalized_claims": [
+        "浴霸连续正常工作时间 $t = 30 \\, min = 1800 \\, s$ ，消耗电能"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "需要说明的是，由于焦耳这个单位较小，在日常生活中经常使用的电功单位是千瓦·时 $(\\mathrm{kW}\\cdot\\mathrm{h})$ 。1 kW·h等于电功率为1 kW的用电器连续工作1 h所消耗的电能。因此，如需知道示例1中的浴霸消耗了多少千瓦·时电能，可由运行时间 $t=30\\ min=0.5\\ h$ 及额定功率P=1.1 kW，得浴霸消耗电能",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-91baabcd8118",
+      "locator": "line:54",
+      "modality": "equation",
+      "normalized_claims": [
+        "需要说明的是，由于焦耳这个单位较小，在日常生活中经常使用的电功单位是千瓦·时 $(\\mathrm{kW}\\cdot\\mathrm{h})$ 。1 kW·h等于电功率为1 kW的用电器连续工作1 h所消耗的电能。因此，如需知道示例1中的浴霸消"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "以前已经学过用功率表示机械做功的快慢，类似的，我们用电功率来表示电流做功的快慢。电流所做的功与完成这些功用的时间之比叫做电功率（electric power），用 P 表示。根据功率的定义式 $P=\\frac{W}{t}$ ，将 W=UIt 代入得",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-9422f6ac6448",
+      "locator": "line:23",
+      "modality": "equation",
+      "normalized_claims": [
+        "以前已经学过用功率表示机械做功的快慢，类似的，我们用电功率来表示电流做功的快慢。电流所做的功与完成这些功用的时间之比叫做电功率（electric power），用 P 表示。根据功率的定义式 $P=\\frac{W}{t}$ ，将 W=UIt"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$P = U I$$",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a9763be13021",
+      "locator": "line:22",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$P = U I$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "如果电路是纯电阻电路，电能都转化为内能，这时电功 W 与电流所产生的热量 Q 相等，即 W = Q。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ad6fad58e7cc",
+      "locator": "line:78",
+      "modality": "text",
+      "normalized_claims": [
+        "如果电路是纯电阻电路，电能都转化为内能，这时电功 W 与电流所产生的热量 Q 相等，即 W = Q。"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "电流通过导体产生的热量 $Q$ ，与电流 $I$ 的二次方、导体的电阻 $R$ 和通电的时间 $t$ 成正比。这就是焦耳定律（Joule's law）",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-b6ecd97e215e",
+      "locator": "line:59",
+      "modality": "text",
+      "normalized_claims": [
+        "电流通过导体产生的热量 $Q$ ，与电流 $I$ 的二次方、导体的电阻 $R$ 和通电的时间 $t$ 成正比。这就是焦耳定律（Joule's law）"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "电路将消耗的电能全部用于发热，这样的电路称为纯电阻电路，典型的应用有电熨斗、电饭煲等。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-be2c5b926c90",
+      "locator": "line:72",
+      "modality": "text",
+      "normalized_claims": [
+        "电路将消耗的电能全部用于发热，这样的电路称为纯电阻电路，典型的应用有电熨斗、电饭煲等。"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nW = q U = U I t\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c6adbbb9bf7d",
+      "locator": "line:15",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nW = q U = U I t\n$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "电流所做的功与完成这些功用的时间之比叫做电功率（electric power），用 P 表示。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-cdba89187cc5",
+      "locator": "line:19",
+      "modality": "text",
+      "normalized_claims": [
+        "电流所做的功与完成这些功用的时间之比叫做电功率（electric power），用 P 表示。"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "如果电路中有电动机或电解槽等用电器，则在这类非纯电阻电路中，电能并不全都转化为内能... 这时，电功 W > 电热 Q",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-d4162d513cfa",
+      "locator": "line:80",
+      "modality": "text",
+      "normalized_claims": [
+        "如果电路中有电动机或电解槽等用电器，则在这类非纯电阻电路中，电能并不全都转化为内能... 这时，电功 W > 电热 Q"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "英国物理学家焦耳（J. P. Joule，1818—1889）经过多次实验指出：电流通过导体产生的热量 $Q$ ，与电流 $I$ 的二次方、导体的电阻 $R$ 和通电的时间 $t$ 成正比。这就是焦耳定律（Joule's law），即",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-d73a7ce33a0b",
+      "locator": "line:64",
+      "modality": "equation",
+      "normalized_claims": [
+        "英国物理学家焦耳（J. P. Joule，1818—1889）经过多次实验指出：电流通过导体产生的热量 $Q$ ，与电流 $I$ 的二次方、导体的电阻 $R$ 和通电的时间 $t$ 成正比。这就是焦耳定律（Joule's law），即"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nW = P t = 1. 1 \\times 0. 5 \\mathrm{kW} \\cdot \\mathrm{h} = 0. 5 5 \\mathrm{kW} \\cdot \\mathrm{h}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-dc26ea4836fe",
+      "locator": "line:58",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nW = P t = 1. 1 \\times 0. 5 \\mathrm{kW} \\cdot \\mathrm{h} = 0. 5 5 \\mathrm{kW} \\cdot \\mathrm{h}\n$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "当电路电压 $U_{1}$ 为 210 V 时，电热水器 1 min 产生的热量",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ea5ec971daa1",
+      "locator": "line:94",
+      "modality": "equation",
+      "normalized_claims": [
+        "当电路电压 $U_{1}$ 为 210 V 时，电热水器 1 min 产生的热量"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$W = q U = U I t$$",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-fc3866022c2e",
+      "locator": "line:12",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$W = q U = U I t$$"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/082d1cf03798535ca853ac8ae7c931c1eddc8ba4922354e4db19c9450412a71f.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-fe7e683f2d3f",
+      "locator": "line:60",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/082d1cf03798535ca853ac8ae7c931c1eddc8ba4922354e4db19c9450412a71f.jpg)"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 56,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/082d1cf03798535ca853ac8ae7c931c1eddc8ba4922354e4db19c9450412a71f.jpg",
+          "reason": "图片是一个问号图标，与标题路径中的“大家谈”栏目形成语义对应（大家谈通常涉及提问或讨论）。虽然图片本身没有具体的物理学科知识内容，但它作为栏目的辅助说明图标，起到了引导读者进入讨论环节的作用，符合保留为 supporting 的规则。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片显示一个紫色的圆形图标，中间包含一个白色的问号符号。",
+          "width": 62
+        },
+        "path": "images/082d1cf03798535ca853ac8ae7c931c1eddc8ba4922354e4db19c9450412a71f.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:42:03+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-0fc83d0b0b85",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-832fd2b762c3"
+      ],
+      "source_type": "textbook",
+      "target_id": "concept/physical_unit:auto-a8d0d8421740",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "kW·h",
+      "度"
+    ],
+    "created_at": "2026-06-29T05:42:03+00:00",
+    "dataset_id": "main",
+    "definition": "日常生活中常用的电功（电能）计量单位。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "concept/physical_unit:auto-a8d0d8421740",
+    "kind": "concept",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "千瓦时",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "subkinds": [
+          "physical_unit"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "用于家庭及工业电能消耗计量"
+        ],
+        "conditions": [],
+        "formal_expressions": [
+          "1 kW·h = 1 kW × 1 h = 3.6 × 10^6 J"
+        ]
+      },
+      "template_display": {
+        "label": "物理概念",
+        "template_id": "textbook/physics",
+        "type_key": "concept"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "physical_unit",
+    "tags": [
+      "常用单位"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [],
+    "outgoing": [
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:42:03+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "concept/physical_unit:auto-a8d0d8421740",
+        "id": "edge:auto-bafc525a5548",
+        "notes": "千瓦时是日常生活中常用的电功（电能）计量单位。",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "相关",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-832fd2b762c3"
+        ],
+        "status": "active",
+        "to_id": "property/physical_quantity:auto-3f5c2bbadb36",
+        "type": "related_to",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ]
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第七节 电功、电功率及焦耳定律\n\n用电器可以把电能转化成各种其他形式的能。电熨斗（图 10-60）、电热毯、电饭煲和工业上用来冶炼钢铁的电弧炉，主要把电能转化成内能；洗衣机、电车主要把电能转化成机械能；电解池、电镀装置主要把电能转化成化学能。我们知道，从一种形式的能转化成另一种形式的能的过程需要做功。电能转化成其他形式的能的过程实际上就是电流做功的过程。\n\n\n\n## 什么是电功？\n\n我们把电流所做的功叫做电功（electric work）。电流做了多少功就表示有多少电能转化成其他形式的能。\n\n电功实质上是导体中的电场对自由电荷的作用力做的功。设通过导体的恒定电流为 I，导体两端的电压为 U，则在时间 t 内电流通过这段导体的电荷量为 q = It，电场力对电荷所做的功为\n\n$$\nW = q U = U I t\n$$\n\n电功的单位是焦耳，简称焦，符号是 J。\n\n\n\n## 什么是电功率？\n\n以前已经学过用功率表示机械做功的快慢，类似的，我们用电功率来表示电流做功的快慢。电流所做的功与完成这些功用的时间之比叫做电功率（electric power），用 P 表示。根据功率的定义式 $P=\\frac{W}{t}$ ，将 W=UIt 代入得\n\n$$\nP = U I\n$$\n\n电功率的单位是瓦特，简称瓦，符号是 W。\n\n## 大家谈\n\n日常生活使用的电器上都贴有一个铭牌，标识该用电器的额定电压、额定功率或额定电流等。如图 10-61 所示是一台电风扇的铭牌，说说铭牌上标识的电学量及其含义。\n\n[source image omitted from static artifact]  \n图10-61 某电风扇的铭牌\n\n示例 1 一浴霸的额定功率 P = 1.1 kW、额定电压 U = 220 V。试问：该浴霸在正常工作时，通过的电流有多大？如果连续正常工作 30 min，消耗多少电能？\n\n分析：电流可由 $I = \\frac{P}{U}$ 求解，消耗的电能即为这段时间电流做的电功。\n\n解：设浴霸正常工作时电流为 I，则根据电功率的公式 P = UI，可得\n\n$$\nI = \\frac {P}{U} = \\frac {1 1 0 0}{2 2 0} \\mathrm{A} = 5 \\mathrm{A}\n$$\n\n浴霸连续正常工作时间 $t = 30 \\, min = 1800 \\, s$ ，消耗电能\n\n$$\nW = P t = 1 1 0 0 \\times 1 8 0 0 \\mathrm{J} = 1. 9 8 \\times 1 0 ^ {6} \\mathrm{J}\n$$\n\n需要说明的是，由于焦耳这个单位较小，在日常生活中经常使用的电功单位是千瓦·时 $(\\mathrm{kW}\\cdot\\mathrm{h})$ 。1 kW·h等于电功率为1 kW的用电器连续工作1 h所消耗的电能。因此，如需知道示例1中的浴霸消耗了多少千瓦·时电能，可由运行时间 $t=30\\ min=0.5\\ h$ 及额定功率P=1.1 kW，得浴霸消耗电能\n\n$$\nW = P t = 1. 1 \\times 0. 5 \\mathrm{kW} \\cdot \\mathrm{h} = 0. 5 5 \\mathrm{kW} \\cdot \\mathrm{h}\n$$\n\n[source image omitted from static artifact]\n\n## 什么是电热？\n\n英国物理学家焦耳（J. P. Joule，1818—1889）经过多次实验指出：电流通过导体产生的热量 $Q$ ，与电流 $I$ 的二次方、导体的电阻 $R$ 和通电的时间 $t$ 成正比。这就是焦耳定律（Joule's law），即\n\n$$\nQ = I ^ {2} R t\n$$\n\n通常把电流流过导体时产生的热量称为电热，也叫做焦耳热。电流通过导体产生的热量与所用时间之比叫做热功率，其表达式为\n\n$$\nP = \\frac {Q}{t} = I ^ {2} R\n$$\n\n电路将消耗的电能全部用于发热，这样的电路称为纯电阻电路，典型的应用有电熨斗、电饭煲等。\n\n示例 2 一台标有 “220 V 1 000 W” 字样的电热水器在额定电压下使用，1 min 产生多少热量？如果电路电压略有下降，降为 210 V，电热水器 1 min 放出的热量又是多少？\n\n分析：电热水器的电路可视作纯电阻电路，电功率等于热功率。当电压不是额定电压时，电热水器的实际功率就不是额定功率 1 000 W。\n\n解：设该电热水器额定电压为 U、额定功率为 P、电阻为 R，则其 1 min 产生的热量\n\n$$\nQ = P t = 1 0 0 0 \\times 6 0 \\mathrm{J} = 6. 0 \\times 1 0 ^ {4} \\mathrm{J}\n$$\n\n根据 $P = UI = \\frac{U^{2}}{R}$ ，可得电热水器的电阻\n\n$$\nR = \\frac {U ^ {2}}{P} = \\frac {2 2 0 ^ {2}}{1 0 0 0} \\Omega = 4 8. 4 \\Omega\n$$\n\n当电路电压 $U_{1}$ 为 210 V 时，电热水器 1 min 产生的热量\n\n$$\nQ _ {1} = \\frac {U _ {1} ^ {2}}{R} t = \\frac {2 1 0 ^ {2}}{4 8 . 4} \\times 6 0 \\mathrm{J} \\approx 5. 5 \\times 1 0 ^ {4} \\mathrm{J}\n$$\n\n由本示例可知，用电器只有在额定电压下，其电功率才是额定功率，如果电压发生变化，实际功率就会发生变化。\n\n\n\n## 电功和电热有什么区别？\n\n如果电路是纯电阻电路，电能都转化为内能，这时电功 W 与电流所产生的热量 Q 相等，即 W = Q。\n\n如果电路中有电动机或电解槽等用电器，则在这类非纯电阻电路中，电能并不全都转化为内能，有部分电能转化为机械能或化学能。这时，电功 W > 电热 Q，它们的差就是电能转化成机械能或化学能的部分。\n\n示例 3 一台电动机的额定电压 U=220 V，线圈的电阻 $R=0.8\\ \\Omega$ 。正常工作时，它每秒产生的热量为 1280 J，则正常工作时的电流为多大？电动机的输出功率为多大？\n\n分析：含有电动机的电路是非纯电阻电路，电能会转化为内能和机械能。应先根据电动机产生的热量算出通过线圈的电流 I；再根据电功率的公式 P = UI 算出电动机的输入功率 P，将输入功率减去转化为内能的功率 $P_{热}$ ，就是电能转化为机械能的功率，也即输出功率 $P_{输出}$ 。\n\n解：设电动机正常工作时通过的电流为 I，1 s 产生的热量为 Q，则由 $Q = I^{2}Rt$ 得\n\n$$\nI = \\sqrt {\\frac {Q}{R t}} = \\sqrt {\\frac {1 2 8 0}{0 . 8 \\times 1}} \\mathrm{A} = 4 0 \\mathrm{A}\n$$\n\n电动机正常工作时输入功率\n\n$$\nP = U I = 2 2 0 \\times 4 0 \\mathrm{W} = 8 8 0 0 \\mathrm{W}\n$$\n\n电动机正常工作时的热功率\n\n$$\nP _ {\\text {热}} = \\frac {Q}{t} = \\frac {1 2 8 0}{1} \\mathrm{W} = 1 2 8 0 \\mathrm{W}\n$$\n\n因此，电动机的输出功率\n\n$$\nP _ {\\mathrm{输出}} = P - P _ {\\mathrm{热}} = (8 8 0 0 - 1 2 8 0) \\mathrm{W} = 7 5 2 0 \\mathrm{W}\n$$\n\n## 问题②思考\n\n1. 在力学和电学的学习中, 已经知道功率的多种表达式, 简要说明下述表达式的含义及其适用范围: ① $P = \\frac{W}{t}$ ② $P = Fv$ ③ $P = UI$ ④ $P = I^2 R$ ⑤ $P = \\frac{U^2}{R}$\n\n2. 一台电热水器接入电压为 $220 \\mathrm{~V}$ 的电路中, $0.5 \\mathrm{~h}$ 内产生的热量为 $1.452 \\times 10^{6} \\mathrm{~J}$ , 求这台热水器加热时的电阻。\n\n3. 一台电动机额定电压是 $220 \\mathrm{~V}$ , 线圈电阻为 $0.5 \\Omega$ , 电动机在正常工作时通过的电流为 $32 \\mathrm{~A}$ , 则电动机在运转 $20 \\mathrm{~min}$ 的过程中, 消耗了多少电能? 线圈电阻产生了多少热量? 最多有多少电能转化为机械能?\n\n4. 一台冰箱的输入功率是 $180 \\mathrm{~W}$ ，一天耗电 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 。若冰箱每次制冷时间为 $7 \\mathrm{~min}$ ，且间隔均匀相等，估算该冰箱 $1 \\mathrm{~h}$ 制冷的次数。\n\n5. 移动电源，也叫“充电宝”，常采用锂电芯，能为手机、平板计算机等设备供电，但使用不当可能会造成过充、短路等安全隐患。出于安全原因，中国民航\n\n总局规定当移动电源的额定容量不超过100 W·h才可在乘机时随身携带。某移动电源的铭牌如表10-4所示。\n\n(1) 通过计算，判断乘客在乘机时是否能随身携带该移动电源。\n\n(2) 该移动电源在充满电的情况下, 能为一个 “3 W 1.5 A” 的 USB 风扇供电多长时间?\n\n表10-4\n\n<table><tr><td>输入</td><td>DC 5 V 2.0 A</td></tr><tr><td>输出</td><td>DC 5 V 2.1 A</td></tr><tr><td>容量</td><td>10 000 mA·h</td></tr><tr><td>转换率</td><td>&gt;85%</td></tr></table>\n\n  \n图10-62 家庭配电箱",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:10-7-a:source-markdown",
+          "locator": "电功、电功率及焦耳定律",
+          "modality": "text",
+          "page_end": 85,
+          "page_start": 81,
+          "properties": {
+            "md_end": 2546,
+            "md_start": 2385,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:10-7-a",
+            "outline_title": "电功、电功率及焦耳定律",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 2546,
+      "md_start": 2385,
+      "modalities": [
+        "equation",
+        "text",
+        "image",
+        "table"
+      ],
+      "page_end": 85,
+      "page_start": 81,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第七节 电功、电功率及焦耳定律\n\n用电器可以把电能转化成各种其他形式的能。电熨斗（图 10-60）、电热毯、电饭煲和工业上用来冶炼钢铁的电弧炉，主要把电能转化成内能；洗衣机、电车主要把电能转化成机械能；电解池、电镀装置主要把电能转化成化学能。我们知道，从一种形式的能转化成另一种形式的能的过程需要做功。电能转化成其他形式的能的过程实际上就是电流做功的过程。\n\n\n\n## 什么是电功？\n\n我们把电流所做的功叫做电功（electric work）。电流做了多少功就表示有多少电能转化成其他形式的能。\n\n电功实质上是导体中的电场对自由电荷的作用力做的功。设通过导体的恒定电流为 I，导体两端的电压为 U，则在时间 t 内电流通过这段导体的电荷量为 q = It，电场力对电荷所做的功为\n\n$$\nW = q U = U I t\n$$\n\n电功的单位是焦耳，简称焦，符号是 J。\n\n\n\n## 什么是电功率？\n\n以前已经学过用功率表示机械做功的快慢，类似的，我们用电功率来表示电流做功的快慢。电流所做的功与完成这些功用的时间之比叫做电功率（electric power），用 P 表示。根据功率的定义式 $P=\\frac{W}{t}$ ，将 W=UIt 代入得\n\n$$\nP = U I\n$$\n\n电功率的单位是瓦特，简称瓦，符号是 W。\n\n## 大家谈\n\n日常生活使用的电器上都贴有一个铭牌，标识该用电器的额定电压、额定功率或额定电流等。如图 10-61 所示是一台电风扇的铭牌，说说铭牌上标识的电学量及其含义。\n\n[source image omitted from static artifact]  \n图10-61 某电风扇的铭牌\n\n示例 1 一浴霸的额定功率 P = 1.1 kW、额定电压 U = 220 V。试问：该浴霸在正常工作时，通过的电流有多大？如果连续正常工作 30 min，消耗多少电能？\n\n分析：电流可由 $I = \\frac{P}{U}$ 求解，消耗的电能即为这段时间电流做的电功。\n\n解：设浴霸正常工作时电流为 I，则根据电功率的公式 P = UI，可得\n\n$$\nI = \\frac {P}{U} = \\frac {1 1 0 0}{2 2 0} \\mathrm{A} = 5 \\mathrm{A}\n$$\n\n浴霸连续正常工作时间 $t = 30 \\, min = 1800 \\, s$ ，消耗电能\n\n$$\nW = P t = 1 1 0 0 \\times 1 8 0 0 \\mathrm{J} = 1. 9 8 \\times 1 0 ^ {6} \\mathrm{J}\n$$\n\n需要说明的是，由于焦耳这个单位较小，在日常生活中经常使用的电功单位是千瓦·时 $(\\mathrm{kW}\\cdot\\mathrm{h})$ 。1 kW·h等于电功率为1 kW的用电器连续工作1 h所消耗的电能。因此，如需知道示例1中的浴霸消耗了多少千瓦·时电能，可由运行时间 $t=30\\ min=0.5\\ h$ 及额定功率P=1.1 kW，得浴霸消耗电能\n\n$$\nW = P t = 1. 1 \\times 0. 5 \\mathrm{kW} \\cdot \\mathrm{h} = 0. 5 5 \\mathrm{kW} \\cdot \\mathrm{h}\n$$\n\n[source image omitted from static artifact]\n\n## 什么是电热？\n\n英国物理学家焦耳（J. P. Joule，1818—1889）经过多次实验指出：电流通过导体产生的热量 $Q$ ，与电流 $I$ 的二次方、导体的电阻 $R$ 和通电的时间 $t$ 成正比。这就是焦耳定律（Joule's law），即\n\n$$\nQ = I ^ {2} R t\n$$\n\n通常把电流流过导体时产生的热量称为电热，也叫做焦耳热。电流通过导体产生的热量与所用时间之比叫做热功率，其表达式为\n\n$$\nP = \\frac {Q}{t} = I ^ {2} R\n$$\n\n电路将消耗的电能全部用于发热，这样的电路称为纯电阻电路，典型的应用有电熨斗、电饭煲等。\n\n示例 2 一台标有 “220 V 1 000 W” 字样的电热水器在额定电压下使用，1 min 产生多少热量？如果电路电压略有下降，降为 210 V，电热水器 1 min 放出的热量又是多少？\n\n分析：电热水器的电路可视作纯电阻电路，电功率等于热功率。当电压不是额定电压时，电热水器的实际功率就不是额定功率 1 000 W。\n\n解：设该电热水器额定电压为 U、额定功率为 P、电阻为 R，则其 1 min 产生的热量\n\n$$\nQ = P t = 1 0 0 0 \\times 6 0 \\mathrm{J} = 6. 0 \\times 1 0 ^ {4} \\mathrm{J}\n$$\n\n根据 $P = UI = \\frac{U^{2}}{R}$ ，可得电热水器的电阻\n\n$$\nR = \\frac {U ^ {2}}{P} = \\frac {2 2 0 ^ {2}}{1 0 0 0} \\Omega = 4 8. 4 \\Omega\n$$\n\n当电路电压 $U_{1}$ 为 210 V 时，电热水器 1 min 产生的热量\n\n$$\nQ _ {1} = \\frac {U _ {1} ^ {2}}{R} t = \\frac {2 1 0 ^ {2}}{4 8 . 4} \\times 6 0 \\mathrm{J} \\approx 5. 5 \\times 1 0 ^ {4} \\mathrm{J}\n$$\n\n由本示例可知，用电器只有在额定电压下，其电功率才是额定功率，如果电压发生变化，实际功率就会发生变化。\n\n\n\n## 电功和电热有什么区别？\n\n如果电路是纯电阻电路，电能都转化为内能，这时电功 W 与电流所产生的热量 Q 相等，即 W = Q。\n\n如果电路中有电动机或电解槽等用电器，则在这类非纯电阻电路中，电能并不全都转化为内能，有部分电能转化为机械能或化学能。这时，电功 W > 电热 Q，它们的差就是电能转化成机械能或化学能的部分。\n\n示例 3 一台电动机的额定电压 U=220 V，线圈的电阻 $R=0.8\\ \\Omega$ 。正常工作时，它每秒产生的热量为 1280 J，则正常工作时的电流为多大？电动机的输出功率为多大？\n\n分析：含有电动机的电路是非纯电阻电路，电能会转化为内能和机械能。应先根据电动机产生的热量算出通过线圈的电流 I；再根据电功率的公式 P = UI 算出电动机的输入功率 P，将输入功率减去转化为内能的功率 $P_{热}$ ，就是电能转化为机械能的功率，也即输出功率 $P_{输出}$ 。\n\n解：设电动机正常工作时通过的电流为 I，1 s 产生的热量为 Q，则由 $Q = I^{2}Rt$ 得\n\n$$\nI = \\sqrt {\\frac {Q}{R t}} = \\sqrt {\\frac {1 2 8 0}{0 . 8 \\times 1}} \\mathrm{A} = 4 0 \\mathrm{A}\n$$\n\n电动机正常工作时输入功率\n\n$$\nP = U I = 2 2 0 \\times 4 0 \\mathrm{W} = 8 8 0 0 \\mathrm{W}\n$$\n\n电动机正常工作时的热功率\n\n$$\nP _ {\\text {热}} = \\frac {Q}{t} = \\frac {1 2 8 0}{1} \\mathrm{W} = 1 2 8 0 \\mathrm{W}\n$$\n\n因此，电动机的输出功率\n\n$$\nP _ {\\mathrm{输出}} = P - P _ {\\mathrm{热}} = (8 8 0 0 - 1 2 8 0) \\mathrm{W} = 7 5 2 0 \\mathrm{W}\n$$\n\n## 问题②思考\n\n1. 在力学和电学的学习中, 已经知道功率的多种表达式, 简要说明下述表达式的含义及其适用范围: ① $P = \\frac{W}{t}$ ② $P = Fv$ ③ $P = UI$ ④ $P = I^2 R$ ⑤ $P = \\frac{U^2}{R}$\n\n2. 一台电热水器接入电压为 $220 \\mathrm{~V}$ 的电路中, $0.5 \\mathrm{~h}$ 内产生的热量为 $1.452 \\times 10^{6} \\mathrm{~J}$ , 求这台热水器加热时的电阻。\n\n3. 一台电动机额定电压是 $220 \\mathrm{~V}$ , 线圈电阻为 $0.5 \\Omega$ , 电动机在正常工作时通过的电流为 $32 \\mathrm{~A}$ , 则电动机在运转 $20 \\mathrm{~min}$ 的过程中, 消耗了多少电能? 线圈电阻产生了多少热量? 最多有多少电能转化为机械能?\n\n4. 一台冰箱的输入功率是 $180 \\mathrm{~W}$ ，一天耗电 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 。若冰箱每次制冷时间为 $7 \\mathrm{~min}$ ，且间隔均匀相等，估算该冰箱 $1 \\mathrm{~h}$ 制冷的次数。\n\n5. 移动电源，也叫“充电宝”，常采用锂电芯，能为手机、平板计算机等设备供电，但使用不当可能会造成过充、短路等安全隐患。出于安全原因，中国民航\n\n总局规定当移动电源的额定容量不超过100 W·h才可在乘机时随身携带。某移动电源的铭牌如表10-4所示。\n\n(1) 通过计算，判断乘客在乘机时是否能随身携带该移动电源。\n\n(2) 该移动电源在充满电的情况下, 能为一个 “3 W 1.5 A” 的 USB 风扇供电多长时间?\n\n表10-4\n\n<table><tr><td>输入</td><td>DC 5 V 2.0 A</td></tr><tr><td>输出</td><td>DC 5 V 2.1 A</td></tr><tr><td>容量</td><td>10 000 mA·h</td></tr><tr><td>转换率</td><td>&gt;85%</td></tr></table>\n\n  \n图10-62 家庭配电箱",
+      "title": "电功、电功率及焦耳定律"
+    }
+  ]
+}

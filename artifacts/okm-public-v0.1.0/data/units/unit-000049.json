@@ -1,0 +1,1237 @@
+{
+  "body": {
+    "content": "## 定义\n阴极射线管（CRT，又称电子束演示管）是一种用于演示带电粒子（电子）在电场中偏转的真空实验装置。该装置主要由阴极、阳极、偏转极板和荧光屏等核心部件构成。\n\n## 核心解释\n阴极射线管的运行依赖于电场对高速电子束的精确控制。装置内部保持真空环境，阴极在高压作用下发射出电子束，电子束向阳极高速运动。当电子束进入由平行偏转极板构成的区域时，若在极板间施加电压，就会形成电场。由于电子带负电，其在电场中所受力的方向与电场强度方向相反。电子在偏转电场中的运动轨迹类似于重力场中的平抛运动[evidence:auto-1a316a832fd4]。\n\n偏转方向与极板间的电压极性直接相关：当平行金属板之间未加电压时，电子束不受电场力，将沿直线运动；当极板间施加“上负下正”的电压时，电子束在电场力作用下向下偏转；反之，若施加“上正下负”的电压，电子束则向上偏转[evidence:auto-ba96ab0f993e]。最终，发生偏转的电子束轰击到荧光屏上，荧光屏将不可见的电子径迹转化为可见的光斑，从而直观显示电子的运动轨迹。\n\n## 关键要点\n- **工作条件**：必须在真空环境中工作；阴极需加高压以产生稳定电子束；偏转极板需加电压以形成控制电场。\n- **受力与运动特征**：电子带负电，受力方向与场强方向相反；其在偏转电场中的运动可等效为类平抛运动。\n- **轨迹控制**：通过改变偏转极板间的电压大小和极性，可以精确控制电子束的偏转方向与幅度。\n- **信号显示**：荧光屏是最终的显示终端，用于将电子束的落点和径迹可视化。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "entity/experimental_device:auto-0e0f558fb74b",
+    "properties": {
+      "card_title": "阴极射线管",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-ba96ab0f993e",
+      "evidence:auto-1a316a832fd4"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:39:32+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-b4d1b0156699",
+    "mention_refs": [],
+    "node_id": "entity/experimental_device:auto-0e0f558fb74b",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "用于演示带电粒子（电子）在电场中偏转的真空实验装置，含阴极、阳极、偏转极板和荧光屏。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-f9e1b8c37e98"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "用于演示带电粒子（电子）在电场中偏转的真空实验装置，含阴极、阳极、偏转极板和荧光屏。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-f9e1b8c37e98"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "用于演示带电粒子（电子）在电场中偏转的真空实验装置，含阴极、阳极、偏转极板和荧光屏。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-f9e1b8c37e98"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "阴极射线管"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-f9e1b8c37e98"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "带电粒子在电场中的运动"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-f9e1b8c37e98"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-f9e1b8c37e98"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-f9e1b8c37e98"
+    ],
+    "status": "active",
+    "summary": "用于演示带电粒子（电子）在电场中偏转的真空实验装置，含阴极、阳极、偏转极板和荧光屏。",
+    "title": "阴极射线管",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 9,
+    "score": 100,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "physics",
+      "id": "domain-profile:auto-ae867aa1e72b",
+      "node_id": "entity/experimental_device:auto-0e0f558fb74b",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "提供阴极射线管空白结构图，要求学生标注四大部件名称并简述荧光屏的显示作用。",
+              "给出偏转极板“上负下正”的电压条件，要求学生绘制电子束偏转示意图并书面说明受力方向与场强方向相反的依据。",
+              "设定电子以初速度v0水平射入平行板电场的情境，要求学生建立坐标系并定性画出电子在极板内及飞出后的运动轨迹。"
+            ],
+            "common_errors": [
+              "混淆电场强度方向与电子受力方向，误判电子束沿电场线方向偏转。",
+              "忽略真空环境条件，在分析电子轨迹时错误引入空气阻力或粒子碰撞假设。"
+            ],
+            "diagnostic_questions": [
+              "当偏转极板施加“上负下正”电压时，电子束为何向下偏转？请从受力方向与场强方向的关系进行解释。",
+              "若阴极射线管内未抽成真空，电子束的运动轨迹将发生怎样的变化？为什么？"
+            ],
+            "difficulty_level": "intermediate",
+            "extension_suggestions": [
+              "结合动能定理与电势差公式，定量推导电子飞出偏转电场时的侧移量与偏转角，深化对电场做功与能量转化的理解。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T10:12:46+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "021ecee09ec725bbc8b078958c76d275ba90d7bbf32124089d202e6c667765ca",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-ba96ab0f993e",
+                "evidence:auto-1a316a832fd4"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能准确指出阴极射线管中阴极、阳极、偏转极板和荧光屏的结构位置与核心功能。",
+              "能根据偏转极板所加电压的正负极性，结合电子带负电的特性，正确判断电子束在荧光屏上的偏转方向。",
+              "能说明电子在偏转极板间的运动满足类平抛条件，并定性描述其水平匀速与竖直匀加速的轨迹特征。"
+            ],
+            "remediation_suggestions": [
+              "利用极板电压极性变换的对比演示，强化“负电荷受力与场强反向”这一边界条件，避免方向性误判。",
+              "引导学生将电子在极板间的运动与重力场中的平抛运动进行建模类比，通过运动分解降低电场偏转的抽象度。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-1a316a832fd4",
+        "evidence:auto-ba96ab0f993e",
+        "evidence:auto-f9e1b8c37e98"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:12:46+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 9-36 所示，匀强电场的电场强度为 $E$ ， $AB$ 间距离为 $d$ 、电势差为 $U_{AB}$ 。把正电荷 $q$ 沿电场方向从 $A$ 点移动到 $B$ 点，在此过程中，它受到的电场力为 $qE$ ，电场力对其做功 $W_{AB} = qEd$ 。由电场力做功与电势差的关系，也可得 $W_{AB} = qU_{AB}$ 。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-16221f36ccca",
+      "locator": "line:73",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图 9-36 所示，匀强电场的电场强度为 $E$ ， $AB$ 间距离为 $d$ 、电势差为 $U_{AB}$ 。把正电荷 $q$ 沿电场方向从 $A$ 点移动到 $B$ 点，在此过程中，它受到的电场力为 $qE$ ，电场力对其做功 $W"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 9-41 所示，一电子（电荷量大小为 $e$ 、质量为 $m$ ）以初速度 $v_0$ 沿水平方向射入水平放置、相距 $d$ 、长为 $L$ 、电势差为 $U$ （能使电子飞出极板）的一对平行金属板间。...电子的运动类似于重力场中的平抛运动。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-1a316a832fd4",
+      "locator": "line:147-151",
+      "modality": "text",
+      "normalized_claims": [
+        "如图 9-41 所示，一电子（电荷量大小为 $e$ 、质量为 $m$ ）以初速度 $v_0$ 沿水平方向射入水平放置、相距 $d$ 、长为 $L$ 、电势差为 $U$ （能使电子飞出极板）的一对平行金属板间。...电子的运动类似于重力场中的"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\begin{array}{r l} U _ {A B} & = \\varphi_ {A} - \\varphi_ {B} \\\\ & = 6 5 0 \\mathrm{V} - 8 0 0 \\mathrm{V} \\\\ & = - 1 5 0 \\mathrm{V} \\end{array}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-255b57a7f1f2",
+      "locator": "line:41",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\begin{array}{r l} U _ {A B} & = \\varphi_ {A} - \\varphi_ {B} \\\\ & = 6 5 0 \\mathrm{V} - 8 0 0 \\mathrm{V} \\\\ & = - 1 5"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "方法一：...加速度 $a = \\frac {q U}{m d}$ ... $v = \\sqrt {\\frac {2 q U}{m}}$ 方法二：...动能定理 $q U = \\frac {1}{2} m v ^ {2}$ ... $v = \\sqrt {\\frac {2 q U}{m}}$",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-27a2b42b9516",
+      "locator": "line:113-125",
+      "modality": "equation",
+      "normalized_claims": [
+        "方法一：...加速度 $a = \\frac {q U}{m d}$ ... $v = \\sqrt {\\frac {2 q U}{m}}$ 方法二：...动能定理 $q U = \\frac {1}{2} m v ^ {2}$ ... $v ="
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "电势差是标量，只有大小，没有方向。当 A 点电势比 B 点电势高时， $U_{AB}$ 为正值； $U_{BA}$ 则为负值。在国际单位制中电势差的单位也是伏特，简称伏，用符号 V 表示。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-294be63762cd",
+      "locator": "line:17",
+      "modality": "equation",
+      "normalized_claims": [
+        "电势差是标量，只有大小，没有方向。当 A 点电势比 B 点电势高时， $U_{AB}$ 为正值； $U_{BA}$ 则为负值。在国际单位制中电势差的单位也是伏特，简称伏，用符号 V 表示。"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "示例 1 电场中有 A、B 两点，已知电势 $\\varphi_{A}=650\\ V,\\quad\\varphi_{B}=800\\ V$ 。把电荷量 $q=-2\\times10^{-9}\\ C$ 的带电粒子从 A 点移动到 B 点，则：",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-4ecf8b739d1b",
+      "locator": "line:29",
+      "modality": "equation",
+      "normalized_claims": [
+        "示例 1 电场中有 A、B 两点，已知电势 $\\varphi_{A}=650\\ V,\\quad\\varphi_{B}=800\\ V$ 。把电荷量 $q=-2\\times10^{-9}\\ C$ 的带电粒子从 A 点移动到 B 点，则："
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "因此电场力做功 $3 \\times 10^{-7}$ J，做的是正功。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-53f053690fd0",
+      "locator": "line:67",
+      "modality": "equation",
+      "normalized_claims": [
+        "因此电场力做功 $3 \\times 10^{-7}$ J，做的是正功。"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\begin{array}{r l} E _ {\\mathrm{pA}} & = q \\varphi_ {A} \\\\ & = - 2 \\times 1 0 ^ {- 9} \\times 6 5 0 \\mathrm{J} \\\\ & = - 1. 3 \\times 1 0 ^ {- 6} \\mathrm{J} \\end{array}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-58fab879e0d4",
+      "locator": "line:47",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\begin{array}{r l} E _ {\\mathrm{pA}} & = q \\varphi_ {A} \\\\ & = - 2 \\times 1 0 ^ {- 9} \\times 6 5 0 \\mathrm{J} \\\\ & ="
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\begin{array}{r l} W _ {A B} & = q U _ {A B} \\\\ & = (- 2 \\times 1 0 ^ {- 9}) \\times (- 1 5 0) \\mathrm{J} \\\\ & = 3 \\times 1 0 ^ {- 7} \\mathrm{J} \\end{array}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6585ce354be0",
+      "locator": "line:65",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\begin{array}{r l} W _ {A B} & = q U _ {A B} \\\\ & = (- 2 \\times 1 0 ^ {- 9}) \\times (- 1 5 0) \\mathrm{J} \\\\ & = 3 \\ti"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nU _ {A B} = \\varphi_ {A} - \\varphi_ {B}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-65f38d0da065",
+      "locator": "line:15",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nU _ {A B} = \\varphi_ {A} - \\varphi_ {B}\n$$"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$ \\begin{array}{r l} W _ {A B} & = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B} \\\\ & = q \\varphi_ {A} - q \\varphi_ {B} \\\\ & = q (\\varphi_ {A} - \\varphi_ {B}) \\\\ & = q U _ {A B} \\\\ U _ {A B} & = \\frac {W _ {A B}}{q} \\end{array} $$ 即 这就是电势差与电场力做功的关系，说明电场中任意两点之间的电势差数值上等于移动单位正电荷电场所做的功。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-66b58057102f",
+      "locator": "line:23-29",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$ \\begin{array}{r l} W _ {A B} & = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B} \\\\ & = q \\varphi_ {A} - q \\varphi_ {B} \\\\ &"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/602532d7e0bace8ddb3eb19a8c0051716f1d71f16093a8d24ebefecc3053e389.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-7199cfde59a1",
+      "locator": "line:77",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/602532d7e0bace8ddb3eb19a8c0051716f1d71f16093a8d24ebefecc3053e389.jpg)"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 1,
+          "height": 301,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/602532d7e0bace8ddb3eb19a8c0051716f1d71f16093a8d24ebefecc3053e389.jpg",
+          "reason": "图片是教材中推导匀强电场中电场强度与电势差关系公式（E=U/d）的核心示意图。前文文字明确引用了该图（“如图 9-36 所示”），并详细解释了图中的物理量（E, d, q, F, W_AB）及其关系。后文紧接着给出了图注“图9-36 匀强电场中移动电荷”以及推导出的最终公式。图片内容与上下文紧密对应，直接表达了核心物理模型和推导过程。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了匀强电场（由平行向右的蓝色实线箭头表示，上方标记为E）中的一个物理模型。图中有两个点A和B，它们之间的水平距离标记为d。在A、B连线上有一个带正电的粒子（蓝色球体，标记为+q），它受到一个向右的电场力（红色箭头，标记为F）。",
+          "width": 370
+        },
+        "path": "images/602532d7e0bace8ddb3eb19a8c0051716f1d71f16093a8d24ebefecc3053e389.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "把正电荷 q 沿电场线的方向从 A 点移到 B 点，若 A 点的电势为 $\\varphi_{A}$ ，B 点的电势为 $\\varphi_{B}$ ，电场力做正功 $W_{AB}$ ，则有",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-92ac4f8d1474",
+      "locator": "line:19",
+      "modality": "equation",
+      "normalized_claims": [
+        "把正电荷 q 沿电场线的方向从 A 点移到 B 点，若 A 点的电势为 $\\varphi_{A}$ ，B 点的电势为 $\\varphi_{B}$ ，电场力做正功 $W_{AB}$ ，则有"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "当平行金属板 $M_{1}M_{2}$ 之间未加电压时，电子束不发生偏转，沿直线运动；当平行金属板 $M_{1}M_{2}$ 之间施加上负下正的电压时，电子束在电场力的作用下如图 9-40 所示向下偏转；当平行金属板 $M_{1}M_{2}$ 之间施加上正下负的电压，电子束将在电场力的作用下向上偏转。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ba96ab0f993e",
+      "locator": "line:139-142",
+      "modality": "text",
+      "normalized_claims": [
+        "当平行金属板 $M_{1}M_{2}$ 之间未加电压时，电子束不发生偏转，沿直线运动；当平行金属板 $M_{1}M_{2}$ 之间施加上负下正的电压时，电子束在电场力的作用下如图 9-40 所示向下偏转；当平行金属板 $M_{1}M_{2}"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "电场中两点间电势之差称为电势差（electric potential difference），也叫电压。设电场中 A 点的电势为 $\\varphi_{A}$ ，B 点的电势为 $\\varphi_{B}$ ，A、B 两点间的电势差用符号 $U_{AB}$ 表示，则",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c0eba9ab05f6",
+      "locator": "line:11",
+      "modality": "equation",
+      "normalized_claims": [
+        "电场中两点间电势之差称为电势差（electric potential difference），也叫电压。设电场中 A 点的电势为 $\\varphi_{A}$ ，B 点的电势为 $\\varphi_{B}$ ，A、B 两点间的电势差用符号 $U"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\begin{array}{r l} W _ {A B} & = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B} \\\\ & = q \\varphi_ {A} - q \\varphi_ {B} \\\\ & = q (\\varphi_ {A} - \\varphi_ {B}) \\\\ & = q U _ {A B} \\\\ U _ {A B} & = \\frac {W _ {A B}}{q} \\end{array}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-cdd4327488e5",
+      "locator": "line:23",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\begin{array}{r l} W _ {A B} & = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B} \\\\ & = q \\varphi_ {A} - q \\varphi_ {B} \\\\ &"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "电势差是标量，只有大小，没有方向。当 A 点电势比 B 点电势高时， $U_{AB}$ 为正值； $U_{BA}$ 则为负值。在国际单位制中电势差的单位也是伏特，简称伏，用符号 V 表示。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-d37e1487dfcc",
+      "locator": "line:17",
+      "modality": "text",
+      "normalized_claims": [
+        "电势差是标量，只有大小，没有方向。当 A 点电势比 B 点电势高时， $U_{AB}$ 为正值； $U_{BA}$ 则为负值。在国际单位制中电势差的单位也是伏特，简称伏，用符号 V 表示。"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nE = \\frac {U _ {A B}}{d}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-d76bae5aba7f",
+      "locator": "line:82",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nE = \\frac {U _ {A B}}{d}\n$$"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 9-39 所示即为用阴极射线管演示带电粒子在电场中的偏转的实验装置。...在射线经过路径的上下方有一对平行金属板 $M_{1}M_{2}$ ，称为偏转极板。通过控制偏转极板施加的电压观察带电粒子在电场中的偏转情况。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-d7ba82497624",
+      "locator": "line:133-136",
+      "modality": "text",
+      "normalized_claims": [
+        "如图 9-39 所示即为用阴极射线管演示带电粒子在电场中的偏转的实验装置。...在射线经过路径的上下方有一对平行金属板 $M_{1}M_{2}$ ，称为偏转极板。通过控制偏转极板施加的电压观察带电粒子在电场中的偏转情况。"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "(1) $A 、 B$ 两点间的电势差是多少?",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-dd1a0c7fa52c",
+      "locator": "line:31",
+      "modality": "equation",
+      "normalized_claims": [
+        "(1) $A 、 B$ 两点间的电势差是多少?"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\begin{array}{r l} E _ {\\mathrm{pB}} & = q \\varphi_ {B} \\\\ & = - 2 \\times 1 0 ^ {- 9} \\times 8 0 0 \\mathrm{J} \\\\ & = - 1. 6 \\times 1 0 ^ {- 6} \\mathrm{J} \\end{array}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e0242db2a872",
+      "locator": "line:53",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\begin{array}{r l} E _ {\\mathrm{pB}} & = q \\varphi_ {B} \\\\ & = - 2 \\times 1 0 ^ {- 9} \\times 8 0 0 \\mathrm{J} \\\\ & ="
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$ a = \\frac {F}{m} = \\frac {e E}{m} = \\frac {e U}{m d} $$ 所以 $$ y = \\frac {1}{2} a t ^ {2} = \\frac {e U L ^ {2}}{2 m d v _ {0} ^ {2}} $$ $$ \\tan \\theta = \\frac {v _ {y}}{v _ {x}} = \\frac {e U}{m d} \\cdot \\frac {L}{v _ {0} ^ {2}} $$",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e409bf2ed31f",
+      "locator": "line:155-163",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$ a = \\frac {F}{m} = \\frac {e E}{m} = \\frac {e U}{m d} $$ 所以 $$ y = \\frac {1}{2} a t ^ {2} = \\frac {e U L ^ {2}}{2 m d"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\begin{array}{r l} W _ {A B} & = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B} \\\\ & = - 1. 3 \\times 1 0 ^ {- 6} \\mathrm{J} - (- 1. 6 \\times 1 0 ^ {- 6}) \\mathrm{J} \\\\ & = 3 \\times 1 0 ^ {- 7} \\mathrm{J} \\end{array}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e599e1e46b5a",
+      "locator": "line:59",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\begin{array}{r l} W _ {A B} & = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B} \\\\ & = - 1. 3 \\times 1 0 ^ {- 6} \\mathrm{J}"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "由此可得电场强度与电势差的关系为 $$ E = \\frac {U _ {A B}}{d} $$ 上式说明匀强电场中电场强度数值上等于沿电场线方向单位距离上降低的电势，而且，沿电场线的方向电势降低得最快。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ec6e854fde1b",
+      "locator": "line:82-86",
+      "modality": "equation",
+      "normalized_claims": [
+        "由此可得电场强度与电势差的关系为 $$ E = \\frac {U _ {A B}}{d} $$ 上式说明匀强电场中电场强度数值上等于沿电场线方向单位距离上降低的电势，而且，沿电场线的方向电势降低得最快。"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "请证明 $1 \\, N/C = 1 \\, V/m$ 。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ecb5a85f8400",
+      "locator": "line:88",
+      "modality": "equation",
+      "normalized_claims": [
+        "请证明 $1 \\, N/C = 1 \\, V/m$ 。"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 9-36 所示，匀强电场的电场强度为 $E$ ， $AB$ 间距离为 $d$ 、电势差为 $U_{AB}$ 。把正电荷 $q$ 沿电场方向从 $A$ 点移动到 $B$ 点，在此过程中，它受到的电场力为 $qE$ ，电场力对其做功 $W_{AB} = qEd$ 。由电场力做功与电势差的关系，也可得 $W_{AB} = qU_{AB}$ 。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f12ec6c68ef8",
+      "locator": "line:73",
+      "modality": "text",
+      "normalized_claims": [
+        "如图 9-36 所示，匀强电场的电场强度为 $E$ ， $AB$ 间距离为 $d$ 、电势差为 $U_{AB}$ 。把正电荷 $q$ 沿电场方向从 $A$ 点移动到 $B$ 点，在此过程中，它受到的电场力为 $qE$ ，电场力对其做功 $W"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "带电粒子在电场中受到电场力的作用，通常电场力远大于带电粒子的重力，从而可以忽略重力对带电粒子的影响。如图9-38所示，真空中有一对平行金属板，两板间电势差为 $U$ ，板间距为 $d$ ，将一质量为 $m$ 、带电荷量为 $+q$ 的粒子在正极板附近由静止释放，分析带电粒子在电场中的运动情况。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f4122f001625",
+      "locator": "line:105",
+      "modality": "text",
+      "normalized_claims": [
+        "带电粒子在电场中受到电场力的作用，通常电场力远大于带电粒子的重力，从而可以忽略重力对带电粒子的影响。如图9-38所示，真空中有一对平行金属板，两板间电势差为 $U$ ，板间距为 $d$ ，将一质量为 $m$ 、带电荷量为 $+q$ 的粒子在"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "当然，也可以用公式 $W_{AB}=qU_{AB}$ 进行计算，即",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f4da484e599e",
+      "locator": "line:61",
+      "modality": "equation",
+      "normalized_claims": [
+        "当然，也可以用公式 $W_{AB}=qU_{AB}$ 进行计算，即"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "excerpt": "电场中两点间电势之差称为电势差（electric potential difference），也叫电压。设电场中 A 点的电势为 $\\varphi_{A}$ ，B 点的电势为 $\\varphi_{B}$ ，A、B 两点间的电势差用符号 $U_{AB}$ 表示，则 $$ U _ {A B} = \\varphi_ {A} - \\varphi_ {B} $$",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f9e1b8c37e98",
+      "locator": "line:11-15",
+      "modality": "text",
+      "normalized_claims": [
+        "电场中两点间电势之差称为电势差（electric potential difference），也叫电压。设电场中 A 点的电势为 $\\varphi_{A}$ ，B 点的电势为 $\\varphi_{B}$ ，A、B 两点间的电势差用符号 $U"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-26604bceca4c",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-d7ba82497624"
+      ],
+      "source_type": "textbook",
+      "target_id": "entity/experimental_device:auto-0e0f558fb74b",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:39:32+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-7b1ce5c38ddb",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-ba96ab0f993e"
+      ],
+      "source_type": "textbook",
+      "target_id": "entity/experimental_device:auto-0e0f558fb74b",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "CRT",
+      "电子束演示管"
+    ],
+    "created_at": "2026-06-29T05:39:32+00:00",
+    "dataset_id": "main",
+    "definition": "用于演示带电粒子（电子）在电场中偏转的真空实验装置，含阴极、阳极、偏转极板和荧光屏。",
+    "deprecated_by": null,
+    "domains": [
+      "physics",
+      "economics"
+    ],
+    "external_ids": {
+      "wikidata": "Q311458"
+    },
+    "id": "entity/experimental_device:auto-0e0f558fb74b",
+    "kind": "entity",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "阴极射线管",
+    "notes": "基础电磁学演示仪器",
+    "properties": {
+      "classifications": {
+        "subkinds": [
+          "experimental_device"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "电子带负电，受力方向与场强相反",
+          "荧光屏用于显示径迹"
+        ],
+        "conditions": [
+          "真空环境",
+          "阴极加高压产生电子束",
+          "偏转极板加电压"
+        ],
+        "formal_expressions": []
+      },
+      "template_display": {
+        "color": "#3782FF",
+        "label": "装置/对象",
+        "template_id": "textbook/physics",
+        "type_key": "entity"
+      }
+    },
+    "scope": "universal",
+    "status": "active",
+    "subkind": "experimental_device",
+    "tags": [
+      "实验装置",
+      "电子",
+      "偏转演示"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:39:32+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "process/particle_motion:auto-d2990912f4e3",
+        "id": "edge:auto-1c794342384b",
+        "notes": "教材使用阴极射线管实验装置演示带电粒子在电场中的偏转现象。",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "使用",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-ba96ab0f993e"
+        ],
+        "status": "active",
+        "to_id": "entity/experimental_device:auto-0e0f558fb74b",
+        "type": "uses",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ],
+    "outgoing": []
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第五节 带电粒子在电场中的运动\n\n带电粒子由于携带电荷，在电场中会受到电场力的作用产生加速度，使其速度发生变化。在现代科学实验和技术设备中，常常根据这个原理利用电场来改变或控制带电粒子的运动。北京正负电子对撞机是我国第一台高能加速器，也是世界八大高能加速器之一，如图9-35所示是该装置中的双储存环。该对撞机是高能物理研究的重大科技基础设施，它为中国粒子物理和同步辐射应用提供了基本研究实验手段和条件，使中国高能物理研究进入了世界前沿。而且，正负电子对撞机产生的同步辐射作为特殊光源，可在生物、医学、化学、材料等领域开展广泛的应用研究工作。\n\n\n\n## 电场中两点的电势之差与电场力做功有何关系？\n\n测量高度的起点不同，同一点的高度的数值就不相同，但两点间的高度差却保持不变。同样的道理，选择不同的位置作为电势零点，电场中任意点的电势的大小会随之改变，但电场中任意两点间的电势之差却保持不变。\n\n电场中两点间电势之差称为电势差（electric potential difference），也叫电压。设电场中 A 点的电势为 $\\varphi_{A}$ ，B 点的电势为 $\\varphi_{B}$ ，A、B 两点间的电势差用符号 $U_{AB}$ 表示，则\n\n$$\nU _ {A B} = \\varphi_ {A} - \\varphi_ {B}\n$$\n\n电势差是标量，只有大小，没有方向。当 A 点电势比 B 点电势高时， $U_{AB}$ 为正值； $U_{BA}$ 则为负值。在国际单位制中电势差的单位也是伏特，简称伏，用符号 V 表示。\n\n把正电荷 q 沿电场线的方向从 A 点移到 B 点，若 A 点的电势为 $\\varphi_{A}$ ，B 点的电势为 $\\varphi_{B}$ ，电场力做正功 $W_{AB}$ ，则有\n\n$$\n\\begin{array}{r l} W _ {A B} & = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B} \\\\ & = q \\varphi_ {A} - q \\varphi_ {B} \\\\ & = q (\\varphi_ {A} - \\varphi_ {B}) \\\\ & = q U _ {A B} \\\\ U _ {A B} & = \\frac {W _ {A B}}{q} \\end{array}\n$$\n\n即\n\n这就是电势差与电场力做功的关系，说明电场中任意两点之间的电势差数值上等于移动单位正电荷电场所做的功。因此，知道了电场中两点的电势差就可以方便地计算在这两点间移动电荷时电场力所做的功，而不必考虑电荷移动的路径。\n\n示例 1 电场中有 A、B 两点，已知电势 $\\varphi_{A}=650\\ V,\\quad\\varphi_{B}=800\\ V$ 。把电荷量 $q=-2\\times10^{-9}\\ C$ 的带电粒子从 A 点移动到 B 点，则：\n\n(1) $A 、 B$ 两点间的电势差是多少?\n\n(2) 电场力做了多少功？做的是正功还是负功？\n\n分析：根据 A、B 两点的电势可求出两点间电势之差。利用电场中某一点的电势与电荷量的乘积可求得带电粒子在该点所具有的电势能，根据电场力做功与电势能变化量的关系便可求解。\n\n解：（1）A、B 两点间的电势差\n\n$$\n\\begin{array}{r l} U _ {A B} & = \\varphi_ {A} - \\varphi_ {B} \\\\ & = 6 5 0 \\mathrm{V} - 8 0 0 \\mathrm{V} \\\\ & = - 1 5 0 \\mathrm{V} \\end{array}\n$$\n\n(2) 带负电粒子在 A 点的电势能\n\n$$\n\\begin{array}{r l} E _ {\\mathrm{pA}} & = q \\varphi_ {A} \\\\ & = - 2 \\times 1 0 ^ {- 9} \\times 6 5 0 \\mathrm{J} \\\\ & = - 1. 3 \\times 1 0 ^ {- 6} \\mathrm{J} \\end{array}\n$$\n\n带负电粒子在 B 点的电势能\n\n$$\n\\begin{array}{r l} E _ {\\mathrm{pB}} & = q \\varphi_ {B} \\\\ & = - 2 \\times 1 0 ^ {- 9} \\times 8 0 0 \\mathrm{J} \\\\ & = - 1. 6 \\times 1 0 ^ {- 6} \\mathrm{J} \\end{array}\n$$\n\n带电粒子从 A 点移动到 B 点电场力所做的功\n\n$$\n\\begin{array}{r l} W _ {A B} & = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B} \\\\ & = - 1. 3 \\times 1 0 ^ {- 6} \\mathrm{J} - (- 1. 6 \\times 1 0 ^ {- 6}) \\mathrm{J} \\\\ & = 3 \\times 1 0 ^ {- 7} \\mathrm{J} \\end{array}\n$$\n\n当然，也可以用公式 $W_{AB}=qU_{AB}$ 进行计算，即\n\n$$\n\\begin{array}{r l} W _ {A B} & = q U _ {A B} \\\\ & = (- 2 \\times 1 0 ^ {- 9}) \\times (- 1 5 0) \\mathrm{J} \\\\ & = 3 \\times 1 0 ^ {- 7} \\mathrm{J} \\end{array}\n$$\n\n因此电场力做功 $3 \\times 10^{-7}$ J，做的是正功。\n\n\n\n## 匀强电场中电场强度和电势差有何关系？\n\n如图 9-36 所示，匀强电场的电场强度为 $E$ ， $AB$ 间距离为 $d$ 、电势差为 $U_{AB}$ 。把正电荷 $q$ 沿电场方向从 $A$ 点移动到 $B$ 点，在此过程中，它受到的电场力为 $qE$ ，电场力对其做功 $W_{AB} = qEd$ 。由电场力做功与电势差的关系，也可得 $W_{AB} = qU_{AB}$ 。\n\n由此可得电场强度与电势差的关系为\n\n[source image omitted from static artifact]  \n图9-36 匀强电场中移动电荷\n\n$$\nE = \\frac {U _ {A B}}{d}\n$$\n\n上式说明匀强电场中电场强度数值上等于沿电场线方向单位距离上降低的电势，而且，沿电场线的方向电势降低得最快。\n\n## 大家谈\n\n请证明 $1 \\, N/C = 1 \\, V/m$ 。\n\n示例 2 如图 9-37（a）所示，在电场强度大小为 $60 \\mathrm{~V} / \\mathrm{m}$ 的匀强电场中有 $a$ 、 $b$ 、 $c$ 三点， $ab = 5 \\mathrm{~cm}$ ， $bc = 8 \\mathrm{~cm}$ ，其中 $ab$ 沿电场方向， $bc$ 与电场方向的夹角为 $60^{\\circ}$ 。求： $a$ 、 $c$ 两点间的电势差 $U_{ac}$ 。\n\n  \n(a)\n\n  \n(b)\n\n分析：根据匀强电场中电场强度与电势差的关系 $E=\\frac{U_{ac}}{d}$ ，可得 $U_{ac}=Ed$ ，其中 d 为 a、图9-37 $a$ 、 $b$ 、 $c$ 三点在匀强电场中的关系\n\nc 两点间沿电场线方向的距离或 a、c 两点所在等势面间的间距，如图 9-37（b）所示。\n\n解：a、c 两点间沿电场线方向的距离\n\n$$\nd = a b + b c \\cdot \\cos 6 0 ^ {\\circ} = (5 + 8 \\times 0. 5) \\mathrm{cm} = 9 \\mathrm{cm} = 0. 0 9 \\mathrm{m}\n$$\n\n根据匀强电场中电场强度与电势差的关系，a、c 两点电势差的大小\n\n$$\n\\left| U _ {a c} \\right| = E d = 6 0 \\times 0. 0 9 \\mathrm{V} = 5. 4 \\mathrm{V}\n$$\n\n因为沿电场线方向电势逐渐降低， $\\varphi_{a}>\\varphi_{b}>\\varphi_{c}$ ，所以电势差 $U_{ac}$ 为正值。 $U_{ac}=5.4V$ 。\n\n\n\n## 如何分析带电粒子在电场中的运动？\n\n带电粒子在电场中受到电场力的作用，通常电场力远大于带电粒子的重力，从而可以忽略重力对带电粒子的影响。如图9-38所示，真空中有一对平行金属板，两板间电势差为 $U$ ，板间距为 $d$ ，将一质量为 $m$ 、带电荷量为 $+q$ 的粒子在正极板附近由静止释放，分析带电粒子在电场中的运动情况。\n\n带电粒子在匀强电场中做初速度为零的匀加速直线运动。为了求带电粒子到达负极板时速度 v 的大小，我们用两种方法来研究。\n\n\n\n方法一：由于带电粒子在匀强电场中受到电场力 F 作用，从正极板出发做初速度为零的匀加速直线运动，则由牛顿第二定律可得，带电粒子做匀加速直线运动的加速度\n\n图9-38 带电粒子在电场中的加速\n\n$$\na = \\frac {F}{m}\n$$\n\n又 $F = qE$ ，由匀强电场的电场强度与电势差的关系 $E = \\frac{U}{d}$\n\n得到\n\n$$\na = \\frac {q U}{m d}\n$$\n\n根据初速度为零的匀加速直线运动的运动学规律，则有\n\n可得\n\n$$\n\\begin{array}{c} v ^ {2} = 2 a d \\\\ v = \\sqrt {\\frac {2 q U}{m}} \\end{array}\n$$\n\n方法二：带电粒子从正极板出发到达负极板，仅有电场力做功 W=qU，改变了带电粒子的动能，则根据动能定理，有\n\n$$\nq U = \\frac {1}{2} m v ^ {2} - \\frac {1}{2} m v _ {0} ^ {2}\n$$\n\n由于 $v_{0} = 0$ ，也可得\n\n$$\nv = \\sqrt {\\frac {2 q U}{m}}\n$$\n\n## 大家谈\n\n如果不是匀强电场，方法一和方法二中是否有些等式不适用了？请说明理由。\n\n电荷在电场中运动会受到电场力的影响，必然获得加速度。因此，可以利用电场来控制带电粒子的运动。\n\n## 自主活动\n\n阴极射线是从低压气体放电管的阴极射出的带负电的电子流。如图 9-39 所示即为用阴极射线管演示带电粒子在电场中的偏转的实验装置。\n\n  \n图9-39 阴极射线在电场中偏转实验装置\n\n  \n图9-40 电子束在电场中的偏转\n\n给阴极射线管左右两端加上高电压，电子束从阴极射向阳极。利用荧光屏可清晰地显示出电子束运动的径迹。在荧光屏前有一狭缝，射线只能从狭缝中通过沿直线前进。在射线经过路径的上下方有一对平行金属板 $M_{1}M_{2}$ ，称为偏转极板。通过控制偏转极板施加的电压观察带电粒子在电场中的偏转情况。\n\n当平行金属板 $M_{1}M_{2}$ 之间未加电压时，电子束不发生偏转，沿直线运动；当平行金属板 $M_{1}M_{2}$ 之间施加上负下正的电压时，电子束在电场力的作用下如图 9-40 所示向下偏转；当平行金属板 $M_{1}M_{2}$ 之间施加上正下负的电压，电子束将在电场力的作用下向上偏转。\n\n带电粒子在电场中由于受到电场力的作用产生加速度，其速度大小和方向都可能发生变化。带电粒子在电场中沿直线加速和偏转是两种最基本的运动情况。\n\n## 拓展视野\n\n如图 9-41 所示，一电子（电荷量大小为 $e$ 、质量为 $m$ ）以初速度 $v_0$ 沿水平方向射入水平放置、相距 $d$ 、长为 $L$ 、电势差为 $U$ （能使电子飞出极板）的一对平行金属板间。\n\n  \n图9-41 带电粒子在电场中偏转\n\n设两极板间为向上的匀强电场。电子进入匀强电场后，由于重力通常远小于电场力，重力可\n\n忽略不计。忽略极板的边缘效应，电子受到竖直向下的电场力作用而发生偏转。电子的运动类似于重力场中的平抛运动。\n\n电子在水平方向的分运动是速度为 $v_{0}$ 的匀速直线运动，即 $v_{x}=v_{0}$ ，因此电子在电场内运动的时间 $t=\\frac{L}{v_{0}}$ 。\n\n电子在竖直方向受电场力 $eE$ 的作用，做初速为零、加速度为 $a$ 的匀加速直线运动，产生垂直于板面方向偏移的距离 $y = \\frac{1}{2} at^2$ 。其中\n\n$$\na = \\frac {F}{m} = \\frac {e E}{m} = \\frac {e U}{m d}\n$$\n\n所以\n\n$$\ny = \\frac {1}{2} a t ^ {2} = \\frac {e U L ^ {2}}{2 m d v _ {0} ^ {2}}\n$$\n\n电子离开电场时，速度 v 的竖直方向分量\n\n$$\nv _ {y} = a t = \\frac {e U}{m d} \\cdot \\frac {L}{v _ {0}}\n$$\n\n偏转角度 $\\theta$ 可由 $\\tan\\theta$ 来确定，即\n\n$$\n\\tan \\theta = \\frac {v _ {y}}{v _ {x}} = \\frac {e U}{m d} \\cdot \\frac {L}{v _ {0} ^ {2}}\n$$\n\n## 问题②思考\n\n1. 在某次雷暴中，地面和云层之间的电势差是 $1.2 \\times 10^{9} \\mathrm{~V}$ 。假设一个电子从云层运动到地面，其电势能改变了多少？\n\n2. 电场中有 A、B 两点，已知两点的电势为 $\\varphi_{A}=300\\ V,\\ \\varphi_{B}=-200\\ V$ 。将一电荷量为 $+4\\times10^{-6}\\ C$ 的粒子从 A 点移到 B 点，电场力对带电粒子做了多少功？做的是正功还是负功？带电粒子的电势能是增加还是减少？改变了多少？\n\n3. 如图 9-42 所示是一匀强电场的等势面, 相邻等势面相距 $2 \\mathrm{~cm}$ , 则该匀强电场的电场强度为多大, 方向如何?\n\n  \n图9-42\n\n  \n图9-43\n\n4. 如图9-43所示, 一束粒子从 $O$ 点沿水平方向射入平行板之间的电场后分成了 $a 、 b 、 c 、 d$ 四束, 各粒子束中粒子的带电情况如何? (不计粒子重力)\n\n5. 如图 9-44 所示的装置处在真空中，电场加速电压为 $U = 10 \\mathrm{~V}$ ，两极板间距离 $d = 2 \\mathrm{~cm}$ 。若电子在负极板处由静止释放，求其在装置中被加速后离开电场时的速度 $v$ 。（电子的质量为 $9.1 \\times 10^{-31} \\mathrm{~kg}$ ）\n\n  \n图9-44\n\n  \n图9-45 上海公交11路超级电容车",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:9-5-a:source-markdown",
+          "locator": "带电粒子在电场中的运动",
+          "modality": "text",
+          "page_end": 32,
+          "page_start": 26,
+          "properties": {
+            "md_end": 1053,
+            "md_start": 810,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:9-5-a",
+            "outline_title": "带电粒子在电场中的运动",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 1053,
+      "md_start": 810,
+      "modalities": [
+        "equation",
+        "text",
+        "image",
+        "table"
+      ],
+      "page_end": 32,
+      "page_start": 26,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第五节 带电粒子在电场中的运动\n\n带电粒子由于携带电荷，在电场中会受到电场力的作用产生加速度，使其速度发生变化。在现代科学实验和技术设备中，常常根据这个原理利用电场来改变或控制带电粒子的运动。北京正负电子对撞机是我国第一台高能加速器，也是世界八大高能加速器之一，如图9-35所示是该装置中的双储存环。该对撞机是高能物理研究的重大科技基础设施，它为中国粒子物理和同步辐射应用提供了基本研究实验手段和条件，使中国高能物理研究进入了世界前沿。而且，正负电子对撞机产生的同步辐射作为特殊光源，可在生物、医学、化学、材料等领域开展广泛的应用研究工作。\n\n\n\n## 电场中两点的电势之差与电场力做功有何关系？\n\n测量高度的起点不同，同一点的高度的数值就不相同，但两点间的高度差却保持不变。同样的道理，选择不同的位置作为电势零点，电场中任意点的电势的大小会随之改变，但电场中任意两点间的电势之差却保持不变。\n\n电场中两点间电势之差称为电势差（electric potential difference），也叫电压。设电场中 A 点的电势为 $\\varphi_{A}$ ，B 点的电势为 $\\varphi_{B}$ ，A、B 两点间的电势差用符号 $U_{AB}$ 表示，则\n\n$$\nU _ {A B} = \\varphi_ {A} - \\varphi_ {B}\n$$\n\n电势差是标量，只有大小，没有方向。当 A 点电势比 B 点电势高时， $U_{AB}$ 为正值； $U_{BA}$ 则为负值。在国际单位制中电势差的单位也是伏特，简称伏，用符号 V 表示。\n\n把正电荷 q 沿电场线的方向从 A 点移到 B 点，若 A 点的电势为 $\\varphi_{A}$ ，B 点的电势为 $\\varphi_{B}$ ，电场力做正功 $W_{AB}$ ，则有\n\n$$\n\\begin{array}{r l} W _ {A B} & = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B} \\\\ & = q \\varphi_ {A} - q \\varphi_ {B} \\\\ & = q (\\varphi_ {A} - \\varphi_ {B}) \\\\ & = q U _ {A B} \\\\ U _ {A B} & = \\frac {W _ {A B}}{q} \\end{array}\n$$\n\n即\n\n这就是电势差与电场力做功的关系，说明电场中任意两点之间的电势差数值上等于移动单位正电荷电场所做的功。因此，知道了电场中两点的电势差就可以方便地计算在这两点间移动电荷时电场力所做的功，而不必考虑电荷移动的路径。\n\n示例 1 电场中有 A、B 两点，已知电势 $\\varphi_{A}=650\\ V,\\quad\\varphi_{B}=800\\ V$ 。把电荷量 $q=-2\\times10^{-9}\\ C$ 的带电粒子从 A 点移动到 B 点，则：\n\n(1) $A 、 B$ 两点间的电势差是多少?\n\n(2) 电场力做了多少功？做的是正功还是负功？\n\n分析：根据 A、B 两点的电势可求出两点间电势之差。利用电场中某一点的电势与电荷量的乘积可求得带电粒子在该点所具有的电势能，根据电场力做功与电势能变化量的关系便可求解。\n\n解：（1）A、B 两点间的电势差\n\n$$\n\\begin{array}{r l} U _ {A B} & = \\varphi_ {A} - \\varphi_ {B} \\\\ & = 6 5 0 \\mathrm{V} - 8 0 0 \\mathrm{V} \\\\ & = - 1 5 0 \\mathrm{V} \\end{array}\n$$\n\n(2) 带负电粒子在 A 点的电势能\n\n$$\n\\begin{array}{r l} E _ {\\mathrm{pA}} & = q \\varphi_ {A} \\\\ & = - 2 \\times 1 0 ^ {- 9} \\times 6 5 0 \\mathrm{J} \\\\ & = - 1. 3 \\times 1 0 ^ {- 6} \\mathrm{J} \\end{array}\n$$\n\n带负电粒子在 B 点的电势能\n\n$$\n\\begin{array}{r l} E _ {\\mathrm{pB}} & = q \\varphi_ {B} \\\\ & = - 2 \\times 1 0 ^ {- 9} \\times 8 0 0 \\mathrm{J} \\\\ & = - 1. 6 \\times 1 0 ^ {- 6} \\mathrm{J} \\end{array}\n$$\n\n带电粒子从 A 点移动到 B 点电场力所做的功\n\n$$\n\\begin{array}{r l} W _ {A B} & = E _ {\\mathrm{p} A} - E _ {\\mathrm{p} B} \\\\ & = - 1. 3 \\times 1 0 ^ {- 6} \\mathrm{J} - (- 1. 6 \\times 1 0 ^ {- 6}) \\mathrm{J} \\\\ & = 3 \\times 1 0 ^ {- 7} \\mathrm{J} \\end{array}\n$$\n\n当然，也可以用公式 $W_{AB}=qU_{AB}$ 进行计算，即\n\n$$\n\\begin{array}{r l} W _ {A B} & = q U _ {A B} \\\\ & = (- 2 \\times 1 0 ^ {- 9}) \\times (- 1 5 0) \\mathrm{J} \\\\ & = 3 \\times 1 0 ^ {- 7} \\mathrm{J} \\end{array}\n$$\n\n因此电场力做功 $3 \\times 10^{-7}$ J，做的是正功。\n\n\n\n## 匀强电场中电场强度和电势差有何关系？\n\n如图 9-36 所示，匀强电场的电场强度为 $E$ ， $AB$ 间距离为 $d$ 、电势差为 $U_{AB}$ 。把正电荷 $q$ 沿电场方向从 $A$ 点移动到 $B$ 点，在此过程中，它受到的电场力为 $qE$ ，电场力对其做功 $W_{AB} = qEd$ 。由电场力做功与电势差的关系，也可得 $W_{AB} = qU_{AB}$ 。\n\n由此可得电场强度与电势差的关系为\n\n[source image omitted from static artifact]  \n图9-36 匀强电场中移动电荷\n\n$$\nE = \\frac {U _ {A B}}{d}\n$$\n\n上式说明匀强电场中电场强度数值上等于沿电场线方向单位距离上降低的电势，而且，沿电场线的方向电势降低得最快。\n\n## 大家谈\n\n请证明 $1 \\, N/C = 1 \\, V/m$ 。\n\n示例 2 如图 9-37（a）所示，在电场强度大小为 $60 \\mathrm{~V} / \\mathrm{m}$ 的匀强电场中有 $a$ 、 $b$ 、 $c$ 三点， $ab = 5 \\mathrm{~cm}$ ， $bc = 8 \\mathrm{~cm}$ ，其中 $ab$ 沿电场方向， $bc$ 与电场方向的夹角为 $60^{\\circ}$ 。求： $a$ 、 $c$ 两点间的电势差 $U_{ac}$ 。\n\n  \n(a)\n\n  \n(b)\n\n分析：根据匀强电场中电场强度与电势差的关系 $E=\\frac{U_{ac}}{d}$ ，可得 $U_{ac}=Ed$ ，其中 d 为 a、图9-37 $a$ 、 $b$ 、 $c$ 三点在匀强电场中的关系\n\nc 两点间沿电场线方向的距离或 a、c 两点所在等势面间的间距，如图 9-37（b）所示。\n\n解：a、c 两点间沿电场线方向的距离\n\n$$\nd = a b + b c \\cdot \\cos 6 0 ^ {\\circ} = (5 + 8 \\times 0. 5) \\mathrm{cm} = 9 \\mathrm{cm} = 0. 0 9 \\mathrm{m}\n$$\n\n根据匀强电场中电场强度与电势差的关系，a、c 两点电势差的大小\n\n$$\n\\left| U _ {a c} \\right| = E d = 6 0 \\times 0. 0 9 \\mathrm{V} = 5. 4 \\mathrm{V}\n$$\n\n因为沿电场线方向电势逐渐降低， $\\varphi_{a}>\\varphi_{b}>\\varphi_{c}$ ，所以电势差 $U_{ac}$ 为正值。 $U_{ac}=5.4V$ 。\n\n\n\n## 如何分析带电粒子在电场中的运动？\n\n带电粒子在电场中受到电场力的作用，通常电场力远大于带电粒子的重力，从而可以忽略重力对带电粒子的影响。如图9-38所示，真空中有一对平行金属板，两板间电势差为 $U$ ，板间距为 $d$ ，将一质量为 $m$ 、带电荷量为 $+q$ 的粒子在正极板附近由静止释放，分析带电粒子在电场中的运动情况。\n\n带电粒子在匀强电场中做初速度为零的匀加速直线运动。为了求带电粒子到达负极板时速度 v 的大小，我们用两种方法来研究。\n\n\n\n方法一：由于带电粒子在匀强电场中受到电场力 F 作用，从正极板出发做初速度为零的匀加速直线运动，则由牛顿第二定律可得，带电粒子做匀加速直线运动的加速度\n\n图9-38 带电粒子在电场中的加速\n\n$$\na = \\frac {F}{m}\n$$\n\n又 $F = qE$ ，由匀强电场的电场强度与电势差的关系 $E = \\frac{U}{d}$\n\n得到\n\n$$\na = \\frac {q U}{m d}\n$$\n\n根据初速度为零的匀加速直线运动的运动学规律，则有\n\n可得\n\n$$\n\\begin{array}{c} v ^ {2} = 2 a d \\\\ v = \\sqrt {\\frac {2 q U}{m}} \\end{array}\n$$\n\n方法二：带电粒子从正极板出发到达负极板，仅有电场力做功 W=qU，改变了带电粒子的动能，则根据动能定理，有\n\n$$\nq U = \\frac {1}{2} m v ^ {2} - \\frac {1}{2} m v _ {0} ^ {2}\n$$\n\n由于 $v_{0} = 0$ ，也可得\n\n$$\nv = \\sqrt {\\frac {2 q U}{m}}\n$$\n\n## 大家谈\n\n如果不是匀强电场，方法一和方法二中是否有些等式不适用了？请说明理由。\n\n电荷在电场中运动会受到电场力的影响，必然获得加速度。因此，可以利用电场来控制带电粒子的运动。\n\n## 自主活动\n\n阴极射线是从低压气体放电管的阴极射出的带负电的电子流。如图 9-39 所示即为用阴极射线管演示带电粒子在电场中的偏转的实验装置。\n\n  \n图9-39 阴极射线在电场中偏转实验装置\n\n  \n图9-40 电子束在电场中的偏转\n\n给阴极射线管左右两端加上高电压，电子束从阴极射向阳极。利用荧光屏可清晰地显示出电子束运动的径迹。在荧光屏前有一狭缝，射线只能从狭缝中通过沿直线前进。在射线经过路径的上下方有一对平行金属板 $M_{1}M_{2}$ ，称为偏转极板。通过控制偏转极板施加的电压观察带电粒子在电场中的偏转情况。\n\n当平行金属板 $M_{1}M_{2}$ 之间未加电压时，电子束不发生偏转，沿直线运动；当平行金属板 $M_{1}M_{2}$ 之间施加上负下正的电压时，电子束在电场力的作用下如图 9-40 所示向下偏转；当平行金属板 $M_{1}M_{2}$ 之间施加上正下负的电压，电子束将在电场力的作用下向上偏转。\n\n带电粒子在电场中由于受到电场力的作用产生加速度，其速度大小和方向都可能发生变化。带电粒子在电场中沿直线加速和偏转是两种最基本的运动情况。\n\n## 拓展视野\n\n如图 9-41 所示，一电子（电荷量大小为 $e$ 、质量为 $m$ ）以初速度 $v_0$ 沿水平方向射入水平放置、相距 $d$ 、长为 $L$ 、电势差为 $U$ （能使电子飞出极板）的一对平行金属板间。\n\n  \n图9-41 带电粒子在电场中偏转\n\n设两极板间为向上的匀强电场。电子进入匀强电场后，由于重力通常远小于电场力，重力可\n\n忽略不计。忽略极板的边缘效应，电子受到竖直向下的电场力作用而发生偏转。电子的运动类似于重力场中的平抛运动。\n\n电子在水平方向的分运动是速度为 $v_{0}$ 的匀速直线运动，即 $v_{x}=v_{0}$ ，因此电子在电场内运动的时间 $t=\\frac{L}{v_{0}}$ 。\n\n电子在竖直方向受电场力 $eE$ 的作用，做初速为零、加速度为 $a$ 的匀加速直线运动，产生垂直于板面方向偏移的距离 $y = \\frac{1}{2} at^2$ 。其中\n\n$$\na = \\frac {F}{m} = \\frac {e E}{m} = \\frac {e U}{m d}\n$$\n\n所以\n\n$$\ny = \\frac {1}{2} a t ^ {2} = \\frac {e U L ^ {2}}{2 m d v _ {0} ^ {2}}\n$$\n\n电子离开电场时，速度 v 的竖直方向分量\n\n$$\nv _ {y} = a t = \\frac {e U}{m d} \\cdot \\frac {L}{v _ {0}}\n$$\n\n偏转角度 $\\theta$ 可由 $\\tan\\theta$ 来确定，即\n\n$$\n\\tan \\theta = \\frac {v _ {y}}{v _ {x}} = \\frac {e U}{m d} \\cdot \\frac {L}{v _ {0} ^ {2}}\n$$\n\n## 问题②思考\n\n1. 在某次雷暴中，地面和云层之间的电势差是 $1.2 \\times 10^{9} \\mathrm{~V}$ 。假设一个电子从云层运动到地面，其电势能改变了多少？\n\n2. 电场中有 A、B 两点，已知两点的电势为 $\\varphi_{A}=300\\ V,\\ \\varphi_{B}=-200\\ V$ 。将一电荷量为 $+4\\times10^{-6}\\ C$ 的粒子从 A 点移到 B 点，电场力对带电粒子做了多少功？做的是正功还是负功？带电粒子的电势能是增加还是减少？改变了多少？\n\n3. 如图 9-42 所示是一匀强电场的等势面, 相邻等势面相距 $2 \\mathrm{~cm}$ , 则该匀强电场的电场强度为多大, 方向如何?\n\n  \n图9-42\n\n  \n图9-43\n\n4. 如图9-43所示, 一束粒子从 $O$ 点沿水平方向射入平行板之间的电场后分成了 $a 、 b 、 c 、 d$ 四束, 各粒子束中粒子的带电情况如何? (不计粒子重力)\n\n5. 如图 9-44 所示的装置处在真空中，电场加速电压为 $U = 10 \\mathrm{~V}$ ，两极板间距离 $d = 2 \\mathrm{~cm}$ 。若电子在负极板处由静止释放，求其在装置中被加速后离开电场时的速度 $v$ 。（电子的质量为 $9.1 \\times 10^{-31} \\mathrm{~kg}$ ）\n\n  \n图9-44\n\n  \n图9-45 上海公交11路超级电容车",
+      "title": "带电粒子在电场中的运动"
+    }
+  ]
+}

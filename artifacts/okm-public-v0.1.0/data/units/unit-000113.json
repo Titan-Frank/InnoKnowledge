@@ -1,0 +1,1318 @@
+{
+  "body": {
+    "content": "## 定义\n电荷定向移动（别名：电子漂移）是指导体中存在电场时，自由电子在电场力作用下加速，并与原子实频繁碰撞，最终获得沿电场反方向的稳定漂移速度，宏观上形成电流的过程。[evidence:auto-e13893873253]\n\n## 核心解释\n该微观物理过程的具体机制可分解为以下阶段：\n1. **热运动背景**：一般情况下，金属导体中的自由电子原本以约 $10^{5} \\mathrm{~m} / \\mathrm{s}$ 的速率做永不停息的无规则热运动。[evidence:auto-e13893873253]\n2. **电场加速**：当导体两端存在电压并在内部建立电场时，自由电子在电场力作用下获得与电场方向相反的加速度。[evidence:auto-e13893873253]\n3. **碰撞与平衡**：电子在加速过程中会与原子实发生频繁碰撞，碰撞阻碍了其速度的无限增加。最终，电场力的加速作用与碰撞的阻碍作用达到动态平衡，电子获得一个沿加速度方向的稳定速度，即漂移速度。[evidence:auto-e13893873253]\n4. **宏观表现**：大量电子的这种定向漂移在宏观上形成了与电场方向相同的电流。物理学中将通过导体某一横截面的电荷量 $Q$ 与所用时间 $t$ 之比定义为电流，表达式为 $I = Q/t$。[evidence:auto-e13893873253][evidence:auto-f99502022ae4]\n\n## 关键要点\n- **发生条件**：导体内部必须存在电场（通常由两端电压建立）。\n- **速度对比**：漂移速度远小于自由电子的无规则热运动速度。\n- **恒定机制**：电场加速与碰撞阻碍达到动态平衡，从而保证宏观电流保持恒定。\n- **方向差异**：电子作为负电荷，其定向移动方向与电场方向相反；而宏观电流方向规定与电场方向相同。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "process/微观物理过程:auto-f65d9c506495",
+    "properties": {
+      "card_title": "电荷定向移动",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-e13893873253",
+      "evidence:auto-f99502022ae4"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:39:48+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-e46d384a5b29",
+    "mention_refs": [],
+    "node_id": "process/微观物理过程:auto-f65d9c506495",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "导体中存在电场时，自由电子在电场力作用下加速，并与原子实频繁碰撞，最终获得沿电场反方向的稳定漂移速度，宏观上形成电流的过程。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-f99502022ae4"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "导体中存在电场时，自由电子在电场力作用下加速，并与原子实频繁碰撞，最终获得沿电场反方向的稳定漂移速度，宏观上形成电流的过程。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-f99502022ae4"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "导体中存在电场时，自由电子在电场力作用下加速，并与原子实频繁碰撞，最终获得沿电场反方向的稳定漂移速度，宏观上形成电流的过程。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-f99502022ae4"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "电荷定向移动"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-f99502022ae4"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "简单串联、并联组合电路"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-f99502022ae4"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-f99502022ae4"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-f99502022ae4"
+    ],
+    "status": "active",
+    "summary": "导体中存在电场时，自由电子在电场力作用下加速，并与原子实频繁碰撞，最终获得沿电场反方向的稳定漂移速度，宏观上形成电流的过程。",
+    "title": "电荷定向移动",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 8,
+    "score": 89,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点缺少 semantic_core 语义骨架。",
+        "passed": false,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-b19f95aa6659",
+      "node_id": "process/微观物理过程:auto-f65d9c506495",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "绘制自由电子在电场中受力加速与碰撞示意图，标注漂移速度方向与热运动特征",
+              "给定导体参数，计算电压变化前后漂移速度的相对变化比例并说明物理依据",
+              "分析串联电路中不同截面电流相等性，从微观漂移速度角度解释电子通量守恒"
+            ],
+            "common_errors": [
+              "误认为电子漂移速度等于热运动速度，忽略碰撞阻碍作用的动态平衡机制",
+              "混淆电流方向与电子运动方向，未结合电场方向分析漂移特征",
+              "将宏观电流连续性误解为电子匀速直线运动，忽略频繁碰撞导致的平均速度稳定"
+            ],
+            "diagnostic_questions": [
+              "为什么自由电子的平均漂移速度远小于其热运动速度？",
+              "若导体两端电压增大，电子漂移速度如何变化？说明判断依据",
+              "金属导体中电流方向与电子漂移方向是否相同？结合电场作用机制解释"
+            ],
+            "difficulty_level": "intermediate",
+            "extension_suggestions": [
+              "结合电阻微观机制（evidence:auto-f621655c976e），分析材料晶格结构对碰撞频率的影响",
+              "探讨超导体中零电阻状态下电荷定向移动特征，对比常规导体模型",
+              "建立漂移速度v_d与宏观电流I的数学关系式，验证不同横截面导体的自洽性"
+            ],
+            "generation": {
+              "confidence": 0.92,
+              "generated_at": "2026-07-12T10:36:32+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "ea6d27a8593584462829195983639cb9079c3cc50c363e27059240b6b77bc16b",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-e13893873253",
+                "evidence:auto-f99502022ae4"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "描述导体中存在电场时自由电子加速、碰撞及形成稳定漂移速度的微观过程",
+              "区分电子热运动速度与漂移速度，并解释二者数量级差异对电流形成的影响",
+              "根据电场方向判断自由电子漂移方向及宏观电流方向"
+            ],
+            "remediation_suggestions": [
+              "使用分子动力学模拟动画展示电子加速-碰撞循环过程，强化动态平衡概念",
+              "设计对比实验任务：测量不同电压下电流值，结合I=Q/t公式反推漂移速度量级",
+              "提供方向判断练习模板：电场线→受力方向→加速度方向→漂移速度方向→电流方向"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-e13893873253",
+        "evidence:auto-f99502022ae4"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:36:32+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "\\frac {1}{R ^ {\\prime}} & = \\frac {1}{R _ {1}} + \\frac {1}{R _ {2}} \\\\ R ^ {\\prime} & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}}",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-0bc03c8cda44",
+      "locator": "line:80-82",
+      "modality": "equation",
+      "normalized_claims": [
+        "\\frac {1}{R ^ {\\prime}} & = \\frac {1}{R _ {1}} + \\frac {1}{R _ {2}} \\\\ R ^ {\\prime} & = \\frac {R _ {1} R _ {2}}{R _ {1}"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "表 10-1 常见电路元器件的名称及符号 ... 电源 ... 电阻器 ... 电容器 ... 开关 ... 滑动变阻器 ...",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-1cfffd605767",
+      "locator": "line:13-20",
+      "modality": "text",
+      "normalized_claims": [
+        "表 10-1 常见电路元器件的名称及符号 ... 电源 ... 电阻器 ... 电容器 ... 开关 ... 滑动变阻器 ..."
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/bedd860c67b411a0aaeed2f5a0be308d559fc8b002eb65a080ebccd058b123c5.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-21116f73fa76",
+      "locator": "line:11",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/bedd860c67b411a0aaeed2f5a0be308d559fc8b002eb65a080ebccd058b123c5.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 351,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/bedd860c67b411a0aaeed2f5a0be308d559fc8b002eb65a080ebccd058b123c5.jpg",
+          "reason": "图片内容与前文描述完全一致。前文明确指出“如图 10-2 所示是一些常见的电路元器件，自左至右依次为小型电动机、电感器、电容器、电阻器、三极管和二极管”，这正是图片展示的六个实物。后文紧接着是“图10-2 常见的电路元器件”的标题及元器件符号表。该图片是教材本章节（小结/常见的电路元器件有哪些？）的核心展示材料，用于直观呈现知识点。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了六个电子元件的实物照片，从左至右依次为：一个带轴的红黑线小型直流电动机、一个绕有铜线的环形电感器、一个橙色的圆盘形电容器、一个带有色环的圆柱形电阻器、一个黑色三引脚的三极管以及一个黑色带银色环的二极管。",
+          "width": 790
+        },
+        "path": "images/bedd860c67b411a0aaeed2f5a0be308d559fc8b002eb65a080ebccd058b123c5.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "分析：这个组合电路为 $R_{1}$ 与 $R_{2}$ 并联后再与 $R_{3}$ 串联。将 $R_{1}$ 、 $R_{2}$ 按照并联关系等效为电阻 $R'$ ，则原电路可等效为如图 10-7 所示的 $R'$ 与 $R_{3}$ 的串联电路，这样就可以求解电路的总阻值了。可先将原电路等效为如图 10-7 所示的串联电路，然后再根据串并联电路特点逐步还原求解。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-21cba1be7722",
+      "locator": "line:76",
+      "modality": "equation",
+      "normalized_claims": [
+        "分析：这个组合电路为 $R_{1}$ 与 $R_{2}$ 并联后再与 $R_{3}$ 串联。将 $R_{1}$ 、 $R_{2}$ 按照并联关系等效为电阻 $R'$ ，则原电路可等效为如图 10-7 所示的 $R'$ 与 $R_{3}$ 的"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/2a7e6a7912e4ad91c6ce169f9d08d45171620b6b4930675932ddac4f53acd358.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-2c8496a90127",
+      "locator": "line:20",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/2a7e6a7912e4ad91c6ce169f9d08d45171620b6b4930675932ddac4f53acd358.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 290,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/2a7e6a7912e4ad91c6ce169f9d08d45171620b6b4930675932ddac4f53acd358.jpg",
+          "reason": "图片内容直接展示了前文表格中列出的‘电源’、‘开关’、‘电灯’等电路元器件的实物形态，并呈现了它们组成的基本电路结构。这与标题‘常见的电路元器件有哪些’以及后文‘图10-3 简单电路’紧密对应，是物理教学中展示电路实物结构的核心素材。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个由电池盒（作为电源）、一个单刀单掷开关（闸刀开关，处于断开状态）和一个带底座的小灯泡（用电器）通过蓝色导线串联连接而成的实物电路。",
+          "width": 554
+        },
+        "path": "images/2a7e6a7912e4ad91c6ce169f9d08d45171620b6b4930675932ddac4f53acd358.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "等效电路是将一个复杂的组合电路通过电阻等效等方法，化简成具有与原电路功能相同的简单电路。...“等效”的目的是为了在电路分析时，通过等效替代，简化分析过程。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-3c4211d168f5",
+      "locator": "line:96-98",
+      "modality": "text",
+      "normalized_claims": [
+        "等效电路是将一个复杂的组合电路通过电阻等效等方法，化简成具有与原电路功能相同的简单电路。...“等效”的目的是为了在电路分析时，通过等效替代，简化分析过程。"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "在国际单位制中，电流的单位是安培，简称安，符号为 A。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-444c5ffdc267",
+      "locator": "line:40",
+      "modality": "text",
+      "normalized_claims": [
+        "在国际单位制中，电流的单位是安培，简称安，符号为 A。"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\begin{array}{r l} R _ {\\text {总}} & = R ^ {\\prime} + R _ {3} \\\\ & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} + R _ {3} \\\\ & = \\left(\\frac {2 0 \\times 3 0}{2 0 + 3 0} + 8\\right) \\Omega \\\\ & = 2 0 \\Omega \\end{array}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-4e0e32f3e564",
+      "locator": "line:90",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\begin{array}{r l} R _ {\\text {总}} & = R ^ {\\prime} + R _ {3} \\\\ & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} + R _"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "闭合开关后，由欧姆定律得，电路中的总电流，即流过 $R_{3}$ 的电流",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-4e3c12eb05d6",
+      "locator": "line:98",
+      "modality": "equation",
+      "normalized_claims": [
+        "闭合开关后，由欧姆定律得，电路中的总电流，即流过 $R_{3}$ 的电流"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nI _ {3} = I = \\frac {U}{R _ {\\text {总}}} = \\frac {2 0}{2 0} \\mathrm{A} = 1 \\mathrm{A}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-7833d0f684a5",
+      "locator": "line:102",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nI _ {3} = I = \\frac {U}{R _ {\\text {总}}} = \\frac {2 0}{2 0} \\mathrm{A} = 1 \\mathrm{A}\n$$"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/29754a0e39c46328beaf812ce8965a7da06bf4895499638a2f2ccc493eb6cabf.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-7f135fdfdb59",
+      "locator": "line:32",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/29754a0e39c46328beaf812ce8965a7da06bf4895499638a2f2ccc493eb6cabf.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 223,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/29754a0e39c46328beaf812ce8965a7da06bf4895499638a2f2ccc493eb6cabf.jpg",
+          "reason": "该图片直接对应后文中的'图10-5 存在电场时导体中电子的运动'。它直观地展示了电流形成的微观物理模型：在电场E的作用下，自由电子在热运动（黑色箭头）的基础上叠加了逆电场方向的漂移运动（红色箭头），从而形成宏观电流I。这是解释'电流是如何形成的'这一核心概念的关键图示，属于直接表达物理模型和机制的内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个圆柱形导体的微观模型。内部有排列整齐的大蓝色球体（带正号，代表原子实/正离子）。分布着许多小灰色球体（带负号，代表自由电子）。电子的运动状态通过两种箭头表示：黑色的杂乱箭头代表无规则热运动，红色的较小箭头代表定向的漂移速度。左侧有一个向左的大箭头标记为E（电场），下方有一个向右的大箭头标记为I（电流）。",
+          "width": 482
+        },
+        "path": "images/29754a0e39c46328beaf812ce8965a7da06bf4895499638a2f2ccc493eb6cabf.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/8fecf2c5af3f438785beab0c4735e3279d3a1686488cd3312e06204ad983a951.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-852e3c4cc23e",
+      "locator": "line:29",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/8fecf2c5af3f438785beab0c4735e3279d3a1686488cd3312e06204ad983a951.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 195,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/8fecf2c5af3f438785beab0c4735e3279d3a1686488cd3312e06204ad983a951.jpg",
+          "reason": "图片内容与上下文高度对应。前文详细描述了金属导体中存在“原子实”和“自由电子”，且自由电子做“无规则热运动”。后文紧接着给出了图注“图10-4 导体中自由电子的热运动”。该图片作为核心概念模型，直接展示了电流形成前的微观状态（无规则热运动），是解释“电流是如何形成的”这一节的关键知识证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了金属导体的微观结构模型。图中包含规则排列的带正电的蓝色球体，标注为“原子实”；以及散布其中、带有指向不同方向箭头的带负电小球，标注为“自由电子”，直观表现了电子的无规则运动。",
+          "width": 548
+        },
+        "path": "images/8fecf2c5af3f438785beab0c4735e3279d3a1686488cd3312e06204ad983a951.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "解： $R_{1}$ 与 $R_{2}$ 并联，则 $R_{1}$ 、 $R_{2}$ 与等效电阻 $R'$ 之间的关系为",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-938f208d93e0",
+      "locator": "line:78",
+      "modality": "equation",
+      "normalized_claims": [
+        "解： $R_{1}$ 与 $R_{2}$ 并联，则 $R_{1}$ 、 $R_{2}$ 与等效电阻 $R'$ 之间的关系为"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nI = \\frac {Q}{t}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-9ca28175a30a",
+      "locator": "line:42",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nI = \\frac {Q}{t}\n$$"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "设流过电阻 $R_{1}$ 的电流为 $I_{1}$ ，流过电阻 $R_{2}$ 的电流为 $I_{2}$ ，由于 $R_{1}$ 与 $R_{2}$ 并联，有 \\frac {I _ {1}}{I _ {2}} = \\frac {R _ {2}}{R _ {1}} ... I _ {1} + I _ {2} = I",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a57e320aa5c8",
+      "locator": "line:106-108",
+      "modality": "equation",
+      "normalized_claims": [
+        "设流过电阻 $R_{1}$ 的电流为 $I_{1}$ ，流过电阻 $R_{2}$ 的电流为 $I_{2}$ ，由于 $R_{1}$ 与 $R_{2}$ 并联，有 \\frac {I _ {1}}{I _ {2}} = \\frac {R _ {"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "示例 把阻值分别为 $R_{1}=20\\ \\Omega$ 、 $R_{2}=30\\ \\Omega$ 、 $R_{3}=8\\ \\Omega$ 的三个电阻连接成如图 10-6 所示的组合电路，电路的总阻值为多少？若电源电压 U=20 V，则闭合开关后，流过每个电阻的电流大小分别为多少？",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c17948d9d202",
+      "locator": "line:68",
+      "modality": "equation",
+      "normalized_claims": [
+        "示例 把阻值分别为 $R_{1}=20\\ \\Omega$ 、 $R_{2}=30\\ \\Omega$ 、 $R_{3}=8\\ \\Omega$ 的三个电阻连接成如图 10-6 所示的组合电路，电路的总阻值为多少？若电源电压 U=20 V，则闭合"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/71ed33ddd577c11b033f20bc55b3949a612f2449fffd7d7a57d4666179fc02ae.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-cc72adcd3c4b",
+      "locator": "line:62",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/71ed33ddd577c11b033f20bc55b3949a612f2449fffd7d7a57d4666179fc02ae.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 56,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/71ed33ddd577c11b033f20bc55b3949a612f2449fffd7d7a57d4666179fc02ae.jpg",
+          "reason": "该图片是一个问号图标，通常用于教材中的“思考”、“问题”或“拓展视野”栏目。结合标题路径中的“拓展视野”以及前文关于电阻微观解释的内容，该图标很可能作为栏目标识或引导读者思考的提示。根据核心规则，图片内容与标题/栏目形成对应，属于辅助说明性质的 supporting 证据。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片显示一个紫色的圆形图标，中间包含一个白色的问号。",
+          "width": 62
+        },
+        "path": "images/71ed33ddd577c11b033f20bc55b3949a612f2449fffd7d7a57d4666179fc02ae.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\begin{array}{r l} \\frac {1}{R ^ {\\prime}} & = \\frac {1}{R _ {1}} + \\frac {1}{R _ {2}} \\\\ R ^ {\\prime} & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} \\end{array}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-cdff9d35f6dd",
+      "locator": "line:84",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\begin{array}{r l} \\frac {1}{R ^ {\\prime}} & = \\frac {1}{R _ {1}} + \\frac {1}{R _ {2}} \\\\ R ^ {\\prime} & = \\frac {R _"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "电流方向上的两点间存在电势差，这个电势差就是电路中这两点间的电压（voltage）。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-d51a1f657510",
+      "locator": "line:48-50",
+      "modality": "text",
+      "normalized_claims": [
+        "电流方向上的两点间存在电势差，这个电势差就是电路中这两点间的电压（voltage）。"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/79e712b1fa72ee7fd63f13637934516e4ad2318f96365608b7c0110b1d377f6f.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e067ee795374",
+      "locator": "line:73",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/79e712b1fa72ee7fd63f13637934516e4ad2318f96365608b7c0110b1d377f6f.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 245,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/79e712b1fa72ee7fd63f13637934516e4ad2318f96365608b7c0110b1d377f6f.jpg",
+          "reason": "该图片是教材中示例题（图10-6）的后续分析图（图10-7），展示了将复杂的串并联组合电路（R1与R2并联后再与R3串联）等效简化为R'与R3串联的过程。根据规则，属于“例题配图”或“过程片段”，用于辅助说明解题思路，因此保留为supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张电路示意图，显示了一个简单的串联电路，包含电源E、开关S以及两个串联的电阻R'和R3。",
+          "width": 326
+        },
+        "path": "images/79e712b1fa72ee7fd63f13637934516e4ad2318f96365608b7c0110b1d377f6f.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "一般情况下，金属导体中的自由电子大约以 $10^{5} \\mathrm{~m} / \\mathrm{s}$ 的速率做永不停息的无规则热运动...若导体中存在电场，在电场力的作用下，导体中的自由电子获得与电场方向相反的加速度...最终获得沿加速度方向一定的速度，这一速度称为漂移速度...便形成了和电场方向相同的电流。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e13893873253",
+      "locator": "line:25-35",
+      "modality": "text",
+      "normalized_claims": [
+        "一般情况下，金属导体中的自由电子大约以 $10^{5} \\mathrm{~m} / \\mathrm{s}$ 的速率做永不停息的无规则热运动...若导体中存在电场，在电场力的作用下，导体中的自由电子获得与电场方向相反的加速度...最终获得沿加"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "将用电器同时采用串联和并联的方式组合起来形成的电路叫做串联、并联组合电路。实际生活中大部分电路都是采用串联、并联组合电路的方式连接的。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e87b0f7b0246",
+      "locator": "line:62-64",
+      "modality": "text",
+      "normalized_claims": [
+        "将用电器同时采用串联和并联的方式组合起来形成的电路叫做串联、并联组合电路。实际生活中大部分电路都是采用串联、并联组合电路的方式连接的。"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "为了简单起见，我们以金属导体为例讨论。如图 10-4 所示，在金属导体中，有“固定”在晶体结构点阵上失去电子的原子，我们把它称为原子实。还有大量的自由电子，这些电子是金属导体内的自由电荷。一般情况下，金属导体中的自由电子大约以 $10^{5} \\mathrm{~m} / \\mathrm{s}$ 的速率做永不停息的无规则热运动，做热运动的自由电子向各个方向运动的机会均等，从宏观上看，不会形成电流。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ebd9077a63c3",
+      "locator": "line:27",
+      "modality": "equation",
+      "normalized_claims": [
+        "为了简单起见，我们以金属导体为例讨论。如图 10-4 所示，在金属导体中，有“固定”在晶体结构点阵上失去电子的原子，我们把它称为原子实。还有大量的自由电子，这些电子是金属导体内的自由电荷。一般情况下，金属导体中的自由电子大约以 $10^{5"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "又 $R'$ 与 $R_{3}$ 串联，因此电路中总电阻 ... R _ {\\text {总}} & = R ^ {\\prime} + R _ {3}",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ed5839a71a21",
+      "locator": "line:86-88",
+      "modality": "equation",
+      "normalized_claims": [
+        "又 $R'$ 与 $R_{3}$ 串联，因此电路中总电阻 ... R _ {\\text {总}} & = R ^ {\\prime} + R _ {3}"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "集成电路是一种微型电子器件或部件。采用一定的工艺，把一个电路中所需的晶体管、电阻、电容等元件及布线互连在一起，制作在一小块或几小块半导体晶片或介质基片上...具有重量轻、体积小、性能好和能耗小等多项明显优势。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f058d57e368c",
+      "locator": "line:116-118",
+      "modality": "text",
+      "normalized_claims": [
+        "集成电路是一种微型电子器件或部件。采用一定的工艺，把一个电路中所需的晶体管、电阻、电容等元件及布线互连在一起，制作在一小块或几小块半导体晶片或介质基片上...具有重量轻、体积小、性能好和能耗小等多项明显优势。"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/5e052bc2a6d3607118b2dc248e6ad7fa88e480bedba59548b8cd7ebf0f0cbda1.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f4096fff7938",
+      "locator": "line:70",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/5e052bc2a6d3607118b2dc248e6ad7fa88e480bedba59548b8cd7ebf0f0cbda1.jpg)"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 276,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/5e052bc2a6d3607118b2dc248e6ad7fa88e480bedba59548b8cd7ebf0f0cbda1.jpg",
+          "reason": "图片是教材中‘示例’部分所引用的‘图10-6’。它直观地展示了题目中描述的三个电阻（R1、R2、R3）的连接方式：R1与R2并联后再与R3串联。这与后文的‘图10-6 组合电路图’标题及分析文字完全对应，是理解例题和串并联组合电路概念的核心证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "这是一个电路图，包含电源E、开关S以及三个电阻R1、R2、R3。电路结构显示电阻R1和R2并联连接，然后这一并联部分与电阻R3串联。",
+          "width": 332
+        },
+        "path": "images/5e052bc2a6d3607118b2dc248e6ad7fa88e480bedba59548b8cd7ebf0f0cbda1.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "自由电子与晶体点阵上的原子实碰撞，形成对电子定向运动的阻碍作用，这就是“电阻”产生的原因，也是电阻元件在通电时发热的原因。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f4c47bb65bd3",
+      "locator": "line:56-58",
+      "modality": "text",
+      "normalized_claims": [
+        "自由电子与晶体点阵上的原子实碰撞，形成对电子定向运动的阻碍作用，这就是“电阻”产生的原因，也是电阻元件在通电时发热的原因。"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "物理学中规定，通过导体某一横截面的电荷量 Q 与所用时间 t 之比称为电流（electric current），用符号 I 表示，即 I = Q/t",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f99502022ae4",
+      "locator": "line:36-38",
+      "modality": "text",
+      "normalized_claims": [
+        "物理学中规定，通过导体某一横截面的电荷量 Q 与所用时间 t 之比称为电流（electric current），用符号 I 表示，即 I = Q/t"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "又 $R'$ 与 $R_{3}$ 串联，因此电路中总电阻",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-fdbb2e631ff2",
+      "locator": "line:86",
+      "modality": "equation",
+      "normalized_claims": [
+        "又 $R'$ 与 $R_{3}$ 串联，因此电路中总电阻"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:39:48+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-afc859d25fa2",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-e13893873253"
+      ],
+      "source_type": "textbook",
+      "target_id": "process/微观物理过程:auto-f65d9c506495",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "电子漂移",
+      "drift velocity process"
+    ],
+    "created_at": "2026-06-29T05:39:48+00:00",
+    "dataset_id": "main",
+    "definition": "导体中存在电场时，自由电子在电场力作用下加速，并与原子实频繁碰撞，最终获得沿电场反方向的稳定漂移速度，宏观上形成电流的过程。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "process/微观物理过程:auto-f65d9c506495",
+    "kind": "process",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "电荷定向移动",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "raw_subkinds": [
+          "微观物理过程"
+        ],
+        "subkinds": [
+          "microscopic_physical_process"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": "漂移速度远小于热运动速度；电场加速与碰撞阻碍达到动态平衡，电流保持恒定",
+        "conditions": "导体两端存在电压/建立内部电场"
+      },
+      "template_display": {
+        "color": "#2BA876",
+        "label": "物理过程",
+        "template_id": "textbook/physics",
+        "type_key": "process"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "microscopic_physical_process",
+    "tags": [
+      "电流形成",
+      "微观机制"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:39:48+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "property/electrical_quantity:auto-f621655c976e",
+        "id": "edge:auto-aa919345260d",
+        "notes": "电阻对电荷定向移动产生阻碍作用",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "影响",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-f4c47bb65bd3"
+        ],
+        "status": "active",
+        "to_id": "process/微观物理过程:auto-f65d9c506495",
+        "type": "affects",
+        "updated_at": "2026-07-02T08:17:02+00:00"
+      }
+    ],
+    "outgoing": [
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:39:48+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "process/微观物理过程:auto-f65d9c506495",
+        "id": "edge:auto-2b46ddd7638e",
+        "notes": "自由电荷定向漂移形成宏观电流",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "导致",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-e13893873253"
+        ],
+        "status": "active",
+        "to_id": "property/基本电学物理量:auto-aaf32796591b",
+        "type": "causes",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ]
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第一节 简单串联、并联组合电路\n\n夜晚的上海浦东陆家嘴（图 10-1）灯光璀璨，美丽壮观。实现这些照明效果，需要使用各种各样的电路元器件搭建电路。\n\n\n\n## 常见的电路元器件有哪些？\n\n如图 10-2 所示是一些常见的电路元器件，自左至右依次为小型电动机、电感器、电容器、电阻器、三极管和二极管。如表 10-1 所示为电路中常见元器件的名称及符号。\n\n[source image omitted from static artifact]  \n图10-2 常见的电路元器件\n\n表 10-1 常见电路元器件的名称及符号\n\n<table><tr><td>名称</td><td>图形符号</td><td>名称</td><td>图形符号</td><td>名称</td><td>图形符号</td></tr><tr><td>电源</td><td><img src=\"images/33b58865b680ecdc1676ef50ae1506aed3448a260ba7fbeb3695a85b7a0fe968.jpg\"/></td><td>电阻器</td><td><img src=\"images/6d6f45c2c2f23b3525aa3760c9bfb56b770df8e173f72a40aa41c99f3ff6967e.jpg\"/></td><td>电容器</td><td>—||—</td></tr><tr><td>开关</td><td><img src=\"images/8b1c49339042d8f3d2c1883f7c579e0259874ab983fdcd5ef7f3bd38ac93f90c.jpg\"/></td><td>可调电阻器</td><td><img src=\"images/dae644bcdeac2efec78caf2e834c9c97288b812dcabef1cbbd15165c62ade815.jpg\"/></td><td>可变电容器</td><td>—||—</td></tr><tr><td>电灯</td><td><img src=\"images/e199c0cb23341e5cc64e70f6ddb4cdbe62fec80289874ceeda68f8f367b9d3e8.jpg\"/></td><td>滑动变阻器</td><td><img src=\"images/fbd43de0a2c90ccf087ea22037aeffd2f515c9369bee3fad784809fd042c5935.jpg\"/></td><td>空心线圈</td><td>—___</td></tr><tr><td>电动机</td><td><img src=\"images/52e2c0911e4228907229f4406c19459f325d35f0f4bc3dd43836d561eeb70854.jpg\"/></td><td>晶体二极管</td><td><img src=\"images/e1826de7bd69a22f3a109a79b8c2281047ccb308c300d20422d0f2ed1cbe82b1.jpg\"/></td><td>铁芯线圈</td><td>—___</td></tr></table>\n\n各种元器件连接在一起形成电路（electric circuit）。初中我们已学过一个简单的电路由电源、用电器、开关、导线组成，如图 10-3 所示。其中电源提供电能；用电器消耗电能；导线提供电流通道，起到输送电能的作用；开关控制电路的通、断，若开关闭合，电路中即有电流通过。\n\n[source image omitted from static artifact]  \n图10-3 简单电路\n\n\n\n## 电流是如何形成的？\n\n为了简单起见，我们以金属导体为例讨论。如图 10-4 所示，在金属导体中，有“固定”在晶体结构点阵上失去电子的原子，我们把它称为原子实。还有大量的自由电子，这些电子是金属导体内的自由电荷。一般情况下，金属导体中的自由电子大约以 $10^{5} \\mathrm{~m} / \\mathrm{s}$ 的速率做永不停息的无规则热运动，做热运动的自由电子向各个方向运动的机会均等，从宏观上看，不会形成电流。\n\n[source image omitted from static artifact]  \n图10-4 导体中自由电子的热运动\n\n[source image omitted from static artifact]  \n图10-5 存在电场时导体中电子的运动  \n(说明：漂移速度远小于热运动速度，图中代表漂移速度的红色箭头仅为示意，不代表实际大小)\n\n若导体中存在电场，在电场力的作用下，导体中的自由电子获得与电场方向相反的加速度。自由电子在加速运动过程中和原子实频繁碰撞，持续加速受到阻碍，最终获得沿加速度方向一定的速度，这一速度称为漂移速度，如图 10-5 所示。电子的漂移速度很小，比热运动的速度小许多个量级。但由于漂移速度的存在，使导体内的自由电子从整体上发生了逆电场方向的定向移动，便形成了和电场方向相同的电流。\n\n物理学中规定，通过导体某一横截面的电荷量 Q 与所用时间 t 之比称为电流（electric current），用符号 I 表示，即\n\n$$\nI = \\frac {Q}{t}\n$$\n\n在国际单位制中，电流的单位是安培，简称安，符号为 A。\n\n## 大家谈\n\n导体中的自由电子在电场力的作用下获得漂移速度。由于电场力持续存在，该速度是否会持续增大，从而使导体中的电流持续增大呢？\n\n\n\n## 电路中的电压如何理解?\n\n我们知道导体中的自由电荷是在电场力的作用下才发生定向移动的。正电荷在电场力的作用下从电势高处向电势低处运动，我们规定正电荷定向移动的方向为电流的方向，因此，沿着电流的方向电势逐渐降低。电流方向上的两点间存在电势差，这个电势差就是电路中这两点间的电压（voltage）。\n\n## 拓展视野\n\n当对金属导体两端施加电压时，金属内部就建立起电场并形成和电场方向相同的电流。虽然导体内一直存在电场对电子加速，但是电子的漂移速度却不会无限增加。这是因为电子会和原子实发生碰撞，这种碰撞对电子的定向运动形成“阻碍”。加速与碰撞两种作用同时存在，结果便是一定的电场下，电子获得一定的漂移速度。所以电流不会无限增大，即一定的外加电压形成一定的电流。\n\n另一方面，电场对电子加速必对电子做功，使所有电子的总动能增加。在电子与原子实碰撞过程中，电子的一部分动能传递给原子实，使原子实在点阵位置上的热振动加剧，表现为导体获得热量，温度升高。由此可见，自由电子与晶体点阵上的原子实碰撞，形成对电子定向运动的阻碍作用，这就是“电阻”产生的原因，也是电阻元件在通电时发热的原因。\n\n[source image omitted from static artifact]\n\n## 什么是串联、并联组合电路？\n\n初中时我们已经学过了两个用电器的串联或并联，当用电器的数目超过两个，用电器间的连接方式会比较复杂，可能既有串联又有并联。将用电器同时采用串联和并联的方式组合起来形成的电路叫做串联、并联组合电路。实际生活中大部分电路都是采用串联、并联组合电路的方式连接的。\n\n示例 把阻值分别为 $R_{1}=20\\ \\Omega$ 、 $R_{2}=30\\ \\Omega$ 、 $R_{3}=8\\ \\Omega$ 的三个电阻连接成如图 10-6 所示的组合电路，电路的总阻值为多少？若电源电压 U=20 V，则闭合开关后，流过每个电阻的电流大小分别为多少？\n\n[source image omitted from static artifact]  \n图10-6 组合电路图\n\n[source image omitted from static artifact]  \n图10-7 等效电路图\n\n分析：这个组合电路为 $R_{1}$ 与 $R_{2}$ 并联后再与 $R_{3}$ 串联。将 $R_{1}$ 、 $R_{2}$ 按照并联关系等效为电阻 $R'$ ，则原电路可等效为如图 10-7 所示的 $R'$ 与 $R_{3}$ 的串联电路，这样就可以求解电路的总阻值了。可先将原电路等效为如图 10-7 所示的串联电路，然后再根据串并联电路特点逐步还原求解。\n\n解： $R_{1}$ 与 $R_{2}$ 并联，则 $R_{1}$ 、 $R_{2}$ 与等效电阻 $R'$ 之间的关系为\n\n因此\n\n$$\n\\begin{array}{r l} \\frac {1}{R ^ {\\prime}} & = \\frac {1}{R _ {1}} + \\frac {1}{R _ {2}} \\\\ R ^ {\\prime} & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} \\end{array}\n$$\n\n又 $R'$ 与 $R_{3}$ 串联，因此电路中总电阻\n\n$$\n\\begin{array}{r l} R _ {\\text {总}} & = R ^ {\\prime} + R _ {3} \\\\ & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} + R _ {3} \\\\ & = \\left(\\frac {2 0 \\times 3 0}{2 0 + 3 0} + 8\\right) \\Omega \\\\ & = 2 0 \\Omega \\end{array}\n$$\n\n## 助一臂\n\n等效电路是将一个复杂的组合电路通过电阻等效等方法，化简成具有与原电路功能相同的简单电路。这个简单的电路，称作原复杂电路的等效电路。\n\n“等效”的目的是为了在电路分析时，通过等效替代，简化分析过程。之前学习的平均速度、力的合成等都是等效替代思想的应用。\n\n闭合开关后，由欧姆定律得，电路中的总电流，即流过 $R_{3}$ 的电流\n\n$$\nI _ {3} = I = \\frac {U}{R _ {\\text {总}}} = \\frac {2 0}{2 0} \\mathrm{A} = 1 \\mathrm{A}\n$$\n\n设流过电阻 $R_{1}$ 的电流为 $I_{1}$ ，流过电阻 $R_{2}$ 的电流为 $I_{2}$ ，由于 $R_{1}$ 与 $R_{2}$ 并联，有\n\n$$\n\\frac {I _ {1}}{I _ {2}} = \\frac {R _ {2}}{R _ {1}}\n$$\n\n又则\n\n$$\nI _ {1} + I _ {2} = I = 1 \\mathrm{A}\n$$\n\n$$\nI _ {1} = 0. 6 \\mathrm{A}, I _ {2} = 0. 4 \\mathrm{A}\n$$\n\n## STSE\n\n集成电路是一种微型电子器件或部件。采用一定的工艺，把一个电路中所需的晶体管、电阻、电容等元件及布线互连在一起，制作在一小块或几小块半导体晶片或介质基片上，然后封装在一个管壳内，成为具有所需电路功能的微型结构。如图10-8所示为一款封装后的集成电路。集成电路的诞生，使电子技术发生了划时代的革命。集成电路与由分立元件组装的普通电路相比，具有重量轻、体积小、性能好和能耗小等多项明显优势。\n\n  \n图10-8 集成电路\n\n在集成电路的制造过程中，光刻技术是一个非常重要的环节，它决定了集成电路的集成度，即单位面积上的元器件数目。随着集成度需求的不断提升，光刻技术正在逼近物理极限。在集成电路未来的发展中，人类想要突破极限，就需要新的技术和解决方案。\n\n## 问题②思考\n\n1. 如图 10-9 所示是一块电路板，指出至少 2 种电路元件，并说出其名称。\n\n  \n图10-9\n\n2. 石墨是元素碳的一种同素异形体，每个碳原子的周边连结着另外3个碳原子，单层石墨碳原子的排列方式呈蜂巢式的六边形平面结构，如图10-10所示。每个碳原子最外层有4个价电子，其中3个电子与周围的碳原子形成3个共价键，剩余的1个电子能够自由移动。\n\n  \n图10-10\n\n(1) 由上述材料判断石墨能否导电, 若能导电, 则形成定向移动的带电微粒是什么?\n\n(2) 查阅金刚石的结构, 判断其能否导电?\n\n3. 当雷雨云聚集的电荷达到一定的数量时，在带电的云层与云层之间或者带电的云层与地面之间能形成很强的电场，足以把空气击穿，同时激发出耀眼的闪光，这就是人们常说的闪电。若一次闪电放电的电荷量大小是 $300 \\, C$ ，放电的时间是 $0.005 \\, s$ ，则这次闪电放电时的平均电流为多大？\n\n4. 如图 10-11 所示为某控制电路的一部分。已知 $AA'$ 间的输入电压为 $24 \\mathrm{~V}$ ，如果电阻 $R = 6 \\mathrm{k} \\Omega$ ， $R_{1} = 6 \\mathrm{k} \\Omega$ ， $R_{2} = 3 \\mathrm{k} \\Omega$ ，则 $BB'$ 输出的电压可能为多少？\n\n5. 有三只阻值均为 $6 \\Omega$ 的电阻, 取其中的一只、两只或三只使用, 通过不同的连接方式, 共可获得多少种不同的阻值, 分别为多少?\n\n  \n图10-11\n\n  \n图10-12 形形色色的电阻器",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:10-1-a:source-markdown",
+          "locator": "简单串联、并联组合电路",
+          "modality": "text",
+          "page_end": 54,
+          "page_start": 49,
+          "properties": {
+            "md_end": 1651,
+            "md_start": 1496,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:10-1-a",
+            "outline_title": "简单串联、并联组合电路",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 1651,
+      "md_start": 1496,
+      "modalities": [
+        "equation",
+        "text",
+        "image",
+        "table"
+      ],
+      "page_end": 54,
+      "page_start": 49,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第一节 简单串联、并联组合电路\n\n夜晚的上海浦东陆家嘴（图 10-1）灯光璀璨，美丽壮观。实现这些照明效果，需要使用各种各样的电路元器件搭建电路。\n\n\n\n## 常见的电路元器件有哪些？\n\n如图 10-2 所示是一些常见的电路元器件，自左至右依次为小型电动机、电感器、电容器、电阻器、三极管和二极管。如表 10-1 所示为电路中常见元器件的名称及符号。\n\n[source image omitted from static artifact]  \n图10-2 常见的电路元器件\n\n表 10-1 常见电路元器件的名称及符号\n\n<table><tr><td>名称</td><td>图形符号</td><td>名称</td><td>图形符号</td><td>名称</td><td>图形符号</td></tr><tr><td>电源</td><td><img src=\"images/33b58865b680ecdc1676ef50ae1506aed3448a260ba7fbeb3695a85b7a0fe968.jpg\"/></td><td>电阻器</td><td><img src=\"images/6d6f45c2c2f23b3525aa3760c9bfb56b770df8e173f72a40aa41c99f3ff6967e.jpg\"/></td><td>电容器</td><td>—||—</td></tr><tr><td>开关</td><td><img src=\"images/8b1c49339042d8f3d2c1883f7c579e0259874ab983fdcd5ef7f3bd38ac93f90c.jpg\"/></td><td>可调电阻器</td><td><img src=\"images/dae644bcdeac2efec78caf2e834c9c97288b812dcabef1cbbd15165c62ade815.jpg\"/></td><td>可变电容器</td><td>—||—</td></tr><tr><td>电灯</td><td><img src=\"images/e199c0cb23341e5cc64e70f6ddb4cdbe62fec80289874ceeda68f8f367b9d3e8.jpg\"/></td><td>滑动变阻器</td><td><img src=\"images/fbd43de0a2c90ccf087ea22037aeffd2f515c9369bee3fad784809fd042c5935.jpg\"/></td><td>空心线圈</td><td>—___</td></tr><tr><td>电动机</td><td><img src=\"images/52e2c0911e4228907229f4406c19459f325d35f0f4bc3dd43836d561eeb70854.jpg\"/></td><td>晶体二极管</td><td><img src=\"images/e1826de7bd69a22f3a109a79b8c2281047ccb308c300d20422d0f2ed1cbe82b1.jpg\"/></td><td>铁芯线圈</td><td>—___</td></tr></table>\n\n各种元器件连接在一起形成电路（electric circuit）。初中我们已学过一个简单的电路由电源、用电器、开关、导线组成，如图 10-3 所示。其中电源提供电能；用电器消耗电能；导线提供电流通道，起到输送电能的作用；开关控制电路的通、断，若开关闭合，电路中即有电流通过。\n\n[source image omitted from static artifact]  \n图10-3 简单电路\n\n\n\n## 电流是如何形成的？\n\n为了简单起见，我们以金属导体为例讨论。如图 10-4 所示，在金属导体中，有“固定”在晶体结构点阵上失去电子的原子，我们把它称为原子实。还有大量的自由电子，这些电子是金属导体内的自由电荷。一般情况下，金属导体中的自由电子大约以 $10^{5} \\mathrm{~m} / \\mathrm{s}$ 的速率做永不停息的无规则热运动，做热运动的自由电子向各个方向运动的机会均等，从宏观上看，不会形成电流。\n\n[source image omitted from static artifact]  \n图10-4 导体中自由电子的热运动\n\n[source image omitted from static artifact]  \n图10-5 存在电场时导体中电子的运动  \n(说明：漂移速度远小于热运动速度，图中代表漂移速度的红色箭头仅为示意，不代表实际大小)\n\n若导体中存在电场，在电场力的作用下，导体中的自由电子获得与电场方向相反的加速度。自由电子在加速运动过程中和原子实频繁碰撞，持续加速受到阻碍，最终获得沿加速度方向一定的速度，这一速度称为漂移速度，如图 10-5 所示。电子的漂移速度很小，比热运动的速度小许多个量级。但由于漂移速度的存在，使导体内的自由电子从整体上发生了逆电场方向的定向移动，便形成了和电场方向相同的电流。\n\n物理学中规定，通过导体某一横截面的电荷量 Q 与所用时间 t 之比称为电流（electric current），用符号 I 表示，即\n\n$$\nI = \\frac {Q}{t}\n$$\n\n在国际单位制中，电流的单位是安培，简称安，符号为 A。\n\n## 大家谈\n\n导体中的自由电子在电场力的作用下获得漂移速度。由于电场力持续存在，该速度是否会持续增大，从而使导体中的电流持续增大呢？\n\n\n\n## 电路中的电压如何理解?\n\n我们知道导体中的自由电荷是在电场力的作用下才发生定向移动的。正电荷在电场力的作用下从电势高处向电势低处运动，我们规定正电荷定向移动的方向为电流的方向，因此，沿着电流的方向电势逐渐降低。电流方向上的两点间存在电势差，这个电势差就是电路中这两点间的电压（voltage）。\n\n## 拓展视野\n\n当对金属导体两端施加电压时，金属内部就建立起电场并形成和电场方向相同的电流。虽然导体内一直存在电场对电子加速，但是电子的漂移速度却不会无限增加。这是因为电子会和原子实发生碰撞，这种碰撞对电子的定向运动形成“阻碍”。加速与碰撞两种作用同时存在，结果便是一定的电场下，电子获得一定的漂移速度。所以电流不会无限增大，即一定的外加电压形成一定的电流。\n\n另一方面，电场对电子加速必对电子做功，使所有电子的总动能增加。在电子与原子实碰撞过程中，电子的一部分动能传递给原子实，使原子实在点阵位置上的热振动加剧，表现为导体获得热量，温度升高。由此可见，自由电子与晶体点阵上的原子实碰撞，形成对电子定向运动的阻碍作用，这就是“电阻”产生的原因，也是电阻元件在通电时发热的原因。\n\n[source image omitted from static artifact]\n\n## 什么是串联、并联组合电路？\n\n初中时我们已经学过了两个用电器的串联或并联，当用电器的数目超过两个，用电器间的连接方式会比较复杂，可能既有串联又有并联。将用电器同时采用串联和并联的方式组合起来形成的电路叫做串联、并联组合电路。实际生活中大部分电路都是采用串联、并联组合电路的方式连接的。\n\n示例 把阻值分别为 $R_{1}=20\\ \\Omega$ 、 $R_{2}=30\\ \\Omega$ 、 $R_{3}=8\\ \\Omega$ 的三个电阻连接成如图 10-6 所示的组合电路，电路的总阻值为多少？若电源电压 U=20 V，则闭合开关后，流过每个电阻的电流大小分别为多少？\n\n[source image omitted from static artifact]  \n图10-6 组合电路图\n\n[source image omitted from static artifact]  \n图10-7 等效电路图\n\n分析：这个组合电路为 $R_{1}$ 与 $R_{2}$ 并联后再与 $R_{3}$ 串联。将 $R_{1}$ 、 $R_{2}$ 按照并联关系等效为电阻 $R'$ ，则原电路可等效为如图 10-7 所示的 $R'$ 与 $R_{3}$ 的串联电路，这样就可以求解电路的总阻值了。可先将原电路等效为如图 10-7 所示的串联电路，然后再根据串并联电路特点逐步还原求解。\n\n解： $R_{1}$ 与 $R_{2}$ 并联，则 $R_{1}$ 、 $R_{2}$ 与等效电阻 $R'$ 之间的关系为\n\n因此\n\n$$\n\\begin{array}{r l} \\frac {1}{R ^ {\\prime}} & = \\frac {1}{R _ {1}} + \\frac {1}{R _ {2}} \\\\ R ^ {\\prime} & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} \\end{array}\n$$\n\n又 $R'$ 与 $R_{3}$ 串联，因此电路中总电阻\n\n$$\n\\begin{array}{r l} R _ {\\text {总}} & = R ^ {\\prime} + R _ {3} \\\\ & = \\frac {R _ {1} R _ {2}}{R _ {1} + R _ {2}} + R _ {3} \\\\ & = \\left(\\frac {2 0 \\times 3 0}{2 0 + 3 0} + 8\\right) \\Omega \\\\ & = 2 0 \\Omega \\end{array}\n$$\n\n## 助一臂\n\n等效电路是将一个复杂的组合电路通过电阻等效等方法，化简成具有与原电路功能相同的简单电路。这个简单的电路，称作原复杂电路的等效电路。\n\n“等效”的目的是为了在电路分析时，通过等效替代，简化分析过程。之前学习的平均速度、力的合成等都是等效替代思想的应用。\n\n闭合开关后，由欧姆定律得，电路中的总电流，即流过 $R_{3}$ 的电流\n\n$$\nI _ {3} = I = \\frac {U}{R _ {\\text {总}}} = \\frac {2 0}{2 0} \\mathrm{A} = 1 \\mathrm{A}\n$$\n\n设流过电阻 $R_{1}$ 的电流为 $I_{1}$ ，流过电阻 $R_{2}$ 的电流为 $I_{2}$ ，由于 $R_{1}$ 与 $R_{2}$ 并联，有\n\n$$\n\\frac {I _ {1}}{I _ {2}} = \\frac {R _ {2}}{R _ {1}}\n$$\n\n又则\n\n$$\nI _ {1} + I _ {2} = I = 1 \\mathrm{A}\n$$\n\n$$\nI _ {1} = 0. 6 \\mathrm{A}, I _ {2} = 0. 4 \\mathrm{A}\n$$\n\n## STSE\n\n集成电路是一种微型电子器件或部件。采用一定的工艺，把一个电路中所需的晶体管、电阻、电容等元件及布线互连在一起，制作在一小块或几小块半导体晶片或介质基片上，然后封装在一个管壳内，成为具有所需电路功能的微型结构。如图10-8所示为一款封装后的集成电路。集成电路的诞生，使电子技术发生了划时代的革命。集成电路与由分立元件组装的普通电路相比，具有重量轻、体积小、性能好和能耗小等多项明显优势。\n\n  \n图10-8 集成电路\n\n在集成电路的制造过程中，光刻技术是一个非常重要的环节，它决定了集成电路的集成度，即单位面积上的元器件数目。随着集成度需求的不断提升，光刻技术正在逼近物理极限。在集成电路未来的发展中，人类想要突破极限，就需要新的技术和解决方案。\n\n## 问题②思考\n\n1. 如图 10-9 所示是一块电路板，指出至少 2 种电路元件，并说出其名称。\n\n  \n图10-9\n\n2. 石墨是元素碳的一种同素异形体，每个碳原子的周边连结着另外3个碳原子，单层石墨碳原子的排列方式呈蜂巢式的六边形平面结构，如图10-10所示。每个碳原子最外层有4个价电子，其中3个电子与周围的碳原子形成3个共价键，剩余的1个电子能够自由移动。\n\n  \n图10-10\n\n(1) 由上述材料判断石墨能否导电, 若能导电, 则形成定向移动的带电微粒是什么?\n\n(2) 查阅金刚石的结构, 判断其能否导电?\n\n3. 当雷雨云聚集的电荷达到一定的数量时，在带电的云层与云层之间或者带电的云层与地面之间能形成很强的电场，足以把空气击穿，同时激发出耀眼的闪光，这就是人们常说的闪电。若一次闪电放电的电荷量大小是 $300 \\, C$ ，放电的时间是 $0.005 \\, s$ ，则这次闪电放电时的平均电流为多大？\n\n4. 如图 10-11 所示为某控制电路的一部分。已知 $AA'$ 间的输入电压为 $24 \\mathrm{~V}$ ，如果电阻 $R = 6 \\mathrm{k} \\Omega$ ， $R_{1} = 6 \\mathrm{k} \\Omega$ ， $R_{2} = 3 \\mathrm{k} \\Omega$ ，则 $BB'$ 输出的电压可能为多少？\n\n5. 有三只阻值均为 $6 \\Omega$ 的电阻, 取其中的一只、两只或三只使用, 通过不同的连接方式, 共可获得多少种不同的阻值, 分别为多少?\n\n  \n图10-11\n\n  \n图10-12 形形色色的电阻器",
+      "title": "简单串联、并联组合电路"
+    }
+  ]
+}

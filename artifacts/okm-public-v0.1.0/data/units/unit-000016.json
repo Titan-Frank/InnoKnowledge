@@ -1,0 +1,1503 @@
+{
+  "body": {
+    "content": "## 定义\n化石燃料/传统能源是指煤、石油、天然气等在漫长地质历史中形成、储量有限且不可再生的能源，其大规模使用是工业文明的基础，也是主要的环境污染源。`[evidence:auto-3f9243c8840d]`\n\n## 核心解释\n这类能源的形成需经历数百万年的地质作用，将古代生物遗体在高压缺氧环境下转化为可燃物质。其核心特征在于：\n1. **不可再生性**：储量随开采持续递减，最终面临枯竭风险。`[evidence:auto-3f9243c8840d]`\n2. **环境代价**：燃烧过程释放温室气体（如CO₂）、酸性气体（如SO₂）及颗粒物，是空气污染与气候变化的主要驱动因素。`[evidence:auto-3f9243c8840d]`\n3. **技术依赖性**：需通过开采、运输、裂解或燃烧等复杂工艺才能释放化学能。`[evidence:auto-3f9243c8840d]`\n\n## 关键要点\n- 能源安全与国家发展紧密相关，化石燃料的供应稳定性直接影响经济命脉。`[evidence:auto-351f3dcfe78f]`\n- 尽管技术可提升使用效率（如超临界发电技术降低煤耗），但无法改变其本质上的有限性与污染属性。`[evidence:auto-00a3c9a4eafa]`\n\n## 示例或应用\n上海外高桥第三发电厂作为全球高效火电代表，通过优化燃烧系统与余热回收技术，将每度电煤耗降至276克/kW·h，较国际先进水平再降10克。该案例表明：技术改进可缓解但无法消除化石能源的消耗本质。`[evidence:auto-00a3c9a4eafa]`",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "concept/non_renewable_resource:auto-ea010dcced0a",
+    "properties": {
+      "card_title": "化石燃料/传统能源",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-3f9243c8840d",
+      "evidence:auto-351f3dcfe78f",
+      "evidence:auto-00a3c9a4eafa"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:46:17+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-59fca726be67",
+    "mention_refs": [],
+    "node_id": "concept/non_renewable_resource:auto-ea010dcced0a",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "煤、石油、天然气等在漫长地质历史中形成、储量有限且不可再生的能源，其大规模使用是工业文明的基础，也是主要的环境污染源。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-351f3dcfe78f"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "煤、石油、天然气等在漫长地质历史中形成、储量有限且不可再生的能源，其大规模使用是工业文明的基础，也是主要的环境污染源。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-351f3dcfe78f"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "煤、石油、天然气等在漫长地质历史中形成、储量有限且不可再生的能源，其大规模使用是工业文明的基础，也是主要的环境污染源。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-351f3dcfe78f"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "化石燃料/传统能源"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-351f3dcfe78f"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "能源与环境"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-351f3dcfe78f"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-351f3dcfe78f"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-351f3dcfe78f"
+    ],
+    "status": "active",
+    "summary": "煤、石油、天然气等在漫长地质历史中形成、储量有限且不可再生的能源，其大规模使用是工业文明的基础，也是主要的环境污染源。",
+    "title": "化石燃料/传统能源",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 8,
+    "score": 89,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点缺少 semantic_core 语义骨架。",
+        "passed": false,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-014af3649e2f",
+      "node_id": "concept/non_renewable_resource:auto-ea010dcced0a",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "根据提供的火电厂煤耗数据，计算单位发电量能耗，并撰写短评说明该数据对延缓传统能源枯竭的实际作用。",
+              "绘制“传统能源开采-利用-环境影响”因果链条图，必须准确标注酸雨形成环节及储量递减节点。",
+              "设计一份社区能源科普方案提纲，要求区分化石燃料与其他能源类型，并提出两项符合教材证据的减污措施。"
+            ],
+            "common_errors": [
+              "将“不可再生”误解为“短期内可自然恢复”，忽视漫长地质历史形成的储量边界。",
+              "仅关注燃烧阶段的污染排放，忽略开采运输过程中的生态破坏与资源加速枯竭趋势。",
+              "认为提升发电技术效率即可彻底解决环境问题，未认识到传统能源利用仍伴随温室气体与颗粒物排放。"
+            ],
+            "diagnostic_questions": [
+              "为什么说化石燃料的储量会随开采递减，其形成过程与人类利用周期有何本质差异？",
+              "传统能源释放化学能的过程中，哪些环节会直接导致酸性气体排放与酸雨形成？",
+              "提升火电厂发电效率（如降低单位煤耗）能否彻底消除传统能源的环境污染，为什么？"
+            ],
+            "difficulty_level": "intermediate",
+            "extension_suggestions": [
+              "结合太阳能发电等清洁能源技术，探讨传统能源向新型能源体系过渡的工程与政策挑战。",
+              "搜集本地能源消费结构数据，撰写关于“传统能源替代路径”的微型调研报告，强化STS（科学-技术-社会）意识。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T09:48:38+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "e491ed72fa8d77683817c0eeff1097c6ef10259be1ae16d77b9e2806706f9855",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-3f9243c8840d",
+                "evidence:auto-00a3c9a4eafa",
+                "evidence:auto-351f3dcfe78f"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能列举煤、石油、天然气等化石燃料，并准确表述其储量有限与不可再生的核心特征。",
+              "能结合火电厂运行数据，分析传统能源大规模使用引发的环境污染（如酸雨）及资源递减问题。",
+              "能对比传统能源与清洁能源的特点，基于教材案例提出降低传统能源消耗或减轻环境影响的可行路径。"
+            ],
+            "remediation_suggestions": [
+              "利用地质形成周期与人类开采速率的对比数据可视化，直观强化“不可再生”概念边界。",
+              "引入上海外高桥发电厂案例，引导学生从“能量转化效率”与“环境保护”双维度评估传统能源利用方式。",
+              "组织基于真实证据链的结构化讨论，要求学生在分析能源安全与环境矛盾时，严格依据教材给出的储量与污染事实提出对策。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-00a3c9a4eafa",
+        "evidence:auto-351f3dcfe78f",
+        "evidence:auto-3f9243c8840d"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T09:48:38+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "4. 上海外高桥第三发电厂（图 12-20）承担着上海 $10\\%$ 的供电量，投产以来一直是全球最干净、最节能的火电厂。每发 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 电的煤耗比国际最高技术水平的电厂低 $10 \\mathrm{~g}$ ，达到了 $276 \\mathrm{~g} / \\mathrm{kW} \\cdot \\mathrm{h}$ 。收集相关资料，说说电厂采取了哪些技术措施来减少能量消耗。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-00a3c9a4eafa",
+      "locator": "line:70",
+      "modality": "equation",
+      "normalized_claims": [
+        "4. 上海外高桥第三发电厂（图 12-20）承担着上海 $10\\%$ 的供电量，投产以来一直是全球最干净、最节能的火电厂。每发 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 电的煤耗比国际最高技术水平的电厂低 $10 \\"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "人类过度放牧、滥伐森林植被，尤其是人为过度垦荒破坏地面植被、扰动地面结构，造成大面积土地荒漠化，直接加速了沙尘暴的形成和扩散。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-0281157c1db5",
+      "locator": "line:19",
+      "modality": "text",
+      "normalized_claims": [
+        "人类过度放牧、滥伐森林植被，尤其是人为过度垦荒破坏地面植被、扰动地面结构，造成大面积土地荒漠化，直接加速了沙尘暴的形成和扩散。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "(1) 如图 12-22 所示是一种潮汐发电示意图。涨潮时开闸，水由通道进入海湾水库蓄水，待水面升至最高点时关闭闸门。当落潮时，开闸放水发电。设海湾水库面积为 $5.0 \\times 10^{8} \\mathrm{~m}^{2}$ ，平均潮差为 $3.0 \\mathrm{~m}$ ，一天涨落潮两次，发电的平均能量转化率为 $10\\%$ ，发电的平均功率约为多少？ $(\\rho_{\\text {海水}} \\text {取 } 1.0 \\times 10^{3} \\mathrm{~kg} / \\mathrm{m}^{3}, g \\text { 取 } 10 \\mathrm{~m} / \\mathrm{s}^{2})$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-09c30cff9af8",
+      "locator": "line:171",
+      "modality": "equation",
+      "normalized_claims": [
+        "(1) 如图 12-22 所示是一种潮汐发电示意图。涨潮时开闸，水由通道进入海湾水库蓄水，待水面升至最高点时关闭闸门。当落潮时，开闸放水发电。设海湾水库面积为 $5.0 \\times 10^{8} \\mathrm{~m}^{2}$ ，平均潮"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "10. 人们工作、学习和劳动都需要能量，能量来自食物。食物在人体内经消化过程转化为葡萄糖，葡萄糖在体内又转化为 $CO_{2}$ 和 $H_{2}O$ ，同时释放能量，每克葡萄糖释放的能量 $E = 1.56 \\times 10^{4} J$ 。一个质量为 60 kg 的人登高 100 m，至少需要消耗多少克葡萄糖？",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-18d71ccc95bb",
+      "locator": "line:167",
+      "modality": "equation",
+      "normalized_claims": [
+        "10. 人们工作、学习和劳动都需要能量，能量来自食物。食物在人体内经消化过程转化为葡萄糖，葡萄糖在体内又转化为 $CO_{2}$ 和 $H_{2}O$ ，同时释放能量，每克葡萄糖释放的能量 $E = 1.56 \\times 10^{4} J"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/eea4f0f12949c7fff0ab4767bc59faba4459f099359e9fc8fededddcacf0a525.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-1ce706e81f7f",
+      "locator": "line:175",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/eea4f0f12949c7fff0ab4767bc59faba4459f099359e9fc8fededddcacf0a525.jpg)"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 215,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/eea4f0f12949c7fff0ab4767bc59faba4459f099359e9fc8fededddcacf0a525.jpg",
+          "reason": "图片内容与前文第11题(1)中的描述“如图 12-22 所示是一种潮汐发电示意图”完全对应。图片展示了单水库潮汐电站的结构（水坝、通道）以及水流方向（涨潮时水进入水库或落潮时水流出），是理解题目中物理模型和解题的关键依据。虽然它在文本“图12-22”之前出现，但显然是该图的组成部分或就是该图本身。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个潮汐发电或水坝蓄水的剖面示意图。左侧标注“陆地”，中间有一个梯形的“水坝”结构（带阴影），右侧有波浪线表示水面。水坝底部有一个通道，箭头指向左侧，标注“水流”，表示水正从右侧通过通道流向左侧。",
+          "width": 296
+        },
+        "path": "images/eea4f0f12949c7fff0ab4767bc59faba4459f099359e9fc8fededddcacf0a525.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "生活垃圾的分类，大致都是根据垃圾的成分构成、产生量，结合本地垃圾的资源利用和处理方式进行的。垃圾利用既可节省自然资源，又能减轻环境污染。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-1e8a636db7f5",
+      "locator": "line:54",
+      "modality": "text",
+      "normalized_claims": [
+        "生活垃圾的分类，大致都是根据垃圾的成分构成、产生量，结合本地垃圾的资源利用和处理方式进行的。垃圾利用既可节省自然资源，又能减轻环境污染。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/496511711cbd04e79712b06682c289736f7e53b2a1bcd42a570f7047041647fc.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-20de40c04948",
+      "locator": "line:178",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/496511711cbd04e79712b06682c289736f7e53b2a1bcd42a570f7047041647fc.jpg)"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 251,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/496511711cbd04e79712b06682c289736f7e53b2a1bcd42a570f7047041647fc.jpg",
+          "reason": "该图片是前文题目(1)中“图12-22”的一部分（标有(b)），对应题目描述的“落潮时，开闸放水发电”的情景。虽然前文已经出现了一张标记为“图12-22”的图片（可能是(a)部分），但当前图片作为习题的补充示意图，直接展示了发电的物理模型和流程，对于理解题意和解题是必要的。依据规则，作为例题/习题配图，保留为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了潮汐发电站的剖面示意图，标号为(b)。左侧标注“陆地”，右侧为水面，中间是梯形“水坝”。水坝底部有一个通道，箭头指向右侧水面，并标注“放水发电”，表示水库向大海放水进行发电的过程。",
+          "width": 323
+        },
+        "path": "images/496511711cbd04e79712b06682c289736f7e53b2a1bcd42a570f7047041647fc.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/6c4eb33237bb937908a8ad8e21d606885b6218a1ec5671a6c251444306af4eb8.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-25ebabf3cd8a",
+      "locator": "line:25",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/6c4eb33237bb937908a8ad8e21d606885b6218a1ec5671a6c251444306af4eb8.jpg)"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 290,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/6c4eb33237bb937908a8ad8e21d606885b6218a1ec5671a6c251444306af4eb8.jpg",
+          "reason": "图片内容与后文图注“图12-19 酸雨让草木尽枯”直接对应，同时也印证了前文中关于酸雨危害的描述“损坏植被，导致森林死亡（图12-19）”。作为展示环境破坏后果的实景照片，它起到了辅助说明和例证的作用。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一片遭受严重破坏的森林，树木干枯、光秃，许多树干断裂或倒伏在地，背景是阴沉压抑的乌云，呈现出一种荒凉破败的景象。",
+          "width": 476
+        },
+        "path": "images/6c4eb33237bb937908a8ad8e21d606885b6218a1ec5671a6c251444306af4eb8.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/2f9878e8a73351480965b35cadddb48c74fc1ac5003df8b93f417732a182ce18.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-264768a4ddc9",
+      "locator": "line:72",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/2f9878e8a73351480965b35cadddb48c74fc1ac5003df8b93f417732a182ce18.jpg)"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 303,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/2f9878e8a73351480965b35cadddb48c74fc1ac5003df8b93f417732a182ce18.jpg",
+          "reason": "图片内容与前文问题4紧密对应。前文明确提到了“上海外高桥第三发电厂（图 12-20）”，并要求学生收集资料说明其技术措施。该图片即为文中引用的图 12-20，展示了该发电厂的外观场景，作为问题探究的视觉辅助材料。后文紧接着也出现了“图12-20”的文字标注，证实了图片的位置和用途。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "上海外高桥第三发电厂的外部实景照片，展示了工厂建筑、红白相间的烟囱/冷却塔、高压输电塔以及入口处的标牌。",
+          "width": 631
+        },
+        "path": "images/2f9878e8a73351480965b35cadddb48c74fc1ac5003df8b93f417732a182ce18.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "在现代社会中，能源关系着一个国家的经济发展和国家安全。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-351f3dcfe78f",
+      "locator": "line:2",
+      "modality": "text",
+      "normalized_claims": [
+        "在现代社会中，能源关系着一个国家的经济发展和国家安全。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "煤、石油等传统能源除了会造成环境污染以外，由于其不可再生，随着大规模的开采利用，储量越来越少，总有枯竭之时。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-3f9243c8840d",
+      "locator": "line:100",
+      "modality": "text",
+      "normalized_claims": [
+        "煤、石油等传统能源除了会造成环境污染以外，由于其不可再生，随着大规模的开采利用，储量越来越少，总有枯竭之时。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "<table><tr><td>去向</td><td>直接反射</td><td>向太空热辐射</td><td>水循环</td><td>大气流动</td><td>光合作用</td></tr><tr><td>辐射功率</td><td> $5.0 \\times 10^{13}$  kJ/s</td><td> $8.0 \\times 10^{13}$  kJ/s</td><td> $4.0 \\times 10^{13}$  kJ/s</td><td> $4.0 \\times 10^{11}$  kJ/s</td><td> $5.0 \\times 10^{10}$  kJ/s</td></tr></table>",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-4ba51dc5674d",
+      "locator": "line:163",
+      "modality": "equation",
+      "normalized_claims": [
+        "<table><tr><td>去向</td><td>直接反射</td><td>向太空热辐射</td><td>水循环</td><td>大气流动</td><td>光合作用</td></tr><tr><td>辐射功率</td><td> $5.0"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/6c4eb33237bb937908a8ad8e21d606885b6218a1ec5671a6c251444306af4eb8.jpg) 图12-19 酸雨让草木尽枯",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-529f35ee7117",
+      "locator": "line:27",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/6c4eb33237bb937908a8ad8e21d606885b6218a1ec5671a6c251444306af4eb8.jpg) 图12-19 酸雨让草木尽枯"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 290,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/6c4eb33237bb937908a8ad8e21d606885b6218a1ec5671a6c251444306af4eb8.jpg",
+          "reason": "图片内容为枯死的森林和阴沉的天空，直接对应前文中提到的“酸雨危害的主要方面包括：损坏植被，导致森林死亡（图12-19）”以及后文的图片说明“图12-19 酸雨让草木尽枯”。该图片作为实景照片，辅助说明了酸雨对生态环境造成的具体破坏。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一片遭受严重破坏的森林，树木大多已经枯死，只剩下光秃秃的树干，地面散落着枯枝，天空乌云密布，看起来阴沉压抑。",
+          "width": 476
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "8. 以自行车代替汽车出行可以减少现代生活中留下的“碳足迹”，积极应对全球气候变暖的严峻挑战。人们的各种行为留下的“碳足迹”可以用直观的“碳足迹计数器”估算。设开车的二氧化碳排放量 $(\\mathrm{kg}) =$ 汽油消耗量（L） $\\times$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-544ab899dcde",
+      "locator": "line:151",
+      "modality": "equation",
+      "normalized_claims": [
+        "8. 以自行车代替汽车出行可以减少现代生活中留下的“碳足迹”，积极应对全球气候变暖的严峻挑战。人们的各种行为留下的“碳足迹”可以用直观的“碳足迹计数器”估算。设开车的二氧化碳排放量 $(\\mathrm{kg}) =$ 汽油消耗量（L） $\\"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "人们大量地消耗资源的同时，每个人每天又都会扔出许多垃圾。若垃圾被简易堆放或填埋，必然是臭气蔓延，还会污染土壤和地下水体。生活垃圾的分类，大致都是根据垃圾的成分构成、产生量，结合本地垃圾的资源利用和处理方式进行的。垃圾利用既可节省自然资源，又能减轻环境污染。处理利用100万吨废纸用于再生造纸，可避免砍伐 $600\\mathrm{km}^2$ 的森林；处理利用120\\~130t罐头盒可回收1t锡，相当于开采冶炼400t矿石；处理利用废弃的黑色金属（铁、铬、锰及其合金），可节省铁矿石炼钢所需电能的 $75\\%$ 和所需水的 $40\\%$ ，显著减少对大气的污染并降低矿山和冶炼厂周围堆积废石的数量；处理利用废弃的食物可补充饲料来源，明显提高农业效益，用100万吨废弃食物加工饲料，可节省36万吨饲料用谷物。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-5a2f148b2dbf",
+      "locator": "line:50",
+      "modality": "equation",
+      "normalized_claims": [
+        "人们大量地消耗资源的同时，每个人每天又都会扔出许多垃圾。若垃圾被简易堆放或填埋，必然是臭气蔓延，还会污染土壤和地下水体。生活垃圾的分类，大致都是根据垃圾的成分构成、产生量，结合本地垃圾的资源利用和处理方式进行的。垃圾利用既可节省自然资源，又"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/894c3e667d8ebbe035b221ec5382bb02a973c84798a7d600486cb4db52665e9b.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-63bff5339d16",
+      "locator": "line:36",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/894c3e667d8ebbe035b221ec5382bb02a973c84798a7d600486cb4db52665e9b.jpg)"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.8,
+          "height": 56,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/894c3e667d8ebbe035b221ec5382bb02a973c84798a7d600486cb4db52665e9b.jpg",
+          "reason": "图片是一个问号图标，紧邻前文提出的关于能源污染的问题（'哪些能源不会对环境造成污染？'），且对应标题路径中的'大家谈'栏目。它作为视觉引导，辅助说明此处进入思考或讨论环节，虽然本身不包含硬核学科知识，但与上下文形成合理对应，起辅助说明作用，故保留为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片非常模糊，分辨率较低（62x56），主要内容为一个紫色圆形背景上的白色问号图标。",
+          "width": 62
+        },
+        "path": "images/894c3e667d8ebbe035b221ec5382bb02a973c84798a7d600486cb4db52665e9b.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "近几十年来，由于人类生产、生活大量排放二氧化硫、氮氧化物等酸性气体，造成酸雨日渐频繁，严重危害生态环境。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-6453f344e6ec",
+      "locator": "line:24",
+      "modality": "text",
+      "normalized_claims": [
+        "近几十年来，由于人类生产、生活大量排放二氧化硫、氮氧化物等酸性气体，造成酸雨日渐频繁，严重危害生态环境。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/66824ab30ab164a4655d5c8c9b686e9ec20c950de7f89c65a9d25d801fd1af41.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-7f4034698063",
+      "locator": "line:180",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/66824ab30ab164a4655d5c8c9b686e9ec20c950de7f89c65a9d25d801fd1af41.jpg)"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 345,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/66824ab30ab164a4655d5c8c9b686e9ec20c950de7f89c65a9d25d801fd1af41.jpg",
+          "reason": "图片内容与前文题目描述“(2) 如图 12-23 所示为双水库潮汐电站原理示意图”完全一致，且后文紧接着标注“图12-23”。该图是解答关于涨潮落潮开关闸门问题的核心物理模型图，直接表达了双水库潮汐电站的结构和原理。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了双水库潮汐电站的原理示意图。图左侧为海水，中间有堤坝，堤坝上有闸门A和闸门B。右侧分为上下两部分，上方为低水位库，下方为高水位库，两库之间连接有发电机组。",
+          "width": 401
+        },
+        "path": "images/66824ab30ab164a4655d5c8c9b686e9ec20c950de7f89c65a9d25d801fd1af41.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "节约能源与开发新能源、严控排放、垃圾分类与处理是预防污染的重要措施。节能减排是应对全球气候变化的迫切需要。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-824f2023dbf8",
+      "locator": "line:50",
+      "modality": "text",
+      "normalized_claims": [
+        "节约能源与开发新能源、严控排放、垃圾分类与处理是预防污染的重要措施。节能减排是应对全球气候变化的迫切需要。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "处理利用100万吨废纸用于再生造纸，可避免砍伐 $600\\mathrm{km}^2$ 的森林；处理利用120\\~130t罐头盒可回收1t锡...",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-85e1fddca370",
+      "locator": "line:55",
+      "modality": "equation",
+      "normalized_claims": [
+        "处理利用100万吨废纸用于再生造纸，可避免砍伐 $600\\mathrm{km}^2$ 的森林；处理利用120\\~130t罐头盒可回收1t锡..."
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 12-22 所示是一种潮汐发电示意图。涨潮时开闸，水由通道进入海湾水库蓄水...当落潮时，开闸放水发电。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-89a40f0b075c",
+      "locator": "line:149",
+      "modality": "text",
+      "normalized_claims": [
+        "如图 12-22 所示是一种潮汐发电示意图。涨潮时开闸，水由通道进入海湾水库蓄水...当落潮时，开闸放水发电。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/f928136d21db415eeef74044b17db2e20099d60912c6ae0ba74018eab3ddd2c5.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-a4c2cb24e334",
+      "locator": "line:153",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/f928136d21db415eeef74044b17db2e20099d60912c6ae0ba74018eab3ddd2c5.jpg)"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 462,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/f928136d21db415eeef74044b17db2e20099d60912c6ae0ba74018eab3ddd2c5.jpg",
+          "reason": "图片是教材第7题的配图（图12-21），直接对应前文中关于“水碾”利用水的动能做功的描述。虽然主要作为习题的辅助说明材料，但对于理解题目中的物理情境（水轮带动碾盘）是必要的，符合保留条件。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个古代农业机械“水碾”的结构示意图。下半部分是一个被水流冲击的水轮，上半部分是一个装有粮食的碾盘，两者通过一根垂直的轴连接，展示了利用水力带动碾盘工作的机械结构。",
+          "width": 306
+        },
+        "path": "images/f928136d21db415eeef74044b17db2e20099d60912c6ae0ba74018eab3ddd2c5.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/782e1662f763c53f73f64cc1c7eb7c05ac15e43c10be3713412133ab0b0c0072.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-a89b7a50d04a",
+      "locator": "line:133",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/782e1662f763c53f73f64cc1c7eb7c05ac15e43c10be3713412133ab0b0c0072.jpg)"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 579,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/782e1662f763c53f73f64cc1c7eb7c05ac15e43c10be3713412133ab0b0c0072.jpg",
+          "reason": "图片是本章的知识结构图，与标题路径“小结 / - 知识结构图”完全一致。它系统地梳理了前文中提到的核心概念，包括能量守恒定律、能量转化的方向性以及各类新能源（水能、风能、太阳能、核能及其裂变/聚变），是本章内容的总结性框架，属于核心教学内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个关于“能源与可持续发展”的知识结构图。中心主题下方分为三个主要分支：“新能源”、“能量守恒定律”和“能量转化的方向性”。其中，“新能源”分支下进一步列出了“水能”、“风能”、“太阳能”和“核能”；“核能”分支下又细分为“核裂变”和“核聚变”。",
+          "width": 1284
+        },
+        "path": "images/782e1662f763c53f73f64cc1c7eb7c05ac15e43c10be3713412133ab0b0c0072.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "我国国家体育场“鸟巢”用太阳能发电系统替代了部分火力供电。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ab52386ad11c",
+      "locator": "line:67",
+      "modality": "text",
+      "normalized_claims": [
+        "我国国家体育场“鸟巢”用太阳能发电系统替代了部分火力供电。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "合理进行垃圾分类，充分利用这一资源是节能减排的重要手段之一。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-b4a023f1641b",
+      "locator": "line:58",
+      "modality": "text",
+      "normalized_claims": [
+        "合理进行垃圾分类，充分利用这一资源是节能减排的重要手段之一。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/8fb70e62a3959456a830ad0ae72d51169bdd35f2be113a60ebe944d48eaa1eba.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c7658cbab534",
+      "locator": "line:22",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/8fb70e62a3959456a830ad0ae72d51169bdd35f2be113a60ebe944d48eaa1eba.jpg)"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 292,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/8fb70e62a3959456a830ad0ae72d51169bdd35f2be113a60ebe944d48eaa1eba.jpg",
+          "reason": "图片内容展示了沙尘暴逼近居住区的场景，直接对应后文图注“图12-18 铺天盖地的沙尘暴”以及前文中关于“沙尘暴（图 12-18）的形成和扩散”的描述。作为展示环境灾害场景的照片，它辅助说明了人类活动导致土地荒漠化进而引发沙尘暴这一知识点。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一堵巨大的、黄褐色的沙尘墙（沙尘暴）正在逼近一个村庄或城镇，可以看到下方的房屋、树木和车辆被漫天沙尘笼罩，天空昏暗。",
+          "width": 476
+        },
+        "path": "images/8fb70e62a3959456a830ad0ae72d51169bdd35f2be113a60ebe944d48eaa1eba.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "沙尘暴是过度开发自然资源所引起的极端天气现象之一。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-c8d05cec758f",
+      "locator": "line:20",
+      "modality": "text",
+      "normalized_claims": [
+        "沙尘暴是过度开发自然资源所引起的极端天气现象之一。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "2. 传统的火力发电技术发电 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 需要完全燃烧 $400 \\mathrm{~g}$ 煤。我国国家体育场“鸟巢”用太阳能发电系统替代了部分火力供电。该系统正常工作 $1 \\mathrm{~h}$ 可发电 $130 \\mathrm{kW} \\cdot \\mathrm{h}$ ，大约可以减少排放多少千克二氧化碳？（设煤的含碳量为 $90 \\%$ ，煤燃烧的化学方程式为 $\\mathrm{C} + \\mathrm{O}_{2} = \\mathrm{CO}_{2}$ ）",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-cd9f6256a510",
+      "locator": "line:66",
+      "modality": "equation",
+      "normalized_claims": [
+        "2. 传统的火力发电技术发电 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 需要完全燃烧 $400 \\mathrm{~g}$ 煤。我国国家体育场“鸟巢”用太阳能发电系统替代了部分火力供电。该系统正常工作 $1 \\math"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/ecbdc264291d4c7ba3de859d4a63622429a034967ba2c964eb6fdc5709e5d8dd.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-cddecb4c9520",
+      "locator": "line:15",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/ecbdc264291d4c7ba3de859d4a63622429a034967ba2c964eb6fdc5709e5d8dd.jpg)"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 340,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/ecbdc264291d4c7ba3de859d4a63622429a034967ba2c964eb6fdc5709e5d8dd.jpg",
+          "reason": "图片内容与上下文高度对应。前文提到'工业的发展带来了严重的环境污染问题（图 12-17）'，后文明确标注'图12-17 钢铁厂黑烟滚滚的烟囱'。图片作为一张展示工业污染场景的照片，辅助说明了人类使用能源（化石燃料）对环境造成的负面影响，符合supporting中关于'照片、场景'辅助说明的定义。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个工业烟囱正在向天空排放大量的黑烟，黑烟在蓝天的背景下显得非常浓重。",
+          "width": 506
+        },
+        "path": "images/ecbdc264291d4c7ba3de859d4a63622429a034967ba2c964eb6fdc5709e5d8dd.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "7. 如图 12-21 所示是我国古代的一种农业机械，它叫做水碾，是利用水的动能来做功的装置。当水冲击下部水轮时，转动的轮子会带动上部的碾来碾米。假若每秒冲击叶片的水量为 $10 \\mathrm{~kg}$ ，水速从 $5 \\mathrm{~m} / \\mathrm{s}$ 减小为 $1 \\mathrm{~m} / \\mathrm{s}$ ，则水碾每秒从水流中获得能量为多少？这些能量是否都被用来碾米？",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-da5c263b3a07",
+      "locator": "line:149",
+      "modality": "equation",
+      "normalized_claims": [
+        "7. 如图 12-21 所示是我国古代的一种农业机械，它叫做水碾，是利用水的动能来做功的装置。当水冲击下部水轮时，转动的轮子会带动上部的碾来碾米。假若每秒冲击叶片的水量为 $10 \\mathrm{~kg}$ ，水速从 $5 \\mathrm{"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "传统的火力发电技术发电 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 需要完全燃烧 $400 \\mathrm{~g}$ 煤。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e9afd644ef8e",
+      "locator": "line:66",
+      "modality": "equation",
+      "normalized_claims": [
+        "传统的火力发电技术发电 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 需要完全燃烧 $400 \\mathrm{~g}$ 煤。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "发展新能源是一种解决能源危机和环境污染的有效途径。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ea1663f4a6d0",
+      "locator": "line:101",
+      "modality": "text",
+      "normalized_claims": [
+        "发展新能源是一种解决能源危机和环境污染的有效途径。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "煤和石油的燃烧是造成酸雨的主要原因，酸雨已成为全世界面临的最严重的环境问题之一。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-edee8bf9eaae",
+      "locator": "line:25",
+      "modality": "text",
+      "normalized_claims": [
+        "煤和石油的燃烧是造成酸雨的主要原因，酸雨已成为全世界面临的最严重的环境问题之一。"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "excerpt": "每发 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 电的煤耗比国际最高技术水平的电厂低 $10 \\mathrm{~g}$ ，达到了 $276 \\mathrm{~g} / \\mathrm{kW} \\cdot \\mathrm{h}$ 。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f85880573902",
+      "locator": "line:70",
+      "modality": "equation",
+      "normalized_claims": [
+        "每发 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 电的煤耗比国际最高技术水平的电厂低 $10 \\mathrm{~g}$ ，达到了 $276 \\mathrm{~g} / \\mathrm{kW} \\cdot \\mathrm"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:46:17+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-688d0ff2a30c",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-3f9243c8840d"
+      ],
+      "source_type": "textbook",
+      "target_id": "concept/non_renewable_resource:auto-ea010dcced0a",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "传统能源",
+      "化石能源"
+    ],
+    "created_at": "2026-06-29T05:46:17+00:00",
+    "dataset_id": "main",
+    "definition": "煤、石油、天然气等在漫长地质历史中形成、储量有限且不可再生的能源，其大规模使用是工业文明的基础，也是主要的环境污染源。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "concept/non_renewable_resource:auto-ea010dcced0a",
+    "kind": "concept",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "化石燃料/传统能源",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "subkinds": [
+          "non_renewable_resource"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": "储量随开采递减，燃烧产生温室气体、酸性气体及颗粒物，引发气候与环境问题",
+        "conditions": "需经开采、运输、燃烧或裂解等过程释放化学能",
+        "formal_expressions": []
+      },
+      "template_display": {
+        "label": "物理概念",
+        "template_id": "textbook/physics",
+        "type_key": "concept"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "non_renewable_resource",
+    "tags": [
+      "不可再生",
+      "环境污染源",
+      "工业历史"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:46:17+00:00",
+        "dataset_id": "main",
+        "directionality": "undirected",
+        "from_id": "process/clean_energy_conversion:auto-0e1d2c374671",
+        "id": "edge:auto-3dc24de5cf5d",
+        "notes": "太阳能发电系统替代了部分火力供电（化石燃料利用）",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "相关",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-ab52386ad11c"
+        ],
+        "status": "active",
+        "to_id": "concept/non_renewable_resource:auto-ea010dcced0a",
+        "type": "related_to",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ],
+    "outgoing": [
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:46:17+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "concept/non_renewable_resource:auto-ea010dcced0a",
+        "id": "edge:auto-f8c26185e202",
+        "notes": "煤和石油的燃烧是造成酸雨的主要原因",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "导致",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-edee8bf9eaae"
+        ],
+        "status": "active",
+        "to_id": "process/atmospheric_pollution:auto-d2d303baa0a3",
+        "type": "causes",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ]
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第三节 能源与环境\n\n在现代社会中，能源关系着一个国家的经济发展和国家安全。在 100 多年的历史中，煤、石油、天然气等传统能源占据着主要地位。能源的使用大大提高了人们的生活质量，但也对环境造成了巨大的影响。环境保护和治理已成为现代社会普遍关注的问题。\n\n如图12-16所示是上海苏州河综合治理后的景色，苏州河两岸现已成为上海市的文化、艺术、休闲的场所。\n\n\n\n## 人类使用能源对环境造成哪些影响？\n\n20 世纪中叶以前，能源的使用对环境的破坏没有引起人类足够的重视，导致温室气体急剧增加、极端气候增加、酸雨区增多等诸多环境问题，严重影响人类的生存环境和生活质量。\n\n历史上，工业的发展带来了严重的环境污染问题（图 12-17）。在一些工业发达的国家，污染曾经一度达到“土不能植、水不能饮、空气也不能呼吸”的严重程度。《美国经济史》对1884年的匹兹堡这样描述：“从住家、商店、工厂、汽船等处冒出来的一股股烟柱汇成一大片乌云，笼罩在城市所在的狭窄山谷之中，直到太阳冲破重重乌云黑雾，显露出它黄铜色的圆脸来……城市住户和工厂燃烧的煤炭有很大一部分化为浓烟直冲云霄。”可见当年使用化石燃料对环境的严重影响。\n\n[source image omitted from static artifact]  \n图12-17 钢铁厂黑烟滚滚的烟囱\n\n人类过度放牧、滥伐森林植被，尤其是人为过度垦荒破坏地面植被、扰动地面结构，造成大面积土地荒漠化，直接加速了沙尘暴（图 12-18）的形成和扩散。强烈的沙尘暴可造成交通供电受阻或中断、火灾、人畜伤亡等；而且污染自然环境，破坏作物生长，给人类的生产和生活造成严重危害。沙尘暴是过度开发自然资源所引起的极端天气现象之一。\n\n近几十年来，由于人类生产、生活大量排放二氧化硫、氮氧化物等酸性气体，造成酸雨日渐频繁，严重危害生态环境。酸雨危害的主要方面包括：损坏植被，导致森林死亡（图12-19）；湖泊中的鱼虾死亡；破坏土壤成分，使农作物减产甚至死亡；酸化饮用水源，危害人体健康；腐蚀建筑物和工业设备；破坏露天的文物古迹。煤和石油的燃烧是造成酸雨的主要原因，酸雨已成为全世界面临的最严重的环境问题之一。\n\n[source image omitted from static artifact]  \n图12-18 铺天盖地的沙尘暴\n\n[source image omitted from static artifact]  \n图12-19 酸雨让草木尽枯\n\n20 世纪全球严重的环境污染事件基本都发生在工业化起步较早的国家，但是后来这些国家采取保护环境、防治污染的措施，环境污染事件明显减少。不过，这些污染事件仍然不应该被遗忘，值得发展中国家在经济发展过程中引以为鉴。\n\n煤、石油等传统能源除了会造成环境污染以外，由于其不可再生，随着大规模的开采利用，储量越来越少，总有枯竭之时。人们已经意识到这样的能源危机，开始思考如何可持续发展。发展新能源是一种解决能源危机和环境污染的有效途径。\n\n## 大家谈\n\n哪些能源不会对环境造成污染？\n\n[source image omitted from static artifact]\n\n## 如何预防污染？\n\n地球是人类赖以生存的家园。随着经济的发展，人们的生活水准日益提高，但环境也因此遭受很多破坏。如温室气体排放所引起的全球气候变暖；工业和生活污水排放导致江河湖泊受到严重污染；生产废料与生活垃圾乱排乱放等。保护环境已成为世界各国共同努力的主题。\n\n节约能源与开发新能源、严控排放、垃圾分类与处理是预防污染的重要措施。节能减排是应对全球气候变化的迫切需要，如新能源汽车的研发和推广，节约用纸、节约用水、节约用电。纸张的大量消费不仅造成森林毁坏，而且因生产纸浆排放污水使江河湖泊严重污染。在生活中，为珍惜水资源，不要让水龙头空流；应缩短淋浴时间；安装节水龙头；用节水型抽水马桶等。应节约用电，如使用节能灯具，随手关灯；随时关紧电冰箱门；使用高效低能耗电器等应成为大家的习惯。\n\n能源是环境的一种组成部分，节约能源本身就是保护环境。《中华人民共和国节约能源法》指出“节约资源是我国的基本国策。国家实施节约与开发并举、把节约放在首位的能源发展战略”。为节约资源、保护环境，国家调整经济结构、转变经济增长方式，倡导节约发展、清洁发展、安全发展，以实现经济的可持续发展。\n\n## 大家谈\n\n生活中可采取哪些方式节能减排？\n\n人们大量地消耗资源的同时，每个人每天又都会扔出许多垃圾。若垃圾被简易堆放或填埋，必然是臭气蔓延，还会污染土壤和地下水体。生活垃圾的分类，大致都是根据垃圾的成分构成、产生量，结合本地垃圾的资源利用和处理方式进行的。垃圾利用既可节省自然资源，又能减轻环境污染。处理利用100万吨废纸用于再生造纸，可避免砍伐 $600\\mathrm{km}^2$ 的森林；处理利用120\\~130t罐头盒可回收1t锡，相当于开采冶炼400t矿石；处理利用废弃的黑色金属（铁、铬、锰及其合金），可节省铁矿石炼钢所需电能的 $75\\%$ 和所需水的 $40\\%$ ，显著减少对大气的污染并降低矿山和冶炼厂周围堆积废石的数量；处理利用废弃的食物可补充饲料来源，明显提高农业效益，用100万吨废弃食物加工饲料，可节省36万吨饲料用谷物。\n\n垃圾是被浪费的资源。合理进行垃圾分类，充分利用这一资源是节能减排的重要手段之一。2017年，我国对“普遍推行生活垃圾分类制度”作出了部署，将基本建立生活垃圾分类标准，逐步形成可复制、可推广的生活垃圾分类模式。\n\n## STSE\n\n苏州河是上海重要的河流之一，也曾经是污染最严重的河流。苏州河发源于太湖瓜泾口，于外白渡桥汇入黄浦江。苏州河的污染可追溯到20世纪20年代。由于上海工业的迅速发展和人口激增，污染状况日益严重。到1978年，苏州河在上海境内全部遭受污染，市区河段终年黑臭、鱼虾绝迹。苏州河的污染源主要是未经处理的工业废水和生活污水的大量排放，还有船舶航运、码头装卸、上游来水的影响。同时，苏州河不利的水动力条件也加剧了污染。\n\n上海市政府于 1995 年 12 月正式提出要把苏州河作为 “上海环保重中之重” 开展全面综合治理。数以百亿元计的财力及大量的人力物力投向苏州河。经过多年的治理，苏州河早已消除黑臭、重现鱼虾，成为上海一道亮丽的风景。\n\n虽然苏州河的治理获得了成功，但耗费了太多的资源和人力、财力，付出了太大的代价。我们不禁想象要是苏州河不曾被污染该有多好。相对于污染后的治理，如何预防污染是我们更值得思考的问题。\n\n## 问题②思考\n\n1. 某学校有 30 个班级，每个教室有 4 个 “220 V，100 W” 的电风扇。有同学发现在到操场做课间操的 30 min 内部分教室里的电风扇仍在工作。试想：如果在课间操时间内每个教室的电风扇都关闭，那么一个月（按 20 天计算）学校能节约电能多少千瓦·时？\n\n2. 传统的火力发电技术发电 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 需要完全燃烧 $400 \\mathrm{~g}$ 煤。我国国家体育场“鸟巢”用太阳能发电系统替代了部分火力供电。该系统正常工作 $1 \\mathrm{~h}$ 可发电 $130 \\mathrm{kW} \\cdot \\mathrm{h}$ ，大约可以减少排放多少千克二氧化碳？（设煤的含碳量为 $90 \\%$ ，煤燃烧的化学方程式为 $\\mathrm{C} + \\mathrm{O}_{2} = \\mathrm{CO}_{2}$ ）\n\n3. 从个人的角度而言，为了节约能源每个人能做点什么？从社会的角度而言，你能为管理部门提出哪些节约能源的建议？\n\n4. 上海外高桥第三发电厂（图 12-20）承担着上海 $10\\%$ 的供电量，投产以来一直是全球最干净、最节能的火电厂。每发 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 电的煤耗比国际最高技术水平的电厂低 $10 \\mathrm{~g}$ ，达到了 $276 \\mathrm{~g} / \\mathrm{kW} \\cdot \\mathrm{h}$ 。收集相关资料，说说电厂采取了哪些技术措施来减少能量消耗。\n\n[source image omitted from static artifact]  \n图12-20\n\n## 学期（活动\n\n围绕主题“清洁能源和太阳能的利用”开展分组探究活动。\n\n以下提供一些相关探究的问题，供大家选取。\n\n1. 调查我国能源结构的现状和未来转型趋势，对我国能源结构转型提出合理建议。\n\n2. 了解地球能源危机的起因和现状，提出一些行之有效的解决措施。\n\n3. 了解科学技术为我们的生产生活带来的利弊。研究如何趋利避害，让科学技术更好地服务于社会发展。\n\n4. 调查人们对太阳能的利用情况，了解太阳能利用的常见方式及应用前景，研究太阳能利用的新方法。\n\n5. 设计利用太阳能取暖或发电的方案，讨论环境对太阳能利用的影响，研究提高太阳能利用效率的方法，研究太阳能的优缺点和制约太阳能利用的因素。\n\n6. 查阅资料，了解太阳能电池的结构和原理，研究太阳能电池的优缺点和改良方法。\n\n7. 调查太阳能电池产业发展现状、趋势和瓶颈，提出突破瓶颈、促进产业发展的方案。\n\n8. 查阅资料，了解太阳能电池常见的应用方式，研究太阳能电池产业发展带来的社会效应。\n\n## 活动要求\n\n1. 自主选择探究的问题，每个问题 2\\~3 组，每组 2\\~3 人。\n\n2. 如涉及实验，需将实验过程和结果详细记录，并进行展示交流。\n\n3. 如涉及问卷调查，需设计问卷，详细记录并分析调查数据。\n\n4. 完成一份书面结题报告和汇报演示文档（PPT），期末展示交流。\n\n5. 留意并交流研究过程中本组和其他组遇到的困难和提出的解决方案，对课题研究进行自评和互评。\n\n## 小结\n\n## - 基本概念和基本规律\n\n能源：自然界中能为人类提供能量的物质资源。\n\n新能源：水能、风能、太阳能、核能等。\n\n核裂变：较重的原子核分裂成几个较轻的原子核的过程。\n\n核聚变：若干个较轻原子核结合成一个较重的原子核的过程。\n\n能量守恒定律：能量既不会凭空产生，也不会凭空消失。能量只能从一种形式转化为其他形式，或者从一个物体转移到其他物体，或者从物体的一部分转移到其他部分。在转化或转移的过程中，能量的总量保持不变。\n\n能量转化的方向性：内能和其他形式的能量（如电能、机械能等）的相互转化具有方向性。机械能可以无条件地全部转化为内能，而内能不可以无条件地全部转化为机械能。\n\n## - 基本方法\n\n通过可再生能源和不可再生能源的比较，感受比较与分类的思维方法。\n\n了解能源开发与利用方式，体会科技进步对人类生活和社会发展的影响，认识归纳与提炼的思维方法。\n\n## - 知识结构图\n\n[source image omitted from static artifact]\n\n## 复习②巩固\n\n1. 举例说明在自然界发生的种种变化中，能量的总值虽然保持不变（守恒），但是能量可被利用的价值却越来越小。\n\n2. 人类社会自从进入电气化时代以来，就一直在不断地探寻电能的来源。如今有哪些常见的发电方式？说明相应的能量转化形式。\n\n3. 目前核电站主要采用哪一种核燃料？这种核燃料发生的核反应是核裂变还是核聚变？\n\n4. 打火机中使用了一种叫做 “压电陶瓷” 的电子元件，当对它挤压或拉伸时，它的两端就会形成一定的电压，这种现象称为压电效应。用大拇指压一下打火机上的按钮，压电陶瓷片就会产生 10\\~20 kV 的高压，形成火花放电，从而点燃可燃气体。简述在上述过程中所发生的能量转化形式。\n\n5. 太阳光照射到地球上，地球表面的水吸收太阳的能量蒸发成水蒸气，上升后形成云，再以雨、雪等形式落下，流入江河；地球表面被晒热，而地面各个部位受热不均，使空气流动形成了风。简述上述自然现象中能量的转化。\n\n6. 有人认为太阳能来源于化学能。这种说法是否正确？简述理由。\n\n7. 如图 12-21 所示是我国古代的一种农业机械，它叫做水碾，是利用水的动能来做功的装置。当水冲击下部水轮时，转动的轮子会带动上部的碾来碾米。假若每秒冲击叶片的水量为 $10 \\mathrm{~kg}$ ，水速从 $5 \\mathrm{~m} / \\mathrm{s}$ 减小为 $1 \\mathrm{~m} / \\mathrm{s}$ ，则水碾每秒从水流中获得能量为多少？这些能量是否都被用来碾米？\n\n8. 以自行车代替汽车出行可以减少现代生活中留下的“碳足迹”，积极应对全球气候变暖的严峻挑战。人们的各种行为留下的“碳足迹”可以用直观的“碳足迹计数器”估算。设开车的二氧化碳排放量 $(\\mathrm{kg}) =$ 汽油消耗量（L） $\\times$\n\n[source image omitted from static artifact]  \n图12-21\n\n2.2 (kg/L)。现用骑自行车代替开车出行 100 km，可以节约 9 L 汽油，则相应减少排放了多少二氧化碳？\n\n9. 科学家们通过大量的实践研究，估算出了整个地球表面接受的太阳辐射能主要去向的数据，如表 12-1 所示。\n\n(a)  \n表12-1\n\n<table><tr><td>去向</td><td>直接反射</td><td>向太空热辐射</td><td>水循环</td><td>大气流动</td><td>光合作用</td></tr><tr><td>辐射功率</td><td> $5.0 \\times 10^{13}$  kJ/s</td><td> $8.0 \\times 10^{13}$  kJ/s</td><td> $4.0 \\times 10^{13}$  kJ/s</td><td> $4.0 \\times 10^{11}$  kJ/s</td><td> $5.0 \\times 10^{10}$  kJ/s</td></tr></table>\n\n根据以上数据试估算地球对太阳能的利用率有多大？每年植物通过光合作用利用的太阳能为多少？\n\n10. 人们工作、学习和劳动都需要能量，能量来自食物。食物在人体内经消化过程转化为葡萄糖，葡萄糖在体内又转化为 $CO_{2}$ 和 $H_{2}O$ ，同时释放能量，每克葡萄糖释放的能量 $E = 1.56 \\times 10^{4} J$ 。一个质量为 60 kg 的人登高 100 m，至少需要消耗多少克葡萄糖？\n\n\\*11. 我国自古有“昼涨称潮，夜涨称汐”的说法。潮汐主要是由太阳和月球对海水的引力造成的，以月球对海水的引力为主。\n\n(1) 如图 12-22 所示是一种潮汐发电示意图。涨潮时开闸，水由通道进入海湾水库蓄水，待水面升至最高点时关闭闸门。当落潮时，开闸放水发电。设海湾水库面积为 $5.0 \\times 10^{8} \\mathrm{~m}^{2}$ ，平均潮差为 $3.0 \\mathrm{~m}$ ，一天涨落潮两次，发电的平均能量转化率为 $10\\%$ ，发电的平均功率约为多少？ $(\\rho_{\\text {海水}} \\text {取 } 1.0 \\times 10^{3} \\mathrm{~kg} / \\mathrm{m}^{3}, g \\text { 取 } 10 \\mathrm{~m} / \\mathrm{s}^{2})$\n\n(2) 如图 12-23 所示为双水库潮汐电站原理示意图。两个水库之间始终保持着水位差，以保障能够全天发电。试问涨潮时和落潮时应如何开关闸门？\n\n[source image omitted from static artifact]\n\n图12-22  \n[source image omitted from static artifact]\n\n[source image omitted from static artifact]  \n图12-23\n\n## 附录\n\n## 索引\n\n闭合电路 /73  \n闭合电路欧姆定律 /73  \n串联、并联组合电路 /52  \n磁场 /96  \n磁感线 /97  \n磁感应强度 /102  \n磁极倒转 /98  \n磁偏角 /98  \n磁通量 /106  \n等势面 /23  \n地磁场 /97  \n点电荷 /8  \n电场 /13  \n电场的叠加原理 /16  \n电场力 /13  \n电场力做功与电势能变化间的关系 /21  \n电场强度 /15  \n电场线 /14  \n电磁波 /113\n\n电磁场 / 113  \n电磁感应 / 107  \n电磁铁 / 104  \n电功 / 81  \n电功率 / 82  \n电荷量 / 4  \n电荷守恒定律 / 4  \n电流 / 51  \n电容 / 36  \n电容器 / 34  \n电容器的充、放电现象 / 34  \n电势 / 22  \n电势差 / 26  \n电势差与电场力做功的关系 / 27  \n电势能 / 21  \n电源电动势 / 73  \n电阻定律 / 56  \n电阻率 / 56  \n电阻器 / 58\n\n分子电流假说 /102  \n感应电流 /107  \n感应起电 /3  \n光子说 /115  \n核聚变 /127  \n核裂变 /126  \n尖端放电 /43  \n焦耳定律 /83  \n接触起电 /3  \n静电场 /13  \n静电感应 /4  \n静电力 /7  \n静电力常量 /10  \n静电现象 /2  \n库仑定律 /10\n\n库仑扭秤实验 /8  \n类比法 /9  \n密立根油滴实验 /5  \n摩擦起电 /2  \n内电阻 /73  \n能量守恒定律 /129  \n能量转化的方向性 /131  \n能源 /123  \n平行板电容器 /34  \n试探电荷 /15  \n右手螺旋定则 /101  \n元电荷 /4  \n匀强电场 /17  \n匀强电场中电场强度和电势差的关系 /28\n\n## 后记\n\n本教材根据教育部颁布的《普通高中物理课程标准（2017年版2020年修订）》编写并经国家教材委员会专家委员会审核通过。\n\n本教材是在上海市高中物理“二期课改”教材的基础上全面改写而成的，当年参加编写的主要人员有张越、徐在新、刘齐煌、谭玉美、唐一鸣、冯容士、蒋元方、倪闽景、王铁桦等。王铁桦、朱广天、汤清修、陈刚、金松、胡卫平、袁芳、桑嫣、潘苏东等给本教材的编写提出了不少宝贵意见。马世红、王祖源、陆昉、陈树德、蒋平、冀敏在本教材编写的各个阶段审阅了书稿。编写过程中，上海市中小学（幼儿园）课程改革委员会专家工作委员会，上海市教育委员会教学研究室，上海市课程方案教育教学研究基地、上海市心理教育教学研究基地、上海市基础教育教材建设研究基地及基地所在单位华东师范大学，上海市物理教育教学研究基地（上海高校“立德树人”人文社会科学重点研究基地）及基地所在单位复旦大学给予了大力支持。在此一并致谢。\n\n本教材出版之前，我们就教材中使用的照片、图片等选用作品，通过多种途径与作者进行了联系，得到了他们的大力支持，在此表示衷心的感谢！对于未联系到的作者，我们也希望作者能及时联系出版社，以便支付相应的稿酬。\n\n欢迎广大师生来电来函指出教材的差错和不足，提出宝贵意见。\n\n2020年5月\n\n## 物理必修第三册\n\n",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:12-3-a:source-markdown",
+          "locator": "能源与环境",
+          "modality": "text",
+          "page_end": 133,
+          "page_start": 133,
+          "properties": {
+            "md_end": 3960,
+            "md_start": 3689,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:12-3-a",
+            "outline_title": "能源与环境",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 3960,
+      "md_start": 3689,
+      "modalities": [
+        "equation",
+        "text",
+        "image",
+        "table"
+      ],
+      "page_end": 133,
+      "page_start": 133,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第三节 能源与环境\n\n在现代社会中，能源关系着一个国家的经济发展和国家安全。在 100 多年的历史中，煤、石油、天然气等传统能源占据着主要地位。能源的使用大大提高了人们的生活质量，但也对环境造成了巨大的影响。环境保护和治理已成为现代社会普遍关注的问题。\n\n如图12-16所示是上海苏州河综合治理后的景色，苏州河两岸现已成为上海市的文化、艺术、休闲的场所。\n\n\n\n## 人类使用能源对环境造成哪些影响？\n\n20 世纪中叶以前，能源的使用对环境的破坏没有引起人类足够的重视，导致温室气体急剧增加、极端气候增加、酸雨区增多等诸多环境问题，严重影响人类的生存环境和生活质量。\n\n历史上，工业的发展带来了严重的环境污染问题（图 12-17）。在一些工业发达的国家，污染曾经一度达到“土不能植、水不能饮、空气也不能呼吸”的严重程度。《美国经济史》对1884年的匹兹堡这样描述：“从住家、商店、工厂、汽船等处冒出来的一股股烟柱汇成一大片乌云，笼罩在城市所在的狭窄山谷之中，直到太阳冲破重重乌云黑雾，显露出它黄铜色的圆脸来……城市住户和工厂燃烧的煤炭有很大一部分化为浓烟直冲云霄。”可见当年使用化石燃料对环境的严重影响。\n\n[source image omitted from static artifact]  \n图12-17 钢铁厂黑烟滚滚的烟囱\n\n人类过度放牧、滥伐森林植被，尤其是人为过度垦荒破坏地面植被、扰动地面结构，造成大面积土地荒漠化，直接加速了沙尘暴（图 12-18）的形成和扩散。强烈的沙尘暴可造成交通供电受阻或中断、火灾、人畜伤亡等；而且污染自然环境，破坏作物生长，给人类的生产和生活造成严重危害。沙尘暴是过度开发自然资源所引起的极端天气现象之一。\n\n近几十年来，由于人类生产、生活大量排放二氧化硫、氮氧化物等酸性气体，造成酸雨日渐频繁，严重危害生态环境。酸雨危害的主要方面包括：损坏植被，导致森林死亡（图12-19）；湖泊中的鱼虾死亡；破坏土壤成分，使农作物减产甚至死亡；酸化饮用水源，危害人体健康；腐蚀建筑物和工业设备；破坏露天的文物古迹。煤和石油的燃烧是造成酸雨的主要原因，酸雨已成为全世界面临的最严重的环境问题之一。\n\n[source image omitted from static artifact]  \n图12-18 铺天盖地的沙尘暴\n\n[source image omitted from static artifact]  \n图12-19 酸雨让草木尽枯\n\n20 世纪全球严重的环境污染事件基本都发生在工业化起步较早的国家，但是后来这些国家采取保护环境、防治污染的措施，环境污染事件明显减少。不过，这些污染事件仍然不应该被遗忘，值得发展中国家在经济发展过程中引以为鉴。\n\n煤、石油等传统能源除了会造成环境污染以外，由于其不可再生，随着大规模的开采利用，储量越来越少，总有枯竭之时。人们已经意识到这样的能源危机，开始思考如何可持续发展。发展新能源是一种解决能源危机和环境污染的有效途径。\n\n## 大家谈\n\n哪些能源不会对环境造成污染？\n\n[source image omitted from static artifact]\n\n## 如何预防污染？\n\n地球是人类赖以生存的家园。随着经济的发展，人们的生活水准日益提高，但环境也因此遭受很多破坏。如温室气体排放所引起的全球气候变暖；工业和生活污水排放导致江河湖泊受到严重污染；生产废料与生活垃圾乱排乱放等。保护环境已成为世界各国共同努力的主题。\n\n节约能源与开发新能源、严控排放、垃圾分类与处理是预防污染的重要措施。节能减排是应对全球气候变化的迫切需要，如新能源汽车的研发和推广，节约用纸、节约用水、节约用电。纸张的大量消费不仅造成森林毁坏，而且因生产纸浆排放污水使江河湖泊严重污染。在生活中，为珍惜水资源，不要让水龙头空流；应缩短淋浴时间；安装节水龙头；用节水型抽水马桶等。应节约用电，如使用节能灯具，随手关灯；随时关紧电冰箱门；使用高效低能耗电器等应成为大家的习惯。\n\n能源是环境的一种组成部分，节约能源本身就是保护环境。《中华人民共和国节约能源法》指出“节约资源是我国的基本国策。国家实施节约与开发并举、把节约放在首位的能源发展战略”。为节约资源、保护环境，国家调整经济结构、转变经济增长方式，倡导节约发展、清洁发展、安全发展，以实现经济的可持续发展。\n\n## 大家谈\n\n生活中可采取哪些方式节能减排？\n\n人们大量地消耗资源的同时，每个人每天又都会扔出许多垃圾。若垃圾被简易堆放或填埋，必然是臭气蔓延，还会污染土壤和地下水体。生活垃圾的分类，大致都是根据垃圾的成分构成、产生量，结合本地垃圾的资源利用和处理方式进行的。垃圾利用既可节省自然资源，又能减轻环境污染。处理利用100万吨废纸用于再生造纸，可避免砍伐 $600\\mathrm{km}^2$ 的森林；处理利用120\\~130t罐头盒可回收1t锡，相当于开采冶炼400t矿石；处理利用废弃的黑色金属（铁、铬、锰及其合金），可节省铁矿石炼钢所需电能的 $75\\%$ 和所需水的 $40\\%$ ，显著减少对大气的污染并降低矿山和冶炼厂周围堆积废石的数量；处理利用废弃的食物可补充饲料来源，明显提高农业效益，用100万吨废弃食物加工饲料，可节省36万吨饲料用谷物。\n\n垃圾是被浪费的资源。合理进行垃圾分类，充分利用这一资源是节能减排的重要手段之一。2017年，我国对“普遍推行生活垃圾分类制度”作出了部署，将基本建立生活垃圾分类标准，逐步形成可复制、可推广的生活垃圾分类模式。\n\n## STSE\n\n苏州河是上海重要的河流之一，也曾经是污染最严重的河流。苏州河发源于太湖瓜泾口，于外白渡桥汇入黄浦江。苏州河的污染可追溯到20世纪20年代。由于上海工业的迅速发展和人口激增，污染状况日益严重。到1978年，苏州河在上海境内全部遭受污染，市区河段终年黑臭、鱼虾绝迹。苏州河的污染源主要是未经处理的工业废水和生活污水的大量排放，还有船舶航运、码头装卸、上游来水的影响。同时，苏州河不利的水动力条件也加剧了污染。\n\n上海市政府于 1995 年 12 月正式提出要把苏州河作为 “上海环保重中之重” 开展全面综合治理。数以百亿元计的财力及大量的人力物力投向苏州河。经过多年的治理，苏州河早已消除黑臭、重现鱼虾，成为上海一道亮丽的风景。\n\n虽然苏州河的治理获得了成功，但耗费了太多的资源和人力、财力，付出了太大的代价。我们不禁想象要是苏州河不曾被污染该有多好。相对于污染后的治理，如何预防污染是我们更值得思考的问题。\n\n## 问题②思考\n\n1. 某学校有 30 个班级，每个教室有 4 个 “220 V，100 W” 的电风扇。有同学发现在到操场做课间操的 30 min 内部分教室里的电风扇仍在工作。试想：如果在课间操时间内每个教室的电风扇都关闭，那么一个月（按 20 天计算）学校能节约电能多少千瓦·时？\n\n2. 传统的火力发电技术发电 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 需要完全燃烧 $400 \\mathrm{~g}$ 煤。我国国家体育场“鸟巢”用太阳能发电系统替代了部分火力供电。该系统正常工作 $1 \\mathrm{~h}$ 可发电 $130 \\mathrm{kW} \\cdot \\mathrm{h}$ ，大约可以减少排放多少千克二氧化碳？（设煤的含碳量为 $90 \\%$ ，煤燃烧的化学方程式为 $\\mathrm{C} + \\mathrm{O}_{2} = \\mathrm{CO}_{2}$ ）\n\n3. 从个人的角度而言，为了节约能源每个人能做点什么？从社会的角度而言，你能为管理部门提出哪些节约能源的建议？\n\n4. 上海外高桥第三发电厂（图 12-20）承担着上海 $10\\%$ 的供电量，投产以来一直是全球最干净、最节能的火电厂。每发 $1 \\mathrm{kW} \\cdot \\mathrm{h}$ 电的煤耗比国际最高技术水平的电厂低 $10 \\mathrm{~g}$ ，达到了 $276 \\mathrm{~g} / \\mathrm{kW} \\cdot \\mathrm{h}$ 。收集相关资料，说说电厂采取了哪些技术措施来减少能量消耗。\n\n[source image omitted from static artifact]  \n图12-20\n\n## 学期（活动\n\n围绕主题“清洁能源和太阳能的利用”开展分组探究活动。\n\n以下提供一些相关探究的问题，供大家选取。\n\n1. 调查我国能源结构的现状和未来转型趋势，对我国能源结构转型提出合理建议。\n\n2. 了解地球能源危机的起因和现状，提出一些行之有效的解决措施。\n\n3. 了解科学技术为我们的生产生活带来的利弊。研究如何趋利避害，让科学技术更好地服务于社会发展。\n\n4. 调查人们对太阳能的利用情况，了解太阳能利用的常见方式及应用前景，研究太阳能利用的新方法。\n\n5. 设计利用太阳能取暖或发电的方案，讨论环境对太阳能利用的影响，研究提高太阳能利用效率的方法，研究太阳能的优缺点和制约太阳能利用的因素。\n\n6. 查阅资料，了解太阳能电池的结构和原理，研究太阳能电池的优缺点和改良方法。\n\n7. 调查太阳能电池产业发展现状、趋势和瓶颈，提出突破瓶颈、促进产业发展的方案。\n\n8. 查阅资料，了解太阳能电池常见的应用方式，研究太阳能电池产业发展带来的社会效应。\n\n## 活动要求\n\n1. 自主选择探究的问题，每个问题 2\\~3 组，每组 2\\~3 人。\n\n2. 如涉及实验，需将实验过程和结果详细记录，并进行展示交流。\n\n3. 如涉及问卷调查，需设计问卷，详细记录并分析调查数据。\n\n4. 完成一份书面结题报告和汇报演示文档（PPT），期末展示交流。\n\n5. 留意并交流研究过程中本组和其他组遇到的困难和提出的解决方案，对课题研究进行自评和互评。\n\n## 小结\n\n## - 基本概念和基本规律\n\n能源：自然界中能为人类提供能量的物质资源。\n\n新能源：水能、风能、太阳能、核能等。\n\n核裂变：较重的原子核分裂成几个较轻的原子核的过程。\n\n核聚变：若干个较轻原子核结合成一个较重的原子核的过程。\n\n能量守恒定律：能量既不会凭空产生，也不会凭空消失。能量只能从一种形式转化为其他形式，或者从一个物体转移到其他物体，或者从物体的一部分转移到其他部分。在转化或转移的过程中，能量的总量保持不变。\n\n能量转化的方向性：内能和其他形式的能量（如电能、机械能等）的相互转化具有方向性。机械能可以无条件地全部转化为内能，而内能不可以无条件地全部转化为机械能。\n\n## - 基本方法\n\n通过可再生能源和不可再生能源的比较，感受比较与分类的思维方法。\n\n了解能源开发与利用方式，体会科技进步对人类生活和社会发展的影响，认识归纳与提炼的思维方法。\n\n## - 知识结构图\n\n[source image omitted from static artifact]\n\n## 复习②巩固\n\n1. 举例说明在自然界发生的种种变化中，能量的总值虽然保持不变（守恒），但是能量可被利用的价值却越来越小。\n\n2. 人类社会自从进入电气化时代以来，就一直在不断地探寻电能的来源。如今有哪些常见的发电方式？说明相应的能量转化形式。\n\n3. 目前核电站主要采用哪一种核燃料？这种核燃料发生的核反应是核裂变还是核聚变？\n\n4. 打火机中使用了一种叫做 “压电陶瓷” 的电子元件，当对它挤压或拉伸时，它的两端就会形成一定的电压，这种现象称为压电效应。用大拇指压一下打火机上的按钮，压电陶瓷片就会产生 10\\~20 kV 的高压，形成火花放电，从而点燃可燃气体。简述在上述过程中所发生的能量转化形式。\n\n5. 太阳光照射到地球上，地球表面的水吸收太阳的能量蒸发成水蒸气，上升后形成云，再以雨、雪等形式落下，流入江河；地球表面被晒热，而地面各个部位受热不均，使空气流动形成了风。简述上述自然现象中能量的转化。\n\n6. 有人认为太阳能来源于化学能。这种说法是否正确？简述理由。\n\n7. 如图 12-21 所示是我国古代的一种农业机械，它叫做水碾，是利用水的动能来做功的装置。当水冲击下部水轮时，转动的轮子会带动上部的碾来碾米。假若每秒冲击叶片的水量为 $10 \\mathrm{~kg}$ ，水速从 $5 \\mathrm{~m} / \\mathrm{s}$ 减小为 $1 \\mathrm{~m} / \\mathrm{s}$ ，则水碾每秒从水流中获得能量为多少？这些能量是否都被用来碾米？\n\n8. 以自行车代替汽车出行可以减少现代生活中留下的“碳足迹”，积极应对全球气候变暖的严峻挑战。人们的各种行为留下的“碳足迹”可以用直观的“碳足迹计数器”估算。设开车的二氧化碳排放量 $(\\mathrm{kg}) =$ 汽油消耗量（L） $\\times$\n\n[source image omitted from static artifact]  \n图12-21\n\n2.2 (kg/L)。现用骑自行车代替开车出行 100 km，可以节约 9 L 汽油，则相应减少排放了多少二氧化碳？\n\n9. 科学家们通过大量的实践研究，估算出了整个地球表面接受的太阳辐射能主要去向的数据，如表 12-1 所示。\n\n(a)  \n表12-1\n\n<table><tr><td>去向</td><td>直接反射</td><td>向太空热辐射</td><td>水循环</td><td>大气流动</td><td>光合作用</td></tr><tr><td>辐射功率</td><td> $5.0 \\times 10^{13}$  kJ/s</td><td> $8.0 \\times 10^{13}$  kJ/s</td><td> $4.0 \\times 10^{13}$  kJ/s</td><td> $4.0 \\times 10^{11}$  kJ/s</td><td> $5.0 \\times 10^{10}$  kJ/s</td></tr></table>\n\n根据以上数据试估算地球对太阳能的利用率有多大？每年植物通过光合作用利用的太阳能为多少？\n\n10. 人们工作、学习和劳动都需要能量，能量来自食物。食物在人体内经消化过程转化为葡萄糖，葡萄糖在体内又转化为 $CO_{2}$ 和 $H_{2}O$ ，同时释放能量，每克葡萄糖释放的能量 $E = 1.56 \\times 10^{4} J$ 。一个质量为 60 kg 的人登高 100 m，至少需要消耗多少克葡萄糖？\n\n\\*11. 我国自古有“昼涨称潮，夜涨称汐”的说法。潮汐主要是由太阳和月球对海水的引力造成的，以月球对海水的引力为主。\n\n(1) 如图 12-22 所示是一种潮汐发电示意图。涨潮时开闸，水由通道进入海湾水库蓄水，待水面升至最高点时关闭闸门。当落潮时，开闸放水发电。设海湾水库面积为 $5.0 \\times 10^{8} \\mathrm{~m}^{2}$ ，平均潮差为 $3.0 \\mathrm{~m}$ ，一天涨落潮两次，发电的平均能量转化率为 $10\\%$ ，发电的平均功率约为多少？ $(\\rho_{\\text {海水}} \\text {取 } 1.0 \\times 10^{3} \\mathrm{~kg} / \\mathrm{m}^{3}, g \\text { 取 } 10 \\mathrm{~m} / \\mathrm{s}^{2})$\n\n(2) 如图 12-23 所示为双水库潮汐电站原理示意图。两个水库之间始终保持着水位差，以保障能够全天发电。试问涨潮时和落潮时应如何开关闸门？\n\n[source image omitted from static artifact]\n\n图12-22  \n[source image omitted from static artifact]\n\n[source image omitted from static artifact]  \n图12-23\n\n## 附录\n\n## 索引\n\n闭合电路 /73  \n闭合电路欧姆定律 /73  \n串联、并联组合电路 /52  \n磁场 /96  \n磁感线 /97  \n磁感应强度 /102  \n磁极倒转 /98  \n磁偏角 /98  \n磁通量 /106  \n等势面 /23  \n地磁场 /97  \n点电荷 /8  \n电场 /13  \n电场的叠加原理 /16  \n电场力 /13  \n电场力做功与电势能变化间的关系 /21  \n电场强度 /15  \n电场线 /14  \n电磁波 /113\n\n电磁场 / 113  \n电磁感应 / 107  \n电磁铁 / 104  \n电功 / 81  \n电功率 / 82  \n电荷量 / 4  \n电荷守恒定律 / 4  \n电流 / 51  \n电容 / 36  \n电容器 / 34  \n电容器的充、放电现象 / 34  \n电势 / 22  \n电势差 / 26  \n电势差与电场力做功的关系 / 27  \n电势能 / 21  \n电源电动势 / 73  \n电阻定律 / 56  \n电阻率 / 56  \n电阻器 / 58\n\n分子电流假说 /102  \n感应电流 /107  \n感应起电 /3  \n光子说 /115  \n核聚变 /127  \n核裂变 /126  \n尖端放电 /43  \n焦耳定律 /83  \n接触起电 /3  \n静电场 /13  \n静电感应 /4  \n静电力 /7  \n静电力常量 /10  \n静电现象 /2  \n库仑定律 /10\n\n库仑扭秤实验 /8  \n类比法 /9  \n密立根油滴实验 /5  \n摩擦起电 /2  \n内电阻 /73  \n能量守恒定律 /129  \n能量转化的方向性 /131  \n能源 /123  \n平行板电容器 /34  \n试探电荷 /15  \n右手螺旋定则 /101  \n元电荷 /4  \n匀强电场 /17  \n匀强电场中电场强度和电势差的关系 /28\n\n## 后记\n\n本教材根据教育部颁布的《普通高中物理课程标准（2017年版2020年修订）》编写并经国家教材委员会专家委员会审核通过。\n\n本教材是在上海市高中物理“二期课改”教材的基础上全面改写而成的，当年参加编写的主要人员有张越、徐在新、刘齐煌、谭玉美、唐一鸣、冯容士、蒋元方、倪闽景、王铁桦等。王铁桦、朱广天、汤清修、陈刚、金松、胡卫平、袁芳、桑嫣、潘苏东等给本教材的编写提出了不少宝贵意见。马世红、王祖源、陆昉、陈树德、蒋平、冀敏在本教材编写的各个阶段审阅了书稿。编写过程中，上海市中小学（幼儿园）课程改革委员会专家工作委员会，上海市教育委员会教学研究室，上海市课程方案教育教学研究基地、上海市心理教育教学研究基地、上海市基础教育教材建设研究基地及基地所在单位华东师范大学，上海市物理教育教学研究基地（上海高校“立德树人”人文社会科学重点研究基地）及基地所在单位复旦大学给予了大力支持。在此一并致谢。\n\n本教材出版之前，我们就教材中使用的照片、图片等选用作品，通过多种途径与作者进行了联系，得到了他们的大力支持，在此表示衷心的感谢！对于未联系到的作者，我们也希望作者能及时联系出版社，以便支付相应的稿酬。\n\n欢迎广大师生来电来函指出教材的差错和不足，提出宝贵意见。\n\n2020年5月\n\n## 物理必修第三册\n\n",
+      "title": "能源与环境"
+    }
+  ]
+}

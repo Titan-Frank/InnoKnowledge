@@ -1,0 +1,1099 @@
+{
+  "artifact_version": "v0.1.0",
+  "count": 182,
+  "dataset_id": "main",
+  "units": [
+    {
+      "file": "unit-000001.json",
+      "kind": "concept",
+      "name": "电容触摸屏",
+      "node_id": "concept/application:auto-f507f0350ea2"
+    },
+    {
+      "file": "unit-000002.json",
+      "kind": "concept",
+      "name": "串联电池组",
+      "node_id": "concept/circuit_configuration:auto-4880dffa8fcb"
+    },
+    {
+      "file": "unit-000003.json",
+      "kind": "concept",
+      "name": "并联电池组",
+      "node_id": "concept/circuit_configuration:auto-7e0404cc9b04"
+    },
+    {
+      "file": "unit-000004.json",
+      "kind": "concept",
+      "name": "纯电阻电路",
+      "node_id": "concept/circuit_model:auto-0e54c8b8579f"
+    },
+    {
+      "file": "unit-000005.json",
+      "kind": "concept",
+      "name": "非纯电阻电路",
+      "node_id": "concept/circuit_model:auto-329b4c73b9c5"
+    },
+    {
+      "file": "unit-000006.json",
+      "kind": "concept",
+      "name": "二次能源",
+      "node_id": "concept/classification:auto-092378f04aad"
+    },
+    {
+      "file": "unit-000007.json",
+      "kind": "concept",
+      "name": "一次能源",
+      "node_id": "concept/classification:auto-41067c8e801a"
+    },
+    {
+      "file": "unit-000008.json",
+      "kind": "concept",
+      "name": "不可再生能源",
+      "node_id": "concept/classification:auto-884af8d78390"
+    },
+    {
+      "file": "unit-000009.json",
+      "kind": "concept",
+      "name": "可再生能源",
+      "node_id": "concept/classification:auto-ac97801943d2"
+    },
+    {
+      "file": "unit-000010.json",
+      "kind": "concept",
+      "name": "平行板电容器",
+      "node_id": "concept/device:auto-5617feae65d9"
+    },
+    {
+      "file": "unit-000011.json",
+      "kind": "concept",
+      "name": "电容器",
+      "node_id": "concept/device:auto-a0df6120d2ae"
+    },
+    {
+      "file": "unit-000012.json",
+      "kind": "concept",
+      "name": "电磁场",
+      "node_id": "concept/field:auto-62d23fef0d17"
+    },
+    {
+      "file": "unit-000013.json",
+      "kind": "concept",
+      "name": "能量转化",
+      "node_id": "concept/fundamental_principle:auto-5fd4459739a6"
+    },
+    {
+      "file": "unit-000014.json",
+      "kind": "concept",
+      "name": "试探电荷",
+      "node_id": "concept/idealized_charge:auto-12e32c13bea1"
+    },
+    {
+      "file": "unit-000015.json",
+      "kind": "concept",
+      "name": "能源",
+      "node_id": "concept/natural_resource:auto-9546db20a4fd"
+    },
+    {
+      "file": "unit-000016.json",
+      "kind": "concept",
+      "name": "化石燃料/传统能源",
+      "node_id": "concept/non_renewable_resource:auto-ea010dcced0a"
+    },
+    {
+      "file": "unit-000017.json",
+      "kind": "concept",
+      "name": "光子",
+      "node_id": "concept/particle:auto-e58ea245f4cd"
+    },
+    {
+      "file": "unit-000018.json",
+      "kind": "concept",
+      "name": "光伏效应",
+      "node_id": "concept/phenomenon:auto-4980298a7eac"
+    },
+    {
+      "file": "unit-000019.json",
+      "kind": "concept",
+      "name": "场源电荷",
+      "node_id": "concept/physical_charge:auto-fbc01f569124"
+    },
+    {
+      "file": "unit-000020.json",
+      "kind": "concept",
+      "name": "电场",
+      "node_id": "concept/physical_field:auto-4375e077c8b3"
+    },
+    {
+      "file": "unit-000021.json",
+      "kind": "concept",
+      "name": "匀强电场",
+      "node_id": "concept/physical_field:auto-c5d210bef34c"
+    },
+    {
+      "file": "unit-000022.json",
+      "kind": "concept",
+      "name": "静电场",
+      "node_id": "concept/physical_field:auto-e7bb860ddfb7"
+    },
+    {
+      "file": "unit-000023.json",
+      "kind": "concept",
+      "name": "静电现象",
+      "node_id": "concept/physical_phenomenon:auto-d13fbf9eb8ba"
+    },
+    {
+      "file": "unit-000024.json",
+      "kind": "concept",
+      "name": "温度对导体电阻的影响",
+      "node_id": "concept/physical_phenomenon:auto-fab7f2e33efa"
+    },
+    {
+      "file": "unit-000025.json",
+      "kind": "concept",
+      "name": "千瓦时",
+      "node_id": "concept/physical_unit:auto-a8d0d8421740"
+    },
+    {
+      "file": "unit-000026.json",
+      "kind": "concept",
+      "name": "光的波粒二象性",
+      "node_id": "concept/property:auto-ccad13016fb9"
+    },
+    {
+      "file": "unit-000027.json",
+      "kind": "concept",
+      "name": "超导现象",
+      "node_id": "concept/quantum_phenomenon:auto-ab601cbbb57a"
+    },
+    {
+      "file": "unit-000028.json",
+      "kind": "concept",
+      "name": "新能源",
+      "node_id": "concept/renewable_resource:auto-d0c3b12a025c"
+    },
+    {
+      "file": "unit-000029.json",
+      "kind": "concept",
+      "name": "电磁波",
+      "node_id": "concept/wave:auto-9c9e56da3d9e"
+    },
+    {
+      "file": "unit-000030.json",
+      "kind": "concept",
+      "name": "非静电力",
+      "node_id": "concept/作用力:auto-229df02ddd51"
+    },
+    {
+      "file": "unit-000031.json",
+      "kind": "concept",
+      "name": "家庭电路",
+      "node_id": "concept/供电系统:auto-8005c1f649cb"
+    },
+    {
+      "file": "unit-000032.json",
+      "kind": "concept",
+      "name": "磁场",
+      "node_id": "concept/基础概念:auto-a661553d4ea5"
+    },
+    {
+      "file": "unit-000033.json",
+      "kind": "concept",
+      "name": "分子电流假说",
+      "node_id": "concept/微观机制解释:auto-adee97f02901"
+    },
+    {
+      "file": "unit-000034.json",
+      "kind": "concept",
+      "name": "半导体",
+      "node_id": "concept/材料类别:auto-afcaa8326198"
+    },
+    {
+      "file": "unit-000035.json",
+      "kind": "concept",
+      "name": "静电利用与防范原理",
+      "node_id": "concept/核心规律总结:auto-c4b280dbde3b"
+    },
+    {
+      "file": "unit-000036.json",
+      "kind": "concept",
+      "name": "多用电表",
+      "node_id": "concept/测量仪器:auto-162a593a4c07"
+    },
+    {
+      "file": "unit-000037.json",
+      "kind": "concept",
+      "name": "感应电流",
+      "node_id": "concept/物理现象:auto-76f8dbaa38f0"
+    },
+    {
+      "file": "unit-000038.json",
+      "kind": "concept",
+      "name": "电磁感应现象",
+      "node_id": "concept/物理现象:auto-b9cb11afc98b"
+    },
+    {
+      "file": "unit-000039.json",
+      "kind": "concept",
+      "name": "匀强磁场",
+      "node_id": "concept/理想化模型:auto-1ecf3544625d"
+    },
+    {
+      "file": "unit-000040.json",
+      "kind": "concept",
+      "name": "家庭电路故障类型",
+      "node_id": "concept/电路异常状态:auto-6ca18cc49788"
+    },
+    {
+      "file": "unit-000041.json",
+      "kind": "concept",
+      "name": "串联并联组合电路",
+      "node_id": "concept/电路拓扑结构:auto-de19b5414a8c"
+    },
+    {
+      "file": "unit-000042.json",
+      "kind": "concept",
+      "name": "地磁场",
+      "node_id": "concept/自然现象:auto-834d1a17403d"
+    },
+    {
+      "file": "unit-000043.json",
+      "kind": "concept",
+      "name": "静电危害",
+      "node_id": "concept/负面现象:auto-733b64bd905b"
+    },
+    {
+      "file": "unit-000044.json",
+      "kind": "entity",
+      "name": "反应堆",
+      "node_id": "entity/device:auto-55d6275f8c3a"
+    },
+    {
+      "file": "unit-000045.json",
+      "kind": "entity",
+      "name": "超级电容器",
+      "node_id": "entity/device:auto-86f4dc994165"
+    },
+    {
+      "file": "unit-000046.json",
+      "kind": "entity",
+      "name": "莱顿瓶",
+      "node_id": "entity/device:auto-976c26cacdc5"
+    },
+    {
+      "file": "unit-000047.json",
+      "kind": "entity",
+      "name": "托卡马克装置",
+      "node_id": "entity/device:auto-e21bab1c8b6d"
+    },
+    {
+      "file": "unit-000048.json",
+      "kind": "entity",
+      "name": "电阻器",
+      "node_id": "entity/electronic_component:auto-c4027ef13d1d"
+    },
+    {
+      "file": "unit-000049.json",
+      "kind": "entity",
+      "name": "阴极射线管",
+      "node_id": "entity/experimental_device:auto-0e0f558fb74b"
+    },
+    {
+      "file": "unit-000050.json",
+      "kind": "entity",
+      "name": "验电器",
+      "node_id": "entity/laboratory_instrument:auto-0785cf61fc51"
+    },
+    {
+      "file": "unit-000051.json",
+      "kind": "entity",
+      "name": "数字式静电计",
+      "node_id": "entity/laboratory_instrument:auto-ed2937639b15"
+    },
+    {
+      "file": "unit-000052.json",
+      "kind": "entity",
+      "name": "磁浮列车",
+      "node_id": "entity/交通工具:auto-c3d34e43b547"
+    },
+    {
+      "file": "unit-000053.json",
+      "kind": "entity",
+      "name": "钕磁体",
+      "node_id": "entity/人工材料:auto-9b823077c3e1"
+    },
+    {
+      "file": "unit-000054.json",
+      "kind": "entity",
+      "name": "相线",
+      "node_id": "entity/供电线路组件:auto-36f38663c221"
+    },
+    {
+      "file": "unit-000055.json",
+      "kind": "entity",
+      "name": "零线",
+      "node_id": "entity/供电线路组件:auto-8bdfc7a4f070"
+    },
+    {
+      "file": "unit-000056.json",
+      "kind": "entity",
+      "name": "地线",
+      "node_id": "entity/供电线路组件:auto-be547f2773b4"
+    },
+    {
+      "file": "unit-000057.json",
+      "kind": "entity",
+      "name": "低压断路器",
+      "node_id": "entity/保护开关:auto-decc65b92c0d"
+    },
+    {
+      "file": "unit-000058.json",
+      "kind": "entity",
+      "name": "天然磁石",
+      "node_id": "entity/天然材料:auto-64ffaeac4c0d"
+    },
+    {
+      "file": "unit-000059.json",
+      "kind": "entity",
+      "name": "可调高内阻电池",
+      "node_id": "entity/实验器材:auto-cf41d932559f"
+    },
+    {
+      "file": "unit-000060.json",
+      "kind": "entity",
+      "name": "导线",
+      "node_id": "entity/导电材料:auto-0702dea17916"
+    },
+    {
+      "file": "unit-000061.json",
+      "kind": "entity",
+      "name": "集成电路",
+      "node_id": "entity/微型电子器件:auto-752439269a86"
+    },
+    {
+      "file": "unit-000062.json",
+      "kind": "entity",
+      "name": "验电笔",
+      "node_id": "entity/检测工具:auto-b05c12c46018"
+    },
+    {
+      "file": "unit-000063.json",
+      "kind": "entity",
+      "name": "螺旋测微器",
+      "node_id": "entity/测量仪器:auto-3cadbf914f17"
+    },
+    {
+      "file": "unit-000064.json",
+      "kind": "entity",
+      "name": "指南针",
+      "node_id": "entity/测量仪器:auto-893f0514df6b"
+    },
+    {
+      "file": "unit-000065.json",
+      "kind": "entity",
+      "name": "灵敏电流计",
+      "node_id": "entity/测量仪器:auto-a7adbf0fb4d9"
+    },
+    {
+      "file": "unit-000066.json",
+      "kind": "entity",
+      "name": "游标卡尺",
+      "node_id": "entity/测量仪器:auto-fb8be3c025c1"
+    },
+    {
+      "file": "unit-000067.json",
+      "kind": "entity",
+      "name": "电磁铁",
+      "node_id": "entity/电磁装置:auto-2b09e908a9b4"
+    },
+    {
+      "file": "unit-000068.json",
+      "kind": "entity",
+      "name": "闭合导体回路",
+      "node_id": "entity/电路模型:auto-0183d08396af"
+    },
+    {
+      "file": "unit-000069.json",
+      "kind": "entity",
+      "name": "避雷针",
+      "node_id": "entity/防护装置:auto-c3c78df21e0c"
+    },
+    {
+      "file": "unit-000070.json",
+      "kind": "event",
+      "name": "磁极倒转",
+      "node_id": "event/地质事件:auto-e81f94a641ca"
+    },
+    {
+      "file": "unit-000071.json",
+      "kind": "method",
+      "name": "电磁波信号检测",
+      "node_id": "method/detection:auto-fbc35c4fa1b9"
+    },
+    {
+      "file": "unit-000072.json",
+      "kind": "method",
+      "name": "伏安法",
+      "node_id": "method/experimental_method:auto-04863a595336"
+    },
+    {
+      "file": "unit-000073.json",
+      "kind": "method",
+      "name": "伏安法测电源电动势和内阻",
+      "node_id": "method/experimental_method:auto-7900d137ff05"
+    },
+    {
+      "file": "unit-000074.json",
+      "kind": "method",
+      "name": "密立根油滴实验",
+      "node_id": "method/physics_experiment:auto-f61094ea2657"
+    },
+    {
+      "file": "unit-000075.json",
+      "kind": "method",
+      "name": "垃圾分类",
+      "node_id": "method/resource_management:auto-44198d810a2d"
+    },
+    {
+      "file": "unit-000076.json",
+      "kind": "method",
+      "name": "节能减排",
+      "node_id": "method/sustainability_strategy:auto-0877ebe26cd8"
+    },
+    {
+      "file": "unit-000077.json",
+      "kind": "method",
+      "name": "等效电路法",
+      "node_id": "method/分析计算方法:auto-bd94e2f3dc6d"
+    },
+    {
+      "file": "unit-000078.json",
+      "kind": "method",
+      "name": "静电复印",
+      "node_id": "method/办公技术:auto-b3338ffb04b0"
+    },
+    {
+      "file": "unit-000079.json",
+      "kind": "method",
+      "name": "核磁共振成像",
+      "node_id": "method/医疗技术:auto-5e1ba270dfb8"
+    },
+    {
+      "file": "unit-000080.json",
+      "kind": "method",
+      "name": "接地防静电",
+      "node_id": "method/安全措施:auto-96ee86a0bb1e"
+    },
+    {
+      "file": "unit-000081.json",
+      "kind": "method",
+      "name": "数字式多用电表测电流",
+      "node_id": "method/实验操作步骤:auto-200b18183cc6"
+    },
+    {
+      "file": "unit-000082.json",
+      "kind": "method",
+      "name": "数字式多用电表测电阻",
+      "node_id": "method/实验操作步骤:auto-408d6f598053"
+    },
+    {
+      "file": "unit-000083.json",
+      "kind": "method",
+      "name": "数字式多用电表测电压",
+      "node_id": "method/实验操作步骤:auto-87377b44487f"
+    },
+    {
+      "file": "unit-000084.json",
+      "kind": "method",
+      "name": "铁屑显示磁场法",
+      "node_id": "method/实验观测方法:auto-3e4a6eb9a9fc"
+    },
+    {
+      "file": "unit-000085.json",
+      "kind": "method",
+      "name": "静电除尘",
+      "node_id": "method/工业净化技术:auto-39fceb350ad5"
+    },
+    {
+      "file": "unit-000086.json",
+      "kind": "method",
+      "name": "静电喷雾",
+      "node_id": "method/工业喷涂技术:auto-0d00c018aa84"
+    },
+    {
+      "file": "unit-000087.json",
+      "kind": "method",
+      "name": "家庭导线选择方法",
+      "node_id": "method/工程设计方法:auto-35dee2414a87"
+    },
+    {
+      "file": "unit-000088.json",
+      "kind": "method",
+      "name": "铁屑分布实验",
+      "node_id": "method/演示实验:auto-a9d612e5c565"
+    },
+    {
+      "file": "unit-000089.json",
+      "kind": "method",
+      "name": "工艺控制防静电",
+      "node_id": "method/环境管理措施:auto-8a0f8f8d71f9"
+    },
+    {
+      "file": "unit-000090.json",
+      "kind": "method",
+      "name": "磁传感器测量法",
+      "node_id": "method/现代测量技术:auto-80957d48721d"
+    },
+    {
+      "file": "unit-000091.json",
+      "kind": "method",
+      "name": "伏安法测电阻",
+      "node_id": "method/电学测量方法:auto-d95fd69a8b71"
+    },
+    {
+      "file": "unit-000092.json",
+      "kind": "method",
+      "name": "法拉第环形线圈实验",
+      "node_id": "method/经典物理实验:auto-d4ab6b61828a"
+    },
+    {
+      "file": "unit-000093.json",
+      "kind": "process",
+      "name": "酸雨",
+      "node_id": "process/atmospheric_pollution:auto-d2d303baa0a3"
+    },
+    {
+      "file": "unit-000094.json",
+      "kind": "process",
+      "name": "摩擦起电",
+      "node_id": "process/charging_process:auto-69a0da6dd0b3"
+    },
+    {
+      "file": "unit-000095.json",
+      "kind": "process",
+      "name": "接触起电",
+      "node_id": "process/charging_process:auto-70ee6843af42"
+    },
+    {
+      "file": "unit-000096.json",
+      "kind": "process",
+      "name": "感应起电",
+      "node_id": "process/charging_process:auto-bedf1915fb94"
+    },
+    {
+      "file": "unit-000097.json",
+      "kind": "process",
+      "name": "太阳能发电",
+      "node_id": "process/clean_energy_conversion:auto-0e1d2c374671"
+    },
+    {
+      "file": "unit-000098.json",
+      "kind": "process",
+      "name": "电容器充电过程",
+      "node_id": "process/electrical:auto-50e217b2469d"
+    },
+    {
+      "file": "unit-000099.json",
+      "kind": "process",
+      "name": "电容器放电过程",
+      "node_id": "process/electrical:auto-6525e87dad79"
+    },
+    {
+      "file": "unit-000100.json",
+      "kind": "process",
+      "name": "水力发电",
+      "node_id": "process/energy_conversion:auto-879b3146eb1b"
+    },
+    {
+      "file": "unit-000101.json",
+      "kind": "process",
+      "name": "光伏发电",
+      "node_id": "process/energy_conversion:auto-a38c0c7b8b8a"
+    },
+    {
+      "file": "unit-000102.json",
+      "kind": "process",
+      "name": "风力发电",
+      "node_id": "process/energy_conversion:auto-a6845be40988"
+    },
+    {
+      "file": "unit-000103.json",
+      "kind": "process",
+      "name": "沙尘暴",
+      "node_id": "process/extreme_weather:auto-9038920c7cff"
+    },
+    {
+      "file": "unit-000104.json",
+      "kind": "process",
+      "name": "潮汐发电",
+      "node_id": "process/mechanical_to_electrical_conversion:auto-3fae79e1c274"
+    },
+    {
+      "file": "unit-000105.json",
+      "kind": "process",
+      "name": "链式反应",
+      "node_id": "process/nuclear_reaction:auto-389be0e277a8"
+    },
+    {
+      "file": "unit-000106.json",
+      "kind": "process",
+      "name": "核聚变",
+      "node_id": "process/nuclear_reaction:auto-3e9ba8a2fda2"
+    },
+    {
+      "file": "unit-000107.json",
+      "kind": "process",
+      "name": "核裂变",
+      "node_id": "process/nuclear_reaction:auto-81ca3b0cbdec"
+    },
+    {
+      "file": "unit-000108.json",
+      "kind": "process",
+      "name": "带电粒子在电场中的加速",
+      "node_id": "process/particle_motion:auto-6438b2f3a876"
+    },
+    {
+      "file": "unit-000109.json",
+      "kind": "process",
+      "name": "带电粒子在电场中的偏转",
+      "node_id": "process/particle_motion:auto-d2990912f4e3"
+    },
+    {
+      "file": "unit-000110.json",
+      "kind": "process",
+      "name": "电能转化过程",
+      "node_id": "process/physical_process:auto-324aa3096d9f"
+    },
+    {
+      "file": "unit-000111.json",
+      "kind": "process",
+      "name": "过载与短路保护",
+      "node_id": "process/安全机制:auto-e5d83c6925f9"
+    },
+    {
+      "file": "unit-000112.json",
+      "kind": "process",
+      "name": "漏电保护",
+      "node_id": "process/安全机制:auto-eac27b6d7cf6"
+    },
+    {
+      "file": "unit-000113.json",
+      "kind": "process",
+      "name": "电荷定向移动",
+      "node_id": "process/微观物理过程:auto-f65d9c506495"
+    },
+    {
+      "file": "unit-000114.json",
+      "kind": "process",
+      "name": "电流的磁效应",
+      "node_id": "process/物理现象:auto-c96d81acd823"
+    },
+    {
+      "file": "unit-000115.json",
+      "kind": "process",
+      "name": "尖端放电",
+      "node_id": "process/电学现象:auto-6e3ec55475fe"
+    },
+    {
+      "file": "unit-000116.json",
+      "kind": "process",
+      "name": "电路短路",
+      "node_id": "process/电路特殊状态:auto-297598864a7f"
+    },
+    {
+      "file": "unit-000117.json",
+      "kind": "property",
+      "name": "太阳常数",
+      "node_id": "property/constant:auto-74c3f1c9abf3"
+    },
+    {
+      "file": "unit-000118.json",
+      "kind": "property",
+      "name": "发电煤耗",
+      "node_id": "property/efficiency_metric:auto-64bea84fbd2b"
+    },
+    {
+      "file": "unit-000119.json",
+      "kind": "property",
+      "name": "电动势",
+      "node_id": "property/electric_potential_source:auto-b058e09d58eb"
+    },
+    {
+      "file": "unit-000120.json",
+      "kind": "property",
+      "name": "击穿电压与额定电压",
+      "node_id": "property/electrical_limit:auto-608eff5dce82"
+    },
+    {
+      "file": "unit-000121.json",
+      "kind": "property",
+      "name": "电势差",
+      "node_id": "property/electrical_property:auto-7c2ca1b1eb0f"
+    },
+    {
+      "file": "unit-000122.json",
+      "kind": "property",
+      "name": "电阻",
+      "node_id": "property/electrical_quantity:auto-f621655c976e"
+    },
+    {
+      "file": "unit-000123.json",
+      "kind": "property",
+      "name": "内阻",
+      "node_id": "property/electrical_resistance:auto-160a4a839b2a"
+    },
+    {
+      "file": "unit-000124.json",
+      "kind": "property",
+      "name": "电场强度",
+      "node_id": "property/field_strength:auto-f71a3aa58e3b"
+    },
+    {
+      "file": "unit-000125.json",
+      "kind": "property",
+      "name": "电场力",
+      "node_id": "property/interaction_force:auto-1990887f0a67"
+    },
+    {
+      "file": "unit-000126.json",
+      "kind": "property",
+      "name": "电阻率",
+      "node_id": "property/material_property:auto-9bfec6a2a38a"
+    },
+    {
+      "file": "unit-000127.json",
+      "kind": "property",
+      "name": "临界温度",
+      "node_id": "property/phase_transition_parameter:auto-35b8c3f000fb"
+    },
+    {
+      "file": "unit-000128.json",
+      "kind": "property",
+      "name": "元电荷",
+      "node_id": "property/physical_constant:auto-00fd8cffd8c1"
+    },
+    {
+      "file": "unit-000129.json",
+      "kind": "property",
+      "name": "电容",
+      "node_id": "property/physical_quantity:auto-12bcfa4f2fb5"
+    },
+    {
+      "file": "unit-000130.json",
+      "kind": "property",
+      "name": "电功",
+      "node_id": "property/physical_quantity:auto-3f5c2bbadb36"
+    },
+    {
+      "file": "unit-000131.json",
+      "kind": "property",
+      "name": "电热",
+      "node_id": "property/physical_quantity:auto-574cb8701ad7"
+    },
+    {
+      "file": "unit-000132.json",
+      "kind": "property",
+      "name": "电荷量",
+      "node_id": "property/physical_quantity:auto-d560efd553af"
+    },
+    {
+      "file": "unit-000133.json",
+      "kind": "property",
+      "name": "电功率",
+      "node_id": "property/physical_quantity:auto-e7b2959a0c36"
+    },
+    {
+      "file": "unit-000134.json",
+      "kind": "property",
+      "name": "热功率",
+      "node_id": "property/physical_quantity:auto-ff20edcac12f"
+    },
+    {
+      "file": "unit-000135.json",
+      "kind": "property",
+      "name": "临界体积",
+      "node_id": "property/threshold:auto-b5a67e69cc64"
+    },
+    {
+      "file": "unit-000136.json",
+      "kind": "property",
+      "name": "电子伏特",
+      "node_id": "property/unit:auto-8119c5a44132"
+    },
+    {
+      "file": "unit-000137.json",
+      "kind": "property",
+      "name": "电势",
+      "node_id": "property/场的能量性质:auto-b982ceafa683"
+    },
+    {
+      "file": "unit-000138.json",
+      "kind": "property",
+      "name": "电流",
+      "node_id": "property/基本电学物理量:auto-aaf32796591b"
+    },
+    {
+      "file": "unit-000139.json",
+      "kind": "property",
+      "name": "外电压与内电压",
+      "node_id": "property/标量:auto-9dea0a8d62ba"
+    },
+    {
+      "file": "unit-000140.json",
+      "kind": "property",
+      "name": "电源电动势",
+      "node_id": "property/标量/状态量:auto-7697b7476a21"
+    },
+    {
+      "file": "unit-000141.json",
+      "kind": "property",
+      "name": "磁偏角",
+      "node_id": "property/物理参数:auto-a53d034b90ec"
+    },
+    {
+      "file": "unit-000142.json",
+      "kind": "property",
+      "name": "磁通量",
+      "node_id": "property/物理量:auto-97532de81b17"
+    },
+    {
+      "file": "unit-000143.json",
+      "kind": "property",
+      "name": "人体安全电压",
+      "node_id": "property/生理安全阈值:auto-fc68c3e556c1"
+    },
+    {
+      "file": "unit-000144.json",
+      "kind": "property",
+      "name": "相线与零线电压",
+      "node_id": "property/电势差:auto-3d1d352740f5"
+    },
+    {
+      "file": "unit-000145.json",
+      "kind": "property",
+      "name": "电压",
+      "node_id": "property/电势差:auto-fe24cda2267f"
+    },
+    {
+      "file": "unit-000146.json",
+      "kind": "property",
+      "name": "磁感应强度",
+      "node_id": "property/矢量物理量:auto-c7e0c204335c"
+    },
+    {
+      "file": "unit-000147.json",
+      "kind": "property",
+      "name": "电势能",
+      "node_id": "property/能量:auto-bc041489968d"
+    },
+    {
+      "file": "unit-000148.json",
+      "kind": "property",
+      "name": "安全电流",
+      "node_id": "property/载流能力:auto-3f1b90ef1342"
+    },
+    {
+      "file": "unit-000149.json",
+      "kind": "representation",
+      "name": "U-I图像法",
+      "node_id": "representation/data_analysis_graph:auto-1b80e9198282"
+    },
+    {
+      "file": "unit-000150.json",
+      "kind": "representation",
+      "name": "小灯泡I-U特性曲线",
+      "node_id": "representation/experimental_graph:auto-3a5597bd3356"
+    },
+    {
+      "file": "unit-000151.json",
+      "kind": "representation",
+      "name": "电场线",
+      "node_id": "representation/field_line_model:auto-db956ce66042"
+    },
+    {
+      "file": "unit-000152.json",
+      "kind": "representation",
+      "name": "Q-U图像",
+      "node_id": "representation/graph:auto-03d309946660"
+    },
+    {
+      "file": "unit-000153.json",
+      "kind": "representation",
+      "name": "电容器充放电U-t与I-t图像",
+      "node_id": "representation/graph:auto-9288a8a15aaa"
+    },
+    {
+      "file": "unit-000154.json",
+      "kind": "representation",
+      "name": "等势面",
+      "node_id": "representation/几何模型:auto-a97e9d1cdd46"
+    },
+    {
+      "file": "unit-000155.json",
+      "kind": "representation",
+      "name": "常见电路元器件符号",
+      "node_id": "representation/图形标识规范:auto-aa5377407620"
+    },
+    {
+      "file": "unit-000156.json",
+      "kind": "representation",
+      "name": "U-I图像",
+      "node_id": "representation/实验数据图像:auto-4548501545fe"
+    },
+    {
+      "file": "unit-000157.json",
+      "kind": "representation",
+      "name": "铜导线横截面积与安全电流对照表",
+      "node_id": "representation/工程数据表:auto-8ce081cdae2e"
+    },
+    {
+      "file": "unit-000158.json",
+      "kind": "representation",
+      "name": "静电潜像",
+      "node_id": "representation/物理图像模型:auto-b22e1e5572b9"
+    },
+    {
+      "file": "unit-000159.json",
+      "kind": "representation",
+      "name": "磁感线",
+      "node_id": "representation/物理模型:auto-790a12487f84"
+    },
+    {
+      "file": "unit-000160.json",
+      "kind": "rule",
+      "name": "闭合电路欧姆定律",
+      "node_id": "rule/circuit_law:auto-1b20de1544a4"
+    },
+    {
+      "file": "unit-000161.json",
+      "kind": "rule",
+      "name": "电荷守恒定律",
+      "node_id": "rule/conservation_law:auto-6c2a7c71cfab"
+    },
+    {
+      "file": "unit-000162.json",
+      "kind": "rule",
+      "name": "电场强度定义式",
+      "node_id": "rule/defining_equation:auto-74911b8cd2db"
+    },
+    {
+      "file": "unit-000163.json",
+      "kind": "rule",
+      "name": "电场力做功与电势差关系",
+      "node_id": "rule/energy_work_rule:auto-8372474feb67"
+    },
+    {
+      "file": "unit-000164.json",
+      "kind": "rule",
+      "name": "匀强电场场强与电势差关系",
+      "node_id": "rule/field_property_rule:auto-e48baf57c994"
+    },
+    {
+      "file": "unit-000165.json",
+      "kind": "rule",
+      "name": "电荷相互作用规律",
+      "node_id": "rule/fundamental_law:auto-e0b4c2429060"
+    },
+    {
+      "file": "unit-000166.json",
+      "kind": "rule",
+      "name": "影响平行板电容器电容的因素",
+      "node_id": "rule/physical_factor:auto-016ff17c23be"
+    },
+    {
+      "file": "unit-000167.json",
+      "kind": "rule",
+      "name": "点电荷电场强度公式",
+      "node_id": "rule/physical_law:auto-14a0bb0284a9"
+    },
+    {
+      "file": "unit-000168.json",
+      "kind": "rule",
+      "name": "电阻定律",
+      "node_id": "rule/physical_law:auto-1af76b1640e4"
+    },
+    {
+      "file": "unit-000169.json",
+      "kind": "rule",
+      "name": "焦耳定律",
+      "node_id": "rule/physical_law:auto-2e828b9a6767"
+    },
+    {
+      "file": "unit-000170.json",
+      "kind": "rule",
+      "name": "电场叠加原理",
+      "node_id": "rule/physical_principle:auto-97d52ce7690d"
+    },
+    {
+      "file": "unit-000171.json",
+      "kind": "rule",
+      "name": "雷达测距原理",
+      "node_id": "rule/principle:auto-c54442074216"
+    },
+    {
+      "file": "unit-000172.json",
+      "kind": "rule",
+      "name": "麦克斯韦电磁场理论",
+      "node_id": "rule/theory:auto-26d34539fd49"
+    },
+    {
+      "file": "unit-000173.json",
+      "kind": "rule",
+      "name": "电场力做功与电势能变化关系",
+      "node_id": "rule/功能关系:auto-9403794b8d45"
+    },
+    {
+      "file": "unit-000174.json",
+      "kind": "rule",
+      "name": "静电场力做功与路径无关",
+      "node_id": "rule/场性质:auto-86408897fb41"
+    },
+    {
+      "file": "unit-000175.json",
+      "kind": "rule",
+      "name": "右手螺旋定则",
+      "node_id": "rule/方向判断法则:auto-4cd61f31c658"
+    },
+    {
+      "file": "unit-000176.json",
+      "kind": "rule",
+      "name": "磁通量定义式",
+      "node_id": "rule/物理公式:auto-82d877c75ed6"
+    },
+    {
+      "file": "unit-000177.json",
+      "kind": "rule",
+      "name": "磁通量一般公式",
+      "node_id": "rule/物理公式:auto-b25f47039868"
+    },
+    {
+      "file": "unit-000178.json",
+      "kind": "rule",
+      "name": "产生感应电流的条件",
+      "node_id": "rule/物理规律:auto-46349d464648"
+    },
+    {
+      "file": "unit-000179.json",
+      "kind": "rule",
+      "name": "串联电阻等效规律",
+      "node_id": "rule/电路计算公式:auto-12dcade960c8"
+    },
+    {
+      "file": "unit-000180.json",
+      "kind": "rule",
+      "name": "并联电路电流分配规律",
+      "node_id": "rule/电路计算公式:auto-2b06f3267c84"
+    },
+    {
+      "file": "unit-000181.json",
+      "kind": "rule",
+      "name": "并联电阻等效规律",
+      "node_id": "rule/电路计算公式:auto-302be7f54125"
+    },
+    {
+      "file": "unit-000182.json",
+      "kind": "rule",
+      "name": "家庭电路并联连接规则",
+      "node_id": "rule/电路连接方式:auto-2fea423ca8b4"
+    }
+  ]
+}

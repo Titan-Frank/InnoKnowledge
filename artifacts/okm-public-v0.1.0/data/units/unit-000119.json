@@ -1,0 +1,1324 @@
+{
+  "body": {
+    "content": "## 定义\n电动势（EMF）是标志电源特性的重要参数之一 `[evidence:auto-b3416c58ae75]`。它表示电源将其他形式的能转化为电能的本领，数值上等于电源未接入电路时两极间的电压。该物理量通常用符号 $E$ 表示，国际单位为伏特（V）。\n\n## 物理特性\n电动势的大小完全取决于电源本身的性质，与电源是否接入电路以及外电路的工作状态无关。它是衡量电源将非电能转化为电能本领的核心指标。\n\n## 实验测量\n在实验室中，通常采用伏安法测量电源的电动势。实验电路中，电压表用于测量电源的外电压 $U$，电流表用于测量流过电源的电流 $I$ `[evidence:auto-5bbf3df3315a]`。为了防止滑动变阻器调节不慎导致短路、避免回路电流过大损坏电源及其他设备，电路中需串联一个固定电阻 $R$ 起到保护作用 `[evidence:auto-5bbf3df3315a]`。\n\n数据处理时，可建立直角坐标系，以外电压 $U$ 为纵轴、电流 $I$ 为横轴，根据实验数据绘制 $U-I$ 图像 `[evidence:auto-42de58bd5e0a]`。该图线在纵轴上的截距即为被测电源的电动势 $E$，图线的斜率则用于得出电源的内阻值 `[evidence:auto-42de58bd5e0a]`。\n\n## 电池组的等效电动势\n实际应用中，常通过串联或并联的方式组合电池以满足不同电压需求：\n- **串联电池组**：依次将电池的正极与其他电池的负极相连。若由 $n$ 个相同的电池串联，且每个电池的电动势为 $E$，则串联电池组的总电动势为 $E_{\\text{串}} = nE$ `[evidence:auto-175f5f4849f4]`。\n- **并联电池组**：若将多个相同电池并联，其等效电动势与单节电池保持一致，即 $E_{\\mathrm{并}} = E$ `[evidence:auto-13295be5da5d]`。\n\n## 关键要点\n1. 电动势是电源本身的固有属性，数值上等于断路时的路端电压。\n2. 利用 $U-I$ 图像的纵轴截距是测定电动势的常用且直观的方法。\n3. 电池串联可提升总电动势，而电池并联时总电动势不发生变化。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "property/electric_potential_source:auto-b058e09d58eb",
+    "properties": {
+      "card_title": "电动势",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-b3416c58ae75",
+      "evidence:auto-5bbf3df3315a",
+      "evidence:auto-42de58bd5e0a",
+      "evidence:auto-175f5f4849f4",
+      "evidence:auto-13295be5da5d"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:42:06+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-e8344376dea1",
+    "mention_refs": [],
+    "node_id": "property/electric_potential_source:auto-b058e09d58eb",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "标志电源特性的参数之一，表示电源将其他形式的能转化为电能的本领，数值上等于电源未接入电路时两极间的电压。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-b3416c58ae75"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "标志电源特性的参数之一，表示电源将其他形式的能转化为电能的本领，数值上等于电源未接入电路时两极间的电压。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-b3416c58ae75"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "标志电源特性的参数之一，表示电源将其他形式的能转化为电能的本领，数值上等于电源未接入电路时两极间的电压。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-b3416c58ae75"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "电动势"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-b3416c58ae75"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "电源电动势和内阻的测量"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-b3416c58ae75"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-b3416c58ae75"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-b3416c58ae75"
+    ],
+    "status": "active",
+    "summary": "标志电源特性的参数之一，表示电源将其他形式的能转化为电能的本领，数值上等于电源未接入电路时两极间的电压。",
+    "title": "电动势",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 8,
+    "score": 89,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点缺少 semantic_core 语义骨架。",
+        "passed": false,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "physics",
+      "id": "domain-profile:auto-c1e7cb5ff17c",
+      "node_id": "property/electric_potential_source:auto-b058e09d58eb",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "提供一组电压U与电流I的测量数据，要求学生描点绘制U-I图像，标出纵轴截距并计算电动势E。",
+              "给出包含串联与并联电池组的两种电路示意图，要求写出各自的总电动势表达式并画出等效电源符号。",
+              "设计伏安法测电源电动势的实验电路图，标出电压表与电流表的测量对象，并说明固定保护电阻的作用。"
+            ],
+            "common_errors": [
+              "将电动势与路端电压混淆，误认为电源接入电路或负载变化后，电动势会随之改变。",
+              "分析电池组时错误套用串并联规律，如将并联电池组的电动势相加，或认为串联电池组电动势不变。",
+              "解读U-I图像时误将横轴截距或图线斜率当作电动势，忽视纵轴截距的物理定义。"
+            ],
+            "diagnostic_questions": [
+              "将一节干电池分别接入10Ω和100Ω的电阻后，用电压表测得的电池两端电压是否相等？该电压是否等于电池的电动势？",
+              "在伏安法测电源电动势的U-I图像中，图线与纵轴的交点表示什么？若更换不同内阻的电源，该交点位置如何变化？",
+              "将两节电动势均为E的相同电池并联，并联后电池组的总电动势是多少？请结合电源特性说明理由。"
+            ],
+            "difficulty_level": "basic",
+            "extension_suggestions": [
+              "引导学生对比电动势与电势差的概念异同，从非静电力做功与静电力做功的角度深化能量转化理解。",
+              "结合U-I图像法与闭合电路欧姆定律表达式，分析短路电流与开路电压的极限情况及其物理意义。",
+              "探讨实际电源内阻变化对U-I图线及电动势测量精度的影响，为后续系统误差分析埋下伏笔。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T10:12:46+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "c6418d047ef6a2aa0fd3ec4a8bf481437cf3664024a6ae57bb61abc2515ffd06",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-b3416c58ae75",
+                "evidence:auto-42de58bd5e0a",
+                "evidence:auto-175f5f4849f4"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能准确表述电动势的物理意义、单位及变量符号，并说明其数值等于电源未接入电路时两极间的电压。",
+              "能根据闭合电路实验数据绘制U-I图像，并通过图线纵轴截距正确读出电源电动势的数值。",
+              "能判断串联或并联电池组的总电动势大小，并说明电动势仅取决于电源本身性质而不随外电路变化。"
+            ],
+            "remediation_suggestions": [
+              "通过对比“开路电压测量”与“闭路路端电压测量”的实验现象，强化电动势由电源内部非静电力决定、与外电路无关的边界认知。",
+              "利用动态U-I图像演示外电阻变化时工作点沿图线移动的过程，明确纵轴截距恒为电动势，斜率绝对值才反映内阻。",
+              "结合串联累加（E串=nE）与并联不变（E并=E）的公式推导，引导学生从能量转化本领的角度理解电池组等效原理。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-175f5f4849f4",
+        "evidence:auto-42de58bd5e0a",
+        "evidence:auto-b3416c58ae75"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:12:46+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nE _ {\\mathrm{并}} = E\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-13295be5da5d",
+      "locator": "line:102",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nE _ {\\mathrm{并}} = E\n$$"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图10-53所示，依次将电池的正极和其他电池的负极相连，就组成了串联电池组。如果串联电池组是由 $n$ 个相同的电池串联而成的，且每个电池的电动势都为 $E$ ，内阻都为 $r$ ，则串联电池组的电动势和内阻为 $$\n\\begin{array}{r l} & E _ {\\text {串}} = n E \\\\ & r _ {\\text {串}} = n r \\end{array}\n$$",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-175f5f4849f4",
+      "locator": "line:64",
+      "modality": "text",
+      "normalized_claims": [
+        "如图10-53所示，依次将电池的正极和其他电池的负极相连，就组成了串联电池组。如果串联电池组是由 $n$ 个相同的电池串联而成的，且每个电池的电动势都为 $E$ ，内阻都为 $r$ ，则串联电池组的电动势和内阻为 $$\n\\begin{arr"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "建立直角坐标系，以外电压 U 为纵轴，以电流 I 为横轴。根据实验数据作出 U-I 图像（选择合适的坐标范围)，并由图线的截距得出被测电源的电动势，由图线的斜率得出被测电源的内阻值。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-42de58bd5e0a",
+      "locator": "line:48",
+      "modality": "text",
+      "normalized_claims": [
+        "建立直角坐标系，以外电压 U 为纵轴，以电流 I 为横轴。根据实验数据作出 U-I 图像（选择合适的坐标范围)，并由图线的截距得出被测电源的电动势，由图线的斜率得出被测电源的内阻值。"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "$E = \\_\\_\\_\\_\\_, r = \\_\\_\\_\\_\\circ$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-497ca71d4762",
+      "locator": "line:55",
+      "modality": "equation",
+      "normalized_claims": [
+        "$E = \\_\\_\\_\\_\\_, r = \\_\\_\\_\\_\\circ$"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图10-51所示为测量电源电动势和内阻的实验电路图，其中电压表测量电源的外电压 $U$ ，电流表则测量流过电源的电流 $I$ 。电路中的固定电阻 $R$ 起到保护电路的作用，它可防止滑动变阻器不慎短路时回路中电流过大而损坏电源及其他设备。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-5bbf3df3315a",
+      "locator": "line:36",
+      "modality": "text",
+      "normalized_claims": [
+        "如图10-51所示为测量电源电动势和内阻的实验电路图，其中电压表测量电源的外电压 $U$ ，电流表则测量流过电源的电流 $I$ 。电路中的固定电阻 $R$ 起到保护电路的作用，它可防止滑动变阻器不慎短路时回路中电流过大而损坏电源及其他设备。"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/1f534c0feeab1bb5b5a03e56073b1fd8303da0e33e2819f1c20b883e64458ecb.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6a921aa67443",
+      "locator": "line:121",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/1f534c0feeab1bb5b5a03e56073b1fd8303da0e33e2819f1c20b883e64458ecb.jpg)"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 237,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/1f534c0feeab1bb5b5a03e56073b1fd8303da0e33e2819f1c20b883e64458ecb.jpg",
+          "reason": "前文问题(2)明确提到'作图得到 $U - I$ 图线，如图 10-56 所示'，要求计算电动势和内阻。后文紧接着标注'图10-56'。当前图片正是该 $U-I$ 图线，直接展示了实验数据点和拟合直线，是解题的核心依据（通过截距求电动势，通过斜率求内阻），符合'数据'和'例题'的核心内容特征。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片是一个 $U-I$ 坐标图，纵轴为电压 $U$ (V)，范围 0.6-1.5；横轴为电流 $I$ (A)，范围 0-0.75。图中有五个黑色实心数据点，以及一条穿过数据点的虚线拟合直线。直线纵截距约为 1.5V，横截距约为 0.75A。另有虚线辅助标示了 (0.25, 1.2) 和 (0.5, 0.9) 两个点。",
+          "width": 306
+        },
+        "path": "images/1f534c0feeab1bb5b5a03e56073b1fd8303da0e33e2819f1c20b883e64458ecb.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\n\\begin{array}{r l} & E _ {\\text {串}} = n E \\\\ & r _ {\\text {串}} = n r \\end{array}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6d122d1a7ca1",
+      "locator": "line:87",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\n\\begin{array}{r l} & E _ {\\text {串}} = n E \\\\ & r _ {\\text {串}} = n r \\end{array}\n$$"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/f58b32012d8ab6123a1b67623cf0c2cfc5b4018adea3fd1ff0402bbac45b67bf.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-7891c6c9813b",
+      "locator": "line:118",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/f58b32012d8ab6123a1b67623cf0c2cfc5b4018adea3fd1ff0402bbac45b67bf.jpg)"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 228,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/f58b32012d8ab6123a1b67623cf0c2cfc5b4018adea3fd1ff0402bbac45b67bf.jpg",
+          "reason": "前文题目明确引用了'如图 10-55 所示的电路'，且问题(1)直接针对图中的方框A、B和滑动头P进行提问。后文标签也显示为'图10-55'。该图片是'测量电源的电动势和内阻'实验习题的配图，属于例题配图，用于辅助解答具体练习问题，因此判定为supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张物理电路原理图。图中包含直流电源、开关S、定值电阻R、滑动变阻器（滑片为P，端点为a、b）以及两个方框仪表A和B。仪表A串联在干路（或支路，需结合电路分析，看起来A测总电流或路端电压相关，B测另一量），根据典型伏安法测电源电动势电路，这通常是一个实验连接图。",
+          "width": 329
+        },
+        "path": "images/f58b32012d8ab6123a1b67623cf0c2cfc5b4018adea3fd1ff0402bbac45b67bf.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 10-54 所示，把所有电池的正极连接在一起，成为电池组的正极；把所有电池的负极连接在一起，成为电池组的负极，就组成并联电池组。如果并联电池组由 n 个相同的电池并联而成，且每个电池的电动势都为 E，内阻都为 r，则并联电池组的电动势和内阻 $$\nE _ {\\mathrm{并}} = E\n$$ $$\nr _ {\\text {并}} = \\frac {r}{n}\n$$",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-99b0f4dbdd35",
+      "locator": "line:76",
+      "modality": "text",
+      "normalized_claims": [
+        "如图 10-54 所示，把所有电池的正极连接在一起，成为电池组的正极；把所有电池的负极连接在一起，成为电池组的负极，就组成并联电池组。如果并联电池组由 n 个相同的电池并联而成，且每个电池的电动势都为 E，内阻都为 r，则并联电池组的电动势"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图10-53所示，依次将电池的正极和其他电池的负极相连，就组成了串联电池组。如果串联电池组是由 $n$ 个相同的电池串联而成的，且每个电池的电动势都为 $E$ ，内阻都为 $r$ ，则串联电池组的电动势和内阻为",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-9a68224502fe",
+      "locator": "line:80",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图10-53所示，依次将电池的正极和其他电池的负极相连，就组成了串联电池组。如果串联电池组是由 $n$ 个相同的电池串联而成的，且每个电池的电动势都为 $E$ ，内阻都为 $r$ ，则串联电池组的电动势和内阻为"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "2. $U - I$ 图像中斜线上的点代表怎样的含义?",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-9ba29caea62d",
+      "locator": "line:61",
+      "modality": "equation",
+      "normalized_claims": [
+        "2. $U - I$ 图像中斜线上的点代表怎样的含义?"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/4098465454e17a048d908386b8903a8e6fc44ae9397cfa87f9bb0a2ad41dbd05.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-a27819d83bf3",
+      "locator": "line:71",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/4098465454e17a048d908386b8903a8e6fc44ae9397cfa87f9bb0a2ad41dbd05.jpg)"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 387,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/4098465454e17a048d908386b8903a8e6fc44ae9397cfa87f9bb0a2ad41dbd05.jpg",
+          "reason": "图片内容与后文标注“图10-52 浦东机场的屋顶太阳能电池板”完全一致，且对应前文提到的“如图 10-52 所示的上海浦东机场屋顶太阳能电池板...也是一种电池组”。这是一张展示太阳能电池组实际应用场景的照片，用于辅助说明电池组的概念。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了上海浦东机场屋顶铺设的大面积太阳能电池板，背景是蓝天、白云和一架飞行的飞机。",
+          "width": 609
+        },
+        "path": "images/4098465454e17a048d908386b8903a8e6fc44ae9397cfa87f9bb0a2ad41dbd05.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/e6a1b5b1308724c6ec13c170b643e76ddfc6e933a4e60c852d62a1fd01f375d9.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-a2a8f254466e",
+      "locator": "line:21",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/e6a1b5b1308724c6ec13c170b643e76ddfc6e933a4e60c852d62a1fd01f375d9.jpg)"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 320,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/e6a1b5b1308724c6ec13c170b643e76ddfc6e933a4e60c852d62a1fd01f375d9.jpg",
+          "reason": "前文明确指出‘就能测定电源的电动势E和内阻r，如图10-50所示’，后文紧接着给出了标题‘图10-50 伏安法测电源的电动势和内阻’并解释了实验原理。该图片正是这一核心实验方法的电路原理图，直接表达了实验结构，与上下文完美对应，属于核心内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "这是一张物理实验电路图，展示了伏安法测量电源电动势和内阻的电路连接。图中包含标有E和r的电源、开关S、滑动变阻器R、电流表A和电压表V。电压表并联在电源两端（测量路端电压），电流表串联在干路中（测量总电流），滑动变阻器用于改变电路中的电流和电压。",
+          "width": 292
+        },
+        "path": "images/e6a1b5b1308724c6ec13c170b643e76ddfc6e933a4e60c852d62a1fd01f375d9.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "(2) 在用伏安法测电池电动势和内阻的实验中, 共记录五组数据, 作图得到 $U - I$ 图线, 如图 10-56 所示。则该电池的电动势和内阻分别为多大?",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-aef2f1466812",
+      "locator": "line:116",
+      "modality": "equation",
+      "normalized_claims": [
+        "(2) 在用伏安法测电池电动势和内阻的实验中, 共记录五组数据, 作图得到 $U - I$ 图线, 如图 10-56 所示。则该电池的电动势和内阻分别为多大?"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/b9dc64b0c7a0c496c7798ff5b9fe029346bcc6434db98b192cffceaeb7e4048d.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b1bc15d87aed",
+      "locator": "line:95",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/b9dc64b0c7a0c496c7798ff5b9fe029346bcc6434db98b192cffceaeb7e4048d.jpg)"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 1,
+          "height": 187,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/b9dc64b0c7a0c496c7798ff5b9fe029346bcc6434db98b192cffceaeb7e4048d.jpg",
+          "reason": "图片内容直接展示了教材前文提到的“并联电池组”的实物连接方式（所有正极相连、所有负极相连），并给出了对应的等效电路和公式（$E_{\\text{并}}=E, r_{\\text{并}}=r/3$）。后文明确标注“图10-54 并联电池组”并继续推导相关公式。该图是解释并联电池组概念和特性的核心证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片左侧展示了三个干电池并联连接的实物示意图，所有电池的正极连接在一起，负极连接在一起。右侧展示了并联电池组的等效电路符号（单个电池）以及对应的物理公式：$E_{\\text{并}} = E$ 和 $r_{\\text{并}} = \\frac{r}{3}$。",
+          "width": 615
+        },
+        "path": "images/b9dc64b0c7a0c496c7798ff5b9fe029346bcc6434db98b192cffceaeb7e4048d.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/92f6ff4034aaf1874f8748f6a00a36e63647565753e514a5f743da5d9908ba22.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b29801cd2dcb",
+      "locator": "line:82",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/92f6ff4034aaf1874f8748f6a00a36e63647565753e514a5f743da5d9908ba22.jpg)"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 254,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/92f6ff4034aaf1874f8748f6a00a36e63647565753e514a5f743da5d9908ba22.jpg",
+          "reason": "该图片是教材中'图10-53 串联电池组'的直观展示。它直接对应了前文描述的'依次将电池的正极和其他电池的负极相连'的结构，并通过$n=3$的特例（下方公式$E_{\\text{串}}=3E$）具体化了后文提到的通用公式（$E_{\\text{串}}=nE$），属于核心知识内容的图解。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片上方展示了三个圆柱形电池依次串联（正极接负极）的示意图；下方展示了该串联电池组的等效电路图（一个电池符号）；最下方标注了具体的参数关系式：$E_{\\text{串}}=3E，r_{\\text{串}}=3r$。",
+          "width": 459
+        },
+        "path": "images/92f6ff4034aaf1874f8748f6a00a36e63647565753e514a5f743da5d9908ba22.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "我们日常使用的干电池、蓄电池等电源，有两个标志其特性的重要参数——电动势和内阻。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-b3416c58ae75",
+      "locator": "line:2",
+      "modality": "text",
+      "normalized_claims": [
+        "我们日常使用的干电池、蓄电池等电源，有两个标志其特性的重要参数——电动势和内阻。"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "(1) 图中方框 $A 、 B$ 中的仪表分别测量什么物理量? 闭合开关前, 滑动变阻器的滑动头 $P$ 应位于 $a$ 端还是 $b$ 端?",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b72bc809d768",
+      "locator": "line:114",
+      "modality": "equation",
+      "normalized_claims": [
+        "(1) 图中方框 $A 、 B$ 中的仪表分别测量什么物理量? 闭合开关前, 滑动变阻器的滑动头 $P$ 应位于 $a$ 端还是 $b$ 端?"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nE = U + I r\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c87eff861192",
+      "locator": "line:17",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nE = U + I r\n$$"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "本实验采用伏安法测电源的电动势 E 及内阻 r，根据闭合电路欧姆定律，U = E - Ir。将待测电池接入电路，改变外电阻，用电压表和电流表测量不同工作状态下的外电压 U 和电流 I，并作出 U-I 图线，由图线分析即得出电动势 E 和内阻 r。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-cb45c2c5c25c",
+      "locator": "line:32",
+      "modality": "text",
+      "normalized_claims": [
+        "本实验采用伏安法测电源的电动势 E 及内阻 r，根据闭合电路欧姆定律，U = E - Ir。将待测电池接入电路，改变外电阻，用电压表和电流表测量不同工作状态下的外电压 U 和电流 I，并作出 U-I 图线，由图线分析即得出电动势 E 和内阻"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "根据图10-51连接电路。改变滑动变阻器 $R^{\\prime}$ 的阻值，从而改变外电阻。设计表格，记录每组电压和电流值。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-d0e4e0d53975",
+      "locator": "line:42",
+      "modality": "equation",
+      "normalized_claims": [
+        "根据图10-51连接电路。改变滑动变阻器 $R^{\\prime}$ 的阻值，从而改变外电阻。设计表格，记录每组电压和电流值。"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/f410982c60e490e17f639f1e57e64cdcb18354e4a6973307f587bf27b4613924.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-d48db504c821",
+      "locator": "line:46",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/f410982c60e490e17f639f1e57e64cdcb18354e4a6973307f587bf27b4613924.jpg)"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 218,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/f410982c60e490e17f639f1e57e64cdcb18354e4a6973307f587bf27b4613924.jpg",
+          "reason": "图片是核心实验电路图。前文明确指出“如图10-51所示为测量电源电动势和内阻的实验电路图”，后文紧接着给出了图注“图10-51 测量电源电动势和内阻的实验电路图”并基于此图描述实验步骤。图片直接展示了实验的电路结构和原理，属于核心知识内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个测量电源电动势和内阻的实验电路图（伏安法）。电路包含电源（标有E和r）、开关S、电压表V（并联在电源两端）、电流表A（串联在干路）、滑动变阻器R'以及定值保护电阻R。",
+          "width": 423
+        },
+        "path": "images/f410982c60e490e17f639f1e57e64cdcb18354e4a6973307f587bf27b4613924.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nr _ {\\text {并}} = \\frac {r}{n}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-dd65006d14d3",
+      "locator": "line:106",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nr _ {\\text {并}} = \\frac {r}{n}\n$$"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图10-51所示为测量电源电动势和内阻的实验电路图，其中电压表测量电源的外电压 $U$ ，电流表则测量流过电源的电流 $I$ 。电路中的固定电阻 $R$ 起到保护电路的作用，它可防止滑动变阻器不慎短路时回路中电流过大而损坏电源及其他设备。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ea14658d987d",
+      "locator": "line:38",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图10-51所示为测量电源电动势和内阻的实验电路图，其中电压表测量电源的外电压 $U$ ，电流表则测量流过电源的电流 $I$ 。电路中的固定电阻 $R$ 起到保护电路的作用，它可防止滑动变阻器不慎短路时回路中电流过大而损坏电源及其他设备。"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "如果能测出 U、I 的两组数据，就可以列出两个关于 E、r 的方程，联立求解可得 E 和 r。因此，用一个滑动变阻器，加上测量电压、电流的仪器，就能测定电源的电动势 E 和内阻 r，如图 10-50 所示。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ee13134fc437",
+      "locator": "line:16",
+      "modality": "text",
+      "normalized_claims": [
+        "如果能测出 U、I 的两组数据，就可以列出两个关于 E、r 的方程，联立求解可得 E 和 r。因此，用一个滑动变阻器，加上测量电压、电流的仪器，就能测定电源的电动势 E 和内阻 r，如图 10-50 所示。"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nE = U + I r\n$$",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f1b592d0518c",
+      "locator": "line:12",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nE = U + I r\n$$"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:42:06+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-8c89905d0b94",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "defines",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-b3416c58ae75"
+      ],
+      "source_type": "textbook",
+      "target_id": "property/electric_potential_source:auto-b058e09d58eb",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "EMF",
+      "电源电动势"
+    ],
+    "created_at": "2026-06-29T05:42:06+00:00",
+    "dataset_id": "main",
+    "definition": "标志电源特性的参数之一，表示电源将其他形式的能转化为电能的本领，数值上等于电源未接入电路时两极间的电压。",
+    "deprecated_by": null,
+    "domains": [
+      "physics"
+    ],
+    "external_ids": {},
+    "id": "property/electric_potential_source:auto-b058e09d58eb",
+    "kind": "property",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "电动势",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "subkinds": [
+          "electric_potential_source"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": "取决于电源本身性质，与电路是否工作无关",
+        "units": "V",
+        "variables": "E"
+      },
+      "template_display": {
+        "color": "#FFB400",
+        "label": "物理量",
+        "template_id": "textbook/physics",
+        "type_key": "property"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "electric_potential_source",
+    "tags": [
+      "power_source_parameter",
+      "core_concept"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [
+      {
+        "confidence": 0.8,
+        "created_at": "2026-06-29T05:42:06+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "concept/circuit_configuration:auto-4880dffa8fcb",
+        "id": "edge:auto-e3cd731b02b8",
+        "notes": "串联电池组的总电动势为 E串=nE",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "具有物理量",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-175f5f4849f4"
+        ],
+        "status": "active",
+        "to_id": "property/electric_potential_source:auto-b058e09d58eb",
+        "type": "has_property",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.8,
+        "created_at": "2026-06-29T05:42:06+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "concept/circuit_configuration:auto-7e0404cc9b04",
+        "id": "edge:auto-3784736f4878",
+        "notes": "并联电池组的总电动势为 E并=E",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "具有物理量",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-99b0f4dbdd35"
+        ],
+        "status": "active",
+        "to_id": "property/electric_potential_source:auto-b058e09d58eb",
+        "type": "has_property",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.8,
+        "created_at": "2026-06-29T05:42:06+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "method/experimental_method:auto-7900d137ff05",
+        "id": "edge:auto-7a1a7b2632f1",
+        "notes": "利用滑动变阻器和电表测量两组数据可测定电源电动势",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "产生",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-ee13134fc437"
+        ],
+        "status": "active",
+        "to_id": "property/electric_potential_source:auto-b058e09d58eb",
+        "type": "produces",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.8,
+        "created_at": "2026-06-29T05:42:06+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "representation/data_analysis_graph:auto-1b80e9198282",
+        "id": "edge:auto-b2f646d74c01",
+        "notes": "由U-I图线的纵轴截距得出被测电源的电动势",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "产生",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-42de58bd5e0a"
+        ],
+        "status": "active",
+        "to_id": "property/electric_potential_source:auto-b058e09d58eb",
+        "type": "produces",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.8,
+        "created_at": "2026-06-29T05:42:06+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "rule/circuit_law:auto-1b20de1544a4",
+        "id": "edge:auto-9d5da4fb0d63",
+        "notes": "公式 E = U + Ir 定量表征了电动势与路端电压、电流和内阻的关系",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-f1b592d0518c"
+        ],
+        "status": "active",
+        "to_id": "property/electric_potential_source:auto-b058e09d58eb",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ],
+    "outgoing": []
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第六节 电源电动势和内阻的测量\n\n21 世纪以来，电池工艺日新月异，一些实验室在研制柔性纺织电池（图 10-49），它不仅可以提供电能，同时还可以像普通的棉布一样柔韧。未来有望突破可穿戴产品的技术障碍，打开可穿戴智能电器和智能布料的大门。我们日常使用的干电池、蓄电池等电源，有两个标志其特性的重要参数——电动势和内阻。\n\n\n\n## 电源电动势和内阻如何测量？\n\n在一个闭合电路中，电源电动势、外电阻和内电阻等物理量取决于电源和用电器的性质，与电路是否工作无关；而电流、外电压和内电压等物理量则反映了电路的工作状态。\n\n这六个物理量通过部分电路欧姆定律和闭合电路欧姆定律相互联系，从而使我们可以有很多种测量电源电动势和内阻的方法。\n\n电源电动势 E、内电阻 r 与外电压 U、电流 I 的关系可以写成\n\n$$\nE = U + I r\n$$\n\n如果能测出 U、I 的两组数据，就可以列出两个关于 E、r 的方程，联立求解可得 E 和 r。因此，用一个滑动变阻器，加上测量电压、电流的仪器，就能测定电源的电动势 E 和内阻 r，如图 10-50 所示。\n\n[source image omitted from static artifact]  \n图10-50 伏安法测电源的电动势和内阻\n\n## 大家谈\n\n如果有一个电阻箱，同时只有一个电流表或电压表，如何测量电源的电动势与内阻呢？\n\n## 学生实验\n\n## 测量电源的电动势和内阻\n\n## 实验原理与方案\n\n本实验采用伏安法测电源的电动势 E 及内阻 r，根据闭合电路欧姆定律，U = E - Ir。将待测电池接入电路，改变外电阻，用电压表和电流表测量不同工作状态下的外电压 U 和电流 I，并作出 U-I 图线，由图线分析即得出电动势 E 和内阻 r。\n\n## 实验装置与方法\n\n如图10-51所示为测量电源电动势和内阻的实验电路图，其中电压表测量电源的外电压 $U$ ，电流表则测量流过电源的电流 $I$ 。电路中的固定电阻 $R$ 起到保护电路的作用，它可防止滑动变阻器不慎短路时回路中电流过大而损坏电源及其他设备。\n\n## 实验操作和数据收集\n\n根据图10-51连接电路。改变滑动变阻器 $R^{\\prime}$ 的阻值，从而改变外电阻。设计表格，记录每组电压和电流值。\n\n## 数据分析\n\n[source image omitted from static artifact]  \n图10-51 测量电源电动势和内阻的实验电路图\n\n建立直角坐标系，以外电压 U 为纵轴，以电流 I 为横轴。根据实验数据作出 U-I 图像（选择合适的坐标范\n\n围)，并由图线的截距得出被测电源的电动势，由图线的斜率得出被测电源的内阻值。\n\n## 实验结论\n\n$E = \\_\\_\\_\\_\\_, r = \\_\\_\\_\\_\\circ$\n\n## 交流与讨论\n\n1. 在本实验中为什么要采用 U-I 图像来处理数据?\n\n2. $U - I$ 图像中斜线上的点代表怎样的含义?\n\n3. 当外电路断开时，外电压为多少？\n\n4. 当电源被短路时，电流是否为无穷大呢？\n\n5. 若一节干电池的电动势为 1.5 V 左右，允许通过的最大电流为 0.6 A 左右，请确定保护电阻 R 的阻值范围。\n\n如果用电器需要比较高的电压和比较大的电流，一个电池不能符合要求时，往往需要把几个相同的电池连接起来组成电池组。例如，家电遥控器内通常用两节干电池作为电源。如图 10-52 所示的上海浦东机场屋顶太阳能电池板，由很多“晶片”连接在一起。许多“太阳能电池板”连接在一起组成“太阳能电池阵”，也是一种电池组。\n\n[source image omitted from static artifact]  \n图10-52 浦东机场的屋顶太阳能电池板\n\n\n\n## 电池如何连接成电池组?\n\n## 串联电池组\n\n如图10-53所示，依次将电池的正极和其他电池的负极相连，就组成了串联电池组。如果串联电池组是由 $n$ 个相同的电池串联而成的，且每个电池的电动势都为 $E$ ，内阻都为 $r$ ，则串联电池组的电动势和内阻为\n\n[source image omitted from static artifact]  \n图10-53 串联电池组\n\n$$\n\\begin{array}{r l} & E _ {\\text {串}} = n E \\\\ & r _ {\\text {串}} = n r \\end{array}\n$$\n\n当用电器的额定电压高于单个电池时，可以采用串联电池组供电，但是用电器的最大工作电流必须小于每个电池允许通过的最大电流。\n\n## 拓展视野\n\n如图 10-54 所示，把所有电池的正极连接在一起，成为电池组的正极；把所有电池的负极连接在一起，成为电池组的负极，就组成并联电池组。如果并联电池组由 n 个相同的电池并联而成，\n\n[source image omitted from static artifact]  \n图10-54 并联电池组\n\n且每个电池的电动势都为 E，内阻都为 r，则并联电池组的电动势和内阻\n\n$$\nE _ {\\mathrm{并}} = E\n$$\n\n$$\nr _ {\\text {并}} = \\frac {r}{n}\n$$\n\n并联电池组能提供较大的电流，因为每个电池中通过的电流只是总电流的一部分，所以当用电器的工作电流大于单个电池允许通过的最大电流时，就可以用并联电池组作为电源。\n\n## 问题②思考\n\n1. 在 “测量电源的电动势和内阻” 的实验中，连接成如图 10-55 所示的电路。\n\n(1) 图中方框 $A 、 B$ 中的仪表分别测量什么物理量? 闭合开关前, 滑动变阻器的滑动头 $P$ 应位于 $a$ 端还是 $b$ 端?\n\n(2) 在用伏安法测电池电动势和内阻的实验中, 共记录五组数据, 作图得到 $U - I$ 图线, 如图 10-56 所示。则该电池的电动势和内阻分别为多大?\n\n[source image omitted from static artifact]  \n图10-55\n\n[source image omitted from static artifact]  \n图10-56\n\n  \n图10-57\n\n2. 实验室内有两个不同的电源，用伏安法测量这两个电源的电动势和内阻，根据实验数据得到端电压和电流的关系如图 10-57 中直线 1、2 所示。试比较这两个电源电动势 $E$ 和内阻 $r$ 的大小。\n\n3. 手电筒由两节电源电动势大小均为 1.5 V 的相同电池串联成电池组供电，如图 10-58 所示。当开关接通后，测得小灯泡两端电压为 2.5 V，流过的电流为 0.3 A，则：\n\n  \n图10-58\n\n(1) 每节电池的内阻是多少?\n\n(2) 开关断开后，电池组两端的电压为多少？\n\n4. 如图 10-59 所示，已知定值电阻 $R_{1} = 9 \\Omega$ ， $R_{2} = 5 \\Omega$ 。当单刀双掷开关 S 置于位置 1 时，电压表的示数为 $5.4 \\mathrm{~V}$ ；当 S 置于位置 2 时，电压表的示数为 $5 \\mathrm{~V}$ 。求电源电动势及内阻。\n\n\n\n5. 某锂电池的电动势是 3.2 V，内阻是 16 mΩ。将该锂电池串联使用，给一个 “24 V 12.5 A” 的直流电机供电。问：\n\n图10-59\n\n(1) 需要几个电池串联才可以保证该直流电机正常使用?\n\n(2) 如果不小心将该电池正、负极短路，电路中的电流多大？说明为何要尽量避免电池正、负极短路。\n\n  \n图10-60 电熨斗",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:10-6-a:source-markdown",
+          "locator": "电源电动势和内阻的测量",
+          "modality": "text",
+          "page_end": 80,
+          "page_start": 77,
+          "properties": {
+            "md_end": 2384,
+            "md_start": 2233,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:10-6-a",
+            "outline_title": "电源电动势和内阻的测量",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 2384,
+      "md_start": 2233,
+      "modalities": [
+        "equation",
+        "text",
+        "image"
+      ],
+      "page_end": 80,
+      "page_start": 77,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第六节 电源电动势和内阻的测量\n\n21 世纪以来，电池工艺日新月异，一些实验室在研制柔性纺织电池（图 10-49），它不仅可以提供电能，同时还可以像普通的棉布一样柔韧。未来有望突破可穿戴产品的技术障碍，打开可穿戴智能电器和智能布料的大门。我们日常使用的干电池、蓄电池等电源，有两个标志其特性的重要参数——电动势和内阻。\n\n\n\n## 电源电动势和内阻如何测量？\n\n在一个闭合电路中，电源电动势、外电阻和内电阻等物理量取决于电源和用电器的性质，与电路是否工作无关；而电流、外电压和内电压等物理量则反映了电路的工作状态。\n\n这六个物理量通过部分电路欧姆定律和闭合电路欧姆定律相互联系，从而使我们可以有很多种测量电源电动势和内阻的方法。\n\n电源电动势 E、内电阻 r 与外电压 U、电流 I 的关系可以写成\n\n$$\nE = U + I r\n$$\n\n如果能测出 U、I 的两组数据，就可以列出两个关于 E、r 的方程，联立求解可得 E 和 r。因此，用一个滑动变阻器，加上测量电压、电流的仪器，就能测定电源的电动势 E 和内阻 r，如图 10-50 所示。\n\n[source image omitted from static artifact]  \n图10-50 伏安法测电源的电动势和内阻\n\n## 大家谈\n\n如果有一个电阻箱，同时只有一个电流表或电压表，如何测量电源的电动势与内阻呢？\n\n## 学生实验\n\n## 测量电源的电动势和内阻\n\n## 实验原理与方案\n\n本实验采用伏安法测电源的电动势 E 及内阻 r，根据闭合电路欧姆定律，U = E - Ir。将待测电池接入电路，改变外电阻，用电压表和电流表测量不同工作状态下的外电压 U 和电流 I，并作出 U-I 图线，由图线分析即得出电动势 E 和内阻 r。\n\n## 实验装置与方法\n\n如图10-51所示为测量电源电动势和内阻的实验电路图，其中电压表测量电源的外电压 $U$ ，电流表则测量流过电源的电流 $I$ 。电路中的固定电阻 $R$ 起到保护电路的作用，它可防止滑动变阻器不慎短路时回路中电流过大而损坏电源及其他设备。\n\n## 实验操作和数据收集\n\n根据图10-51连接电路。改变滑动变阻器 $R^{\\prime}$ 的阻值，从而改变外电阻。设计表格，记录每组电压和电流值。\n\n## 数据分析\n\n[source image omitted from static artifact]  \n图10-51 测量电源电动势和内阻的实验电路图\n\n建立直角坐标系，以外电压 U 为纵轴，以电流 I 为横轴。根据实验数据作出 U-I 图像（选择合适的坐标范\n\n围)，并由图线的截距得出被测电源的电动势，由图线的斜率得出被测电源的内阻值。\n\n## 实验结论\n\n$E = \\_\\_\\_\\_\\_, r = \\_\\_\\_\\_\\circ$\n\n## 交流与讨论\n\n1. 在本实验中为什么要采用 U-I 图像来处理数据?\n\n2. $U - I$ 图像中斜线上的点代表怎样的含义?\n\n3. 当外电路断开时，外电压为多少？\n\n4. 当电源被短路时，电流是否为无穷大呢？\n\n5. 若一节干电池的电动势为 1.5 V 左右，允许通过的最大电流为 0.6 A 左右，请确定保护电阻 R 的阻值范围。\n\n如果用电器需要比较高的电压和比较大的电流，一个电池不能符合要求时，往往需要把几个相同的电池连接起来组成电池组。例如，家电遥控器内通常用两节干电池作为电源。如图 10-52 所示的上海浦东机场屋顶太阳能电池板，由很多“晶片”连接在一起。许多“太阳能电池板”连接在一起组成“太阳能电池阵”，也是一种电池组。\n\n[source image omitted from static artifact]  \n图10-52 浦东机场的屋顶太阳能电池板\n\n\n\n## 电池如何连接成电池组?\n\n## 串联电池组\n\n如图10-53所示，依次将电池的正极和其他电池的负极相连，就组成了串联电池组。如果串联电池组是由 $n$ 个相同的电池串联而成的，且每个电池的电动势都为 $E$ ，内阻都为 $r$ ，则串联电池组的电动势和内阻为\n\n[source image omitted from static artifact]  \n图10-53 串联电池组\n\n$$\n\\begin{array}{r l} & E _ {\\text {串}} = n E \\\\ & r _ {\\text {串}} = n r \\end{array}\n$$\n\n当用电器的额定电压高于单个电池时，可以采用串联电池组供电，但是用电器的最大工作电流必须小于每个电池允许通过的最大电流。\n\n## 拓展视野\n\n如图 10-54 所示，把所有电池的正极连接在一起，成为电池组的正极；把所有电池的负极连接在一起，成为电池组的负极，就组成并联电池组。如果并联电池组由 n 个相同的电池并联而成，\n\n[source image omitted from static artifact]  \n图10-54 并联电池组\n\n且每个电池的电动势都为 E，内阻都为 r，则并联电池组的电动势和内阻\n\n$$\nE _ {\\mathrm{并}} = E\n$$\n\n$$\nr _ {\\text {并}} = \\frac {r}{n}\n$$\n\n并联电池组能提供较大的电流，因为每个电池中通过的电流只是总电流的一部分，所以当用电器的工作电流大于单个电池允许通过的最大电流时，就可以用并联电池组作为电源。\n\n## 问题②思考\n\n1. 在 “测量电源的电动势和内阻” 的实验中，连接成如图 10-55 所示的电路。\n\n(1) 图中方框 $A 、 B$ 中的仪表分别测量什么物理量? 闭合开关前, 滑动变阻器的滑动头 $P$ 应位于 $a$ 端还是 $b$ 端?\n\n(2) 在用伏安法测电池电动势和内阻的实验中, 共记录五组数据, 作图得到 $U - I$ 图线, 如图 10-56 所示。则该电池的电动势和内阻分别为多大?\n\n[source image omitted from static artifact]  \n图10-55\n\n[source image omitted from static artifact]  \n图10-56\n\n  \n图10-57\n\n2. 实验室内有两个不同的电源，用伏安法测量这两个电源的电动势和内阻，根据实验数据得到端电压和电流的关系如图 10-57 中直线 1、2 所示。试比较这两个电源电动势 $E$ 和内阻 $r$ 的大小。\n\n3. 手电筒由两节电源电动势大小均为 1.5 V 的相同电池串联成电池组供电，如图 10-58 所示。当开关接通后，测得小灯泡两端电压为 2.5 V，流过的电流为 0.3 A，则：\n\n  \n图10-58\n\n(1) 每节电池的内阻是多少?\n\n(2) 开关断开后，电池组两端的电压为多少？\n\n4. 如图 10-59 所示，已知定值电阻 $R_{1} = 9 \\Omega$ ， $R_{2} = 5 \\Omega$ 。当单刀双掷开关 S 置于位置 1 时，电压表的示数为 $5.4 \\mathrm{~V}$ ；当 S 置于位置 2 时，电压表的示数为 $5 \\mathrm{~V}$ 。求电源电动势及内阻。\n\n\n\n5. 某锂电池的电动势是 3.2 V，内阻是 16 mΩ。将该锂电池串联使用，给一个 “24 V 12.5 A” 的直流电机供电。问：\n\n图10-59\n\n(1) 需要几个电池串联才可以保证该直流电机正常使用?\n\n(2) 如果不小心将该电池正、负极短路，电路中的电流多大？说明为何要尽量避免电池正、负极短路。\n\n  \n图10-60 电熨斗",
+      "title": "电源电动势和内阻的测量"
+    }
+  ]
+}

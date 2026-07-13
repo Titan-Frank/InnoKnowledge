@@ -1,0 +1,1308 @@
+{
+  "body": {
+    "content": "## 定义\n麦克斯韦电磁场理论是19世纪麦克斯韦建立的完整电磁场理论，其核心观点指出变化的电场能够产生磁场，而变化的磁场也能产生电场。该理论成功预言了电磁波的存在，并通过推导得出电磁波在真空中的传播速度等于光速。\n\n## 核心解释\n麦克斯韦在原有电磁现象的基础上进行了理论推广，明确指出：如果在空间某处有交替变化的电场，就会在周围空间引起交替变化的磁场；而这个交替变化的磁场又会进一步在较远的空间引起新的交替变化的电场和磁场。这种电场与磁场相互激发、交替产生的过程能够由近及远地向空间传播，从而形成电磁波。[evidence:auto-a008c141db39]\n\n## 示例或应用\n基于电磁波可在空间中传播并被导体接收的特性，实际检测中常采用高灵敏度环形线圈连接微电流传感器，再接入计算机进行信号处理。当设备靠近电磁波信号源（如电动机、电动剃须刀等）时，线圈会感应到电磁波并产生微弱电流，传感器将其转换为数字信号后，即可在计算机显示器上直观显示出对应的电磁波波形。[evidence:auto-324f2f83554d]\n\n## 关键要点\n- 电磁场的本质是动态的：交替变化的电场与磁场相互依存、相互激发。\n- 电磁波的形成无需介质，电场与磁场的交替变化即可在真空中由近及远传播。\n- 理论推导结果与光学现象高度吻合，证实了电磁波在真空中的传播速度等于光速，实现了电、磁、光现象的理论统一。\n- 该理论适用于经典物理的宏观领域，是现代电磁学与技术应用的基石。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "rule/theory:auto-26d34539fd49",
+    "properties": {
+      "card_title": "麦克斯韦电磁场理论",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-a008c141db39",
+      "evidence:auto-324f2f83554d"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:44:38+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-9284b6a0cc42",
+    "mention_refs": [],
+    "node_id": "rule/theory:auto-26d34539fd49",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "19世纪麦克斯韦建立的完整电磁场理论，核心指出变化的电场产生磁场、变化的磁场产生电场，预言了电磁波的存在，并推导出电磁波在真空中的传播速度等于光速。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-a008c141db39"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "19世纪麦克斯韦建立的完整电磁场理论，核心指出变化的电场产生磁场、变化的磁场产生电场，预言了电磁波的存在，并推导出电磁波在真空中的传播速度等于光速。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-a008c141db39"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "19世纪麦克斯韦建立的完整电磁场理论，核心指出变化的电场产生磁场、变化的磁场产生电场，预言了电磁波的存在，并推导出电磁波在真空中的传播速度等于光速。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-a008c141db39"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "麦克斯韦电磁场理论"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-a008c141db39"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "电磁场与电磁波"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-a008c141db39"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-a008c141db39"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-a008c141db39"
+    ],
+    "status": "active",
+    "summary": "19世纪麦克斯韦建立的完整电磁场理论，核心指出变化的电场产生磁场、变化的磁场产生电场，预言了电磁波的存在，并推导出电磁波在真空中的传播速度等于光速。",
+    "title": "麦克斯韦电磁场理论",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 9,
+    "score": 100,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-45d8def3f89b",
+      "node_id": "rule/theory:auto-26d34539fd49",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "给定一个随时间交替变化的电场分布情境，绘制或描述其激发的磁场分布及后续电磁波的传播路径。",
+              "阅读教材实验装置说明，分析线圈两端传感器显示信号的条件，并撰写一段解释电磁波产生与检测机制的文字。",
+              "对比静止电荷、恒定电流与交变电磁场三种情境，指出何种条件满足理论边界并能产生电磁辐射。"
+            ],
+            "common_errors": [
+              "误认为恒定电场或恒定磁场也能持续向外激发电磁波，忽略“交替变化”的核心条件。",
+              "脱离“经典物理宏观领域”的适用边界，错误将该理论结论直接套用于微观量子尺度。",
+              "未能建立电场与磁场相互激发的链式逻辑，误以为单一变化的场即可独立存在而不诱发对应场。"
+            ],
+            "diagnostic_questions": [
+              "若空间中某处的电场保持恒定不变，该处是否会持续向外激发磁场并辐射电磁波？请结合理论条件说明理由。",
+              "根据麦克斯韦电磁场理论，交替变化的电磁场在空间扩展时，其激发机制与机械波的传播有何本质区别？",
+              "高灵敏度环形线圈接入计算机后显示电磁波信号，这验证了理论中关于场变化与波辐射的哪项关键预测？"
+            ],
+            "difficulty_level": "intermediate",
+            "extension_suggestions": [
+              "引导学生在安全范围内查阅电磁波谱资料，将理论预言的光速结论与实际应用（如通信、雷达）建立联系。",
+              "布置微型探究任务：利用开源硬件模拟交变磁场对闭合线圈的感应作用，直观呈现场相互激发的宏观效应。",
+              "组织小组绘制概念图，将“麦克斯韦电磁场理论”与前后知识节点（电磁感应、电磁波）进行结构化关联。"
+            ],
+            "generation": {
+              "confidence": 0.98,
+              "generated_at": "2026-07-12T10:12:46+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "a7d42ede1c1a7f453bdd68d2199c8de5e4ea2976899656ba69138d175cca14f5",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-a008c141db39",
+                "evidence:auto-324f2f83554d"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能够用文字或示意图准确描述交替变化的电场与磁场相互激发、由近及远传播的过程。",
+              "能够说明麦克斯韦理论预言电磁波存在及其在真空中传播速度等于光速的核心结论。",
+              "能够结合线圈检测实验情境，指出持续产生可探测电磁波信号所必需的场变化条件。"
+            ],
+            "remediation_suggestions": [
+              "利用教材原文与分步图示，引导学生口述“变化电场→变化磁场→新变化电场”的链式激发顺序。",
+              "结合线圈检测实验，组织对比讨论恒定电流与交变电流在传感器显示上的差异，强化条件认知。",
+              "明确标注“经典宏观”与“非相对论量子”边界，在知识迁移环节设置尺度限制提示，防止越界套用。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-324f2f83554d",
+        "evidence:auto-a008c141db39"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:12:46+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/af691951124f55127ef1bfa433d988832ab211cdd5848da8f269d66f9af56f61.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-06a8828d9414",
+      "locator": "line:33",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/af691951124f55127ef1bfa433d988832ab211cdd5848da8f269d66f9af56f61.jpg)"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 498,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/af691951124f55127ef1bfa433d988832ab211cdd5848da8f269d66f9af56f61.jpg",
+          "reason": "图片内容与上下文高度对应。前文提及“卫星通信（图 11-37）可以在两个或多个地面站之间进行”，后文紧接着标注“图11-37 卫星通信”。图片直观地展示了卫星作为中继站连接两个地面站的通信结构，是“卫星通信”这一知识点最核心的图解，直接表达了该章节的概念和流程。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了卫星通信系统的示意图。图中包含一颗位于上方的卫星（标注“卫星”），左下方的地面站A（标注“地面站A”），以及右下方的地面站B（标注“地面站B”）。箭头清晰地表示了信号从地面站A发射至卫星，再由卫星转发至地面站B的通信过程。",
+          "width": 440
+        },
+        "path": "images/af691951124f55127ef1bfa433d988832ab211cdd5848da8f269d66f9af56f61.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/d568d4a07a572091f7718a771fa11d85325b004e8d52176656969bbd28628fd6.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-0b06a859d720",
+      "locator": "line:140",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/d568d4a07a572091f7718a771fa11d85325b004e8d52176656969bbd28628fd6.jpg)"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 368,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/d568d4a07a572091f7718a771fa11d85325b004e8d52176656969bbd28628fd6.jpg",
+          "reason": "图片是习题第3题的配图（图11-42），展示了“研究电磁感应现象”的实验装置。上下文中的问题（如线圈A插入B、滑动变阻器滑头移动、开关闭合断开）均依赖于该图所示的电路连接和器材位置。虽然图片直接表达了实验结构，但在“复习巩固”栏目下，它主要作为辅助解题的“例题配图”或“器材/场景”说明，帮助学生理解题目情境，而非正文中首次引入的核心概念讲解，因此归类为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个物理实验电路装置。左侧包含电池组（电源）、单刀开关和滑动变阻器，它们串联连接到线圈A。线圈A（较细）插入在线圈B（较粗）的内部。线圈B的两端连接到右侧的灵敏电流计（标有G）。",
+          "width": 515
+        },
+        "path": "images/d568d4a07a572091f7718a771fa11d85325b004e8d52176656969bbd28628fd6.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "2. 闭合导线环处在匀强磁场中，导线环的环面与磁场垂直，导线环面积为 $0.5 \\mathrm{~m}^{2}$ ，通过环的磁通量为 $0.2 \\mathrm{~Wb}$ ，则该磁场的磁感应强度为多少？当环面转至与磁场方向平行时，通过环的磁通量为多少？在闭合导线环旋转的过程中该处匀强磁场的磁感应强度是否改变？",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-0fdc2f56bdaa",
+      "locator": "line:134",
+      "modality": "equation",
+      "normalized_claims": [
+        "2. 闭合导线环处在匀强磁场中，导线环的环面与磁场垂直，导线环面积为 $0.5 \\mathrm{~m}^{2}$ ，通过环的磁通量为 $0.2 \\mathrm{~Wb}$ ，则该磁场的磁感应强度为多少？当环面转至与磁场方向平行时，通过环的磁"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 11-36 所示，高灵敏度环形线圈两端与微电流传感器相连，再接入计算机，可以检测多种电磁波信号源（如电动机、电动剃须刀等）。如果采集到电磁波，则在显示器上显示出得到的电磁波信号。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-324f2f83554d",
+      "locator": "line:17",
+      "modality": "text",
+      "normalized_claims": [
+        "如图 11-36 所示，高灵敏度环形线圈两端与微电流传感器相连，再接入计算机，可以检测多种电磁波信号源（如电动机、电动剃须刀等）。如果采集到电磁波，则在显示器上显示出得到的电磁波信号。"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/3ef0cfb5f3251bd96cd3a21353971d541839dec7920580f5010b88fe43201ac1.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-3d2ce7fd0a16",
+      "locator": "line:57",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/3ef0cfb5f3251bd96cd3a21353971d541839dec7920580f5010b88fe43201ac1.jpg)"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 317,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/3ef0cfb5f3251bd96cd3a21353971d541839dec7920580f5010b88fe43201ac1.jpg",
+          "reason": "图片内容与上下文紧密对应。前文提到了“如图11-39所示是由我国原陆军总医院研制成功的‘稀土材料小型16层移动X-CT’”，后文明确标注了“图11-39 稀土材料小型16层移动X-CT”。图片展示了该特定医疗设备在实际使用中的场景（病人接受检查），根据规则，照片和场景属于辅助说明，因此归类为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张实拍照片，显示一名穿着蓝白格子病号服的病人躺在病床上，头部正进入一台大型医疗扫描设备（看起来像CT扫描仪）的环形开口中，设备带有蓝色防护帘。",
+          "width": 534
+        },
+        "path": "images/3ef0cfb5f3251bd96cd3a21353971d541839dec7920580f5010b88fe43201ac1.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "(1) 在图示状态下, 线圈 $A$ 插入线圈 $B$ 后, 将滑动变阻器滑动头向左快速滑动, 线圈 $B$ 的磁通量如何变化? 这时灵敏电流计的指针会不会偏转?",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-3ef5b3e1d829",
+      "locator": "line:138",
+      "modality": "equation",
+      "normalized_claims": [
+        "(1) 在图示状态下, 线圈 $A$ 插入线圈 $B$ 后, 将滑动变阻器滑动头向左快速滑动, 线圈 $B$ 的磁通量如何变化? 这时灵敏电流计的指针会不会偏转?"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "(2) 线圈 $A$ 插入线圈 $B$ 后, 闭合开关的瞬间和断开开关瞬间线圈 $B$ 的磁通量如何变化? 这时灵敏电流计的指针是否偏转?",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-58e518c1c80a",
+      "locator": "line:142",
+      "modality": "equation",
+      "normalized_claims": [
+        "(2) 线圈 $A$ 插入线圈 $B$ 后, 闭合开关的瞬间和断开开关瞬间线圈 $B$ 的磁通量如何变化? 这时灵敏电流计的指针是否偏转?"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/cc37f3921412562c4f4ba50fd98cd8c44b44e2f2146a969973be23f4d15b7336.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-619bb186cc2d",
+      "locator": "line:115",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/cc37f3921412562c4f4ba50fd98cd8c44b44e2f2146a969973be23f4d15b7336.jpg)"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "keep": true,
+          "manual_action": "core_content",
+          "reason": "人工复核确认为核心知识图。",
+          "relevance": "core_content",
+          "review_status": "confirmed",
+          "reviewed_at": "2026-06-29T06:03:35+00:00",
+          "reviewed_by": "manual",
+          "source": "manual"
+        },
+        "path": "images/cc37f3921412562c4f4ba50fd98cd8c44b44e2f2146a969973be23f4d15b7336.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T06:03:35+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "雷达是利用电磁波测定物体位置的设备。电磁波如果遇到尺寸明显大于波长的障碍物就要发生反射，雷达向一定的方向发射周期性的不连续的电磁波（叫做电磁脉冲）。发射出去的电磁波遇到障碍物反射，反射波可以在脉冲周期时间间隔内被天线接收。测出从发射到接收电磁脉冲之间的时间，就可以得到障碍物的距离，再根据发射电磁波的方向，便能确定障碍物的位置。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-7c91231c8360",
+      "locator": "line:31-34",
+      "modality": "text",
+      "normalized_claims": [
+        "雷达是利用电磁波测定物体位置的设备。电磁波如果遇到尺寸明显大于波长的障碍物就要发生反射，雷达向一定的方向发射周期性的不连续的电磁波（叫做电磁脉冲）。发射出去的电磁波遇到障碍物反射，反射波可以在脉冲周期时间间隔内被天线接收。测出从发射到接收电"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/2c1bad97c71af4cdb7f212bd99f7775c7d104f187f3f530feb8a915c02e47a36.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-857360243eef",
+      "locator": "line:13",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/2c1bad97c71af4cdb7f212bd99f7775c7d104f187f3f530feb8a915c02e47a36.jpg)"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 409,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/2c1bad97c71af4cdb7f212bd99f7775c7d104f187f3f530feb8a915c02e47a36.jpg",
+          "reason": "图片是麦克斯韦的肖像，前文提到了“英国物理学家麦克斯韦（图 11-35）”，后文紧接着标注“图11-35 麦克斯韦”，图片内容与上下文完全对应，作为辅助说明科学家身份的材料保留。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张黑白历史照片，展示了一位留着浓密大胡子的中年男子肖像，根据上下文判断为物理学家麦克斯韦。",
+          "width": 323
+        },
+        "path": "images/2c1bad97c71af4cdb7f212bd99f7775c7d104f187f3f530feb8a915c02e47a36.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/00f263ff7f5e5b4a73b1647f588246f226b14cdb7d309920abf1c6ac18ae7053.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-86839c48ebd2",
+      "locator": "line:80",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/00f263ff7f5e5b4a73b1647f588246f226b14cdb7d309920abf1c6ac18ae7053.jpg)"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 448,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/00f263ff7f5e5b4a73b1647f588246f226b14cdb7d309920abf1c6ac18ae7053.jpg",
+          "reason": "图片对应前文“小结”部分的问题1，该问题描述了“嫦娥四号”和“鹊桥”中继星的任务，并明确引用了“（图 11-40）”。后文紧接着标注“图11-40”。图片作为该计算题的配图，直观展示了L2点的位置关系（月球背后）及信号中继流程，属于规则中的“例题配图”及“辅助说明”材料。虽然展示了物理模型，但在本题语境下主要起辅助理解情境的作用。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了地月系统中的中继通信模型。左侧为地球（标有“地面站”及天线），中间为月球，右侧为位于地月连线延伸方向上的“中继星”及“L2”点。图中有箭头表示信号在中继星、月球和地面站之间的传输路径，并标注了“月球轨道”。",
+          "width": 651
+        },
+        "path": "images/00f263ff7f5e5b4a73b1647f588246f226b14cdb7d309920abf1c6ac18ae7053.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/e9a0f9b8ec42e081197399fbfc1271782bb993e95e3c58c76999e18c59756b1c.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-894dfae8c221",
+      "locator": "line:121",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/e9a0f9b8ec42e081197399fbfc1271782bb993e95e3c58c76999e18c59756b1c.jpg)"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 95,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/e9a0f9b8ec42e081197399fbfc1271782bb993e95e3c58c76999e18c59756b1c.jpg",
+          "reason": "图片是教材“小结/复习”部分习题 1 的配图（对应图 11-41 的 a 部分）。前文提到“导线中分别通以如图 11-41 所示方向的电流”，图片直接展示了通电直导线与小磁针的相对位置及电流方向这一物理模型，是解答该题目（判断小磁针 N 极指向）的核心依据，符合保留为 core_content 的标准。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一根水平放置的直导线，导线中通有向右的电流（标记为 I）。导线正下方放置了一个小磁针，磁针左端为 S 极（蓝色），右端为 N 极（红色）。",
+          "width": 204
+        },
+        "path": "images/e9a0f9b8ec42e081197399fbfc1271782bb993e95e3c58c76999e18c59756b1c.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/fcc6ad9cd6962411d249a5ba26b160832d7235e1acffe206be1ff6c2b495a674.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-897c0c489b3a",
+      "locator": "line:127",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/fcc6ad9cd6962411d249a5ba26b160832d7235e1acffe206be1ff6c2b495a674.jpg)"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 184,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/fcc6ad9cd6962411d249a5ba26b160832d7235e1acffe206be1ff6c2b495a674.jpg",
+          "reason": "该图片直接展示了电流的磁效应及安培定则的应用（通电导线周围存在磁场，磁场方向由电流方向决定）。结合上下文，这是教材“小结/复习”部分图11-41的组成部分（推测对应(c)或与其他子图并列），用于巩固电磁学核心概念，属于重要的学科知识图示。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张物理示意图，展示了一个闭合导线环（或线圈局部），上方标有逆时针方向的电流I。导线环内部放置了一个小磁针，磁针左端为S极（蓝色），右端为N极（红色），指示了该处的磁场方向。",
+          "width": 151
+        },
+        "path": "images/fcc6ad9cd6962411d249a5ba26b160832d7235e1acffe206be1ff6c2b495a674.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "1. 2018 年，中国成功发射了嫦娥四号月球探测器的中继卫星 “鹊桥”。随后的几天里，“鹊桥” 号中继星飞行到月球背面上空的地月引力平衡点 L2 点（图 11-40）附近运行，为嫦娥四号月球探测器的发射以及在月球背面着陆提供了通畅的地月中继通信支持。L2 点位于月球的背后，到地球的距离超过 $4 \\times 10^{5} \\mathrm{~km}$ ，比月球到地球的距离还要再远 $6.5 \\times 10^{4} \\mathrm{~km}$ 。如果从月球背面发射的无线电信号通过 “鹊桥” 号中继星转发，试问信号到地球所需的时间约为多少？（不计 “鹊桥” 号中继星转发信号的时间）",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-899bd8155081",
+      "locator": "line:78",
+      "modality": "equation",
+      "normalized_claims": [
+        "1. 2018 年，中国成功发射了嫦娥四号月球探测器的中继卫星 “鹊桥”。随后的几天里，“鹊桥” 号中继星飞行到月球背面上空的地月引力平衡点 L2 点（图 11-40）附近运行，为嫦娥四号月球探测器的发射以及在月球背面着陆提供了通畅的地月中"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "(3) 根据上述实验过程, 说明线圈 $B$ 中产生感应电流的条件。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-8b824453728c",
+      "locator": "line:144",
+      "modality": "equation",
+      "normalized_claims": [
+        "(3) 根据上述实验过程, 说明线圈 $B$ 中产生感应电流的条件。"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/6669a600f64dd878a85422eb12a4e79ee85ff8f9feb6116b0d736c7ab8629e0f.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-99b73433b960",
+      "locator": "line:54",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/6669a600f64dd878a85422eb12a4e79ee85ff8f9feb6116b0d736c7ab8629e0f.jpg)"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 5,
+          "height": 234,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/6669a600f64dd878a85422eb12a4e79ee85ff8f9feb6116b0d736c7ab8629e0f.jpg",
+          "reason": "图片内容与前文描述的“射频识别”技术及“公交卡的内部结构”直接对应。前文明确提到“图 11-38 所示是公交卡的内部结构”，后文紧接着给出了相同的图注。图片直观展示了芯片和感应线圈的结构，是解释电磁感应原理在RFID中应用的核心证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一张公交卡（或RFID卡）的内部结构透视图。可以看到中间有一个正方形的金色“芯片”，周围环绕着铜色的“感应线圈”，线圈连接着芯片。",
+          "width": 509
+        },
+        "path": "images/6669a600f64dd878a85422eb12a4e79ee85ff8f9feb6116b0d736c7ab8629e0f.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "麦克斯韦指出：如果在空间某处有交替变化的电场，就会在空间引起交替变化的磁场；这个交替变化的电场和磁场又会在较远的空间引起新的交替变化的电场和磁场……",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a008c141db39",
+      "locator": "line:10",
+      "modality": "text",
+      "normalized_claims": [
+        "麦克斯韦指出：如果在空间某处有交替变化的电场，就会在空间引起交替变化的磁场；这个交替变化的电场和磁场又会在较远的空间引起新的交替变化的电场和磁场……"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "交替变化的电场和磁场相互联系，形成一个不可分离的统一的场，这就是电磁场（electromagnetic field）。电磁场能独立于场源存在，反映了电磁场作为物质存在的一种形式。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-b4dd1eed0b45",
+      "locator": "line:11",
+      "modality": "text",
+      "normalized_claims": [
+        "交替变化的电场和磁场相互联系，形成一个不可分离的统一的场，这就是电磁场（electromagnetic field）。电磁场能独立于场源存在，反映了电磁场作为物质存在的一种形式。"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "麦克斯韦从理论上得出电磁波在真空中的传播速度等于光在真空中的传播速度，认为光是一种电磁波，并在此基础上提出了光的电磁说。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-b9e6f1cae1e5",
+      "locator": "line:38",
+      "modality": "text",
+      "normalized_claims": [
+        "麦克斯韦从理论上得出电磁波在真空中的传播速度等于光在真空中的传播速度，认为光是一种电磁波，并在此基础上提出了光的电磁说。"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "电磁场并不局限于空间某个区域，而要由近及远向周围空间传播开去。电磁场这样由近及远地传播，就形成电磁波（electromagnetic wave）。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-bb2ccb8ba74a",
+      "locator": "line:12",
+      "modality": "text",
+      "normalized_claims": [
+        "电磁场并不局限于空间某个区域，而要由近及远向周围空间传播开去。电磁场这样由近及远地传播，就形成电磁波（electromagnetic wave）。"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/38dc02e1ddee99ec7921518498ddf268a74f833c1527778fafced558ad826359.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e02b39e3fe57",
+      "locator": "line:131",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/38dc02e1ddee99ec7921518498ddf268a74f833c1527778fafced558ad826359.jpg)"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 168,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/38dc02e1ddee99ec7921518498ddf268a74f833c1527778fafced558ad826359.jpg",
+          "reason": "图片位于“小结 / 复习②巩固”部分，结合前文（b）、（c）和后文（d）的标号，以及“图11-41”的引用，可以判断这是一道物理习题（可能是选择题或填空题）的配图部分。图片展示了通电螺线管和小磁针，用于考察学生对电流磁效应或安培定则的理解。作为习题的配图，它属于 supporting 类别。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个通电螺线管（线圈），导线两端标有电流方向（左端向下，右端向上）。螺线管内部放置了一个小磁针，标有S极（蓝色）和N极（红色），N极指向右侧。这是典型的演示安培定则（右手螺旋定则）或通电螺线管磁场分布的物理示意图。",
+          "width": 268
+        },
+        "path": "images/38dc02e1ddee99ec7921518498ddf268a74f833c1527778fafced558ad826359.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "爱因斯坦指出空间传播的光能量是不连续的，而是一份一份的，每一份叫做一个光子，这是人们对微观粒子本质认识的一个飞跃。科学家发现光既具有波动特性，又具有粒子特性。光既能像波一样传播，有时又表现出粒子的特征，因此我们称光具有“波粒二象性”。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-eaf282273f75",
+      "locator": "line:40-42",
+      "modality": "text",
+      "normalized_claims": [
+        "爱因斯坦指出空间传播的光能量是不连续的，而是一份一份的，每一份叫做一个光子，这是人们对微观粒子本质认识的一个飞跃。科学家发现光既具有波动特性，又具有粒子特性。光既能像波一样传播，有时又表现出粒子的特征，因此我们称光具有“波粒二象性”。"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/c1fd9a58dc687a1d1e70602170d7f64a30bf7ad92a0bdfcad9a817a2a7061992.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ed2c456899d1",
+      "locator": "line:124",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/c1fd9a58dc687a1d1e70602170d7f64a30bf7ad92a0bdfcad9a817a2a7061992.jpg)"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 204,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/c1fd9a58dc687a1d1e70602170d7f64a30bf7ad92a0bdfcad9a817a2a7061992.jpg",
+          "reason": "图片是教材“小结/复习”部分练习题（图11-41）的配图。前文提出了关于通电导线周围小磁针指向的问题（“导线中分别通以如图 11-41 所示方向的电流，当小磁针静止时，N 极分别指向什么方向？”），图片提供了具体的物理情景（电流方向、小磁针位置），用于辅助学生应用安培定则进行解答。根据规则，例题配图属于 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一根竖直放置的通电直导线，电流方向向上（标有I）。导线穿过一个水平面，面上画有虚线圆表示磁感线。一个小磁针放置在虚线圆上，S极在左（蓝色），N极在右（红色），指向切线方向。",
+          "width": 179
+        },
+        "path": "images/c1fd9a58dc687a1d1e70602170d7f64a30bf7ad92a0bdfcad9a817a2a7061992.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/fd859b8cd74365ded613422d3da70278641066b81468e02fdef75a7a77fb1045.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f1c1020bca41",
+      "locator": "line:18",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/fd859b8cd74365ded613422d3da70278641066b81468e02fdef75a7a77fb1045.jpg)"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 315,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/fd859b8cd74365ded613422d3da70278641066b81468e02fdef75a7a77fb1045.jpg",
+          "reason": "图片内容与教材上下文高度对应。前文提到“如图 11-36 所示，高灵敏度环形线圈两端与微电流传感器相连，再接入计算机，可以检测多种电磁波信号源”，后文紧接着标注“图11-36 用微电流传感器检测电磁波”。该图片展示了具体的实验器材（环形线圈、传感器、电脑）和检测场景（手持电器靠近线圈），是对前文关于电磁波检测方法描述的辅助说明和实例展示，属于‘照片、器材、场景’类图片。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个物理实验场景。左侧有一只手拿着黑色的吹风机（或类似电器）靠近一个黑色的环形线圈；中间是一台笔记本电脑，屏幕上显示着红绿相间的波形数据；右侧连接着蓝色的传感器接口和导线。整体展示了用传感器检测电器产生电磁波的过程。",
+          "width": 532
+        },
+        "path": "images/fd859b8cd74365ded613422d3da70278641066b81468e02fdef75a7a77fb1045.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "excerpt": "4. 如图 11-43 所示是三根平行通电直导线的截面图，它们的电流 $I$ 大小相同，方向垂直纸面向外。如果 $AB = BC = CA$ ， $D$ 点、 $E$ 点和 $F$ 点分别是 $AB$ 、 $BC$ 和 $CA$ 的中点，则 $D$ 点、 $E$ 点和 $F$ 点的磁感应强度的方向如何？磁感应强度的大小是否相等？",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-fc5713ac7bed",
+      "locator": "line:146",
+      "modality": "equation",
+      "normalized_claims": [
+        "4. 如图 11-43 所示是三根平行通电直导线的截面图，它们的电流 $I$ 大小相同，方向垂直纸面向外。如果 $AB = BC = CA$ ， $D$ 点、 $E$ 点和 $F$ 点分别是 $AB$ 、 $BC$ 和 $CA$ 的中点，则"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-2829f61f5531",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "defines",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-a008c141db39"
+      ],
+      "source_type": "textbook",
+      "target_id": "rule/theory:auto-26d34539fd49",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:44:38+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-d05ba980f646",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-b9e6f1cae1e5"
+      ],
+      "source_type": "textbook",
+      "target_id": "rule/theory:auto-26d34539fd49",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "麦克斯韦方程组思想",
+      "经典电磁场理论"
+    ],
+    "created_at": "2026-06-29T05:44:38+00:00",
+    "dataset_id": "main",
+    "definition": "19世纪麦克斯韦建立的完整电磁场理论，核心指出变化的电场产生磁场、变化的磁场产生电场，预言了电磁波的存在，并推导出电磁波在真空中的传播速度等于光速。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "rule/theory:auto-26d34539fd49",
+    "kind": "rule",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "麦克斯韦电磁场理论",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "subkinds": [
+          "theory"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "经典物理宏观领域",
+          "非相对论量子尺度"
+        ],
+        "conditions": [
+          "存在交替变化的电场或磁场"
+        ],
+        "formal_expressions": [
+          "麦克斯韦方程组（微分/积分形式，教材以文字表述）"
+        ]
+      },
+      "template_display": {
+        "color": "#8C55FF",
+        "label": "规律/公式",
+        "template_id": "textbook/physics",
+        "type_key": "rule"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "theory",
+    "tags": [
+      "电磁感应推广",
+      "理论预言",
+      "物理学统一性"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [],
+    "outgoing": [
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:44:38+00:00",
+        "dataset_id": "main",
+        "directionality": "undirected",
+        "from_id": "rule/theory:auto-26d34539fd49",
+        "id": "edge:auto-0ac164e95f9c",
+        "notes": "麦克斯韦电磁场理论从理论上阐述和表征了电磁场的形成机制（变化的电场与磁场相互激发）",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-a008c141db39"
+        ],
+        "status": "active",
+        "to_id": "concept/field:auto-62d23fef0d17",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.9,
+        "created_at": "2026-06-29T05:44:38+00:00",
+        "dataset_id": "main",
+        "directionality": "undirected",
+        "from_id": "rule/theory:auto-26d34539fd49",
+        "id": "edge:auto-7863bc9d7285",
+        "notes": "麦克斯韦理论预言并表征了电磁波的存在及其与光速相等的性质",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-b9e6f1cae1e5"
+        ],
+        "status": "active",
+        "to_id": "concept/wave:auto-9c9e56da3d9e",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ]
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第四节 电磁场与电磁波\n\n现代社会离不开电子通信技术，它的稳定持续发展离不开电磁场与电磁波的应用。北斗卫星导航系统（图11-34）是我国自行研制的全球卫星导航系统，可在全球范围内全天候、全天时提供导航、定位和授时服务，并具有短报文（传送120个汉字的短信息）通信能力。北斗卫星导航系统是利用电磁波传递信息的。\n\n\n\n## 什么是电磁场？什么是电磁波？\n\n19 世纪 60 年代，英国物理学家麦克斯韦（图 11-35）在总结前人对电和磁研究的基础上，将电磁场理论用简洁、对称、完美的数学形式表示出来。经后人整理和改写，确立了经典电磁学主要基础的麦克斯韦方程组，建立了完整的电磁场理论。这个理论不仅说明了当时已知的电磁现象，而且预言了电磁波的存在。\n\n麦克斯韦指出：如果在空间某处有交替变化的电场，就会在空间引起交替变化的磁场；这个交替变化的电场和磁场又会在较远的空间引起新的交替变化的电场和磁场……交替变化的电场和磁场相互联系，形成一个不可分离的统一的场，这就是电磁场（electromagnetic field）。电磁场能独立于场源存在，反映了电磁场作为物质存在的一种形式。电磁场并不局限于空间某个区域，而要由近及远向周围空间传播开去。电磁场这样由近及远地传播，就形成电磁波（electromagnetic wave）。\n\n[source image omitted from static artifact]  \n图11-35 麦克斯韦\n\n电磁波与我们的生活联系紧密，用仪器可以检测到电磁波信号。如图 11-36 所示，高灵敏度环形线圈两端与微电流传感器相连，再接入计算机，可以检测多种电磁波信号源（如电动机、电动剃须刀等）。如果采集到电磁波，则在显示器上显示出得到的电磁波信号。\n\n[source image omitted from static artifact]  \n图11-36 用微电流传感器检测电磁波\n\n\n\n## 电磁波主要有哪些应用？\n\n电磁波的频率范围极为宽广，各个频段都有专门的名称，如无线电波、红外线、可见光、紫外线、X射线、γ射线等。电磁波在日常生活中有广泛的应用，我们的生活离不开电磁波。\n\n## 1. 卫星通信\n\n利用人造地球卫星在地面站之间进行通信的系统，称为卫星通信系统，人造卫星相当于离地面很高的中继站。卫星通信（图 11-37）可以在两个或多个地面站之间进行。卫星通信的特点是：通信范围大，只要在卫星发射的电磁波所覆盖的范围内，任何两点之间都可进行通信。\n\n如果一位在中国的用户要与南极洲的科考人员打电话，这个过程就是先通过手机把声音转换为数字信号发射到基站，通过基站把用户电话线路与地面站连通，地面站把电话信号发射到卫星，卫星接到这个信号后经过信号放大再转发到南极洲的地面站，地面站把电话信号\n\n[source image omitted from static artifact]  \n图11-37 卫星通信\n\n取出来，送到科考人员的手机上，手机把数字信号转换成声音。无线电广播、电视节目转播的原理与电话传输相似。\n\n## 2. 微波加热\n\n微波炉是利用电磁波中的微波加热食物的，使用微波炉加热食物快速高效，且能保证食物的营养，尤其是蛋白质和维生素不被破坏。\n\n## 3. 遥控和自动控制\n\n电磁波中特定波段的红外线常用于遥控和自动控制。例如，家用电器的遥控器大多是利用发射红外线进行遥控的。公共场所的感应式水龙头则是靠人手遮挡反射红外线实现自动控制。\n\n## 4. 无线射频识别技术\n\n射频识别是一种非接触式的自动识别技术，可以通过无线电信号自动识别特定目标，并读写相关数据，而无需识别系统与特定目标之间建立机械或光学的接触。图 11-38 所示是公交卡的内部结构，当公交卡接近刷卡机时，卡内的线圈就会产生感应电流，实现卡内芯片与外部数据库的数据传输。\n\n## 5. 医疗设备\n\n电磁波中的紫外线可以用于医用消毒，形成无菌空间；X射线透射照相和X-CT扫描用于疾病检查。X射线和γ射线常用于治疗疾病。许多种理疗设备也是靠电磁波对人体的作用治疗疾病。如图11-39所示是由我国原陆军总医院研制成功的“稀土材料小型16层移动X-CT”，各项质量指标显著优于国际同类CT扫描仪。\n\n[source image omitted from static artifact]  \n图11-38 公交卡的内部结构\n\n[source image omitted from static artifact]  \n图11-39 稀土材料小型16层移动X-CT\n\n## 6. 雷达\n\n雷达是利用电磁波测定物体位置的设备。电磁波如果遇到尺寸明显大于波长的障碍物就要发生反射，雷达向一定的方向发射周期性的不连续的电磁波（叫做电磁脉冲）。发射出去的电磁波遇到障碍物反射，反射波可以在脉冲周期时间间隔内被天线接收。测出从发射到接收电磁脉冲之间的时间，就可以得到障碍物的距离，再根据发射电磁波的方向，便能确定障碍物的位置。\n\n我国自主设计建设的 500 m 口径球面射电望远镜（FAST）与雷达接收天线类似，遥远天体投射来的微弱电磁波信号被精确镜面反射后会聚到公共焦点，接收机将这些信号加工、转化成可供记录、显示的形式。FAST 主导国际甚长基线干涉测量网，能获得天体超精细结构。FAST 具有空间飞行器的测控与通信能力，将深空通信能力延伸至太阳系外缘行星，将卫星数据接收能力提高 100 倍。FAST 建成启用以来，已经在脉冲星探测方面取得众多成果，未来在暗物质和暗能量的探测及地外文明搜寻等方面将会起到重要作用。\n\n一方面人们利用电磁波为人类服务，借助电磁波工作、生活，另一方面还有更多的电磁波是在无意中产生的。例如：家用电器中的电风扇、吹风机、榨汁机等，这些电器工作时都会产生电磁波。在利用电磁波提高人们的生活质量的同时，电磁波也可能对人们产生一定的危害，我们需要加以防范，趋利避害。\n\n麦克斯韦从理论上得出电磁波在真空中的传播速度等于光在真空中的传播速度，认为光是一种电磁波，并在此基础上提出了光的电磁说。\n\n光的本性是复杂的。19世纪末，科学家发现了光电效应现象，但无法用当时流行的光的波动理论解释。爱因斯坦提出了光子说，成功地解释了光电效应现象。爱因斯坦指出空间传播的光能量是不连续的，而是一份一份的，每一份叫做一个光子，这是人们对微观粒子本质认识的一个飞跃。\n\n科学家发现光既具有波动特性，又具有粒子特性。光既能像波一样传播，有时又表现出粒子的特征，因此我们称光具有“波粒二象性”。\n\n麦克斯韦的电磁场理论在物理学上具有重要意义；这一理论推进了第二次工业革命，为人类利用电能提供了科学依据，使人类进入了电气化时代。现在，在电磁场理论和近代物理发展的基础上，人类又迈向信息化时代。\n\n## 问题②思考\n\n1. 2018 年，中国成功发射了嫦娥四号月球探测器的中继卫星 “鹊桥”。随后的几天里，“鹊桥” 号中继星飞行到月球背面上空的地月引力平衡点 L2 点（图 11-40）附近运行，为嫦娥四号月球探测器的发射以及在月球背面着陆提供了通畅的地月中继通信支持。L2 点位于月球的背后，到地球的距离超过 $4 \\times 10^{5} \\mathrm{~km}$ ，比月球到地球的距离还要再远 $6.5 \\times 10^{4} \\mathrm{~km}$ 。如果从月球背面发射的无线电信号通过 “鹊桥” 号中继星转发，试问信号到地球所需的时间约为多少？（不计 “鹊桥” 号中继星转发信号的时间）\n\n[source image omitted from static artifact]  \n图11-40\n\n2. 为了证实磁场的存在，常将小磁针放到磁体附近，可以观察到小磁针受到磁场力的作用其 N 极所指的方向发生了偏转。试设计一种简单可行的办法，以证实电磁波的存在。\n\n3. 太阳光传到地球约需要 500 s，太阳与地球之间的距离约为多少？在地球和太阳之间的大部分区域都处于真空状态，太阳光能够传到地球说明了什么？\n\n4. 手机和收音机都依靠电磁波传递信号。尝试将手机或收音机放入不同材质的容器中，例如：铝膜袋、塑料袋或者金属饭盒中，观察手机或收音机是否还能正常工作。观察的结果与容器的材质和器壁厚度有没有关系？如何用实验验证？\n\n5. 举例简述电磁波载有能量，也能载有信息。\n\n## 小结\n\n## - 基本概念和基本规律\n\n磁场：磁体内外和电流周围存在的物质。\n\n磁感应强度：描述磁场大小和方向的物理量。磁感应强度的方向是放在该点可以在任意方向自由转动的小磁针 N 极的指向。磁感应强度的单位是特斯拉，简称特，符号为 T。\n\n磁通量：在给定的磁场中，磁通量为磁感应强度与垂直于磁场面积的乘积。磁通量的单位是韦伯，简称韦，符号是 Wb。\n\n电磁感应现象：通过闭合导体回路的磁通量发生变化从而产生感应电流的现象。\n\n电磁场：交替变化的电场和磁场相互联系，形成一个不可分离的统一的电磁场。电磁场是物质存在的一种形式。\n\n电磁波：在空间传播的交替变化的电磁场。光是一种电磁波，同时具有波动性和粒子性。\n\n## - 基本方法\n\n通过建立磁感线、电流元等物理模型，感受抽象、简化和建模的方法。\n\n通过产生感应电流的探究实验，认识实验数据获取、分析和处理的基本方法。\n\n## - 知识结构图\n\n[source image omitted from static artifact]\n\n## 复习②巩固\n\n1. 导线中分别通以如图 11-41 所示方向的电流，当小磁针静止时，N 极分别指向什么方向？\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)\n\n[source image omitted from static artifact]  \n(c)  \n图11-41\n\n[source image omitted from static artifact]  \n(d)\n\n2. 闭合导线环处在匀强磁场中，导线环的环面与磁场垂直，导线环面积为 $0.5 \\mathrm{~m}^{2}$ ，通过环的磁通量为 $0.2 \\mathrm{~Wb}$ ，则该磁场的磁感应强度为多少？当环面转至与磁场方向平行时，通过环的磁通量为多少？在闭合导线环旋转的过程中该处匀强磁场的磁感应强度是否改变？\n\n3. 如图 11-42 所示为 “研究电磁感应现象” 的实验装置。\n\n(1) 在图示状态下, 线圈 $A$ 插入线圈 $B$ 后, 将滑动变阻器滑动头向左快速滑动, 线圈 $B$ 的磁通量如何变化? 这时灵敏电流计的指针会不会偏转?\n\n[source image omitted from static artifact]\n\n(2) 线圈 $A$ 插入线圈 $B$ 后, 闭合开关的瞬间和断开开关瞬间线圈 $B$ 的磁通量如何变化? 这时灵敏电流计的指针是否偏转?\n\n(3) 根据上述实验过程, 说明线圈 $B$ 中产生感应电流的条件。\n\n4. 如图 11-43 所示是三根平行通电直导线的截面图，它们的电流 $I$ 大小相同，方向垂直纸面向外。如果 $AB = BC = CA$ ， $D$ 点、 $E$ 点和 $F$ 点分别是 $AB$ 、 $BC$ 和 $CA$ 的中点，则 $D$ 点、 $E$ 点和 $F$ 点的磁感应强度的方向如何？磁感应强度的大小是否相等？\n\n图11-42  \n  \n图11-43\n\n5. 如图 11-44 所示，在同一平面内有四条彼此绝缘的通电长直导线围成一个正方形， $O$ 点为正方形的中心，四根导线中的电流方向如图所示，电流 $I_{1} < I_{2} < I_{3} < I_{4}$ 。试判断 $I_{1}$ 和 $I_{2}$ 在 O 点产生的磁感应强度沿什么方向？ $I_{3}$ 和 $I_{4}$ 在 O 点的磁感应强度沿什么方向？如果切断电流 $I_{4}$ ，O 点的磁感应强度沿什么方向？如果切断电流 $I_{1}$ ，O 点的磁感应强度沿什么方向？简述判断的理由。\n\n  \n图11-44\n\n6. 如图 11-45 所示，在一方向竖直向上的匀强磁场中，沿水平方向放置一长直通电导线，导线中的电流方向垂直纸面向里。 $a$ 、 $b$ 、 $c$ 、 $d$ 是以通电导线为圆心的竖直平面内同一圆周上的四个点，则在这四个点中，哪两点的磁感应强度大小相同？哪个点的磁感应强度最大？哪个点的磁感应强度最小？\n\n  \n图11-45\n\n  \n图11-46\n\n7. 如图 11-46 所示, 圆环与通电长直导线 $P Q$ 导线位于同一平面内。已知圆环中心 $O$ 点的磁感应强度为 $B$ , 通电圆环在 $O$ 点产生的磁感强度为 $B _ { 1 }$ , 则:\n\n(1) 通电直导线在 O 点产生的磁感应强度 $B_{2}$ 为多大?\n\n(2) 改变长直导线的电流, 使通电直导线在 $O$ 点产生的磁感应强度增为 $2B_{2}$ ; 改变通电圆环的电流使通电圆环在 $O$ 点产生的磁感应强度相应减小为 $\\frac{B_{1}}{2}$ , 则 $O$ 点的磁感应强度变为多大?\n\n8. 如图 11-47 所示，小线圈放在通有恒定电流的大线圈上，小线圈恰好一半面积在大线圈内，小线圈和大线圈互相绝缘。规定垂直纸面向外的磁通量为正，判断通过小线圈的磁通量正负，简述判断的理由。\n\n  \n图11-47\n\n9. 如图 11-48 所示，直三菱柱放在空间直角坐标系内， $ab = 50 \\mathrm{~cm}$ ， $ad = 20 \\mathrm{~cm}$ ， $abcd$ 平面垂直 $Oxy$ 平面，与 $Ox$ 、 $Oy$ 的夹角分别为 $\\alpha = 37^{\\circ}$ ， $\\beta = 53^{\\circ}$ ( $\\sin 37^{\\circ} \\approx 0.6$ ， $\\cos 37^{\\circ} \\approx 0.8$ )，匀强磁场沿 $Ox$ 方向，磁感应强度为 $0.20 \\mathrm{T}$ 。通过 $Ocbe$ 面的磁通量为多大？通过 $adOe$ 面的磁通量为多大？\n\n  \n图11-48\n\n10. 在磁感应强度为 $B$ 的匀强磁场中，用一根长为 $l$ 的导线绕制一个线圈。若使通过该线圈的磁通量最大，线圈应为什么形状且如何放置？求出磁通量的这个最大值。\n\n11. 如图 11-49 所示，四根完全相同的长直导线互相平行，它们的截面处于一个正方形 $abcd$ 的四个顶点 $a$ 、 $b$ 、 $c$ 、 $d$ 处，导线 $a$ 、 $b$ 、 $c$ 、 $d$ 中通有大小都相同的电流，导线 $a$ 、 $b$ 、 $d$ 的电流方向垂直于纸面向里，导线 $c$ 的电流方向垂直于纸面向外， $a$ 、 $c$ 连线和 $b$ 、 $d$ 连线的交点为 $O$ 。测得通电导线 $a$ 在 $O$ 处产生磁场的磁感应强度大小为 $B$ ，则通电导线 $a$ 和 $c$\n\n  \n图11-49\n\n在 O 处产生磁场的磁感应强度大小如何？通电导线 b 和 d 在 O 处产生磁场的磁感应强度大小如何？\n\n\\*12. 自行车发电机的结构如图 11-50 所示，一块永久磁体置于绕有线圈的 U 形导磁硅钢片的内部。当自行车骑行时车轮的边缘通过摩擦轮带动磁体转动。解释该装置为何能对车灯供电。\n\n  \n图11-50\n\n  \n图11-51\n\n\\*13. 某科考队进入矿区后发现水平放置的指南针原来指向正北的 N 极逆时针转过 $30^{\\circ}$ , 如图 11-51 中的虚线所示。设该处地磁场的磁感应强度水平分量为 $B$ , 则该矿区产生的磁感应强度在水平面内的最小值为多少?\n\n\\*14. 如图 11-52 所示, 在磁感应强度为 $B$ 且范围足够大的匀强磁场中有一个面积为 $S$ 的线框。线框平面与匀强磁场方向成 $\\theta$ 角, 则:\n\n(1) 通过该平面的磁通量为多少?\n\n(2) 若将线框从水平位置 I 顺时针转到竖直位置 II，则磁通量变化量为多少？\n\n(3) 若将线框从水平位置 I 转到水平位置 III，顺时针旋转和逆时针旋转的磁通量变化量各为多少？\n\n  \n图11-52\n\n\n\n图示为格尔木光伏电站，位于青海省西部的柴达木盆地，于2011年建成并网发电。电站总规划装机容量达7210MW。太阳能光伏发电是利用太阳能电池吸收太阳光，将光能直接转变成电能输出的一种发电方式。世界各国对环境的保护和对再生清洁能源有着巨大需求，还有哪些可开发利用的新能源呢？",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:11-4-a:source-markdown",
+          "locator": "电磁场与电磁波",
+          "modality": "text",
+          "page_end": 120,
+          "page_start": 112,
+          "properties": {
+            "md_end": 3424,
+            "md_start": 3211,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:11-4-a",
+            "outline_title": "电磁场与电磁波",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 3424,
+      "md_start": 3211,
+      "modalities": [
+        "image",
+        "equation",
+        "text"
+      ],
+      "page_end": 120,
+      "page_start": 112,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第四节 电磁场与电磁波\n\n现代社会离不开电子通信技术，它的稳定持续发展离不开电磁场与电磁波的应用。北斗卫星导航系统（图11-34）是我国自行研制的全球卫星导航系统，可在全球范围内全天候、全天时提供导航、定位和授时服务，并具有短报文（传送120个汉字的短信息）通信能力。北斗卫星导航系统是利用电磁波传递信息的。\n\n\n\n## 什么是电磁场？什么是电磁波？\n\n19 世纪 60 年代，英国物理学家麦克斯韦（图 11-35）在总结前人对电和磁研究的基础上，将电磁场理论用简洁、对称、完美的数学形式表示出来。经后人整理和改写，确立了经典电磁学主要基础的麦克斯韦方程组，建立了完整的电磁场理论。这个理论不仅说明了当时已知的电磁现象，而且预言了电磁波的存在。\n\n麦克斯韦指出：如果在空间某处有交替变化的电场，就会在空间引起交替变化的磁场；这个交替变化的电场和磁场又会在较远的空间引起新的交替变化的电场和磁场……交替变化的电场和磁场相互联系，形成一个不可分离的统一的场，这就是电磁场（electromagnetic field）。电磁场能独立于场源存在，反映了电磁场作为物质存在的一种形式。电磁场并不局限于空间某个区域，而要由近及远向周围空间传播开去。电磁场这样由近及远地传播，就形成电磁波（electromagnetic wave）。\n\n[source image omitted from static artifact]  \n图11-35 麦克斯韦\n\n电磁波与我们的生活联系紧密，用仪器可以检测到电磁波信号。如图 11-36 所示，高灵敏度环形线圈两端与微电流传感器相连，再接入计算机，可以检测多种电磁波信号源（如电动机、电动剃须刀等）。如果采集到电磁波，则在显示器上显示出得到的电磁波信号。\n\n[source image omitted from static artifact]  \n图11-36 用微电流传感器检测电磁波\n\n\n\n## 电磁波主要有哪些应用？\n\n电磁波的频率范围极为宽广，各个频段都有专门的名称，如无线电波、红外线、可见光、紫外线、X射线、γ射线等。电磁波在日常生活中有广泛的应用，我们的生活离不开电磁波。\n\n## 1. 卫星通信\n\n利用人造地球卫星在地面站之间进行通信的系统，称为卫星通信系统，人造卫星相当于离地面很高的中继站。卫星通信（图 11-37）可以在两个或多个地面站之间进行。卫星通信的特点是：通信范围大，只要在卫星发射的电磁波所覆盖的范围内，任何两点之间都可进行通信。\n\n如果一位在中国的用户要与南极洲的科考人员打电话，这个过程就是先通过手机把声音转换为数字信号发射到基站，通过基站把用户电话线路与地面站连通，地面站把电话信号发射到卫星，卫星接到这个信号后经过信号放大再转发到南极洲的地面站，地面站把电话信号\n\n[source image omitted from static artifact]  \n图11-37 卫星通信\n\n取出来，送到科考人员的手机上，手机把数字信号转换成声音。无线电广播、电视节目转播的原理与电话传输相似。\n\n## 2. 微波加热\n\n微波炉是利用电磁波中的微波加热食物的，使用微波炉加热食物快速高效，且能保证食物的营养，尤其是蛋白质和维生素不被破坏。\n\n## 3. 遥控和自动控制\n\n电磁波中特定波段的红外线常用于遥控和自动控制。例如，家用电器的遥控器大多是利用发射红外线进行遥控的。公共场所的感应式水龙头则是靠人手遮挡反射红外线实现自动控制。\n\n## 4. 无线射频识别技术\n\n射频识别是一种非接触式的自动识别技术，可以通过无线电信号自动识别特定目标，并读写相关数据，而无需识别系统与特定目标之间建立机械或光学的接触。图 11-38 所示是公交卡的内部结构，当公交卡接近刷卡机时，卡内的线圈就会产生感应电流，实现卡内芯片与外部数据库的数据传输。\n\n## 5. 医疗设备\n\n电磁波中的紫外线可以用于医用消毒，形成无菌空间；X射线透射照相和X-CT扫描用于疾病检查。X射线和γ射线常用于治疗疾病。许多种理疗设备也是靠电磁波对人体的作用治疗疾病。如图11-39所示是由我国原陆军总医院研制成功的“稀土材料小型16层移动X-CT”，各项质量指标显著优于国际同类CT扫描仪。\n\n[source image omitted from static artifact]  \n图11-38 公交卡的内部结构\n\n[source image omitted from static artifact]  \n图11-39 稀土材料小型16层移动X-CT\n\n## 6. 雷达\n\n雷达是利用电磁波测定物体位置的设备。电磁波如果遇到尺寸明显大于波长的障碍物就要发生反射，雷达向一定的方向发射周期性的不连续的电磁波（叫做电磁脉冲）。发射出去的电磁波遇到障碍物反射，反射波可以在脉冲周期时间间隔内被天线接收。测出从发射到接收电磁脉冲之间的时间，就可以得到障碍物的距离，再根据发射电磁波的方向，便能确定障碍物的位置。\n\n我国自主设计建设的 500 m 口径球面射电望远镜（FAST）与雷达接收天线类似，遥远天体投射来的微弱电磁波信号被精确镜面反射后会聚到公共焦点，接收机将这些信号加工、转化成可供记录、显示的形式。FAST 主导国际甚长基线干涉测量网，能获得天体超精细结构。FAST 具有空间飞行器的测控与通信能力，将深空通信能力延伸至太阳系外缘行星，将卫星数据接收能力提高 100 倍。FAST 建成启用以来，已经在脉冲星探测方面取得众多成果，未来在暗物质和暗能量的探测及地外文明搜寻等方面将会起到重要作用。\n\n一方面人们利用电磁波为人类服务，借助电磁波工作、生活，另一方面还有更多的电磁波是在无意中产生的。例如：家用电器中的电风扇、吹风机、榨汁机等，这些电器工作时都会产生电磁波。在利用电磁波提高人们的生活质量的同时，电磁波也可能对人们产生一定的危害，我们需要加以防范，趋利避害。\n\n麦克斯韦从理论上得出电磁波在真空中的传播速度等于光在真空中的传播速度，认为光是一种电磁波，并在此基础上提出了光的电磁说。\n\n光的本性是复杂的。19世纪末，科学家发现了光电效应现象，但无法用当时流行的光的波动理论解释。爱因斯坦提出了光子说，成功地解释了光电效应现象。爱因斯坦指出空间传播的光能量是不连续的，而是一份一份的，每一份叫做一个光子，这是人们对微观粒子本质认识的一个飞跃。\n\n科学家发现光既具有波动特性，又具有粒子特性。光既能像波一样传播，有时又表现出粒子的特征，因此我们称光具有“波粒二象性”。\n\n麦克斯韦的电磁场理论在物理学上具有重要意义；这一理论推进了第二次工业革命，为人类利用电能提供了科学依据，使人类进入了电气化时代。现在，在电磁场理论和近代物理发展的基础上，人类又迈向信息化时代。\n\n## 问题②思考\n\n1. 2018 年，中国成功发射了嫦娥四号月球探测器的中继卫星 “鹊桥”。随后的几天里，“鹊桥” 号中继星飞行到月球背面上空的地月引力平衡点 L2 点（图 11-40）附近运行，为嫦娥四号月球探测器的发射以及在月球背面着陆提供了通畅的地月中继通信支持。L2 点位于月球的背后，到地球的距离超过 $4 \\times 10^{5} \\mathrm{~km}$ ，比月球到地球的距离还要再远 $6.5 \\times 10^{4} \\mathrm{~km}$ 。如果从月球背面发射的无线电信号通过 “鹊桥” 号中继星转发，试问信号到地球所需的时间约为多少？（不计 “鹊桥” 号中继星转发信号的时间）\n\n[source image omitted from static artifact]  \n图11-40\n\n2. 为了证实磁场的存在，常将小磁针放到磁体附近，可以观察到小磁针受到磁场力的作用其 N 极所指的方向发生了偏转。试设计一种简单可行的办法，以证实电磁波的存在。\n\n3. 太阳光传到地球约需要 500 s，太阳与地球之间的距离约为多少？在地球和太阳之间的大部分区域都处于真空状态，太阳光能够传到地球说明了什么？\n\n4. 手机和收音机都依靠电磁波传递信号。尝试将手机或收音机放入不同材质的容器中，例如：铝膜袋、塑料袋或者金属饭盒中，观察手机或收音机是否还能正常工作。观察的结果与容器的材质和器壁厚度有没有关系？如何用实验验证？\n\n5. 举例简述电磁波载有能量，也能载有信息。\n\n## 小结\n\n## - 基本概念和基本规律\n\n磁场：磁体内外和电流周围存在的物质。\n\n磁感应强度：描述磁场大小和方向的物理量。磁感应强度的方向是放在该点可以在任意方向自由转动的小磁针 N 极的指向。磁感应强度的单位是特斯拉，简称特，符号为 T。\n\n磁通量：在给定的磁场中，磁通量为磁感应强度与垂直于磁场面积的乘积。磁通量的单位是韦伯，简称韦，符号是 Wb。\n\n电磁感应现象：通过闭合导体回路的磁通量发生变化从而产生感应电流的现象。\n\n电磁场：交替变化的电场和磁场相互联系，形成一个不可分离的统一的电磁场。电磁场是物质存在的一种形式。\n\n电磁波：在空间传播的交替变化的电磁场。光是一种电磁波，同时具有波动性和粒子性。\n\n## - 基本方法\n\n通过建立磁感线、电流元等物理模型，感受抽象、简化和建模的方法。\n\n通过产生感应电流的探究实验，认识实验数据获取、分析和处理的基本方法。\n\n## - 知识结构图\n\n[source image omitted from static artifact]\n\n## 复习②巩固\n\n1. 导线中分别通以如图 11-41 所示方向的电流，当小磁针静止时，N 极分别指向什么方向？\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n(b)\n\n[source image omitted from static artifact]  \n(c)  \n图11-41\n\n[source image omitted from static artifact]  \n(d)\n\n2. 闭合导线环处在匀强磁场中，导线环的环面与磁场垂直，导线环面积为 $0.5 \\mathrm{~m}^{2}$ ，通过环的磁通量为 $0.2 \\mathrm{~Wb}$ ，则该磁场的磁感应强度为多少？当环面转至与磁场方向平行时，通过环的磁通量为多少？在闭合导线环旋转的过程中该处匀强磁场的磁感应强度是否改变？\n\n3. 如图 11-42 所示为 “研究电磁感应现象” 的实验装置。\n\n(1) 在图示状态下, 线圈 $A$ 插入线圈 $B$ 后, 将滑动变阻器滑动头向左快速滑动, 线圈 $B$ 的磁通量如何变化? 这时灵敏电流计的指针会不会偏转?\n\n[source image omitted from static artifact]\n\n(2) 线圈 $A$ 插入线圈 $B$ 后, 闭合开关的瞬间和断开开关瞬间线圈 $B$ 的磁通量如何变化? 这时灵敏电流计的指针是否偏转?\n\n(3) 根据上述实验过程, 说明线圈 $B$ 中产生感应电流的条件。\n\n4. 如图 11-43 所示是三根平行通电直导线的截面图，它们的电流 $I$ 大小相同，方向垂直纸面向外。如果 $AB = BC = CA$ ， $D$ 点、 $E$ 点和 $F$ 点分别是 $AB$ 、 $BC$ 和 $CA$ 的中点，则 $D$ 点、 $E$ 点和 $F$ 点的磁感应强度的方向如何？磁感应强度的大小是否相等？\n\n图11-42  \n  \n图11-43\n\n5. 如图 11-44 所示，在同一平面内有四条彼此绝缘的通电长直导线围成一个正方形， $O$ 点为正方形的中心，四根导线中的电流方向如图所示，电流 $I_{1} < I_{2} < I_{3} < I_{4}$ 。试判断 $I_{1}$ 和 $I_{2}$ 在 O 点产生的磁感应强度沿什么方向？ $I_{3}$ 和 $I_{4}$ 在 O 点的磁感应强度沿什么方向？如果切断电流 $I_{4}$ ，O 点的磁感应强度沿什么方向？如果切断电流 $I_{1}$ ，O 点的磁感应强度沿什么方向？简述判断的理由。\n\n  \n图11-44\n\n6. 如图 11-45 所示，在一方向竖直向上的匀强磁场中，沿水平方向放置一长直通电导线，导线中的电流方向垂直纸面向里。 $a$ 、 $b$ 、 $c$ 、 $d$ 是以通电导线为圆心的竖直平面内同一圆周上的四个点，则在这四个点中，哪两点的磁感应强度大小相同？哪个点的磁感应强度最大？哪个点的磁感应强度最小？\n\n  \n图11-45\n\n  \n图11-46\n\n7. 如图 11-46 所示, 圆环与通电长直导线 $P Q$ 导线位于同一平面内。已知圆环中心 $O$ 点的磁感应强度为 $B$ , 通电圆环在 $O$ 点产生的磁感强度为 $B _ { 1 }$ , 则:\n\n(1) 通电直导线在 O 点产生的磁感应强度 $B_{2}$ 为多大?\n\n(2) 改变长直导线的电流, 使通电直导线在 $O$ 点产生的磁感应强度增为 $2B_{2}$ ; 改变通电圆环的电流使通电圆环在 $O$ 点产生的磁感应强度相应减小为 $\\frac{B_{1}}{2}$ , 则 $O$ 点的磁感应强度变为多大?\n\n8. 如图 11-47 所示，小线圈放在通有恒定电流的大线圈上，小线圈恰好一半面积在大线圈内，小线圈和大线圈互相绝缘。规定垂直纸面向外的磁通量为正，判断通过小线圈的磁通量正负，简述判断的理由。\n\n  \n图11-47\n\n9. 如图 11-48 所示，直三菱柱放在空间直角坐标系内， $ab = 50 \\mathrm{~cm}$ ， $ad = 20 \\mathrm{~cm}$ ， $abcd$ 平面垂直 $Oxy$ 平面，与 $Ox$ 、 $Oy$ 的夹角分别为 $\\alpha = 37^{\\circ}$ ， $\\beta = 53^{\\circ}$ ( $\\sin 37^{\\circ} \\approx 0.6$ ， $\\cos 37^{\\circ} \\approx 0.8$ )，匀强磁场沿 $Ox$ 方向，磁感应强度为 $0.20 \\mathrm{T}$ 。通过 $Ocbe$ 面的磁通量为多大？通过 $adOe$ 面的磁通量为多大？\n\n  \n图11-48\n\n10. 在磁感应强度为 $B$ 的匀强磁场中，用一根长为 $l$ 的导线绕制一个线圈。若使通过该线圈的磁通量最大，线圈应为什么形状且如何放置？求出磁通量的这个最大值。\n\n11. 如图 11-49 所示，四根完全相同的长直导线互相平行，它们的截面处于一个正方形 $abcd$ 的四个顶点 $a$ 、 $b$ 、 $c$ 、 $d$ 处，导线 $a$ 、 $b$ 、 $c$ 、 $d$ 中通有大小都相同的电流，导线 $a$ 、 $b$ 、 $d$ 的电流方向垂直于纸面向里，导线 $c$ 的电流方向垂直于纸面向外， $a$ 、 $c$ 连线和 $b$ 、 $d$ 连线的交点为 $O$ 。测得通电导线 $a$ 在 $O$ 处产生磁场的磁感应强度大小为 $B$ ，则通电导线 $a$ 和 $c$\n\n  \n图11-49\n\n在 O 处产生磁场的磁感应强度大小如何？通电导线 b 和 d 在 O 处产生磁场的磁感应强度大小如何？\n\n\\*12. 自行车发电机的结构如图 11-50 所示，一块永久磁体置于绕有线圈的 U 形导磁硅钢片的内部。当自行车骑行时车轮的边缘通过摩擦轮带动磁体转动。解释该装置为何能对车灯供电。\n\n  \n图11-50\n\n  \n图11-51\n\n\\*13. 某科考队进入矿区后发现水平放置的指南针原来指向正北的 N 极逆时针转过 $30^{\\circ}$ , 如图 11-51 中的虚线所示。设该处地磁场的磁感应强度水平分量为 $B$ , 则该矿区产生的磁感应强度在水平面内的最小值为多少?\n\n\\*14. 如图 11-52 所示, 在磁感应强度为 $B$ 且范围足够大的匀强磁场中有一个面积为 $S$ 的线框。线框平面与匀强磁场方向成 $\\theta$ 角, 则:\n\n(1) 通过该平面的磁通量为多少?\n\n(2) 若将线框从水平位置 I 顺时针转到竖直位置 II，则磁通量变化量为多少？\n\n(3) 若将线框从水平位置 I 转到水平位置 III，顺时针旋转和逆时针旋转的磁通量变化量各为多少？\n\n  \n图11-52\n\n\n\n图示为格尔木光伏电站，位于青海省西部的柴达木盆地，于2011年建成并网发电。电站总规划装机容量达7210MW。太阳能光伏发电是利用太阳能电池吸收太阳光，将光能直接转变成电能输出的一种发电方式。世界各国对环境的保护和对再生清洁能源有着巨大需求，还有哪些可开发利用的新能源呢？",
+      "title": "电磁场与电磁波"
+    }
+  ]
+}

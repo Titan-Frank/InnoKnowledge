@@ -1,0 +1,1198 @@
+{
+  "body": {
+    "content": "## 定义\n电阻器（resistor）是用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件[evidence:auto-919f0bcdaf7e]。在日常生活中，人们常常将其直接简称为“电阻”[evidence:auto-919f0bcdaf7e]。需要注意的是，“电阻”本身是一个物理量，表示导体对电流阻碍作用的大小，通常用符号 $R$ 表示[evidence:auto-98d877898557]。电阻越大，表明导体对电流的阻碍作用越强[evidence:auto-0cd860c77e8d]。\n\n## 核心解释\n电阻器的设计与生产基于电阻定律[evidence:auto-09af29bb1742]。根据电阻定律公式 $R = \\rho \\frac{L}{S}$ 可知，导体的电阻大小取决于其材料的电阻率 $\\rho$、导体的长度 $L$ 以及横截面积 $S$ [evidence:auto-08e498f532d9]。其中，电阻率 $\\rho$ 的单位为欧姆·米（$\\Omega \\cdot m$），它是由导体材料本身的性质决定的物理量，反映了材料的导电性能[evidence:auto-09af29bb1742]。在温度一定的情况下，同种材料的电阻率保持不变[evidence:auto-32bf1c0d13f0]。因此，不同材料的导体即使形状和尺寸相同，其电阻值也会存在差异[evidence:auto-0cd860c77e8d]。\n\n## 关键要点\n- **物理特性**：电阻是导体本身的一种固有特性，不随外加条件随意改变，不同的导体通常具有不同的电阻大小[evidence:auto-98d877898557]。\n- **分类与应用**：电阻器可按功率、阻值以及制作材质进行分类，广泛应用于工业控制与日常生活电路中。\n- **实验探究方法**：在物理实验中，常采用控制变量法研究电阻的影响因素。例如，保持材料与长度相同而改变横截面积，分别接入电路测量电压与电流，计算出阻值 $R$ 后绘制 $R-S$ 图像，即可判断导体电阻与横截面积的具体关系[evidence:auto-34109df72a15]。\n\n## 示例或应用\n通过伏安法测量细铁丝的电阻时，若将铁丝直接接入电路与将对折后头尾相连再接入电路，两次测得的电阻值会有所不同[evidence:auto-0cd860c77e8d]。这是因为对折操作改变了导体的有效长度 $L$ 和横截面积 $S$，从而依据电阻定律改变了其总电阻[evidence:auto-08e498f532d9]。此外，若将相同形状的铁丝替换为铜丝，由于铜和铁的材料电阻率 $\\rho$ 不同，测得的阻值也会发生变化[evidence:auto-0cd860c77e8d]。这一现象直观地展示了电阻器在电路中阻碍电流作用的具体表现。\n\n## 易错点\n在实际学习与工程应用中，容易混淆“电阻”与“电阻器”的概念。电阻（resistance）是描述导体阻碍电流能力的物理量，属于导体的基本特性[evidence:auto-98d877898557]；而电阻器（resistor）则是利用特定导体材料制造出来的实际电子元件[evidence:auto-919f0bcdaf7e]。两者虽在日常生活中常被混用，但在严谨的物理与电路分析中需加以区分。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "entity/electronic_component:auto-c4027ef13d1d",
+    "properties": {
+      "card_title": "电阻器",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-919f0bcdaf7e",
+      "evidence:auto-98d877898557",
+      "evidence:auto-0cd860c77e8d",
+      "evidence:auto-09af29bb1742",
+      "evidence:auto-08e498f532d9",
+      "evidence:auto-32bf1c0d13f0",
+      "evidence:auto-34109df72a15"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:44:35+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-4855362748ac",
+    "mention_refs": [],
+    "node_id": "entity/electronic_component:auto-c4027ef13d1d",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-98d877898557"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-98d877898557"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-98d877898557"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "电阻器"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-98d877898557"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "电阻定律"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-98d877898557"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-98d877898557"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-98d877898557"
+    ],
+    "status": "active",
+    "summary": "用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件。",
+    "title": "电阻器",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 9,
+    "score": 100,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-510fd1158af4",
+      "node_id": "entity/electronic_component:auto-c4027ef13d1d",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "给出铁丝对折前后的电路情境，要求计算电阻变化并说明长度与横截面积改变的共同影响。",
+              "提供铜丝与铁丝的参数表，要求查表获取电阻率并判断相同形状下哪种材料电阻更大。",
+              "基于实验记录表，要求以横截面积 $S$ 为横坐标、电阻 $R$ 为纵坐标绘制图像，归纳两者关系。"
+            ],
+            "common_errors": [
+              "混淆“电阻器”实体与“电阻”物理量，误将两者等同或认为电阻器阻值随电流大小改变。",
+              "错误认为电阻率 $ρ$ 会随导体长度 $L$ 或横截面积 $S$ 的变化而变化，忽视其仅由材料性质决定。",
+              "计算对折导体电阻时仅考虑长度减半，遗漏横截面积加倍导致的电阻进一步减小。"
+            ],
+            "diagnostic_questions": [
+              "混淆“电阻器”实体与“电阻”物理量，误将两者等同或认为电阻器阻值随电流大小改变。",
+              "错误认为电阻率 $ρ$ 会随导体长度 $L$ 或横截面积 $S$ 的变化而变化，忽视其仅由材料性质决定。",
+              "计算对折导体电阻时仅考虑长度减半，遗漏横截面积加倍导致的电阻进一步减小。"
+            ],
+            "difficulty_level": "intermediate",
+            "extension_suggestions": [
+              "结合生活实例（如调光灯、加热丝）分析电阻器功率与材质的选型逻辑。",
+              "引入温度对电阻率影响的定性讨论，拓展电阻定律的适用条件。",
+              "对比金属导体与半导体材料在 $R-L$、$R-S$ 关系上的异同，深化微观导电机制认知。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T10:12:46+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "0d8e7a3b9176ac92bcc707b8df6a34affc78d4e540b9f88e3cf37202530f97d2",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-919f0bcdaf7e",
+                "evidence:auto-98d877898557",
+                "evidence:auto-08e498f532d9"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "准确描述电阻器的定义及其在电路中对电流的阻碍作用。",
+              "运用电阻定律公式 $R=ρL/S$ 分析导体电阻与材料、长度及横截面积的定量关系。",
+              "结合伏安法测量数据或给定参数，绘制 $R-S$ 图像或计算导体形变后的电阻值。"
+            ],
+            "remediation_suggestions": [
+              "使用概念对比图清晰区分“电阻器”（元件）与“电阻”（特性），强化符号与实物的对应。",
+              "组织分组伏安法实验，引导学生记录不同横截面积导体的电压电流值并绘制 $R-S$ 图像。",
+              "在电阻定律计算练习中，刻意设置单位换算与查表环节，规范分步推导解题流程。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-08e498f532d9",
+        "evidence:auto-09af29bb1742",
+        "evidence:auto-919f0bcdaf7e",
+        "evidence:auto-98d877898557"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:12:46+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "分析：由电阻定律公式 $R = \\rho \\frac{L}{S}$ 可知，若求铁丝的电阻 $R$ ，必须知道铁丝的电阻率 $\\rho$ 、长度 $L$ 和横截面积 $S$ 。其中 $\\rho$ 可以由表10-2查得， $L$ 已知， $S$ 则要通过铁丝的质量 $m$ 、密度 $D$ 和长度 $L$ 来求得。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-08e498f532d9",
+      "locator": "line:49",
+      "modality": "equation",
+      "normalized_claims": [
+        "分析：由电阻定律公式 $R = \\rho \\frac{L}{S}$ 可知，若求铁丝的电阻 $R$ ，必须知道铁丝的电阻率 $\\rho$ 、长度 $L$ 和横截面积 $S$ 。其中 $\\rho$ 可以由表10-2查得， $L$ 已知， $S$"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "这就是电阻定律（law of resistance）。式中 $\\rho$ 叫做材料的电阻率（resistivity），电阻率的单位是欧姆·米，符号为 $\\Omega\\cdot m$ 。不同材料的电阻率 $\\rho$ 是不同的，它的数值是由导体的材料性质所决定的，反映了材料的导电性能。在一定的温度下，对同一种材料而言， $\\rho$ 不变。如表 10-2 所示为一些常见导体材料在温度为 $20^{\\circ}C$ 时的电阻率。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-09af29bb1742",
+      "locator": "line:41",
+      "modality": "equation",
+      "normalized_claims": [
+        "这就是电阻定律（law of resistance）。式中 $\\rho$ 叫做材料的电阻率（resistivity），电阻率的单位是欧姆·米，符号为 $\\Omega\\cdot m$ 。不同材料的电阻率 $\\rho$ 是不同的，它的数值是由导"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图10-13所示，在用伏安法测一根细铁丝的电阻时，我们发现，将其两端直接接入电路和将铁丝对折头尾相连再接入电路，两次测得的电阻值不同。若将细铁丝换成形状相同的细铜丝，测得铜丝的电阻值与铁丝的也不同。我们知道，电阻（resistance）是一个物理量，表示导体对电流阻碍作用的大小，通常用 $R$ 表示；电阻是导体本身的一种特性，不同的导体，电阻大小一般不同；电阻越大，表示导体对电流的阻碍作用越大。同样的铁丝为什么两次测量的电阻值不同呢？相同形状的铁丝与铜丝的电阻值为什么又不同呢？",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-0cd860c77e8d",
+      "locator": "line:3",
+      "modality": "equation",
+      "normalized_claims": [
+        "如图10-13所示，在用伏安法测一根细铁丝的电阻时，我们发现，将其两端直接接入电路和将铁丝对折头尾相连再接入电路，两次测得的电阻值不同。若将细铁丝换成形状相同的细铜丝，测得铜丝的电阻值与铁丝的也不同。我们知道，电阻（resistance）是"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/b26cb5a8262e7579ef787243b9adbfe3e59901895977d2f3d74a2c093ca1cabb.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-1f41c078fe32",
+      "locator": "line:20",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/b26cb5a8262e7579ef787243b9adbfe3e59901895977d2f3d74a2c093ca1cabb.jpg)"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 276,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/b26cb5a8262e7579ef787243b9adbfe3e59901895977d2f3d74a2c093ca1cabb.jpg",
+          "reason": "图片内容与上下文高度对应。前文详细描述了实验步骤：'采用粗细均匀的长金属电阻丝，按如图10-14所示的电路连接。不断改变导线与电阻丝的接触点 A 的位置...'，这正是图中展示的电路结构（通过移动A改变接入电路的电阻丝长度）。后文紧接着给出了图片标题'图10-14 研究金属导体电阻与长度的关系'。该图直接展示了研究电阻与长度关系的实验装置（伏安法测电阻），属于核心实验内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张物理实验电路图。电路包含电源E、开关S、定值电阻R0、电流表A和电压表V。主要部分是一根水平放置的长金属电阻丝，其左端与电源负极（经过R0）相连，右端未接入主回路但通过一个可移动的接触点A接入电路。电压表并联在电阻丝左端与接触点A之间，电流表串联在接触点A之后的支路中。",
+          "width": 456
+        },
+        "path": "images/b26cb5a8262e7579ef787243b9adbfe3e59901895977d2f3d74a2c093ca1cabb.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "式中 $\\rho$ 叫做材料的电阻率（resistivity），电阻率的单位是欧姆·米... 不同材料的电阻率 $\\rho$ 是不同的，它的数值是由导体的材料性质所决定的，反映了材料的导电性能。在一定的温度下，对同一种材料而言， $\\rho$ 不变",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-32bf1c0d13f0",
+      "locator": "line:41-45",
+      "modality": "text",
+      "normalized_claims": [
+        "式中 $\\rho$ 叫做材料的电阻率（resistivity），电阻率的单位是欧姆·米... 不同材料的电阻率 $\\rho$ 是不同的，它的数值是由导体的材料性质所决定的，反映了材料的导电性能。在一定的温度下，对同一种材料而言， $\\rho"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "采用材料及长度相同、横截面积不同的电阻丝，分别接入如图10-15所示的电路 $a$ 、 $b$ 两端。记录电压表及电流表的示数，计算出电阻丝阻值 $R$ ，绘制电阻丝阻值 $R$ 与横截面积 $S$ 的 $R - S$ 图像，从而判断导体电阻与横截面积间的关系。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-34109df72a15",
+      "locator": "line:25",
+      "modality": "equation",
+      "normalized_claims": [
+        "采用材料及长度相同、横截面积不同的电阻丝，分别接入如图10-15所示的电路 $a$ 、 $b$ 两端。记录电压表及电流表的示数，计算出电阻丝阻值 $R$ ，绘制电阻丝阻值 $R$ 与横截面积 $S$ 的 $R - S$ 图像，从而判断导体电"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/5548cee20d61dd9b5597fb85f880f416266e5f3ef0dd437551ab2a599f868c2b.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-3d4302935df0",
+      "locator": "line:79",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/5548cee20d61dd9b5597fb85f880f416266e5f3ef0dd437551ab2a599f868c2b.jpg)"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 324,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/5548cee20d61dd9b5597fb85f880f416266e5f3ef0dd437551ab2a599f868c2b.jpg",
+          "reason": "图片是研究小灯泡伏安特性曲线的实验电路图。前文明确指出“按如图10-16所示的电路研究小灯泡的 I-U 特性曲线”，后文紧接着给出了该图的标题“图10-16 研究小灯泡的电压、电流关系”。图片内容与上下文紧密对应，直接展示了实验的电路结构，属于核心知识内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张物理实验电路图，包含电源E、开关S、滑动变阻器R（分压式接法）、电流表A、电压表V和小灯泡L。",
+          "width": 329
+        },
+        "path": "images/5548cee20d61dd9b5597fb85f880f416266e5f3ef0dd437551ab2a599f868c2b.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "利用电压表、电流表、温度传感器，按如图10-16所示的电路研究小灯泡的 $I - U$ 特性曲线。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-40bf325b2725",
+      "locator": "line:75",
+      "modality": "equation",
+      "normalized_claims": [
+        "利用电压表、电流表、温度传感器，按如图10-16所示的电路研究小灯泡的 $I - U$ 特性曲线。"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/8c2ad702fdde328fa5fc32d4905285b7f3d297501560d2bc1aa92ae99c566a99.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-5c3f95b62daf",
+      "locator": "line:5",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/8c2ad702fdde328fa5fc32d4905285b7f3d297501560d2bc1aa92ae99c566a99.jpg)"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 332,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/8c2ad702fdde328fa5fc32d4905285b7f3d297501560d2bc1aa92ae99c566a99.jpg",
+          "reason": "图片对应教材中的图10-13。前文提到'如图10-13所示，在用伏安法测一根细铁丝的电阻时...'，后文明确标注'图10-13 伏安法测细铁丝的电阻'。图片展示了测量电阻的具体电路连接方式，用于辅助说明前文提到的实验现象（直接接入与对折接入电阻不同），并为后续探究电阻定律（R与L的关系）提供实验基础。虽然它是正式插图，但主要起辅助说明实验方法和场景的作用，故判定为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张物理电路图，展示了伏安法测电阻的装置。电路包含电源（标有E）、开关（S）、滑动变阻器（P）、电流表（A）、电压表（V）以及被测元件“细铁丝”。电压表并联在细铁丝两端，电流表串联在干路中。",
+          "width": 323
+        },
+        "path": "images/8c2ad702fdde328fa5fc32d4905285b7f3d297501560d2bc1aa92ae99c566a99.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "示例 一根长 $L = 10 \\mathrm{~m}$ 的铁丝, 质量 $m = 0.156 \\mathrm{~kg}$ 。试求其在温度为 $20^{\\circ} \\mathrm{C}$ 时的电阻。(铁的密度 $D = 7.8 \\times 10^{3} \\mathrm{~kg} / \\mathrm{m}^{3}$ )",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6038983ab95d",
+      "locator": "line:47",
+      "modality": "equation",
+      "normalized_claims": [
+        "示例 一根长 $L = 10 \\mathrm{~m}$ 的铁丝, 质量 $m = 0.156 \\mathrm{~kg}$ 。试求其在温度为 $20^{\\circ} \\mathrm{C}$ 时的电阻。(铁的密度 $D = 7.8 \\times"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nR = \\rho \\frac {D L ^ {2}}{m} = \\frac {1 . 0 \\times 1 0 ^ {- 7} \\times 7 . 8 \\times 1 0 ^ {3} \\times 1 0 ^ {2}}{0 . 1 5 6} \\Omega = 0. 5 \\Omega\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6a1238e1fd60",
+      "locator": "line:61",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nR = \\rho \\frac {D L ^ {2}}{m} = \\frac {1 . 0 \\times 1 0 ^ {- 7} \\times 7 . 8 \\times 1 0 ^ {3} \\times 1 0 ^ {2}}{0 . 1"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nR = \\rho \\frac {L}{S}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6eb1bf57dc7e",
+      "locator": "line:39",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nR = \\rho \\frac {L}{S}\n$$"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "电阻器（resistor）是用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件，在日常生活中也常常被直接称为电阻",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-919f0bcdaf7e",
+      "locator": "line:88",
+      "modality": "text",
+      "normalized_claims": [
+        "电阻器（resistor）是用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件，在日常生活中也常常被直接称为电阻"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "实验表明：在温度不变时，导体的电阻 R 与导体的长度 L 成正比，与导体的横截面积 S 成反比... $$R = \\rho \\frac {L}{S}$$ 这就是电阻定律",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-925d743e2b6a",
+      "locator": "line:37-40",
+      "modality": "text",
+      "normalized_claims": [
+        "实验表明：在温度不变时，导体的电阻 R 与导体的长度 L 成正比，与导体的横截面积 S 成反比... $$R = \\rho \\frac {L}{S}$$ 这就是电阻定律"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图10-13所示，在用伏安法测一根细铁丝的电阻时... 图10-13 伏安法测细铁丝的电阻",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-96f2d055fa4d",
+      "locator": "line:3-6",
+      "modality": "text",
+      "normalized_claims": [
+        "如图10-13所示，在用伏安法测一根细铁丝的电阻时... 图10-13 伏安法测细铁丝的电阻"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "电阻（resistance）是一个物理量，表示导体对电流阻碍作用的大小，通常用 $R$ 表示；电阻是导体本身的一种特性，不同的导体，电阻大小一般不同",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-98d877898557",
+      "locator": "line:3",
+      "modality": "text",
+      "normalized_claims": [
+        "电阻（resistance）是一个物理量，表示导体对电流阻碍作用的大小，通常用 $R$ 表示；电阻是导体本身的一种特性，不同的导体，电阻大小一般不同"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nS = \\frac {m}{D L}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ac9c2faaf628",
+      "locator": "line:55",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nS = \\frac {m}{D L}\n$$"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "<table><tr><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td></tr><tr><td>银</td><td> $1.6 \\times 10^{-8}$ </td><td>铁</td><td> $1.0 \\times 10^{-7}$ </td></tr><tr><td>铜</td><td> $1.7 \\times 10^{-8}$ </td><td>汞</td><td> $9.6 \\times 10^{-7}$ </td></tr><tr><td>铝</td><td> $2.9 \\times 10^{-8}$ </td><td>锰铜合金 *</td><td> $4.4 \\times 10^{-7}$ </td></tr><tr><td>钨</td><td> $5.3 \\times 10^{-8}$ </td><td>镍铜合金 **</td><td> $5.0 \\times 10^{-7}$ </td></tr><tr><td>铂</td><td> $1.0 \\times 10^{-7}$ </td><td>镍铬合金 ***</td><td> $1.0 \\times 10^{-6}$ </td></tr></table>",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b0488a4d19e5",
+      "locator": "line:45",
+      "modality": "equation",
+      "normalized_claims": [
+        "<table><tr><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td></tr><tr><t"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "表 10-2 一些常见导体材料在温度为 ${20}^{ \\circ  }\\mathrm{C}$ 时的电阻率",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b41f145f7f89",
+      "locator": "line:43",
+      "modality": "equation",
+      "normalized_claims": [
+        "表 10-2 一些常见导体材料在温度为 ${20}^{ \\circ  }\\mathrm{C}$ 时的电阻率"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/fbaebe63455292221843049ec21474fbbe6130c80a5c927a5f7c21cf490d24a6.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c94b790c6689",
+      "locator": "line:82",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/fbaebe63455292221843049ec21474fbbe6130c80a5c927a5f7c21cf490d24a6.jpg)"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 5,
+          "height": 356,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/fbaebe63455292221843049ec21474fbbe6130c80a5c927a5f7c21cf490d24a6.jpg",
+          "reason": "图片内容为前文明确指出的“图10-17”，即小灯泡的 I-U 特性曲线。后文紧接着对该图线进行详细分析，指出“从 I-U 图线不是一条直线可知，电阻不是一个常数”，并解释了电阻随温度变化的规律。该图片是实验数据的直接呈现，是理解本节核心物理概念（非线性电阻、温度对电阻影响）的关键证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个 I-U 坐标系图表。横轴表示电压 U/V，纵轴表示电流 I/A。图中有一条红色的曲线穿过多个数据点，曲线并非直线，随着电压增加，电流增加但斜率逐渐减小，直观反映了小灯泡电流与电压的非线性关系。",
+          "width": 457
+        },
+        "path": "images/fbaebe63455292221843049ec21474fbbe6130c80a5c927a5f7c21cf490d24a6.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "图10-17 小灯泡 $I - U$ 特性曲线",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-cfe0873b6c4c",
+      "locator": "line:83",
+      "modality": "equation",
+      "normalized_claims": [
+        "图10-17 小灯泡 $I - U$ 特性曲线"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "某些金属、合金和化合物在温度降到绝对零度附近某一特定温度时，电阻会突然减小到无法测量，这种现象叫做超导现象。由正常状态转变为超导状态的温度称为这种物质的临界温度",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-dd94f6f52ad9",
+      "locator": "line:95-96",
+      "modality": "text",
+      "normalized_claims": [
+        "某些金属、合金和化合物在温度降到绝对零度附近某一特定温度时，电阻会突然减小到无法测量，这种现象叫做超导现象。由正常状态转变为超导状态的温度称为这种物质的临界温度"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "采用横截面积、长度相同但材料不同的金属电阻丝，分别连入如图10-15所示的电路 $a$ 、 $b$ 两端。通过记录电压表、电流表的示数，计算电阻丝阻值 $R$ ，判断材质是否影响电阻阻值。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e48b1b17348e",
+      "locator": "line:33",
+      "modality": "equation",
+      "normalized_claims": [
+        "采用横截面积、长度相同但材料不同的金属电阻丝，分别连入如图10-15所示的电路 $a$ 、 $b$ 两端。通过记录电压表、电流表的示数，计算电阻丝阻值 $R$ ，判断材质是否影响电阻阻值。"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "从 I-U 图线不是一条直线可知，电阻不是一个常数... 灯丝电阻随温度升高而增大。电阻随温度的变化主要是由于导体材料的电阻率随温度发生了变化",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e518e682aed5",
+      "locator": "line:84-87",
+      "modality": "text",
+      "normalized_claims": [
+        "从 I-U 图线不是一条直线可知，电阻不是一个常数... 灯丝电阻随温度升高而增大。电阻随温度的变化主要是由于导体材料的电阻率随温度发生了变化"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/65dc270465a397553f13a6d8a59cbb0b43f4946d29f9c4f298740b3b5591cdd0.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f10775c3f0b7",
+      "locator": "line:27",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/65dc270465a397553f13a6d8a59cbb0b43f4946d29f9c4f298740b3b5591cdd0.jpg)"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 381,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/65dc270465a397553f13a6d8a59cbb0b43f4946d29f9c4f298740b3b5591cdd0.jpg",
+          "reason": "图片即为教材文本中提到的“图10-15”。前文明确描述了实验步骤：“采用材料及长度相同、横截面积不同的电阻丝，分别接入如图10-15所示的电路a、b两端”，后文紧接着给出了图片标题“图10-15 研究金属导体电阻与横截面积大小的关系”。图片直接展示了该探究实验的核心电路连接方式和器材示意，与上下文完全对应，属于核心实验内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个物理实验电路图。电路包含电源E、开关S、定值电阻R0、电流表A和电压表V。电压表并联在a、b两点之间。在a、b上方绘制了三根长度相同但粗细（横截面积）不同的金属电阻丝，示意将不同电阻丝接入a、b端进行实验。",
+          "width": 406
+        },
+        "path": "images/65dc270465a397553f13a6d8a59cbb0b43f4946d29f9c4f298740b3b5591cdd0.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "excerpt": "利用电压表、电流表、温度传感器，按如图10-16所示的电路研究小灯泡的 $I - U$ 特性曲线... 图10-17 小灯泡 $I - U$ 特性曲线",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f96923bf2b5d",
+      "locator": "line:75-83",
+      "modality": "text",
+      "normalized_claims": [
+        "利用电压表、电流表、温度传感器，按如图10-16所示的电路研究小灯泡的 $I - U$ 特性曲线... 图10-17 小灯泡 $I - U$ 特性曲线"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:44:35+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-512a05e29674",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-919f0bcdaf7e"
+      ],
+      "source_type": "textbook",
+      "target_id": "entity/electronic_component:auto-c4027ef13d1d",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "resistor",
+      "电阻"
+    ],
+    "created_at": "2026-06-29T05:44:35+00:00",
+    "dataset_id": "main",
+    "definition": "用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "entity/electronic_component:auto-c4027ef13d1d",
+    "kind": "entity",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "电阻器",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "subkinds": [
+          "electronic_component"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "广泛应用于工业与日常生活",
+          "可按功率、阻值、材质分类"
+        ],
+        "conditions": [
+          "基于电阻定律设计生产"
+        ],
+        "formal_expressions": []
+      },
+      "template_display": {
+        "color": "#3782FF",
+        "label": "装置/对象",
+        "template_id": "textbook/physics",
+        "type_key": "entity"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "electronic_component",
+    "tags": [
+      "电子元件",
+      "工程应用",
+      "电路基础"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [],
+    "outgoing": [
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:44:35+00:00",
+        "dataset_id": "main",
+        "directionality": "directed",
+        "from_id": "entity/electronic_component:auto-c4027ef13d1d",
+        "id": "edge:auto-180904135c4a",
+        "notes": "电阻器作为电子元件，其核心物理性质是具有一定的电阻",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "具有物理量",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-919f0bcdaf7e"
+        ],
+        "status": "active",
+        "to_id": "property/electrical_quantity:auto-f621655c976e",
+        "type": "has_property",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ]
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第二节 电阻定律\n\n如图10-13所示，在用伏安法测一根细铁丝的电阻时，我们发现，将其两端直接接入电路和将铁丝对折头尾相连再接入电路，两次测得的电阻值不同。若将细铁丝换成形状相同的细铜丝，测得铜丝的电阻值与铁丝的也不同。我们知道，电阻（resistance）是一个物理量，表示导体对电流阻碍作用的大小，通常用 $R$ 表示；电阻是导体本身的一种特性，不同的导体，电阻大小一般不同；电阻越大，表示导体对电流的阻碍作用越大。同样的铁丝为什么两次测量的电阻值不同呢？相同形状的铁丝与铜丝的电阻值为什么又不同呢？\n\n[source image omitted from static artifact]  \n图10-13 伏安法测细铁丝的电阻\n\n## 大家谈\n\n一段金属导体的电阻由哪些因素决定？有怎样的定量关系？请猜测、提出假设并说明假设的依据。\n\n\n\n## 一段金属导体电阻与长度、横截面积等因素有怎样的定量关系？\n\n## 1. 研究金属导体电阻与长度的关系\n\n采用粗细均匀的长金属电阻丝，按如图10-14所示的电路连接。不断改变导线与电阻丝的接触点 A 的位置，依次记录电压表、电流表的示数及连入电路的电阻丝的长度 L，随后根据电压表、电流表的示数计算连入电路部分的电阻丝的电阻值 R，最终绘制 R-L 图像，判断导体电阻与长度的关系。\n\n[source image omitted from static artifact]  \n图10-14 研究金属导体电阻与长度的关系\n\n## 2. 研究金属导体电阻与横截面积大小的关系\n\n采用材料及长度相同、横截面积不同的电阻丝，分别接入如图10-15所示的电路 $a$ 、 $b$ 两端。记录电压表及电流表的示数，计算出电阻丝阻值 $R$ ，绘制电阻丝阻值 $R$ 与横截面积 $S$ 的 $R - S$ 图像，从而判断导体电阻与横截面积间的关系。\n\n[source image omitted from static artifact]  \n图10-15 研究金属导体电阻  \n与横截面积大小的关系\n\n## 3. 研究金属导体的电阻与材料的关系\n\n采用横截面积、长度相同但材料不同的金属电阻丝，分别连入如图10-15所示的电路 $a$ 、 $b$ 两端。通过记录电压表、电流表的示数，计算电阻丝阻值 $R$ ，判断材质是否影响电阻阻值。\n\n实验表明：在温度不变时，导体的电阻 R 与导体的长度 L 成正比，与导体的横截面积 S 成反比，与构成它的材料有关，即\n\n$$\nR = \\rho \\frac {L}{S}\n$$\n\n这就是电阻定律（law of resistance）。式中 $\\rho$ 叫做材料的电阻率（resistivity），电阻率的单位是欧姆·米，符号为 $\\Omega\\cdot m$ 。不同材料的电阻率 $\\rho$ 是不同的，它的数值是由导体的材料性质所决定的，反映了材料的导电性能。在一定的温度下，对同一种材料而言， $\\rho$ 不变。如表 10-2 所示为一些常见导体材料在温度为 $20^{\\circ}C$ 时的电阻率。\n\n表 10-2 一些常见导体材料在温度为 ${20}^{ \\circ  }\\mathrm{C}$ 时的电阻率\n\n<table><tr><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td></tr><tr><td>银</td><td> $1.6 \\times 10^{-8}$ </td><td>铁</td><td> $1.0 \\times 10^{-7}$ </td></tr><tr><td>铜</td><td> $1.7 \\times 10^{-8}$ </td><td>汞</td><td> $9.6 \\times 10^{-7}$ </td></tr><tr><td>铝</td><td> $2.9 \\times 10^{-8}$ </td><td>锰铜合金 *</td><td> $4.4 \\times 10^{-7}$ </td></tr><tr><td>钨</td><td> $5.3 \\times 10^{-8}$ </td><td>镍铜合金 **</td><td> $5.0 \\times 10^{-7}$ </td></tr><tr><td>铂</td><td> $1.0 \\times 10^{-7}$ </td><td>镍铬合金 ***</td><td> $1.0 \\times 10^{-6}$ </td></tr></table>\n\n示例 一根长 $L = 10 \\mathrm{~m}$ 的铁丝, 质量 $m = 0.156 \\mathrm{~kg}$ 。试求其在温度为 $20^{\\circ} \\mathrm{C}$ 时的电阻。(铁的密度 $D = 7.8 \\times 10^{3} \\mathrm{~kg} / \\mathrm{m}^{3}$ )\n\n分析：由电阻定律公式 $R = \\rho \\frac{L}{S}$ 可知，若求铁丝的电阻 $R$ ，必须知道铁丝的电阻率 $\\rho$ 、长度 $L$ 和横截面积 $S$ 。其中 $\\rho$ 可以由表10-2查得， $L$ 已知， $S$ 则要通过铁丝的质量 $m$ 、密度 $D$ 和长度 $L$ 来求得。\n\n解：设铁丝的体积为 V，横截面积为 S，由 m = DV = DSL 得\n\n$$\nS = \\frac {m}{D L}\n$$\n\n将上式代入电阻定律公式，则铁丝的电阻\n\n$$\nR = \\rho \\frac {D L ^ {2}}{m} = \\frac {1 . 0 \\times 1 0 ^ {- 7} \\times 7 . 8 \\times 1 0 ^ {3} \\times 1 0 ^ {2}}{0 . 1 5 6} \\Omega = 0. 5 \\Omega\n$$\n\n## 大家谈\n\n导体的电阻和电阻率有何区别？\n\n\n\n## 温度对导体的电阻有何影响？\n\n前面讨论电阻和电阻率时我们都假定 “温度不变”，那么温度对导体的电阻有何影响呢？下面我们就先来做一个实验。\n\n## 自主活动\n\n利用电压表、电流表、温度传感器，按如图10-16所示的电路研究小灯泡的 $I - U$ 特性曲线。\n\n实验时，闭合开关，缓慢调节滑动变阻器阻值，记录电压 U、电流 I 的数据，并相应记录此时小灯泡周围的温度值。得到的实验 I-U 图线如图 10-17 所示。\n\n[source image omitted from static artifact]  \n图10-16 研究小灯泡的电压、电流关系\n\n[source image omitted from static artifact]  \n图10-17 小灯泡 $I - U$ 特性曲线\n\n从 I-U 图线不是一条直线可知，电阻不是一个常数。由实验可知，随着流过小灯泡的电流的增加，小灯泡灯丝的温度逐渐升高。温度对灯丝的电阻存在影响，灯丝温度变化时，它的电阻发生了变化。从实验获得的图线可知，灯丝电阻随温度升高而增大。小灯泡的灯丝在正常发光时的电阻值比不发光时大很多。电阻随温度的变化主要是由于导体材料的电阻率随温度发生了变化。尽管如此，在中学物理中，除非特别指出，一般不考虑温度对电阻变化的影响。\n\n利用金属的电阻跟温度的关系，可以制成电阻温度计。通常用铂电阻丝做成的温度计叫做铂温度计，它比汞温度计更精确，且测量范围更广。\n\n电阻器（resistor）是用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件，在日常生活中也常常被直接称为电阻。人们根据电阻定律，设计生产出各种各样的电阻器（图10-12）来满足社会生产生活实际需要。作为重要基础电子元件，电阻器在工业生产中有着重要而且广泛的应用。\n\n## STSE\n\n1911 年，荷兰物理学家昂内斯（H. K. Onnes，1853—1926）发现，当汞温度降到 4.15 K（-269 ℃）附近时，电阻会突然降到零。之后，又有科学家发现，某些金属、合金和化合物在温度降到绝对零度附近某一特定温度时，电阻会突然减小到无法测量，这种现象叫做超导现象。由正常状态转变为超导状态的温度称为这种物质的临界温度。现在已发现，大多数金属元素以及数以千计的合金、化合物都在不同条件下显示出超导性。\n\n超导体可以通过大电流，并产生强磁场，因此在电磁设备中有着广泛的应用，如核磁共振成像仪、加速器等。不过超导现象大规模应用遇到的主要障碍是超导所要求的低温。如果能得到在室温下呈现超导现象的材料，就会使世界发生巨大的变化。\n\n我国著名物理学家赵忠贤（1941—）从1976年开始从事探索高温超导体的研究，1983年开始研究氧化物超导体BPB系统及重费米子超导性，1986年底在Ba-La-Cu-O系统研究中，注意到杂质的影响，并于1987年参与发现了液氮温区超导体。1987年2月，他所在的小组独立地发现了液氮温区超导体，并首先向世界上公布了其化学成分Ba-Y-Cu-O。这个研究成果推动了超导研究。现在，许多科学家正在研究超导。\n\n## 问题②思考\n\n1. 导致电路烧毁的故障，经常发生在插座处。试说明可能的原因。\n\n2. 某实验室需要绕制一个总阻值是 $50 \\Omega$ 的滑动变阻器。根据表10-2的数据，计算需要用多长的横截面积是 $0.02 \\mathrm{~mm}^{2}$ 的镍铬线？\n\n3. 观察滑动变阻器的外观，说出图 10-18 中各字母标识的部件的名称，并解释滑动变阻器能改变电阻的原因。\n\n  \n图10-18\n\n  \n图10-19\n\n4. 将四个定值电阻 $a$ 、 $b$ 、 $c$ 、 $d$ 分别接入电路，测得电流、电压值如图 10-19 中相应的点所示。试指出其中阻值最接近的两个电阻，并简述理由。\n\n5. 两根长短、粗细都相同的导体，一根是铜丝，另一根材料未知。若将这两根导体串接在电路中，发现另一根导线两端的电压约为铜丝两端电压的30倍，试问另一根导线是用何种材料制成的？\n\n6. 研究表明，人体中的水分绝大部分存在于血液、肌肉及内脏中，而脂肪中含水量极低，因此脂肪部分比肌肉和人体其他组织电阻率更高。电子脂肪秤是一种测量人体脂肪百分率、水分百分率、骨骼质量等数据的产品。脂肪秤的表面隐藏有两个电极片，使用时人需要赤脚站立在脂肪秤上。根据上述资料，建立简单物理模型，猜测脂肪秤的工作原理，并查找资料对脂肪秤测量的准确性进行评价。\n\n  \n图10-20 汽车后挡风玻璃上的电阻丝",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:10-2-a:source-markdown",
+          "locator": "电阻定律",
+          "modality": "text",
+          "page_end": 59,
+          "page_start": 55,
+          "properties": {
+            "md_end": 1772,
+            "md_start": 1652,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:10-2-a",
+            "outline_title": "电阻定律",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 1772,
+      "md_start": 1652,
+      "modalities": [
+        "equation",
+        "image",
+        "text",
+        "table"
+      ],
+      "page_end": 59,
+      "page_start": 55,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第二节 电阻定律\n\n如图10-13所示，在用伏安法测一根细铁丝的电阻时，我们发现，将其两端直接接入电路和将铁丝对折头尾相连再接入电路，两次测得的电阻值不同。若将细铁丝换成形状相同的细铜丝，测得铜丝的电阻值与铁丝的也不同。我们知道，电阻（resistance）是一个物理量，表示导体对电流阻碍作用的大小，通常用 $R$ 表示；电阻是导体本身的一种特性，不同的导体，电阻大小一般不同；电阻越大，表示导体对电流的阻碍作用越大。同样的铁丝为什么两次测量的电阻值不同呢？相同形状的铁丝与铜丝的电阻值为什么又不同呢？\n\n[source image omitted from static artifact]  \n图10-13 伏安法测细铁丝的电阻\n\n## 大家谈\n\n一段金属导体的电阻由哪些因素决定？有怎样的定量关系？请猜测、提出假设并说明假设的依据。\n\n\n\n## 一段金属导体电阻与长度、横截面积等因素有怎样的定量关系？\n\n## 1. 研究金属导体电阻与长度的关系\n\n采用粗细均匀的长金属电阻丝，按如图10-14所示的电路连接。不断改变导线与电阻丝的接触点 A 的位置，依次记录电压表、电流表的示数及连入电路的电阻丝的长度 L，随后根据电压表、电流表的示数计算连入电路部分的电阻丝的电阻值 R，最终绘制 R-L 图像，判断导体电阻与长度的关系。\n\n[source image omitted from static artifact]  \n图10-14 研究金属导体电阻与长度的关系\n\n## 2. 研究金属导体电阻与横截面积大小的关系\n\n采用材料及长度相同、横截面积不同的电阻丝，分别接入如图10-15所示的电路 $a$ 、 $b$ 两端。记录电压表及电流表的示数，计算出电阻丝阻值 $R$ ，绘制电阻丝阻值 $R$ 与横截面积 $S$ 的 $R - S$ 图像，从而判断导体电阻与横截面积间的关系。\n\n[source image omitted from static artifact]  \n图10-15 研究金属导体电阻  \n与横截面积大小的关系\n\n## 3. 研究金属导体的电阻与材料的关系\n\n采用横截面积、长度相同但材料不同的金属电阻丝，分别连入如图10-15所示的电路 $a$ 、 $b$ 两端。通过记录电压表、电流表的示数，计算电阻丝阻值 $R$ ，判断材质是否影响电阻阻值。\n\n实验表明：在温度不变时，导体的电阻 R 与导体的长度 L 成正比，与导体的横截面积 S 成反比，与构成它的材料有关，即\n\n$$\nR = \\rho \\frac {L}{S}\n$$\n\n这就是电阻定律（law of resistance）。式中 $\\rho$ 叫做材料的电阻率（resistivity），电阻率的单位是欧姆·米，符号为 $\\Omega\\cdot m$ 。不同材料的电阻率 $\\rho$ 是不同的，它的数值是由导体的材料性质所决定的，反映了材料的导电性能。在一定的温度下，对同一种材料而言， $\\rho$ 不变。如表 10-2 所示为一些常见导体材料在温度为 $20^{\\circ}C$ 时的电阻率。\n\n表 10-2 一些常见导体材料在温度为 ${20}^{ \\circ  }\\mathrm{C}$ 时的电阻率\n\n<table><tr><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td><td>导体</td><td>电阻率  $\\rho/(\\Omega \\cdot m)$ </td></tr><tr><td>银</td><td> $1.6 \\times 10^{-8}$ </td><td>铁</td><td> $1.0 \\times 10^{-7}$ </td></tr><tr><td>铜</td><td> $1.7 \\times 10^{-8}$ </td><td>汞</td><td> $9.6 \\times 10^{-7}$ </td></tr><tr><td>铝</td><td> $2.9 \\times 10^{-8}$ </td><td>锰铜合金 *</td><td> $4.4 \\times 10^{-7}$ </td></tr><tr><td>钨</td><td> $5.3 \\times 10^{-8}$ </td><td>镍铜合金 **</td><td> $5.0 \\times 10^{-7}$ </td></tr><tr><td>铂</td><td> $1.0 \\times 10^{-7}$ </td><td>镍铬合金 ***</td><td> $1.0 \\times 10^{-6}$ </td></tr></table>\n\n示例 一根长 $L = 10 \\mathrm{~m}$ 的铁丝, 质量 $m = 0.156 \\mathrm{~kg}$ 。试求其在温度为 $20^{\\circ} \\mathrm{C}$ 时的电阻。(铁的密度 $D = 7.8 \\times 10^{3} \\mathrm{~kg} / \\mathrm{m}^{3}$ )\n\n分析：由电阻定律公式 $R = \\rho \\frac{L}{S}$ 可知，若求铁丝的电阻 $R$ ，必须知道铁丝的电阻率 $\\rho$ 、长度 $L$ 和横截面积 $S$ 。其中 $\\rho$ 可以由表10-2查得， $L$ 已知， $S$ 则要通过铁丝的质量 $m$ 、密度 $D$ 和长度 $L$ 来求得。\n\n解：设铁丝的体积为 V，横截面积为 S，由 m = DV = DSL 得\n\n$$\nS = \\frac {m}{D L}\n$$\n\n将上式代入电阻定律公式，则铁丝的电阻\n\n$$\nR = \\rho \\frac {D L ^ {2}}{m} = \\frac {1 . 0 \\times 1 0 ^ {- 7} \\times 7 . 8 \\times 1 0 ^ {3} \\times 1 0 ^ {2}}{0 . 1 5 6} \\Omega = 0. 5 \\Omega\n$$\n\n## 大家谈\n\n导体的电阻和电阻率有何区别？\n\n\n\n## 温度对导体的电阻有何影响？\n\n前面讨论电阻和电阻率时我们都假定 “温度不变”，那么温度对导体的电阻有何影响呢？下面我们就先来做一个实验。\n\n## 自主活动\n\n利用电压表、电流表、温度传感器，按如图10-16所示的电路研究小灯泡的 $I - U$ 特性曲线。\n\n实验时，闭合开关，缓慢调节滑动变阻器阻值，记录电压 U、电流 I 的数据，并相应记录此时小灯泡周围的温度值。得到的实验 I-U 图线如图 10-17 所示。\n\n[source image omitted from static artifact]  \n图10-16 研究小灯泡的电压、电流关系\n\n[source image omitted from static artifact]  \n图10-17 小灯泡 $I - U$ 特性曲线\n\n从 I-U 图线不是一条直线可知，电阻不是一个常数。由实验可知，随着流过小灯泡的电流的增加，小灯泡灯丝的温度逐渐升高。温度对灯丝的电阻存在影响，灯丝温度变化时，它的电阻发生了变化。从实验获得的图线可知，灯丝电阻随温度升高而增大。小灯泡的灯丝在正常发光时的电阻值比不发光时大很多。电阻随温度的变化主要是由于导体材料的电阻率随温度发生了变化。尽管如此，在中学物理中，除非特别指出，一般不考虑温度对电阻变化的影响。\n\n利用金属的电阻跟温度的关系，可以制成电阻温度计。通常用铂电阻丝做成的温度计叫做铂温度计，它比汞温度计更精确，且测量范围更广。\n\n电阻器（resistor）是用导体材料制成的、在电路中对电流起一定阻碍作用的电子元件，在日常生活中也常常被直接称为电阻。人们根据电阻定律，设计生产出各种各样的电阻器（图10-12）来满足社会生产生活实际需要。作为重要基础电子元件，电阻器在工业生产中有着重要而且广泛的应用。\n\n## STSE\n\n1911 年，荷兰物理学家昂内斯（H. K. Onnes，1853—1926）发现，当汞温度降到 4.15 K（-269 ℃）附近时，电阻会突然降到零。之后，又有科学家发现，某些金属、合金和化合物在温度降到绝对零度附近某一特定温度时，电阻会突然减小到无法测量，这种现象叫做超导现象。由正常状态转变为超导状态的温度称为这种物质的临界温度。现在已发现，大多数金属元素以及数以千计的合金、化合物都在不同条件下显示出超导性。\n\n超导体可以通过大电流，并产生强磁场，因此在电磁设备中有着广泛的应用，如核磁共振成像仪、加速器等。不过超导现象大规模应用遇到的主要障碍是超导所要求的低温。如果能得到在室温下呈现超导现象的材料，就会使世界发生巨大的变化。\n\n我国著名物理学家赵忠贤（1941—）从1976年开始从事探索高温超导体的研究，1983年开始研究氧化物超导体BPB系统及重费米子超导性，1986年底在Ba-La-Cu-O系统研究中，注意到杂质的影响，并于1987年参与发现了液氮温区超导体。1987年2月，他所在的小组独立地发现了液氮温区超导体，并首先向世界上公布了其化学成分Ba-Y-Cu-O。这个研究成果推动了超导研究。现在，许多科学家正在研究超导。\n\n## 问题②思考\n\n1. 导致电路烧毁的故障，经常发生在插座处。试说明可能的原因。\n\n2. 某实验室需要绕制一个总阻值是 $50 \\Omega$ 的滑动变阻器。根据表10-2的数据，计算需要用多长的横截面积是 $0.02 \\mathrm{~mm}^{2}$ 的镍铬线？\n\n3. 观察滑动变阻器的外观，说出图 10-18 中各字母标识的部件的名称，并解释滑动变阻器能改变电阻的原因。\n\n  \n图10-18\n\n  \n图10-19\n\n4. 将四个定值电阻 $a$ 、 $b$ 、 $c$ 、 $d$ 分别接入电路，测得电流、电压值如图 10-19 中相应的点所示。试指出其中阻值最接近的两个电阻，并简述理由。\n\n5. 两根长短、粗细都相同的导体，一根是铜丝，另一根材料未知。若将这两根导体串接在电路中，发现另一根导线两端的电压约为铜丝两端电压的30倍，试问另一根导线是用何种材料制成的？\n\n6. 研究表明，人体中的水分绝大部分存在于血液、肌肉及内脏中，而脂肪中含水量极低，因此脂肪部分比肌肉和人体其他组织电阻率更高。电子脂肪秤是一种测量人体脂肪百分率、水分百分率、骨骼质量等数据的产品。脂肪秤的表面隐藏有两个电极片，使用时人需要赤脚站立在脂肪秤上。根据上述资料，建立简单物理模型，猜测脂肪秤的工作原理，并查找资料对脂肪秤测量的准确性进行评价。\n\n  \n图10-20 汽车后挡风玻璃上的电阻丝",
+      "title": "电阻定律"
+    }
+  ]
+}

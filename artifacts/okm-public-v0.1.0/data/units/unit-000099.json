@@ -1,0 +1,1414 @@
+{
+  "body": {
+    "content": "## 定义\n电容器放电过程（discharging）是指将充电后的电容器两极板通过导线连通，极板上的异号电荷相互中和，电荷量Q和电势差U同步下降，直至均降为零的动态过程。电容器本身是一种能够存储电荷和电能的装置 `[evidence:auto-0a0adc90eac9]`。\n\n## 核心解释\n在电路操作中，当单刀双掷开关切换至放电端（如接线柱2）时，电容器两极板通过导线形成闭合回路 `[evidence:auto-0d9f30cb04f8]`。此时，极板上预先储存的异号电荷开始相互中和，导致电容器极板上的电荷量逐渐减少 `[evidence:auto-0d9f30cb04f8]`。伴随电荷量的下降，两极板之间的电势差U也会随之同步下降 `[evidence:auto-0d9f30cb04f8]`。当极板上的电荷量完全减小为零时，两极板间的电势差也随之降为零，此时电容器不再带电，整个放电过程宣告完成 `[evidence:auto-0d9f30cb04f8]`。\n\n## 实验观测\n为了直观了解放电过程中电压和电流的变化规律，实验中常利用电压传感器和电流传感器替代传统的电压表与电流表 `[evidence:auto-286ae9e3ee67]`。通过采集电路信号，可以获得电容器放电时电压 $U$ 和电流 $I$ 随时间 $t$ 变化的图像，从而定量分析放电的动态特性 `[evidence:auto-286ae9e3ee67]`。\n\n## 关键要点\n- **触发条件**：需要将充电后的电容器两极板接入导通回路，形成放电路径。\n- **同步变化**：电荷量 $Q$ 与电势差 $U$ 呈严格同步减小趋势，直至同时归零。\n- **物理本质**：极板上异号电荷的相互中和过程，属于电能释放的动态过程。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "process/electrical:auto-6525e87dad79",
+    "properties": {
+      "card_title": "电容器放电过程",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-0a0adc90eac9",
+      "evidence:auto-0d9f30cb04f8",
+      "evidence:auto-286ae9e3ee67"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:45:02+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-e2484311ae86",
+    "mention_refs": [],
+    "node_id": "process/electrical:auto-6525e87dad79",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "将充电后的电容器两极板通过导线连通，极板上的异号电荷相互中和，电荷量Q和电势差U同步下降，直至均降为零的动态过程。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-0a0adc90eac9"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "将充电后的电容器两极板通过导线连通，极板上的异号电荷相互中和，电荷量Q和电势差U同步下降，直至均降为零的动态过程。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-0a0adc90eac9"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "将充电后的电容器两极板通过导线连通，极板上的异号电荷相互中和，电荷量Q和电势差U同步下降，直至均降为零的动态过程。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-0a0adc90eac9"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "电容器放电过程"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-0a0adc90eac9"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "电容 电容器"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-0a0adc90eac9"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-0a0adc90eac9"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-0a0adc90eac9"
+    ],
+    "status": "active",
+    "summary": "将充电后的电容器两极板通过导线连通，极板上的异号电荷相互中和，电荷量Q和电势差U同步下降，直至均降为零的动态过程。",
+    "title": "电容器放电过程",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 9,
+    "score": 100,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "general",
+      "id": "domain-profile:auto-9572886fb696",
+      "node_id": "process/electrical:auto-6525e87dad79",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "提供充电后的电容器电路图，要求绘制单刀双掷开关切换至放电端后Q-t变化草图，并标注起点、终点与变化趋势。",
+              "给定实验采集的放电U-t数据，要求判断U与Q是否同步降至零，并计算放电初期的电压变化率。",
+              "根据提供的I-t图像，指出放电电流的方向特征，并解释电流随时间衰减至零的原因。"
+            ],
+            "common_errors": [
+              "误认为放电是瞬间完成的，忽略Q和U同步逐渐下降至零的动态过程。",
+              "混淆充放电电流方向，未认识到放电过程中电荷中和产生瞬时放电电流。",
+              "割裂Q与U的关联性，误以为电势差U先降为零而电荷量Q滞后减小。"
+            ],
+            "diagnostic_questions": [
+              "将开关接通放电回路后，极板上的异号电荷发生了怎样的物理变化？",
+              "放电过程完全结束时，电容器两极板间的电势差U和电荷量Q的数值分别是多少？",
+              "如何利用电压传感器和电流传感器直观呈现放电过程中U和I的同步衰减关系？"
+            ],
+            "difficulty_level": "intermediate",
+            "extension_suggestions": [
+              "对比分析充电过程与放电过程中U、Q、I变化趋势的对称性与差异性。",
+              "利用数据采集软件导出放电曲线，验证U与Q的同步衰减规律。",
+              "结合超级电容器应用场景，讨论大电容器件在实际放电过程中的能量释放特点。"
+            ],
+            "generation": {
+              "confidence": 0.98,
+              "generated_at": "2026-07-12T10:12:46+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "f90e0484d08d8c27f6bda3606179a862b667ed0dd881561fc3493f86b0248b50",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-0d9f30cb04f8",
+                "evidence:auto-286ae9e3ee67",
+                "evidence:auto-0a0adc90eac9"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能准确描述放电过程中电荷量Q、电势差U及瞬时电流的同步变化趋势。",
+              "能说明接通放电回路开关的条件及极板异号电荷相互中和的物理机制。",
+              "能结合U-t与I-t图像分析放电过程结束时的状态特征（U=0, Q=0）。"
+            ],
+            "remediation_suggestions": [
+              "利用单刀双掷开关实验或仿真软件，演示开关切换瞬间电流表指针偏转，建立瞬时放电电流的直观表象。",
+              "结合传感器采集的U-t与I-t图像，引导学生对比曲线衰减趋势，强化Q与U同步下降的核心认知。",
+              "通过极板电荷中和的示意图拆解微观机制，明确电荷并未消失而是通过导线重新分布，纠正认知偏差。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-0a0adc90eac9",
+        "evidence:auto-0d9f30cb04f8",
+        "evidence:auto-286ae9e3ee67",
+        "evidence:auto-2d8ed277010e"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:12:46+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "随着科技的发展，不断有新的用来储存电荷的装置被创造出来，我们把能存储电荷和电能的装置叫做电容器（capacitor）。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-0a0adc90eac9",
+      "locator": "line:12",
+      "modality": "text",
+      "normalized_claims": [
+        "随着科技的发展，不断有新的用来储存电荷的装置被创造出来，我们把能存储电荷和电能的装置叫做电容器（capacitor）。"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "此时，将单刀双掷开关 S 置于接线柱 2，电容器上的电荷中和放电，极板上电荷量下降，两极板之间的电势差 U 也随之下降。当极板上的电荷量减小为零时，两极板之间电势差也下降为零，电容器最终不再带电，电容器的放电过程完成。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-0d9f30cb04f8",
+      "locator": "line:37",
+      "modality": "text",
+      "normalized_claims": [
+        "此时，将单刀双掷开关 S 置于接线柱 2，电容器上的电荷中和放电，极板上电荷量下降，两极板之间的电势差 U 也随之下降。当极板上的电荷量减小为零时，两极板之间电势差也下降为零，电容器最终不再带电，电容器的放电过程完成。"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "超级电容车的“超级电容器”一般使用活性炭电极材料，具有储存电荷量大的特点，其电容可达几百至上千法。超级电容作为绿色节能的新型器件，以其容量高、寿命长、充电时间短、高效率、低污染等优异特性在交通运输、电力、机械工业等方面得到广泛的使用。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-0f3e0cc6fe28",
+      "locator": "line:115",
+      "modality": "text",
+      "normalized_claims": [
+        "超级电容车的“超级电容器”一般使用活性炭电极材料，具有储存电荷量大的特点，其电容可达几百至上千法。超级电容作为绿色节能的新型器件，以其容量高、寿命长、充电时间短、高效率、低污染等优异特性在交通运输、电力、机械工业等方面得到广泛的使用。"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "由上式可见，电容器的电容在数值上等于两极板间的电势差为 1 V 时电容器极板上所带的电荷量。电容的国际单位是法拉，简称法，用符号 F 表示。一般电容器的电容往往比 1 F 小得多，常用微法（μF）、纳法（nF）、皮法（pF）等单位...",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-22dc8031c746",
+      "locator": "line:107",
+      "modality": "text",
+      "normalized_claims": [
+        "由上式可见，电容器的电容在数值上等于两极板间的电势差为 1 V 时电容器极板上所带的电荷量。电容的国际单位是法拉，简称法，用符号 F 表示。一般电容器的电容往往比 1 F 小得多，常用微法（μF）、纳法（nF）、皮法（pF）等单位..."
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "方法二：如图9-52所示，利用电压传感器和电流传感器，分别代替电压表与电流表，采集所测电路的电压、电流信号，得到电容器充、放电时电压 $U$ 和电流 $I$ 随时间 $t$ 变化的图像，分别如图9-53和图9-54所示；从而可了解电容器的充电和放电过程。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-286ae9e3ee67",
+      "locator": "line:57",
+      "modality": "equation",
+      "normalized_claims": [
+        "方法二：如图9-52所示，利用电压传感器和电流传感器，分别代替电压表与电流表，采集所测电路的电压、电流信号，得到电容器充、放电时电压 $U$ 和电流 $I$ 随时间 $t$ 变化的图像，分别如图9-53和图9-54所示；从而可了解电容器的充"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/fb1847b68a252df5daf55c491d0e0d840ded405b8331bfdb66a2cecba7dd3181.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-2d8ed277010e",
+      "locator": "line:68",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/fb1847b68a252df5daf55c491d0e0d840ded405b8331bfdb66a2cecba7dd3181.jpg)"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 251,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/fb1847b68a252df5daf55c491d0e0d840ded405b8331bfdb66a2cecba7dd3181.jpg",
+          "reason": "图片内容为 I-t 图像，展示了电容器充放电时的电流变化规律。根据上下文，前文提到了图9-53（U-t 图像），后文紧接着出现了“图9-54 I-t 图像”的说明，表明当前图片即为图9-54。该图是“实验装置与方法”中关于电容器充放电实验的核心数据展示，直接反映了实验现象和物理规律，因此作为核心内容保留。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "这是一张物理实验数据图，坐标轴分别为纵轴的电流 I (单位 mA) 和横轴的时间 t (单位 s)。图中展示了四段曲线：前两段位于横轴上方，呈现先迅速增大后减小趋于零的趋势；后两段位于横轴下方，呈现先迅速减小（负向增大）后回升趋于零的趋势。这是典型的电容器充放电过程中电流随时间变化的图像。",
+          "width": 576
+        },
+        "path": "images/fb1847b68a252df5daf55c491d0e0d840ded405b8331bfdb66a2cecba7dd3181.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "平行板电容器（图9-49）是最简单的电容器。它是在两个相距很近的平行金属板中间夹上一层绝缘物质——电介质（如空气、聚丙烯、云母等）组成的。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-30ab79f19c07",
+      "locator": "line:22",
+      "modality": "text",
+      "normalized_claims": [
+        "平行板电容器（图9-49）是最简单的电容器。它是在两个相距很近的平行金属板中间夹上一层绝缘物质——电介质（如空气、聚丙烯、云母等）组成的。"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/681512b5a15ebdf644b92888e0dc3446b15b7de7bbb9c1b6882e575709ea5eec.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-4f4f037ecf8d",
+      "locator": "line:15",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/681512b5a15ebdf644b92888e0dc3446b15b7de7bbb9c1b6882e575709ea5eec.jpg)"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 246,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/681512b5a15ebdf644b92888e0dc3446b15b7de7bbb9c1b6882e575709ea5eec.jpg",
+          "reason": "图片内容与前文“如图 9-46 所示的莱顿瓶可看作电容器的原型...”及后文标题“图9-46 莱顿瓶”完美对应。在“什么是电容器”这一节中，莱顿瓶作为电容器的早期模型，直观展示了电容器由两个导体（金属箔）和绝缘介质（玻璃）构成的基本结构，是引入和解释电容器概念的核心视觉证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了莱顿瓶（电容器的原型）的结构示意图。左侧为立体图，右侧为带标注的结构分解图，清晰标示了金属棒、玻璃瓶、金属链和金属箔四个主要部件。",
+          "width": 379
+        },
+        "path": "images/681512b5a15ebdf644b92888e0dc3446b15b7de7bbb9c1b6882e575709ea5eec.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "方法二：如图9-52所示，利用电压传感器和电流传感器，分别代替电压表与电流表，采集所测电路的电压、电流信号，得到电容器充、放电时电压 U 和电流 I 随时间 t 变化的图像，分别如图9-53和图9-54所示；从而可了解电容器的充电和放电过程。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-5a7cb13980eb",
+      "locator": "line:57",
+      "modality": "text",
+      "normalized_claims": [
+        "方法二：如图9-52所示，利用电压传感器和电流传感器，分别代替电压表与电流表，采集所测电路的电压、电流信号，得到电容器充、放电时电压 U 和电流 I 随时间 t 变化的图像，分别如图9-53和图9-54所示；从而可了解电容器的充电和放电过程"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/4c8491ee29d100d9cfee3d4ba81be3d7e9bf19aad3bc7b67758f557bc8156f0f.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-67f1096745e0",
+      "locator": "line:91",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/4c8491ee29d100d9cfee3d4ba81be3d7e9bf19aad3bc7b67758f557bc8156f0f.jpg)"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 5,
+          "height": 312,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/4c8491ee29d100d9cfee3d4ba81be3d7e9bf19aad3bc7b67758f557bc8156f0f.jpg",
+          "reason": "该图片直接对应前文描述的实验结果“绘制电容器 A 的 Q-U 图像（图 9-55）”，并直观展示了“电荷量 Q 和电势差 U 成正比”这一核心结论。后文明确标注其为“图9-55”，它是推导电容定义的关键数据图表，属于核心知识内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张 Q-U 图像，横轴为电压 U (V)，纵轴为电荷量 Q (×10⁻³ C)，图中有一条过原点的直线标注为“电容器A”，展示了电荷量与电压的正比关系。",
+          "width": 540
+        },
+        "path": "images/4c8491ee29d100d9cfee3d4ba81be3d7e9bf19aad3bc7b67758f557bc8156f0f.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "当手指接触到电容屏时，人体与电容屏就形成一个等效电容，而高频信号可以通过这一等效电容流入地线，这样传感线路所接收的电荷量减小，手指越靠近发射端，电荷量减小越明显，由此可根据传感线路所接收的电流确定触碰点的位置。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-6b45ef48953c",
+      "locator": "line:133",
+      "modality": "text",
+      "normalized_claims": [
+        "当手指接触到电容屏时，人体与电容屏就形成一个等效电容，而高频信号可以通过这一等效电容流入地线，这样传感线路所接收的电荷量减小，手指越靠近发射端，电荷量减小越明显，由此可根据传感线路所接收的电流确定触碰点的位置。"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/2c76de894de925052c38fa9bc99e73dd46282905873d2e93b6ab31b503cc8ea2.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-79aa852723fc",
+      "locator": "line:65",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/2c76de894de925052c38fa9bc99e73dd46282905873d2e93b6ab31b503cc8ea2.jpg)"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 251,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/2c76de894de925052c38fa9bc99e73dd46282905873d2e93b6ab31b503cc8ea2.jpg",
+          "reason": "图片直接展示了电容器充放电实验中的电压随时间变化的实验数据（$U-t$ 图像）。这与后文中明确标注的“图9-53 $U - t$ 图像”完全对应，且承接前文关于“用传感器观察电容器的充、放电电路”的实验设置，属于核心实验数据的可视化呈现。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个电压-时间（$U-t$）图像。纵轴标记为 $U/V$（电压，单位伏特），横轴标记为 $t/s$（时间，单位秒）。图像中的曲线显示了电压随时间的变化：电压从0开始逐渐上升并趋于平稳（充电过程），随后逐渐下降归零（放电过程），接着再次重复了上升和下降的过程。",
+          "width": 564
+        },
+        "path": "images/2c76de894de925052c38fa9bc99e73dd46282905873d2e93b6ab31b503cc8ea2.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "大量研究表明，对于同一个电容器，每个极板所带的电荷量 Q 和电容器两极板间的电势差 U 成正比，也就是说 $\\frac{Q}{U}$ 是确定的；对于不同电容器 $\\frac{Q}{U}$ 一般是不同的。可见，电荷量 Q 和电势差 U 之比描述了电容器存储电荷的本领。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-81aedd7deaf0",
+      "locator": "line:99",
+      "modality": "equation",
+      "normalized_claims": [
+        "大量研究表明，对于同一个电容器，每个极板所带的电荷量 Q 和电容器两极板间的电势差 U 成正比，也就是说 $\\frac{Q}{U}$ 是确定的；对于不同电容器 $\\frac{Q}{U}$ 一般是不同的。可见，电荷量 Q 和电势差 U 之比描"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "图9-53 $U - t$ 图像",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-83ddb6ab9ec5",
+      "locator": "line:66",
+      "modality": "equation",
+      "normalized_claims": [
+        "图9-53 $U - t$ 图像"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "图9-56 电容器 $B$ 的 $Q - U$ 图像",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-89311705514d",
+      "locator": "line:95",
+      "modality": "equation",
+      "normalized_claims": [
+        "图9-56 电容器 $B$ 的 $Q - U$ 图像"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "$$\nC = \\frac {Q}{U}\n$$",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-94a0bcbc2a07",
+      "locator": "line:105",
+      "modality": "equation",
+      "normalized_claims": [
+        "$$\nC = \\frac {Q}{U}\n$$"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/85f0150e6a98c5779e8819d4edcec19c769a8459057b1a370340bba54857fdb6.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-9c683c07db02",
+      "locator": "line:62",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/85f0150e6a98c5779e8819d4edcec19c769a8459057b1a370340bba54857fdb6.jpg)"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 312,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/85f0150e6a98c5779e8819d4edcec19c769a8459057b1a370340bba54857fdb6.jpg",
+          "reason": "该图片即为教材中的'图9-52'。前文描述了'方法二：如图9-52所示，利用电压传感器和电流传感器...采集所测电路的电压、电流信号'，后文紧接着给出了图片标题'图9-52 用传感器观察电容器的充、放电电路'。图片展示了该实验的核心电路连接结构（开关拨向1充电，拨向2放电），直接对应上下文描述的实验装置与方法，属于核心知识内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张电容器充放电的实验电路原理图。电路包含直流电源、一个单刀双掷开关S（触点标为1和2）、一个定值电阻、一个电容器、一个电压表（V）和一个电流表（A）。电压表并联在电容器和电流表的支路上。",
+          "width": 510
+        },
+        "path": "images/85f0150e6a98c5779e8819d4edcec19c769a8459057b1a370340bba54857fdb6.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "如图 9-46 所示的莱顿瓶可看作电容器的原型。莱顿瓶是一个玻璃容器，内外包覆着导电金属箔作为极板...莱顿瓶具有贮存电荷的功能。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a234ec6c4451",
+      "locator": "line:10",
+      "modality": "text",
+      "normalized_claims": [
+        "如图 9-46 所示的莱顿瓶可看作电容器的原型。莱顿瓶是一个玻璃容器，内外包覆着导电金属箔作为极板...莱顿瓶具有贮存电荷的功能。"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "大量研究表明，对于同一个电容器，每个极板所带的电荷量 Q 和电容器两极板间的电势差 U 成正比，也就是说 Q/U 是确定的；对于不同电容器 Q/U 一般是不同的。可见，电荷量 Q 和电势差 U 之比描述了电容器存储电荷的本领。物理学中把电容器所带的电荷量 Q 与电容器两极板间的电势差 U 之比称为电容器的电容（capacitance），用符号 C 来表示。C = Q/U",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a82a16af2747",
+      "locator": "line:99-104",
+      "modality": "text",
+      "normalized_claims": [
+        "大量研究表明，对于同一个电容器，每个极板所带的电荷量 Q 和电容器两极板间的电势差 U 成正比，也就是说 Q/U 是确定的；对于不同电容器 Q/U 一般是不同的。可见，电荷量 Q 和电势差 U 之比描述了电容器存储电荷的本领。物理学中把电容"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/e3d9907620766fbc391df32d20316098e391ebc0fc4356fff2fdfb7dc6de32f2.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-af94e1d16a92",
+      "locator": "line:59",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/e3d9907620766fbc391df32d20316098e391ebc0fc4356fff2fdfb7dc6de32f2.jpg)"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 287,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/e3d9907620766fbc391df32d20316098e391ebc0fc4356fff2fdfb7dc6de32f2.jpg",
+          "reason": "图片内容是电容器充放电实验的核心电路原理图。它与前文提到的“如图 9-50 所示...将单刀双掷开关 S 置于接线柱 1...置于接线柱 2”以及“方法一：如图 9-51 所示，通过灯泡的亮度变化观察...”完全对应。该图直接展示了实验装置的连接方式和充放电原理，属于核心知识内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "这是一张电路图。图中包含一个直流电源（下方）、一个单刀双掷开关S（右侧，标有接线柱1和2）、一个电容器（中间，平行板符号）和一个小灯泡（圆圈叉号）。电路结构显示：当开关S连接触点1时，电源、开关、灯泡、电容器构成闭合回路（充电）；当开关S连接触点2时，电容器、灯泡、开关构成闭合回路（放电）。",
+          "width": 440
+        },
+        "path": "images/e3d9907620766fbc391df32d20316098e391ebc0fc4356fff2fdfb7dc6de32f2.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/7b60392736218d0ee64084c6014780599dcf7409c6f09ebfac24bcfb0c783c1c.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b10fa0711f3e",
+      "locator": "line:20",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/7b60392736218d0ee64084c6014780599dcf7409c6f09ebfac24bcfb0c783c1c.jpg)"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 332,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/7b60392736218d0ee64084c6014780599dcf7409c6f09ebfac24bcfb0c783c1c.jpg",
+          "reason": "图片内容直接对应前文提到的“电容器可分为容量固定的与容量可变的两种”、“常见的是固定容量的电容器”以及后文标注的“图9-47 常见电容器”和“图9-48 电容器的符号”。它直观地展示了电容器的实物形态和电路符号，是“什么是电容器”这一节的核心知识点。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了多种常见的电容器实物，包括黑色的电解电容、黄色和紫色的瓷片电容，以及右侧带有金属片和旋转轴的可变电容器。图片最右侧还画出了“固定电容器”和“可变电容器”的电路符号。",
+          "width": 998
+        },
+        "path": "images/7b60392736218d0ee64084c6014780599dcf7409c6f09ebfac24bcfb0c783c1c.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "图9-55 电容器 $A$ 的 $Q - U$ 图像",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-bd2ec47407fc",
+      "locator": "line:92",
+      "modality": "equation",
+      "normalized_claims": [
+        "图9-55 电容器 $A$ 的 $Q - U$ 图像"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/d0ca25ec64fe856c31d1fd4d92692ccefe2ab4479c9171241def256198e36bc6.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c74bc480e7a5",
+      "locator": "line:94",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/d0ca25ec64fe856c31d1fd4d92692ccefe2ab4479c9171241def256198e36bc6.jpg)"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 315,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/d0ca25ec64fe856c31d1fd4d92692ccefe2ab4479c9171241def256198e36bc6.jpg",
+          "reason": "图片内容为电容器B的Q-U图像（图9-56），直接对应后文描述的实验步骤和结论。这是推导‘电容’这一物理概念（C=Q/U）的关键实验证据，用于对比不同电容器存储电荷本领的差异，属于核心教学内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张物理实验数据图表，横轴为电压U（单位V），纵轴为电荷量Q（单位10^-3 C）。图中有一条过原点的直线，标注为“电容器B”，直线上分布着几个实验数据点，展示了Q与U的正比关系。",
+          "width": 540
+        },
+        "path": "images/d0ca25ec64fe856c31d1fd4d92692ccefe2ab4479c9171241def256198e36bc6.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "图9-54 $I - t$ 图像",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c9b48f66f985",
+      "locator": "line:69",
+      "modality": "equation",
+      "normalized_claims": [
+        "图9-54 $I - t$ 图像"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "由上式可见，电容器的电容在数值上等于两极板间的电势差为 1 V 时电容器极板上所带的电荷量。电容的国际单位是法拉，简称法，用符号 F 表示。一般电容器的电容往往比 1 F 小得多，常用微法（ $\\mu F$ ）、纳法（nF）、皮法（pF）等单位，它们的关系是：",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-de0e9c3f8d66",
+      "locator": "line:107",
+      "modality": "equation",
+      "normalized_claims": [
+        "由上式可见，电容器的电容在数值上等于两极板间的电势差为 1 V 时电容器极板上所带的电荷量。电容的国际单位是法拉，简称法，用符号 F 表示。一般电容器的电容往往比 1 F 小得多，常用微法（ $\\mu F$ ）、纳法（nF）、皮法（pF）等"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "调节直流电源的电压...以电容器所带的电荷量 Q 为纵轴，以两极板间的电势差 U 为横轴，绘制电容器 A 的 Q-U 图像（图 9-55），发现电容器 A 每个极板所带的电荷量 Q 和电容器两极板间的电势差 U 成正比。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e03588221667",
+      "locator": "line:93",
+      "modality": "text",
+      "normalized_claims": [
+        "调节直流电源的电压...以电容器所带的电荷量 Q 为纵轴，以两极板间的电势差 U 为横轴，绘制电容器 A 的 Q-U 图像（图 9-55），发现电容器 A 每个极板所带的电荷量 Q 和电容器两极板间的电势差 U 成正比。"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "在保持极板上的电荷量 Q 不变的条件下分别改变两极板的正对面积 S 、两极板间的距离 d 、两极板间的电介质...实验表明：S 越小，U 越大，说明 C 越小；d 越大，U 越大，说明 C 越小；插入介质板后，U 减小，说明 C 变大。由实验可得平行板电容器的电容大小与两极板的正对面积、极板间的距离和极板间电介质有关。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e2736ff69da3",
+      "locator": "line:120-128",
+      "modality": "text",
+      "normalized_claims": [
+        "在保持极板上的电荷量 Q 不变的条件下分别改变两极板的正对面积 S 、两极板间的距离 d 、两极板间的电介质...实验表明：S 越小，U 越大，说明 C 越小；d 越大，U 越大，说明 C 越小；插入介质板后，U 减小，说明 C 变大。由实"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "图9-50中如将单刀双掷开关S置于接线柱1，电源的两极就分别与电容器两极板相连接，两极板就分别带上了等量异号电荷。这个过程称为对电容器充电。随着极板上积累的电荷量不断增大，电容器两极板间的电势差 U 逐渐增大。当两板间电势差增大至与电源两端电压相等时，电路中不再有电流流动，电容器的充电过程完成。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e9b381ec7d5a",
+      "locator": "line:31-35",
+      "modality": "text",
+      "normalized_claims": [
+        "图9-50中如将单刀双掷开关S置于接线柱1，电源的两极就分别与电容器两极板相连接，两极板就分别带上了等量异号电荷。这个过程称为对电容器充电。随着极板上积累的电荷量不断增大，电容器两极板间的电势差 U 逐渐增大。当两板间电势差增大至与电源两端"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/5dd17c6255bdda20cc92dbcd8d6fbf22480f8f0d7dbc9cf615708c647df4e1d2.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e9f5e408479a",
+      "locator": "line:26",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/5dd17c6255bdda20cc92dbcd8d6fbf22480f8f0d7dbc9cf615708c647df4e1d2.jpg)"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 246,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/5dd17c6255bdda20cc92dbcd8d6fbf22480f8f0d7dbc9cf615708c647df4e1d2.jpg",
+          "reason": "图片直接展示了平行板电容器的结构模型及其在电路中的连接方式（充电状态），这是本节“什么是电容器”的核心概念。前文提到了“平行板电容器（图9-49）”，后文紧接着有“图9-49 电路中的平行板电容器”的说明，表明该图即为图9-49，用于解释平行板电容器的定义和工作原理。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个平行板电容器连接直流电源的电路示意图。左侧是平行板电容器，由两块平行的金属板组成，中间夹有绝缘介质（用虚线表示），上极板标有多个正号（+），表示带正电。右侧是一个电源符号，标有字母E。导线将电容器的两极板分别连接到电源的两极。",
+          "width": 418
+        },
+        "path": "images/5dd17c6255bdda20cc92dbcd8d6fbf22480f8f0d7dbc9cf615708c647df4e1d2.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "如加在电容器两极板上的电压超过某个极限数值，电介质将变成导体，这种现象称为电介质的击穿。电介质击穿会导致电容器损坏。这个极限电压称为击穿电压。电容器通常都标明电容器的电容和额定电压。额定电压是电容器长期工作时所能承受的电压，这个数值比击穿电压低。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-f82f2ebebc1f",
+      "locator": "line:112",
+      "modality": "text",
+      "normalized_claims": [
+        "如加在电容器两极板上的电压超过某个极限数值，电介质将变成导体，这种现象称为电介质的击穿。电介质击穿会导致电容器损坏。这个极限电压称为击穿电压。电容器通常都标明电容器的电容和额定电压。额定电压是电容器长期工作时所能承受的电压，这个数值比击穿电"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/a6d11e8ae89a57efc464aeaf2e28d5c62351a350f60813116de3daa2f8a37685.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ffaa490f3cec",
+      "locator": "line:35",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/a6d11e8ae89a57efc464aeaf2e28d5c62351a350f60813116de3daa2f8a37685.jpg)"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 251,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/a6d11e8ae89a57efc464aeaf2e28d5c62351a350f60813116de3daa2f8a37685.jpg",
+          "reason": "图片是教材上下文（前文及后文标题）中明确指出的“图9-50 电容器的充、放电原理图”。前文描述了开关S置于接线柱1时的充电过程，后文描述了置于接线柱2时的放电过程。该图直观展示了电容器存储和释放电荷的电路模型，直接对应章节标题“电容器如何存储和释放电荷？”，是核心知识内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张电路原理图。左侧为直流电源，中间连接一个单刀双掷开关S，开关有两个触点1和2。触点1连接电源正极，触点2连接下方导线。电路右侧串联了一个电阻R和一个平行板电容器。",
+          "width": 368
+        },
+        "path": "images/a6d11e8ae89a57efc464aeaf2e28d5c62351a350f60813116de3daa2f8a37685.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:45:02+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-1c001f2b08e5",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-0d9f30cb04f8"
+      ],
+      "source_type": "textbook",
+      "target_id": "process/electrical:auto-6525e87dad79",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "放电",
+      "discharging"
+    ],
+    "created_at": "2026-06-29T05:45:02+00:00",
+    "dataset_id": "main",
+    "definition": "将充电后的电容器两极板通过导线连通，极板上的异号电荷相互中和，电荷量Q和电势差U同步下降，直至均降为零的动态过程。",
+    "deprecated_by": null,
+    "domains": [
+      "general"
+    ],
+    "external_ids": {},
+    "id": "process/electrical:auto-6525e87dad79",
+    "kind": "process",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "电容器放电过程",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "subkinds": [
+          "electrical"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "U从电源电压减小至0，Q同步减小，产生瞬时放电电流"
+        ],
+        "conditions": [
+          "开关接通极板放电回路"
+        ],
+        "formal_expressions": []
+      },
+      "template_display": {
+        "color": "#2BA876",
+        "label": "物理过程",
+        "template_id": "textbook/physics",
+        "type_key": "process"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "electrical",
+    "tags": [
+      "动态变化",
+      "能量释放"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:45:02+00:00",
+        "dataset_id": "main",
+        "directionality": "undirected",
+        "from_id": "concept/device:auto-a0df6120d2ae",
+        "id": "edge:auto-497c2fd45ea7",
+        "notes": "放电是电容器极板电荷中和、电势差下降至零的过程",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "相关",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-0d9f30cb04f8"
+        ],
+        "status": "active",
+        "to_id": "process/electrical:auto-6525e87dad79",
+        "type": "related_to",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      },
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:45:02+00:00",
+        "dataset_id": "main",
+        "directionality": "undirected",
+        "from_id": "representation/graph:auto-9288a8a15aaa",
+        "id": "edge:auto-5b1de3237ee6",
+        "notes": "U-t与I-t传感器图像直观反映放电时电压下降电流反向衰减的动态特征",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-5a7cb13980eb"
+        ],
+        "status": "active",
+        "to_id": "process/electrical:auto-6525e87dad79",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ],
+    "outgoing": []
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第六节 电容 电容器\n\n如今在城市街头我们时常看到新能源汽车——电动汽车在路上行驶，其中超级电容车是典型的代表，作为城市公交的一员为市民提供公共服务。上海公交11路（图9-45）是世界上首条使用超级电容车实现快速充电技术商业化的公交线路。\n\n超级电容车借助车上安装的“超级电容器”，可以通过车顶的充电设备从充电站的电缆上实现几十秒的快速充电，然后继续行驶。超级电容车行驶所需的能量贮存在“超级电容器”里。\n\n\n\n## 什么是电容器?\n\n如图 9-46 所示的莱顿瓶可看作电容器的原型。莱顿瓶是一个玻璃容器，内外包覆着导电金属箔作为极板。瓶口插一根与外侧金属箔绝缘的金属棒，棒的上端接一个金属球，下端利用金属链与内侧金属箔连接。莱顿瓶具有贮存电荷的功能。\n\n随着科技的发展，不断有新的用来储存电荷的装置被创造出来，我们把能存储电荷和电能的装置叫做电容器（capacitor）。各种电容器在电子或电力设备里有广泛的应用。\n\n[source image omitted from static artifact]  \n图9-46 莱顿瓶\n\n电容器（图9-47）可分为容量固定的与容量可变的两种。电容器的符号如图9-48所示。常见的是固定容量的电容器，包括电解电容器和瓷片电容器等。\n\n[source image omitted from static artifact]  \n图9-47 常见电容器  \n图9-48 电容器的符号\n\n平行板电容器（图9-49）是最简单的电容器。它是在两个相距很近的平行金属板中间夹上一层绝缘物质——电介质（如空气、聚丙烯、云母等）组成的。\n\n[source image omitted from static artifact]  \n图9-49 电路中的平行板电容器\n\n\n\n## 电容器如何存储和释放电荷？\n\n图9-50中如将单刀双掷开关S置于接线柱1，电源的两极就分别与电容器两极板相连接，两极板就分别带上了等量异号电荷。这个过程称为对电容器充电。每个极板所带的电荷量的绝对值叫做电容器所带的电荷量。\n\n[source image omitted from static artifact]\n\n随着极板上积累的电荷量不断增大，电容器两极板间的电势差 U 逐渐增大。当两板间电势差增大至与电源两端电压相等时，电路中不再有电流流动，电容器的充电过程完成。此时，将单刀双掷开关 S 置于接线柱 2，电容器上的电荷中\n\n图9-50 电容器的充、放电原理图\n\n和放电，极板上电荷量下降，两极板之间的电势差 U 也随之下降。当极板上的电荷量减小为零时，两极板之间电势差也下降为零，电容器最终不再带电，电容器的放电过程完成。\n\n充、放电是电容器的重要特性之一。它可以将电能储存起来而在需要时释放。\n\n## 学生实验\n\n## 观察电容器的充、放电现象\n\n## 实验原理与方案\n\n如图 9-50 所示，将单刀双掷开关 S 置于接线柱 1 时就构成了电容器的充电电路。当电容器充电结束后，将开关 S 置于接线柱 2 时就构成了电容器的放电电路。\n\n## 实验装置与方法\n\n方法一：如图 9-51 所示，通过灯泡的亮度变化观察电容器的充电和放电过程。\n\n方法二：如图9-52所示，利用电压传感器和电流传感器，分别代替电压表与电流表，采集所测电路的电压、电流信号，得到电容器充、放电时电压 $U$ 和电流 $I$ 随时间 $t$ 变化的图像，分别如图9-53和图9-54所示；从而可了解电容器的充电和放电过程。\n\n[source image omitted from static artifact]  \n图9-51 用灯泡观察电容器的充、放电电路\n\n[source image omitted from static artifact]  \n图9-52 用传感器观察电容器的充、放电电路\n\n[source image omitted from static artifact]  \n图9-53 $U - t$ 图像\n\n[source image omitted from static artifact]  \n图9-54 $I - t$ 图像\n\n实验操作和数据收集\n\n根据方法一或方法二的实验原理图组装电路，进行实验，观察电容器的充、放电现象。\n\n数据分析\n\n实验观察到的现象：\\_\\_\\_\\_。\n\n实验结论：\\_\\_\\_\\_。\n\n交流与讨论\n\n电容器在充电过程中获得的能量来自哪里？\n\n电容器在充、放电过程后，电源提供的电能又去了哪里？（电源视为其内阻为零）\n\n## 如何描述电容器存储电荷本领的强弱？\n\n将电容器 A、电压传感器、电流传感器、电压可变的直流电源等按如图 9-52 所示组成电路。调节直流电源的电压，闭合开关，分别记录电容器两极板间的电势差 U 和在不同电压下充电完毕时电容器所带的电荷量 Q（将电流传感器采集的数据处理后得到）。以电容器所带的电荷量 Q 为纵轴，以两极板间的电势差 U 为横轴，绘制电容器 A 的 Q-U 图像（图 9-55），发现电容器 A 每个极板所带的电荷量 Q 和电容器两极板间的电势差 U 成正比。\n\n[source image omitted from static artifact]  \n图9-55 电容器 $A$ 的 $Q - U$ 图像\n\n[source image omitted from static artifact]  \n图9-56 电容器 $B$ 的 $Q - U$ 图像\n\n选择另一个不同的电容器 B，重复上述实验步骤，绘制电容器 B 的 Q-U 图像（图 9-56），同样发现电容器 B 每个极板所带的电荷量 Q 和电容器两极板间的电势差 U 成正比，但电容器 B 的比例系数与电容器 A 的比例系数不同。\n\n大量研究表明，对于同一个电容器，每个极板所带的电荷量 Q 和电容器两极板间的电势差 U 成正比，也就是说 $\\frac{Q}{U}$ 是确定的；对于不同电容器 $\\frac{Q}{U}$ 一般是不同的。可见，电荷量 Q 和电势差 U 之比描述了电容器存储电荷的本领。\n\n物理学中把电容器所带的电荷量 Q 与电容器两极板间的电势差 U 之比称为电容器的电容（capacitance），用符号 C 来表示。\n\n$$\nC = \\frac {Q}{U}\n$$\n\n由上式可见，电容器的电容在数值上等于两极板间的电势差为 1 V 时电容器极板上所带的电荷量。电容的国际单位是法拉，简称法，用符号 F 表示。一般电容器的电容往往比 1 F 小得多，常用微法（ $\\mu F$ ）、纳法（nF）、皮法（pF）等单位，它们的关系是：\n\n$$\n1 \\mu \\mathrm{F} = 1 0 ^ {- 6} \\mathrm{F}, 1 \\mathrm{nF} = 1 0 ^ {- 9} \\mathrm{F}, 1 \\mathrm{pF} = 1 0 ^ {- 1 2} \\mathrm{F}\n$$\n\n如加在电容器两极板上的电压超过某个极限数值，电介质将变成导体，这种现象称为电介质的击穿。电介质击穿会导致电容器损坏。这个极限电压称为击穿电压。\n\n电容器通常都标明电容器的电容和额定电压。额定电压是电容器长期工作时所能承受的电压，这个数值比击穿电压低。\n\n超级电容车的“超级电容器”一般使用活性炭电极材料，具有储存电荷量大的特点，其电容可达几百至上千法。超级电容作为绿色节能的新型器件，以其容量高、寿命长、充电时间短、高效率、低污染等优异特性在交通运输、电力、机械工业等方面得到广泛的使用。\n\n## 大家谈\n\n规定电容器的电容这个物理量时采用了什么方法？在本章的学习过程中哪些物理量的定义也采用了这一方法？\n\n示例 一个平行板电容器的电容是 $0.05 \\mu F$ ，两极板间的电势差为 3 V，求电容器所带的电荷量。\n\n分析：可由电容的定义公式求得电荷量。\n\n解：已知平行板电容器的电容 $C=0.05\\ \\mu F=5\\times10^{-8}F$ ，电容器两极板的电势差 U=3 V。\n\n则由电容的定义式 $C = \\frac{Q}{U}$ ，得电容器的电荷量\n\n$$\n\\begin{array}{r l} Q & = C U \\\\ & = 5 \\times 1 0 ^ {- 8} \\times 3 \\mathrm{C} \\\\ & = 1. 5 \\times 1 0 ^ {- 7} \\mathrm{C} \\end{array}\n$$\n\n## 拓展视野\n\n如图 9-57（a）所示，使一个极板与静电计相连的电容器充电后断开电源。在保持极板上的电荷量 $Q$ 不变的条件下分别改变两极板的正对面积 $S$ 、两极板间的距离 $d$ 、两极板间的电介质。静电计指针的偏转角可定性地反映两极板间电势差 $U$ 的大小。指针偏转角大反映了两极板间电势差大，由于极板上电荷量不变，说明电容器电容值小；指针偏转角小反映了两极板间电势差小，说明电容器电容值大。因此就可用不同情况下电势差 $U$ 的大小反映电容器电容值 $C$ 的大小从而研究影响电容器电容的因素。\n\n1. 如图 9-57 (b) 所示, 保持 $Q$ 、 $d$ 不变, 改变 $S$ , 研究 $C$ 与 $S$ 的关系;\n\n2. 如图 9-57 (c) 所示, 保持 $Q$ 、 $S$ 不变, 改变 $d$ , 研究 $C$ 与 $d$ 的关系;\n\n3. 如图 9-57 (d) 所示，保持 $Q$ 、 $S$ 、 $d$ 不变，在两极板间插入电介质，研究 $C$ 与电介质的关系。\n\n  \n(a)\n\n  \n(b)\n\n  \n(c)\n\n  \n(d)  \n图9-57 探究影响平行板电容器电容的因素\n\n实验表明：S 越小，U 越大，说明 C 越小；d 越大，U 越大，说明 C 越小；插入介质板后，U 减小，说明 C 变大。\n\n由实验可得平行板电容器的电容大小与两极板的正对面积、极板间的距离和极板间电介质有关。\n\n## STSE\n\n目前智能手机普遍采用了电容触摸屏，电容触摸屏可分为自电容屏和互电容屏两种类型。这里以支持多点触控的互电容屏为例进行说明。\n\n如图 9-58 所示为互电容屏结构。互电容屏内部由驱动线路与玻璃基板上的传感线路等部分组成，驱动线路发出低电压高频信号投射到传感线路形成稳定的电流。\n\n如图 9-59 所示，当手指接触到电容屏时，人体与电容屏就形成一个等效电容，而高频信号可以通过这一等效电容流入地线，这样传感线路所接收的电荷量减小，手指越靠近发射端，电荷量减小越明显，由此可根据传感线路所接收的电流确定触碰点的位置。\n\n\n\n  \n(a)\n\n图9-58 互电容屏结构  \n  \n(b)  \n图9-59 触屏原理示意图\n\n## 问题②思考\n\n1. 如图 9-60 所示为五种不同型号的电容器，试按储存电荷本领由强到弱排序。\n\n  \n(a) “14 $\\mu$ F 450 V”\n\n  \n(b) “0.104 $\\mu$ F 1 kV”\n\n  \n(c) “470 $\\mu$ F 25 V”  \n图9-60\n\n  \n(d) “4 F 5.5 V”\n\n(e) “50 F 2.7 V”  \n\n\n2. 有一个电容器的电容为 $C$ ，当电容器所存储的电荷量 $q$ 加倍时，其电容如何变化？如果电容器两端的电势差 $U$ 增至三倍，其电容又如何变化？简述理由。\n\n3. 给一个额定电压为 25 V 的固定电容器充电。试在如图 9-61 所示的坐标系中画出这个电容器在充电过程中电荷量 Q、电压 U 和电容 C 这三个物理量中任意两个物理量之间的关系。\n\n  \n(a)\n\n  \n(b)\n\n  \n(c)  \n图9-61\n\n4. 如图 9-62 所示，有一固定电容器的电容为 $4.7 \\mu \\mathrm{F}$ ，额定电压为 $50 \\mathrm{~V}$ ，求该电容器在额定电压下充电完成后所带的电荷量。若实际电压降到 $40 \\mathrm{~V}$ 时，电容器的电容和所带电荷量将如何变化？\n\n5. 手能够使手机触摸屏工作是因为手指接触到电容屏时，人体与电容屏间形成一个等效电容。普通手套一般由绝缘材料制成，戴着普通手套无法使触屏手机屏幕工作。佩戴触屏手套则可以使得触屏手机屏幕正常工作，观察如图9-63所示的触屏手套，触屏手套拇指和食指部位的材料有何特点，才能使手机屏幕工作？\n\n  \n图9-62\n\n  \n图9-63\n\n  \n图9-64 静电复印",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:9-6-a:source-markdown",
+          "locator": "电容 电容器",
+          "modality": "text",
+          "page_end": 39,
+          "page_start": 33,
+          "properties": {
+            "md_end": 1279,
+            "md_start": 1054,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:9-6-a",
+            "outline_title": "电容 电容器",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 1279,
+      "md_start": 1054,
+      "modalities": [
+        "text",
+        "equation",
+        "image"
+      ],
+      "page_end": 39,
+      "page_start": 33,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第六节 电容 电容器\n\n如今在城市街头我们时常看到新能源汽车——电动汽车在路上行驶，其中超级电容车是典型的代表，作为城市公交的一员为市民提供公共服务。上海公交11路（图9-45）是世界上首条使用超级电容车实现快速充电技术商业化的公交线路。\n\n超级电容车借助车上安装的“超级电容器”，可以通过车顶的充电设备从充电站的电缆上实现几十秒的快速充电，然后继续行驶。超级电容车行驶所需的能量贮存在“超级电容器”里。\n\n\n\n## 什么是电容器?\n\n如图 9-46 所示的莱顿瓶可看作电容器的原型。莱顿瓶是一个玻璃容器，内外包覆着导电金属箔作为极板。瓶口插一根与外侧金属箔绝缘的金属棒，棒的上端接一个金属球，下端利用金属链与内侧金属箔连接。莱顿瓶具有贮存电荷的功能。\n\n随着科技的发展，不断有新的用来储存电荷的装置被创造出来，我们把能存储电荷和电能的装置叫做电容器（capacitor）。各种电容器在电子或电力设备里有广泛的应用。\n\n[source image omitted from static artifact]  \n图9-46 莱顿瓶\n\n电容器（图9-47）可分为容量固定的与容量可变的两种。电容器的符号如图9-48所示。常见的是固定容量的电容器，包括电解电容器和瓷片电容器等。\n\n[source image omitted from static artifact]  \n图9-47 常见电容器  \n图9-48 电容器的符号\n\n平行板电容器（图9-49）是最简单的电容器。它是在两个相距很近的平行金属板中间夹上一层绝缘物质——电介质（如空气、聚丙烯、云母等）组成的。\n\n[source image omitted from static artifact]  \n图9-49 电路中的平行板电容器\n\n\n\n## 电容器如何存储和释放电荷？\n\n图9-50中如将单刀双掷开关S置于接线柱1，电源的两极就分别与电容器两极板相连接，两极板就分别带上了等量异号电荷。这个过程称为对电容器充电。每个极板所带的电荷量的绝对值叫做电容器所带的电荷量。\n\n[source image omitted from static artifact]\n\n随着极板上积累的电荷量不断增大，电容器两极板间的电势差 U 逐渐增大。当两板间电势差增大至与电源两端电压相等时，电路中不再有电流流动，电容器的充电过程完成。此时，将单刀双掷开关 S 置于接线柱 2，电容器上的电荷中\n\n图9-50 电容器的充、放电原理图\n\n和放电，极板上电荷量下降，两极板之间的电势差 U 也随之下降。当极板上的电荷量减小为零时，两极板之间电势差也下降为零，电容器最终不再带电，电容器的放电过程完成。\n\n充、放电是电容器的重要特性之一。它可以将电能储存起来而在需要时释放。\n\n## 学生实验\n\n## 观察电容器的充、放电现象\n\n## 实验原理与方案\n\n如图 9-50 所示，将单刀双掷开关 S 置于接线柱 1 时就构成了电容器的充电电路。当电容器充电结束后，将开关 S 置于接线柱 2 时就构成了电容器的放电电路。\n\n## 实验装置与方法\n\n方法一：如图 9-51 所示，通过灯泡的亮度变化观察电容器的充电和放电过程。\n\n方法二：如图9-52所示，利用电压传感器和电流传感器，分别代替电压表与电流表，采集所测电路的电压、电流信号，得到电容器充、放电时电压 $U$ 和电流 $I$ 随时间 $t$ 变化的图像，分别如图9-53和图9-54所示；从而可了解电容器的充电和放电过程。\n\n[source image omitted from static artifact]  \n图9-51 用灯泡观察电容器的充、放电电路\n\n[source image omitted from static artifact]  \n图9-52 用传感器观察电容器的充、放电电路\n\n[source image omitted from static artifact]  \n图9-53 $U - t$ 图像\n\n[source image omitted from static artifact]  \n图9-54 $I - t$ 图像\n\n实验操作和数据收集\n\n根据方法一或方法二的实验原理图组装电路，进行实验，观察电容器的充、放电现象。\n\n数据分析\n\n实验观察到的现象：\\_\\_\\_\\_。\n\n实验结论：\\_\\_\\_\\_。\n\n交流与讨论\n\n电容器在充电过程中获得的能量来自哪里？\n\n电容器在充、放电过程后，电源提供的电能又去了哪里？（电源视为其内阻为零）\n\n## 如何描述电容器存储电荷本领的强弱？\n\n将电容器 A、电压传感器、电流传感器、电压可变的直流电源等按如图 9-52 所示组成电路。调节直流电源的电压，闭合开关，分别记录电容器两极板间的电势差 U 和在不同电压下充电完毕时电容器所带的电荷量 Q（将电流传感器采集的数据处理后得到）。以电容器所带的电荷量 Q 为纵轴，以两极板间的电势差 U 为横轴，绘制电容器 A 的 Q-U 图像（图 9-55），发现电容器 A 每个极板所带的电荷量 Q 和电容器两极板间的电势差 U 成正比。\n\n[source image omitted from static artifact]  \n图9-55 电容器 $A$ 的 $Q - U$ 图像\n\n[source image omitted from static artifact]  \n图9-56 电容器 $B$ 的 $Q - U$ 图像\n\n选择另一个不同的电容器 B，重复上述实验步骤，绘制电容器 B 的 Q-U 图像（图 9-56），同样发现电容器 B 每个极板所带的电荷量 Q 和电容器两极板间的电势差 U 成正比，但电容器 B 的比例系数与电容器 A 的比例系数不同。\n\n大量研究表明，对于同一个电容器，每个极板所带的电荷量 Q 和电容器两极板间的电势差 U 成正比，也就是说 $\\frac{Q}{U}$ 是确定的；对于不同电容器 $\\frac{Q}{U}$ 一般是不同的。可见，电荷量 Q 和电势差 U 之比描述了电容器存储电荷的本领。\n\n物理学中把电容器所带的电荷量 Q 与电容器两极板间的电势差 U 之比称为电容器的电容（capacitance），用符号 C 来表示。\n\n$$\nC = \\frac {Q}{U}\n$$\n\n由上式可见，电容器的电容在数值上等于两极板间的电势差为 1 V 时电容器极板上所带的电荷量。电容的国际单位是法拉，简称法，用符号 F 表示。一般电容器的电容往往比 1 F 小得多，常用微法（ $\\mu F$ ）、纳法（nF）、皮法（pF）等单位，它们的关系是：\n\n$$\n1 \\mu \\mathrm{F} = 1 0 ^ {- 6} \\mathrm{F}, 1 \\mathrm{nF} = 1 0 ^ {- 9} \\mathrm{F}, 1 \\mathrm{pF} = 1 0 ^ {- 1 2} \\mathrm{F}\n$$\n\n如加在电容器两极板上的电压超过某个极限数值，电介质将变成导体，这种现象称为电介质的击穿。电介质击穿会导致电容器损坏。这个极限电压称为击穿电压。\n\n电容器通常都标明电容器的电容和额定电压。额定电压是电容器长期工作时所能承受的电压，这个数值比击穿电压低。\n\n超级电容车的“超级电容器”一般使用活性炭电极材料，具有储存电荷量大的特点，其电容可达几百至上千法。超级电容作为绿色节能的新型器件，以其容量高、寿命长、充电时间短、高效率、低污染等优异特性在交通运输、电力、机械工业等方面得到广泛的使用。\n\n## 大家谈\n\n规定电容器的电容这个物理量时采用了什么方法？在本章的学习过程中哪些物理量的定义也采用了这一方法？\n\n示例 一个平行板电容器的电容是 $0.05 \\mu F$ ，两极板间的电势差为 3 V，求电容器所带的电荷量。\n\n分析：可由电容的定义公式求得电荷量。\n\n解：已知平行板电容器的电容 $C=0.05\\ \\mu F=5\\times10^{-8}F$ ，电容器两极板的电势差 U=3 V。\n\n则由电容的定义式 $C = \\frac{Q}{U}$ ，得电容器的电荷量\n\n$$\n\\begin{array}{r l} Q & = C U \\\\ & = 5 \\times 1 0 ^ {- 8} \\times 3 \\mathrm{C} \\\\ & = 1. 5 \\times 1 0 ^ {- 7} \\mathrm{C} \\end{array}\n$$\n\n## 拓展视野\n\n如图 9-57（a）所示，使一个极板与静电计相连的电容器充电后断开电源。在保持极板上的电荷量 $Q$ 不变的条件下分别改变两极板的正对面积 $S$ 、两极板间的距离 $d$ 、两极板间的电介质。静电计指针的偏转角可定性地反映两极板间电势差 $U$ 的大小。指针偏转角大反映了两极板间电势差大，由于极板上电荷量不变，说明电容器电容值小；指针偏转角小反映了两极板间电势差小，说明电容器电容值大。因此就可用不同情况下电势差 $U$ 的大小反映电容器电容值 $C$ 的大小从而研究影响电容器电容的因素。\n\n1. 如图 9-57 (b) 所示, 保持 $Q$ 、 $d$ 不变, 改变 $S$ , 研究 $C$ 与 $S$ 的关系;\n\n2. 如图 9-57 (c) 所示, 保持 $Q$ 、 $S$ 不变, 改变 $d$ , 研究 $C$ 与 $d$ 的关系;\n\n3. 如图 9-57 (d) 所示，保持 $Q$ 、 $S$ 、 $d$ 不变，在两极板间插入电介质，研究 $C$ 与电介质的关系。\n\n  \n(a)\n\n  \n(b)\n\n  \n(c)\n\n  \n(d)  \n图9-57 探究影响平行板电容器电容的因素\n\n实验表明：S 越小，U 越大，说明 C 越小；d 越大，U 越大，说明 C 越小；插入介质板后，U 减小，说明 C 变大。\n\n由实验可得平行板电容器的电容大小与两极板的正对面积、极板间的距离和极板间电介质有关。\n\n## STSE\n\n目前智能手机普遍采用了电容触摸屏，电容触摸屏可分为自电容屏和互电容屏两种类型。这里以支持多点触控的互电容屏为例进行说明。\n\n如图 9-58 所示为互电容屏结构。互电容屏内部由驱动线路与玻璃基板上的传感线路等部分组成，驱动线路发出低电压高频信号投射到传感线路形成稳定的电流。\n\n如图 9-59 所示，当手指接触到电容屏时，人体与电容屏就形成一个等效电容，而高频信号可以通过这一等效电容流入地线，这样传感线路所接收的电荷量减小，手指越靠近发射端，电荷量减小越明显，由此可根据传感线路所接收的电流确定触碰点的位置。\n\n\n\n  \n(a)\n\n图9-58 互电容屏结构  \n  \n(b)  \n图9-59 触屏原理示意图\n\n## 问题②思考\n\n1. 如图 9-60 所示为五种不同型号的电容器，试按储存电荷本领由强到弱排序。\n\n  \n(a) “14 $\\mu$ F 450 V”\n\n  \n(b) “0.104 $\\mu$ F 1 kV”\n\n  \n(c) “470 $\\mu$ F 25 V”  \n图9-60\n\n  \n(d) “4 F 5.5 V”\n\n(e) “50 F 2.7 V”  \n\n\n2. 有一个电容器的电容为 $C$ ，当电容器所存储的电荷量 $q$ 加倍时，其电容如何变化？如果电容器两端的电势差 $U$ 增至三倍，其电容又如何变化？简述理由。\n\n3. 给一个额定电压为 25 V 的固定电容器充电。试在如图 9-61 所示的坐标系中画出这个电容器在充电过程中电荷量 Q、电压 U 和电容 C 这三个物理量中任意两个物理量之间的关系。\n\n  \n(a)\n\n  \n(b)\n\n  \n(c)  \n图9-61\n\n4. 如图 9-62 所示，有一固定电容器的电容为 $4.7 \\mu \\mathrm{F}$ ，额定电压为 $50 \\mathrm{~V}$ ，求该电容器在额定电压下充电完成后所带的电荷量。若实际电压降到 $40 \\mathrm{~V}$ 时，电容器的电容和所带电荷量将如何变化？\n\n5. 手能够使手机触摸屏工作是因为手指接触到电容屏时，人体与电容屏间形成一个等效电容。普通手套一般由绝缘材料制成，戴着普通手套无法使触屏手机屏幕工作。佩戴触屏手套则可以使得触屏手机屏幕正常工作，观察如图9-63所示的触屏手套，触屏手套拇指和食指部位的材料有何特点，才能使手机屏幕工作？\n\n  \n图9-62\n\n  \n图9-63\n\n  \n图9-64 静电复印",
+      "title": "电容 电容器"
+    }
+  ]
+}

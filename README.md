@@ -2,7 +2,7 @@
 
 **Turn textbooks into evidence-grounded knowledge objects that AI systems can retrieve, inspect, and cite.**
 
-[中文说明](README.zh-CN.md) · [Populated demo](examples/demo-data/README.md) · [Architecture](docs/current-system-architecture.md) · [Knowledge unit contract](docs/knowledge-unit-contract.md) · [Contributing](CONTRIBUTING.md)
+[中文说明](README.zh-CN.md) · [Public artifact](artifacts/okm-public-v0.1.0/README.md) · [Populated demo](examples/demo-data/README.md) · [Architecture](docs/current-system-architecture.md) · [Knowledge unit contract](docs/knowledge-unit-contract.md) · [Contributing](CONTRIBUTING.md)
 
 [![CI](https://github.com/Titan-Frank/Open-Knowledge-Map/actions/workflows/ci.yml/badge.svg)](https://github.com/Titan-Frank/Open-Knowledge-Map/actions/workflows/ci.yml)
 ![Node.js 22+](https://img.shields.io/badge/Node.js-22%2B-339933?logo=nodedotjs&logoColor=white)

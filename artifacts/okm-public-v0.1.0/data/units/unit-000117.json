@@ -1,0 +1,1257 @@
+{
+  "body": {
+    "content": "## 定义\n在平均日地距离时，地球大气层外界垂直于太阳辐射方向的 1 m² 面积在 1 s 内接收的太阳辐射能量值，被定义为太阳常数。[evidence:auto-7429aea99d77]\n\n## 核心解释\n人们常用“太阳常数”来描述地球大气层上方的太阳辐射强度。[evidence:auto-7429aea99d77] 该物理量的定义明确了三个关键条件：测量位置需位于地球大气层外，接收面必须垂直于太阳辐射方向，且基于地球与太阳的平均距离进行计算。[evidence:auto-7429aea99d77]\n\n## 关键要点\n- **标准数值**：近年来，通过各种手段测得太阳常数的标准值为 1366 W/m²。[evidence:auto-7429aea99d77]\n- **应用边界**：该常数主要用于估算地球接收的总太阳辐射能。[evidence:auto-7429aea99d77]",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "property/constant:auto-74c3f1c9abf3",
+    "properties": {
+      "card_title": "太阳常数",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-7429aea99d77"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:44:48+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-8b7ddade0aaa",
+    "mention_refs": [],
+    "node_id": "property/constant:auto-74c3f1c9abf3",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "在平均日地距离时地球大气层外界垂直于太阳辐射的1 m²、1 s接收的太阳辐射能量值。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-72ec321d3ecb"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "在平均日地距离时地球大气层外界垂直于太阳辐射的1 m²、1 s接收的太阳辐射能量值。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-72ec321d3ecb"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "在平均日地距离时地球大气层外界垂直于太阳辐射的1 m²、1 s接收的太阳辐射能量值。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-72ec321d3ecb"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "太阳常数"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-72ec321d3ecb"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "能源及其应用 & 能量的转化"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-72ec321d3ecb"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-72ec321d3ecb"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-72ec321d3ecb"
+    ],
+    "status": "active",
+    "summary": "在平均日地距离时地球大气层外界垂直于太阳辐射的1 m²、1 s接收的太阳辐射能量值。",
+    "title": "太阳常数",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 8,
+    "score": 89,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点暂时没有入边或出边。",
+        "passed": false,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "physics",
+      "id": "domain-profile:auto-8c2cce8bbe2b",
+      "node_id": "property/constant:auto-74c3f1c9abf3",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "提供卫星太阳能板铺设情境，要求学生列出计算接收功率必须核对的三个物理条件，并指出条件不满足时的修正思路。",
+              "给出地表实测辐射强度数据，要求学生结合太阳常数定义，定性分析造成差异的主要环境因素（如大气衰减、非垂直入射）。",
+              "要求学生在已知地球横截面积的前提下，利用太阳常数估算地球整体接收的太阳总辐射功率，并规范完成单位换算与数量级判断。"
+            ],
+            "common_errors": [
+              "脱离“垂直于太阳辐射方向”的条件，直接将1366 W/m²代入倾斜接收面的功率计算中。",
+              "混淆“大气层外界”与“地表”概念，误将受大气吸收和散射削弱后的实测辐射值当作太阳常数。",
+              "将“常数”绝对化，忽略其定义严格依赖于“平均日地距离”这一前提条件。"
+            ],
+            "diagnostic_questions": [
+              "若某探测器位于平均日地距离处，但其接收面与阳光成60°夹角，其单位面积接收功率是否仍为1366 W/m²？请结合定义说明理由。",
+              "为什么在地表实测的太阳辐射强度通常显著低于太阳常数？请指出定义中明确排除的两个环境因素。",
+              "已知太阳常数数值及单位，请完整复述该物理量所描述的时空基准与几何条件。"
+            ],
+            "difficulty_level": "basic",
+            "extension_suggestions": [
+              "引导学生查阅日地距离的周年变化数据，讨论近日点与远日点太阳辐射强度的理论差异，深化对“平均距离”前提的理解。",
+              "将太阳常数与光伏板转换效率结合，设计简易的能量转化链计算任务，衔接教材中“能量的转化”主题。",
+              "对比太阳常数与核聚变/裂变单次释放能量量级，建立恒星级能量输出与微观核反应的能量尺度认知。"
+            ],
+            "generation": {
+              "confidence": 0.98,
+              "generated_at": "2026-07-12T10:36:34+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "29d40c8bfda543555e064d34ee73339e0b012657e456907a173c317c480d2e3f",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-7429aea99d77"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能准确陈述太阳常数的定义，并明确其三个限定条件（平均日地距离、大气层外、垂直入射）。",
+              "能正确书写太阳常数的数值与单位（1366 W/m²），并说明其作为辐射强度基准的物理意义。",
+              "能根据入射角度或接收位置的变化，判断实际接收能量密度与太阳常数的差异，并解释原因。"
+            ],
+            "remediation_suggestions": [
+              "利用教材原文逐层拆解定义中的空间基准、几何关系和距离约束，采用“条件对比法”强化物理量的严谨性与理想化特征。",
+              "设计从理想基准到实际情境的对比计算任务，引导学生先代入太阳常数求解，再引入大气或角度因素修正，体会基准值的应用边界。",
+              "结合“能源及其应用”主题布置估算地球接收总辐射能的任务，帮助学生建立从微观物理量到宏观能量转化的认知桥梁。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-72ec321d3ecb",
+        "evidence:auto-7429aea99d77"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:36:34+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/d6f4c0874f12cbb5aa08f7209c71fcb0b309c9aebeff2fd7825e1a9b9821b2d7.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-00151542db85",
+      "locator": "line:56",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/d6f4c0874f12cbb5aa08f7209c71fcb0b309c9aebeff2fd7825e1a9b9821b2d7.jpg)"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 379,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/d6f4c0874f12cbb5aa08f7209c71fcb0b309c9aebeff2fd7825e1a9b9821b2d7.jpg",
+          "reason": "图片内容为海上风力发电场的实景照片。前文明确提到'如图12-3所示的上海市东海大桥10万千瓦风电场是中国第一个国家海上风电示范项目'，后文紧接着是图注'图12-3 上海市东海大桥10万千瓦风电场'。图片与上下文完全对应，作为教材中介绍'风能'和'风力发电'章节的辅助说明材料，直观展示了海上风电的实际应用场景。根据规则，照片和场景类图片通常归类为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了位于开阔海面上的一排海上风力发电机。这些风机拥有巨大的白色叶片和细长的白色塔筒，塔筒底部连接着橙黄色的基座，固定在深蓝色的海水中，背景是纯净的蓝天。",
+          "width": 626
+        },
+        "path": "images/d6f4c0874f12cbb5aa08f7209c71fcb0b309c9aebeff2fd7825e1a9b9821b2d7.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/d1cacf15bdd3ec666293756f28a08d142bd75adfe8600828ccf396c10ebc3be1.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-09fa10baa20d",
+      "locator": "line:45",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/d1cacf15bdd3ec666293756f28a08d142bd75adfe8600828ccf396c10ebc3be1.jpg)"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 389,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/d1cacf15bdd3ec666293756f28a08d142bd75adfe8600828ccf396c10ebc3be1.jpg",
+          "reason": "图片展示了三峡水电站的实景，与上下文中的'我国三峡水电站（图 12-2）'及后文'图12-2 三峡水电站'完全对应。文中前部分介绍了水力发电的原理并引出三峡电站，后部分详细说明了三峡电站的装机容量和综合效益。该图片作为实景照片，辅助展示了这一世界级水利工程的宏大规模，属于 supporting 类型（照片/场景/辅助说明）。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张广角航拍照片，展示了横跨宽阔江面的巨大混凝土大坝（三峡大坝）。可以看到大坝主体、排列整齐的泄洪闸、红色的起重设备、两岸的山体以及宽阔的水库水面。",
+          "width": 626
+        },
+        "path": "images/d1cacf15bdd3ec666293756f28a08d142bd75adfe8600828ccf396c10ebc3be1.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "中国科学院合肥物质科学研究院研制的世界上第一个非圆截面全超导托卡马克装置，即可控核聚变反应装置，被叫做“东方超环”，也被称为“人造小太阳”。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-25d85ecccf0f",
+      "locator": "line:63",
+      "modality": "text",
+      "normalized_claims": [
+        "中国科学院合肥物质科学研究院研制的世界上第一个非圆截面全超导托卡马克装置，即可控核聚变反应装置，被叫做“东方超环”，也被称为“人造小太阳”。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "1939 年，物理学家发现用中子轰击铀核时铀核分裂成几个其他原子核，同时释放出能量。较重的原子核分裂成几个较轻的原子核的过程叫做核裂变（图 12-7）。一个铀 235 核裂变可释放约 200 MeV 能量（eV 是能量单位，称为 “电子伏特”， $1\\ eV = 1.6 \\times 10^{-19}\\ J$ ， $1\\ MeV = 10^{6}\\ eV$ ）。若有足够数量的铀核裂变且能持续进行，那么，所释放的能量就能为人类所用。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-26ad963e36f7",
+      "locator": "line:104",
+      "modality": "equation",
+      "normalized_claims": [
+        "1939 年，物理学家发现用中子轰击铀核时铀核分裂成几个其他原子核，同时释放出能量。较重的原子核分裂成几个较轻的原子核的过程叫做核裂变（图 12-7）。一个铀 235 核裂变可释放约 200 MeV 能量（eV 是能量单位，称为 “电子伏特"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "自然界中处处充满能量，能量无所不在，而它的表现形式是多种多样的。如图 12-1 所示的新能源公交车内部电池中贮存着电能，电能转化为声能、光能、机械能等能量形式。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-33489422c6b2",
+      "locator": "line:3",
+      "modality": "text",
+      "normalized_claims": [
+        "自然界中处处充满能量，能量无所不在，而它的表现形式是多种多样的。如图 12-1 所示的新能源公交车内部电池中贮存着电能，电能转化为声能、光能、机械能等能量形式。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "水力发电是利用水能的主要方面。一般需筑坝拦截江河水流或蓄水成水库，水流自上而下冲击安装在坝底的发电机组发电。可见水力发电的能源乃是上游水的势能。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-3db67f9f2e78",
+      "locator": "line:31",
+      "modality": "text",
+      "normalized_claims": [
+        "水力发电是利用水能的主要方面。一般需筑坝拦截江河水流或蓄水成水库，水流自上而下冲击安装在坝底的发电机组发电。可见水力发电的能源乃是上游水的势能。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "这种反应过程的产物可以引起随后的反应，因而使这种反应一经开始就能自动持续进行的反应过程叫做链式反应。能够发生链式反应的铀块的最小体积叫做临界体积。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-45c09f17d4f0",
+      "locator": "line:58",
+      "modality": "text",
+      "normalized_claims": [
+        "这种反应过程的产物可以引起随后的反应，因而使这种反应一经开始就能自动持续进行的反应过程叫做链式反应。能够发生链式反应的铀块的最小体积叫做临界体积。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "为了控制核裂变的链式反应速度从而安全稳定地利用核能，必须建立一种装置，使铀核不但能发生链式反应，而且中子的再生率是可以控制的。这种装置叫做反应堆。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-4d6d7891ccd7",
+      "locator": "line:60",
+      "modality": "text",
+      "normalized_claims": [
+        "为了控制核裂变的链式反应速度从而安全稳定地利用核能，必须建立一种装置，使铀核不但能发生链式反应，而且中子的再生率是可以控制的。这种装置叫做反应堆。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/a3faed7e1111c6c2163c05c78de975f25d0840a3895468ae0fe9c91ff01883a0.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-4ffa7c56ad55",
+      "locator": "line:11",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/a3faed7e1111c6c2163c05c78de975f25d0840a3895468ae0fe9c91ff01883a0.jpg)"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.9,
+          "height": 56,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/a3faed7e1111c6c2163c05c78de975f25d0840a3895468ae0fe9c91ff01883a0.jpg",
+          "reason": "图片是一个问号图标，位于“大家谈”栏目下，紧接在前文提出的关于能量来源的问题（“日常生活中所用的能量都从何而来呢？”）之后。虽然图片本身没有具体的学科知识内容，但它与标题“大家谈”及前文的问题形成了合理对应，起到了辅助说明和引导读者思考的作用。根据核心规则，只要与上下文对应就应保留；根据分类规则，起辅助作用的图片应归类为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片显示一个紫色的圆形图标，中间有一个白色的问号。",
+          "width": 62
+        },
+        "path": "images/a3faed7e1111c6c2163c05c78de975f25d0840a3895468ae0fe9c91ff01883a0.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/7c10bc253dc850bf6e08efae9d235288209bdda5b6f24af902e8c0b3940edbd1.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-57ee56d89078",
+      "locator": "line:95",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/7c10bc253dc850bf6e08efae9d235288209bdda5b6f24af902e8c0b3940edbd1.jpg)"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 392,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/7c10bc253dc850bf6e08efae9d235288209bdda5b6f24af902e8c0b3940edbd1.jpg",
+          "reason": "图片内容为秦山核电站的实景照片。前文明确提及“秦山核电站（图12-6）...是中国自行设计、建造和运营管理的第一座30万千瓦压水堆核电站”，后文紧接着标注“图12-6 秦山核电站”。图片与上下文中的文字描述及图注完全对应，作为展示核能应用实例的辅助说明照片。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张位于海边的核电站夜景照片，画面中有巨大的混凝土反应堆建筑（核岛）、周边的道路、绿化带、围栏，远处是海面和天空。",
+          "width": 623
+        },
+        "path": "images/7c10bc253dc850bf6e08efae9d235288209bdda5b6f24af902e8c0b3940edbd1.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/6f982f6c6d715aa8886d147b36e0e4b7ea721cfacd023b759a3980a23a74dda9.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6e54f4ca3e16",
+      "locator": "line:106",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/6f982f6c6d715aa8886d147b36e0e4b7ea721cfacd023b759a3980a23a74dda9.jpg)"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 287,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/6f982f6c6d715aa8886d147b36e0e4b7ea721cfacd023b759a3980a23a74dda9.jpg",
+          "reason": "前文明确提到“较重的原子核分裂成几个较轻的原子核的过程叫做核裂变（图 12-7）”，后文紧跟“图12-7 核裂变”。该图片通过示意图清晰地展示了中子轰击铀核导致其分裂成两个子核并释放中子和能量的全过程，直接对应并解释了标题“核裂变”这一核心物理概念，属于教材中的核心内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了核裂变的微观过程示意图。从左至右依次为：中子轰击铀核、铀核吸收中子后变形拉长、核发生分裂、最终分裂成两个子核并释放出快中子和能量（爆炸状符号）。",
+          "width": 629
+        },
+        "path": "images/6f982f6c6d715aa8886d147b36e0e4b7ea721cfacd023b759a3980a23a74dda9.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/ccd51ee22ff16bd95d482ce78748ab03f77b413d80e1a03b6f0f8230f954ff55.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-6f7ab8e13ae7",
+      "locator": "line:118",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/ccd51ee22ff16bd95d482ce78748ab03f77b413d80e1a03b6f0f8230f954ff55.jpg)"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 293,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/ccd51ee22ff16bd95d482ce78748ab03f77b413d80e1a03b6f0f8230f954ff55.jpg",
+          "reason": "图片内容与上下文紧密对应。前文提到了“如图 12-9 所示，铀核受中子轰击而发生裂变...叫做链式反应”，后文明确标注了“图12-9 链式反应”。该图片直观地展示了核裂变链式反应的微观物理过程（中子轰击、核分裂、释放中子引发后续反应），是解释这一核心概念的关键示意图。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个物理过程的示意图：左侧一个绿色小球（中子）撞击一个由红蓝球组成的较大球体（铀核），导致其分裂成两个较小的部分，并释放出多个新的绿色小球（中子）以及能量符号（星号）。这些新释放的中子继续撞击周围其他的球体，引发连续的分裂过程，形象地描绘了核裂变的链式反应。",
+          "width": 362
+        },
+        "path": "images/ccd51ee22ff16bd95d482ce78748ab03f77b413d80e1a03b6f0f8230f954ff55.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "能源是自然界中能为人类提供某种形式能量的物质资源。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-72ec321d3ecb",
+      "locator": "line:17",
+      "modality": "text",
+      "normalized_claims": [
+        "能源是自然界中能为人类提供某种形式能量的物质资源。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "人们常用 “太阳常数” 来描述地球大气层上方的太阳辐射强度，这是指在平均日地距离时地球大气层外界垂直于太阳辐射的 $1 \\, m^{2}$ 、1 s 接收的太阳辐射能量值。近年来，通过各种手段测得太阳常数标准值为 $1366 \\, W/m^{2}$ 。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-7429aea99d77",
+      "locator": "line:67",
+      "modality": "equation",
+      "normalized_claims": [
+        "人们常用 “太阳常数” 来描述地球大气层上方的太阳辐射强度，这是指在平均日地距离时地球大气层外界垂直于太阳辐射的 $1 \\, m^{2}$ 、1 s 接收的太阳辐射能量值。近年来，通过各种手段测得太阳常数标准值为 $1366 \\, W/m^"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "风力发电就是把风的动能转化为电能。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-8a87e2e9fcc1",
+      "locator": "line:35",
+      "modality": "text",
+      "normalized_claims": [
+        "风力发电就是把风的动能转化为电能。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "eV 是能量单位，称为 “电子伏特”， $1\\ eV = 1.6 \\times 10^{-19}\\ J$ ， $1\\ MeV = 10^{6}\\ eV$ 。一个铀 235 核裂变可释放约 200 MeV 能量。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-9c093c2d6c82",
+      "locator": "line:54",
+      "modality": "equation",
+      "normalized_claims": [
+        "eV 是能量单位，称为 “电子伏特”， $1\\ eV = 1.6 \\times 10^{-19}\\ J$ ， $1\\ MeV = 10^{6}\\ eV$ 。一个铀 235 核裂变可释放约 200 MeV 能量。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "一次能源是指在自然界现成存在的能源，如太阳能、水能、煤、石油、天然气等；二次能源是指由一次能源加工转换而成的能源产品，如电力、焦炭、煤气、蒸汽等。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a42f8a879256",
+      "locator": "line:25",
+      "modality": "text",
+      "normalized_claims": [
+        "一次能源是指在自然界现成存在的能源，如太阳能、水能、煤、石油、天然气等；二次能源是指由一次能源加工转换而成的能源产品，如电力、焦炭、煤气、蒸汽等。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/0ebe635fcd2a6bec7b100d22f386c3a0a682c0e83f117d96a9b6248d9abc3ad6.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-bf781321fc98",
+      "locator": "line:147",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/0ebe635fcd2a6bec7b100d22f386c3a0a682c0e83f117d96a9b6248d9abc3ad6.jpg)"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 784,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/0ebe635fcd2a6bec7b100d22f386c3a0a682c0e83f117d96a9b6248d9abc3ad6.jpg",
+          "reason": "图片内容（蒸汽机车）与后文“图12-10 蒸汽机车将内能转化为机械能”直接对应。后文利用该图片作为实例，详细阐述了燃料燃烧（化学能转内能）及蒸汽机工作（内能转机械能）的能量转化过程。根据规则，图片为辅助说明物理概念的场景照片，故保留为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一辆黑色的蒸汽机车在铁轨上行驶，巨大的烟囱喷出浓密的白色蒸汽云，背景是蓝天和荒漠地形。",
+          "width": 1306
+        },
+        "path": "images/0ebe635fcd2a6bec7b100d22f386c3a0a682c0e83f117d96a9b6248d9abc3ad6.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "可以不断得到补充，或能在较短周期内再产生的能源称之为可再生能源，如太阳能、生物质能、风能、水能、潮汐能等；经过亿万年形成而短期内无法恢复的能源称之为不可再生能源，如煤、石油、天然气等。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-c3f696067612",
+      "locator": "line:26",
+      "modality": "text",
+      "normalized_claims": [
+        "可以不断得到补充，或能在较短周期内再产生的能源称之为可再生能源，如太阳能、生物质能、风能、水能、潮汐能等；经过亿万年形成而短期内无法恢复的能源称之为不可再生能源，如煤、石油、天然气等。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "较重的原子核分裂成几个较轻的原子核的过程叫做核裂变。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-d35ead988ed2",
+      "locator": "line:54",
+      "modality": "text",
+      "normalized_claims": [
+        "较重的原子核分裂成几个较轻的原子核的过程叫做核裂变。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "4. 人们常用 “太阳常数” 来描述地球大气层上方的太阳辐射强度，这是指在平均日地距离时地球大气层外界垂直于太阳辐射的 $1 \\, m^{2}$ 、1 s 接收的太阳辐射能量值。近年来，通过各种手段测得太阳常数标准值为 $1366 \\, W/m^{2}$ 。地球半径约为 $6.371 \\times 10^{6} \\, m$ 。试根据上述数据估算太阳每秒辐射到地球的总能量。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-d3a2ec57475b",
+      "locator": "line:143",
+      "modality": "equation",
+      "normalized_claims": [
+        "4. 人们常用 “太阳常数” 来描述地球大气层上方的太阳辐射强度，这是指在平均日地距离时地球大气层外界垂直于太阳辐射的 $1 \\, m^{2}$ 、1 s 接收的太阳辐射能量值。近年来，通过各种手段测得太阳常数标准值为 $1366 \\, W"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/8d551944f32c412ea8c605ab756def3db276aab98a11a70fa925da6faae29049.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e2615c41e407",
+      "locator": "line:80",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/8d551944f32c412ea8c605ab756def3db276aab98a11a70fa925da6faae29049.jpg)"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 429,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/8d551944f32c412ea8c605ab756def3db276aab98a11a70fa925da6faae29049.jpg",
+          "reason": "图片内容（太阳能路灯）与上下文紧密对应。前文提到“简单的光伏电池可为手表、计算器、路灯（图12-5）提供能源”，后文紧接着标注“图12-5 太阳能路灯”。该图片作为照片/场景类素材，辅助说明了太阳能光电转换在路灯上的实际应用，属于教材中的辅助说明图片。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个太阳能路灯，灯杆顶部安装有两块深蓝色的太阳能电池板，灯头位于右侧，背景是蓝天白云。",
+          "width": 342
+        },
+        "path": "images/8d551944f32c412ea8c605ab756def3db276aab98a11a70fa925da6faae29049.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "若干个较轻的原子核也可以结合成一个较重的原子核，同时释放出巨大能量，这样的过程称为核聚变。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e49a4b34ff25",
+      "locator": "line:61",
+      "modality": "text",
+      "normalized_claims": [
+        "若干个较轻的原子核也可以结合成一个较重的原子核，同时释放出巨大能量，这样的过程称为核聚变。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/f1735b93c9cbe9d90ffb4b8480a2f8df5bc446031c82ba934a7d184413c6a544.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e55d9c56ae36",
+      "locator": "line:113",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/f1735b93c9cbe9d90ffb4b8480a2f8df5bc446031c82ba934a7d184413c6a544.jpg)"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 298,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/f1735b93c9cbe9d90ffb4b8480a2f8df5bc446031c82ba934a7d184413c6a544.jpg",
+          "reason": "图片内容为多米诺骨牌，与上下文中的“图 12-8 多米诺骨牌”标题完全对应。前文描述了“将若干枚骨牌排列起来...推一下最右边第一枚骨牌”的自主活动，后文利用这个现象类比解释“链式反应”。该图片作为类比实验的示意图，辅助说明核物理中的链式反应概念，属于 supporting 级别的知识证据。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一组排列整齐的多米诺骨牌，骨牌颜色包括橙色、黄色和蓝色，整体呈弯曲的队列状排列，右侧有一块独立的骨牌。",
+          "width": 229
+        },
+        "path": "images/f1735b93c9cbe9d90ffb4b8480a2f8df5bc446031c82ba934a7d184413c6a544.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "光伏的含义是利用半导体技术直接将太阳的光能转换成电能（称为光伏效应）输出，相应的发电元件称为太阳能电池或光伏电池。光伏发电是一种新兴的可再生能源，是太阳能利用的重要方面。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e8594f2c5b1c",
+      "locator": "line:42",
+      "modality": "text",
+      "normalized_claims": [
+        "光伏的含义是利用半导体技术直接将太阳的光能转换成电能（称为光伏效应）输出，相应的发电元件称为太阳能电池或光伏电池。光伏发电是一种新兴的可再生能源，是太阳能利用的重要方面。"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "可控核聚变是未来人类能源的理想来源，相比核裂变，核聚变的放射性污染等环境问题少很多。如氘和氚的核聚变反应，其原料可直接取自地球上储量巨大的海水。目前科学家们正在攻克可控核聚变问题。中国科学院合肥物质科学研究院研制的世界上第一个非圆截面全超导托卡马克装置，即可控核聚变反应装置，被叫做“东方超环”，也被称为“人造小太阳”，2019年已实现在 $1 \\times 10^{8}$ ℃条件下运行10 s。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-f3fcf89dd1c3",
+      "locator": "line:133",
+      "modality": "equation",
+      "normalized_claims": [
+        "可控核聚变是未来人类能源的理想来源，相比核裂变，核聚变的放射性污染等环境问题少很多。如氘和氚的核聚变反应，其原料可直接取自地球上储量巨大的海水。目前科学家们正在攻克可控核聚变问题。中国科学院合肥物质科学研究院研制的世界上第一个非圆截面全超导"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/78980fcd65996b2068e9eaed35fae4aa7ac9f82ea25e434d322ed461481f1c95.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-fb5aec4f056d",
+      "locator": "line:69",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/78980fcd65996b2068e9eaed35fae4aa7ac9f82ea25e434d322ed461481f1c95.jpg)"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 515,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/78980fcd65996b2068e9eaed35fae4aa7ac9f82ea25e434d322ed461481f1c95.jpg",
+          "reason": "图片内容为上海中心大厦的实景照片。前文详细描述了该大厦如何利用顶部的开孔安装风力发电系统、收集雨水以及双层幕墙节能等STSE（科学、技术、社会、环境）案例。后文明确标注“图12-4 上海中心大厦”。图片直观展示了前文所述建筑的结构特征（特别是风力发电机所在的开孔位置），属于教材中用于辅助说明实际应用案例的场景照片，符合保留为 supporting 的条件。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了上海中心大厦的高层建筑外观，重点呈现了其螺旋上升的造型以及顶部的巨大开孔结构，背景为蓝天。",
+          "width": 315
+        },
+        "path": "images/78980fcd65996b2068e9eaed35fae4aa7ac9f82ea25e434d322ed461481f1c95.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:44:48+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-534044628816",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-7429aea99d77"
+      ],
+      "source_type": "textbook",
+      "target_id": "property/constant:auto-74c3f1c9abf3",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "solar constant",
+      "太阳常数"
+    ],
+    "created_at": "2026-06-29T05:44:48+00:00",
+    "dataset_id": "main",
+    "definition": "在平均日地距离时地球大气层外界垂直于太阳辐射的1 m²、1 s接收的太阳辐射能量值。",
+    "deprecated_by": null,
+    "domains": [
+      "physics",
+      "astronomy"
+    ],
+    "external_ids": {},
+    "id": "property/constant:auto-74c3f1c9abf3",
+    "kind": "property",
+    "knowledge_form": [
+      "propositional"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "太阳常数",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "subkinds": [
+          "constant"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "用于估算地球接收的总太阳辐射能"
+        ],
+        "conditions": [
+          "平均日地距离",
+          "垂直于太阳辐射方向",
+          "单位面积单位时间"
+        ],
+        "formal_expressions": [
+          "1366 W/m²"
+        ]
+      },
+      "template_display": {
+        "color": "#FFB400",
+        "label": "物理量",
+        "template_id": "textbook/physics",
+        "type_key": "property"
+      }
+    },
+    "scope": "domain-specific",
+    "status": "active",
+    "subkind": "constant",
+    "tags": [
+      "必修3",
+      "太阳能"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [],
+    "outgoing": []
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+      "excerpts": [
+        {
+          "excerpt": "## 第一节 能源及其应用\n\n自然界中处处充满能量，能量无所不在，而它的表现形式是多种多样的。以汽车为例：汽车行驶，具有动能；鸣响喇叭，声波在空气中传播，是声能的表现；打开车灯照亮道路，这是光能的作用。如图 12-1 所示的新能源公交车内部电池中贮存着电能，电能转化为声能、光能、机械能等能量形式。此外，自然界还有原子核能、引力势能、生物质能等。正是由于在这个世界上到处有能量存在，而且这些能量还可以相互转化，才使得我们这个世界绚丽多彩，充满了生机和活力。\n\n能量在日常生活中的表现更是多种多样：按下开关，台灯亮起；点燃煤气，煮饭烧菜；人吃饱饭，充满力量……这些都反复证明，能量不仅普遍存在，而且无时无刻不在发挥作用。\n\n## 大家谈\n\n我们每天都要吃饭、喝水，要使用手机、冰箱、热水器，还要乘坐交通工具。我们人类的活动，用电器、交通工具的运转，都需要能量。日常生活中所用的能量都从何而来呢？\n\n[source image omitted from static artifact]\n\n## 什么是能源？\n\n能量来自能源。能源是能提供多种形式、可以相互转换的能量的源泉。简单确切地说，能源是自然界中能为人类提供某种形式能量的物质资源。人类利用的能源有太阳、草木、风、水、煤、石油、天然气等。\n\n\n\n## 能源如何分类?\n\n能源有若干种，人类为了更好地认识能源，按照不同的分类准则对其进行了分类。\n\n能源按来源可分为三大类：来自太阳的能源、地球本身蕴藏的能源及太阳、月球等天体与地球的相互作用产生的能源。来自太阳的能源有太阳光的热辐射能和间接来自太阳的煤、石油、天然气以及生物质能、水能、风能等；地球本身蕴藏的能源有地热能和核燃料（如铀矿等）所蕴藏的原子核能；太阳、月球等天体与地球的相互作用产生的能源有潮汐能等。\n\n能源按生产的方式分类可分为一次能源和二次能源。一次能源是指在自然界现成存在的能源，如太阳能、水能、煤、石油、天然气等；二次能源是指由一次能源加工转换而成的能源产品，如电力、焦炭、煤气、蒸汽等。一次能源又可分为可再生能源和不可再生能源两大类。可以不断得到补充，或能在较短周期内再产生的能源称之为可再生能源，如太阳能、生物质能、风能、水能、潮汐能等；经过亿万年形成而短期内无法恢复的能源称之为不可再生能源，如煤、石油、天然气等。\n\n还有其他不同的能源分类方式。如按能源的性质可分为燃料能源、非燃料能源；按能源的利用技术可分为常规能源、新能源等。\n\n## 大家谈\n\n家庭生活中一天所用的能量哪些来自可再生能源，哪些来自不可再生能源？\n\n\n\n## 如何开发和利用新能源？\n\n从保护环境和可持续发展的角度来看，煤、石油和天然气等燃料，不仅存量有限，而且有的燃料在使用时会排放大量有害气体，引起温室效应和大气污染。而太阳能、水能、风能具有可再生、无污染等特点。人们一直在研究和开发这些“清洁能源”，同时也在发展和利用核能。\n\n## 1. 水能\n\n水力发电是利用水能的主要方面。一般需筑坝拦截江河水流或蓄水成水库，水流自上而下冲击安装在坝底的发电机组发电。可见水力发电的能源乃是上游水的势能。归根结底，能量来自太阳，因为上游水主要来自雨水，而雨水是靠太阳蒸发地表水系成为水汽，凝结成云而化雨下落。\n\n我国三峡水电站（图 12-2）位于湖北省宜昌市三斗坪镇境内，总装机容量达到\n\n[source image omitted from static artifact]  \n图12-2 三峡水电站\n\n2 240 万千瓦，是我国最大的水力发电站和清洁能源生产基地。三峡水电站通过华东电网保障了上海市巨大的用电量。三峡工程是一项极具综合效益的水利工程，集发电、防洪、航运、供水灌溉等多种效益于一体。\n\n水能不仅可再生，而且成本低、效率高。许多国家在规划电力工业时也往往优先发展水电。\n\n## 2. 风能\n\n风力发电是利用风能的最重要的方面。风力发电就是把风的动能转化为电能。如图12-3所示的上海市东海大桥10万千瓦风电场是中国第一个国家海上风电示范项目。该项目位于上海市浦东新区临港新城至洋山深水港的东海大桥两侧，海上风电机组全部是我国自主研发。每年为国家节约燃煤几十万吨，减排大量二氧化碳。\n\n[source image omitted from static artifact]  \n图12-3 上海市东海大桥10万千瓦风电场\n\n## STSE\n\n上海中心大厦（图 12-4）高达 632 m，大厦屋顶上全年平均风速可达到 8\\~10 m/s，非常适合利用风力来发电。上海中心的外幕墙上开了三个很大的开孔，安装高空风力发电系统，包含 270 台“垂直轴涡轮”风力发电机，总装机容量为 135 kW，每年可以为大厦提供 100 多万千瓦·时的绿色电力，供屋顶、观光层中的设备使用。\n\n大厦顶部设计成现在的造型也是为了收集屋面雨水，将收集的雨水和生活废水作为中水（又叫再生水，是指废水或雨水经过适当处理后，达到一定水质指标的水）水源，两类不同水质的原水经各自的设施处理后，用于除酒店客房外的其他所有中水用水场所，包括冲厕、绿化浇灌、水景补水、道路冲洗等，还有部分中水供陆家嘴地区市政绿化浇灌之用。\n\n上海中心大厦内在多个高度设有“空中大堂”，方便租户就近享受休闲娱乐生活，从而减少能源消耗。如某人在78楼工作，从这一层出发，如果他能在上下不超过14层的范围内到达一处康乐区吃午餐，而不必一直下到楼底，就是节约了能源。\n\n上海中心大厦又称“绿色大厦”。大厦采用双层幕墙结构，外层幕墙保证主体结构的规则性，内部再加一层幕墙构成了世界上最大的“保温瓶”。双幕墙系统用以调整室内外温差，起到绿色节能的功效。\n\n[source image omitted from static artifact]  \n图12-4 上海中心大厦\n\n风能也是太阳能的一种转化形式。太阳辐射造成地球表面各部分受热不均匀，引起大气层中气压分布不均匀，从而形成风。风力发电不需要使用燃料，也不会产生辐射或空气污染，但存在风能转换效率偏低的发展瓶颈。风能作为一种清洁的可再生能源，越来越受到世界各国的重视。\n\n## 3. 太阳能\n\n太阳能的利用有光热转换和光电转换，光伏发电是一种新兴的可再生能源，是太阳能利用的重要方面。光伏的含义是利用半导体技术直接将太阳的光能转换成电能（称为光伏效应）输出，相应的发电元件称为太阳能电池或光伏电池。简单的光伏电池可为手表、计算器、路灯（图12-5）提供能源，较复杂的光伏发电系统把光能转换成电能并实时输送上电网。我国太阳能光伏发电潜力巨大，到2030年光伏装机容量将达1亿千瓦，年发电量可达1300亿千瓦·时。\n\n太阳能既便捷又环保。阳光普照大地、无需开采运输，可直接利用，且清洁无污染。同时，太阳能既量大又长久。每年\n\n[source image omitted from static artifact]  \n图12-5 太阳能路灯\n\n照射到地球表面的太阳能相当于 130 万亿吨煤，其总量属当今世界最大能源。科学家认为太阳寿命仍有约 50 亿年，因此，太阳能可谓取之不尽、用之不竭。\n\n我国太阳能发电技术走在世界前列，已成为世界最大的太阳能发电国。\n\n## 大家谈\n\n常见的计算器上都有一个小太阳能电池板，可以很多年不充电、不换电池。曾经有手机厂商推出太阳能电池手机，但这一技术措施未获推广，谈谈原因何在。\n\n## 4. 核能\n\n核能是一种重要的新能源。我国核电工业历经艰辛，已具一定规模。其中秦山核电站（图12-6）是中国自行设计、建造和运营管理的第一座30万千瓦压水堆核电站，地处浙江省嘉兴市海盐县。秦山核电站采用目前世界上技术成熟的压水堆，核岛内采用燃料包壳、压力壳和安全壳3道屏障，能承受极限事故引起的高压、高温和各种自然灾害等异常情况。秦山核电基\n\n[source image omitted from static artifact]  \n图12-6 秦山核电站\n\n地经过多次扩建，9台机组的总装机容量达到650多万千瓦，年发电量约500亿千瓦·时，成为国内核电机组数量最多、堆型最丰富、装机容量最大的核电基地。\n\n核能的能量释放速度极快；并且核燃料的能量密度比传统化石燃料高几百万倍，因此核电厂所需的燃料体积小，运输储存都很方便。如果对核能有正确的认识，安全生产，核能也会和其他新能源一样为人类发展提供强有力的能量保障。\n\n## 核裂变\n\n1939 年，物理学家发现用中子轰击铀核时铀核分裂成几个其他原子核，同时释放出能量。较重的原子核分裂成几个较轻的原子核的过程叫做核裂变（图 12-7）。一个铀 235 核裂变可释放约 200 MeV 能量（eV 是能量单位，称为 “电子伏特”， $1\\ eV = 1.6 \\times 10^{-19}\\ J$ ， $1\\ MeV = 10^{6}\\ eV$ ）。若有足够数量的铀核裂变且能持续进行，那么，所释放的能量就能为人类所用。\n\n[source image omitted from static artifact]  \n图12-7 核裂变\n\n## 自主活动\n\n如图 12-8 所示，将若干枚骨牌排列起来，然后用手指轻轻向左推一下最右边第一枚骨牌，你会看到什么现象？\n\n[source image omitted from static artifact]  \n图12-8 多米诺骨牌\n\n如图 12-9 所示，铀核受中子轰击而发生裂变时能放出 2\\~3 个中子和一定的能量。这 2\\~3 个中子又迅速引起周围其他铀核的裂变，这就使裂变迅速扩大，释放出越来越多的能量。这种反应过程的产物可以引起随后的反应，因而使这种反应一经开始就能自动持续进行的反应过程叫做链式反应。链式反应能够迅速释放巨大的核能。\n\n[source image omitted from static artifact]  \n图12-9 链式反应\n\n铀材料的体积大小是产生链式反应的一个重要条件。由\n\n于原子核非常小，如果铀块的体积不够大，中子射入铀块时可能一个铀核都没碰到就穿了出去。能够发生链式反应的铀块的最小体积叫做临界体积。如果一块铀235的体积超过了临界体积，只要有中子进入就会立即引起铀核的链式反应，在极短时间内释放出大量核能，会发生猛烈的爆炸。原子弹就是根据这个原理制成的。\n\n为了控制核裂变的链式反应速度从而安全稳定地利用核能，必须建立一种装置，使铀核不但能发生链式反应，而且中子的再生率是可以控制的。这种装置叫做反应堆。\n\n目前，利用核能发电的技术已经成熟。作为核燃料的铀、钍等元素在地球上的可采储量的核能是煤、石油等所能提供的能量的15倍左右。因此，发展核电的前景广阔。\n\n## 核聚变\n\n若干个较轻的原子核也可以结合成一个较重的原子核，同时释放出巨大能量，这样的过程称为核聚变。太阳能就来源于太阳内部氢的核聚变。氢弹也是依靠核聚变释放出巨大的能量，是不可控核聚变。在我国的氢弹研究事业中，“两弹一星”元勋、核物理学家于敏（1926—2019）突破了氢弹原理研究的一系列问题，填补了我国原子核理论的空白，对我国的氢弹研制起到了关键作用，被誉为中国“氢弹之父”。他隐姓埋名28载，不求名利，无私奉献，为我国的国防科技事业做出了重要贡献。\n\n可控核聚变是未来人类能源的理想来源，相比核裂变，核聚变的放射性污染等环境问题少很多。如氘和氚的核聚变反应，其原料可直接取自地球上储量巨大的海水。目前科学家们正在攻克可控核聚变问题。中国科学院合肥物质科学研究院研制的世界上第一个非圆截面全超导托卡马克装置，即可控核聚变反应装置，被叫做“东方超环”，也被称为“人造小太阳”，2019年已实现在 $1 \\times 10^{8}$ ℃条件下运行10 s。\n\n## 问题②思考\n\n1. 自然界物质的运动有许多不同的形式，每种运动形式都有对应的能量。说明机械运动、热运动、电荷的定向移动分别对应何种形式的能量？\n\n2. 链式反应中, 重核裂变时放出的可以使裂变不断进行下去的粒子是质子、中子还是电子? 要使链式反应发生, 裂变物质的体积应满足何种条件?\n\n3. 电动喇叭发出的声波是空气振动的传播，声波具有能量。追根溯源，声波的能量是从哪里来的？又到哪里去了？\n\n4. 人们常用 “太阳常数” 来描述地球大气层上方的太阳辐射强度，这是指在平均日地距离时地球大气层外界垂直于太阳辐射的 $1 \\, m^{2}$ 、1 s 接收的太阳辐射能量值。近年来，通过各种手段测得太阳常数标准值为 $1366 \\, W/m^{2}$ 。地球半径约为 $6.371 \\times 10^{6} \\, m$ 。试根据上述数据估算太阳每秒辐射到地球的总能量。\n\n5. 风力发电机的原理是风吹在叶片上推动叶片转动发电，将风的动能转化为电能。一台风力发电机 1 min 作用在叶片上风的动能从 30 000 J 减小为 18 000 J，发电功率为 160 W，求该风力发电机的效率。\n\n[source image omitted from static artifact]  \n图12-10 蒸汽机车将内能转化为机械能",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:12-1-r:source-markdown",
+          "locator": "能源及其应用 & 能量的转化",
+          "modality": "text",
+          "page_end": 132,
+          "page_start": 122,
+          "properties": {
+            "md_end": 3588,
+            "md_start": 3440,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:12-1-r",
+            "outline_title": "能源及其应用 & 能量的转化",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 3588,
+      "md_start": 3440,
+      "modalities": [
+        "image",
+        "text",
+        "equation"
+      ],
+      "page_end": 132,
+      "page_start": 122,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第一节 能源及其应用\n\n自然界中处处充满能量，能量无所不在，而它的表现形式是多种多样的。以汽车为例：汽车行驶，具有动能；鸣响喇叭，声波在空气中传播，是声能的表现；打开车灯照亮道路，这是光能的作用。如图 12-1 所示的新能源公交车内部电池中贮存着电能，电能转化为声能、光能、机械能等能量形式。此外，自然界还有原子核能、引力势能、生物质能等。正是由于在这个世界上到处有能量存在，而且这些能量还可以相互转化，才使得我们这个世界绚丽多彩，充满了生机和活力。\n\n能量在日常生活中的表现更是多种多样：按下开关，台灯亮起；点燃煤气，煮饭烧菜；人吃饱饭，充满力量……这些都反复证明，能量不仅普遍存在，而且无时无刻不在发挥作用。\n\n## 大家谈\n\n我们每天都要吃饭、喝水，要使用手机、冰箱、热水器，还要乘坐交通工具。我们人类的活动，用电器、交通工具的运转，都需要能量。日常生活中所用的能量都从何而来呢？\n\n[source image omitted from static artifact]\n\n## 什么是能源？\n\n能量来自能源。能源是能提供多种形式、可以相互转换的能量的源泉。简单确切地说，能源是自然界中能为人类提供某种形式能量的物质资源。人类利用的能源有太阳、草木、风、水、煤、石油、天然气等。\n\n\n\n## 能源如何分类?\n\n能源有若干种，人类为了更好地认识能源，按照不同的分类准则对其进行了分类。\n\n能源按来源可分为三大类：来自太阳的能源、地球本身蕴藏的能源及太阳、月球等天体与地球的相互作用产生的能源。来自太阳的能源有太阳光的热辐射能和间接来自太阳的煤、石油、天然气以及生物质能、水能、风能等；地球本身蕴藏的能源有地热能和核燃料（如铀矿等）所蕴藏的原子核能；太阳、月球等天体与地球的相互作用产生的能源有潮汐能等。\n\n能源按生产的方式分类可分为一次能源和二次能源。一次能源是指在自然界现成存在的能源，如太阳能、水能、煤、石油、天然气等；二次能源是指由一次能源加工转换而成的能源产品，如电力、焦炭、煤气、蒸汽等。一次能源又可分为可再生能源和不可再生能源两大类。可以不断得到补充，或能在较短周期内再产生的能源称之为可再生能源，如太阳能、生物质能、风能、水能、潮汐能等；经过亿万年形成而短期内无法恢复的能源称之为不可再生能源，如煤、石油、天然气等。\n\n还有其他不同的能源分类方式。如按能源的性质可分为燃料能源、非燃料能源；按能源的利用技术可分为常规能源、新能源等。\n\n## 大家谈\n\n家庭生活中一天所用的能量哪些来自可再生能源，哪些来自不可再生能源？\n\n\n\n## 如何开发和利用新能源？\n\n从保护环境和可持续发展的角度来看，煤、石油和天然气等燃料，不仅存量有限，而且有的燃料在使用时会排放大量有害气体，引起温室效应和大气污染。而太阳能、水能、风能具有可再生、无污染等特点。人们一直在研究和开发这些“清洁能源”，同时也在发展和利用核能。\n\n## 1. 水能\n\n水力发电是利用水能的主要方面。一般需筑坝拦截江河水流或蓄水成水库，水流自上而下冲击安装在坝底的发电机组发电。可见水力发电的能源乃是上游水的势能。归根结底，能量来自太阳，因为上游水主要来自雨水，而雨水是靠太阳蒸发地表水系成为水汽，凝结成云而化雨下落。\n\n我国三峡水电站（图 12-2）位于湖北省宜昌市三斗坪镇境内，总装机容量达到\n\n[source image omitted from static artifact]  \n图12-2 三峡水电站\n\n2 240 万千瓦，是我国最大的水力发电站和清洁能源生产基地。三峡水电站通过华东电网保障了上海市巨大的用电量。三峡工程是一项极具综合效益的水利工程，集发电、防洪、航运、供水灌溉等多种效益于一体。\n\n水能不仅可再生，而且成本低、效率高。许多国家在规划电力工业时也往往优先发展水电。\n\n## 2. 风能\n\n风力发电是利用风能的最重要的方面。风力发电就是把风的动能转化为电能。如图12-3所示的上海市东海大桥10万千瓦风电场是中国第一个国家海上风电示范项目。该项目位于上海市浦东新区临港新城至洋山深水港的东海大桥两侧，海上风电机组全部是我国自主研发。每年为国家节约燃煤几十万吨，减排大量二氧化碳。\n\n[source image omitted from static artifact]  \n图12-3 上海市东海大桥10万千瓦风电场\n\n## STSE\n\n上海中心大厦（图 12-4）高达 632 m，大厦屋顶上全年平均风速可达到 8\\~10 m/s，非常适合利用风力来发电。上海中心的外幕墙上开了三个很大的开孔，安装高空风力发电系统，包含 270 台“垂直轴涡轮”风力发电机，总装机容量为 135 kW，每年可以为大厦提供 100 多万千瓦·时的绿色电力，供屋顶、观光层中的设备使用。\n\n大厦顶部设计成现在的造型也是为了收集屋面雨水，将收集的雨水和生活废水作为中水（又叫再生水，是指废水或雨水经过适当处理后，达到一定水质指标的水）水源，两类不同水质的原水经各自的设施处理后，用于除酒店客房外的其他所有中水用水场所，包括冲厕、绿化浇灌、水景补水、道路冲洗等，还有部分中水供陆家嘴地区市政绿化浇灌之用。\n\n上海中心大厦内在多个高度设有“空中大堂”，方便租户就近享受休闲娱乐生活，从而减少能源消耗。如某人在78楼工作，从这一层出发，如果他能在上下不超过14层的范围内到达一处康乐区吃午餐，而不必一直下到楼底，就是节约了能源。\n\n上海中心大厦又称“绿色大厦”。大厦采用双层幕墙结构，外层幕墙保证主体结构的规则性，内部再加一层幕墙构成了世界上最大的“保温瓶”。双幕墙系统用以调整室内外温差，起到绿色节能的功效。\n\n[source image omitted from static artifact]  \n图12-4 上海中心大厦\n\n风能也是太阳能的一种转化形式。太阳辐射造成地球表面各部分受热不均匀，引起大气层中气压分布不均匀，从而形成风。风力发电不需要使用燃料，也不会产生辐射或空气污染，但存在风能转换效率偏低的发展瓶颈。风能作为一种清洁的可再生能源，越来越受到世界各国的重视。\n\n## 3. 太阳能\n\n太阳能的利用有光热转换和光电转换，光伏发电是一种新兴的可再生能源，是太阳能利用的重要方面。光伏的含义是利用半导体技术直接将太阳的光能转换成电能（称为光伏效应）输出，相应的发电元件称为太阳能电池或光伏电池。简单的光伏电池可为手表、计算器、路灯（图12-5）提供能源，较复杂的光伏发电系统把光能转换成电能并实时输送上电网。我国太阳能光伏发电潜力巨大，到2030年光伏装机容量将达1亿千瓦，年发电量可达1300亿千瓦·时。\n\n太阳能既便捷又环保。阳光普照大地、无需开采运输，可直接利用，且清洁无污染。同时，太阳能既量大又长久。每年\n\n[source image omitted from static artifact]  \n图12-5 太阳能路灯\n\n照射到地球表面的太阳能相当于 130 万亿吨煤，其总量属当今世界最大能源。科学家认为太阳寿命仍有约 50 亿年，因此，太阳能可谓取之不尽、用之不竭。\n\n我国太阳能发电技术走在世界前列，已成为世界最大的太阳能发电国。\n\n## 大家谈\n\n常见的计算器上都有一个小太阳能电池板，可以很多年不充电、不换电池。曾经有手机厂商推出太阳能电池手机，但这一技术措施未获推广，谈谈原因何在。\n\n## 4. 核能\n\n核能是一种重要的新能源。我国核电工业历经艰辛，已具一定规模。其中秦山核电站（图12-6）是中国自行设计、建造和运营管理的第一座30万千瓦压水堆核电站，地处浙江省嘉兴市海盐县。秦山核电站采用目前世界上技术成熟的压水堆，核岛内采用燃料包壳、压力壳和安全壳3道屏障，能承受极限事故引起的高压、高温和各种自然灾害等异常情况。秦山核电基\n\n[source image omitted from static artifact]  \n图12-6 秦山核电站\n\n地经过多次扩建，9台机组的总装机容量达到650多万千瓦，年发电量约500亿千瓦·时，成为国内核电机组数量最多、堆型最丰富、装机容量最大的核电基地。\n\n核能的能量释放速度极快；并且核燃料的能量密度比传统化石燃料高几百万倍，因此核电厂所需的燃料体积小，运输储存都很方便。如果对核能有正确的认识，安全生产，核能也会和其他新能源一样为人类发展提供强有力的能量保障。\n\n## 核裂变\n\n1939 年，物理学家发现用中子轰击铀核时铀核分裂成几个其他原子核，同时释放出能量。较重的原子核分裂成几个较轻的原子核的过程叫做核裂变（图 12-7）。一个铀 235 核裂变可释放约 200 MeV 能量（eV 是能量单位，称为 “电子伏特”， $1\\ eV = 1.6 \\times 10^{-19}\\ J$ ， $1\\ MeV = 10^{6}\\ eV$ ）。若有足够数量的铀核裂变且能持续进行，那么，所释放的能量就能为人类所用。\n\n[source image omitted from static artifact]  \n图12-7 核裂变\n\n## 自主活动\n\n如图 12-8 所示，将若干枚骨牌排列起来，然后用手指轻轻向左推一下最右边第一枚骨牌，你会看到什么现象？\n\n[source image omitted from static artifact]  \n图12-8 多米诺骨牌\n\n如图 12-9 所示，铀核受中子轰击而发生裂变时能放出 2\\~3 个中子和一定的能量。这 2\\~3 个中子又迅速引起周围其他铀核的裂变，这就使裂变迅速扩大，释放出越来越多的能量。这种反应过程的产物可以引起随后的反应，因而使这种反应一经开始就能自动持续进行的反应过程叫做链式反应。链式反应能够迅速释放巨大的核能。\n\n[source image omitted from static artifact]  \n图12-9 链式反应\n\n铀材料的体积大小是产生链式反应的一个重要条件。由\n\n于原子核非常小，如果铀块的体积不够大，中子射入铀块时可能一个铀核都没碰到就穿了出去。能够发生链式反应的铀块的最小体积叫做临界体积。如果一块铀235的体积超过了临界体积，只要有中子进入就会立即引起铀核的链式反应，在极短时间内释放出大量核能，会发生猛烈的爆炸。原子弹就是根据这个原理制成的。\n\n为了控制核裂变的链式反应速度从而安全稳定地利用核能，必须建立一种装置，使铀核不但能发生链式反应，而且中子的再生率是可以控制的。这种装置叫做反应堆。\n\n目前，利用核能发电的技术已经成熟。作为核燃料的铀、钍等元素在地球上的可采储量的核能是煤、石油等所能提供的能量的15倍左右。因此，发展核电的前景广阔。\n\n## 核聚变\n\n若干个较轻的原子核也可以结合成一个较重的原子核，同时释放出巨大能量，这样的过程称为核聚变。太阳能就来源于太阳内部氢的核聚变。氢弹也是依靠核聚变释放出巨大的能量，是不可控核聚变。在我国的氢弹研究事业中，“两弹一星”元勋、核物理学家于敏（1926—2019）突破了氢弹原理研究的一系列问题，填补了我国原子核理论的空白，对我国的氢弹研制起到了关键作用，被誉为中国“氢弹之父”。他隐姓埋名28载，不求名利，无私奉献，为我国的国防科技事业做出了重要贡献。\n\n可控核聚变是未来人类能源的理想来源，相比核裂变，核聚变的放射性污染等环境问题少很多。如氘和氚的核聚变反应，其原料可直接取自地球上储量巨大的海水。目前科学家们正在攻克可控核聚变问题。中国科学院合肥物质科学研究院研制的世界上第一个非圆截面全超导托卡马克装置，即可控核聚变反应装置，被叫做“东方超环”，也被称为“人造小太阳”，2019年已实现在 $1 \\times 10^{8}$ ℃条件下运行10 s。\n\n## 问题②思考\n\n1. 自然界物质的运动有许多不同的形式，每种运动形式都有对应的能量。说明机械运动、热运动、电荷的定向移动分别对应何种形式的能量？\n\n2. 链式反应中, 重核裂变时放出的可以使裂变不断进行下去的粒子是质子、中子还是电子? 要使链式反应发生, 裂变物质的体积应满足何种条件?\n\n3. 电动喇叭发出的声波是空气振动的传播，声波具有能量。追根溯源，声波的能量是从哪里来的？又到哪里去了？\n\n4. 人们常用 “太阳常数” 来描述地球大气层上方的太阳辐射强度，这是指在平均日地距离时地球大气层外界垂直于太阳辐射的 $1 \\, m^{2}$ 、1 s 接收的太阳辐射能量值。近年来，通过各种手段测得太阳常数标准值为 $1366 \\, W/m^{2}$ 。地球半径约为 $6.371 \\times 10^{6} \\, m$ 。试根据上述数据估算太阳每秒辐射到地球的总能量。\n\n5. 风力发电机的原理是风吹在叶片上推动叶片转动发电，将风的动能转化为电能。一台风力发电机 1 min 作用在叶片上风的动能从 30 000 J 减小为 18 000 J，发电功率为 160 W，求该风力发电机的效率。\n\n[source image omitted from static artifact]  \n图12-10 蒸汽机车将内能转化为机械能",
+      "title": "能源及其应用 & 能量的转化"
+    }
+  ]
+}

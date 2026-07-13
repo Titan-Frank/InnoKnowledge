@@ -1,0 +1,1263 @@
+{
+  "body": {
+    "content": "## 定义\n接地防静电（亦称静电接地）是一种重要的安全防护措施，指通过导体将带电体与大地连接，使静电及时导入地下以防积聚的方法。[evidence:auto-1dc6c585187a]\n\n## 核心解释\n在物体运动、摩擦或接触分离的过程中，表面极易产生并积累静电荷。若电荷无法及时泄放，积聚的静电会导致电势差升高，最终可能引发静电放电并产生火花。接地防静电的核心机制在于建立一条可靠的对地电荷转移通路，利用大地导走带电体上的多余电荷，从而消除静电积聚带来的安全隐患。[evidence:auto-1dc6c585187a]\n\n## 示例或应用\n该方法在涉及易燃易爆环境或工业生产的场景中应用广泛：\n- **交通与能源设施**：常见的油罐车尾部通常装有拖地链，加油站加油机上设有金属键盘。这些装置均通过有效接地将摩擦或人体活动产生的静电传入地下，防止静电积聚，避免放电火花引发爆炸。[evidence:auto-1dc6c585187a]\n- **工业静电喷涂**：在利用静电力进行工件表面涂装时，喷枪导流管接高压负极使涂料微粒带电，而被涂工件则必须接地作为正极。工件接地不仅配合静电力实现涂料微粒的均匀吸附，同时也承担了安全泄放电荷的功能。[evidence:auto-3cc9388bafb6]\n\n## 关键要点\n- **材料导电性**：接地装置必须使用良好导电材料（如金属链、金属键等），以确保电荷能够顺畅转移。[evidence:auto-1dc6c585187a]\n- **通路可靠性**：必须建立稳固且连续的对地通路，接触不良或断路会导致静电无法及时导出，使防护措施失效。[evidence:auto-1dc6c585187a]\n- **防范目的**：核心目标是及时泄放静电，防止电荷过度积聚引发静电放电火花，尤其在易燃易爆场所至关重要。[evidence:auto-1dc6c585187a]",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "method/安全措施:auto-96ee86a0bb1e",
+    "properties": {
+      "card_title": "接地防静电",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-1dc6c585187a",
+      "evidence:auto-3cc9388bafb6"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:40:11+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-8c0cc1f9f5e7",
+    "mention_refs": [],
+    "node_id": "method/安全措施:auto-96ee86a0bb1e",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "通过导体将带电体与大地连接，使静电及时导入地下以防积聚的方法。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-1b011e9df50d"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "通过导体将带电体与大地连接，使静电及时导入地下以防积聚的方法。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-1b011e9df50d"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "通过导体将带电体与大地连接，使静电及时导入地下以防积聚的方法。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-1b011e9df50d"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "接地防静电"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-1b011e9df50d"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "静电的利用与防范"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-1b011e9df50d"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-1b011e9df50d"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-1b011e9df50d"
+    ],
+    "status": "active",
+    "summary": "通过导体将带电体与大地连接，使静电及时导入地下以防积聚的方法。",
+    "title": "接地防静电",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 8,
+    "score": 89,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点暂时没有入边或出边。",
+        "passed": false,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "physics",
+      "id": "domain-profile:auto-73234076b7b9",
+      "node_id": "method/安全措施:auto-96ee86a0bb1e",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "给定油罐车行驶起电情境，要求学生绘制接地通路示意图，并标注导体材料属性与电荷流向。",
+              "提供一组防静电操作选项（金属接地线、绝缘手套、干燥木板），要求筛选出符合可靠对地通路条件的做法并写出判定依据。",
+              "对比静电喷雾工件接地与静电除尘极板带电的原理，要求分类说明哪一项属于接地防静电，并指出其防积聚的具体路径。"
+            ],
+            "common_errors": [
+              "误认为只要物理接触地面即可实现有效接地，忽略必须使用良好导电材料并建立可靠对地通路的条件。",
+              "混淆接地防静电（如飞机导电轮胎、加油机键盘）与静电利用（如静电除尘），将两者电荷导向机制与目的等同。",
+              "低估静电积聚的潜在危害，认为非高危工业场景无需专门采取接地措施防范放电火花。"
+            ],
+            "diagnostic_questions": [
+              "为什么油罐车尾部必须安装金属拖地链，而换成绝缘橡胶条会导致静电积聚？",
+              "若某设备仅通过干燥木质支架接触地面，是否符合接地防静电的条件？请说明理由。",
+              "接地防静电与静电除尘在电荷处理目的上有何本质区别？"
+            ],
+            "difficulty_level": "basic",
+            "extension_suggestions": [
+              "结合日常生活场景（如冬季脱毛衣、加油站静电释放牌），引导学生迁移接地防静电条件进行安全行为设计。",
+              "探讨导电材料老化或接触不良对可靠对地通路的影响，培养学生在工程应用中排查接地失效故障的思维。",
+              "对比不同环境下（如干燥冬季与潮湿夏季）静电积聚速率的差异，分析接地措施在多变条件下的必要性。"
+            ],
+            "generation": {
+              "confidence": 0.95,
+              "generated_at": "2026-07-12T10:12:46+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "49e1b3cec1ba93c65a2a11603412262658de8864fb76db3b48df67624fcc4eab",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-1dc6c585187a",
+                "evidence:auto-3cc9388bafb6"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能复述接地防静电的基本原理，即通过导体将带电体与大地连接以导走静电防积聚。",
+              "能判断有效接地必须满足的两个核心条件：使用良好导电材料、建立可靠对地通路。",
+              "能结合油罐车拖地链或加油机金属键盘实例，说明接地在防止静电放电火花中的安全作用。"
+            ],
+            "remediation_suggestions": [
+              "利用对比实验或示意图，直观展示良导体与绝缘体在建立对地通路时的电荷迁移差异，强化条件认知。",
+              "围绕证据中的油罐车拖地链与加油机金属键盘，引导学生归纳静电导入大地的共性步骤，建立“积累-导走-安全”的逻辑链。",
+              "通过案例分析区分静电防范与静电利用的应用边界，明确接地方法仅针对防止电荷异常积聚的安全需求。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-1b011e9df50d",
+        "evidence:auto-1dc6c585187a",
+        "evidence:auto-3cc9388bafb6"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:12:46+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/6a0adbf558fcefb80b05de2d92c949f4a721ae4872e3d165ac549c49ebde2a7f.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-0835ad3006df",
+      "locator": "line:13",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/6a0adbf558fcefb80b05de2d92c949f4a721ae4872e3d165ac549c49ebde2a7f.jpg)"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 334,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/6a0adbf558fcefb80b05de2d92c949f4a721ae4872e3d165ac549c49ebde2a7f.jpg",
+          "reason": "图片内容为工业静电除尘器的实物照片。结合上下文，标题为'静电除尘'，前文介绍了静电除尘在工业生产（如火力发电站、冶金业）中的应用，并提及'如图9-65所示为静电除尘装置'。后文紧接着标注了'图9-65 静电除尘'，确认了图片与正文的对应关系。该图片作为实物场景照片，用于辅助说明前文提到的工业应用和设备形态，属于 supporting 级别。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个大型的蓝色工业设备，主体为巨大的金属箱体结构，下方连接着漏斗状的收集装置，顶部和侧面连接有管道，背景可见烟囱或工业设施。这应当是静电除尘装置的实物照片。",
+          "width": 443
+        },
+        "path": "images/6a0adbf558fcefb80b05de2d92c949f4a721ae4872e3d165ac549c49ebde2a7f.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "在工业生产中常利用静电以净化气体或回收有用尘粒。如图9-65所示为静电除尘装置及其示意图。在强电场 $B$ 附近空气分子被电离为正离子和电子，电子在奔向正极 $A$ 的运动过程中遇到尘粒，使尘粒带负电被吸附到正极处。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-1b011e9df50d",
+      "locator": "line:10-12",
+      "modality": "text",
+      "normalized_claims": [
+        "在工业生产中常利用静电以净化气体或回收有用尘粒。如图9-65所示为静电除尘装置及其示意图。在强电场 $B$ 附近空气分子被电离为正离子和电子，电子在奔向正极 $A$ 的运动过程中遇到尘粒，使尘粒带负电被吸附到正极处。"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "常见的油罐车尾的拖地链和加油机上的金属键盘等都是通过有效接地的方法把静电传入地下，以防止静电的积聚，避免静电放电的火花引发爆炸。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-1dc6c585187a",
+      "locator": "line:65-70",
+      "modality": "text",
+      "normalized_claims": [
+        "常见的油罐车尾的拖地链和加油机上的金属键盘等都是通过有效接地的方法把静电传入地下，以防止静电的积聚，避免静电放电的火花引发爆炸。"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "在工业生产中常利用静电以净化气体或回收有用尘粒。如图9-65所示为静电除尘装置及其示意图。在强电场 $B$ 附近空气分子被电离为正离子和电子，电子在奔向正极 $A$ 的运动过程中遇到尘粒，使尘粒带负电被吸附到正极处。这一装置常用于火力发电站收集烟气中的煤灰和粉尘，以及用于冶金业收集锡、锌、铅、铝等的氧化物。静电除尘也可以用于家庭除尘灭菌。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-22ae10c17450",
+      "locator": "line:11",
+      "modality": "equation",
+      "normalized_claims": [
+        "在工业生产中常利用静电以净化气体或回收有用尘粒。如图9-65所示为静电除尘装置及其示意图。在强电场 $B$ 附近空气分子被电离为正离子和电子，电子在奔向正极 $A$ 的运动过程中遇到尘粒，使尘粒带负电被吸附到正极处。这一装置常用于火力发电站"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/67639ec23a297b3995a96288a07c40895f0dec87446bc5cb6ccc35d2e5d4308d.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-294e35e12924",
+      "locator": "line:118",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/67639ec23a297b3995a96288a07c40895f0dec87446bc5cb6ccc35d2e5d4308d.jpg)"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 504,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/67639ec23a297b3995a96288a07c40895f0dec87446bc5cb6ccc35d2e5d4308d.jpg",
+          "reason": "图片内容与后文图注“图9-72 地铁站中的自动体外除颤器”完全对应。前文介绍了AED的作用和参数，并提问如何在公共场所找到AED，这张图片直观地展示了AED在公共场所（如地铁站）的实际外观和安装方式，属于辅助说明器材和场景的照片。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个挂在墙上的红色自动体外除颤器（AED）设备箱。箱体上方有红底白字的“AED 自动体外除颤器”标志和心电图波形。透明视窗内可以看到AED主机，机身上印有黄色的“AED”字样、红色的十字标志以及心形心电图图案。箱体顶部还有英文“Automatic External Defibrillator”。",
+          "width": 340
+        },
+        "path": "images/67639ec23a297b3995a96288a07c40895f0dec87446bc5cb6ccc35d2e5d4308d.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "电场强度：放入电场中任意点的电荷所受的电场力 $F$ 跟其电荷量 $q$ 之比，用符号 $E$ 表示， $E = \\frac{F}{q}$ 。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-2d36d44aba12",
+      "locator": "line:129",
+      "modality": "equation",
+      "normalized_claims": [
+        "电场强度：放入电场中任意点的电荷所受的电场力 $F$ 跟其电荷量 $q$ 之比，用符号 $E$ 表示， $E = \\frac{F}{q}$ 。"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "静电喷雾的特点是形成带有电荷的雾滴。在工业生产中，静电喷雾技术可用于汽车、家电、仪表等外壳的喷涂。如图 9-66 所示，静电喷雾的喷枪口上有金属导流管接高压负极，被涂工件接地作为正极...由于导流管连接高压负极使涂料微粒带上负电荷，在静电力和压缩空气的作用下飞向工件，并均匀地吸附在工件表面。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-3cc9388bafb6",
+      "locator": "line:22-28",
+      "modality": "text",
+      "normalized_claims": [
+        "静电喷雾的特点是形成带有电荷的雾滴。在工业生产中，静电喷雾技术可用于汽车、家电、仪表等外壳的喷涂。如图 9-66 所示，静电喷雾的喷枪口上有金属导流管接高压负极，被涂工件接地作为正极...由于导流管连接高压负极使涂料微粒带上负电荷，在静电力"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "库仑定律：真空中两个静止点电荷之间的相互作用力的大小跟它们的电荷量的乘积成正比，跟它们之间的距离的二次方成反比；作用力的方向沿两点电荷的连线， $F = k \\frac{q_1 q_2}{r^2}$ （ $k$ 为静电力常量， $k = 9 \\times 10^9 \\mathrm{~N} \\cdot \\mathrm{m}^2 / \\mathrm{C}^2$ ）。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-4afe35c56cc9",
+      "locator": "line:127",
+      "modality": "equation",
+      "normalized_claims": [
+        "库仑定律：真空中两个静止点电荷之间的相互作用力的大小跟它们的电荷量的乘积成正比，跟它们之间的距离的二次方成反比；作用力的方向沿两点电荷的连线， $F = k \\frac{q_1 q_2}{r^2}$ （ $k$ 为静电力常量， $k = 9"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/75e0facdcb509052311c25e6636fddc825c75953c7b2b05a3e39f8d7de911eaf.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-5149f3759874",
+      "locator": "line:60",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/75e0facdcb509052311c25e6636fddc825c75953c7b2b05a3e39f8d7de911eaf.jpg)"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 290,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/75e0facdcb509052311c25e6636fddc825c75953c7b2b05a3e39f8d7de911eaf.jpg",
+          "reason": "图片内容与上下文高度对应。前文提到了静电危害及防止措施，并明确指出“如图 9-68 所示，常见的油罐车尾的拖地链...是通过有效接地的方法...”。后文紧接着标注了“(a) 油罐车尾的拖地链”。这张图片正是图 9-68 的 (a) 部分，作为实拍照片，它直观地展示了教材中提到的“油罐车拖地链”这一接地装置，用于辅助说明“良好接地”这一物理概念在生活中的应用。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一辆油罐车的尾部实拍照片。车身主体为白色，带有橙色和红色的反光警示条，中间有一个红色的“爆”字圆形标志。最显著的特征是车尾下方有一根金属链条垂下并拖在地面上。",
+          "width": 415
+        },
+        "path": "images/75e0facdcb509052311c25e6636fddc825c75953c7b2b05a3e39f8d7de911eaf.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/6be11187d978ed21648ad2ef405b5383ee370eb7ded755a38d86c1d0a1192603.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-75c981c442df",
+      "locator": "line:26",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/6be11187d978ed21648ad2ef405b5383ee370eb7ded755a38d86c1d0a1192603.jpg)"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 506,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/6be11187d978ed21648ad2ef405b5383ee370eb7ded755a38d86c1d0a1192603.jpg",
+          "reason": "图片是静电喷雾的核心原理示意图（图9-66），直接对应标题“静电喷雾”及前文对静电喷雾工作过程的详细描述（喷枪接负极、工件接地、带电微粒飞向工件）。图片清晰展示了电荷分布、电场方向及喷涂流程，属于直接表达概念和流程的核心内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了静电喷雾的原理示意图。右侧是连接“负电压发生器”的“喷枪”和“涂料”，喷出的涂料微粒带有负电荷（标有“-”号）。左侧是接地的“被涂物”，带有正电荷（标有“+”号）。中间画有从被涂物指向喷枪的电场线（箭头方向），以及带负电的微粒在静电力作用下飞向被涂物的过程。",
+          "width": 637
+        },
+        "path": "images/6be11187d978ed21648ad2ef405b5383ee370eb7ded755a38d86c1d0a1192603.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "电势能：在电场中的电荷受电场力作用而具有的能做功的能量，用符号 $E_{p}$ 表示。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-87ec24c82564",
+      "locator": "line:131",
+      "modality": "equation",
+      "normalized_claims": [
+        "电势能：在电场中的电荷受电场力作用而具有的能做功的能量，用符号 $E_{p}$ 表示。"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/5dedb5958617b35dc6f7224ed64da2c2c94dffc72e57404fc3e521d029db71d2.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-8d20a3347ac8",
+      "locator": "line:17",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/5dedb5958617b35dc6f7224ed64da2c2c94dffc72e57404fc3e521d029db71d2.jpg)"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 404,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/5dedb5958617b35dc6f7224ed64da2c2c94dffc72e57404fc3e521d029db71d2.jpg",
+          "reason": "图片内容与前文描述完全对应。前文提到“如图9-65所示为静电除尘装置及其示意图”，并详细描述了“强电场B”、“正极A”以及尘粒带负电被吸附的过程。图片清晰地展示了这一物理模型和结构（A、B的位置，电极极性，尘粒分布），是解释静电除尘原理的核心图示。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "这是一张静电除尘装置的原理示意图。图中显示了一个竖直的管状结构，右侧有两个接线柱，上方标有负极符号，下方标有正极A。左侧有一个接地符号。管内部标记有区域B，其中充满了代表尘粒的点状物，还有一个小球代表电子。箭头指示了气体的流动方向。",
+          "width": 190
+        },
+        "path": "images/5dedb5958617b35dc6f7224ed64da2c2c94dffc72e57404fc3e521d029db71d2.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "元电荷：最小的电荷量，用符号 e 表示。通常 e 取 $1.6 \\times 10^{-19}$ C。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-9474c1470823",
+      "locator": "line:125",
+      "modality": "equation",
+      "normalized_claims": [
+        "元电荷：最小的电荷量，用符号 e 表示。通常 e 取 $1.6 \\times 10^{-19}$ C。"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "静电的产生与环境湿度和空气中的离子浓度存在密切的关系。因此，保持一定湿度，让静电通过潮湿空气转移出去是一种有效的防范措施。...在橡胶、纤维、纸张、涂料中，常采用不同工艺掺加抗静电剂，从而使材料具有持久的抗静电效果。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-97053d224a84",
+      "locator": "line:73-78",
+      "modality": "text",
+      "normalized_claims": [
+        "静电的产生与环境湿度和空气中的离子浓度存在密切的关系。因此，保持一定湿度，让静电通过潮湿空气转移出去是一种有效的防范措施。...在橡胶、纤维、纸张、涂料中，常采用不同工艺掺加抗静电剂，从而使材料具有持久的抗静电效果。"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/e52d2c97e0e8e17087f46a4230eab3bdac227b8933052bf157f5c0391f533c14.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-a7fa1227fdfe",
+      "locator": "line:107",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/e52d2c97e0e8e17087f46a4230eab3bdac227b8933052bf157f5c0391f533c14.jpg)"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 181,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/e52d2c97e0e8e17087f46a4230eab3bdac227b8933052bf157f5c0391f533c14.jpg",
+          "reason": "图片内容与后文紧密相关。后文明确提到“观察电蚊拍的结构，如图 9-71 所示”并要求分析“电蚊拍的灭蚊原理”。这张图片展示了蚊子接触电蚊拍金属网的场景，是理解灭蚊原理（高压电击）的直观视觉辅助材料，属于教材中关于电蚊拍部分的插图（可能是图9-71的局部或细节图）。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一只蚊子停在金属网格上的微距特写，金属网格呈交叉状，看起来是电蚊拍的拍面。",
+          "width": 209
+        },
+        "path": "images/e52d2c97e0e8e17087f46a4230eab3bdac227b8933052bf157f5c0391f533c14.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "避雷针（接闪杆）的原理是尖端放电。如图9-69所示，在雷雨天气高楼上空出现带电云层时，高楼顶部会被感应上大量电荷。由于避雷针是尖的，在其周围形成强电场而导致尖端放电。这就是把空气击穿（电离）形成导电通路，使云层中积累的电荷通过避雷针导入大地",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-af17f4de9dad",
+      "locator": "line:82-87",
+      "modality": "text",
+      "normalized_claims": [
+        "避雷针（接闪杆）的原理是尖端放电。如图9-69所示，在雷雨天气高楼上空出现带电云层时，高楼顶部会被感应上大量电荷。由于避雷针是尖的，在其周围形成强电场而导致尖端放电。这就是把空气击穿（电离）形成导电通路，使云层中积累的电荷通过避雷针导入大地"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/84958779ca2eb169315b98ac4b4c77c49332feaecddf9121102acebba1efae23.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b88a7c7a7e6f",
+      "locator": "line:96",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/84958779ca2eb169315b98ac4b4c77c49332feaecddf9121102acebba1efae23.jpg)"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 254,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/84958779ca2eb169315b98ac4b4c77c49332feaecddf9121102acebba1efae23.jpg",
+          "reason": "图片内容为家用燃气灶的电子点火器工作场景，清晰展示了针尖状电极和放电火花。这与前文“问题2”中描述的“如图 9-70（a）所示是家用燃气灶的电子点火器，电子点火器的放电电极为何要做成针尖形？”完全对应。作为思考题的配图实物照片，它辅助说明了尖端放电的应用场景，属于 supporting 内容。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张燃气灶电子点火器的特写照片，显示了针尖状的金属放电电极，电极尖端有蓝色的电火花正在产生，背景是燃气灶的金属支架和燃烧器。",
+          "width": 329
+        },
+        "path": "images/84958779ca2eb169315b98ac4b4c77c49332feaecddf9121102acebba1efae23.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/d348704a1b247aec52e9007674d0646e5720523830b48e970bb9985127390869.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-bbedb8718695",
+      "locator": "line:63",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/d348704a1b247aec52e9007674d0646e5720523830b48e970bb9985127390869.jpg)"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 290,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/d348704a1b247aec52e9007674d0646e5720523830b48e970bb9985127390869.jpg",
+          "reason": "该图片是教材图9-68的组成部分（标注为b），直接对应前文提到的“加油机上的金属键盘”以及后文的说明“(b) 加油机上的金属键盘”。前文指出这是“通过有效接地的方法把静电传入地下”的实例，属于“良好接地”这一核心知识点的直接应用案例。虽然图片主要展示了加油机的读数界面，但在教材语境下，它指代了需要接地的金属键盘装置，是解释静电防护概念的核心证据。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张加油站加油机的特写照片。顶部绿色背景写有“加油位”。中间液晶显示屏显示金额305.00元，油量37.47升。下方小屏显示单价8.14元/升。左侧有一个带有数字键盘和屏幕的读卡器装置。",
+          "width": 415
+        },
+        "path": "images/d348704a1b247aec52e9007674d0646e5720523830b48e970bb9985127390869.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "总之，静电利用是借助电荷间的相互作用，而静电防范是让产生的电荷及时转移出去，不产生累积。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-c292cceddf45",
+      "locator": "line:89",
+      "modality": "text",
+      "normalized_claims": [
+        "总之，静电利用是借助电荷间的相互作用，而静电防范是让产生的电荷及时转移出去，不产生累积。"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "光导硒鼓表面覆有光敏导体薄膜。光敏导体对光很敏感，没有光线时电阻大，能保持电荷；遇到光照电阻就急剧下降，将所带的电荷传走...光敏导体表面的静电电荷也随光线强弱程度而不同程度地消失，在光敏导体膜层上便形成一个相应的静电图像。但人们看不到它，好像潜藏在膜层内，故称“静电潜像”。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-c43c25980740",
+      "locator": "line:38-48",
+      "modality": "text",
+      "normalized_claims": [
+        "光导硒鼓表面覆有光敏导体薄膜。光敏导体对光很敏感，没有光线时电阻大，能保持电荷；遇到光照电阻就急剧下降，将所带的电荷传走...光敏导体表面的静电电荷也随光线强弱程度而不同程度地消失，在光敏导体膜层上便形成一个相应的静电图像。但人们看不到它，"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/9c6e785a9b7531bee2513d32beb965a44f10b058900b5d187becb5289118618d.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-c48adbf3e06e",
+      "locator": "line:100",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/9c6e785a9b7531bee2513d32beb965a44f10b058900b5d187becb5289118618d.jpg)"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 251,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/9c6e785a9b7531bee2513d32beb965a44f10b058900b5d187becb5289118618d.jpg",
+          "reason": "图片展示了一个静电计，这与前文提到的“如图 9-70（b）所示是实验室中的静电计”直接对应。前文的问题正是关于为什么这个静电计的金属杆上端固定金属球而不做成针尖状。图片提供了关键的视觉证据（金属球结构、指针式表盘），是教材思考题的核心配图，直接表达了物理器材的结构特征，用于辅助理解尖端放电相关的物理概念。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张实验室静电计的实物照片。仪器具有圆形的蓝色表盘外壳，内部有金属杆和指针，顶端固定着一个金属球，底部有支架支撑。",
+          "width": 209
+        },
+        "path": "images/9c6e785a9b7531bee2513d32beb965a44f10b058900b5d187becb5289118618d.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/3d009f4b9590d742ddbe3bcdd5f402c77c970b437921009e5733370617e9e3a5.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-ca469a6b756d",
+      "locator": "line:103",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/3d009f4b9590d742ddbe3bcdd5f402c77c970b437921009e5733370617e9e3a5.jpg)"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 178,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/3d009f4b9590d742ddbe3bcdd5f402c77c970b437921009e5733370617e9e3a5.jpg",
+          "reason": "图片显示的是电蚊拍，属于物理教材中常见的实物器材。根据上下文，该图片位于图9-70和图9-71的序列中（前文有图9-70及(a)(b)标记，后文有图9-71及(a)(b)标记），显然是教材插图的一部分。在‘问题②思考’的标题下，这张照片作为辅助说明的实例（likely demonstrating high voltage or electrostatic fields），符合‘照片、器材、例题配图’的supporting类别定义。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张电蚊拍的实物照片，具有黑色的手柄和黄色的网状拍头。",
+          "width": 326
+        },
+        "path": "images/3d009f4b9590d742ddbe3bcdd5f402c77c970b437921009e5733370617e9e3a5.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/995c5abe00ab9031ed94959336de5560280c122a220987f0e444e49c30695ede.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-cb1f91b6e4cf",
+      "locator": "line:41",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/995c5abe00ab9031ed94959336de5560280c122a220987f0e444e49c30695ede.jpg)"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 250,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/995c5abe00ab9031ed94959336de5560280c122a220987f0e444e49c30695ede.jpg",
+          "reason": "图片与教材上下文高度对应。前文明确提到“如图9-67所示...图像的反射光形成的像就落在光导硒鼓的光敏导体表面上...形成一个相应的静电图像”，详细描述了静电潜像的形成过程。后文紧接着给出了图注“图9-67 静电复印”。该图片直观地展示了静电复印机核心的光学成像和光电导效应流程，属于解释核心概念和主要物理过程的示意图，因此作为核心内容保留。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了静电复印机的工作原理示意图。左侧标有“原稿”，上面有一个黄色的“E”形图案；中间是标有“光学系统”的透镜，光线穿过透镜汇聚；右侧是一个圆柱体，标有“光导硒鼓”，其表面形成了一个倒立的“E”形图案，下方标注为“静电潜像”。",
+          "width": 479
+        },
+        "path": "images/995c5abe00ab9031ed94959336de5560280c122a220987f0e444e49c30695ede.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/be9aab52d1b7fc3b8cb97b4f8c6d6f530880d471fcf2f3097da25a07a39c52ee.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-cfdfdb4ccb53",
+      "locator": "line:79",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/be9aab52d1b7fc3b8cb97b4f8c6d6f530880d471fcf2f3097da25a07a39c52ee.jpg)"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 473,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/be9aab52d1b7fc3b8cb97b4f8c6d6f530880d471fcf2f3097da25a07a39c52ee.jpg",
+          "reason": "图片内容完美对应了前文关于‘避雷针（接闪杆）的原理是尖端放电’的详细文字描述。前文解释了带电云层感应高楼电荷、尖端强电场导致放电、电荷导入大地的过程，而图片通过‘带电雷雨云层’、‘感应电荷’、‘放电’、‘电子移至地下’等标注直观地展示了这一物理机制。此外，后文直接标注该图为‘图9-69 避雷针的原理’，证实了其在教材中作为核心知识点图解的地位。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片是一张避雷针工作原理的示意图。上方画有两朵带有正电荷（+）的“带电的雷雨云层”。中间是一座黄色建筑物，顶部有尖端的“避雷针”，周围标有正电荷和指向云层的“放电”箭头。建筑物内部标有“感应电荷”。建筑物下方有箭头指向地下，标注“电子移至地下”，最底部是“埋在地下的金属板”。右侧还有一座绿色建筑被闪电击中，作为对比。",
+          "width": 350
+        },
+        "path": "images/be9aab52d1b7fc3b8cb97b4f8c6d6f530880d471fcf2f3097da25a07a39c52ee.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "虽然静电有许多用处，但静电的麻烦也不少。静电危害来源于带电体静电场的作用。例如飞机飞行时机体与空气、水汽、灰尘等微粒摩擦会使飞机带电...静电火花点燃某些易燃物体而引发爆炸等事故。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-dfdbca18c46a",
+      "locator": "line:55-58",
+      "modality": "text",
+      "normalized_claims": [
+        "虽然静电有许多用处，但静电的麻烦也不少。静电危害来源于带电体静电场的作用。例如飞机飞行时机体与空气、水汽、灰尘等微粒摩擦会使飞机带电...静电火花点燃某些易燃物体而引发爆炸等事故。"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "excerpt": "电势：电场中某一点电荷的电势能 $E_{p}$ 跟它所带的电荷量q的比，用符号 $\\varphi$ 表示， $\\varphi = \\frac{E_{p}}{q}$ 。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-faafcfd51bfa",
+      "locator": "line:132",
+      "modality": "equation",
+      "normalized_claims": [
+        "电势：电场中某一点电荷的电势能 $E_{p}$ 跟它所带的电荷量q的比，用符号 $\\varphi$ 表示， $\\varphi = \\frac{E_{p}}{q}$ 。"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:40:11+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-1da31abe24f3",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-1dc6c585187a"
+      ],
+      "source_type": "textbook",
+      "target_id": "method/安全措施:auto-96ee86a0bb1e",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "静电接地"
+    ],
+    "created_at": "2026-06-29T05:40:11+00:00",
+    "dataset_id": "main",
+    "definition": "通过导体将带电体与大地连接，使静电及时导入地下以防积聚的方法。",
+    "deprecated_by": null,
+    "domains": [
+      "physics",
+      "engineering",
+      "sports"
+    ],
+    "external_ids": {},
+    "id": "method/安全措施:auto-96ee86a0bb1e",
+    "kind": "method",
+    "knowledge_form": [
+      "practical"
+    ],
+    "learning_mode": [
+      "procedural"
+    ],
+    "name": "接地防静电",
+    "notes": "最基础且广泛使用的防静电手段。",
+    "properties": {
+      "classifications": {
+        "raw_subkinds": [
+          "安全措施"
+        ],
+        "subkinds": [
+          "safety_measure"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "油罐车拖地链",
+          "加油机金属键盘",
+          "飞机导电轮胎"
+        ],
+        "conditions": [
+          "使用良好导电材料",
+          "建立可靠对地通路"
+        ],
+        "formal_expressions": []
+      },
+      "template_display": {
+        "color": "#1EB478",
+        "label": "实验/方法",
+        "template_id": "textbook/physics",
+        "type_key": "method"
+      }
+    },
+    "scope": "culture-specific",
+    "status": "active",
+    "subkind": "safety_measure",
+    "tags": [
+      "静电防范",
+      "电荷转移",
+      "安全防护"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [],
+    "outgoing": []
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第七节 静电的利用与防范\n\n随着科学技术的发展和各种用电器的普及，静电与人们的关系越来越密切。在生产和社会生活中，静电既有有利的一面，如静电除尘、静电喷雾、静电复印（图9-64）等，也有需要防范的一面。\n\n\n\n## 如何利用静电？\n\n## 1. 静电除尘\n\n在工业生产中常利用静电以净化气体或回收有用尘粒。如图9-65所示为静电除尘装置及其示意图。在强电场 $B$ 附近空气分子被电离为正离子和电子，电子在奔向正极 $A$ 的运动过程中遇到尘粒，使尘粒带负电被吸附到正极处。这一装置常用于火力发电站收集烟气中的煤灰和粉尘，以及用于冶金业收集锡、锌、铅、铝等的氧化物。静电除尘也可以用于家庭除尘灭菌。\n\n[source image omitted from static artifact]  \n(a)  \n图9-65 静电除尘\n\n[source image omitted from static artifact]  \n(b)\n\n## 2. 静电喷雾\n\n静电喷雾的特点是形成带有电荷的雾滴。在工业生产中，静电喷雾技术可用于汽车、家电、仪表等外壳的喷涂。\n\n如图 9-66 所示，静电喷雾的喷枪口上有金属导流管接高压负极，被涂工件接地作为正极，在喷口和工件之间形成较强的静电场。当高压空气将涂料从输料管送到喷口的导流管时，由于导流管连接高压负极使涂料微粒带上负电荷，在静电力和压缩空气的作用下飞向工件，并均匀地吸附在工件表面。经过干燥或加热，固化成厚度均匀、质地坚固的涂层，完成喷涂工作\n\n[source image omitted from static artifact]  \n图9-66 静电喷雾\n\n## 3. 静电复印\n\n现代电子技术的广泛应用给人们带来了许多方便，大大提高了工作效率。静电复印机具有简便、迅速、清晰、可扩印和缩印并可复印彩色原件等优点而被广泛应用。\n\n## 自主活动\n\n准备塑料板一块，丝绸一块，一些细木屑（或粉笔屑）。用丝绸在塑料板上用力摩擦后，再用手指在塑料板上缓慢移动写字，比如写一个“大”字，然后把干燥的细木屑（或粉笔屑）均匀地撒在塑料板上，竖起塑料板在桌面上轻轻敲击后，塑料板上就会留下一个空心的“大”字。\n\n如图9-67所示，当一张要复印的图像放在静电复印机的稿台上时，在机内灯光照射下，反射光通过光学系统在光导硒鼓上成像。光导硒鼓表面覆有光敏导体薄膜。光敏导体对光很敏感，没有光线时电阻大，能保持电荷；遇到光照电阻就急剧下降，将所带的电荷传走。光敏导体表面在充电极的作用下带有均匀的正电荷。图像的反射光形成的像就落在\n\n光导硒鼓的光敏导体表面上。由于反射光有强有弱（与原稿图像的深浅对应），光敏导体的电阻相应发生变化。光敏导体表面的静电电荷也随光线强弱程度而不同程度地消失，在光敏导体膜层上便形成一个相应的静电图像。但人们看不到它，好像潜藏在膜层内，故称“静电潜像”。\n\n[source image omitted from static artifact]  \n图9-67 静电复印\n\n这时带负电的显影墨粉在电场力的作用下被吸附到光敏导体表面。潜像上吸附的墨粉量与潜像上电荷的多少相对应。于是，在光导硒鼓的表面显现出有深浅层次的墨粉图像。复印机将送来的复印纸充上比光导硒鼓表面更强的正电。当复印纸与墨粉图像接触时便将带负电的墨粉转移到复印纸上。再经定影器加热，墨粉便被熔化并牢固地黏附在纸上，图像和文字就复印在纸上了。\n\n## 大家谈\n\n在生活中，静电是否给你带来过麻烦？你又是如何应对的？\n\n虽然静电有许多用处，但静电的麻烦也不少。静电危害来源于带电体静电场的作用。例如飞机飞行时机体与空气、水汽、灰尘等微粒摩擦会使飞机带电，如果不采取措施，将会严重干扰飞机电子设备的正常工作；在印刷厂里，纸页之间的静电会使纸页黏合在一起，难以分开，给印刷带来麻烦；在制药厂里，由于静电吸引尘埃，会使药品达不到标准的纯度。另外，还可能因静电火花点燃某些易燃物体而引发爆炸等事故。\n\n\n\n## 如何防范静电对人类的危害？\n\n## 1. 良好接地\n\n如图 9-68 所示，常见的油罐车尾的拖地链和加油机上的金属键盘等都是通过有效接地的方法把静电传入地下，以防止静电的积聚，避免静电放电的火花引发爆炸。飞机使用导电橡\n\n[source image omitted from static artifact]  \n(a) 油罐车尾的拖地链\n\n[source image omitted from static artifact]  \n(b) 加油机上的金属键盘  \n图9-68 良好接地\n\n胶制作的轮胎，在着陆时静电通过导电轮胎及时传入大地，保证乘客和飞机的安全。\n\n## 2. 工艺控制\n\n静电的产生与环境湿度和空气中的离子浓度存在密切的关系。因此，保持一定湿度，让静电通过潮湿空气转移出去是一种有效的防范措施。同时，与普通场合相比，在空气纯净的场所（如无尘车间）内，静电更易产生。同样的操作在不同的湿度下产生的静电电压可以相差许多。值得注意的是，并不是湿度越高越好，湿度过高会导致设备易结露水；因此湿度应控制在一个合理范围内。另外，在橡胶、纤维、纸张、涂料中，常采用不同工艺掺加抗静电剂，从而使材料具有持久的抗静电效果。\n\n## 3. 使用避雷针（接闪杆）\n\n现代建筑物都装有避雷针。避雷针（接闪杆）的原理是尖端放电。如图9-69所示，在雷雨天气高楼上空出现带电云层时，高楼顶部会被感应上大量电荷。由于避雷针是尖的，在其周围形成强电场而导致尖端放电。这就是把空气击穿（电离）形成导电通路，使云层中积累的电荷通过避雷针导入大地，减少地面物受雷击的可能性。所以避雷针其实不“避雷”，反而是“接雷”，只不过是化强为弱，避免强雷电的破坏。\n\n总之，静电利用是借助电荷间的相互作用，而静电防范是让产生的电荷及时转移出去，不产生累积。\n\n[source image omitted from static artifact]  \n图9-69 避雷针的原理\n\n## 问题②思考\n\n1. 下列关于生活中常见静电现象的实例是利用静电还是防范静电？为什么？\n\n(1) 油罐车有一条铁链拖地。\n\n(2) 飞机轮胎用导电橡胶制作。\n\n(3) 喷漆时让喷嘴喷出的油漆带电。\n\n(4) 汽车加油站的工作人员不能穿腈纶衣服。\n\n2. 如图 9-70（a）所示是家用燃气灶的电子点火器，电子点火器的放电电极为何要做成针尖形？如图 9-70（b）所示是实验室中的静电计，它的金属杆上端固定一个金属球而不做成针尖状，这又是为什么？\n\n[source image omitted from static artifact]  \n(a)  \n图9-70\n\n[source image omitted from static artifact]  \n(b)\n\n[source image omitted from static artifact]  \n(a)  \n图9-71\n\n[source image omitted from static artifact]  \n(b)\n\n3. 观察电蚊拍的结构，如图 9-71 所示。仔细观察会发现电蚊拍的金属网有三层。外面两层金属网连通处于低电势，中间层金属网高电势，外层与中间层电势差可达上千伏。试分析电蚊拍的灭蚊原理。\n\n## 学期（活动\n\n我国每年因心脏骤停死亡的人数超过 50 万，大约每 60 s 就会有一条生命因此离去。4 min 是心脏骤停发生后的黄金救助时间。在生死一线的黄金时刻，自动体外除颤器（Automated external defibrillator，缩写 AED，图 9–72）可以担负起挽救生命的职责。自动体外除颤器智能易操作，能完成心脏电击除颤，为患者争取更大的生存机会。自动体外除颤器以 100 kW 的电功率用 20 A 的电流通过胸腔，在约 2 ms 的时间内最多可传输 200 J 的电能。在人流密集的公共场所，如何才能找到自动体外除颤器？\n\n以小组为单位，查阅资料了解自动体外除颤器具体的工作原理和使用方法，并寻找我们身边设置有自动体外除颤器的地点，完成一篇调查报告，同时绘制宣传海报。介绍自动体外除颤器的工作原理、使用方法和学校周边 AED 设备的分布。\n\n[source image omitted from static artifact]  \n图9-72 地铁站中的自动体外除颤器\n\n# 小结\n\n## - 基本概念和基本规律\n\n元电荷：最小的电荷量，用符号 e 表示。通常 e 取 $1.6 \\times 10^{-19}$ C。\n\n库仑定律：真空中两个静止点电荷之间的相互作用力的大小跟它们的电荷量的乘积成正比，跟它们之间的距离的二次方成反比；作用力的方向沿两点电荷的连线， $F = k \\frac{q_1 q_2}{r^2}$ （ $k$ 为静电力常量， $k = 9 \\times 10^9 \\mathrm{~N} \\cdot \\mathrm{m}^2 / \\mathrm{C}^2$ ）。\n\n电场强度：放入电场中任意点的电荷所受的电场力 $F$ 跟其电荷量 $q$ 之比，用符号 $E$ 表示， $E = \\frac{F}{q}$ 。\n\n电势能：在电场中的电荷受电场力作用而具有的能做功的能量，用符号 $E_{p}$ 表示。\n电势：电场中某一点电荷的电势能 $E_{p}$ 跟它所带的电荷量q的比，用符号 $\\varphi$ 表示， $\\varphi = \\frac{E_{p}}{q}$ 。\n\n电势差：电场中两点间电势之差，也叫电压， $U_{AB}=\\varphi_{A}-\\varphi_{B}$\n\n电容: 电容器所带的电荷量 $Q$ 与电容器两极板间的电势差 $U$ 之比, 用符号 $C$ 表示, $C = \\frac{Q}{U}$ 。\n\n## - 基本方法\n\n通过研究带电体之间相互作用所建立的点电荷模型，认识模型建构的思想方法。\n\n通过科学家发现库仑定律的过程，认识库仑扭秤实验巧妙解决电荷量和微小库仑力的测量问题，感受类比、微小力放大、守恒和对称等思想方法。\n\n通过电场强度、电势、电容等物理量的概念和定义的建立，认识比值定义法。\n\n## - 知识结构图\n\n\n\n## 复习②巩固\n\n1. 下列物理量是矢量还是标量?\n(1) 电场强度 (2) 电场力 (3) 电势 (4) 电势能 (5) 电容\n\n2. 如图9-73所示为某电场的电场线分布，A、B是电场中的两点。A、B两点中哪一点的电场强度大？画出正点电荷在A点和负点电荷在B点所受电场力的方向。\n\n\n\n3. 某点电荷在距离其 50 cm 处产生的电场的电场强度大小为 2 N/C。该点电荷所带电荷量的大小是多少？\n\n图9-73\n\n4. 如图 9-74 所示，棒 $AB$ 上均匀分布着正电荷，它的中点正上方有一 $P$ 点。 $P$ 点的电场强度的方向如何？简述理由。\n\n  \n图9-74\n\n  \n图9-75\n\n5. 如图 9-75 所示, 将一电容 $C = 0.25 \\mu \\mathrm{F}$ 的不带电电容器和电势差 $U = 12 \\mathrm{~V}$ 的电源连接。闭合开关 S, 对电容器充电。充电完成后, 电容器的负极板上带的电荷的电荷量相当于多少个电子所带的电荷量?\n\n6. 两个完全相同的金属小球 $A$ 和 $B$ 所带的电荷量大小相等, 相隔一定距离, 两球之间的相互吸引力的大小为 $F$ 。现让第三个完全相同的不带电的金属小球 $C$ 先后与 $A 、 B$ 接触后移开, 则此时 $A 、 B$ 两金属小球之间的静电相互作用是吸引还是排斥? 相互作用力的大小为多少?\n\n7. 如图 9-76 所示，实线是一组未标明方向的由点电荷产生的电场线，虚线是某一带电粒子通过该电场区域的运动轨迹， $a$ 、 $b$ 是其轨迹上的两点。若带电粒子在运动中只受电场力作用，比较带电粒子在 $a$ 、 $b$ 两点的电势能大小和速度大小的关系。\n\n  \n图9-76\n\n8. 把电荷量 $q = -3 \\times 10^{-6} \\, C$ 的点电荷从 A 点移到 B 点，电场力做功为 $6 \\times 10^{-4} \\, J$ 。把同样的点电荷从 B 点移到 C 点，克服电场力做功 $3 \\times 10^{-4} \\, J$ 。比较电场中 A、B、C 三点的电势大小。\n\n9. 细胞膜的厚度约等于 $8 \\, nm \\, (1 \\, nm = 10^{-9} \\, m)$ 。若将细胞膜内的电场视为匀强电场，试求当细胞膜的内外层之间的电压达 $40 \\, mV$ 时，细胞膜内电场强度的大小。此时一价钠离子 $(\\mathrm{Na}^{+})$ 可发生渗透通过细胞膜，则一个钠离子发生渗透时电势能改变多少？\n\n10. 一电场的电场线分布关于 y 轴对称，O、M、N 是 y 轴上的三个点，且 OM = MN。P 点在 y 轴右侧，MP ⊥ ON，如图 9-77 所示。M 点与 P 点的电势哪点更高？电势差 $U_{OM}$ 与 $U_{MN}$ 的大小关系如何？\n\n  \n图9-77\n\n\\*11. 在与 $x$ 轴平行的匀强电场中, 一带电荷量为 $1.0 \\times 10^{-8} \\mathrm{C}$ 、质量为 $2.5 \\times 10^{-3} \\mathrm{~kg}$ 的物体在光滑水平面上沿 $x$ 轴做直线运动, 其位移与时间的关系是 $x = 0.16 t - 0.02 t^{2}$ , 式中 $x$ 以 $\\mathrm{m}$ 为单位, $t$ 以 $\\mathrm{s}$ 为单位。从开始运动到第 $5 \\mathrm{~s}$ 末, 物体所经过的路程为多少? 克服电场力所做的功为多少?\n\n\\*12. 如图 9-78 所示，两块分别带等量异号电荷的大平行金属板相距 $5.0 \\mathrm{~cm}$ ，它们之间的电场可视为匀强电场。电子 (e) 从负极板表面静止释放的同时，质子 (p) 也从正极板表面静止释放。忽略电子和质子间的相互作用力，当它们到达同一等势面时，该等势面与正极板之间的距离是多少？（质子的质量为 $1.67 \\times 10^{-27} \\mathrm{~kg}$ ，电子的质量为 $9.11 \\times 10^{-31} \\mathrm{~kg}$ ）\n\n  \n图9-78\n\n\n\n图为从硅晶圆上取下已制好的集成电路所需的芯片。如今， $1\\ cm^{2}$ 的集成电路就可以拥有几十亿甚至上百亿个电子元器件。稳定、高效、轻便的集成电路为人们的生活、科技带来了无限的可能。集成电路极为复杂，要研究集成电路，我们需先从认识简单电路开始。那么，电路元器件如何构成简单电路，电路工作中遵循哪些规律呢？\n\n## 第十章 电路及其应用\n\n\\- 在本章中你将：\n\n1. 认识常见的电路元器件，了解串并联组合电路特点，理解闭合电路欧姆定律、电功、电功率及焦耳定律等有关电路的概念和规律。\n\n2. 探究影响导体电阻的因素；练习使用多用电表；测量电阻率、电源电动势和内阻。\n\n3. 运用电路知识解释生活中的有关现象，分析和解决家庭电路的简单问题。\n\n· 本章的学习将从微观机制深入理解电学量；在初中学习的基础上学习简单的串联、并联组合电路及闭合电路。\n\n· 本章的学习将进一步认识等效替代、控制变量等思想方法。\n\n  \n图10-1 上海浦东陆家嘴的璀璨夜景",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:9-7-a:source-markdown",
+          "locator": "静电的利用与防范",
+          "modality": "text",
+          "page_end": 47,
+          "page_start": 40,
+          "properties": {
+            "md_end": 1495,
+            "md_start": 1280,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:9-7-a",
+            "outline_title": "静电的利用与防范",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 1495,
+      "md_start": 1280,
+      "modalities": [
+        "image",
+        "text",
+        "equation"
+      ],
+      "page_end": 47,
+      "page_start": 40,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第七节 静电的利用与防范\n\n随着科学技术的发展和各种用电器的普及，静电与人们的关系越来越密切。在生产和社会生活中，静电既有有利的一面，如静电除尘、静电喷雾、静电复印（图9-64）等，也有需要防范的一面。\n\n\n\n## 如何利用静电？\n\n## 1. 静电除尘\n\n在工业生产中常利用静电以净化气体或回收有用尘粒。如图9-65所示为静电除尘装置及其示意图。在强电场 $B$ 附近空气分子被电离为正离子和电子，电子在奔向正极 $A$ 的运动过程中遇到尘粒，使尘粒带负电被吸附到正极处。这一装置常用于火力发电站收集烟气中的煤灰和粉尘，以及用于冶金业收集锡、锌、铅、铝等的氧化物。静电除尘也可以用于家庭除尘灭菌。\n\n[source image omitted from static artifact]  \n(a)  \n图9-65 静电除尘\n\n[source image omitted from static artifact]  \n(b)\n\n## 2. 静电喷雾\n\n静电喷雾的特点是形成带有电荷的雾滴。在工业生产中，静电喷雾技术可用于汽车、家电、仪表等外壳的喷涂。\n\n如图 9-66 所示，静电喷雾的喷枪口上有金属导流管接高压负极，被涂工件接地作为正极，在喷口和工件之间形成较强的静电场。当高压空气将涂料从输料管送到喷口的导流管时，由于导流管连接高压负极使涂料微粒带上负电荷，在静电力和压缩空气的作用下飞向工件，并均匀地吸附在工件表面。经过干燥或加热，固化成厚度均匀、质地坚固的涂层，完成喷涂工作\n\n[source image omitted from static artifact]  \n图9-66 静电喷雾\n\n## 3. 静电复印\n\n现代电子技术的广泛应用给人们带来了许多方便，大大提高了工作效率。静电复印机具有简便、迅速、清晰、可扩印和缩印并可复印彩色原件等优点而被广泛应用。\n\n## 自主活动\n\n准备塑料板一块，丝绸一块，一些细木屑（或粉笔屑）。用丝绸在塑料板上用力摩擦后，再用手指在塑料板上缓慢移动写字，比如写一个“大”字，然后把干燥的细木屑（或粉笔屑）均匀地撒在塑料板上，竖起塑料板在桌面上轻轻敲击后，塑料板上就会留下一个空心的“大”字。\n\n如图9-67所示，当一张要复印的图像放在静电复印机的稿台上时，在机内灯光照射下，反射光通过光学系统在光导硒鼓上成像。光导硒鼓表面覆有光敏导体薄膜。光敏导体对光很敏感，没有光线时电阻大，能保持电荷；遇到光照电阻就急剧下降，将所带的电荷传走。光敏导体表面在充电极的作用下带有均匀的正电荷。图像的反射光形成的像就落在\n\n光导硒鼓的光敏导体表面上。由于反射光有强有弱（与原稿图像的深浅对应），光敏导体的电阻相应发生变化。光敏导体表面的静电电荷也随光线强弱程度而不同程度地消失，在光敏导体膜层上便形成一个相应的静电图像。但人们看不到它，好像潜藏在膜层内，故称“静电潜像”。\n\n[source image omitted from static artifact]  \n图9-67 静电复印\n\n这时带负电的显影墨粉在电场力的作用下被吸附到光敏导体表面。潜像上吸附的墨粉量与潜像上电荷的多少相对应。于是，在光导硒鼓的表面显现出有深浅层次的墨粉图像。复印机将送来的复印纸充上比光导硒鼓表面更强的正电。当复印纸与墨粉图像接触时便将带负电的墨粉转移到复印纸上。再经定影器加热，墨粉便被熔化并牢固地黏附在纸上，图像和文字就复印在纸上了。\n\n## 大家谈\n\n在生活中，静电是否给你带来过麻烦？你又是如何应对的？\n\n虽然静电有许多用处，但静电的麻烦也不少。静电危害来源于带电体静电场的作用。例如飞机飞行时机体与空气、水汽、灰尘等微粒摩擦会使飞机带电，如果不采取措施，将会严重干扰飞机电子设备的正常工作；在印刷厂里，纸页之间的静电会使纸页黏合在一起，难以分开，给印刷带来麻烦；在制药厂里，由于静电吸引尘埃，会使药品达不到标准的纯度。另外，还可能因静电火花点燃某些易燃物体而引发爆炸等事故。\n\n\n\n## 如何防范静电对人类的危害？\n\n## 1. 良好接地\n\n如图 9-68 所示，常见的油罐车尾的拖地链和加油机上的金属键盘等都是通过有效接地的方法把静电传入地下，以防止静电的积聚，避免静电放电的火花引发爆炸。飞机使用导电橡\n\n[source image omitted from static artifact]  \n(a) 油罐车尾的拖地链\n\n[source image omitted from static artifact]  \n(b) 加油机上的金属键盘  \n图9-68 良好接地\n\n胶制作的轮胎，在着陆时静电通过导电轮胎及时传入大地，保证乘客和飞机的安全。\n\n## 2. 工艺控制\n\n静电的产生与环境湿度和空气中的离子浓度存在密切的关系。因此，保持一定湿度，让静电通过潮湿空气转移出去是一种有效的防范措施。同时，与普通场合相比，在空气纯净的场所（如无尘车间）内，静电更易产生。同样的操作在不同的湿度下产生的静电电压可以相差许多。值得注意的是，并不是湿度越高越好，湿度过高会导致设备易结露水；因此湿度应控制在一个合理范围内。另外，在橡胶、纤维、纸张、涂料中，常采用不同工艺掺加抗静电剂，从而使材料具有持久的抗静电效果。\n\n## 3. 使用避雷针（接闪杆）\n\n现代建筑物都装有避雷针。避雷针（接闪杆）的原理是尖端放电。如图9-69所示，在雷雨天气高楼上空出现带电云层时，高楼顶部会被感应上大量电荷。由于避雷针是尖的，在其周围形成强电场而导致尖端放电。这就是把空气击穿（电离）形成导电通路，使云层中积累的电荷通过避雷针导入大地，减少地面物受雷击的可能性。所以避雷针其实不“避雷”，反而是“接雷”，只不过是化强为弱，避免强雷电的破坏。\n\n总之，静电利用是借助电荷间的相互作用，而静电防范是让产生的电荷及时转移出去，不产生累积。\n\n[source image omitted from static artifact]  \n图9-69 避雷针的原理\n\n## 问题②思考\n\n1. 下列关于生活中常见静电现象的实例是利用静电还是防范静电？为什么？\n\n(1) 油罐车有一条铁链拖地。\n\n(2) 飞机轮胎用导电橡胶制作。\n\n(3) 喷漆时让喷嘴喷出的油漆带电。\n\n(4) 汽车加油站的工作人员不能穿腈纶衣服。\n\n2. 如图 9-70（a）所示是家用燃气灶的电子点火器，电子点火器的放电电极为何要做成针尖形？如图 9-70（b）所示是实验室中的静电计，它的金属杆上端固定一个金属球而不做成针尖状，这又是为什么？\n\n[source image omitted from static artifact]  \n(a)  \n图9-70\n\n[source image omitted from static artifact]  \n(b)\n\n[source image omitted from static artifact]  \n(a)  \n图9-71\n\n[source image omitted from static artifact]  \n(b)\n\n3. 观察电蚊拍的结构，如图 9-71 所示。仔细观察会发现电蚊拍的金属网有三层。外面两层金属网连通处于低电势，中间层金属网高电势，外层与中间层电势差可达上千伏。试分析电蚊拍的灭蚊原理。\n\n## 学期（活动\n\n我国每年因心脏骤停死亡的人数超过 50 万，大约每 60 s 就会有一条生命因此离去。4 min 是心脏骤停发生后的黄金救助时间。在生死一线的黄金时刻，自动体外除颤器（Automated external defibrillator，缩写 AED，图 9–72）可以担负起挽救生命的职责。自动体外除颤器智能易操作，能完成心脏电击除颤，为患者争取更大的生存机会。自动体外除颤器以 100 kW 的电功率用 20 A 的电流通过胸腔，在约 2 ms 的时间内最多可传输 200 J 的电能。在人流密集的公共场所，如何才能找到自动体外除颤器？\n\n以小组为单位，查阅资料了解自动体外除颤器具体的工作原理和使用方法，并寻找我们身边设置有自动体外除颤器的地点，完成一篇调查报告，同时绘制宣传海报。介绍自动体外除颤器的工作原理、使用方法和学校周边 AED 设备的分布。\n\n[source image omitted from static artifact]  \n图9-72 地铁站中的自动体外除颤器\n\n# 小结\n\n## - 基本概念和基本规律\n\n元电荷：最小的电荷量，用符号 e 表示。通常 e 取 $1.6 \\times 10^{-19}$ C。\n\n库仑定律：真空中两个静止点电荷之间的相互作用力的大小跟它们的电荷量的乘积成正比，跟它们之间的距离的二次方成反比；作用力的方向沿两点电荷的连线， $F = k \\frac{q_1 q_2}{r^2}$ （ $k$ 为静电力常量， $k = 9 \\times 10^9 \\mathrm{~N} \\cdot \\mathrm{m}^2 / \\mathrm{C}^2$ ）。\n\n电场强度：放入电场中任意点的电荷所受的电场力 $F$ 跟其电荷量 $q$ 之比，用符号 $E$ 表示， $E = \\frac{F}{q}$ 。\n\n电势能：在电场中的电荷受电场力作用而具有的能做功的能量，用符号 $E_{p}$ 表示。\n电势：电场中某一点电荷的电势能 $E_{p}$ 跟它所带的电荷量q的比，用符号 $\\varphi$ 表示， $\\varphi = \\frac{E_{p}}{q}$ 。\n\n电势差：电场中两点间电势之差，也叫电压， $U_{AB}=\\varphi_{A}-\\varphi_{B}$\n\n电容: 电容器所带的电荷量 $Q$ 与电容器两极板间的电势差 $U$ 之比, 用符号 $C$ 表示, $C = \\frac{Q}{U}$ 。\n\n## - 基本方法\n\n通过研究带电体之间相互作用所建立的点电荷模型，认识模型建构的思想方法。\n\n通过科学家发现库仑定律的过程，认识库仑扭秤实验巧妙解决电荷量和微小库仑力的测量问题，感受类比、微小力放大、守恒和对称等思想方法。\n\n通过电场强度、电势、电容等物理量的概念和定义的建立，认识比值定义法。\n\n## - 知识结构图\n\n\n\n## 复习②巩固\n\n1. 下列物理量是矢量还是标量?\n(1) 电场强度 (2) 电场力 (3) 电势 (4) 电势能 (5) 电容\n\n2. 如图9-73所示为某电场的电场线分布，A、B是电场中的两点。A、B两点中哪一点的电场强度大？画出正点电荷在A点和负点电荷在B点所受电场力的方向。\n\n\n\n3. 某点电荷在距离其 50 cm 处产生的电场的电场强度大小为 2 N/C。该点电荷所带电荷量的大小是多少？\n\n图9-73\n\n4. 如图 9-74 所示，棒 $AB$ 上均匀分布着正电荷，它的中点正上方有一 $P$ 点。 $P$ 点的电场强度的方向如何？简述理由。\n\n  \n图9-74\n\n  \n图9-75\n\n5. 如图 9-75 所示, 将一电容 $C = 0.25 \\mu \\mathrm{F}$ 的不带电电容器和电势差 $U = 12 \\mathrm{~V}$ 的电源连接。闭合开关 S, 对电容器充电。充电完成后, 电容器的负极板上带的电荷的电荷量相当于多少个电子所带的电荷量?\n\n6. 两个完全相同的金属小球 $A$ 和 $B$ 所带的电荷量大小相等, 相隔一定距离, 两球之间的相互吸引力的大小为 $F$ 。现让第三个完全相同的不带电的金属小球 $C$ 先后与 $A 、 B$ 接触后移开, 则此时 $A 、 B$ 两金属小球之间的静电相互作用是吸引还是排斥? 相互作用力的大小为多少?\n\n7. 如图 9-76 所示，实线是一组未标明方向的由点电荷产生的电场线，虚线是某一带电粒子通过该电场区域的运动轨迹， $a$ 、 $b$ 是其轨迹上的两点。若带电粒子在运动中只受电场力作用，比较带电粒子在 $a$ 、 $b$ 两点的电势能大小和速度大小的关系。\n\n  \n图9-76\n\n8. 把电荷量 $q = -3 \\times 10^{-6} \\, C$ 的点电荷从 A 点移到 B 点，电场力做功为 $6 \\times 10^{-4} \\, J$ 。把同样的点电荷从 B 点移到 C 点，克服电场力做功 $3 \\times 10^{-4} \\, J$ 。比较电场中 A、B、C 三点的电势大小。\n\n9. 细胞膜的厚度约等于 $8 \\, nm \\, (1 \\, nm = 10^{-9} \\, m)$ 。若将细胞膜内的电场视为匀强电场，试求当细胞膜的内外层之间的电压达 $40 \\, mV$ 时，细胞膜内电场强度的大小。此时一价钠离子 $(\\mathrm{Na}^{+})$ 可发生渗透通过细胞膜，则一个钠离子发生渗透时电势能改变多少？\n\n10. 一电场的电场线分布关于 y 轴对称，O、M、N 是 y 轴上的三个点，且 OM = MN。P 点在 y 轴右侧，MP ⊥ ON，如图 9-77 所示。M 点与 P 点的电势哪点更高？电势差 $U_{OM}$ 与 $U_{MN}$ 的大小关系如何？\n\n  \n图9-77\n\n\\*11. 在与 $x$ 轴平行的匀强电场中, 一带电荷量为 $1.0 \\times 10^{-8} \\mathrm{C}$ 、质量为 $2.5 \\times 10^{-3} \\mathrm{~kg}$ 的物体在光滑水平面上沿 $x$ 轴做直线运动, 其位移与时间的关系是 $x = 0.16 t - 0.02 t^{2}$ , 式中 $x$ 以 $\\mathrm{m}$ 为单位, $t$ 以 $\\mathrm{s}$ 为单位。从开始运动到第 $5 \\mathrm{~s}$ 末, 物体所经过的路程为多少? 克服电场力所做的功为多少?\n\n\\*12. 如图 9-78 所示，两块分别带等量异号电荷的大平行金属板相距 $5.0 \\mathrm{~cm}$ ，它们之间的电场可视为匀强电场。电子 (e) 从负极板表面静止释放的同时，质子 (p) 也从正极板表面静止释放。忽略电子和质子间的相互作用力，当它们到达同一等势面时，该等势面与正极板之间的距离是多少？（质子的质量为 $1.67 \\times 10^{-27} \\mathrm{~kg}$ ，电子的质量为 $9.11 \\times 10^{-31} \\mathrm{~kg}$ ）\n\n  \n图9-78\n\n\n\n图为从硅晶圆上取下已制好的集成电路所需的芯片。如今， $1\\ cm^{2}$ 的集成电路就可以拥有几十亿甚至上百亿个电子元器件。稳定、高效、轻便的集成电路为人们的生活、科技带来了无限的可能。集成电路极为复杂，要研究集成电路，我们需先从认识简单电路开始。那么，电路元器件如何构成简单电路，电路工作中遵循哪些规律呢？\n\n## 第十章 电路及其应用\n\n\\- 在本章中你将：\n\n1. 认识常见的电路元器件，了解串并联组合电路特点，理解闭合电路欧姆定律、电功、电功率及焦耳定律等有关电路的概念和规律。\n\n2. 探究影响导体电阻的因素；练习使用多用电表；测量电阻率、电源电动势和内阻。\n\n3. 运用电路知识解释生活中的有关现象，分析和解决家庭电路的简单问题。\n\n· 本章的学习将从微观机制深入理解电学量；在初中学习的基础上学习简单的串联、并联组合电路及闭合电路。\n\n· 本章的学习将进一步认识等效替代、控制变量等思想方法。\n\n  \n图10-1 上海浦东陆家嘴的璀璨夜景",
+      "title": "静电的利用与防范"
+    }
+  ]
+}

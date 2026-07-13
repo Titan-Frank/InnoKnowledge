@@ -1,0 +1,1390 @@
+{
+  "body": {
+    "content": "## 定义\n铜导线横截面积与安全电流对照表（亦称导线载流量表或表10-5）是一种工程数据表，主要用于列出不同横截面积的铜导线所对应的最大安全电流 `[evidence:auto-1609acb13426]`。该表格为家庭电路及一般供电线路中的导线选型提供了直接的参考依据 `[evidence:auto-b851dc077f11]`。\n\n## 核心解释\n表格通过对照关系明确了导线的横截面积 $S$（单位：$\text{mm}^2$）与允许通过的安全电流 $I$（单位：$\text{A}$）之间的对应标准 `[evidence:auto-086c43ce8219]`。常见的标准数据如下：\n- 横截面积为 $2.5\\text{ mm}^2$ 时，安全电流为 $28\\text{ A}$\n- 横截面积为 $4\\text{ mm}^2$ 时，安全电流为 $35\\text{ A}$\n- 横截面积为 $6\\text{ mm}^2$ 时，安全电流为 $48\\text{ A}$\n- 横截面积为 $10\\text{ mm}^2$ 时，安全电流为 $65\\text{ A}$\n- 横截面积为 $16\\text{ mm}^2$ 时，安全电流为 $91\\text{ A}$\n- 横截面积为 $25\\text{ mm}^2$ 时，安全电流为 $120\\text{ A}$\n这些数据反映了在标准敷设条件下，纯铜材质导线能够长期安全承载的电流上限 `[evidence:auto-086c43ce8219]`。导线横截面积越大，其安全载流量越高，能够支持更多或功率更大的用电器同时工作。\n\n## 关键要点\n- **材质前提**：该对照表的数据基于纯铜导线。若使用铝线等其他材质，安全电流会显著不同，不可直接套用。\n- **敷设条件**：表格数值通常对应标准环境温度与规范敷设方式。实际工程中，若导线密集捆扎或环境温度过高，需适当降低载流量评估。\n- **安全边界**：对照表给出的电流值为“最大安全电流”。在实际家庭电路设计（如连接相线、零线及用电器）时，应确保工作电流严格低于该阈值，以防止导线过热引发安全隐患 `[evidence:auto-04356e98872a]`。\n\n## 示例或应用\n在家庭电路布线中，供电线路通常包含相线（火线）、零线和地线 `[evidence:auto-04356e98872a]`。电工在规划插座或大功率电器的专线时，需先计算该回路的预期最大工作电流，然后查阅此对照表选择合适截面积的铜导线。例如，若某回路预估电流为 $30\\text{ A}$，则 $2.5\\text{ mm}^2$ 导线（安全电流 $28\\text{ A}$）不满足要求，应至少选用 $4\\text{ mm}^2$ 导线（安全电流 $35\\text{ A}$）以确保安全。",
+    "created_at": "2026-06-29T05:47:54+00:00",
+    "format": "markdown",
+    "generated_from": "model_generation",
+    "media_refs": [],
+    "node_id": "representation/工程数据表:auto-8ce081cdae2e",
+    "properties": {
+      "card_title": "铜导线横截面积与安全电流对照表",
+      "evidence_count": 8,
+      "model": "[external-path-redacted]",
+      "prompt_version": "node-body-writer-v1",
+      "source": "model_node_body"
+    },
+    "source_refs": [
+      "evidence:auto-1609acb13426",
+      "evidence:auto-086c43ce8219",
+      "evidence:auto-b851dc077f11",
+      "evidence:auto-04356e98872a"
+    ],
+    "status": "active",
+    "updated_at": "2026-06-29T05:47:54+00:00"
+  },
+  "card": {
+    "created_at": "2026-06-29T05:43:44+00:00",
+    "dataset_id": "main",
+    "framework_refs": [],
+    "id": "node-card:auto-13b977de0fec",
+    "mention_refs": [],
+    "node_id": "representation/工程数据表:auto-8ce081cdae2e",
+    "pattern_refs": [],
+    "profile_refs": [],
+    "properties": {
+      "backfilled": true,
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      }
+    },
+    "sections": [
+      {
+        "content": [
+          "列出不同横截面积铜导线对应的最大安全电流的参考表格，用于指导家庭电路导线选型。"
+        ],
+        "id": "definition",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "definition",
+        "source_refs": [
+          "evidence:auto-b851dc077f11"
+        ],
+        "title": "定义"
+      },
+      {
+        "content": [
+          "列出不同横截面积铜导线对应的最大安全电流的参考表格，用于指导家庭电路导线选型。"
+        ],
+        "id": "essence",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "essence",
+        "source_refs": [
+          "evidence:auto-b851dc077f11"
+        ],
+        "title": "核心本质"
+      },
+      {
+        "content": [
+          "列出不同横截面积铜导线对应的最大安全电流的参考表格，用于指导家庭电路导线选型。"
+        ],
+        "id": "key-points",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "key_points",
+        "source_refs": [
+          "evidence:auto-b851dc077f11"
+        ],
+        "title": "关键要点"
+      },
+      {
+        "content": [
+          "铜导线横截面积与安全电流对照表"
+        ],
+        "id": "example",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "example",
+        "source_refs": [
+          "evidence:auto-b851dc077f11"
+        ],
+        "title": "示例"
+      },
+      {
+        "content": [
+          "家庭电路"
+        ],
+        "id": "application",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "application",
+        "source_refs": [
+          "evidence:auto-b851dc077f11"
+        ],
+        "title": "应用"
+      },
+      {
+        "content": [
+          "需结合证据原文确认适用范围。"
+        ],
+        "id": "misconception",
+        "properties": {
+          "backfilled": true
+        },
+        "section_type": "misconception",
+        "source_refs": [
+          "evidence:auto-b851dc077f11"
+        ],
+        "title": "常见误解"
+      }
+    ],
+    "source_refs": [
+      "evidence:auto-b851dc077f11"
+    ],
+    "status": "active",
+    "summary": "列出不同横截面积铜导线对应的最大安全电流的参考表格，用于指导家庭电路导线选型。",
+    "title": "铜导线横截面积与安全电流对照表",
+    "updated_at": "2026-06-29T05:47:51+00:00"
+  },
+  "completeness": {
+    "passed": 9,
+    "score": 100,
+    "signals": [
+      {
+        "key": "node_definition",
+        "label": "节点定义",
+        "message": "节点有可读定义。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "semantic_core",
+        "label": "语义核心",
+        "message": "节点包含 semantic_core 语义骨架。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "relations",
+        "label": "对象关系",
+        "message": "节点已有入边或出边。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "evidence",
+        "label": "证据",
+        "message": "节点有证据支撑。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "source_fragments",
+        "label": "原文片段",
+        "message": "节点能追溯到原文片段。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "domain_profiles",
+        "label": "领域画像",
+        "message": "节点有领域、学段或课程角色信息。",
+        "passed": true,
+        "severity": "required"
+      },
+      {
+        "key": "body_source_refs",
+        "label": "正文引用",
+        "message": "知识正文包含 source_refs。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "card_summary",
+        "label": "结构化卡片",
+        "message": "节点有结构化摘要或卡片分节。",
+        "passed": true,
+        "severity": "recommended"
+      },
+      {
+        "key": "mentions",
+        "label": "来源提及",
+        "message": "节点有来源提及记录。",
+        "passed": true,
+        "severity": "required"
+      }
+    ],
+    "total": 9
+  },
+  "domain_profiles": [
+    {
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "curriculum_roles": [
+        "core"
+      ],
+      "dataset_id": "main",
+      "domain": "physics",
+      "id": "domain-profile:auto-720deaf88ec9",
+      "node_id": "representation/工程数据表:auto-8ce081cdae2e",
+      "notes": "Backfilled because the model omitted a domain profile.",
+      "properties": {
+        "backfilled": true,
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "grade_band": "grade-11",
+        "pedagogical_profiles_by_stage": {
+          "senior-secondary": {
+            "assessment_tasks": [
+              "提供包含空调、电热水器等典型用电器的功率清单，要求学生计算总电流并查阅对照表推荐入户线规格。",
+              "给出不同敷设方式（如穿管散热不良）的情境卡片，要求学生对比标准表格数据，讨论实际选型时的保守取值策略。",
+              "展示错误选型导致的导线过热案例，让学生逆向推导实际电流与表格安全电流的差值，并撰写简要的安全评估说明。"
+            ],
+            "common_errors": [
+              "忽略“纯铜材质、标准敷设”的前提条件，盲目将表格数据套用于铝线或非标准布线环境。",
+              "误认为横截面积与安全电流呈严格线性关系，尝试用已知数据点直接推算表格未列出的中间规格。",
+              "混淆导线横截面积单位（mm²），或误将直径当作面积代入查表，导致选型偏差。"
+            ],
+            "diagnostic_questions": [
+              "某家庭电路总功率为5500W，工作电压220V，根据对照表应选择的最小横截面积导线规格是多少？请写出计算与查表过程。",
+              "若将铝导线误用此铜导线对照表进行选型，可能产生什么安全隐患？请结合表格注明的条件进行解释。",
+              "已知某支路持续工作电流为30A，直接选用4mm²铜导线是否符合表格要求？请说明判断依据。"
+            ],
+            "difficulty_level": "basic",
+            "extension_suggestions": [
+              "引导学生将电阻定律（R=ρL/S）与安全电流表格结合，从焦耳定律（Q=I²Rt）角度定性解释横截面积越大、安全电流越高的物理机制。",
+              "设计家庭电路改造微项目，要求学生在预算与安全双重约束下，综合查阅对照表与开关/断路器参数完成完整选型方案。",
+              "引入国家标准（GB）中不同敷设环境温度、管材材质的修正系数表格，对比教材基础表，培养工程查表与参数修正能力。"
+            ],
+            "generation": {
+              "confidence": 0.98,
+              "generated_at": "2026-07-12T10:37:30+00:00",
+              "generated_from": "model_generation",
+              "input_fingerprint": "8906119cde69280807c87638a129db0229f0f4510ad407752741e6f91c7a3e88",
+              "model": "[external-path-redacted]",
+              "prompt_version": "pedagogical-profile-v1",
+              "review_status": "pending",
+              "source_refs": [
+                "evidence:auto-1609acb13426",
+                "evidence:auto-086c43ce8219"
+              ]
+            },
+            "grade_band": "grade-11",
+            "learning_objectives": [
+              "能根据给定的横截面积数值，在对照表中准确查找对应的最大安全电流值。",
+              "能结合家庭电路用电器总功率计算工作电流，并对照表格选择符合安全标准的导线规格。",
+              "能识别表格标注的适用条件（纯铜材质、标准敷设），并在实际应用中说明脱离该条件时的安全风险。"
+            ],
+            "remediation_suggestions": [
+              "教学时先展示表格原始数据，引导学生观察S与I的变化趋势，强调其为工程经验数据而非纯理论公式推导结果。",
+              "结合家庭电路实际功率计算练习，将抽象的电流值转化为学生熟悉的用电器组合，强化“安全余量”的工程思维。",
+              "利用对比法明确表格适用边界，要求学生严格依据教材证据作答，避免脱离给定条件进行无根据的外推或假设。"
+            ],
+            "school_stage": "senior-secondary"
+          }
+        },
+        "subject": "physics"
+      },
+      "school_stages": [
+        "senior-secondary"
+      ],
+      "source_refs": [
+        "evidence:auto-086c43ce8219",
+        "evidence:auto-1609acb13426",
+        "evidence:auto-b851dc077f11"
+      ],
+      "status": "active",
+      "updated_at": "2026-07-12T10:37:30+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "其中供电线路包含相线（又称火线）及零线，相线与零线间的电压为 220 V，除了相线、零线外，入户线中还应铺设一条地线，地线的对地电压为 0。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-04356e98872a",
+      "locator": "line:9",
+      "modality": "text",
+      "normalized_claims": [
+        "其中供电线路包含相线（又称火线）及零线，相线与零线间的电压为 220 V，除了相线、零线外，入户线中还应铺设一条地线，地线的对地电压为 0。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "5. 在如图 10-71 所示的电路中, 三个电阻的阻值均为 $R = 6 \\Omega$ , 电压 $U$ 恒为 $18 \\mathrm{~V}$ , 则电流表和电压表的示数分别为多少? 若将电压表与电流表的位置互换, 则电流表和电压表的示数又分别为多少?",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-08563b2f0dd9",
+      "locator": "line:149",
+      "modality": "equation",
+      "normalized_claims": [
+        "5. 在如图 10-71 所示的电路中, 三个电阻的阻值均为 $R = 6 \\Omega$ , 电压 $U$ 恒为 $18 \\mathrm{~V}$ , 则电流表和电压表的示数分别为多少? 若将电压表与电流表的位置互换, 则电流表和电压表的"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "<table><tr><td>序号</td><td>横截面积  $S/{\\mathrm{{mm}}}^{2}$ </td><td>安全电流 I/A</td><td>序号</td><td>横截面积  $S/{\\mathrm{{mm}}}^{2}$ </td><td>安全电流 I/A</td></tr><tr><td>1</td><td>2.5</td><td>28</td><td>4</td><td>10</td><td>65</td></tr><tr><td>2</td><td>4</td><td>35</td><td>5</td><td>16</td><td>91</td></tr><tr><td>3</td><td>6</td><td>48</td><td>6</td><td>25</td><td>120</td></tr></table>",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-086c43ce8219",
+      "locator": "line:32",
+      "modality": "equation",
+      "normalized_claims": [
+        "<table><tr><td>序号</td><td>横截面积  $S/{\\mathrm{{mm}}}^{2}$ </td><td>安全电流 I/A</td><td>序号</td><td>横截面积  $S/{\\mathrm{{mm}}}^{2"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/8c852f0ebc9768c8126899eb0d56868f66e1d703a48d4423f94076ff0e6805f7.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-0b17ba23bafc",
+      "locator": "line:20",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/8c852f0ebc9768c8126899eb0d56868f66e1d703a48d4423f94076ff0e6805f7.jpg)"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 373,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/8c852f0ebc9768c8126899eb0d56868f66e1d703a48d4423f94076ff0e6805f7.jpg",
+          "reason": "图片直接展示了教材当前章节标题“低压断路器”所指代的物体。前文明确提到“低压断路器是家庭用电安全的重要保障之一，如图 10-64 所示”，后文紧接着出现了“图10-64 低压断路器”的标注。这张图片是核心概念“低压断路器”的直观呈现，属于教材的关键内容。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个白色的双极低压断路器（俗称空气开关）的实物照片。该设备具有两个蓝色的联动操作手柄，上下各有两个接线端子螺丝，侧面有卡扣结构，用于安装在配电箱导轨上。",
+          "width": 270
+        },
+        "path": "images/8c852f0ebc9768c8126899eb0d56868f66e1d703a48d4423f94076ff0e6805f7.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/414d6f9ab93bcfcec34898a2d5e9216140b570219eee87d0498c1483f2808017.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-106870aebaa0",
+      "locator": "line:78",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/414d6f9ab93bcfcec34898a2d5e9216140b570219eee87d0498c1483f2808017.jpg)"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 196,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/414d6f9ab93bcfcec34898a2d5e9216140b570219eee87d0498c1483f2808017.jpg",
+          "reason": "图片内容直接对应前文提到的‘如图 10-67（b）所示...标有 “E” 字的插脚比其他两脚稍长一些’。这是‘家庭电路’章节中关于三脚插头结构和接地安全（E脚较长是为了先接地后断电）的核心教学插图，直接服务于‘查找资料解释标有 “E” 字的插脚为何要比其他两脚稍长’这一问题。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了三脚插头的侧面结构示意图。插头上有三个金属插脚，分别标记为 E（上方）、L（中间）、N（下方）。其中标记为 E 的插脚明显比 L 和 N 插脚长。下方连接有一根棕色导线。",
+          "width": 151
+        },
+        "path": "images/414d6f9ab93bcfcec34898a2d5e9216140b570219eee87d0498c1483f2808017.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "电阻定律：在温度不变时，导体的电阻 R 与导体的长度 L 成正比，与导体的横截面积 S 成反比， $R = \\rho \\frac{L}{S}$ ， $\\rho$ 为导体材料的电阻率。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-1083814427fe",
+      "locator": "line:100",
+      "modality": "equation",
+      "normalized_claims": [
+        "电阻定律：在温度不变时，导体的电阻 R 与导体的长度 L 成正比，与导体的横截面积 S 成反比， $R = \\rho \\frac{L}{S}$ ， $\\rho$ 为导体材料的电阻率。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "表 10-5 是常见的铜导线横截面积与安全电流对照表。<table>...</table>",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-1609acb13426",
+      "locator": "line:24",
+      "modality": "table",
+      "normalized_claims": [
+        "表 10-5 是常见的铜导线横截面积与安全电流对照表。<table>...</table>"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/60aea19c325da00b9c59741f93ebe2da2147466492af8ce43ae92c3c57ac8257.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-1a4ed3703f34",
+      "locator": "line:143",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/60aea19c325da00b9c59741f93ebe2da2147466492af8ce43ae92c3c57ac8257.jpg)"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 285,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/60aea19c325da00b9c59741f93ebe2da2147466492af8ce43ae92c3c57ac8257.jpg",
+          "reason": "图片是前文题目4（“甲、乙两电阻的电流-电压关系图线如图10-70所示”）的直接对应图。后文基于此图提出了两个问题：(1) 判断电阻大小关系，(2) 绘制串联后的图线。图片提供了题目解题所需的关键物理模型和数据（通过斜率反映电阻关系），属于直接表达“数据、模型”的核心内容，而非单纯的辅助说明。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个电流-电压（I-U）坐标系，纵轴为I，横轴为U。图中有两条过原点的直线，分别标记为“甲”和“乙”。直线“甲”的斜率明显大于直线“乙”的斜率。",
+          "width": 317
+        },
+        "path": "images/60aea19c325da00b9c59741f93ebe2da2147466492af8ce43ae92c3c57ac8257.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "闭合电路欧姆定律：闭合电路中电流 I 等于电源的电动势 E 与内、外电阻的阻值和 $R + r$ 之比，即 $I = \\frac{E}{R + r}$ 。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-27187bac3da2",
+      "locator": "line:102",
+      "modality": "equation",
+      "normalized_claims": [
+        "闭合电路欧姆定律：闭合电路中电流 I 等于电源的电动势 E 与内、外电阻的阻值和 $R + r$ 之比，即 $I = \\frac{E}{R + r}$ 。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/6fc9550e08677982deeb04a32c5c36596653514a5d7469cf62fd9f2a80c0eec4.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-2bc02748974b",
+      "locator": "line:42",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/6fc9550e08677982deeb04a32c5c36596653514a5d7469cf62fd9f2a80c0eec4.jpg)"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 481,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/6fc9550e08677982deeb04a32c5c36596653514a5d7469cf62fd9f2a80c0eec4.jpg",
+          "reason": "图片内容与上下文高度对应。前文明确提到“选择家用导线时，可以通过用电器铭牌...查找或计算用电器的工作电流，如图 10-65 所示”，后文也标注了“图10-65 电器铭牌”。该图片作为具体的电器铭牌实例（照片），展示了如何从中获取“最大输入电流”等关键数据，从而辅助说明前文关于“对照表格选择合适横截面积导线”的操作流程。虽然包含具体数据，但作为实物铭牌照片，主要起辅助说明和举例作用，故判定为 supporting。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一张电器铭牌，标题为“直流变频风管送风式空调机组 室外机”。铭牌列出了多项参数，包括额定电压220V、额定频率50Hz、标准制冷输入功率1770W、最大输入电流12A、制冷剂R410A等，底部有CCC认证标志。",
+          "width": 362
+        },
+        "path": "images/6fc9550e08677982deeb04a32c5c36596653514a5d7469cf62fd9f2a80c0eec4.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "焦耳定律：电流通过导体产生的热量 Q 等于电流 I 的二次方、导体的电阻 R 和通电的时间 t 的乘积，即 $Q = I^{2}Rt$ 。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-318963c2b815",
+      "locator": "line:108",
+      "modality": "equation",
+      "normalized_claims": [
+        "焦耳定律：电流通过导体产生的热量 Q 等于电流 I 的二次方、导体的电阻 R 和通电的时间 t 的乘积，即 $Q = I^{2}Rt$ 。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "低压断路器是家庭用电安全的重要保障之一...断路器与火线、零线连接，具有过载、短路保护功能，即当火线、零线中的电流超过额定电流时，断路器会自动切断供电线路...",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-34a9a2a46a5f",
+      "locator": "line:16",
+      "modality": "text",
+      "normalized_claims": [
+        "低压断路器是家庭用电安全的重要保障之一...断路器与火线、零线连接，具有过载、短路保护功能，即当火线、零线中的电流超过额定电流时，断路器会自动切断供电线路..."
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/47b19ca299d3cb5edcd1ecb142f9343f390f36c3cec58f23bd3184ee2619bdf5.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-5eb0b865c160",
+      "locator": "line:82",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/47b19ca299d3cb5edcd1ecb142f9343f390f36c3cec58f23bd3184ee2619bdf5.jpg)"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 234,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/47b19ca299d3cb5edcd1ecb142f9343f390f36c3cec58f23bd3184ee2619bdf5.jpg",
+          "reason": "图片是图10-68，后文题目3明确要求'分析如图10-68所示的家庭电路中存在哪些安全隐患'。图片直接展示了家庭电路的具体接线结构（包括可能的错误接法，如开关控零等），是解答该题不可或缺的核心素材，直接表达了物理学科中的电路结构这一核心概念。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "一张家庭电路连接示意图。图中左侧有断路器，上方为火线，下方为零线。电路中包含：1. 一个由开关S控制的两孔插座（开关接在零线侧）；2. 一个三孔插座（右孔接火线，左孔接零线，上孔连线细节需结合题目分析）；3. 右侧并联连接的空调和热水器。",
+          "width": 620
+        },
+        "path": "images/47b19ca299d3cb5edcd1ecb142f9343f390f36c3cec58f23bd3184ee2619bdf5.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "因此，导线长时间通电时能承载的最大安全电流是选择导线时重点考虑的要素之一。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-62052b3edec8",
+      "locator": "line:22",
+      "modality": "text",
+      "normalized_claims": [
+        "因此，导线长时间通电时能承载的最大安全电流是选择导线时重点考虑的要素之一。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/705497bc71c6f2e4624759384e4593d9cee60a442af25b011e975dde2a81e0fc.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-637714e0461e",
+      "locator": "line:91",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/705497bc71c6f2e4624759384e4593d9cee60a442af25b011e975dde2a81e0fc.jpg)"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "keep": true,
+          "manual_action": "core_content",
+          "reason": "人工复核确认为核心知识图。",
+          "relevance": "core_content",
+          "review_status": "confirmed",
+          "reviewed_at": "2026-06-29T06:03:40+00:00",
+          "reviewed_by": "manual",
+          "source": "manual"
+        },
+        "path": "images/705497bc71c6f2e4624759384e4593d9cee60a442af25b011e975dde2a81e0fc.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T06:03:40+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "电流：通过导体某一横截面的电荷量 Q 与所用时间 t 之比，用 I 表示， $I=\\frac{Q}{t}$ 。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-77d474719127",
+      "locator": "line:98",
+      "modality": "equation",
+      "normalized_claims": [
+        "电流：通过导体某一横截面的电荷量 Q 与所用时间 t 之比，用 I 表示， $I=\\frac{Q}{t}$ 。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "家用电路的故障主要有短路、断路、过载、漏电及连接错误等。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-7f9f121e43f4",
+      "locator": "line:32",
+      "modality": "text",
+      "normalized_claims": [
+        "家用电路的故障主要有短路、断路、过载、漏电及连接错误等。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/9570da9caada41e3109c9b6d2d06bd3cf5e3a6bbcb1b13f59ab689145d9fbe7f.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-8e6733b18061",
+      "locator": "line:13",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/9570da9caada41e3109c9b6d2d06bd3cf5e3a6bbcb1b13f59ab689145d9fbe7f.jpg)"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 570,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/9570da9caada41e3109c9b6d2d06bd3cf5e3a6bbcb1b13f59ab689145d9fbe7f.jpg",
+          "reason": "图片内容与教材上下文高度对应。前文提到'如图 10-63 所示为常见家庭配电系统'，后文紧接着标注'图10-63 家庭配电系统'。图片直观地展示了标题'家庭电路包含哪些部分？'的核心答案，包括供电线路（火、零、地线）、电能表、总开关（总断路器）、各支路低压断路器以及用电器的并联连接方式，是讲解家庭电路组成和结构的关键图示。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个完整的家庭配电系统示意图。左侧为进线，标注有火线、零线和地线，依次连接电能表和总断路器。右侧分为四个支路，分别标注为浴室支路、厨房支路、客厅支路和空调支路，每个支路都配有低压断路器。下方连接了对应的用电器（照明灯、电饭煲、电视、空调）和插座，展示了各部分之间的线路连接关系。",
+          "width": 1071
+        },
+        "path": "images/9570da9caada41e3109c9b6d2d06bd3cf5e3a6bbcb1b13f59ab689145d9fbe7f.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "多用电表及验电笔是对简单电路故障检测的常用工具。当验电笔接触相线时，其中有电流通过，氖泡会发光。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-8fa636b68220",
+      "locator": "line:37",
+      "modality": "text",
+      "normalized_claims": [
+        "多用电表及验电笔是对简单电路故障检测的常用工具。当验电笔接触相线时，其中有电流通过，氖泡会发光。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/c5a28608aaa767bcd75244475783fd436ff03277d0e37905d003e6ec709bf610.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-93f96ae602f9",
+      "locator": "line:68",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/c5a28608aaa767bcd75244475783fd436ff03277d0e37905d003e6ec709bf610.jpg)"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 662,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/c5a28608aaa767bcd75244475783fd436ff03277d0e37905d003e6ec709bf610.jpg",
+          "reason": "图片是前文第2点中明确引用的“图10-66”，展示了某电冰箱的能效标识实例。前文解释了能效标识的等级划分规则（5个等级，数字越小能效越高），该图片作为辅助说明，直观呈现了标识的外观结构、等级含义（1级为绿色，代表耗能低）以及具体的能耗数据，帮助学生理解“选择高效、节能电器”这一STSE（科学、技术、社会、环境）知识点。后文的图注“图10-66 中国能效标识”也证实了这一点。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了“中国能效标识”标签。顶部写有“中国能效标识 CHINA ENERGY LABEL”。左侧是一个彩色的梯形柱状图，从上到下标有数字1到5，颜色由绿变红，上方标注“耗能低”，下方标注“耗能高”，并有一个箭头指向“1级”。右侧是一个模糊处理的条形码区域。下方列出了“生产者名称”和“规格型号”（内容模糊），以及具体数据：“耗电量(千瓦·时/24小时) 0.98”，“冷藏室容积(升) 397”，“冷冻室容积(升) 140”。底部标注“依据国家标准：GB 12021-2012”。",
+          "width": 415
+        },
+        "path": "images/c5a28608aaa767bcd75244475783fd436ff03277d0e37905d003e6ec709bf610.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "家庭电路中，为了避免用电器通断时的相互影响，所有用电器都是并联连接在相线、零线间，且有的用电器还需与地线连接。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-94089d853bbf",
+      "locator": "line:11",
+      "modality": "text",
+      "normalized_claims": [
+        "家庭电路中，为了避免用电器通断时的相互影响，所有用电器都是并联连接在相线、零线间，且有的用电器还需与地线连接。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "有些断路器还带有漏电保护功能，当断路器检测到相线与零线中流过的电流不一致，且差值超过一定大小时便会在短时间内断开电路。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-9c45477f5502",
+      "locator": "line:16",
+      "modality": "text",
+      "normalized_claims": [
+        "有些断路器还带有漏电保护功能，当断路器检测到相线与零线中流过的电流不一致，且差值超过一定大小时便会在短时间内断开电路。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "选择家用导线时，可以通过用电器铭牌、说明书等，查找或计算用电器的工作电流...随后根据连接在导线上的用电器使用需求，对照表 10-5，选择有合适横截面积的导线。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-a6d139336ba6",
+      "locator": "line:27",
+      "modality": "text",
+      "normalized_claims": [
+        "选择家用导线时，可以通过用电器铭牌、说明书等，查找或计算用电器的工作电流...随后根据连接在导线上的用电器使用需求，对照表 10-5，选择有合适横截面积的导线。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "1. 在某导体的两端加上 $16 \\mathrm{~V}$ 电压, 若 $120 \\mathrm{~s}$ 内通过导体横截面的电荷量大小为 $480 \\mathrm{C}$ , 该导体电阻值为多大? 若两端电压降为 $6 \\mathrm{~V}$ , 则流过该导体的电流为多少?",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-b238e64359cc",
+      "locator": "line:125",
+      "modality": "equation",
+      "normalized_claims": [
+        "1. 在某导体的两端加上 $16 \\mathrm{~V}$ 电压, 若 $120 \\mathrm{~s}$ 内通过导体横截面的电荷量大小为 $480 \\mathrm{C}$ , 该导体电阻值为多大? 若两端电压降为 $6 \\mathrm{~"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "家庭电路主要由供电线路、电能表、总开关、低压断路器、插座、开关、用电器等组成。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-b851dc077f11",
+      "locator": "line:9",
+      "modality": "text",
+      "normalized_claims": [
+        "家庭电路主要由供电线路、电能表、总开关、低压断路器、插座、开关、用电器等组成。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "电功率：电流所做的功与其完成时间之比，用 P 表示， $P=\\frac{W}{t}=UI$ 。",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e317763d8955",
+      "locator": "line:106",
+      "modality": "equation",
+      "normalized_claims": [
+        "电功率：电流所做的功与其完成时间之比，用 P 表示， $P=\\frac{W}{t}=UI$ 。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "家庭电路中用导线与用电器、低压断路器、开关等连接。我们知道，导线具有一定的电阻，通过电流时，会发热。",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-e42cdff708cd",
+      "locator": "line:21",
+      "modality": "text",
+      "normalized_claims": [
+        "家庭电路中用导线与用电器、低压断路器、开关等连接。我们知道，导线具有一定的电阻，通过电流时，会发热。"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/3f3422f1be909677f68a4062761fd88eee3327ea2469bede523c9fa69aeedb94.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-e50a93737bd3",
+      "locator": "line:121",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/3f3422f1be909677f68a4062761fd88eee3327ea2469bede523c9fa69aeedb94.jpg)"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "height": 631,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/3f3422f1be909677f68a4062761fd88eee3327ea2469bede523c9fa69aeedb94.jpg",
+          "reason": "前文中明确出现了“- 知识结构图”字样，紧接着便是这张图片。图片内容完整展示了该章节（电路）的核心知识体系，包括基本概念、定律（电阻定律、闭合电路欧姆定律）、公式（电功、电热等）及其逻辑关系，属于章节总结的核心知识点，直接对应上下文。",
+          "relevance": "core_content",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "这是一张关于“电路”章节的知识结构图（思维导图）。顶层是“电路”，下分四大板块：“电学量及其测量”（包含电流电压电阻、电阻定律R=ρL/S、多用电表）、“闭合电路”（包含外电路、电源、探究闭合电路欧姆定律I=E/(R+r)）、“能量转化”（包含电功W=UIt、电热Q=I^2R及其功率）、“应用”（家庭用电）。",
+          "width": 1296
+        },
+        "path": "images/3f3422f1be909677f68a4062761fd88eee3327ea2469bede523c9fa69aeedb94.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "当验电笔正常工作时，通过的微弱电流不会对身体造成伤害，但220 V家庭用电电压远高于人体安全电压，因此在对家庭用电故障进行检测时，应熟知操作注意事项，做好安全防护措施...",
+      "extraction_method": "openai_chat_completions",
+      "id": "evidence:auto-ebaede1ccee9",
+      "locator": "line:37",
+      "modality": "text",
+      "normalized_claims": [
+        "当验电笔正常工作时，通过的微弱电流不会对身体造成伤害，但220 V家庭用电电压远高于人体安全电压，因此在对家庭用电故障进行检测时，应熟知操作注意事项，做好安全防护措施..."
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    },
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "excerpt": "![](images/c17cfa63d3e48adf049d7b101d027f353de96793a6c3c95ea7b66553dc2310a8.jpg)",
+      "extraction_method": "markdown_hint",
+      "id": "evidence:auto-fc3caf173300",
+      "locator": "line:75",
+      "modality": "image",
+      "normalized_claims": [
+        "![](images/c17cfa63d3e48adf049d7b101d027f353de96793a6c3c95ea7b66553dc2310a8.jpg)"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "properties": {
+        "caption": "",
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        },
+        "image_relevance": {
+          "confidence": 0.95,
+          "height": 190,
+          "keep": true,
+          "path": "./data/mineru/physics-hukj-compulsory-3/images/c17cfa63d3e48adf049d7b101d027f353de96793a6c3c95ea7b66553dc2310a8.jpg",
+          "reason": "图片内容直接对应上下文中的“问题与思考”第1题。题目描述了洗衣机三脚插头上的标识（“10 A 250 V”）以及标有“E”字的插脚，并引用了图10-67。该图片清晰地展示了带有E（接地）、L（火线）、N（零线）标识及额定电流电压的三孔结构，作为题目描述的直观佐证，属于例题配图，因此保留。",
+          "relevance": "supporting",
+          "review_status": "auto",
+          "source": "vlm",
+          "visual_summary": "图片展示了一个圆形的三孔插座或插头示意图。上方有一个竖直的插孔/插脚标有“E”，下方左右各有一个倾斜的插孔/插脚分别标有“L”和“N”。底部标有额定参数“10 A 250 V”。",
+          "width": 178
+        },
+        "path": "images/c17cfa63d3e48adf049d7b101d027f353de96793a6c3c95ea7b66553dc2310a8.jpg"
+      },
+      "source_id": "physics-hukj-compulsory-3",
+      "source_path": "data/mineru/physics-hukj-compulsory-3/full.md",
+      "source_type": "textbook",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "media": [],
+  "mentions": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "confidence": 0.88,
+      "created_at": "2026-06-29T05:43:44+00:00",
+      "dataset_id": "main",
+      "id": "mention:auto-0d5b7d366360",
+      "properties": {
+        "extraction_template": {
+          "id": "textbook/physics",
+          "name": "物理教材抽取模板",
+          "version": 1
+        }
+      },
+      "role": "focuses_on",
+      "source_id": "physics-hukj-compulsory-3",
+      "source_refs": [
+        "evidence:auto-1609acb13426"
+      ],
+      "source_type": "textbook",
+      "target_id": "representation/工程数据表:auto-8ce081cdae2e",
+      "target_type": "node",
+      "updated_at": "2026-06-29T05:47:51+00:00"
+    }
+  ],
+  "node": {
+    "aliases": [
+      "导线载流量表",
+      "表10-5"
+    ],
+    "created_at": "2026-06-29T05:43:44+00:00",
+    "dataset_id": "main",
+    "definition": "列出不同横截面积铜导线对应的最大安全电流的参考表格，用于指导家庭电路导线选型。",
+    "deprecated_by": null,
+    "domains": [
+      "physics"
+    ],
+    "external_ids": {},
+    "id": "representation/工程数据表:auto-8ce081cdae2e",
+    "kind": "representation",
+    "knowledge_form": [
+      "practical"
+    ],
+    "learning_mode": [
+      "conceptual"
+    ],
+    "name": "铜导线横截面积与安全电流对照表",
+    "notes": "",
+    "properties": {
+      "classifications": {
+        "raw_subkinds": [
+          "工程数据表"
+        ]
+      },
+      "extraction_template": {
+        "id": "textbook/physics",
+        "name": "物理教材抽取模板",
+        "version": 1
+      },
+      "semantic_core": {
+        "boundaries": [
+          "如 2.5mm²→28A, 4mm²→35A"
+        ],
+        "conditions": [
+          "纯铜材质，标准敷设"
+        ],
+        "formal_expressions": [
+          "S(mm²) ↔ I(A)"
+        ]
+      },
+      "template_display": {
+        "color": "#5580CC",
+        "label": "图像/模型",
+        "template_id": "textbook/physics",
+        "type_key": "representation"
+      }
+    },
+    "scope": "culture-specific",
+    "status": "active",
+    "subkind": null,
+    "tags": [
+      "对照表",
+      "导线规格",
+      "图像/模型"
+    ],
+    "updated_at": "2026-07-02T08:17:02+00:00"
+  },
+  "relations": {
+    "incoming": [
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:43:44+00:00",
+        "dataset_id": "main",
+        "directionality": "undirected",
+        "from_id": "method/工程设计方法:auto-35dee2414a87",
+        "id": "edge:auto-7570ee8b89d0",
+        "notes": "选择导线时需对照该表格确定合适规格",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "使用",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-a6d139336ba6"
+        ],
+        "status": "active",
+        "to_id": "representation/工程数据表:auto-8ce081cdae2e",
+        "type": "uses",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ],
+    "outgoing": [
+      {
+        "confidence": 0.95,
+        "created_at": "2026-06-29T05:43:44+00:00",
+        "dataset_id": "main",
+        "directionality": "undirected",
+        "from_id": "representation/工程数据表:auto-8ce081cdae2e",
+        "id": "edge:auto-beb0ee5a7dd1",
+        "notes": "表格列出不同横截面积铜导线对应的最大安全电流",
+        "properties": {
+          "extraction_template": {
+            "id": "textbook/physics",
+            "name": "物理教材抽取模板",
+            "version": 1
+          },
+          "template_display": {
+            "label": "表征",
+            "template_id": "textbook/physics"
+          }
+        },
+        "source_refs": [
+          "evidence:auto-1609acb13426"
+        ],
+        "status": "active",
+        "to_id": "property/载流能力:auto-3f1b90ef1342",
+        "type": "represents",
+        "updated_at": "2026-06-29T05:47:51+00:00"
+      }
+    ]
+  },
+  "source_fragments": [
+    {
+      "anchor_ref": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+      "excerpts": [
+        {
+          "excerpt": "## 第八节 家庭电路\n\n各式各样的家用电器为人类的生活提供便利。家中几乎所有的用电器都需要接入家庭供电线路，而家庭配电箱（图 10-62）则控制着其中的各条线路。你是否关注过为家用电器供电的线路呢？了解家庭电路的主要组成，掌握故障分析的基本技术，具有节能环保的意识，安全、合理地用电，才能使我们拥有更美好的生活。\n\n\n\n## 家庭电路包含哪些部分？\n\n家庭电路主要由供电线路、电能表、总开关、低压断路器、插座、开关、用电器等组成。其中供电线路包含相线（又称火线）及零线，相线与零线间的电压为 220 V，除了相线、零线外，入户线中还应铺设一条地线，地线的对地电压为 0。家庭用电器的种类繁多，厨房、浴室中的用电器和空调的用电量较大，因此往往将家庭电路分为若干支路，分别对应照明、浴室、空调等。如图 10-63 所示为常见家庭配电系统。\n\n家庭电路中，为了避免用电器通断时的相互影响，所有用电器都是并联连接在相线、零线间，且有的用电器还需与地线连接。在实际生活中，接入电路的用电器数目及总功率往往不时发生改变，因此为了保障家庭用电的安全，我们应该根据实际需求来选择合适的电路元器件。\n\n[source image omitted from static artifact]  \n图10-63 家庭配电系统\n\n## 低压断路器\n\n低压断路器是家庭用电安全的重要保障之一，如图 10-64 所示。断路器与火线、零线连接，具有过载、短路保护功能，即当火线、零线中的电流超过额定电流时，断路器会自动切断供电线路，避免损害用电器和发生其他危害。有些断路器还带有漏电保护功能，当断路器检测到相线与零线中流过的电流不一致，且差值超过一定大小时便会在短时间内断开电路。\n\n[source image omitted from static artifact]\n\n导线\n\n家庭电路中用导线与用电器、低压断路器、开关等连接。我们知道，导线具有一定的电阻，通过电流时，会发热。若导线持\n\n图10-64 低压断路器\n\n续处于过热状态会加快绝缘层老化，甚至损坏，引发事故。因此，导线长时间通电时能承载的最大安全电流是选择导线时重点考虑的要素之一。表 10-5 是常见的铜导线横截面积与安全电流对照表。\n\n表 10-5 铜导线横截面积与安全电流对照表\n\n<table><tr><td>序号</td><td>横截面积  $S/{\\mathrm{{mm}}}^{2}$ </td><td>安全电流 I/A</td><td>序号</td><td>横截面积  $S/{\\mathrm{{mm}}}^{2}$ </td><td>安全电流 I/A</td></tr><tr><td>1</td><td>2.5</td><td>28</td><td>4</td><td>10</td><td>65</td></tr><tr><td>2</td><td>4</td><td>35</td><td>5</td><td>16</td><td>91</td></tr><tr><td>3</td><td>6</td><td>48</td><td>6</td><td>25</td><td>120</td></tr></table>\n\n选择家用导线时，可以通过用电器铭牌、说明书等，查找或计算用电器的工作电流，如图 10-65 所示；随后根据连接在导线上的用电器使用需求，对照表 10-5，选择有合适横截面积的导线。\n\n\n\n## 如何分析家用电路的简单故障及排除安全隐患？\n\n家用电路的故障主要有短路、断路、过载、漏电及连接错误等。\n\n[source image omitted from static artifact]\n\n断路器不仅能保障用电安全，也有助于排查故障所在。断路器自动断开表示其所在回路发生过载或短路、漏电等故\n\n图10-65 电器铭牌\n\n障；因此不可以强行接通，应立即排查故障所在。如总断路器因故障断开，应先断开所有断路器，随后接通总断路器，再逐一接通支路断路器。如总断路器再次自动断开，便可判断刚刚接通的支路发生了故障。在生活中，应重视断路器的自动断开现象，及时排除故障，否则可能会加快线路老化，或引发火灾、触电等事故。\n\n多用电表及验电笔是对简单电路故障检测的常用工具。当验电笔接触相线时，其中有电流通过，氖泡会发光。当验电笔正常工作时，通过的微弱电流不会对身体造成伤害，但220 V家庭用电电压远高于人体安全电压，因此在对家庭用电故障进行检测时，应熟知操作注意事项，做好安全防护措施，否则会危及生命安全！\n\n## 大家谈\n\n谈谈家庭安全用电的注意事项，并进行交流。\n\n## STSE\n\n我国的发电厂主要依靠燃烧煤炭发电。煤炭发电不仅难以可持续发展，而且会带来严重的环境问题。我们应节约用电、保护环境，并从以下身边的事情做起。\n\n1. 及时更换“超龄”电器。家用电器都有安全使用期限，超过期限之后不仅会线路老化、元器件性能下降导致耗电量大幅增大，还可能会引发漏电、起火、有害物质泄漏等事故。按照国家规定，冰箱的使用年限为 12\\~16 年，电饭煲、微波炉的使用年限为 10 年，一些小家电的使用期限则更短。\n\n2. 选择高效、节能电器。2004年起，我国对主要的家用电器采用能效标识分类，如图10-66所示为某电冰箱的能效标识。能效标识将用电器的能效划分为5个等级，数字越小表示用电器能效越高，节能效果越好。\n\n3. 合理利用分时电费。白天与夜晚人们用电的需求差别很大，所以在夜晚发电厂产能过剩，若又无法储存大量电能，很容易造成浪费。因此不少国家推出了峰谷电费的方式，鼓励一些工厂在夜间生产。对于家庭用电，也可以做好用电计划，这样既可以节约电费，又可以减少用电高峰时的用电量，对减小碳排放，提高资源利用效率有很大帮助。\n\n4. 养成良好的用电习惯。对于使用完毕或暂时不使用的电器，如机顶盒、计算机、电灯等，应及时关闭，以减少能源浪费。在使用空调时，应在保证交换一定量的新鲜空气的基础上减少自然风对流；夏天温度宜在27℃左右，而冬天温度宜在20℃左右。冰箱要定期清理过期食物，及时化霜，避免不必要的开门和存取。\n\n[source image omitted from static artifact]  \n图10-66 中国能效标识\n\n## 问题与思考\n\n1. 某同学学习了家庭电路的知识后，在家中观察家用电器和电路。他发现洗衣机用的是三脚插头，其上标有 “10 A 250 V” 字样，如图 10-67（a）所示，其中的 “10 A” 表示什么含义？他还发现标有 “E” 字的插脚比其他两脚稍长一些，如图 10-67（b）所示。他又查看了其他家用电器的三脚插头，都是如此。查找资料解释标有 “E” 字的插脚为何要比其他两脚稍长？\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n图10-67  \n(b)\n\n[source image omitted from static artifact]  \n图10-68\n\n2. 在一个三口之家中，共有 5 盏 40 W 白炽灯，倘若使用照明亮度相近的 5 W LED 灯代替，每年可因此节约多少电费？（假设每盏灯的日照明时间为 5 h，家庭电费为 0.61 元 /kW·h）\n\n3. 请根据所学的知识，分析如图10-68所示的家庭电路中存在哪些安全隐患，并提出改进措施。\n\n4. 某同学家中一盏照明灯突然熄灭，电路示意图如图 10-69 所示。检查发现，断路器并未断开。试分析照明灯不亮的原因可能有哪些？如何进一步检测、排除电路故障？\n\n[source image omitted from static artifact]  \n图10-69\n\n## 小结\n\n## - 基本概念和基本规律\n\n电流：通过导体某一横截面的电荷量 Q 与所用时间 t 之比，用 I 表示， $I=\\frac{Q}{t}$ 。\n\n电阻定律：在温度不变时，导体的电阻 R 与导体的长度 L 成正比，与导体的横截面积 S 成反比， $R = \\rho \\frac{L}{S}$ ， $\\rho$ 为导体材料的电阻率。\n\n闭合电路欧姆定律：闭合电路中电流 I 等于电源的电动势 E 与内、外电阻的阻值和 $R + r$ 之比，即 $I = \\frac{E}{R + r}$ 。\n\n电功：电流所做的功，用 W 表示，W = UIt。\n\n电功率：电流所做的功与其完成时间之比，用 P 表示， $P=\\frac{W}{t}=UI$ 。\n\n焦耳定律：电流通过导体产生的热量 Q 等于电流 I 的二次方、导体的电阻 R 和通电的时间 t 的乘积，即 $Q = I^{2}Rt$ 。\n\n## - 基本方法\n\n通过电路中的等效电阻，认识等效替代法。\n\n通过探究金属导体的电阻与材料、长度和横截面积的定量关系，认识控制变量法。\n\n通过了解游标卡尺、螺旋测微器的原理，感受错位放大和螺旋放大的方法。\n\n通过测量电源电动势和内阻的实验，认识数据处理的图像分析法。\n\n- 知识结构图  \n[source image omitted from static artifact]\n\n## 复习②巩固\n\n1. 在某导体的两端加上 $16 \\mathrm{~V}$ 电压, 若 $120 \\mathrm{~s}$ 内通过导体横截面的电荷量大小为 $480 \\mathrm{C}$ , 该导体电阻值为多大? 若两端电压降为 $6 \\mathrm{~V}$ , 则流过该导体的电流为多少?\n\n2. 甲同学认为电动势的大小等于电源接入电路正常供电时电源正、负两极间的电压。判断甲同学关于电动势的说法是否正确，简述理由。\n\n3. “珍爱生命、注意安全”，请判断下列有关安全用电的说法是否正确，简述理由。\n\n(1) 发现有人触电时，应立即用手把触电人拉离电线。\n\n(2) 家用电器或电线着火时，应该迅速浇水灭火。\n\n(3) 断路器 “跳闸” 一定是出现了短路。\n\n(4) 有金属外壳的用电器，金属外壳一定要接地。\n\n4. 甲、乙两电阻的电流-电压关系图线如图10-70所示。\n\n(1) 试判断甲、乙两电阻的大小关系。\n\n[source image omitted from static artifact]\n\n(2) 在图中大致绘制出将甲、乙串联后得到的新电阻的电流-电压关系图线，并说明理由。\n\n图10-70\n\n5. 在如图 10-71 所示的电路中, 三个电阻的阻值均为 $R = 6 \\Omega$ , 电压 $U$ 恒为 $18 \\mathrm{~V}$ , 则电流表和电压表的示数分别为多少? 若将电压表与电流表的位置互换, 则电流表和电压表的示数又分别为多少?\n\n6. 表 10-6 中列出了不同品牌的电视机、电冰箱、电风扇、空调器铭牌上的主要技术指标。\n\n  \n图10-71\n\n(1) 各用电器正常工作时, 功率最大的是哪一个?\n\n(2) 根据铭牌所提供的信息, 比较 $8 \\mathrm{~h}$ 内连续正常使用的电冰箱与电风扇消耗的电能的大小。\n\n表10-6\n\n<table><tr><td>电视机</td><td>电冰箱</td><td>电风扇</td><td>空调器</td></tr><tr><td>工作电压 220 V整机功率 75 W待机功率≤ 0.05 W</td><td>额定电压 220 V电源频率 50 Hz额定功率 70 W耗电量 0.50 kW·h/24 h</td><td>规格 400 mm额定电压 220 V电源频率 50 Hz额定功率 65 W</td><td>额定电压 220 V电源频率 50 Hz制冷 / 制热电流6.5 A/8.0 A</td></tr></table>\n\n7. 一台小型电动机在 $12 \\mathrm{~V}$ 的电压下工作, 通过的电流是 $0.5 \\mathrm{~A}$ 。该电动机能在 $1 \\mathrm{~min}$ 内把 $9.6 \\mathrm{~kg}$ 的物体匀速提升 $3 \\mathrm{~m}$ 。不计各处摩擦, $g$ 取 $10 \\mathrm{~m} / \\mathrm{s}^{2}$ , 求电动机输入电功率、输出机械功率、电动机的效率及电动机线圈的电阻。\n\n8. 一只电能表标有 “220 V 5 (60) A 1 600 imp/kW·h” 字样。\n\n(1) 请查找资料, 了解 “220 V 5 (60) A” 以及 “1 600 imp/kW·h” 的物理意义。(2) 当某一用电器工作 $3 \\mathrm{~min}$ 后, 电能表的脉冲指示灯闪烁了 60 下, 则这个用电器消耗的电能为多少焦, 该用电器的功率多大?\n\n9. 在进行家庭装修时，需根据需求选择合适截面积的铜导线。现有一捆长度为 $100 \\, m$ 、横截面积为 $2.5 \\, mm^{2}$ 的铜电线，请估算它的阻值约为多大？（铜在 $20 \\, ^{\\circ}C$ 时的电阻率为 $1.7 \\times 10^{-8} \\, \\Omega \\cdot m$ ）\n\n10. 如图 10-72 所示， $R_{1} = 8 \\Omega$ ， $R_{2} = 20 \\Omega$ ， $R_{3} = 30 \\Omega$ ，接到电压 $U = 20 \\mathrm{~V}$ 的电源两端，求每个电阻两端的电压和通过电流的大小。\n\n  \n图10-72\n\n  \n图10-73\n\n11. 如图 10-73 所示，质量为 $m$ 、带负电的小油滴位于两平行放置、间距为 $d$ 的水平金属板之间，调节两金属板间的电压，使小油滴保持静止。在虚框内画出控制电路图，并标出直流电源的正负极。可用的器材有：滑动变阻器和电压表。\n\n12. 在如图 10-74 所示的电路中，电源电动势为 $E$ ，内阻为 $r$ ， $R_{1}$ 和 $R_{2}$ 是两个阻值固定的电阻。闭合开关 S 后，若滑动变阻器 $R$ 的滑片向 $a$ 移动，则通过 $R_{1}$ 的电流 $I_{1}$ 和通过 $R_{2}$ 的电流 $I_{2}$ 如何变化？\n\n  \n图10-74\n\n13. 在如图 10-75 所示的电路中，电阻 $R$ 两端的电压是 $U$ ；当将 $R$ 换成 $3R$ 之后，其两端的电压为 $2U$ 。问：（1）换成 $3R$ 时的电流是电路接入 $R$ 时的多少倍？（2）该电源是否存在内电阻 $r$ ，简述理由。\n\n\n\n14. 某智能扫地机器人利用自身携带的小型吸尘部件吸尘清扫，图 10-75\n其前端装有感应器，通过发射、接收超声波或者红外线来侦测障碍物。已知机器人电池容量为 $3000 \\mathrm{~mA} \\cdot \\mathrm{h}$ ，电机两端电压为 $15 \\mathrm{~V}$ ，吸尘时的额定功率为 $30 \\mathrm{~W}$ ，输出功率为 $22 \\mathrm{~W}$ ，问：\n(1) “ $\\mathrm{mA} \\cdot \\mathrm{h}$ ” 是哪个物理量的单位？\n(2) 扫地机器人电机的电阻大小是多少？\n\n\\*15. 取一片铜片和一片锌片，相隔一定距离插入水果（如苹果等）内，就构成了简易水果电池。用电阻箱、内阻为 $300 \\Omega$ 的微安表（量程 $0 \\sim 500 \\mu \\mathrm{A}$ ）、水果电池、开关等构成如图10-76所示的电路。闭合开关后，某同学调节电阻箱，相应记录电阻箱阻值及微安表示数，如表10-7所示。则：\n\n  \n图10-76\n\n表10-7\n\n<table><tr><td>R/kΩ</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr><tr><td>I/μA</td><td>150</td><td>127</td><td>110</td><td>97</td><td>88</td></tr></table>\n\n(1) 该电池的电动势、内阻分别为多少?\n\n(2) 试设计实验方案进一步研究水果电池的电动势大小与金属片（铜片、锌片）插入水果深度间的关系。\n\n\n\n图示为位于贵州省平塘县喀斯特洼坑中的 500 m 口径球面射电望远镜（简称 FAST），被誉为 “中国天眼”，是我国自主设计建设的世界最大单口径、最灵敏的射电望远镜。射电望远镜如何发现遥远天体发出的信息？",
+          "id": "physics-hukj-compulsory-3:struct:physics-hukj-compulsory-3:chunk:10-8-a:source-markdown",
+          "locator": "家庭电路",
+          "modality": "text",
+          "page_end": 94,
+          "page_start": 86,
+          "properties": {
+            "md_end": 2758,
+            "md_start": 2547,
+            "outline_id": "struct:physics-hukj-compulsory-3:chunk:10-8-a",
+            "outline_title": "家庭电路",
+            "source": "outline_markdown"
+          }
+        }
+      ],
+      "is_full_source": true,
+      "md_end": 2758,
+      "md_start": 2547,
+      "modalities": [
+        "text",
+        "equation",
+        "image",
+        "table"
+      ],
+      "page_end": 94,
+      "page_start": 86,
+      "source_id": "physics-hukj-compulsory-3",
+      "source_kind": "outline_markdown",
+      "source_path": "./data/mineru/physics-hukj-compulsory-3/full.md",
+      "text": "## 第八节 家庭电路\n\n各式各样的家用电器为人类的生活提供便利。家中几乎所有的用电器都需要接入家庭供电线路，而家庭配电箱（图 10-62）则控制着其中的各条线路。你是否关注过为家用电器供电的线路呢？了解家庭电路的主要组成，掌握故障分析的基本技术，具有节能环保的意识，安全、合理地用电，才能使我们拥有更美好的生活。\n\n\n\n## 家庭电路包含哪些部分？\n\n家庭电路主要由供电线路、电能表、总开关、低压断路器、插座、开关、用电器等组成。其中供电线路包含相线（又称火线）及零线，相线与零线间的电压为 220 V，除了相线、零线外，入户线中还应铺设一条地线，地线的对地电压为 0。家庭用电器的种类繁多，厨房、浴室中的用电器和空调的用电量较大，因此往往将家庭电路分为若干支路，分别对应照明、浴室、空调等。如图 10-63 所示为常见家庭配电系统。\n\n家庭电路中，为了避免用电器通断时的相互影响，所有用电器都是并联连接在相线、零线间，且有的用电器还需与地线连接。在实际生活中，接入电路的用电器数目及总功率往往不时发生改变，因此为了保障家庭用电的安全，我们应该根据实际需求来选择合适的电路元器件。\n\n[source image omitted from static artifact]  \n图10-63 家庭配电系统\n\n## 低压断路器\n\n低压断路器是家庭用电安全的重要保障之一，如图 10-64 所示。断路器与火线、零线连接，具有过载、短路保护功能，即当火线、零线中的电流超过额定电流时，断路器会自动切断供电线路，避免损害用电器和发生其他危害。有些断路器还带有漏电保护功能，当断路器检测到相线与零线中流过的电流不一致，且差值超过一定大小时便会在短时间内断开电路。\n\n[source image omitted from static artifact]\n\n导线\n\n家庭电路中用导线与用电器、低压断路器、开关等连接。我们知道，导线具有一定的电阻，通过电流时，会发热。若导线持\n\n图10-64 低压断路器\n\n续处于过热状态会加快绝缘层老化，甚至损坏，引发事故。因此，导线长时间通电时能承载的最大安全电流是选择导线时重点考虑的要素之一。表 10-5 是常见的铜导线横截面积与安全电流对照表。\n\n表 10-5 铜导线横截面积与安全电流对照表\n\n<table><tr><td>序号</td><td>横截面积  $S/{\\mathrm{{mm}}}^{2}$ </td><td>安全电流 I/A</td><td>序号</td><td>横截面积  $S/{\\mathrm{{mm}}}^{2}$ </td><td>安全电流 I/A</td></tr><tr><td>1</td><td>2.5</td><td>28</td><td>4</td><td>10</td><td>65</td></tr><tr><td>2</td><td>4</td><td>35</td><td>5</td><td>16</td><td>91</td></tr><tr><td>3</td><td>6</td><td>48</td><td>6</td><td>25</td><td>120</td></tr></table>\n\n选择家用导线时，可以通过用电器铭牌、说明书等，查找或计算用电器的工作电流，如图 10-65 所示；随后根据连接在导线上的用电器使用需求，对照表 10-5，选择有合适横截面积的导线。\n\n\n\n## 如何分析家用电路的简单故障及排除安全隐患？\n\n家用电路的故障主要有短路、断路、过载、漏电及连接错误等。\n\n[source image omitted from static artifact]\n\n断路器不仅能保障用电安全，也有助于排查故障所在。断路器自动断开表示其所在回路发生过载或短路、漏电等故\n\n图10-65 电器铭牌\n\n障；因此不可以强行接通，应立即排查故障所在。如总断路器因故障断开，应先断开所有断路器，随后接通总断路器，再逐一接通支路断路器。如总断路器再次自动断开，便可判断刚刚接通的支路发生了故障。在生活中，应重视断路器的自动断开现象，及时排除故障，否则可能会加快线路老化，或引发火灾、触电等事故。\n\n多用电表及验电笔是对简单电路故障检测的常用工具。当验电笔接触相线时，其中有电流通过，氖泡会发光。当验电笔正常工作时，通过的微弱电流不会对身体造成伤害，但220 V家庭用电电压远高于人体安全电压，因此在对家庭用电故障进行检测时，应熟知操作注意事项，做好安全防护措施，否则会危及生命安全！\n\n## 大家谈\n\n谈谈家庭安全用电的注意事项，并进行交流。\n\n## STSE\n\n我国的发电厂主要依靠燃烧煤炭发电。煤炭发电不仅难以可持续发展，而且会带来严重的环境问题。我们应节约用电、保护环境，并从以下身边的事情做起。\n\n1. 及时更换“超龄”电器。家用电器都有安全使用期限，超过期限之后不仅会线路老化、元器件性能下降导致耗电量大幅增大，还可能会引发漏电、起火、有害物质泄漏等事故。按照国家规定，冰箱的使用年限为 12\\~16 年，电饭煲、微波炉的使用年限为 10 年，一些小家电的使用期限则更短。\n\n2. 选择高效、节能电器。2004年起，我国对主要的家用电器采用能效标识分类，如图10-66所示为某电冰箱的能效标识。能效标识将用电器的能效划分为5个等级，数字越小表示用电器能效越高，节能效果越好。\n\n3. 合理利用分时电费。白天与夜晚人们用电的需求差别很大，所以在夜晚发电厂产能过剩，若又无法储存大量电能，很容易造成浪费。因此不少国家推出了峰谷电费的方式，鼓励一些工厂在夜间生产。对于家庭用电，也可以做好用电计划，这样既可以节约电费，又可以减少用电高峰时的用电量，对减小碳排放，提高资源利用效率有很大帮助。\n\n4. 养成良好的用电习惯。对于使用完毕或暂时不使用的电器，如机顶盒、计算机、电灯等，应及时关闭，以减少能源浪费。在使用空调时，应在保证交换一定量的新鲜空气的基础上减少自然风对流；夏天温度宜在27℃左右，而冬天温度宜在20℃左右。冰箱要定期清理过期食物，及时化霜，避免不必要的开门和存取。\n\n[source image omitted from static artifact]  \n图10-66 中国能效标识\n\n## 问题与思考\n\n1. 某同学学习了家庭电路的知识后，在家中观察家用电器和电路。他发现洗衣机用的是三脚插头，其上标有 “10 A 250 V” 字样，如图 10-67（a）所示，其中的 “10 A” 表示什么含义？他还发现标有 “E” 字的插脚比其他两脚稍长一些，如图 10-67（b）所示。他又查看了其他家用电器的三脚插头，都是如此。查找资料解释标有 “E” 字的插脚为何要比其他两脚稍长？\n\n[source image omitted from static artifact]  \n(a)\n\n[source image omitted from static artifact]  \n图10-67  \n(b)\n\n[source image omitted from static artifact]  \n图10-68\n\n2. 在一个三口之家中，共有 5 盏 40 W 白炽灯，倘若使用照明亮度相近的 5 W LED 灯代替，每年可因此节约多少电费？（假设每盏灯的日照明时间为 5 h，家庭电费为 0.61 元 /kW·h）\n\n3. 请根据所学的知识，分析如图10-68所示的家庭电路中存在哪些安全隐患，并提出改进措施。\n\n4. 某同学家中一盏照明灯突然熄灭，电路示意图如图 10-69 所示。检查发现，断路器并未断开。试分析照明灯不亮的原因可能有哪些？如何进一步检测、排除电路故障？\n\n[source image omitted from static artifact]  \n图10-69\n\n## 小结\n\n## - 基本概念和基本规律\n\n电流：通过导体某一横截面的电荷量 Q 与所用时间 t 之比，用 I 表示， $I=\\frac{Q}{t}$ 。\n\n电阻定律：在温度不变时，导体的电阻 R 与导体的长度 L 成正比，与导体的横截面积 S 成反比， $R = \\rho \\frac{L}{S}$ ， $\\rho$ 为导体材料的电阻率。\n\n闭合电路欧姆定律：闭合电路中电流 I 等于电源的电动势 E 与内、外电阻的阻值和 $R + r$ 之比，即 $I = \\frac{E}{R + r}$ 。\n\n电功：电流所做的功，用 W 表示，W = UIt。\n\n电功率：电流所做的功与其完成时间之比，用 P 表示， $P=\\frac{W}{t}=UI$ 。\n\n焦耳定律：电流通过导体产生的热量 Q 等于电流 I 的二次方、导体的电阻 R 和通电的时间 t 的乘积，即 $Q = I^{2}Rt$ 。\n\n## - 基本方法\n\n通过电路中的等效电阻，认识等效替代法。\n\n通过探究金属导体的电阻与材料、长度和横截面积的定量关系，认识控制变量法。\n\n通过了解游标卡尺、螺旋测微器的原理，感受错位放大和螺旋放大的方法。\n\n通过测量电源电动势和内阻的实验，认识数据处理的图像分析法。\n\n- 知识结构图  \n[source image omitted from static artifact]\n\n## 复习②巩固\n\n1. 在某导体的两端加上 $16 \\mathrm{~V}$ 电压, 若 $120 \\mathrm{~s}$ 内通过导体横截面的电荷量大小为 $480 \\mathrm{C}$ , 该导体电阻值为多大? 若两端电压降为 $6 \\mathrm{~V}$ , 则流过该导体的电流为多少?\n\n2. 甲同学认为电动势的大小等于电源接入电路正常供电时电源正、负两极间的电压。判断甲同学关于电动势的说法是否正确，简述理由。\n\n3. “珍爱生命、注意安全”，请判断下列有关安全用电的说法是否正确，简述理由。\n\n(1) 发现有人触电时，应立即用手把触电人拉离电线。\n\n(2) 家用电器或电线着火时，应该迅速浇水灭火。\n\n(3) 断路器 “跳闸” 一定是出现了短路。\n\n(4) 有金属外壳的用电器，金属外壳一定要接地。\n\n4. 甲、乙两电阻的电流-电压关系图线如图10-70所示。\n\n(1) 试判断甲、乙两电阻的大小关系。\n\n[source image omitted from static artifact]\n\n(2) 在图中大致绘制出将甲、乙串联后得到的新电阻的电流-电压关系图线，并说明理由。\n\n图10-70\n\n5. 在如图 10-71 所示的电路中, 三个电阻的阻值均为 $R = 6 \\Omega$ , 电压 $U$ 恒为 $18 \\mathrm{~V}$ , 则电流表和电压表的示数分别为多少? 若将电压表与电流表的位置互换, 则电流表和电压表的示数又分别为多少?\n\n6. 表 10-6 中列出了不同品牌的电视机、电冰箱、电风扇、空调器铭牌上的主要技术指标。\n\n  \n图10-71\n\n(1) 各用电器正常工作时, 功率最大的是哪一个?\n\n(2) 根据铭牌所提供的信息, 比较 $8 \\mathrm{~h}$ 内连续正常使用的电冰箱与电风扇消耗的电能的大小。\n\n表10-6\n\n<table><tr><td>电视机</td><td>电冰箱</td><td>电风扇</td><td>空调器</td></tr><tr><td>工作电压 220 V整机功率 75 W待机功率≤ 0.05 W</td><td>额定电压 220 V电源频率 50 Hz额定功率 70 W耗电量 0.50 kW·h/24 h</td><td>规格 400 mm额定电压 220 V电源频率 50 Hz额定功率 65 W</td><td>额定电压 220 V电源频率 50 Hz制冷 / 制热电流6.5 A/8.0 A</td></tr></table>\n\n7. 一台小型电动机在 $12 \\mathrm{~V}$ 的电压下工作, 通过的电流是 $0.5 \\mathrm{~A}$ 。该电动机能在 $1 \\mathrm{~min}$ 内把 $9.6 \\mathrm{~kg}$ 的物体匀速提升 $3 \\mathrm{~m}$ 。不计各处摩擦, $g$ 取 $10 \\mathrm{~m} / \\mathrm{s}^{2}$ , 求电动机输入电功率、输出机械功率、电动机的效率及电动机线圈的电阻。\n\n8. 一只电能表标有 “220 V 5 (60) A 1 600 imp/kW·h” 字样。\n\n(1) 请查找资料, 了解 “220 V 5 (60) A” 以及 “1 600 imp/kW·h” 的物理意义。(2) 当某一用电器工作 $3 \\mathrm{~min}$ 后, 电能表的脉冲指示灯闪烁了 60 下, 则这个用电器消耗的电能为多少焦, 该用电器的功率多大?\n\n9. 在进行家庭装修时，需根据需求选择合适截面积的铜导线。现有一捆长度为 $100 \\, m$ 、横截面积为 $2.5 \\, mm^{2}$ 的铜电线，请估算它的阻值约为多大？（铜在 $20 \\, ^{\\circ}C$ 时的电阻率为 $1.7 \\times 10^{-8} \\, \\Omega \\cdot m$ ）\n\n10. 如图 10-72 所示， $R_{1} = 8 \\Omega$ ， $R_{2} = 20 \\Omega$ ， $R_{3} = 30 \\Omega$ ，接到电压 $U = 20 \\mathrm{~V}$ 的电源两端，求每个电阻两端的电压和通过电流的大小。\n\n  \n图10-72\n\n  \n图10-73\n\n11. 如图 10-73 所示，质量为 $m$ 、带负电的小油滴位于两平行放置、间距为 $d$ 的水平金属板之间，调节两金属板间的电压，使小油滴保持静止。在虚框内画出控制电路图，并标出直流电源的正负极。可用的器材有：滑动变阻器和电压表。\n\n12. 在如图 10-74 所示的电路中，电源电动势为 $E$ ，内阻为 $r$ ， $R_{1}$ 和 $R_{2}$ 是两个阻值固定的电阻。闭合开关 S 后，若滑动变阻器 $R$ 的滑片向 $a$ 移动，则通过 $R_{1}$ 的电流 $I_{1}$ 和通过 $R_{2}$ 的电流 $I_{2}$ 如何变化？\n\n  \n图10-74\n\n13. 在如图 10-75 所示的电路中，电阻 $R$ 两端的电压是 $U$ ；当将 $R$ 换成 $3R$ 之后，其两端的电压为 $2U$ 。问：（1）换成 $3R$ 时的电流是电路接入 $R$ 时的多少倍？（2）该电源是否存在内电阻 $r$ ，简述理由。\n\n\n\n14. 某智能扫地机器人利用自身携带的小型吸尘部件吸尘清扫，图 10-75\n其前端装有感应器，通过发射、接收超声波或者红外线来侦测障碍物。已知机器人电池容量为 $3000 \\mathrm{~mA} \\cdot \\mathrm{h}$ ，电机两端电压为 $15 \\mathrm{~V}$ ，吸尘时的额定功率为 $30 \\mathrm{~W}$ ，输出功率为 $22 \\mathrm{~W}$ ，问：\n(1) “ $\\mathrm{mA} \\cdot \\mathrm{h}$ ” 是哪个物理量的单位？\n(2) 扫地机器人电机的电阻大小是多少？\n\n\\*15. 取一片铜片和一片锌片，相隔一定距离插入水果（如苹果等）内，就构成了简易水果电池。用电阻箱、内阻为 $300 \\Omega$ 的微安表（量程 $0 \\sim 500 \\mu \\mathrm{A}$ ）、水果电池、开关等构成如图10-76所示的电路。闭合开关后，某同学调节电阻箱，相应记录电阻箱阻值及微安表示数，如表10-7所示。则：\n\n  \n图10-76\n\n表10-7\n\n<table><tr><td>R/kΩ</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr><tr><td>I/μA</td><td>150</td><td>127</td><td>110</td><td>97</td><td>88</td></tr></table>\n\n(1) 该电池的电动势、内阻分别为多少?\n\n(2) 试设计实验方案进一步研究水果电池的电动势大小与金属片（铜片、锌片）插入水果深度间的关系。\n\n\n\n图示为位于贵州省平塘县喀斯特洼坑中的 500 m 口径球面射电望远镜（简称 FAST），被誉为 “中国天眼”，是我国自主设计建设的世界最大单口径、最灵敏的射电望远镜。射电望远镜如何发现遥远天体发出的信息？",
+      "title": "家庭电路"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Read-only Open Knowledge Map public artifact viewer" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%2365e6c4'/%3E%3Cpath d='M20 34l8 8 17-21' fill='none' stroke='%23071018' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <title>Open Knowledge Map · Read-only artifact</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <div>
+        <p class="eyebrow">READ-ONLY CANDIDATE ARTIFACT · v0.1.0</p>
+        <h1>Open Knowledge Map</h1>
+        <p class="subtitle">Evidence-grounded knowledge objects, exported as static ApiUnit files.</p>
+      </div>
+      <div class="header-meta">
+        <span id="dataset-label">Loading dataset…</span>
+        <span id="counts"></span>
+      </div>
+    </header>
+
+    <main>
+      <aside class="catalog-panel">
+        <label for="search">Find a knowledge object</label>
+        <input id="search" type="search" placeholder="Name, kind, or definition" autocomplete="off" />
+        <div id="kind-filters" class="kind-filters"></div>
+        <div id="object-list" class="object-list" aria-live="polite"></div>
+      </aside>
+
+      <section class="graph-panel">
+        <div class="panel-title">
+          <div>
+            <p class="eyebrow">KNOWLEDGE NETWORK</p>
+            <h2>Graph overview</h2>
+          </div>
+          <p>Click a node to inspect its complete ApiUnit.</p>
+        </div>
+        <svg id="graph" viewBox="0 0 920 620" role="img" aria-label="Knowledge graph"></svg>
+      </section>
+
+      <aside class="detail-panel" id="detail-panel">
+        <div class="empty-state">
+          <span>◎</span>
+          <h2>Select a knowledge object</h2>
+          <p>Its definition, relations, card, body, evidence, and completeness checks will appear here.</p>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      Static files only · no database connection · no model call · no write action
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
