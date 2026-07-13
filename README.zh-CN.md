@@ -2,7 +2,7 @@
 
 **把教材转换成有证据、有关系、可检索、可供人工智能调用的知识对象。**
 
-[English](README.md) · [公开成果快照](artifacts/okm-public-v0.1.0/README.md) · [完整演示数据](examples/demo-data/README.md) · [系统架构](docs/current-system-architecture.md) · [知识单元契约](docs/knowledge-unit-contract.md) · [贡献指南](CONTRIBUTING.zh-CN.md)
+[English](README.md) · [在线体验](https://open-knowledge-map.pages.dev/) · [公开成果快照](artifacts/okm-public-v0.1.0/README.md) · [完整演示数据](examples/demo-data/README.md) · [系统架构](docs/current-system-architecture.md) · [知识单元契约](docs/knowledge-unit-contract.md) · [贡献指南](CONTRIBUTING.zh-CN.md)
 
 ![展示仓库原创太阳能演示数据的 Open Knowledge Map 图谱界面](docs/assets/report/graph-overview.png)
 
