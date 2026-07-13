@@ -18,6 +18,13 @@ const manifest = readJson("manifest.json");
 const graph = readJson(manifest.files.graph);
 const index = readJson(manifest.files.unit_index);
 
+if (manifest.files.source_manifest) {
+  assert(
+    existsSync(join(artifactRoot, manifest.files.source_manifest)),
+    `Missing source manifest '${manifest.files.source_manifest}'.`,
+  );
+}
+
 assert(index.count === index.units.length, "Unit index count does not match its entries.");
 assert(index.count === Number(manifest.counts.nodes), "Unit count does not match manifest node count.");
 assert(graph.nodes.length === Number(manifest.counts.nodes), "Graph node count does not match manifest.");

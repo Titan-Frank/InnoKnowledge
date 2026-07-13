@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Select and add the root license.
+- Complete source-level rights metadata and clearance before treating the hosted inspection artifact as a public data release.
+
+## [0.1.0] - 2026-07-13
+
+This version records the first public inspection preview. It is not yet a tagged GitHub Release, and its textbook-derived artifact remains subject to the rights boundaries in `artifacts/okm-public-v0.1.0/RIGHTS.md` and `SOURCES.md`.
+
 ### Added - 2026-07-12
 
 - Reworked the default README as an English public entry point and added a complete Chinese companion.
@@ -41,7 +48,7 @@ The entries below describe earlier Python, SQLite, and agent-based iterations. T
 - **`scripts/run_parallel_lesson_pipeline.py`** - Runs merge → normalize → QA for staged lesson batches
 - **`scripts/parallel_batch_runner.py`** - Generates parallel lesson extraction plans from textbook outlines
 
-#### SQLite Schema
+#### Historical SQLite Schema
 - Added `lesson_runs`, `staging_nodes`, `staging_edges`, `staging_profiles`, `staging_mentions`, `staging_evidence`, `staging_node_cards`
 - Added `merge_runs` and `canonical_node_map` for reducer bookkeeping and raw→canonical traceability
 
@@ -106,7 +113,7 @@ The entries below describe earlier Python, SQLite, and agent-based iterations. T
 1. **Initial**: Monolithic extraction scripts
 2. **Agent-based**: Introduced agents for orchestration
 3. **Flat Task Chain**: Direct task spawning without wrappers
-4. **Manager-Worker** (Current): Clear separation of concerns
+4. **Manager-Worker** (then-current historical architecture): Clear separation of concerns
 
 ### Key Milestones
 

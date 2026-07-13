@@ -4,9 +4,15 @@
 
 [English](README.md) · [在线体验](https://open-knowledge-map.pages.dev/) · [公开成果快照](artifacts/okm-public-v0.1.0/README.md) · [完整演示数据](examples/demo-data/README.md) · [系统架构](docs/current-system-architecture.md) · [知识单元契约](docs/knowledge-unit-contract.md) · [贡献指南](CONTRIBUTING.zh-CN.md)
 
-![展示仓库原创太阳能演示数据的 Open Knowledge Map 图谱界面](docs/assets/report/graph-overview.png)
+![展示仓库原创太阳能界面样例的 Open Knowledge Map 图谱界面](docs/assets/report/graph-overview.png)
 
-截图使用仓库原创的合成演示数据：**9 个知识对象、12 条类型化关系、9 条可追溯证据**。其中不含第三方教材内容，作用是让使用者立即检查系统能力，而不是充当准确率基准。
+[线上只读查看器](https://open-knowledge-map.pages.dev/)当前使用版本化的 `knowledge/main` 成果快照：**182 个知识对象、144 条类型化关系、537 条导出证据、182 张知识卡片和 182 篇知识正文**。上面的截图特意使用较小的仓库原创太阳能样例，避免在项目首页展示第三方教材内容；其中的 9 个对象和 12 条关系既不代表公开成果规模，也不是准确率基准。
+
+## 三层体验方式
+
+1. **直接打开线上查看器：** 不需要 PostgreSQL 和模型密钥，立即检查当前 `main` 成果。
+2. **运行本地安全样例：** 执行 `npm install && npm run demo`，在 <http://127.0.0.1:8765/viewer/> 打开独立的仓库原创图谱。
+3. **处理你有权使用的材料：** 配置 PostgreSQL、MinerU 和模型服务后，运行下文的课时级 TypeScript 流水线。
 
 ## 项目解决什么问题
 
@@ -66,7 +72,7 @@ flowchart LR
 
 详细说明见[理论决策记录](docs/theory-decision-record.md)、[AI-NKS v0.1](docs/ai-nks-v0.1.md)和[知识单元契约](docs/knowledge-unit-contract.md)。
 
-## 快速开始：直接查看完整演示
+## 本地一键安全样例
 
 需要 Node.js 22+、npm、Docker 和 Docker Compose。
 
@@ -158,7 +164,7 @@ npm run generate-pedagogical-profiles -w packages/pipeline -- \
 npm run verify
 ```
 
-该命令依次执行类型检查、流水线测试、服务端测试和正式构建。数据库质量检查单独运行：
+该命令依次执行类型检查、流水线测试、服务端测试、前端测试和正式构建。数据库质量检查单独运行：
 
 ```bash
 npm run strict-qa -w packages/pipeline -- \
@@ -182,6 +188,7 @@ examples/demo-data  仓库原创的完整演示数据
 examples/sample-data 旧导入夹具；公开发布前必须单独核查权利
 experiments         可复现实验源码、结构约束及已审核的输入与报告
 docs                理论、架构、契约、报告与运行记录
+artifacts           版本化的只读公开成果层
 ```
 
 PostgreSQL 是唯一正式应用存储。`data`、`runs`、`storage`、`tmp` 和本地模型产物不属于正式源代码。
@@ -204,12 +211,13 @@ PostgreSQL 是唯一正式应用存储。`data`、`runs`、`storage`、`tmp` 和
 
 当前实现已经证明了受治理的知识对象抽取、证据保留、结构化知识单元、检索和引用编号归属校验可以形成完整工程闭环，但尚不能证明每条生成结论都被引用内容语义蕴含，也不能证明图谱在教学上最优或知识对象检索能够改善真实学习效果。
 
-完整演示数据只用于结构和界面检查，不是论文级基准。多学科多人裁决标签、完整独立人工复核、可重复的外部基线和学习效果评估仍未完成。
+线上成果和本地安全样例只用于结构与界面检查，不是论文级基准。仓库已经提供试验与消融脚手架以及经过整理的结果摘要，但多学科多人裁决标签、完整独立人工复核、可重复的外部基线和学习效果评估仍未完成。
 
 ## 数据权利、许可与引用
 
 - 加入或分发来源材料和衍生数据前，请先阅读 [PROVENANCE.md](PROVENANCE.md)。
 - 当前尚未选择公开代码与数据许可。在仓库根目录加入 `LICENSE` 之前，不应默认拥有再分发或制作衍生版本的权利。
+- 线上 `knowledge/main` 成果已经开放查看，但源 PDF 保留版权，当前也没有记录适用的开放许可证或明确的再分发授权；详见成果目录中的[来源清单](artifacts/okm-public-v0.1.0/SOURCES.md)与[权利边界](artifacts/okm-public-v0.1.0/RIGHTS.md)。
 - 引用信息见 [CITATION.cff](CITATION.cff)。
 - 安全问题报告方式见 [SECURITY.md](SECURITY.md)。
 
@@ -217,4 +225,4 @@ PostgreSQL 是唯一正式应用存储。`data`、`runs`、`storage`、`tmp` 和
 
 ## 当前发布边界
 
-仓库当前提供知识对象检索和带证据编号归属校验生成的早期知识运行时。语义规划、自适应教学、学习者状态回写、成熟版本治理和大规模专家评测仍属于后续工作。
+仓库当前提供知识对象检索、带证据编号归属校验生成的早期知识运行时，以及版本化的只读 `ApiUnit` 成果层。当前线上页面属于预览成果，还不是带 GitHub 版本标签的正式 Release。语义规划、自适应教学、学习者状态回写、成熟版本治理和大规模专家评测仍属于后续工作。

@@ -12,13 +12,17 @@
 
 **Version:** 0.2
 
-**Status:** Revised Draft
+**Status:** Historical Conceptual Draft
 
 **Category:** Research Technical Report
 
 **Primary Audience:** 智能教育博士生、教育技术研究者、知识工程研究者、AI Tutor 与教育智能体系统开发者
 
 **Keywords:** AI-Native Knowledge System, AI-NKS, Knowledge Object, Knowledge Network, Knowledge Runtime, Knowledge Engineering, AI Tutor, Learning Analytics, Knowledge Graph, RAG, Agent, Human-AI Collaboration
+
+---
+
+> **Document role:** This Version 0.2 report preserves the project's early conceptual proposal. It is not the current executable contract or implementation status report. For current terminology and schema boundaries, use `schemas/world-knowledge-standard-v1.2.md`; for the implemented system, use `docs/current-system-architecture.md`; for the actively maintained engineering report, use `docs/open_knowledge_map_technical_report.tex`.
 
 ---
 
@@ -1209,7 +1213,18 @@ AI-NKS 的最终愿景是：让人类学习和 AI 推理共享同一套可验证
 
 # Appendix A. Suggested Revision Priorities for the Next Version
 
-如果继续发展到 Version 0.3，建议优先完成以下工作：
+下面的清单是 Version 0.2 写作时提出的历史计划，不应再当作当前路线图。到 2026 年 7 月，仓库中的落实情况如下：
+
+1. 已在 `main` 数据集中形成 182 个知识对象，并发布只读检查成果；教材来源的精确授权信息仍待确认。
+2. 已形成可执行的 JSON Schema 和 PostgreSQL 约束；SHACL shapes 尚未实现。
+3. 已实现返回完整 `ApiUnit` 的对象级检索接口。
+4. 已实现带证据标识校验的早期同步与流式生成，但尚不是完整的 AI Tutor。
+5. 已纳入小型运行时评测、物理试验与消融脚手架；独立人工评审和论文级公平对照仍未完成。
+6. 已具备图片审核、流水线调试和质量状态接口；完整教师审核工作流仍在建设中。
+7. CASE、xAPI、Caliper 与当前对象模型的正式映射尚未完成。
+8. 当前 LaTeX 技术报告已扩展相关工作与引用，但投稿前仍需系统复核。
+
+Version 0.2 当时提出的原始建议保留如下：
 
 1. 选择一个具体学科领域，构建 100 个真实 Knowledge Object。
 2. 制定正式 JSON Schema 和 SHACL shapes。

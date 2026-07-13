@@ -4,6 +4,8 @@ Use this page to distinguish current contracts from theory, historical run notes
 
 ## Start here
 
+- [Hosted read-only viewer](https://open-knowledge-map.pages.dev/): current public inspection build backed by the versioned `knowledge/main` snapshot.
+- [Inspection artifact v0.1.0](../artifacts/okm-public-v0.1.0/README.md): graph JSON, one `ApiUnit` per object, schema, source and rights records, checksums, readers, and static React viewer.
 - [Current system architecture](current-system-architecture.md): implemented package, database, API, pipeline, and viewer boundaries.
 - [Theory decision record](theory-decision-record.md): frozen terminology and the boundary of the current research claim.
 - [AI-NKS v0.1](ai-nks-v0.1.md): top-level conceptual system standard.
@@ -19,17 +21,17 @@ Use this page to distinguish current contracts from theory, historical run notes
 
 ## Research and reports
 
-- [Technical report source](open_knowledge_map_technical_report.tex): working LaTeX draft. Its claims, screenshots, author metadata, and generated PDF must be reviewed before public release.
+- [Implementation technical report source](open_knowledge_map_technical_report.tex): current working LaTeX report grounded in the repository implementation. Its claims, screenshots, author metadata, and generated PDF must be reviewed before archival release.
 - [Theoretical foundation](theoretical-foundation.md): motivation and historical framing.
-- [AI-NKS technical report v0.2](ai_nks_technical_report_v0_2.md): concept-architecture draft.
-- [Discussion notes](discussion.md): broader design discussion.
+- [AI-NKS conceptual report v0.2](ai_nks_technical_report_v0_2.md): dated concept-architecture draft that preceded the current implementation report; use it for research vision, not current code status.
+- [Discussion notes](discussion.md): historical broader design discussion, not an executable contract.
 
 ## Operations and history
 
 - [Populated synthetic demo](../examples/demo-data/README.md): repository-authored graph and one-command local viewer path.
 - [TypeScript pipeline migration record](history/pipeline-typescript-migration.md): completed Python-to-TypeScript migration scope and verification history.
 - [Physics extraction run, 2026-06-26](physics-hukj-compulsory-3-extraction-run-2026-06-26.md): one historical run record, not the current standard.
-- [Next-step plan, 2026-06-26](next-step-plan-2026-06-26.md): dated roadmap; confirm completion against current code.
+- [Next-step plan, 2026-06-26](next-step-plan-2026-06-26.md): historical roadmap with a current completion annotation; do not use its original sequence as the active plan.
 - [Open-source release checklist](open-source-release-checklist.md): legal, product, benchmark, and GitHub release gates.
 
 The current conceptual standard is `ai-nks-v0.1`; the executable schema baseline is `world-v1.2`; `ApiUnit` is the public consumption contract. These versions name different layers and should not be collapsed into one number.

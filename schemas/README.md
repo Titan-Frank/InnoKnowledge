@@ -9,7 +9,6 @@
 - `docs/theory-decision-record.md`
 - `docs/ai-nks-v0.1.md`
 - `docs/documentation-status.md`
-- `docs/ai_nks_technical_report_v0_2.md`
 - `docs/knowledge-unit-contract.md`
 
 ```
@@ -23,6 +22,8 @@ schemas/
 ├── world-domain-profile.schema.json
 ├── world-knowledge-standard.md
 ├── world-knowledge-architecture.md
+├── extraction-templates/
+│   └── textbook/
 └── pg/
     └── knowledge_store.sql
 ```
@@ -45,6 +46,8 @@ schemas/
   四层结构与 `schema/tag` 分工说明。
 - `pg/knowledge_store.sql`
   当前正式运行的 PostgreSQL schema。
+- `extraction-templates/textbook/*.yaml`
+  在统一 `world-v1.2` 结构上按学科收窄抽取关注点、允许类型和优先关系；它们不是互相独立的学科 schema。
 
 ## 设计原则
 

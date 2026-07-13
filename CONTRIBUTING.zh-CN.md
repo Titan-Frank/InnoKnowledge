@@ -43,7 +43,9 @@ Fix node click triggering full graph rebuild
 | 任意 TypeScript 或 React 代码 | `npm run check` |
 | `packages/pipeline` | `npm test -w packages/pipeline` |
 | `packages/server` | `npm test -w packages/server` |
+| `packages/viewer` | `npm test -w packages/viewer` |
 | 构建、依赖或跨工作区改动 | `npm run build` |
+| 全仓改动 | `npm run verify` |
 | 流水线质量或图结构 | `npm run strict-qa -w packages/pipeline -- --dataset-id main --db "$DATABASE_URL"` 和 `npm run graph-integrity -w packages/pipeline -- --dataset-id main --db "$DATABASE_URL"` |
 
 数据库质量检查应使用可清理的测试数据。除非明确标为集成测试，单元测试不应依赖外部数据库、真实模型接口或真实密钥。

@@ -21,6 +21,7 @@
     "graph": "data/graph.json",
     "javascript_example": "examples/javascript/read-unit.mjs",
     "python_example": "examples/python/read_unit.py",
+    "source_manifest": "SOURCES.md",
     "unit_index": "data/units/index.json",
     "viewer": "viewer/index.html"
   },

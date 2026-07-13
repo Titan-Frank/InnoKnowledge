@@ -78,7 +78,7 @@ P1 的 JSON Schema 来自 `buildResponseSchema`。下面示例省略了 Schema �
 }
 ```
 
-P2 也是同样机制，只是使用的 Schema 是 `imageRelevanceJsonSchema`，要求输出 `keep`、`relevance`、`reason`、`confidence`。
+P2 也是同样机制，只是使用的 Schema 是 `imageRelevanceJsonSchema`，要求输出 `visual_summary`、`keep`、`relevance`、`reason`、`confidence`。
 
 P3 使用的 Schema 来自 `buildModelNodeBodyResponseSchema`，要求输出 `content` 和 `source_refs`。
 
@@ -464,7 +464,7 @@ P1 分两次调用模型。第一阶段 Schema 在 `buildHybridNodeEvidenceRespo
 
 - `packages/pipeline/src/extraction/image-relevance.ts`
 - 函数：`buildVlmPrompt`
-- 当前版本号：`textbook-image-relevance-v4-related-context`
+- 当前版本号：`textbook-image-relevance-v5-visual-summary`
 
 用途：
 
@@ -552,7 +552,10 @@ Chat Completions：
 过滤为 decorative：栏目图标、提示语、页眉页脚、二维码、标志、纯装饰图，且图片本身没有可用的学科知识内容。
 过滤为 mismatch：图片本身有知识内容，但和当前标题、前后文或课时明显不相关。
 只有图片看不清、上下文缺失且图片内容也无法辨认，或确实无法判断图片是否相关时，才返回 keep=true、relevance="uncertain"。
-只返回 JSON：keep、relevance、reason、confidence。
+必须先识别图片内容，再判断相关性。
+visual_summary 写图片中可见的主要内容，不要照抄上下文；如果图片看不清，就说明看不清。
+reason 写为什么保留或删除，必须结合图片内容和教材上下文。
+只返回 JSON：visual_summary、keep、relevance、reason、confidence。
 
 教材上下文：
 标题路径：{headingPath 或 anchor_ref 或 未知}
@@ -576,6 +579,7 @@ P2 必须返回一个 JSON 对象。Schema 在 `imageRelevanceJsonSchema` 中生
 
 ```json
 {
+  "visual_summary": "图片展示烧杯中的蔗糖水和正在搅拌的玻璃棒。",
   "keep": true,
   "relevance": "core_content",
   "reason": "...",
@@ -593,6 +597,7 @@ core_content / supporting / decorative / mismatch / uncertain
 
 | 字段 | 含义 |
 |---|---|
+| `visual_summary` | 图片中实际可见内容的简短描述，不照抄教材上下文 |
 | `keep` | 是否保留这张图片作为知识证据 |
 | `relevance` | 图片和当前教材上下文的关系类别 |
 | `reason` | 保留或过滤的简短理由 |
@@ -633,6 +638,7 @@ core_content / supporting / decorative / mismatch / uncertain
 
 ```json
 {
+  "visual_summary": "图片展示烧杯、蔗糖水和玻璃棒搅拌过程。",
   "keep": true,
   "relevance": "supporting",
   "reason": "图片展示搅拌蔗糖水的实验场景，和前后文的溶解观察活动对应，但主要起辅助说明作用。",

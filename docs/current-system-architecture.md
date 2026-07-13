@@ -1,12 +1,12 @@
 # 当前系统架构
 
-更新日期：2026-07-10
+更新日期：2026-07-13
 
 本文说明 Open Knowledge Map 当前代码仓库的系统架构。它描述的是现在已经落到代码和数据库里的工程结构，不是远期设想。
 
 一句话概括：
 
-> 当前系统是一个 TypeScript 优先的教材知识抽取与浏览系统：用 pipeline 把 PDF 教材经 MinerU 解析后抽取成证据支撑的统一世界知识图谱，存入 PostgreSQL，再通过 Hono API 提供给 React viewer 展示和调试。
+> 当前系统是一个 TypeScript 优先的教材知识抽取与浏览系统：用流水线把 PDF 教材经 MinerU 解析后抽取成证据支撑的统一世界知识图谱，存入 PostgreSQL，再通过 Hono API 提供给 React 查看器展示和调试；经过筛选的 `ApiUnit` 还可以导出成不依赖数据库的只读公开成果。
 
 ## 一、总体结构
 
@@ -18,6 +18,8 @@
 4. 存储层：PostgreSQL，保存正式知识图谱、证据、卡片、正文和运行记录。
 5. 服务层：Hono API，负责读取 PostgreSQL、组装图谱包、知识单元、搜索结果和流水线状态。
 6. 前端层：React/Vite viewer，负责图谱浏览、知识点详情、教材工作台和流水线调试。
+
+运行系统之外还有一个只读成果发布面：从 PostgreSQL 导出图谱、逐对象 `ApiUnit`、结构约束、校验值和静态 React 查看器，当前线上预览由 Cloudflare Pages 托管。
 
 ```mermaid
 flowchart TD
@@ -42,6 +44,9 @@ flowchart TD
   K --> P["Hono API"]
   O --> P
   P --> Q["React viewer"]
+  K --> U["公开成果导出"]
+  O --> U
+  U --> V["静态 React 查看器"]
 ```
 
 ## 二、代码分层
@@ -51,20 +56,23 @@ flowchart TD
 | 模块 | 路径 | 职责 |
 |---|---|---|
 | 共享类型 | `packages/types` | 保存前后端共享的 API 类型、图谱模型、知识单元结构、流水线请求和响应结构 |
-| 抽取流水线 | `packages/pipeline` | 负责教材解析、课时抽取、staging 写入、归并、规范化、质量检查、正文生成 |
+| 抽取流水线 | `packages/pipeline` | 负责教材解析、课时抽取、staging 写入、归并、规范化、正文与教学画像生成、向量生成和质量检查 |
 | 服务端 | `packages/server` | Hono API 服务，读取 PostgreSQL，提供 viewer 所需接口，也可以启动 pipeline |
 | 前端 | `packages/viewer` | React/Vite 图谱浏览器，展示图谱、知识单元、教材树、流水线状态和图片复核 |
 | 标准与数据库 schema | `schemas` | 世界知识标准、JSON Schema、PostgreSQL 建表文件 |
 | 文档 | `docs` | 运行记录、系统说明、知识点契约、提示词清单和架构说明 |
+| 只读成果 | `artifacts` | 保存版本化图谱、逐对象 `ApiUnit`、来源清单、校验值、读取示例和静态查看器 |
 
 顶层命令：
 
 | 命令 | 作用 |
 |---|---|
 | `npm run dev` | 构建 viewer 并启动一个本地服务，统一从 `http://127.0.0.1:8765/viewer/` 访问 |
-| `npm run build` | 构建 pipeline、server、viewer |
+| `npm run build` | 构建 types、pipeline、server、viewer |
 | `npm run check` | 对所有 workspace 做 TypeScript 检查 |
 | `npm test -w packages/pipeline` | 构建并运行 pipeline 测试 |
+| `npm run verify` | 运行全仓类型检查、pipeline/server/viewer 测试和正式构建 |
+| `npm run artifact:verify` | 校验公开成果文件、数量、引用结构和 SHA-256 校验值 |
 
 ## 三、知识体系结构
 
@@ -380,8 +388,20 @@ schemas/pg/knowledge_store.sql
 | `world_evidence_links` | 证据和对象之间的补充链接 |
 | `world_node_cards` | 节点结构化摘要卡片 |
 | `world_node_bodies` | 节点持久化知识正文 |
+| `world_node_terms` | 节点名称与别名的规范化检索词 |
+| `world_unit_embeddings` | 完整 `ApiUnit` 的向量及模型信息 |
 
-### 2. 运行和中间表
+### 2. 来源与教材准备表
+
+| 表 | 职责 |
+|---|---|
+| `world_source_artifacts` | 来源材料身份、书目和来源权利元数据 |
+| `world_textbook_outlines` | 教材目录和课时结构 |
+| `world_mineru_sources` | MinerU 解析状态和产物位置 |
+| `world_enrich_library` | 富化资料库元信息 |
+| `world_enrich_books` | 可用于命名和粒度判断的教材富化索引 |
+
+### 3. 运行和中间表
 
 | 表 | 职责 |
 |---|---|
@@ -395,8 +415,12 @@ schemas/pg/knowledge_store.sql
 | `world_merge_runs` | 归并运行记录 |
 | `world_canonical_node_map` | raw node 到 canonical node 的映射和待复核项 |
 | `retrieval_candidates` | 检索候选，用于抽取上下文补充 |
+| `world_pipeline_jobs` | 一次服务端流水线任务的总状态 |
+| `world_pipeline_job_stages` | 流水线各阶段状态和顺序 |
+| `world_pipeline_job_events` | 流水线事件记录 |
+| `world_pipeline_worker_states` | 并行课时工作器状态 |
 
-### 3. 数据边界
+### 4. 数据边界
 
 当前系统有几个明确边界：
 
@@ -425,13 +449,20 @@ schemas/pg/knowledge_store.sql
 | `GET /api/source/:key/unit/:node_id` | 返回完整知识单元 `ApiUnit` |
 | `GET /api/source/:key/node-card/:node_id` | 返回节点结构化卡片 |
 | `GET /api/source/:key/search` | 节点搜索，文本搜索和向量搜索融合 |
+| `GET /api/source/:key/units/search` | 检索完整 `ApiUnit`，支持文本、向量和混合模式 |
+| `POST /api/source/:key/grounded-generate` | 基于检索到的 `ApiUnit` 生成带证据编号的回答 |
+| `POST /api/source/:key/grounded-generate/stream` | 以服务器事件流返回检索结果和增量回答 |
 | `GET /api/source/:key/pipeline` | 返回流水线运行状态 |
+| `GET /api/source/:key/pipeline/quality` | 返回质量仪表盘数据 |
+| `GET /api/source/:key/pipeline/jobs/:job_id` | 返回单次任务详情 |
 | `POST /api/source/:key/pipeline/start` | 从前端启动 pipeline |
 | `POST /api/source/:key/pipeline/infer-textbook` | 根据 book id 和 PDF 名称推断教材元信息 |
 | `GET /api/source/:key/image-reviews` | 返回待复核图片证据 |
 | `POST /api/source/:key/image-reviews/:evidence_id` | 写入人工图片复核结果 |
 | `GET /api/source/:key/assets/:asset_path` | 提供本地教材图片等资源 |
 | `GET /api/enrich/books`、`GET /api/enrich/book` | 教材工作台相关数据 |
+| `GET /api/annotation/textbooks` | 返回标注工作台可用教材 |
+| `GET /api/annotation/textbooks/:bookId/lessons/:lessonId` | 返回指定课时的原文和标注上下文 |
 
 核心查询逻辑在：
 
@@ -532,10 +563,14 @@ POST /api/source/:key/grounded-generate
 
 ## 九、提示词与结构化输出
 
-当前项目有两条固定运行时提示词：
+当前项目有五类主要模型调用提示词，以及一类在质量失败后追加到 P1 的定向重抽提示：
 
-1. P1：课时知识抽取提示词。
-2. P2：教材图片相关性判断提示词。
+1. P1：两阶段课时知识对象、证据与关系抽取。
+2. P2：教材图片相关性和可见内容判断。
+3. P3：知识正文生成。
+4. P4：按学段生成教学画像。
+5. P5：基于 `ApiUnit` 的带依据生成。
+6. P6：暂存质量失败后的定向重抽补充提示。
 
 但模型输出 JSON 不是只靠提示词。
 
@@ -576,12 +611,34 @@ npm run dev
 |---|---|
 | `DATABASE_URL` | PostgreSQL 连接地址 |
 | `OPENAI_API_KEY` | 文本模型抽取 |
+| `OPENAI_BASE_URL` | OpenAI 兼容文本模型服务根地址 |
+| `OPENAI_MODEL` | 文本模型名称 |
 | `MINERU_API_KEY` | PDF 解析 |
 | `VLM_API_URL` | 视觉模型接口 |
 | `VLM_API_KEY` | 视觉模型密钥 |
 | `VLM_MODEL` | 视觉模型名称 |
+| `VLM_CACHE_DIR` | 图片判断缓存目录 |
+| `VLM_CONCURRENCY` | 图片判断并发数 |
+| `EMBEDDING_URL` | 明确配置的向量服务地址；未配置时不调用向量服务 |
+| `EMBEDDING_API_KEY` | 向量服务密钥 |
+| `EMBEDDING_MODEL` | 向量模型名称 |
 
-## 十一、当前关键边界
+## 十一、只读公开成果层
+
+公开成果目录当前为 `artifacts/okm-public-v0.1.0`，由 PostgreSQL 的 `knowledge/main` 导出。它包含：
+
+1. `manifest.json`：版本、数量、筛选条件、来源状态和文件入口。
+2. `data/graph.json`：静态图谱。
+3. `data/units/unit-*.json`：每个正式知识对象对应的完整 `ApiUnit`。
+4. `schemas/api-unit.schema.json`：机器可读的公共契约。
+5. `SOURCES.md`、`RIGHTS.md` 和 `SHA256SUMS`：来源边界、权利边界和文件校验值。
+6. JavaScript、Python 读取示例以及复用正式 React 前端构建的只读查看器。
+
+当前 v0.1.0 公开查看口径是 182 个知识对象、144 条关系、537 条导出证据、182 张卡片和 182 篇正文。线上入口是 <https://open-knowledge-map.pages.dev/>。公开模式不连接 PostgreSQL，不提供抽取、标注、教材管理、回答生成和任何写操作。
+
+当前来源编号可以从知识单元中恢复，书名、出版社、ISBN、版次和印次可以从本地 PDF 版权页核对，但准确的上游网址和许可证标识仍未写入 `world_source_artifacts`。PDF 本身保留版权，当前没有适用的开放许可证或明确再分发授权。因此它是公开查看成果，不应被描述为已经完成授权的数据集。
+
+## 十二、当前关键边界
 
 ### 1. 抽取中间产物和正式知识库分开
 
@@ -607,7 +664,7 @@ viewer 不应该自己理解数据库表结构。它应该消费 `BundleResponse
 
 `lesson_disposition=no_knowledge` 表示“当前课时确实没有符合准入规则的知识”，不是抽取失败的兜底值。需要人工判断的质量警告和合成证据必须持久化进入复核流程；它们不能只出现在运行日志中，也不能计入正式证据覆盖率。
 
-## 十二、当前还可以继续加强的点
+## 十三、当前还可以继续加强的点
 
 这部分不是当前架构已经完成的事实，而是从现状自然推出来的改进方向：
 

@@ -26,10 +26,11 @@ This checklist separates release blockers from presentation improvements. Comple
 - [x] Add citation metadata, contribution guidance, security guidance, and provenance boundaries.
 - [x] Provide a populated, repository-authored demo graph that requires no model API calls.
 - [x] Provide a one-command demo path that initializes an isolated PostgreSQL database, loads the safe graph, and starts the viewer.
+- [x] Publish a versioned read-only inspection artifact with JSON data, `ApiUnit` objects, schemas, readers, and a static viewer.
 - [ ] Publish a cleaned benchmark directory with exact commands, fixtures, outputs, and limitations.
 - [ ] Complete independent human review and fair baseline comparisons before making research-performance claims.
-- [ ] Add a versioned release manifest with counts and checksums for every public data file.
-- [ ] Add a machine-readable change log entry for the first public version.
+- [x] Add a versioned release manifest with counts and checksums for every public data file.
+- [x] Add a versioned changelog entry for the first public preview.
 - [x] Add a root documentation index and ensure every README link resolves.
 
 ## GitHub release configuration
@@ -40,7 +41,7 @@ This checklist separates release blockers from presentation improvements. Comple
 - [ ] Configure branch protection and require the CI workflow.
 - [ ] Create a version tag and GitHub Release with a short change summary.
 - [ ] Attach the technical report and public data manifest where rights allow.
-- [ ] Add an online read-only demo URL when a safe hosted dataset is available.
+- [ ] Approve the live read-only preview for public redistribution after source clearance; the current preview URL is `https://open-knowledge-map.pages.dev/`.
 - [ ] Add social preview artwork based on the graph explorer rather than a dense application screenshot.
 
 ## Launch and post-release

@@ -5,7 +5,7 @@ abstract: >-
   A TypeScript-first, PostgreSQL-backed system that converts textbooks and
   other learning materials into evidence-grounded Knowledge Objects, assembles
   them into ApiUnit views, and supports inspection, retrieval, and
-  citation-validated generation.
+  citation-identifier-checked generation.
 type: software
 version: "0.1.0"
 repository-code: "https://github.com/Titan-Frank/Open-Knowledge-Map"

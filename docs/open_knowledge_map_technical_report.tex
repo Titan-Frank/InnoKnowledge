@@ -117,7 +117,7 @@
   \end{tabular}
 }
 
-\date{July 12, 2026}
+\date{July 13, 2026}
 
 \begin{document}
 \maketitle
@@ -132,7 +132,7 @@ The current implementation provides a TypeScript-first extraction pipeline, a Po
 \end{abstract}
 
 \vspace{0.55em}
-\noindent{\footnotesize $^\dagger$ Repository snapshot based on merge commit \code{2a7dabb} and inspected on July 12, 2026. The report source, synthetic public demo, screenshots, and release documentation include working-tree changes prepared after that commit; an archival release should replace this note with the final release tag or commit. The early retrieval and grounded-generation runtime is implemented, while semantic planning, AI Tutor behavior, learning-outcome studies, version governance, and large-scale adjudicated benchmarks remain future work unless explicitly marked otherwise.}
+\noindent{\footnotesize $^\dagger$ Repository state inspected on July 13, 2026. This working report follows the current \code{main} branch but intentionally avoids naming its own commit, because committing the report changes that identifier. An archival distribution must bind the report, implementation, public artifact, and verification record to one immutable release tag or commit. The early retrieval and grounded-generation runtime is implemented, while semantic planning, AI Tutor behavior, learning-outcome studies, version governance, and large-scale adjudicated benchmarks remain future work unless explicitly marked otherwise.}
 
 \newpage
 
@@ -870,7 +870,7 @@ Quality dashboard & Operational quality metrics are visible in the server and de
 \caption{Verification scope of the current repository checks.}
 \end{table}
 
-The July 12 verification used a working tree based on merge commit \code{2a7dabb}. The command \code{npm run verify} passed repository-wide type checks, 321 pipeline tests, 11 server tests, and all production builds. The Vite build emitted a bundle-size warning for the main viewer chunk; it did not fail the build, but it remains a frontend performance item. The current test design should continue to grow around business-output parity and database correctness. For database paths, useful tests should create temporary rows, verify writes and reads, and clean up after themselves. For extraction behavior, focused fixtures are more valuable than broad snapshots because the model layer itself is probabilistic.
+The July 13 verification command \code{npm run verify} covers repository-wide type checks, pipeline, server, and viewer tests, and production builds. Exact test counts are deliberately left to the machine-generated command output so that the report does not become stale whenever coverage grows. The Vite build may emit a bundle-size warning for the main viewer chunk; this does not fail the build, but it remains a frontend performance item. The current test design should continue to grow around business-output parity and database correctness. For database paths, useful tests should create temporary rows, verify writes and reads, and clean up after themselves. For extraction behavior, focused fixtures are more valuable than broad snapshots because the model layer itself is probabilistic.
 
 \section{Preliminary Runtime Evaluation and Reproducibility}
 
@@ -883,11 +883,13 @@ npm run evaluate-runtime -w packages/server -- \
 
 The fixture contains five hand-authored physics questions, each with one expected node identifier. Without \code{--generate}, the command reports retrieval hit rate and recall against those identifiers. With \code{--generate}, it additionally reports expected-term coverage, identifier-level citation validity, invalid-citation count, and the model-reported \code{unsupported_claims} field. The repository does not include the evaluated database snapshot or a machine-readable output for the July 10 local run, so this report does not present those local values as reproducible effectiveness results.
 
-The fixture and evaluator provide a development smoke check rather than a paper-grade benchmark: they cover one subject, only five questions, locally assigned node identifiers, and no independent adjudication. Additional local pilot and ablation scaffolds exist in the working environment, but they are not part of the tracked snapshot and do not contain a completed independent human-scoring record; this report therefore makes no comparative-performance claim from them.
+The fixture and evaluator provide a development smoke check rather than a paper-grade benchmark: they cover one subject, only five questions, locally assigned node identifiers, and no independent adjudication. The tracked repository also includes pilot and ablation scripts, manuals, and result summaries. Generated experiment outputs remain excluded by default, and the current materials do not provide a completed independent human-scoring record; this report therefore makes no paper-grade comparative-performance claim from them.
 
 \subsection{Artifact, Data, and Rights Boundary}
 
-The implementation baseline for this draft is merge commit \code{2a7dabb}; the report source, public demo, screenshots, and release documentation are later working-tree changes. The archival report must identify a release commit or tag that contains both the implementation and the cited artifacts.
+This draft describes the repository state inspected on July 13, 2026. The archival report must identify a release commit or tag that contains the implementation, cited artifacts, and verification record together.
+
+The repository contains a read-only public inspection artifact at \code{artifacts/okm-public-v0.1.0}. Its \code{main} dataset exports 182 Knowledge Objects, 144 typed relations, 537 evidence records, 182 cards, 182 bodies, and 184 stage-scoped pedagogical profiles as JSON, together with a manifest, checksums, JavaScript and Python readers, and a static viewer. This is a preview artifact rather than a cleared data release: the source manifest records bibliographic identity, edition, printing, and ISBN from the local PDF, but the PDF reserves rights and no applicable open license or explicit redistribution permission is recorded. The repository's absent root software license and the artifact's rights notes therefore remain binding release blockers.
 
 Figures~\ref{fig:ui-graph-overview}--\ref{fig:ui-pipeline-debug} use \code{examples/demo-data}, a repository-authored synthetic home-solar module with nine directly seeded Knowledge Objects, twelve typed relations, and nine synthetic evidence records marked \code{quality_excluded}. It is not a real textbook, a model-extraction run, or an evaluation benchmark. A fresh clone can use this module to exercise database, API, and interface contracts without a model provider.
 
@@ -905,7 +907,7 @@ Author names, affiliations, and email addresses on the title page are personal i
 
 \subsection{Why Use TypeScript Across the Pipeline}
 
-The repository is moving toward a TypeScript-first pipeline because the shared contracts are consumed by the pipeline, server, and viewer. Keeping models in \code{packages/types} reduces duplicate definitions and makes it easier for the server and frontend to agree on public API shapes. This does not make Python irrelevant for research scripts or experiments, but the production extraction and serving path benefits from a single typed contract.
+The repository uses a TypeScript-first production pipeline because the shared contracts are consumed by the pipeline, server, and viewer. Keeping models in \code{packages/types} reduces duplicate definitions and makes it easier for the server and frontend to agree on public API shapes. This does not make Python irrelevant for research scripts or experiments, but the production extraction and serving path benefits from a single typed contract.
 
 \subsection{Why Keep PostgreSQL as the Structured Authority}
 

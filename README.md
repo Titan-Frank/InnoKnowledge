@@ -2,16 +2,22 @@
 
 **Turn textbooks into evidence-grounded knowledge objects that AI systems can retrieve, inspect, and cite.**
 
-[中文说明](README.zh-CN.md) · [Live viewer](https://open-knowledge-map.pages.dev/) · [Public artifact](artifacts/okm-public-v0.1.0/README.md) · [Populated demo](examples/demo-data/README.md) · [Architecture](docs/current-system-architecture.md) · [Knowledge unit contract](docs/knowledge-unit-contract.md) · [Contributing](CONTRIBUTING.md)
+[中文说明](README.zh-CN.md) · [Live viewer](https://open-knowledge-map.pages.dev/) · [Inspection artifact](artifacts/okm-public-v0.1.0/README.md) · [Populated demo](examples/demo-data/README.md) · [Architecture](docs/current-system-architecture.md) · [Knowledge unit contract](docs/knowledge-unit-contract.md) · [Contributing](CONTRIBUTING.md)
 
 [![CI](https://github.com/Titan-Frank/Open-Knowledge-Map/actions/workflows/ci.yml/badge.svg)](https://github.com/Titan-Frank/Open-Knowledge-Map/actions/workflows/ci.yml)
 ![Node.js 22+](https://img.shields.io/badge/Node.js-22%2B-339933?logo=nodedotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-first-3178C6?logo=typescript&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/storage-PostgreSQL-4169E1?logo=postgresql&logoColor=white)
 
-![Open Knowledge Map graph explorer showing the repository-authored solar demo](docs/assets/report/graph-overview.png)
+![Open Knowledge Map graph explorer showing the repository-authored solar interface fixture](docs/assets/report/graph-overview.png)
 
-The screenshot uses the repository-authored demo: **9 knowledge objects**, **12 typed relations**, and **9 traceable evidence records**. It contains no third-party textbook material and is intended to make the system inspectable immediately, not to serve as an accuracy benchmark.
+The [hosted read-only viewer](https://open-knowledge-map.pages.dev/) currently serves the versioned `knowledge/main` snapshot: **182 knowledge objects**, **144 typed relations**, **537 exported evidence records**, **182 cards**, and **182 knowledge bodies**. The screenshot above deliberately uses the smaller repository-authored solar fixture so that the interface can be shown without reproducing third-party textbook content; its 9 objects and 12 relations are not the scale of the published snapshot or an accuracy benchmark.
+
+## Three ways to try it
+
+1. **Open the hosted viewer:** inspect the current `main` snapshot immediately, without PostgreSQL or model credentials.
+2. **Run the safe local fixture:** `npm install && npm run demo` starts an isolated, repository-authored graph at <http://127.0.0.1:8765/viewer/>.
+3. **Process authorized material:** configure PostgreSQL, MinerU, and a model endpoint, then run the lesson-level TypeScript pipeline described below.
 
 ## Why this project exists
 
@@ -71,7 +77,7 @@ The project separates three versioned layers:
 
 See [the theory decision record](docs/theory-decision-record.md), [AI-NKS v0.1](docs/ai-nks-v0.1.md), and [the knowledge unit contract](docs/knowledge-unit-contract.md).
 
-## Quick start: populated demo
+## One-command local fixture
 
 Requirements: Node.js 22+, npm, Docker, and Docker Compose.
 
@@ -152,7 +158,7 @@ Run the repository verification suite:
 npm run verify
 ```
 
-The command performs TypeScript checks, pipeline tests, server tests, and production builds. Database-backed quality checks are available separately:
+The command performs TypeScript checks, pipeline, server, and viewer tests, and production builds. Database-backed quality checks are available separately:
 
 ```bash
 npm run strict-qa -w packages/pipeline -- \
@@ -176,6 +182,7 @@ examples/demo-data  Repository-authored populated demo
 examples/sample-data Legacy import fixtures; audit rights before public release
 experiments         Reproducible experiment source, schemas, and reviewed fixtures/reports
 docs                Theory, architecture, contracts, reports, and run notes
+artifacts           Versioned, read-only public result layers
 ```
 
 PostgreSQL is the only canonical application store. Generated `data`, `runs`, `storage`, `tmp`, and local model artifacts are not canonical source files.
@@ -184,12 +191,13 @@ PostgreSQL is the only canonical application store. Generated `data`, `runs`, `s
 
 The implemented system demonstrates governed object extraction, evidence preservation, structured unit assembly, retrieval, and citation-identifier membership checks. It does **not** yet establish semantic entailment for every generated claim, that the graph is pedagogically optimal, or that object-level retrieval improves learning outcomes.
 
-The populated demo is a structural and interface check, not a paper-grade benchmark. Multi-subject adjudicated labels, completed independent human review, fully reproducible external baselines, and learning-outcome evaluation remain open work.
+The hosted artifact and populated fixture are structural and interface releases, not paper-grade benchmarks. The repository includes pilot and ablation scaffolding plus reviewed summary reports, but adjudicated multi-subject labels, completed independent human review, fully reproducible external baselines, and learning-outcome evaluation remain open work.
 
 ## Data rights, license, and citation
 
 - Read [PROVENANCE.md](PROVENANCE.md) before adding or redistributing source material or derived data.
 - A public code/data license has **not yet been selected**. Until a root `LICENSE` file is added, do not assume permission to redistribute or create derivative releases.
+- The hosted `knowledge/main` artifact is available for public inspection, but its source PDF reserves rights and no applicable open license or explicit redistribution permission is recorded; see its [source manifest](artifacts/okm-public-v0.1.0/SOURCES.md) and [rights boundary](artifacts/okm-public-v0.1.0/RIGHTS.md).
 - Citation metadata is available in [CITATION.cff](CITATION.cff).
 - Security-sensitive reports should follow [SECURITY.md](SECURITY.md).
 
@@ -197,4 +205,4 @@ The contribution workflow is documented in [CONTRIBUTING.md](CONTRIBUTING.md), b
 
 ## Current release boundary
 
-The repository currently exposes an early Knowledge Runtime for object retrieval and citation-identifier-checked generation. Semantic planning, adaptive tutoring, learner-state feedback, mature version governance, and large-scale expert evaluation remain future work.
+The repository currently exposes an early Knowledge Runtime for object retrieval and citation-identifier-checked generation, plus a versioned read-only `ApiUnit` result layer. The hosted page is a preview artifact rather than a tagged GitHub Release. Semantic planning, adaptive tutoring, learner-state feedback, mature version governance, and large-scale expert evaluation remain future work.

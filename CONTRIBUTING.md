@@ -43,7 +43,9 @@ Run at least the checks that match the affected scope:
 | Any TypeScript or React code | `npm run check` |
 | `packages/pipeline` | `npm test -w packages/pipeline` |
 | `packages/server` | `npm test -w packages/server` |
+| `packages/viewer` | `npm test -w packages/viewer` |
 | Build, dependency, or cross-workspace changes | `npm run build` |
+| Repository-wide changes | `npm run verify` |
 | Pipeline data quality or graph structure | `npm run strict-qa -w packages/pipeline -- --dataset-id main --db "$DATABASE_URL"` and `npm run graph-integrity -w packages/pipeline -- --dataset-id main --db "$DATABASE_URL"` |
 
 Database quality checks should use disposable test data. Unit tests must not depend on external databases, live model APIs, or real credentials unless the test is explicitly marked as an integration test.

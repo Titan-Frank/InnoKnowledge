@@ -1,6 +1,6 @@
 # 文档状态判断
 
-更新日期：2026-06-30
+更新日期：2026-07-13
 
 本文判断当前仓库中哪些文档代表 `ai-nks-v0.1` 顶层标准，哪些文档只是工程基线、历史记录或运行记录。
 
@@ -36,9 +36,6 @@
 | `docs/theory-decision-record.md` | 当前理论决策记录 | 用来判断 OKM 是什么、核心术语边界、学科/课标/教材/考点角色，以及当前实现和未来 Runtime 的边界 |
 | `docs/node-extraction-policy.md` | 当前节点准入政策 | 用来判断什么内容有资格成为知识节点，避免把课标、目录、考点或文本切块直接当节点 |
 | `docs/ai-nks-v0.1.md` | 当前顶层标准 | 用来判断当前 OKM 的系统边界、Knowledge Object / Knowledge Unit / Runtime 分层和版本关系 |
-| `docs/ai_nks_technical_report_v0_2.md` | 当前最新概念架构 | 用来理解 AI-NKS、Knowledge Object、Knowledge Network、Knowledge Runtime 和持续演化 |
-| `docs/discussion.md` | 当前思想讨论材料 | 用来理解 K-Units、问题驱动学习、人机协同和新知识体系的教育逻辑 |
-| `docs/next-step-plan-2026-06-26.md` | 当前路线图，部分内容已完成 | 用来判断下一阶段工程优先级 |
 
 这些文档可以更新方向判断，但不等于每个字段都已经落进代码。
 
@@ -67,7 +64,26 @@
 
 这些文件里的 `V1.2` 不应该被理解为“最新思想版本”，而应该理解为“当前工程 schema 版本”。
 
-### 4. 历史运行记录
+### 4. 当前成果与发布契约
+
+| 文档或文件 | 状态 | 用法 |
+|---|---|---|
+| `artifacts/okm-public-v0.1.0/README.md` | 当前只读成果说明 | 用来运行、读取和校验当前 `knowledge/main` 公开查看快照 |
+| `artifacts/okm-public-v0.1.0/manifest.json` | 当前成果机器清单 | 用来读取成果版本、数量、来源状态、筛选边界和文件入口 |
+| `artifacts/okm-public-v0.1.0/SOURCES.md` | 当前来源信息清单 | 用来区分已经记录的来源身份与尚未补齐的网址、许可证和版本字段 |
+| `artifacts/okm-public-v0.1.0/RIGHTS.md` | 当前公开查看边界 | 用来说明公开可访问不等于获得独立再分发许可 |
+| `docs/open-source-release-checklist.md` | 当前发布门槛清单 | 用来跟踪许可证、来源审查、GitHub Release 和发布配置 |
+
+### 5. 报告、讨论和历史计划
+
+| 文档 | 状态 | 用法 |
+|---|---|---|
+| `docs/open_knowledge_map_technical_report.tex` | 当前实现技术报告草稿 | 用来描述当前仓库已经实现的系统、验证和限制；正式发布时应绑定版本标签 |
+| `docs/ai_nks_technical_report_v0_2.md` | 2026 年 6 月概念架构草稿 | 用来追溯 AI-NKS 的完整研究愿景，不代表当前代码状态或当前工程路线图 |
+| `docs/discussion.md` | 历史思想讨论材料 | 用来追溯 K-Units、问题驱动学习和人机协同讨论，不作为接口或结构约束 |
+| `docs/next-step-plan-2026-06-26.md` | 历史路线图 | 原有阶段已部分或全部完成；以文件顶部的完成情况说明为准，不再作为当前执行计划 |
+
+### 6. 历史运行记录
 
 这些文档只记录某次运行或某批问题，不应该被当成当前标准：
 
@@ -75,7 +91,7 @@
 |---|---|---|
 | `docs/physics-hukj-compulsory-3-extraction-run-2026-06-26.md` | 历史运行记录 | 用来追溯那次教材抽取的结果、问题和修复建议 |
 
-### 5. 已删除讨论稿
+### 7. 已删除讨论稿
 
 下面两份讨论稿的有效内容已经被 `docs/theory-decision-record.md` 吸收，因此不再保留：
 

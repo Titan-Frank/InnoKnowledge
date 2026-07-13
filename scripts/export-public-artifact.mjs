@@ -22,6 +22,8 @@ const artifactVersion = args.get("artifact-version") ?? "v0.1.0";
 const outputDir = resolve(repoRoot, args.get("output") ?? `artifacts/okm-public-${artifactVersion}`);
 const allowUnreviewed = args.has("allow-unreviewed");
 const includeMedia = args.has("include-media");
+const sourceCommit = currentCommit();
+const sourceWorktreeDirty = hasDirtyWorktree();
 
 const connectionModule = resolve(repoRoot, "packages/server/dist/db/connection.js");
 const queryModule = resolve(repoRoot, "packages/server/dist/db/queries.js");
@@ -145,8 +147,8 @@ try {
     artifact_id: "okm-public-artifact",
     artifact_version: artifactVersion,
     generated_at: new Date().toISOString(),
-    generated_from_commit: currentCommit(),
-    generated_from_dirty_worktree: hasDirtyWorktree(),
+    generated_from_commit: sourceCommit,
+    generated_from_dirty_worktree: sourceWorktreeDirty,
     contracts: {
       conceptual_standard: "ai-nks-v0.1",
       executable_schema: String(datasetMetadata.schema_version ?? "world-v1.2"),
@@ -186,6 +188,7 @@ try {
       viewer: "viewer/index.html",
       javascript_example: "examples/javascript/read-unit.mjs",
       python_example: "examples/python/read_unit.py",
+      ...(existsSync(join(outputDir, "SOURCES.md")) ? { source_manifest: "SOURCES.md" } : {}),
     },
   };
   writeJson(join(outputDir, "manifest.json"), manifest);
