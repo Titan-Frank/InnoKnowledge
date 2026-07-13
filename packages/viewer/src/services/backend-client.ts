@@ -7,6 +7,22 @@ import type {
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
 } from '@okm/types';
+import { PUBLIC_ARTIFACT_MODE, publicArtifactPath } from '@/lib/runtime';
+import {
+  createPublicArtifactBundle,
+  createPublicArtifactMeta,
+  findPublicArtifactUnitFile,
+  isPublicArtifactUnit,
+  searchPublicArtifactNodes,
+  type PublicArtifactGraph,
+  type PublicArtifactManifest,
+  type PublicArtifactUnitIndex,
+} from './public-artifact';
+
+let artifactManifestPromise: Promise<PublicArtifactManifest> | null = null;
+let artifactGraphPromise: Promise<PublicArtifactGraph> | null = null;
+let artifactUnitIndexPromise: Promise<PublicArtifactUnitIndex> | null = null;
+const artifactUnitPromises = new Map<string, Promise<ApiUnit | null>>();
 
 export interface EnrichBookSummary {
   path: string;
@@ -105,10 +121,21 @@ export async function postJson<T = unknown>(path: string, body: unknown): Promis
 }
 
 export async function loadMeta(): Promise<MetaResponse> {
+  if (PUBLIC_ARTIFACT_MODE) {
+    const [manifest, graph] = await Promise.all([
+      loadArtifactManifest(),
+      loadArtifactGraph(),
+    ]);
+    return createPublicArtifactMeta(manifest, graph);
+  }
   return fetchJson<MetaResponse>('/api/meta');
 }
 
 export async function loadBundle(sourceKey: string): Promise<BundleResponse> {
+  if (PUBLIC_ARTIFACT_MODE) {
+    const graph = await loadArtifactGraph();
+    return createPublicArtifactBundle(graph, publicArtifactPath('data/units'));
+  }
   return fetchJson<BundleResponse>(`/api/source/${encodeURIComponent(sourceKey)}/bundle`);
 }
 
@@ -139,6 +166,10 @@ export async function loadNodeCard(
   nodeCardPath: string,
   nodeId: string,
 ): Promise<ApiNodeCard | null> {
+  if (PUBLIC_ARTIFACT_MODE) {
+    const unit = await loadArtifactUnit(nodeId);
+    return unit?.card ?? null;
+  }
   return fetchOptionalJson<ApiNodeCard>(
     `${nodeCardPath}/${encodeURIComponent(nodeId)}`,
   );
@@ -148,6 +179,7 @@ export async function loadUnit(
   sourceKey: string,
   nodeId: string,
 ): Promise<ApiUnit | null> {
+  if (PUBLIC_ARTIFACT_MODE) return loadArtifactUnit(nodeId);
   return fetchOptionalJson<ApiUnit>(
     `/api/source/${encodeURIComponent(sourceKey)}/unit/${encodeURIComponent(nodeId)}`,
   );
@@ -158,6 +190,9 @@ export async function searchNodes(
   query: string,
   limit?: number,
 ): Promise<SearchResponse | null> {
+  if (PUBLIC_ARTIFACT_MODE) {
+    return searchPublicArtifactNodes(await loadArtifactGraph(), query, sourceKey, limit);
+  }
   const params = new URLSearchParams({ q: query });
   if (limit) params.set('limit', String(limit));
   try {
@@ -167,6 +202,37 @@ export async function searchNodes(
   } catch {
     return null;
   }
+}
+
+function loadArtifactManifest(): Promise<PublicArtifactManifest> {
+  artifactManifestPromise ??= fetchJson<PublicArtifactManifest>(publicArtifactPath('manifest.json'));
+  return artifactManifestPromise;
+}
+
+function loadArtifactGraph(): Promise<PublicArtifactGraph> {
+  artifactGraphPromise ??= fetchJson<PublicArtifactGraph>(publicArtifactPath('data/graph.json'));
+  return artifactGraphPromise;
+}
+
+function loadArtifactUnitIndex(): Promise<PublicArtifactUnitIndex> {
+  artifactUnitIndexPromise ??= fetchJson<PublicArtifactUnitIndex>(publicArtifactPath('data/units/index.json'));
+  return artifactUnitIndexPromise;
+}
+
+function loadArtifactUnit(nodeId: string): Promise<ApiUnit | null> {
+  const cached = artifactUnitPromises.get(nodeId);
+  if (cached) return cached;
+
+  const request = loadArtifactUnitIndex()
+    .then(async (index) => {
+      const file = findPublicArtifactUnitFile(index, nodeId);
+      if (!file) return null;
+      const unit = await fetchJson<unknown>(publicArtifactPath(`data/units/${file}`));
+      return isPublicArtifactUnit(unit) ? unit : null;
+    })
+    .catch(() => null);
+  artifactUnitPromises.set(nodeId, request);
+  return request;
 }
 
 export async function searchApiUnits(

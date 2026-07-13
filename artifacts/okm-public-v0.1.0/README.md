@@ -1,8 +1,8 @@
 # Open Knowledge Map public artifact v0.1.0
 
-This directory is a self-contained, read-only candidate result layer for Open Knowledge Map. It contains a PostgreSQL-derived graph snapshot, one `ApiUnit` JSON file per active knowledge object, a JSON Schema, a data manifest, SHA-256 checksums, standard-library JavaScript and Python examples, and a static viewer.
+This directory is a self-contained, read-only candidate result layer for Open Knowledge Map. It contains a PostgreSQL-derived graph snapshot, one `ApiUnit` JSON file per active knowledge object, a JSON Schema, a data manifest, SHA-256 checksums, standard-library JavaScript and Python examples, and a read-only build of the repository's React viewer.
 
-The current snapshot is exported from the PostgreSQL `knowledge` database and its `main` dataset. It contains the complete `ApiUnit` view for every non-deprecated node. The source database includes textbook-derived evidence and does not yet contain complete redistribution metadata, so this directory is a rights-review candidate rather than a cleared public data release.
+The current snapshot is exported from the PostgreSQL `knowledge` database and its `main` dataset. It contains the complete `ApiUnit` view for every non-deprecated node. The repository owner has authorized public inspection of this snapshot and stated that the source textbooks are open source. Exact upstream source and license metadata is not yet recorded in the database, so public availability must not be interpreted as a separate redistribution or reuse license.
 
 ## Open the read-only viewer
 
@@ -12,7 +12,7 @@ From the repository root:
 python3 -m http.server 8080 -d artifacts/okm-public-v0.1.0
 ```
 
-Open <http://127.0.0.1:8080/viewer/>. The viewer reads only local JSON files. It has no PostgreSQL connection, model endpoint, upload path, editing action, or `POST` request.
+Open <http://127.0.0.1:8080/viewer/>. The public viewer uses the same graph, filtering, object detail, evidence, responsive layout, and light/dark themes as `npm run dev`, while reading only local JSON files. Server-dependent extraction, annotation, textbook management, and answer generation controls are hidden. It has no PostgreSQL connection, model endpoint, upload path, editing action, or `POST` request.
 
 ## Read one ApiUnit
 
@@ -58,10 +58,10 @@ data/graph.json                Read-only graph snapshot
 data/units/index.json          Stable node-id to unit-file mapping
 data/units/unit-*.json         Complete ApiUnit records
 examples/                      JavaScript and Python readers
-viewer/                        Dependency-free static viewer
+viewer/                        React viewer build configured for local JSON
 RIGHTS.md                      Source and reuse boundary
 ```
 
 ## 中文说明
 
-这是一个与完整抽取流水线分离的只读成果候选层。它可以在没有 PostgreSQL、MinerU、模型密钥和教材 PDF 的情况下浏览图谱、点击知识对象并检查证据与完整度。当前数据来自 PostgreSQL 的 `knowledge/main`。由于其中含有教材衍生证据且尚未完成再分发授权审查，它目前只能作为本地候选快照，不能因为进入该目录就视为已经可以公开发布。详见 [RIGHTS.md](RIGHTS.md)。
+这是一个与完整抽取流水线分离的只读成果候选层。其界面与 `npm run dev` 使用同一套 React 前端，可以在没有 PostgreSQL、MinerU、模型密钥和教材 PDF 的情况下浏览图谱、点击知识对象并检查证据与完整度。需要服务器的抽取、标注、教材管理和回答生成功能会在公开模式隐藏。当前数据来自 PostgreSQL 的 `knowledge/main`。项目维护者已授权公开浏览，并说明源教材属于开源教材；但数据库仍未记录准确的原始来源链接和许可证名称，因此公开可访问不等于另行授予再分发或再许可权限。详见 [RIGHTS.md](RIGHTS.md)。

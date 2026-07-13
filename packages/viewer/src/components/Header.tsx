@@ -1,8 +1,9 @@
 import { useAppState } from '@/hooks/useAppState';
 import type { SearchHitMeta } from '@/core/graph/types';
-import { Sun, Moon, Search, Network, BarChart3, BookOpen, ClipboardList, Database } from '@/lib/lucide-icons';
+import { Sun, Moon, Search, Network, BarChart3, BookOpen, ClipboardList, Database, Eye } from '@/lib/lucide-icons';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { searchNodes } from '@/services/backend-client';
+import { PUBLIC_ARTIFACT_MODE } from '@/lib/runtime';
 
 const WORKSPACE_ITEMS = [
   { id: 'graph', label: '图谱', icon: Network },
@@ -117,27 +118,34 @@ export function Header() {
             </label>
           )}
 
-          <nav className="okm-control-surface flex h-9 overflow-hidden rounded-lg border border-border-subtle bg-elevated/90 p-0.5" aria-label="工作区">
-            {WORKSPACE_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const active = workspace === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setWorkspace(item.id)}
-                  aria-pressed={active}
-                  className={`flex min-w-16 items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors ${
-                    active
-                      ? 'bg-accent text-white shadow-glow-soft'
-                      : 'text-text-secondary hover:bg-hover hover:text-text-primary'
-                  }`}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
+          {PUBLIC_ARTIFACT_MODE ? (
+            <div className="okm-control-surface flex h-9 items-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 text-xs font-medium text-accent" aria-label="当前为公开只读成果">
+              <Eye className="h-3.5 w-3.5" />
+              公开只读
+            </div>
+          ) : (
+            <nav className="okm-control-surface flex h-9 overflow-hidden rounded-lg border border-border-subtle bg-elevated/90 p-0.5" aria-label="工作区">
+              {WORKSPACE_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const active = workspace === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setWorkspace(item.id)}
+                    aria-pressed={active}
+                    className={`flex min-w-16 items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors ${
+                      active
+                        ? 'bg-accent text-white shadow-glow-soft'
+                        : 'text-text-secondary hover:bg-hover hover:text-text-primary'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
+          )}
 
           <div className="min-w-0 flex-1" />
 

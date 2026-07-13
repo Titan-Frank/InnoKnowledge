@@ -1,5 +1,6 @@
 import { useAppState } from '@/hooks/useAppState';
 import { BarChart3 } from '@/lib/lucide-icons';
+import { PUBLIC_ARTIFACT_MODE } from '@/lib/runtime';
 
 export function StatusBar() {
   const {
@@ -27,6 +28,12 @@ export function StatusBar() {
     <footer className="flex h-8 items-center gap-3 overflow-hidden border-t border-border-subtle bg-surface/95 px-4 text-[11px] text-text-muted backdrop-blur" aria-live="polite">
       <BarChart3 className="h-3.5 w-3.5 text-accent" />
       {sourceLabel && <span className="max-w-[18rem] truncate text-text-secondary">{sourceLabel}</span>}
+      {PUBLIC_ARTIFACT_MODE && (
+        <>
+          <span className="h-3 w-px bg-border-subtle" />
+          <span className="text-accent">公开只读快照</span>
+        </>
+      )}
       {knowledgeGraph && (
         <>
           <span className="h-3 w-px bg-border-subtle" />

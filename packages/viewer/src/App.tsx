@@ -10,6 +10,7 @@ import { TextbookTreePage } from './components/TextbookTreePage';
 import { AnnotationWorkbench } from './components/AnnotationWorkbench';
 import { GraphSearchPanel } from './components/GraphSearchPanel';
 import { useAppState } from './hooks/useAppState';
+import { PUBLIC_ARTIFACT_MODE } from './lib/runtime';
 
 function AppContent() {
   useBootData();
@@ -29,7 +30,7 @@ function AppContent() {
           <FilterPanel />
           <div className="relative order-1 min-h-[220px] min-w-0 flex-1 sm:min-h-[320px] lg:order-none lg:min-h-0">
             <GraphCanvas />
-            <GraphSearchPanel />
+            {!PUBLIC_ARTIFACT_MODE && <GraphSearchPanel />}
           </div>
           <DetailPanel />
         </main>
