@@ -103,6 +103,8 @@ type RunnerOptions = {
   pedagogicalProfileLimit?: number;
   pedagogicalProfileMaxEvidence?: number;
   overwriteGeneratedPedagogicalProfiles?: boolean;
+  skipInterdisciplinaryAnalysis?: boolean;
+  interdisciplinaryMaximumCandidates?: number;
   skipEmbeddings?: boolean;
   nodeEmbeddingBatchSize?: number;
   unitEmbeddingBatchSize?: number;
@@ -441,6 +443,17 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       );
       if (!unitEmbeddingsOk) return result;
     }
+    if (!options.skipInterdisciplinaryAnalysis) {
+      const interdisciplinaryOk = await runPipelineCommandStage(
+        result,
+        progressStore,
+        options,
+        "interdisciplinary_analysis",
+        buildInterdisciplinaryAnalysisCommand(options),
+        "Interdisciplinary analysis command failed.",
+      );
+      if (!interdisciplinaryOk) return result;
+    }
     const qaOk = await runPipelineCommandStage(result, progressStore, options, "strict_qa", buildStrictQaCommand(options), "Strict QA command failed.");
     if (!qaOk) return result;
     const integrityOk = await runPipelineCommandStage(result, progressStore, options, "graph_integrity", buildGraphIntegrityCommand(options), "Graph integrity command failed.");
@@ -754,6 +767,19 @@ function buildPedagogicalProfilesCommand(options: RunnerOptions): string[] {
   }
   if (options.overwriteGeneratedPedagogicalProfiles) command.push("--overwrite-generated");
   return command;
+}
+
+function buildInterdisciplinaryAnalysisCommand(options: RunnerOptions): string[] {
+  return [
+    "node",
+    resolve(CLI_DIR, "interdisciplinary-analyze.js"),
+    "--dataset-id",
+    options.datasetId,
+    "--db",
+    options.dbUrl,
+    "--maximum-candidates",
+    String(options.interdisciplinaryMaximumCandidates ?? 500),
+  ];
 }
 
 function buildNodeEmbeddingsCommand(options: RunnerOptions): string[] {
@@ -1167,6 +1193,7 @@ function createRunResult(options: RunnerOptions): ServerPipelineResult {
       vlm_concurrency: options.vlmConcurrency,
       vlm_cache_dir: options.vlmCacheDir,
       quality_retry_count: options.qualityRetryCount,
+      interdisciplinary_analysis: !options.skipInterdisciplinaryAnalysis,
     },
     stages: [],
   };
@@ -1242,6 +1269,7 @@ function stageSortOrder(stageId: string, fallback: number): number {
     "pedagogical_profiles",
     "node_embeddings",
     "unit_embeddings",
+    "interdisciplinary_analysis",
     "strict_qa",
     "graph_integrity",
     "quality_dashboard",
@@ -1270,6 +1298,7 @@ function stageLabel(stageId: string): string {
     pedagogical_profiles: "生成教学画像",
     node_embeddings: "生成节点向量",
     unit_embeddings: "生成单元向量",
+    interdisciplinary_analysis: "扫描跨学科连接",
     strict_qa: "严格质检",
     graph_integrity: "图谱完整性检查",
     quality_dashboard: "生成质量仪表盘",
@@ -1390,6 +1419,8 @@ function parseOptions(argv: string[]): RunnerOptions {
     pedagogicalProfileLimit: parseNonNegativeInteger(flags.get("pedagogical-profile-limit"), 0),
     pedagogicalProfileMaxEvidence: parseInteger(flags.get("pedagogical-profile-max-evidence"), 8),
     overwriteGeneratedPedagogicalProfiles: flags.has("overwrite-generated-pedagogical-profiles"),
+    skipInterdisciplinaryAnalysis: flags.has("skip-interdisciplinary-analysis"),
+    interdisciplinaryMaximumCandidates: parseInteger(flags.get("interdisciplinary-maximum-candidates"), 500),
     skipEmbeddings: flags.has("skip-embeddings"),
     nodeEmbeddingBatchSize: parseInteger(flags.get("node-embedding-batch-size") ?? flags.get("embedding-batch-size"), 8),
     unitEmbeddingBatchSize: parseInteger(flags.get("unit-embedding-batch-size") ?? flags.get("embedding-batch-size"), 8),

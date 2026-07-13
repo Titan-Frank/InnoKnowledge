@@ -10,6 +10,7 @@ export type {
   ApiUnitCompletenessSeverity, ApiUnitCompletenessSignal, ApiUnitCompleteness,
   ApiUnit,
 } from './models.js';
+export { EDGE_TYPES } from './models.js';
 
 export type {
   HealthResponse, SourceSummary, MetaResponse,
@@ -21,6 +22,12 @@ export type {
   GroundedGenerationStreamEvent,
   PipelineLessonRun, PipelineMergeRun, PipelineReviewItem, PipelineResponse,
   PipelineQualityLessonRow, PipelineQualityDashboardResponse,
+  InterdisciplinaryCandidateKind, InterdisciplinaryCandidateStatus,
+  InterdisciplinaryRun, InterdisciplinaryCandidate, InterdisciplinaryBridgeNode,
+  InterdisciplinaryEvidenceSummary,
+  InterdisciplinaryDomainSummary, InterdisciplinaryDomainPairSummary,
+  InterdisciplinaryOverviewResponse, InterdisciplinaryAnalyzeRequest, InterdisciplinaryAnalyzeResponse,
+  InterdisciplinaryReviewRequest, InterdisciplinaryReviewResponse, InterdisciplinaryApplyResponse,
   PipelineLessonBackendKind, PipelineExtractionTemplateId, PipelineStartRequest, PipelineStartResponse,
   PipelineJobStage, PipelineWorkerState, PipelineJobEvent, PipelineJobStatusResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,

@@ -1,6 +1,6 @@
 import { useAppState } from '@/hooks/useAppState';
 import type { SearchHitMeta } from '@/core/graph/types';
-import { Sun, Moon, Search, Network, BarChart3, BookOpen, ClipboardList, Database, Eye } from '@/lib/lucide-icons';
+import { Sun, Moon, Search, Network, BarChart3, BookOpen, ClipboardList, Database, Eye, GitBranch } from '@/lib/lucide-icons';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { searchNodes } from '@/services/backend-client';
 import { PUBLIC_ARTIFACT_MODE } from '@/lib/runtime';
@@ -8,6 +8,7 @@ import { PUBLIC_ARTIFACT_MODE } from '@/lib/runtime';
 const WORKSPACE_ITEMS = [
   { id: 'graph', label: '图谱', icon: Network },
   { id: 'textbook', label: '教材', icon: BookOpen },
+  { id: 'interdisciplinary', label: '跨学科', icon: GitBranch },
   { id: 'pipeline', label: '调试', icon: BarChart3 },
   { id: 'annotation', label: '标注', icon: ClipboardList },
 ] as const;

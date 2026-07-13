@@ -2,154 +2,65 @@
 
 更新日期：2026-07-13
 
-本文判断当前仓库中哪些文档代表 `ai-nks-v0.1` 顶层标准，哪些文档只是工程基线、历史记录或运行记录。
+本文说明当前仓库各类文档的职责与优先级，避免概念标准、工程实现、接口契约和历史材料相互覆盖。
 
-## 一、结论
+## 一、当前口径
 
-当前项目不能再简单说成“V1.2 就是最新知识体系”。当前理论边界已经由 `docs/theory-decision-record.md` 冻结，当前顶层标准已经收束为 `ai-nks-v0.1`。
+> `docs/theory-decision-record.md` 冻结理论边界；`ai-nks-v0.1` 是当前顶层系统标准；`world-v1.2` 是当前代码和 PostgreSQL 执行的工程 schema；`ApiUnit` 是消费侧公开契约。
 
-更准确的判断是：
+`world-v1.2` 负责节点主类、关系类型、领域画像、证据、卡片、正文和治理表约束，但它不是完整 AI-NKS 的版本号。
 
-> `docs/theory-decision-record.md` 用来判断理论边界；`ai-nks-v0.1` 是当前顶层系统标准；`world-v1.2` 是当前代码和 PostgreSQL 正在执行的底层工程 schema。
+## 二、文档优先级
 
-也就是说，`world-v1.2` 仍然有效，但它只解决底层图谱结构问题：
+如果文档表述冲突，先按问题类型判断，再使用对应的当前文档：
 
-- 节点主类。
-- 关系类型。
-- 领域画像。
-- 证据与溯源。
-- 卡片与正文的基础存储。
+| 问题 | 当前权威文档 |
+|---|---|
+| 为什么建设 AI 时代的新知识体系 | `docs/theoretical-foundation.md` |
+| OKM 是什么、核心术语与研究边界 | `docs/theory-decision-record.md` |
+| 顶层系统结构与演化原则 | `docs/ai-nks-v0.1.md` |
+| 当前代码、数据库、流水线与前端 | `docs/current-system-architecture.md` |
+| 跨学科候选、复核、证据和归并规则 | `docs/interdisciplinary-knowledge-network.md` |
+| 知识节点准入 | `docs/node-extraction-policy.md` |
+| `ApiUnit` 字段与消费边界 | `docs/knowledge-unit-contract.md` |
+| 模型调用和结构化输出 | `docs/prompt-inventory.md` |
+| 可执行字段与数据库约束 | `schemas/*` |
+| 当前实现、验证与研究限制 | `docs/open_knowledge_map_technical_report.tex` |
 
-它不是完整的 AI-NKS 架构，也不是最终的知识对象模型。理论边界以 `docs/theory-decision-record.md` 为准，完整顶层口径以 `docs/ai-nks-v0.1.md` 为准。
+同一问题同时涉及概念和实现时，概念边界以上层标准为准，实际已实现行为以当前架构、代码和 schema 为准；两者不一致就是需要修复的问题，不能用未来设想冒充现状。
 
-## 二、当前文档优先级
+## 三、历史材料
 
-如果不同文档之间出现口径不一致，建议按下面顺序判断。
-
-### 1. 理论边界与顶层标准
-
-这些文档代表项目当前理论边界、系统标准和研究方向：
-
-| 文档 | 状态 | 用法 |
-|---|---|---|
-| `docs/theoretical-foundation.md` | 当前理论基础 | 用来理解为什么需要构建 AI 时代的新知识体系，不涉及具体工程实现 |
-| `docs/theory-decision-record.md` | 当前理论决策记录 | 用来判断 OKM 是什么、核心术语边界、学科/课标/教材/考点角色，以及当前实现和未来 Runtime 的边界 |
-| `docs/node-extraction-policy.md` | 当前节点准入政策 | 用来判断什么内容有资格成为知识节点，避免把课标、目录、考点或文本切块直接当节点 |
-| `docs/ai-nks-v0.1.md` | 当前顶层标准 | 用来判断当前 OKM 的系统边界、Knowledge Object / Knowledge Unit / Runtime 分层和版本关系 |
-
-这些文档可以更新方向判断，但不等于每个字段都已经落进代码。
-
-### 2. 当前工程契约
-
-这些文档代表当前代码已经或正在实现的契约：
+以下文件保留研究或运行历史，但不代表当前接口和执行路线：
 
 | 文档 | 状态 | 用法 |
 |---|---|---|
-| `docs/current-system-architecture.md` | 当前系统架构快照 | 用来理解当前代码、数据库、API、viewer 和 pipeline 如何协作 |
-| `docs/knowledge-unit-contract.md` | 当前知识点与知识单元契约 | 用来定义“知识点”在消费侧到底是什么 |
-| `docs/prompt-inventory.md` | 当前提示词和结构化输出说明 | 用来理解模型输入、提示词、JSON Schema 和输出结构 |
+| `docs/ai_nks_technical_report_v0_2.md` | 2026 年 6 月概念架构草稿 | 追溯完整研究愿景；文件中的历史路线图不代表当前完成状态 |
+| `docs/physics-hukj-compulsory-3-extraction-run-2026-06-26.md` | 单次历史运行记录 | 追溯指定教材抽取过程，不反向定义当前标准 |
+| `docs/history/pipeline-typescript-migration.md` | 已完成迁移记录 | 追溯从旧实现迁移到 TypeScript 流水线的范围 |
+| `artifacts/okm-public-v0.1.0/*` | 版本化只读成果 | 描述 v0.1.0 快照，不应随未发布管理功能重写 |
 
-这些文档应该优先保持和代码同步。
+失效的讨论稿和已完成的旧阶段计划不再保留。有效理论内容已经收束进理论基础、理论决策记录、AI-NKS 标准和当前专项设计文档。当前工作计划应使用问题跟踪或明确标注日期和状态的新计划，不在仓库中长期维护一个已经完成但仍像操作说明的旧路线图。
 
-### 3. 当前工程 schema 基线
+## 四、必须避免的表述
 
-这些文档和 schema 代表当前代码可执行的底层结构：
+1. 不写“当前标准就是 V1.2”，应写“当前工程 schema 基线是 `world-v1.2`”。
+2. 不把知识体系等同于知识图谱；底层是知识网络，中层是知识单元视图，上层是知识运行能力。
+3. 不把 `world_nodes` 单行记录称为完整知识点；完整消费视图是 `ApiUnit`。
+4. 不把 `world_node_bodies` 称为课本原文；课本原文来自证据和 `source_fragments`。
+5. 不把跨学科扫描候选称为正式关系；只有经过证据复核并应用后写入 `world_edges` 的记录才是正式关系。
+6. 不把共享标签称为关系证据；标签只用于候选召回和检索。
+7. 不把引用编号归属校验写成语义蕴含证明。
 
-| 文档或文件 | 状态 | 用法 |
-|---|---|---|
-| `schemas/world-knowledge-standard.md` | 工程 schema 基线说明 | 用来约束当前节点、关系、领域画像和证据结构 |
-| `schemas/world-knowledge-architecture.md` | 工程 schema 架构说明 | 用来解释四层结构和证据平面 |
-| `schemas/*.schema.json` | 可执行结构约束 | 用于节点、关系、正文、领域画像、分类词等结构检查 |
-| `schemas/pg/knowledge_store.sql` | 当前正式数据库 schema | 用于初始化 PostgreSQL |
+## 五、维护规则
 
-这些文件里的 `V1.2` 不应该被理解为“最新思想版本”，而应该理解为“当前工程 schema 版本”。
-
-### 4. 当前成果与发布契约
-
-| 文档或文件 | 状态 | 用法 |
-|---|---|---|
-| `artifacts/okm-public-v0.1.0/README.md` | 当前只读成果说明 | 用来运行、读取和校验当前 `knowledge/main` 公开查看快照 |
-| `artifacts/okm-public-v0.1.0/manifest.json` | 当前成果机器清单 | 用来读取成果版本、数量、来源状态、筛选边界和文件入口 |
-| `artifacts/okm-public-v0.1.0/SOURCES.md` | 当前来源信息清单 | 用来区分已经记录的来源身份与尚未补齐的网址、许可证和版本字段 |
-| `artifacts/okm-public-v0.1.0/RIGHTS.md` | 当前公开查看边界 | 用来说明公开可访问不等于获得独立再分发许可 |
-| `docs/open-source-release-checklist.md` | 当前发布门槛清单 | 用来跟踪许可证、来源审查、GitHub Release 和发布配置 |
-
-### 5. 报告、讨论和历史计划
-
-| 文档 | 状态 | 用法 |
-|---|---|---|
-| `docs/open_knowledge_map_technical_report.tex` | 当前实现技术报告草稿 | 用来描述当前仓库已经实现的系统、验证和限制；正式发布时应绑定版本标签 |
-| `docs/ai_nks_technical_report_v0_2.md` | 2026 年 6 月概念架构草稿 | 用来追溯 AI-NKS 的完整研究愿景，不代表当前代码状态或当前工程路线图 |
-| `docs/discussion.md` | 历史思想讨论材料 | 用来追溯 K-Units、问题驱动学习和人机协同讨论，不作为接口或结构约束 |
-| `docs/next-step-plan-2026-06-26.md` | 历史路线图 | 原有阶段已部分或全部完成；以文件顶部的完成情况说明为准，不再作为当前执行计划 |
-
-### 6. 历史运行记录
-
-这些文档只记录某次运行或某批问题，不应该被当成当前标准：
-
-| 文档 | 状态 | 用法 |
-|---|---|---|
-| `docs/physics-hukj-compulsory-3-extraction-run-2026-06-26.md` | 历史运行记录 | 用来追溯那次教材抽取的结果、问题和修复建议 |
-
-### 7. 已删除讨论稿
-
-下面两份讨论稿的有效内容已经被 `docs/theory-decision-record.md` 吸收，因此不再保留：
-
-| 文档 | 处理方式 | 原因 |
-|---|---|---|
-| `docs/theory.md` | 已删除 | 理论论证已收束到正式理论决策记录 |
-| `docs/思考一下，对于新的知识体系，一个知识点点进去后应该需要展示哪些内容？.md` | 已删除 | 详情页、节点准入和节点边界讨论已收束到正式理论决策记录和现有契约文档 |
-
-## 三、应该降级的表述
-
-下面这些说法容易误导，后续文档中应避免：
-
-1. “当前标准就是 V1.2。”
-   - 应改为：“当前工程 schema 基线是 `world-v1.2`。”
-
-2. “知识体系就是知识图谱。”
-   - 应改为：“底层是知识图谱，中层是知识单元视图，上层是知识运行能力。”
-
-3. “知识点就是 `world_nodes` 中的一个节点。”
-   - 应改为：“节点只是身份核心；完整知识点应通过 `ApiUnit` 聚合节点、关系、证据、卡片、正文、媒体和原文片段。”
-
-4. “`world_node_bodies` 是课本原文。”
-   - 应改为：“`world_node_bodies` 是知识正文；课本原文来自 `source_fragments` 和证据。”
-
-5. “`docs/discussion.md` 里的 K-Unit JSON 示例就是当前 API。”
-   - 应改为：“它是思想草稿；当前 API 契约以 `ApiUnit` 和 `docs/knowledge-unit-contract.md` 为准。”
-
-## 四、当前主线应该怎么表述
-
-推荐以后统一使用下面这段表述：
-
-> OKM 是 AI-Native Knowledge System 的工程原型。它不是普通教材图谱，不是 RAG chunk 库，也不是单纯 K-Units 教学包，也不是只给前端看的节点网络。它以 Knowledge Object 为可治理知识身份，以 Knowledge Network 组织对象关系，以 ApiUnit 提供消费侧知识单元视图，以 Evidence / Governance 保证可信，并为后续对象级检索、语义规划、Grounded AI Tutor 和学习反馈演化提供 Runtime 基础。`world-v1.2` 是当前可执行工程 schema，不是顶层标准版本。
-
-## 五、当前需要同步更新的地方
-
-建议把仓库文档调整为下面的层级：
-
-1. README 只做入口，明确理论基础见 `docs/theoretical-foundation.md`，理论边界见 `docs/theory-decision-record.md`，顶层标准见 `docs/ai-nks-v0.1.md`。
-2. `docs/theoretical-foundation.md` 说明为什么需要构建新知识体系。
-3. `docs/theory-decision-record.md` 固定 OKM 的理论边界和术语分工。
-4. `docs/node-extraction-policy.md` 固定知识节点准入政策。
-5. `docs/ai-nks-v0.1.md` 固定当前顶层系统标准。
-6. `docs/documentation-status.md` 说明文档优先级和过期边界。
-7. `docs/current-system-architecture.md` 说明当前代码架构，并明确 `world-v1.2` 只是工程 schema 基线。
-8. `docs/knowledge-unit-contract.md` 固定当前“知识点 / 知识单元”的公开契约。
-9. `docs/prompt-inventory.md` 固定当前模型调用契约。
-10. `schemas/*` 保持可执行 schema 职责，不承担完整 AI-NKS 思想说明。
-
-## 六、下一步文档治理规则
-
-后续新增或修改文档时，建议遵守：
-
-1. 理论基础变化优先写进 `docs/theoretical-foundation.md`。
-2. 理论边界变化优先写进 `docs/theory-decision-record.md`。
-3. 节点准入规则变化优先写进 `docs/node-extraction-policy.md`。
-4. 顶层标准变化优先写进 `docs/ai-nks-v0.1.md` 或后续 `docs/ai-nks-*` 文档。
-5. 工程路线图写进 `docs/next-step-*`。
-6. 已经落地的系统结构写进 `docs/current-system-architecture.md`。
-7. 对外或上层系统调用的结构写进 `docs/knowledge-unit-contract.md`。
-8. 可执行字段约束才写进 `schemas`。
-9. 某次运行、某本书、某次实验的结果只放运行记录，不反向改写当前标准。
+1. 理论基础变化写入 `docs/theoretical-foundation.md`。
+2. 术语和研究边界变化写入 `docs/theory-decision-record.md`。
+3. 顶层标准变化写入 `docs/ai-nks-v0.1.md` 或后续明确版本的标准文件。
+4. 已落地系统变化必须同步 `docs/current-system-architecture.md`。
+5. 跨学科治理变化必须同步 `docs/interdisciplinary-knowledge-network.md`。
+6. 公开消费结构变化必须同步共享类型、服务端、`docs/knowledge-unit-contract.md` 和机器可读 schema。
+7. 模型调用变化必须同步 `docs/prompt-inventory.md`。
+8. 可执行约束变化必须同步 `schemas`、测试和迁移说明。
+9. 报告中的实现数字、能力和限制必须与代码和当前验证证据一致。
+10. 单次运行和实验只写历史记录，不反向改写当前标准。

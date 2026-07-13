@@ -60,6 +60,8 @@ export * from "./retrieval/retrieve-candidates-query.js";
 export * from "./retrieval/retrieve-candidates-sql.js";
 export * from "./retrieval/retrieve-candidates-store.js";
 export * from "./retrieval/retrieve-candidates.js";
+export * from "./interdisciplinary/interdisciplinary-analysis.js";
+export * from "./interdisciplinary/interdisciplinary-store.js";
 export * from "./staging/staging-integrity.js";
 export * from "./staging/staging-quality.js";
 export * from "./staging/staging-rows.js";

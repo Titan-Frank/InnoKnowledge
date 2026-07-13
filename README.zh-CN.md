@@ -2,7 +2,7 @@
 
 **把教材转换成有证据、有关系、可检索、可供人工智能调用的知识对象。**
 
-[English](README.md) · [在线体验](https://open-knowledge-map.pages.dev/) · [公开成果快照](artifacts/okm-public-v0.1.0/README.md) · [完整演示数据](examples/demo-data/README.md) · [系统架构](docs/current-system-architecture.md) · [知识单元契约](docs/knowledge-unit-contract.md) · [贡献指南](CONTRIBUTING.zh-CN.md)
+[English](README.md) · [在线体验](https://open-knowledge-map.pages.dev/) · [公开成果快照](artifacts/okm-public-v0.1.0/README.md) · [完整演示数据](examples/demo-data/README.md) · [系统架构](docs/current-system-architecture.md) · [跨学科知识网络](docs/interdisciplinary-knowledge-network.md) · [知识单元契约](docs/knowledge-unit-contract.md) · [贡献指南](CONTRIBUTING.zh-CN.md)
 
 ![展示仓库原创太阳能界面样例的 Open Knowledge Map 图谱界面](docs/assets/report/graph-overview.png)
 
@@ -32,8 +32,9 @@ Open Knowledge Map 把教材视为**来源证据**，而不是知识的最终计
 - 正式数据归一化后，按学段生成带证据编号、等待审核的教学画像。
 - 始终可用的文本知识对象检索，以及在查询向量和库内向量齐备时运行的向量与混合检索。
 - 带证据编号归属校验的依据生成，以及证据不足时的明确结果。
-- 图片相关性复核、合并复核、严格质量检查和图完整性检查。
-- PostgreSQL 服务接口和 React 图谱/调试工作台。
+- 可解释的跨学科对象对齐与关系候选扫描；关系必须选择教材证据并经人工批准后才能写入正式图谱。
+- 图片相关性复核、合并复核、跨学科复核、严格质量检查和图完整性检查。
+- PostgreSQL 服务接口和 React 图谱、跨学科、教材、标注与流水线工作台。
 
 ```mermaid
 flowchart LR
@@ -42,13 +43,16 @@ flowchart LR
     C --> D["world_staging_* 暂存表"]
     D --> E["归并与规范化"]
     E --> F["正式 world_* 知识库"]
-    F --> G["严格质检与图完整性"]
+    F --> K["跨学科候选扫描"]
+    K --> L["人工证据复核"]
+    L -->|批准后单独应用| F
+    K --> G["严格质检、图完整性与质量仪表盘"]
     F --> H["ApiUnit 组装"]
     H --> I["检索与带依据生成"]
     H --> J["图谱与复核工作台"]
 ```
 
-课时工作器只能写入 `world_lesson_runs` 和 `world_staging_*`。正式 `world_*` 写入、重复项处理、标识重映射和最终质量状态只能由归并与规范化步骤负责。
+课时工作器只能写入 `world_lesson_runs` 和 `world_staging_*`。正式 `world_*` 写入、重复项处理、标识重映射和最终质量状态只能由归并、规范化及批准后的跨学科应用步骤负责。
 
 ## 产品界面
 
@@ -70,7 +74,7 @@ flowchart LR
 | 可执行工程结构 | `world-v1.2` | 当前 PostgreSQL 表、JSON Schema、节点类型、关系类型和证据规则 |
 | 公共消费契约 | `ApiUnit` | Viewer、检索和带依据生成共同使用的完整知识对象视图 |
 
-详细说明见[理论决策记录](docs/theory-decision-record.md)、[AI-NKS v0.1](docs/ai-nks-v0.1.md)和[知识单元契约](docs/knowledge-unit-contract.md)。
+详细说明见[理论决策记录](docs/theory-decision-record.md)、[AI-NKS v0.1](docs/ai-nks-v0.1.md)、[跨学科知识网络](docs/interdisciplinary-knowledge-network.md)和[知识单元契约](docs/knowledge-unit-contract.md)。
 
 ## 本地一键安全样例
 
@@ -143,6 +147,26 @@ npm run generate-pedagogical-profiles -w packages/pipeline -- \
   --pretty
 ```
 
+默认一键流程随后还会扫描跨学科候选，但不会自动修改正式节点或关系。可单独扫描并在“跨学科”工作台复核：
+
+```bash
+npm run interdisciplinary-analyze -w packages/pipeline -- \
+  --dataset-id main \
+  --db "$DATABASE_URL" \
+  --pretty
+```
+
+关系候选必须选择现有教材证据、关系类型和方向。批准后再执行受数据集锁保护的应用步骤：
+
+```bash
+npm run interdisciplinary-apply -w packages/pipeline -- \
+  --dataset-id main \
+  --db "$DATABASE_URL" \
+  --pretty
+```
+
+共享名称、别名、语义键和桥接标签只用于发现候选，不是事实证据。同一对象候选批准后执行节点归一；关系候选批准并应用后才进入 `world_edges`。完整边界见[跨学科知识网络](docs/interdisciplinary-knowledge-network.md)。
+
 完整流程可能向外部服务传输内容：MinerU 会收到 PDF 或公开文件地址；语言模型服务会收到课时文本，并在后续正文和教学画像阶段收到规范化后的节点、卡片、关系与证据上下文；可选视觉服务会收到选定的图片上下文；明确配置的向量服务会收到知识对象文本。处理私有、受许可限制、含个人信息或机构内部材料前，必须先确认各服务的数据处理条款。上面的演示命令不会发生这些传输。
 
 ## 图片证据处理
@@ -206,10 +230,12 @@ PostgreSQL 是唯一正式应用存储。`data`、`runs`、`storage`、`tmp` 和
 - `npm run retrieve-candidates -w packages/pipeline`
 - `npm run merge-staged-lessons -w packages/pipeline`
 - `npm run normalize -w packages/pipeline`
+- `npm run interdisciplinary-analyze -w packages/pipeline`
+- `npm run interdisciplinary-apply -w packages/pipeline`
 
 ## 研究状态
 
-当前实现已经证明了受治理的知识对象抽取、证据保留、结构化知识单元、检索和引用编号归属校验可以形成完整工程闭环，但尚不能证明每条生成结论都被引用内容语义蕴含，也不能证明图谱在教学上最优或知识对象检索能够改善真实学习效果。
+当前实现已经证明了受治理的知识对象抽取、证据保留、结构化知识单元、检索、引用编号归属校验和跨学科候选治理可以形成完整工程闭环，但尚不能证明每条生成结论都被引用内容语义蕴含，也不能证明跨学科候选完整、图谱在教学上最优或知识对象检索能够改善真实学习效果。
 
 线上成果和本地安全样例只用于结构与界面检查，不是论文级基准。仓库已经提供试验与消融脚手架以及经过整理的结果摘要，但多学科多人裁决标签、完整独立人工复核、可重复的外部基线和学习效果评估仍未完成。
 

@@ -9,6 +9,7 @@ import { PipelineDebugPage } from './components/PipelineDebugPage';
 import { TextbookTreePage } from './components/TextbookTreePage';
 import { AnnotationWorkbench } from './components/AnnotationWorkbench';
 import { GraphSearchPanel } from './components/GraphSearchPanel';
+import { InterdisciplinaryPage } from './components/InterdisciplinaryPage';
 import { useAppState } from './hooks/useAppState';
 import { PUBLIC_ARTIFACT_MODE } from './lib/runtime';
 
@@ -25,6 +26,8 @@ function AppContent() {
         <TextbookTreePage />
       ) : workspace === 'annotation' ? (
         <AnnotationWorkbench />
+      ) : workspace === 'interdisciplinary' ? (
+        <InterdisciplinaryPage />
       ) : (
         <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
           <FilterPanel />

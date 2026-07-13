@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "src/index.ts",
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "build": "npm run clean && tsc",
@@ -21,6 +21,8 @@
     "generate-node-bodies": "npm run build && node dist/cli/generate-node-bodies.js",
     "graph-integrity": "npm run build && node dist/cli/graph-integrity.js",
     "import-file-assets": "npm run build && node dist/cli/import-file-assets.js",
+    "interdisciplinary-analyze": "npm run build && node dist/cli/interdisciplinary-analyze.js",
+    "interdisciplinary-apply": "npm run build && node dist/cli/interdisciplinary-apply.js",
     "merge-staged-lessons": "npm run build && node dist/cli/merge-staged-lessons.js",
     "mineru-source-markdown": "npm run build && node dist/cli/mineru-source-markdown.js",
     "normalize": "npm run build && node dist/cli/normalize.js",

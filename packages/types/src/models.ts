@@ -59,11 +59,14 @@ export interface ApiNode {
 
 // ── Edge ──────────────────────────────────────────────────
 
-export type EdgeType =
-  | 'is_a' | 'instance_of' | 'part_of' | 'contains'
-  | 'has_property' | 'uses' | 'produces' | 'depends_on'
-  | 'prerequisite_for' | 'causes' | 'affects'
-  | 'represents' | 'about' | 'same_as' | 'related_to';
+export const EDGE_TYPES = [
+  'is_a', 'instance_of', 'part_of', 'contains',
+  'has_property', 'uses', 'produces', 'depends_on',
+  'prerequisite_for', 'causes', 'affects',
+  'represents', 'about', 'same_as', 'related_to',
+] as const;
+
+export type EdgeType = typeof EDGE_TYPES[number];
 
 export type EdgeLayer = 'backbone' | 'support';
 

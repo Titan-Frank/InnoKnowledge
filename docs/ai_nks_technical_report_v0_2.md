@@ -22,7 +22,7 @@
 
 ---
 
-> **Document role:** This Version 0.2 report preserves the project's early conceptual proposal. It is not the current executable contract or implementation status report. For current terminology and schema boundaries, use `schemas/world-knowledge-standard-v1.2.md`; for the implemented system, use `docs/current-system-architecture.md`; for the actively maintained engineering report, use `docs/open_knowledge_map_technical_report.tex`.
+> **Document role, reviewed 2026-07-13:** This Version 0.2 report preserves the project's early conceptual proposal. It is not the current executable contract, implementation status report, or roadmap. For current terminology use `docs/theory-decision-record.md` and `docs/ai-nks-v0.1.md`; for executable schema boundaries use `schemas/world-knowledge-standard.md`; for the implemented system use `docs/current-system-architecture.md`; for governed cross-domain discovery use `docs/interdisciplinary-knowledge-network.md`; and for the actively maintained engineering report use `docs/open_knowledge_map_technical_report.tex`.
 
 ---
 
@@ -1220,9 +1220,10 @@ AI-NKS 的最终愿景是：让人类学习和 AI 推理共享同一套可验证
 3. 已实现返回完整 `ApiUnit` 的对象级检索接口。
 4. 已实现带证据标识校验的早期同步与流式生成，但尚不是完整的 AI Tutor。
 5. 已纳入小型运行时评测、物理试验与消融脚手架；独立人工评审和论文级公平对照仍未完成。
-6. 已具备图片审核、流水线调试和质量状态接口；完整教师审核工作流仍在建设中。
+6. 已具备图片、节点合并和跨学科候选复核，以及流水线调试和质量状态接口；多专家裁决与正式版本治理仍未完成。
 7. CASE、xAPI、Caliper 与当前对象模型的正式映射尚未完成。
 8. 当前 LaTeX 技术报告已扩展相关工作与引用，但投稿前仍需系统复核。
+9. 已实现跨领域同一对象和关系候选扫描、教材证据复核与受事务保护的应用步骤；共享标签只用于发现候选，尚无多学科、多人裁决金标准证明准确率和召回率。
 
 Version 0.2 当时提出的原始建议保留如下：
 

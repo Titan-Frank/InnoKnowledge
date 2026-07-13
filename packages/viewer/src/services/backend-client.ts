@@ -6,6 +6,8 @@ import type {
   PipelineJobStatusResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
+  InterdisciplinaryAnalyzeRequest, InterdisciplinaryAnalyzeResponse, InterdisciplinaryApplyResponse,
+  InterdisciplinaryOverviewResponse, InterdisciplinaryReviewRequest, InterdisciplinaryReviewResponse,
 } from '@okm/types';
 import { PUBLIC_ARTIFACT_MODE, publicArtifactPath } from '@/lib/runtime';
 import {
@@ -407,5 +409,43 @@ export async function updateImageReview(
   return postJson<ImageReviewUpdateResponse>(
     `/api/source/${encodeURIComponent(sourceKey)}/image-reviews/${encodeURIComponent(evidenceId)}`,
     payload,
+  );
+}
+
+export async function loadInterdisciplinaryOverview(
+  sourceKey: string,
+): Promise<InterdisciplinaryOverviewResponse> {
+  return fetchJson<InterdisciplinaryOverviewResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/interdisciplinary`,
+  );
+}
+
+export async function analyzeInterdisciplinaryGraph(
+  sourceKey: string,
+  payload: InterdisciplinaryAnalyzeRequest,
+): Promise<InterdisciplinaryAnalyzeResponse> {
+  return postJson<InterdisciplinaryAnalyzeResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/interdisciplinary/analyze`,
+    payload,
+  );
+}
+
+export async function reviewInterdisciplinaryCandidate(
+  sourceKey: string,
+  candidateId: string,
+  payload: InterdisciplinaryReviewRequest,
+): Promise<InterdisciplinaryReviewResponse> {
+  return postJson<InterdisciplinaryReviewResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/interdisciplinary/candidates/${encodeURIComponent(candidateId)}/review`,
+    payload,
+  );
+}
+
+export async function applyInterdisciplinaryCandidates(
+  sourceKey: string,
+): Promise<InterdisciplinaryApplyResponse> {
+  return postJson<InterdisciplinaryApplyResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/interdisciplinary/apply`,
+    {},
   );
 }

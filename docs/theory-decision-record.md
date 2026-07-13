@@ -1,6 +1,6 @@
 # 理论决策记录
 
-更新日期：2026-06-30
+更新日期：2026-07-13
 
 状态：当前理论边界。
 
@@ -76,11 +76,11 @@ OKM 要建设的是一种可计算、可追溯、可教学、可运行、可演�
 | Source Layer | PDF、MinerU Markdown、图片、表格、公式、教材 outline。 | Obsidian、外部知识库、人工正文导入。 |
 | Evidence Layer | `world_evidence`、`world_mentions`、`source_fragments`。 | 更细粒度证据链、证据冲突管理。 |
 | Knowledge Object Layer | `world_nodes`、九类 kind、`semantic_core` properties。 | 版本演化、对象级影响分析。 |
-| Knowledge Network Layer | `world_edges`、十五类关系。 | `supports`、`contradicts`、`applies_to`、`analogous_to`、`updates`、`replaces`。 |
+| Knowledge Network Layer | `world_edges`、十五类关系，以及受治理的跨学科对象对齐和关系候选流程。 | 新关系类型需经研究与 schema 版本升级，不在候选页临时扩张。 |
 | Domain / Pedagogy Layer | `world_domain_profiles`、`pedagogical_profile`。 | 课标映射、考点权重、学习者适配。 |
 | Knowledge Unit Layer | `ApiUnit`、Unit API、Viewer 展示、完整度评分。 | JSON 导出、Runtime 上下文包。 |
-| Runtime Layer | 搜索有雏形。 | 对象级检索、语义规划、Grounded Generation、AI Tutor。 |
-| Governance Layer | staging、merge、normalize、strict-qa、graph-integrity。 | 专家审核队列、版本治理、学习反馈写回。 |
+| Runtime Layer | 完整 `ApiUnit` 的文本、向量与混合检索，以及带引用编号归属校验的生成接口。 | 语义规划、独立蕴含验证、AI Tutor 和学习反馈。 |
+| Governance Layer | staging、merge、normalize、strict-qa、graph-integrity、图片复核、节点合并复核和跨学科候选复核。 | 正式版本治理、多专家裁决和学习反馈写回。 |
 
 这张表的含义是：OKM 已经具备知识对象、证据、网络、知识单元视图和质量检查的工程基础；但完整 Runtime、AI Tutor、学习反馈和版本演化还没有完成，不能写成已实现能力。
 
@@ -111,6 +111,7 @@ entity / concept / property / process / event / method / rule / representation /
 2. `docs/ai-nks-v0.1.md`：判断顶层系统标准和架构方向。
 3. `docs/current-system-architecture.md`：判断当前工程已经实现的结构。
 4. `docs/knowledge-unit-contract.md`：判断当前知识单元公开契约。
-5. `docs/prompt-inventory.md`：判断当前模型调用和结构化输出契约。
-6. `schemas/*`：判断当前可执行工程 schema。
-7. `docs/discussion.md`、`docs/ai_nks_technical_report_v0_2.md`：只作为研究背景和思想来源。
+5. `docs/interdisciplinary-knowledge-network.md`：判断跨学科候选、证据复核和归并边界。
+6. `docs/prompt-inventory.md`：判断当前模型调用和结构化输出契约。
+7. `schemas/*`：判断当前可执行工程 schema。
+8. `docs/ai_nks_technical_report_v0_2.md`：只作为有明确日期的研究背景和思想来源。

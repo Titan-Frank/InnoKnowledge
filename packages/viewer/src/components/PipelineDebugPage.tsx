@@ -679,6 +679,7 @@ const stageLabels: Record<string, string> = {
   pedagogical_profiles: '生成教学画像',
   node_embeddings: '生成节点向量',
   unit_embeddings: '生成单元向量',
+  interdisciplinary_analysis: '扫描跨学科连接',
   strict_qa: '严格质检',
   graph_integrity: '图谱完整性检查',
   quality_dashboard: '生成质量仪表盘',
@@ -695,6 +696,7 @@ const mergeStageIds = [
   'pedagogical_profiles',
   'node_embeddings',
   'unit_embeddings',
+  'interdisciplinary_analysis',
   'strict_qa',
   'graph_integrity',
   'quality_dashboard',
@@ -1096,7 +1098,7 @@ function QualityDashboardPanel({
             label="人工待处理"
             value={summary?.manual_pending_items ?? '暂无'}
             tone={summary && summary.manual_pending_items > 0 ? 'warn' : 'ok'}
-            detail={summary ? `图片 ${summary.image_review_count}，合并 ${summary.merge_review_count}，质量 ${summary.quality_review_count}` : '等待统计'}
+            detail={summary ? `图片 ${summary.image_review_count}，合并 ${summary.merge_review_count}，质量 ${summary.quality_review_count}，跨学科 ${summary.interdisciplinary_review_count}` : '等待统计'}
           />
         </div>
 

@@ -70,6 +70,7 @@ export async function loadPipelineQualityPayload(
     canonicalNodeRows,
     canonicalEdgeRows,
     canonicalEvidenceRows,
+    interdisciplinaryReviewRows,
   ] = await Promise.all([
     sql<LessonRow[]>`
       SELECT lesson_run_id, book_id, batch_anchor, status, counts_json, properties_json, updated_at
@@ -114,6 +115,11 @@ export async function loadPipelineQualityPayload(
       FROM world_evidence
       WHERE dataset_id = ${datasetId}
     `.catch(() => []),
+    sql<{ count: string }[]>`
+      SELECT count(*) AS count
+      FROM world_interdisciplinary_candidates
+      WHERE dataset_id = ${datasetId} AND status = 'pending'
+    `.catch(() => []),
   ]);
 
   return buildQualityDashboard({
@@ -126,6 +132,7 @@ export async function loadPipelineQualityPayload(
     canonicalNodeRows,
     canonicalEdgeRows,
     canonicalEvidenceRows,
+    interdisciplinaryReviewCount: countRows(interdisciplinaryReviewRows),
   });
 }
 
@@ -139,6 +146,7 @@ function buildQualityDashboard(input: {
   canonicalNodeRows: CanonicalNodeRow[];
   canonicalEdgeRows: CanonicalEdgeRow[];
   canonicalEvidenceRows: CanonicalEvidenceRow[];
+  interdisciplinaryReviewCount: number;
 }): PipelineQualityDashboardResponse {
   const nodesByLesson = groupByLesson(input.stagingNodeRows);
   const edgesByLesson = groupByLesson(input.stagingEdgeRows);
@@ -226,7 +234,8 @@ function buildQualityDashboard(input: {
   const qualityReviewCount = lessons.reduce((sum, row) => sum + row.quality_review_count, 0);
   const blockedLessonCount = lessons.filter((row) => row.status === 'blocked').length;
   const canonicalQualityEvidence = input.canonicalEvidenceRows.filter(isQualityEligibleEvidence);
-  const manualPendingItems = lessons.reduce((sum, row) => sum + row.manual_pending_items, 0);
+  const manualPendingItems = lessons.reduce((sum, row) => sum + row.manual_pending_items, 0)
+    + input.interdisciplinaryReviewCount;
 
   return {
     dataset_id: input.datasetId,
@@ -245,6 +254,7 @@ function buildQualityDashboard(input: {
       image_review_count: imageReviewCount,
       merge_review_count: mergeReviewCount,
       quality_review_count: qualityReviewCount,
+      interdisciplinary_review_count: input.interdisciplinaryReviewCount,
       blocked_lesson_count: blockedLessonCount,
       manual_pending_items: manualPendingItems,
     },
@@ -314,6 +324,11 @@ function textValue(value: unknown): string {
 function countValue(value: unknown, key: string): number {
   const parsed = Number(asRecord(value)[key]);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function countRows(rows: Array<{ count: string }>): number {
+  const parsed = Number(rows[0]?.count);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0;
 }
 
 function qualityIssues(value: unknown): string[] {

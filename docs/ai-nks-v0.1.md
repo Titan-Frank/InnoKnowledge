@@ -1,6 +1,6 @@
 # AI-NKS v0.1
 
-更新日期：2026-06-30
+更新日期：2026-07-13
 
 状态：当前项目顶层标准草案。
 
@@ -161,6 +161,8 @@ same_as / related_to
 
 这些扩展不应直接塞进 `tag`。如果要进入正式系统，应先进入 schema 或关系扩展表。
 
+当前工程还实现了受治理的跨学科发现流程。它在领域集合互不重叠的节点之间扫描两类候选：可能指向同一 Knowledge Object 的对象对齐候选，以及可能存在稳定关系的跨学科关系候选。扫描结果存入 `world_interdisciplinary_runs` 和 `world_interdisciplinary_candidates`，不直接进入 `world_edges`。共享桥接标签只是召回信号；关系候选必须由人工选择教材证据、关系类型和方向后批准，再由受事务保护的归并步骤写入正式图谱。对象对齐批准后执行身份合并，不用 `same_as` 边掩盖重复身份。
+
 ### 5. Knowledge Runtime 层
 
 Knowledge Runtime 是 AI-NKS 和普通知识图谱最大的区别。
@@ -169,16 +171,16 @@ Knowledge Runtime 是 AI-NKS 和普通知识图谱最大的区别。
 
 > AI 系统如何在运行时调用、组合、验证和更新知识对象？
 
-当前还没有完整实现，但方向已经明确：
+当前已经形成早期可执行子集，但尚未实现完整 Knowledge Runtime：
 
 | 能力 | 当前状态 | 说明 |
 |---|---|---|
-| 对象级检索 | 部分具备 | server search 已支持文本和向量融合，但返回还主要是节点 |
+| 对象级检索 | 已具备早期闭环 | `GET /api/source/:key/units/search` 返回完整 `ApiUnit`，支持文本、向量和混合模式；未配置向量服务时明确回退到文本模式 |
 | 知识单元读取 | 已具备 | `GET /api/source/:key/unit/:node_id` 返回 `ApiUnit`，并包含完整度评分 |
 | 语义规划 | 未实现 | 应输出知识单元和关系路径，而不是长篇自由推理 |
-| Grounded 生成 | 未实现 | 回答应引用知识单元、正文片段和证据 |
+| 带依据生成 | 已具备早期闭环 | 同步与流式接口基于检索到的 `ApiUnit` 生成回答，并校验引用编号属于检索证据；该校验不证明语义蕴含 |
 | AI Tutor | 未实现 | 应围绕学习目标、诊断题、常见错误和评价任务运行 |
-| 反馈写回 | 未实现 | 学习反馈和人工审核应能进入质量治理流程 |
+| 治理写回 | 部分具备 | 图片、合并和跨学科候选可人工复核；学习反馈和正式对象版本治理尚未实现 |
 
 ## 四、当前工程映射
 
@@ -194,8 +196,9 @@ Knowledge Runtime 是 AI-NKS 和普通知识图谱最大的区别。
 | Knowledge Body | `world_node_bodies` |
 | Knowledge Unit API | `ApiUnit`、`GET /api/source/:key/unit/:node_id` |
 | Knowledge Network 展示 | React viewer + G6 graph |
+| 跨学科候选治理 | `world_interdisciplinary_runs`、`world_interdisciplinary_candidates`、跨学科工作台和受事务保护的应用步骤 |
 | Pipeline | `packages/pipeline` |
-| Runtime API 基础 | `packages/server` |
+| Runtime API | `packages/server` 的完整知识单元读取、对象级检索和带依据生成接口 |
 
 ## 五、生产流程原则
 
@@ -207,8 +210,11 @@ Knowledge Runtime 是 AI-NKS 和普通知识图谱最大的区别。
 PDF / Markdown
   -> lesson/chunk 抽取
   -> world_staging_*
-  -> merge / normalize / QA
+  -> merge / normalize
   -> world_*
+  -> body / pedagogy / optional embeddings
+  -> interdisciplinary candidate scan
+  -> QA
   -> ApiUnit 消费视图
 ```
 
@@ -219,6 +225,7 @@ PDF / Markdown
 3. canonical `world_*` 写入、去重、重映射和最终 QA 由 reducer 和后续阶段负责。
 4. Knowledge Unit 是消费侧聚合视图，不是生产侧中间状态。
 5. 外部知识单元或 Obsidian 导入可以有新的导入路径，但不能绕过归并和质检。
+6. 跨学科扫描只能写治理表；候选不是正式关系，必须经人工复核后由 reducer 类应用步骤修改 canonical 表。
 
 ## 六、最小字段模型
 
@@ -301,17 +308,20 @@ AI-NKS v0.1 要推进到对象级检索：
 5. `ApiUnit` 知识单元视图。
 6. Viewer 知识单元详情展示。
 7. 图片证据 VLM 判断和人工复核入口。
-8. 搜索接口的文本与向量融合。
+8. 完整 `ApiUnit` 的文本、向量和混合检索。
+9. 基于检索知识单元的同步与流式带依据生成，以及引用编号归属校验。
+10. 同一对象和跨学科关系候选扫描、证据复核、节点归一与正式关系应用闭环。
+11. 跨学科领域覆盖、领域对、桥接节点和待复核项工作台。
 
 ### 仍未实现
 
 1. 外部 Knowledge Unit / Obsidian 导入。
-2. 对象级检索结果直接返回完整 `ApiUnit` 或关系路径。
-3. 语义规划器。
-4. Grounded AI Tutor。
+2. 基于关系路径的语义规划器。
+3. 在带依据生成之上的完整 AI Tutor 行为与教学策略。
+4. 独立于模型自报结果的语义蕴含校验。
 5. 学习反馈写回。
 6. Knowledge Object 版本演化关系。
-7. 面向 AI-NKS 的评测基准。
+7. 多学科、多人裁决的跨学科金标准和完整 AI-NKS 评测基准。
 
 ## 九、文档优先级
 
@@ -321,9 +331,10 @@ AI-NKS v0.1 要推进到对象级检索：
 2. `docs/ai-nks-v0.1.md`：顶层系统标准。
 3. `docs/current-system-architecture.md`：当前工程架构。
 4. `docs/knowledge-unit-contract.md`：当前知识单元公开契约。
-5. `docs/prompt-inventory.md`：当前模型调用契约。
-6. `schemas/*`：当前可执行工程 schema。
-7. `docs/ai_nks_technical_report_v0_2.md` 和 `docs/discussion.md`：研究背景和思想来源。
+5. `docs/interdisciplinary-knowledge-network.md`：跨学科候选、证据复核和归并契约。
+6. `docs/prompt-inventory.md`：当前模型调用契约。
+7. `schemas/*`：当前可执行工程 schema。
+8. `docs/ai_nks_technical_report_v0_2.md`：有明确日期的研究背景和思想来源。
 
 ## 十、升级规则
 

@@ -7,6 +7,23 @@ All notable changes to this project will be documented in this file.
 - Select and add the root license.
 - Complete source-level rights metadata and clearance before treating the hosted inspection artifact as a public data release.
 
+### Added - 2026-07-13
+
+- Added deterministic cross-domain scans for possible canonical object alignments and evidence-review-only relations.
+- Added `world_interdisciplinary_runs` and `world_interdisciplinary_candidates` with explicit pending, approved, rejected, and applied governance states.
+- Added dataset-locked application of approved node alignments and evidence-backed relations, preserving review provenance on canonical edges.
+- Added interdisciplinary overview, scan, review, and apply APIs plus a responsive React workbench for domain coverage, domain pairs, bridge objects, evidence review, and candidate application.
+- Added interdisciplinary pending items to the pipeline quality dashboard and integrated candidate scanning into the end-to-end pipeline without automatic canonical writes.
+
+### Changed - 2026-07-13
+
+- Exposed shared runtime edge-type constants for front-end annotation and review controls; canonical writes continue to validate against the pipeline's executable relation set.
+- Updated current architecture, schema standards, API contracts, prompt inventory, technical reports, and both README files to describe the governed interdisciplinary workflow and its evidence limits.
+
+### Removed - 2026-07-13
+
+- Removed the obsolete broad discussion draft and completed 2026-06-26 next-step plan after consolidating their active boundaries into current standards and implementation documents.
+
 ## [0.1.0] - 2026-07-13
 
 This version records the first public inspection preview. It is not yet a tagged GitHub Release, and its textbook-derived artifact remains subject to the rights boundaries in `artifacts/okm-public-v0.1.0/RIGHTS.md` and `SOURCES.md`.

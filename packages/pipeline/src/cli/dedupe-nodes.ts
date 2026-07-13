@@ -8,7 +8,7 @@ import type { SqlStatement } from "../staging/staging-sql.js";
 
 type RawRecord = Record<string, unknown>;
 
-type SqlClient = {
+export type CanonicalNodeRepairSqlClient = {
   unsafe: (sql: string, params?: any[]) => Promise<unknown> | unknown;
 };
 
@@ -125,7 +125,7 @@ async function runDatabaseMode(input: { dbUrl: string; datasetId: string; apply:
   }
 }
 
-async function normalizeStoredSubkinds(sql: SqlClient, datasetId: string, now: string): Promise<number> {
+async function normalizeStoredSubkinds(sql: CanonicalNodeRepairSqlClient, datasetId: string, now: string): Promise<number> {
   const updates = await planSubkindNormalization(sql, datasetId);
   for (const update of updates) {
     await sql.unsafe(
@@ -136,7 +136,7 @@ async function normalizeStoredSubkinds(sql: SqlClient, datasetId: string, now: s
   return updates.length;
 }
 
-async function planSubkindNormalization(sql: SqlClient, datasetId: string): Promise<Array<{ id: string; subkind: string | null; properties_json: RawRecord }>> {
+async function planSubkindNormalization(sql: CanonicalNodeRepairSqlClient, datasetId: string): Promise<Array<{ id: string; subkind: string | null; properties_json: RawRecord }>> {
   const rows = await queryRows(
     sql,
     "SELECT id, kind, subkind, properties_json FROM world_nodes WHERE dataset_id = $1 AND status != 'deprecated' ORDER BY id",
@@ -153,7 +153,7 @@ async function planSubkindNormalization(sql: SqlClient, datasetId: string): Prom
   return updates;
 }
 
-async function selectDuplicateGroups(sql: SqlClient, datasetId: string): Promise<NodeGroup[]> {
+async function selectDuplicateGroups(sql: CanonicalNodeRepairSqlClient, datasetId: string): Promise<NodeGroup[]> {
   const rows = await queryRows(
     sql,
     [
@@ -173,13 +173,13 @@ async function selectDuplicateGroups(sql: SqlClient, datasetId: string): Promise
   }));
 }
 
-async function selectNodes(sql: SqlClient, datasetId: string, ids: string[]): Promise<NodeRow[]> {
+async function selectNodes(sql: CanonicalNodeRepairSqlClient, datasetId: string, ids: string[]): Promise<NodeRow[]> {
   const rows = await queryRows(sql, "SELECT * FROM world_nodes WHERE dataset_id = $1 AND id = ANY($2::text[]) ORDER BY created_at, id", [datasetId, ids]);
   return rows.map(toNodeRow);
 }
 
 async function repairDuplicateGroup(
-  sql: SqlClient,
+  sql: CanonicalNodeRepairSqlClient,
   datasetId: string,
   nodes: NodeRow[],
   now: string,
@@ -224,7 +224,24 @@ async function repairDuplicateGroup(
   };
 }
 
-async function rebuildCanonicalNodeTerms(sql: SqlClient, datasetId: string, node: NodeRow): Promise<void> {
+export async function mergeCanonicalNodeIds(
+  sql: CanonicalNodeRepairSqlClient,
+  datasetId: string,
+  nodeIds: string[],
+  now: string,
+): Promise<{ name: string; kind: string; canonical_node_id: string; duplicate_node_ids: string[] }> {
+  const nodes = (await selectNodes(sql, datasetId, [...new Set(nodeIds)])).filter((node) => node.status === "active");
+  if (nodes.length < 2) {
+    const existing = nodes[0];
+    if (!existing) throw new Error("Interdisciplinary alignment no longer has two active nodes to merge.");
+    return { name: existing.name, kind: existing.kind, canonical_node_id: existing.id, duplicate_node_ids: [] };
+  }
+  const kinds = new Set(nodes.map((node) => node.kind));
+  if (kinds.size !== 1) throw new Error("Interdisciplinary alignment cannot merge nodes with different top-level kinds.");
+  return repairDuplicateGroup(sql, datasetId, nodes, now);
+}
+
+async function rebuildCanonicalNodeTerms(sql: CanonicalNodeRepairSqlClient, datasetId: string, node: NodeRow): Promise<void> {
   await executeOptionalStatement(sql, buildCanonicalNodeTermsUpsertStatement(datasetId, node));
 }
 
@@ -275,11 +292,11 @@ export function buildDeprecateDuplicateRemappedEdgesStatement(datasetId: string,
   };
 }
 
-async function executeStatement(sql: SqlClient, statement: SqlStatement): Promise<void> {
+async function executeStatement(sql: CanonicalNodeRepairSqlClient, statement: SqlStatement): Promise<void> {
   await sql.unsafe(statement.sql, statement.params);
 }
 
-async function executeOptionalStatement(sql: SqlClient, statement: SqlStatement | null): Promise<void> {
+async function executeOptionalStatement(sql: CanonicalNodeRepairSqlClient, statement: SqlStatement | null): Promise<void> {
   if (statement) await executeStatement(sql, statement);
 }
 
@@ -312,7 +329,7 @@ function mergeNodes(canonical: NodeRow, nodes: NodeRow[], now: string): NodeRow 
   };
 }
 
-async function upsertMergedNode(sql: SqlClient, datasetId: string, node: NodeRow): Promise<void> {
+async function upsertMergedNode(sql: CanonicalNodeRepairSqlClient, datasetId: string, node: NodeRow): Promise<void> {
   await sql.unsafe(
     [
       "UPDATE world_nodes",
@@ -341,7 +358,7 @@ async function upsertMergedNode(sql: SqlClient, datasetId: string, node: NodeRow
   );
 }
 
-async function mergeNodeCards(sql: SqlClient, datasetId: string, canonicalNodeId: string, nodeIds: string[], now: string): Promise<void> {
+async function mergeNodeCards(sql: CanonicalNodeRepairSqlClient, datasetId: string, canonicalNodeId: string, nodeIds: string[], now: string): Promise<void> {
   const rows = await queryRows(sql, "SELECT * FROM world_node_cards WHERE dataset_id = $1 AND node_id = ANY($2::text[]) ORDER BY created_at, node_id", [datasetId, nodeIds]);
   if (rows.length === 0) return;
   const cards = rows.map(toCardRow);
@@ -377,7 +394,7 @@ async function mergeNodeCards(sql: SqlClient, datasetId: string, canonicalNodeId
   }
 }
 
-async function remapNodeCardEvidenceLinks(sql: SqlClient, datasetId: string, canonicalCardId: string, cards: CardRow[], sections: RawRecord[]): Promise<void> {
+async function remapNodeCardEvidenceLinks(sql: CanonicalNodeRepairSqlClient, datasetId: string, canonicalCardId: string, cards: CardRow[], sections: RawRecord[]): Promise<void> {
   const oldCardIds = cards.map((card) => card.id);
   const cardLinkRows = await queryRows(sql, "SELECT evidence_id FROM world_evidence_links WHERE dataset_id = $1 AND owner_type = 'node_card' AND owner_id = ANY($2::text[]) ORDER BY ordinal", [
     datasetId,
@@ -415,7 +432,7 @@ async function remapNodeCardEvidenceLinks(sql: SqlClient, datasetId: string, can
   }
 }
 
-async function mergeNodeBodies(sql: SqlClient, datasetId: string, canonicalNodeId: string, nodeIds: string[], now: string): Promise<void> {
+async function mergeNodeBodies(sql: CanonicalNodeRepairSqlClient, datasetId: string, canonicalNodeId: string, nodeIds: string[], now: string): Promise<void> {
   const rows = await queryRows(sql, "SELECT * FROM world_node_bodies WHERE dataset_id = $1 AND node_id = ANY($2::text[]) ORDER BY created_at, node_id", [datasetId, nodeIds]);
   if (rows.length === 0) return;
   const bodies = rows.map(toBodyRow);
@@ -563,7 +580,7 @@ function toNodeRow(row: RawRecord): NodeRow {
   };
 }
 
-async function queryRows(sql: SqlClient, query: string, params: readonly unknown[]): Promise<RawRecord[]> {
+async function queryRows(sql: CanonicalNodeRepairSqlClient, query: string, params: readonly unknown[]): Promise<RawRecord[]> {
   const rows = await sql.unsafe(query, [...params]);
   return Array.isArray(rows) ? rows.filter(isRecord) : [];
 }

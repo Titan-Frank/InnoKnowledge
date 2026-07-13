@@ -917,7 +917,7 @@ P4 输入包含：
 
 1. `packages/pipeline/src/extraction/model-lesson-extraction.test.ts` 中的 `"只保留证据充分的节点。"` 是测试用例里的样例补充提示词。
 2. `packages/types/src/patterns.ts` 中的 `prompt: string` 是类型字段，不是仓库内实际提示词内容。
-3. `docs/discussion.md` 中的 `awareness_prompts` 是理论讨论示例，不参与当前 pipeline 运行。
+3. 跨学科候选扫描使用确定性名称、别名、语义键、领域和桥接标签规则，不调用模型，也没有隐藏提示词；正式关系仍需要人工选择教材证据。
 4. embedding 调用只发送待嵌入文本，没有额外自然语言提示词。
 5. MinerU 调用使用参数化请求，没有仓库内自然语言提示词。
 

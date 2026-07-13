@@ -163,6 +163,24 @@ export const EDGE_LAYER_LABELS: Record<string, string> = {
   support: '支撑关系',
 };
 
+export const EDGE_TYPE_LABELS: Record<string, string> = {
+  is_a: '属于',
+  instance_of: '实例',
+  part_of: '组成部分',
+  contains: '包含',
+  has_property: '具有性质',
+  uses: '使用',
+  produces: '生成',
+  depends_on: '依赖',
+  prerequisite_for: '前置知识',
+  causes: '导致',
+  affects: '影响',
+  represents: '表征',
+  about: '关于',
+  same_as: '等同',
+  related_to: '相关',
+};
+
 export const LAYER_MODE_OPTIONS = [
   {
     id: 'backbone-expand' as const,

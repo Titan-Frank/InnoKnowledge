@@ -10,6 +10,7 @@
 - `docs/ai-nks-v0.1.md`
 - `docs/documentation-status.md`
 - `docs/knowledge-unit-contract.md`
+- `docs/interdisciplinary-knowledge-network.md`
 
 ```
 schemas/
@@ -45,7 +46,7 @@ schemas/
 - `world-knowledge-architecture.md`
   四层结构与 `schema/tag` 分工说明。
 - `pg/knowledge_store.sql`
-  当前正式运行的 PostgreSQL schema。
+  当前正式运行的 PostgreSQL schema，包括 canonical、staging、运行记录以及 `world_interdisciplinary_runs` 和 `world_interdisciplinary_candidates` 两张跨学科治理表。
 - `extraction-templates/textbook/*.yaml`
   在统一 `world-v1.2` 结构上按学科收窄抽取关注点、允许类型和优先关系；它们不是互相独立的学科 schema。
 
@@ -57,6 +58,7 @@ schemas/
 4. domain profile 只承载领域扩展，不污染节点本体。
 5. 证据与溯源约束横跨全部结构层。
 6. `schema` 是结构规则，`tag` 只是检索辅助。
+7. 跨学科扫描只生成治理候选；标签不是证据，只有人工批准并应用后的关系才能进入正式图谱。
 
 ## 理论依据
 

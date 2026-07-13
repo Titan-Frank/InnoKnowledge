@@ -758,3 +758,84 @@ CREATE TABLE IF NOT EXISTS world_canonical_node_map (
   PRIMARY KEY (dataset_id, merge_run_id, lesson_run_id, raw_node_id),
   FOREIGN KEY (dataset_id, merge_run_id) REFERENCES world_merge_runs(dataset_id, merge_run_id) ON DELETE CASCADE
 );
+
+-------------------------------------------------------------------
+-- governed interdisciplinary discovery
+-------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS world_interdisciplinary_runs (
+  dataset_id TEXT NOT NULL,
+  run_id TEXT NOT NULL,
+  domains_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  config_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  stats_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  status TEXT NOT NULL CHECK (status IN ('in_progress', 'completed', 'blocked')),
+  created_at TEXT NOT NULL,
+  completed_at TEXT,
+  notes TEXT,
+  PRIMARY KEY (dataset_id, run_id),
+  CHECK (jsonb_typeof(domains_json) = 'array'),
+  CHECK (jsonb_typeof(config_json) = 'object'),
+  CHECK (jsonb_typeof(stats_json) = 'object'),
+  FOREIGN KEY (dataset_id) REFERENCES world_datasets(dataset_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_world_interdisciplinary_runs_created
+ON world_interdisciplinary_runs(dataset_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS world_interdisciplinary_candidates (
+  dataset_id TEXT NOT NULL,
+  candidate_id TEXT NOT NULL,
+  run_id TEXT NOT NULL,
+  candidate_kind TEXT NOT NULL CHECK (candidate_kind IN ('node_alignment', 'relation')),
+  from_node_id TEXT NOT NULL,
+  to_node_id TEXT NOT NULL,
+  proposed_edge_type TEXT CHECK (
+    proposed_edge_type IS NULL OR proposed_edge_type IN (
+      'is_a', 'instance_of', 'part_of', 'contains', 'has_property',
+      'uses', 'produces', 'depends_on', 'prerequisite_for', 'causes',
+      'affects', 'represents', 'about', 'related_to'
+    )
+  ),
+  directionality TEXT CHECK (directionality IS NULL OR directionality IN ('directed', 'undirected')),
+  confidence REAL NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
+  source_domains_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  target_domains_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  evidence_refs_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  rationale_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  status TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'rejected', 'applied')),
+  reviewer TEXT,
+  review_notes TEXT,
+  reviewed_at TEXT,
+  applied_edge_id TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, candidate_id),
+  CHECK (from_node_id <> to_node_id),
+  CHECK (jsonb_typeof(source_domains_json) = 'array'),
+  CHECK (jsonb_typeof(target_domains_json) = 'array'),
+  CHECK (jsonb_typeof(evidence_refs_json) = 'array'),
+  CHECK (jsonb_typeof(rationale_json) = 'object'),
+  CHECK (
+    (candidate_kind = 'node_alignment' AND proposed_edge_type IS NULL AND directionality IS NULL)
+    OR (candidate_kind = 'relation' AND proposed_edge_type IS NOT NULL AND directionality IS NOT NULL)
+  ),
+  CHECK (status = 'pending' OR reviewed_at IS NOT NULL),
+  CHECK (
+    status NOT IN ('approved', 'applied')
+    OR candidate_kind != 'relation'
+    OR CASE
+      WHEN jsonb_typeof(evidence_refs_json) = 'array' THEN jsonb_array_length(evidence_refs_json) > 0
+      ELSE FALSE
+    END
+  ),
+  CHECK (status != 'applied' OR candidate_kind = 'node_alignment' OR applied_edge_id IS NOT NULL),
+  FOREIGN KEY (dataset_id, run_id) REFERENCES world_interdisciplinary_runs(dataset_id, run_id) ON DELETE CASCADE,
+  FOREIGN KEY (dataset_id, from_node_id) REFERENCES world_nodes(dataset_id, id) ON DELETE CASCADE,
+  FOREIGN KEY (dataset_id, to_node_id) REFERENCES world_nodes(dataset_id, id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_world_interdisciplinary_candidates_status
+ON world_interdisciplinary_candidates(dataset_id, status, candidate_kind, confidence DESC);
+
+CREATE INDEX IF NOT EXISTS idx_world_interdisciplinary_candidates_nodes
+ON world_interdisciplinary_candidates(dataset_id, from_node_id, to_node_id);

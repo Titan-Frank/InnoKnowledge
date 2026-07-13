@@ -1,5 +1,5 @@
 import type {
-  ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit,
+  ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit, EdgeType, NodeKind,
 } from './models.js';
 import type { Framework } from './framework.js';
 import type { PatternLibrary } from './patterns.js';
@@ -291,10 +291,150 @@ export interface PipelineQualityDashboardResponse {
     image_review_count: number;
     merge_review_count: number;
     quality_review_count: number;
+    interdisciplinary_review_count: number;
     blocked_lesson_count: number;
     manual_pending_items: number;
   };
   lessons: PipelineQualityLessonRow[];
+}
+
+export type InterdisciplinaryCandidateKind = 'node_alignment' | 'relation';
+export type InterdisciplinaryCandidateStatus = 'pending' | 'approved' | 'rejected' | 'applied';
+
+export interface InterdisciplinaryRun {
+  run_id: string;
+  domains: string[];
+  config: Record<string, unknown>;
+  stats: Record<string, unknown>;
+  status: 'in_progress' | 'completed' | 'blocked';
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface InterdisciplinaryCandidate {
+  candidate_id: string;
+  run_id: string;
+  candidate_kind: InterdisciplinaryCandidateKind;
+  from_node_id: string;
+  from_node_name: string;
+  from_node_kind: NodeKind;
+  from_node_definition: string;
+  to_node_id: string;
+  to_node_name: string;
+  to_node_kind: NodeKind;
+  to_node_definition: string;
+  proposed_edge_type: EdgeType | null;
+  directionality: 'directed' | 'undirected' | null;
+  confidence: number;
+  source_domains: string[];
+  target_domains: string[];
+  evidence_refs: string[];
+  evidence: InterdisciplinaryEvidenceSummary[];
+  rationale: Record<string, unknown>;
+  status: InterdisciplinaryCandidateStatus;
+  reviewer: string | null;
+  review_notes: string | null;
+  reviewed_at: string | null;
+  applied_edge_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InterdisciplinaryEvidenceSummary {
+  evidence_id: string;
+  source_id: string;
+  anchor_ref: string;
+  excerpt: string;
+  locator: string;
+  modality: string | null;
+  page_start: number | null;
+  page_end: number | null;
+}
+
+export interface InterdisciplinaryBridgeNode {
+  node_id: string;
+  name: string;
+  kind: string;
+  domains: string[];
+  degree: number;
+  evidence_count: number;
+}
+
+export interface InterdisciplinaryDomainSummary {
+  domain: string;
+  node_count: number;
+  bridge_node_count: number;
+}
+
+export interface InterdisciplinaryDomainPairSummary {
+  source_domain: string;
+  target_domain: string;
+  shared_node_count: number;
+  cross_domain_edge_count: number;
+  pending_candidate_count: number;
+}
+
+export interface InterdisciplinaryOverviewResponse {
+  dataset_id: string;
+  generated_at: string;
+  summary: {
+    domain_count: number;
+    bridge_node_count: number;
+    cross_domain_edge_count: number;
+    pending_alignment_count: number;
+    pending_relation_count: number;
+    approved_candidate_count: number;
+  };
+  domains: InterdisciplinaryDomainSummary[];
+  domain_pairs: InterdisciplinaryDomainPairSummary[];
+  bridge_nodes: InterdisciplinaryBridgeNode[];
+  candidates: InterdisciplinaryCandidate[];
+  latest_run: InterdisciplinaryRun | null;
+}
+
+export interface InterdisciplinaryAnalyzeRequest {
+  domains?: string[];
+  minimum_alignment_score?: number;
+  minimum_relation_score?: number;
+  maximum_candidates?: number;
+  replace_pending?: boolean;
+}
+
+export interface InterdisciplinaryAnalyzeResponse {
+  run: InterdisciplinaryRun;
+  candidates_created: number;
+  alignment_candidates: number;
+  relation_candidates: number;
+}
+
+export interface InterdisciplinaryReviewRequest {
+  decision: 'approve' | 'reject';
+  relation_type?: EdgeType;
+  directionality?: 'directed' | 'undirected';
+  reverse_direction?: boolean;
+  evidence_ids?: string[];
+  reviewer?: string;
+  notes?: string;
+}
+
+export interface InterdisciplinaryReviewResponse {
+  candidate: InterdisciplinaryCandidate;
+}
+
+export interface InterdisciplinaryApplyResponse {
+  dataset_id: string;
+  applied: number;
+  alignments_applied: number;
+  relations_applied: number;
+  skipped: number;
+  candidates: Array<{
+    candidate_id: string;
+    candidate_kind: InterdisciplinaryCandidateKind;
+    canonical_node_id?: string;
+    deprecated_node_ids?: string[];
+    edge_id?: string;
+    status: 'applied' | 'skipped';
+  }>;
 }
 
 export type PipelineLessonBackendKind = 'openai_responses' | 'openai_chat_completions';

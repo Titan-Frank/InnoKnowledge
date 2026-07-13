@@ -7,6 +7,7 @@ import { resolveEdgeVisual } from '@/lib/edge-styles';
 import {
   CURRICULUM_ROLE_LABELS,
   DOMAIN_LABELS,
+  EDGE_TYPE_LABELS,
   PEDAGOGICAL_DIFFICULTY_LABELS,
   PEDAGOGICAL_REVIEW_STATUS_LABELS,
   SCHOOL_STAGE_LABELS,
@@ -202,24 +203,7 @@ function evidenceOverview(evidenceIds: string[], evidenceById: Map<string, Row>)
 }
 
 function relationLabel(type: string): string {
-  const labels: Record<string, string> = {
-    is_a: '属于',
-    instance_of: '实例',
-    prerequisite_for: '前置知识',
-    depends_on: '依赖',
-    part_of: '组成部分',
-    contains: '包含',
-    related_to: '相关',
-    same_as: '等同',
-    causes: '导致',
-    affects: '影响',
-    uses: '使用',
-    produces: '生成',
-    represents: '表征',
-    about: '关于',
-    has_property: '具有性质',
-  };
-  return labels[type] || '关联';
+  return EDGE_TYPE_LABELS[type] || '关联';
 }
 
 function relationDisplay(edge: Record<string, unknown>, fallbackType: string): { label: string; color?: string } {

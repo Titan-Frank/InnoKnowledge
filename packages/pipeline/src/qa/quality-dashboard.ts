@@ -43,6 +43,7 @@ export type PipelineQualityDashboardOutput = {
     image_review_count: number;
     merge_review_count: number;
     quality_review_count: number;
+    interdisciplinary_review_count: number;
     blocked_lesson_count: number;
     manual_pending_items: number;
   };
@@ -126,6 +127,7 @@ export async function runQualityDashboardFromDatabase(input: {
     canonicalNodeRows: (await query(buildSelectQualityCanonicalNodesQuery(input.datasetId))).map(toCanonicalNodeRow),
     canonicalEdgeRows: (await query(buildSelectQualityCanonicalEdgesQuery(input.datasetId))).map(toCanonicalEdgeRow),
     canonicalEvidenceRows: (await query(buildSelectQualityCanonicalEvidenceQuery(input.datasetId))).map(toCanonicalEvidenceRow),
+    interdisciplinaryReviewCount: countFromRows(await query(buildSelectInterdisciplinaryReviewCountQuery(input.datasetId))),
   });
 
   return {
@@ -204,6 +206,14 @@ export function buildSelectQualityCanonicalEvidenceQuery(datasetId: string): Sql
   };
 }
 
+export function buildSelectInterdisciplinaryReviewCountQuery(datasetId: string): SqlStatement {
+  return {
+    name: "select-interdisciplinary-review-count",
+    sql: "SELECT count(*) AS count FROM world_interdisciplinary_candidates WHERE dataset_id = $1 AND status = 'pending'",
+    params: [datasetId],
+  };
+}
+
 function buildQualityDashboard(input: {
   datasetId: string;
   generatedAt: string;
@@ -215,6 +225,7 @@ function buildQualityDashboard(input: {
   canonicalNodeRows: CanonicalNodeRow[];
   canonicalEdgeRows: CanonicalEdgeRow[];
   canonicalEvidenceRows: CanonicalEvidenceRow[];
+  interdisciplinaryReviewCount: number;
 }): Omit<PipelineQualityDashboardOutput, "read_statements"> {
   const nodesByLesson = groupByLesson(input.stagingNodeRows);
   const edgesByLesson = groupByLesson(input.stagingEdgeRows);
@@ -298,7 +309,8 @@ function buildQualityDashboard(input: {
   const qualityReviewCount = lessons.reduce((sum, row) => sum + row.quality_review_count, 0);
   const blockedLessonCount = lessons.filter((row) => row.status === "blocked").length;
   const canonicalQualityEvidence = input.canonicalEvidenceRows.filter(isQualityEligibleEvidence);
-  const manualPendingItems = lessons.reduce((sum, row) => sum + row.manual_pending_items, 0);
+  const manualPendingItems = lessons.reduce((sum, row) => sum + row.manual_pending_items, 0)
+    + input.interdisciplinaryReviewCount;
 
   return {
     dataset_id: input.datasetId,
@@ -315,11 +327,17 @@ function buildQualityDashboard(input: {
       image_review_count: imageReviewCount,
       merge_review_count: mergeReviewCount,
       quality_review_count: qualityReviewCount,
+      interdisciplinary_review_count: input.interdisciplinaryReviewCount,
       blocked_lesson_count: blockedLessonCount,
       manual_pending_items: manualPendingItems,
     },
     lessons,
   };
+}
+
+function countFromRows(rows: RawRecord[]): number {
+  const parsed = Number(rows[0]?.count);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0;
 }
 
 function toLessonRow(row: RawRecord): LessonRow {

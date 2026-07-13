@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
-import type { AnnotationTextbookSummary, EdgeType, NodeKind } from '@okm/types';
+import { EDGE_TYPES as EDGE_TYPE_VALUES, type AnnotationTextbookSummary, type EdgeType, type NodeKind } from '@okm/types';
 import { TYPE_META } from '@/lib/constants';
 import { loadAnnotationLessonText, loadAnnotationTextbooks } from '@/services/backend-client';
 import {
@@ -103,23 +103,7 @@ const NODE_KINDS: NodeKind[] = [
   'resource',
 ];
 
-const EDGE_TYPES: EdgeType[] = [
-  'is_a',
-  'instance_of',
-  'part_of',
-  'contains',
-  'has_property',
-  'uses',
-  'produces',
-  'depends_on',
-  'prerequisite_for',
-  'causes',
-  'affects',
-  'represents',
-  'about',
-  'same_as',
-  'related_to',
-];
+const EDGE_TYPES: EdgeType[] = [...EDGE_TYPE_VALUES];
 
 const EMPTY_DATA: AnnotationData = {
   metadata: {

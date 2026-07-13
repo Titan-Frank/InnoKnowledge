@@ -24,6 +24,7 @@ test("builds lesson and global quality dashboard metrics", async () => {
     "select-quality-canonical-nodes",
     "select-quality-canonical-edges",
     "select-quality-canonical-evidence",
+    "select-interdisciplinary-review-count",
   ]);
   assert.equal(result.generated_at, "2026-06-29T00:00:00.000Z");
   assert.deepEqual(result.summary, {
@@ -38,8 +39,9 @@ test("builds lesson and global quality dashboard metrics", async () => {
     image_review_count: 1,
     merge_review_count: 1,
     quality_review_count: 2,
+    interdisciplinary_review_count: 2,
     blocked_lesson_count: 1,
-    manual_pending_items: 3,
+    manual_pending_items: 5,
   });
 
   const first = result.lessons[0]!;
@@ -74,7 +76,7 @@ test("uses canonical image review state after a lesson has been merged", async (
   assert.equal(result.lessons[0]?.image_review_count, 0);
   assert.equal(result.lessons[0]?.manual_pending_items, 1);
   assert.equal(result.summary.image_review_count, 0);
-  assert.equal(result.summary.manual_pending_items, 2);
+  assert.equal(result.summary.manual_pending_items, 4);
 });
 
 test("excludes synthetic pending evidence from coverage and evidence counts", async () => {
@@ -161,6 +163,8 @@ function rowsFor(name: string): Array<Record<string, unknown>> {
         { source_id: "book-a", anchor_ref: "struct:book-a:1", modality: "image", properties_json: { image_relevance: { review_status: "pending" } } },
         { source_id: "book-a", anchor_ref: "struct:book-a:2", modality: "text", properties_json: {} },
       ];
+    case "select-interdisciplinary-review-count":
+      return [{ count: "2" }];
     default:
       return [];
   }

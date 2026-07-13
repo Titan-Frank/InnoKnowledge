@@ -6,7 +6,7 @@
 
 一句话概括：
 
-> 当前系统是一个 TypeScript 优先的教材知识抽取与浏览系统：用流水线把 PDF 教材经 MinerU 解析后抽取成证据支撑的统一世界知识图谱，存入 PostgreSQL，再通过 Hono API 提供给 React 查看器展示和调试；经过筛选的 `ApiUnit` 还可以导出成不依赖数据库的只读公开成果。
+> 当前系统是一个 TypeScript 优先的教材知识抽取、跨学科治理与知识运行系统：用流水线把 PDF 教材经 MinerU 解析后抽取成证据支撑的统一世界知识图谱，在 PostgreSQL 中扫描并人工复核跨学科候选，再通过 Hono API 提供给 React 查看器浏览、检索、生成和治理；经过筛选的 `ApiUnit` 还可以导出成不依赖数据库的只读公开成果。
 
 ## 一、总体结构
 
@@ -14,10 +14,10 @@
 
 1. 数据输入层：PDF、MinerU 解析结果、教材大纲。
 2. 抽取流水线：按 lesson/chunk 调用模型抽取知识候选，并写入 staging 表。
-3. 归并与质量层：把 staging 结果合并成 canonical 世界知识表，再做规范化和质量检查。
+3. 归并与治理层：把 staging 结果合并成 canonical 世界知识表，做规范化、跨学科候选发现、人工复核和质量检查。
 4. 存储层：PostgreSQL，保存正式知识图谱、证据、卡片、正文和运行记录。
 5. 服务层：Hono API，负责读取 PostgreSQL、组装图谱包、知识单元、搜索结果和流水线状态。
-6. 前端层：React/Vite viewer，负责图谱浏览、知识点详情、教材工作台和流水线调试。
+6. 前端层：React/Vite viewer，负责图谱浏览、知识点详情、跨学科复核、教材工作台和流水线调试。
 
 运行系统之外还有一个只读成果发布面：从 PostgreSQL 导出图谱、逐对象 `ApiUnit`、结构约束、校验值和静态 React 查看器，当前线上预览由 Cloudflare Pages 托管。
 
@@ -40,7 +40,12 @@ flowchart TD
   N --> O["world_node_bodies"]
   O --> S["generate-pedagogical-profiles"]
   S --> T["world_domain_profiles 教学画像"]
-  T --> M["strict_qa 与 graph_integrity"]
+  T --> W["interdisciplinary_analysis 候选扫描"]
+  W --> X["world_interdisciplinary_* 治理表"]
+  X --> Y["人工复核"]
+  Y -->|批准后单独应用| Z["受事务保护的节点归一或关系写入"]
+  Z --> K
+  W --> M["strict_qa、graph_integrity 与质量仪表盘"]
   K --> P["Hono API"]
   O --> P
   P --> Q["React viewer"]
@@ -56,9 +61,9 @@ flowchart TD
 | 模块 | 路径 | 职责 |
 |---|---|---|
 | 共享类型 | `packages/types` | 保存前后端共享的 API 类型、图谱模型、知识单元结构、流水线请求和响应结构 |
-| 抽取流水线 | `packages/pipeline` | 负责教材解析、课时抽取、staging 写入、归并、规范化、正文与教学画像生成、向量生成和质量检查 |
-| 服务端 | `packages/server` | Hono API 服务，读取 PostgreSQL，提供 viewer 所需接口，也可以启动 pipeline |
-| 前端 | `packages/viewer` | React/Vite 图谱浏览器，展示图谱、知识单元、教材树、流水线状态和图片复核 |
+| 抽取流水线 | `packages/pipeline` | 负责教材解析、课时抽取、staging 写入、归并、规范化、正文与教学画像生成、向量生成、跨学科候选扫描与应用和质量检查 |
+| 服务端 | `packages/server` | Hono API 服务，读取 PostgreSQL，提供图谱、知识单元、检索、生成、跨学科治理和流水线接口 |
+| 前端 | `packages/viewer` | React/Vite 工作台，展示图谱、知识单元、教材树、流水线状态、图片复核和跨学科候选治理 |
 | 标准与数据库 schema | `schemas` | 世界知识标准、JSON Schema、PostgreSQL 建表文件 |
 | 文档 | `docs` | 运行记录、系统说明、知识点契约、提示词清单和架构说明 |
 | 只读成果 | `artifacts` | 保存版本化图谱、逐对象 `ApiUnit`、来源清单、校验值、读取示例和静态查看器 |
@@ -296,8 +301,11 @@ staging 写入后，系统会执行：
 3. `normalize`：修正卡片、领域画像、证据引用等后处理。
 4. `generate-node-bodies`：根据正式节点、卡片和证据生成知识正文。
 5. `generate-pedagogical-profiles`：按“节点＋领域＋学段”生成教学画像。
-6. `strict-qa`：检查 schema 合法性及自动教学画像的字段、学段、生成信息和证据引用。
-7. `graph-integrity`：检查图结构完整性，并可标记 QA 通过。
+6. 可选向量阶段：只在明确配置向量服务时生成节点和完整知识单元向量。
+7. `interdisciplinary-analysis`：在正式图谱上扫描同一对象与跨学科关系候选，只写治理表，不直接修改正式节点或关系。
+8. `strict-qa`：检查 schema 合法性及自动教学画像的字段、学段、生成信息和证据引用。
+9. `graph-integrity`：检查图结构完整性，并可标记 QA 通过。
+10. 质量仪表盘：把跨学科待复核候选计入人工待处理项。
 
 质量检查把错误和警告分开处理：
 
@@ -312,6 +320,7 @@ staging 写入后，系统会执行：
 2. 两条流程都在取得数据集锁后读取最新已提交数据，并把读取、计划生成和正式写入放在同一事务中。任一步失败时整体回滚，不能留下半次归并或半次规范化结果。
 3. 事务使用 PostgreSQL 默认的 `READ COMMITTED` 隔离级别。数据集锁负责防止正式知识表上的同数据集并发写入，也避免任务等待锁后继续使用等待前的旧快照。
 4. 事务与锁只保证处理一致性，不替代质量判断。合法空课时、待复核警告和合成证据仍按上述规则单独治理。
+5. 跨学科扫描只能写 `world_interdisciplinary_*`；人工批准后，只有 `interdisciplinary-apply` 能在数据集锁和单一事务中合并正式节点或写入正式关系。
 
 核心代码：
 
@@ -419,6 +428,8 @@ schemas/pg/knowledge_store.sql
 | `world_pipeline_job_stages` | 流水线各阶段状态和顺序 |
 | `world_pipeline_job_events` | 流水线事件记录 |
 | `world_pipeline_worker_states` | 并行课时工作器状态 |
+| `world_interdisciplinary_runs` | 跨学科候选扫描的范围、配置、统计和状态 |
+| `world_interdisciplinary_candidates` | 同一对象或关系候选、发现理由、教材证据和人工复核状态 |
 
 ### 4. 数据边界
 
@@ -427,8 +438,9 @@ schemas/pg/knowledge_store.sql
 1. `data`、`runs`、`storage`、`tmp` 是生成物或本地运行产物，不是权威源。
 2. PostgreSQL 是唯一主存储。
 3. lesson worker 只写 staging 表。
-4. reducer 和 normalize 才能写正式知识表，并且读取、计划生成与正式写入必须在同一个受数据集锁保护的事务中完成。
+4. reducer、normalize 和批准后的跨学科应用步骤才能写正式知识表，并且读取、计划生成与正式写入必须在同一个受数据集锁保护的事务中完成。
 5. 前端不要直接拼数据库表，应该通过 API 消费服务端组装好的结构。
+6. 跨学科候选是治理记录，不是 `ApiUnit` 关系；只有批准并应用后的 `world_edges` 才进入正式知识单元。
 
 ## 六、服务端 API
 
@@ -459,6 +471,10 @@ schemas/pg/knowledge_store.sql
 | `POST /api/source/:key/pipeline/infer-textbook` | 根据 book id 和 PDF 名称推断教材元信息 |
 | `GET /api/source/:key/image-reviews` | 返回待复核图片证据 |
 | `POST /api/source/:key/image-reviews/:evidence_id` | 写入人工图片复核结果 |
+| `GET /api/source/:key/interdisciplinary` | 返回跨学科领域覆盖、桥接节点、候选和证据摘要 |
+| `POST /api/source/:key/interdisciplinary/analyze` | 扫描跨学科候选，不写正式图谱 |
+| `POST /api/source/:key/interdisciplinary/candidates/:candidate_id/review` | 批准或拒绝候选；关系批准必须选择合格教材证据、关系类型、方向和起终点 |
+| `POST /api/source/:key/interdisciplinary/apply` | 在事务中应用已批准的节点归一和正式关系 |
 | `GET /api/source/:key/assets/:asset_path` | 提供本地教材图片等资源 |
 | `GET /api/enrich/books`、`GET /api/enrich/book` | 教材工作台相关数据 |
 | `GET /api/annotation/textbooks` | 返回标注工作台可用教材 |
@@ -522,7 +538,7 @@ interface ApiUnit {
 - `packages/viewer/src/App.tsx`
 - `packages/viewer/src/main.tsx`
 
-当前有四个主要工作区：
+当前有五个主要工作区：
 
 | 工作区 | 主要组件 | 职责 |
 |---|---|---|
@@ -530,6 +546,7 @@ interface ApiUnit {
 | 流水线调试 | `PipelineDebugPage` | 查看 pipeline 状态、启动抽取、复核图片 |
 | 教材工作台 | `TextbookTreePage` | 查看教材树和教材相关内容 |
 | 标注工作台 | `AnnotationWorkbench` | 查看教材原文并手工补充节点、边和证据 |
+| 跨学科工作台 | `InterdisciplinaryPage` | 扫描、筛选和复核跨学科候选，查看领域覆盖、领域对和桥接节点，并应用已批准结果 |
 
 前端启动时会先请求：
 
@@ -571,6 +588,8 @@ POST /api/source/:key/grounded-generate
 4. P4：按学段生成教学画像。
 5. P5：基于 `ApiUnit` 的带依据生成。
 6. P6：暂存质量失败后的定向重抽补充提示。
+
+跨学科候选扫描不是新的模型调用。它使用确定性名称、别名、语义键、领域和桥接标签规则；标签只负责召回候选，关系成立仍需人工选择教材证据。
 
 但模型输出 JSON 不是只靠提示词。
 
@@ -664,6 +683,10 @@ viewer 不应该自己理解数据库表结构。它应该消费 `BundleResponse
 
 `lesson_disposition=no_knowledge` 表示“当前课时确实没有符合准入规则的知识”，不是抽取失败的兜底值。需要人工判断的质量警告和合成证据必须持久化进入复核流程；它们不能只出现在运行日志中，也不能计入正式证据覆盖率。
 
+### 7. 跨学科候选和正式知识必须分开
+
+扫描结果保存在 `world_interdisciplinary_candidates`，共享标签和匹配分数只用于发现。关系候选必须经过人工选择证据并批准，随后由受数据集锁保护的应用步骤写入 `world_edges`；同一对象候选批准后执行节点归一，不创建虚假的 `same_as` 边。完整契约见 `docs/interdisciplinary-knowledge-network.md`。
+
 ## 十三、当前还可以继续加强的点
 
 这部分不是当前架构已经完成的事实，而是从现状自然推出来的改进方向：
@@ -671,4 +694,5 @@ viewer 不应该自己理解数据库表结构。它应该消费 `BundleResponse
 1. 把 `ApiUnit` 当成正式公开契约继续稳定下来，避免前端和未来生成系统各自拼表。
 2. 继续收紧 `semantic_core`、`pedagogical_profiles_by_stage` 等扩展字段的 schema，并仅把单份 `pedagogical_profile` 作为历史兼容结构。
 3. 让 pipeline manifest 更好支持断点续跑和最终状态回写。
-4. 补充对象级检索和生成评测，让知识单元不只可看，还能被稳定调用。
+4. 建立多学科、多人裁决的跨学科候选金标准，评测准确率、漏检率和人工复核成本。
+5. 补充对象级检索和生成评测，让知识单元不只可看，还能被稳定调用。
