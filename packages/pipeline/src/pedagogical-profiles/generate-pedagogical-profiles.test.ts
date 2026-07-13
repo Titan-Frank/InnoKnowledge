@@ -127,6 +127,8 @@ test("builds an evidence-grounded pedagogical profile prompt", () => {
   assert.ok(required.includes("learning_objectives"));
   assert.ok(required.includes("source_refs"));
   assert.ok(required.includes("confidence"));
+  const sourceRefs = ((prompt.response_schema.schema as { properties: Record<string, Record<string, unknown>> }).properties.source_refs);
+  assert.equal(sourceRefs.uniqueItems, undefined);
 });
 
 test("parses and validates model pedagogical profile JSON", () => {
@@ -141,6 +143,18 @@ test("parses and validates model pedagogical profile JSON", () => {
   assert.throws(
     () => parseModelPedagogicalProfileResultText(JSON.stringify({ ...generatedResult(), assessment_tasks: [] })),
     /assessment_tasks.*at least one/,
+  );
+  assert.equal(
+    parseModelPedagogicalProfileResultText(JSON.stringify({ ...generatedResult(), difficulty_level: "" })).difficulty_level,
+    "intermediate",
+  );
+  assert.equal(
+    parseModelPedagogicalProfileResultText(JSON.stringify({ ...generatedResult(), confidence: 86 })).confidence,
+    0.86,
+  );
+  assert.equal(
+    parseModelPedagogicalProfileResultText(JSON.stringify({ ...generatedResult(), confidence: 101 })).confidence,
+    0,
   );
 });
 

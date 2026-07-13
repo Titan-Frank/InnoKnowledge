@@ -348,7 +348,6 @@ export function buildModelPedagogicalProfileResponseSchema(): RawRecord {
         source_refs: {
           type: "array",
           minItems: 1,
-          uniqueItems: true,
           items: { type: "string", minLength: 1 },
         },
         confidence: { type: "number", minimum: 0, maximum: 1 },
@@ -822,14 +821,17 @@ function hasLegacyPedagogicalContent(value: unknown): boolean {
 
 function normalizeModelResult(value: unknown): ModelPedagogicalProfileResult {
   const row = recordValue(value);
-  const difficulty = textValue(row.difficulty_level);
+  const rawDifficulty = textValue(row.difficulty_level);
+  const difficulty = rawDifficulty || "intermediate";
   if (!DIFFICULTY_LEVELS.has(difficulty)) {
     throw new Error(`Model output has invalid difficulty_level '${difficulty}'.`);
   }
-  const confidence = Number(row.confidence);
-  if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) {
-    throw new Error("Model output confidence must be between 0 and 1.");
-  }
+  const rawConfidence = Number(row.confidence);
+  const confidence = !Number.isFinite(rawConfidence) || rawConfidence < 0 || rawConfidence > 100
+    ? 0
+    : rawConfidence > 1
+      ? rawConfidence / 100
+      : rawConfidence;
   return {
     learning_objectives: requiredTeachingList(row.learning_objectives, "learning_objectives"),
     difficulty_level: difficulty,
