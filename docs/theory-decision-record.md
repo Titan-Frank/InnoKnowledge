@@ -113,4 +113,4 @@ entity / concept / property / process / event / method / rule / representation /
 4. `docs/knowledge-unit-contract.md`：判断当前知识单元公开契约。
 5. `docs/prompt-inventory.md`：判断当前模型调用和结构化输出契约。
 6. `schemas/*`：判断当前可执行工程 schema。
-7. `docs/discussion.md`、`docs/ai_nks_technical_report_v0_2.md`：只作为研究背景和思想来源。
+7. 不纳入公开仓库的历史讨论材料：只作为本地研究背景，不作为当前标准。

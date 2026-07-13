@@ -323,7 +323,7 @@ AI-NKS v0.1 要推进到对象级检索：
 4. `docs/knowledge-unit-contract.md`：当前知识单元公开契约。
 5. `docs/prompt-inventory.md`：当前模型调用契约。
 6. `schemas/*`：当前可执行工程 schema。
-7. `docs/ai_nks_technical_report_v0_2.md` 和 `docs/discussion.md`：研究背景和思想来源。
+7. 本地保存的历史研究材料：只作为背景，不作为当前标准。
 
 ## 十、升级规则
 
