@@ -335,6 +335,18 @@ a {
   line-height: 1.08;
 }
 
+.hero-title-part {
+  white-space: nowrap;
+}
+
+.hero-title-second-line {
+  white-space: nowrap;
+}
+
+.hero-title-mobile-break {
+  display: none;
+}
+
 .hero-copy {
   max-width: 790px;
   margin: 0 auto;
@@ -1446,12 +1458,16 @@ a {
 
   .hero h1 {
     margin-top: 18px;
-    font-size: clamp(38px, 11.6vw, 51px);
+    font-size: clamp(32px, 9.6vw, 36px);
     letter-spacing: -0.06em;
   }
 
-  .hero h1 br {
-    display: none;
+  .hero-title-mobile-break {
+    display: inline;
+  }
+
+  .hero-title-second-line {
+    white-space: normal;
   }
 
   .hero-copy {

@@ -6,20 +6,20 @@
     <meta name="theme-color" content="#f6f7f9" />
     <meta
       name="description"
-      content="Open Knowledge Map 把教材转换成有来源证据、有明确关系、可检索、可供人工智能调用的知识对象。"
+      content="Open Knowledge Map 按课时整理教材，把知识、关系和原文证据放进同一张可以搜索、核对和继续维护的知识地图。"
     />
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="https://titan-frank.github.io/Open-Knowledge-Map/" />
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260714-2" />
 
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="zh_CN" />
     <meta property="og:site_name" content="Open Knowledge Map" />
-    <meta property="og:title" content="Open Knowledge Map｜让教材成为可检索、可核查的知识对象" />
+    <meta property="og:title" content="Open Knowledge Map｜把教材整理成能查到出处的知识地图" />
     <meta
       property="og:description"
-      content="从课时级抽取、归并质检到检索与人工复核，一套证据贯穿全流程的教材知识基础设施。"
+      content="从课时入手，记录知识对象、关系和原文证据，再把它们交给搜索、回答和人工检查。"
     />
     <meta
       property="og:image"
@@ -29,14 +29,14 @@
     <meta name="twitter:title" content="Open Knowledge Map" />
     <meta
       name="twitter:description"
-      content="让教材成为人工智能可检索、可核查的知识对象。"
+      content="不只把教材切成文本，还要知道每条知识从哪来。"
     />
     <meta
       name="twitter:image"
       content="https://titan-frank.github.io/Open-Knowledge-Map/assets/graph-overview.png"
     />
 
-    <title>Open Knowledge Map｜教材知识抽取与运行系统</title>
+    <title>Open Knowledge Map｜能查到出处的教材知识地图</title>
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳到主要内容</a>
@@ -47,16 +47,16 @@
           <img src="./assets/favicon.svg" alt="" width="40" height="40" />
           <span>
             <strong>Open Knowledge Map</strong>
-            <small>教材知识抽取与运行系统</small>
+            <small>教材知识地图</small>
           </span>
         </a>
 
         <nav class="desktop-nav" aria-label="主要导航">
-          <a href="#problem">为什么做</a>
-          <a href="#workflow">怎样工作</a>
-          <a href="#capabilities">系统能力</a>
-          <a href="#standards">标准与契约</a>
-          <a href="#boundaries">研究边界</a>
+          <a href="#problem">为什么要做</a>
+          <a href="#workflow">怎么处理</a>
+          <a href="#capabilities">现在能做什么</a>
+          <a href="#standards">数据结构</a>
+          <a href="#boundaries">做到哪了</a>
         </nav>
 
         <div class="header-actions">
@@ -66,7 +66,7 @@
             target="_blank"
             rel="noreferrer"
           >
-            代码仓库
+            查看源码
           </a>
           <a
             class="button button-small button-primary"
@@ -74,20 +74,20 @@
             target="_blank"
             rel="noreferrer"
           >
-            查看成果
+            打开查看器
           </a>
         </div>
 
         <details class="mobile-menu">
           <summary aria-label="打开导航菜单"><span></span><span></span><span></span></summary>
           <nav aria-label="移动端导航">
-            <a href="#problem">为什么做</a>
-            <a href="#workflow">怎样工作</a>
-            <a href="#capabilities">系统能力</a>
-            <a href="#standards">标准与契约</a>
-            <a href="#boundaries">研究边界</a>
-            <a href="https://github.com/Titan-Frank/Open-Knowledge-Map">代码仓库</a>
-            <a href="https://open-knowledge-map.pages.dev/">查看成果</a>
+            <a href="#problem">为什么要做</a>
+            <a href="#workflow">怎么处理</a>
+            <a href="#capabilities">现在能做什么</a>
+            <a href="#standards">数据结构</a>
+            <a href="#boundaries">做到哪了</a>
+            <a href="https://github.com/Titan-Frank/Open-Knowledge-Map">查看源码</a>
+            <a href="https://open-knowledge-map.pages.dev/">打开查看器</a>
           </nav>
         </details>
       </div>
@@ -100,10 +100,13 @@
         <div class="hero-orb hero-orb-green" aria-hidden="true"></div>
 
         <div class="container hero-content">
-          <div class="eyebrow"><span></span>公开研究与工程原型</div>
-          <h1>让教材成为人工智能<br />可检索、可核查的知识对象</h1>
+          <div class="eyebrow"><span></span>当前为预览版本</div>
+          <h1>
+            <span class="hero-title-part">不只把教材切成文本</span><br />
+            <span class="hero-title-second-line"><span class="hero-title-part">还要知道每条知识</span><span class="hero-title-mobile-break"><br /></span><span class="hero-title-part">从哪来</span></span>
+          </h1>
           <p class="hero-copy">
-            Open Knowledge Map 按课时处理教材，把知识对象、关系、来源证据、知识正文与教学画像组织成统一知识网络，让检索、生成和人工复核围绕同一份完整知识单元工作。
+            Open Knowledge Map 从课时入手，找出教材里的知识对象和关系，再把定义、原文证据、知识正文与教学信息放回同一个对象里。最后得到的不是一堆零散切块，而是一张可以搜索、核对和继续维护的知识地图。
           </p>
           <div class="hero-actions">
             <a
@@ -112,7 +115,7 @@
               target="_blank"
               rel="noreferrer"
             >
-              查看只读成果<span aria-hidden="true">→</span>
+              打开在线查看器<span aria-hidden="true">→</span>
             </a>
             <a
               class="button button-secondary"
@@ -120,20 +123,20 @@
               target="_blank"
               rel="noreferrer"
             >
-              查看代码与文档
+              查看源码和文档
             </a>
           </div>
-          <ul class="hero-notes" aria-label="在线成果特点">
-            <li><span></span>无需安装</li>
-            <li><span></span>仓库原创演示数据</li>
-            <li><span></span>公开只读查看</li>
+          <ul class="hero-notes" aria-label="在线查看器说明">
+            <li><span></span>浏览器直接打开</li>
+            <li><span></span>当前只读</li>
+            <li><span></span>可以查看证据</li>
           </ul>
 
           <div class="product-window hero-window">
             <div class="window-bar" aria-hidden="true">
               <div class="window-dots"><i></i><i></i><i></i></div>
               <div class="window-address">open-knowledge-map.pages.dev</div>
-              <div class="window-state"><span></span>公开只读</div>
+              <div class="window-state"><span></span>只读版本</div>
             </div>
             <a
               class="window-image-link"
@@ -151,21 +154,21 @@
               />
             </a>
           </div>
-          <p class="image-note">界面使用仓库原创太阳能样例，不展示第三方教材内容。</p>
+          <p class="image-note">首屏截图使用仓库自建的太阳能样例，没有使用第三方教材内容。</p>
         </div>
       </section>
 
       <section class="snapshot" aria-labelledby="snapshot-title">
         <div class="container">
           <div class="snapshot-intro">
-            <p class="section-kicker">当前成果快照</p>
-            <h2 id="snapshot-title">一个可以直接检查的结果</h2>
-            <p>版本化的只读成果用于检查结构、证据链和界面，不代表准确率或教学效果。</p>
+            <p class="section-kicker">当前数据</p>
+            <h2 id="snapshot-title">先把现有结果摆出来</h2>
+            <p>这些数字只说明当前库里有什么，不是准确率或教学效果的评分。</p>
           </div>
           <dl class="snapshot-stats">
             <div><dt>知识对象</dt><dd>182</dd></div>
             <div><dt>类型化关系</dt><dd>144</dd></div>
-            <div><dt>导出证据</dt><dd>537</dd></div>
+            <div><dt>证据条目</dt><dd>537</dd></div>
             <div><dt>知识正文</dt><dd>182</dd></div>
           </dl>
         </div>
@@ -174,33 +177,33 @@
       <section class="section problem-section" id="problem">
         <div class="container problem-layout">
           <div class="section-heading sticky-heading">
-            <p class="section-kicker">为什么做</p>
-            <h2>教材不该只剩下<br />页面和文本切块</h2>
+            <p class="section-kicker">为什么要做</p>
+            <h2>文本切块好用<br />但还不够</h2>
             <p>
-              页面和文本片段适合临时检索，却缺少稳定身份、明确关系、来源证据和复核状态。Open Knowledge Map 把教材视为知识的证据来源，而不是知识最终的计算形态。
+              把教材切成一段一段，确实方便搜索。但一旦要回答“这是什么”“和谁有关”“原文在哪里”，单独的文本片段就很吃力。这个项目想保留这些问题的答案，而不是只保存一段文字。
             </p>
           </div>
 
           <div class="problem-cards">
             <article class="problem-card">
               <span class="card-index">01</span>
-              <h3>知识没有稳定身份</h3>
-              <p>同一概念散落在多个页面中，难以持续维护、连接和复用。</p>
+              <h3>同一个概念会反复出现</h3>
+              <p>如果没有统一编号，散落在不同章节里的同一概念很难合并，也很难长期维护。</p>
             </article>
             <article class="problem-card">
               <span class="card-index">02</span>
-              <h3>结论与来源脱节</h3>
-              <p>只有切块文本，软件无法稳定判断定义、关系和证据来自哪里。</p>
+              <h3>看到结论，却找不到原文</h3>
+              <p>定义和关系如果不带出处，后面想复核，只能重新翻一遍教材。</p>
             </article>
             <article class="problem-card">
               <span class="card-index">03</span>
-              <h3>下游接口不完整</h3>
-              <p>检索、生成和人工检查各拿一份数据，容易出现口径不一致。</p>
+              <h3>几个功能各用一套数据</h3>
+              <p>搜索、回答和人工标注各自拼装数据，很快就会出现内容不一致。</p>
             </article>
             <article class="problem-card problem-card-accent">
               <span class="card-index">04</span>
-              <h3>把教材转换成完整知识单元</h3>
-              <p>统一组织定义、关系、证据、正文、画像和审核状态，让同一对象能够被检索、查看和调用。</p>
+              <h3>所以，把信息收进同一个对象</h3>
+              <p>名称、定义、关系、教材提及、证据、正文和审核状态放在一起，需要时不用到处拼。</p>
             </article>
           </div>
         </div>
@@ -209,41 +212,41 @@
       <section class="section workflow-section" id="workflow">
         <div class="container">
           <div class="section-heading section-heading-light">
-            <p class="section-kicker">怎样工作</p>
-            <h2>从教材到知识运行时的完整闭环</h2>
-            <p>按课时隔离处理，在归并阶段形成正式知识库，再经过质量检查对外提供完整知识单元。</p>
+            <p class="section-kicker">怎么处理一本教材</p>
+            <h2>从课时开始，一步一步写进知识库</h2>
+            <p>先对齐目录和正文，再处理每个课时。抽取结果不会直接进入正式库，而是经过合并、去重和检查之后统一写入。</p>
           </div>
 
           <ol class="workflow-list">
             <li>
               <span class="workflow-number">01</span>
-              <div><strong>来源解析</strong><small>PDF 或 MinerU 结果</small></div>
+              <div><strong>准备文本</strong><small>PDF 或 MinerU 解析结果</small></div>
             </li>
             <li>
               <span class="workflow-number">02</span>
-              <div><strong>课时规划</strong><small>目录对齐与切块</small></div>
+              <div><strong>按课时切开</strong><small>对齐目录和正文位置</small></div>
             </li>
             <li>
               <span class="workflow-number">03</span>
-              <div><strong>隔离抽取</strong><small>对象、关系与证据</small></div>
+              <div><strong>抽取知识</strong><small>记录对象、关系和证据</small></div>
             </li>
             <li>
               <span class="workflow-number">04</span>
-              <div><strong>归并规范化</strong><small>去重、重映射与补全</small></div>
+              <div><strong>合并重复项</strong><small>统一编号，补齐引用</small></div>
             </li>
             <li>
               <span class="workflow-number">05</span>
-              <div><strong>质量检查</strong><small>严格质检与图完整性</small></div>
+              <div><strong>检查结果</strong><small>发现断链、缺证据和孤立节点</small></div>
             </li>
             <li>
               <span class="workflow-number">06</span>
-              <div><strong>统一调用</strong><small>检索、生成与人工复核</small></div>
+              <div><strong>交给应用使用</strong><small>搜索、回答、图谱和人工检查</small></div>
             </li>
           </ol>
 
           <div class="workflow-rule">
-            <span>写入边界</span>
-            <p>课时处理器只写暂存区；正式知识库写入、重复项处理和最终质量状态只由归并与规范化步骤负责。</p>
+            <span>先写暂存区</span>
+            <p>多个课时可以同时处理，但不能直接改正式知识库。所有结果先进入暂存区，等归并、去重和检查完成后，再统一写入正式表。</p>
           </div>
         </div>
       </section>
@@ -251,21 +254,21 @@
       <section class="section capability-section" id="capabilities">
         <div class="container">
           <div class="section-heading centered-heading">
-            <p class="section-kicker">系统能力</p>
-            <h2>证据贯穿抽取、组织与使用</h2>
-            <p>不是把节点画出来就结束，而是让每个知识对象都能回到来源、进入检索，并接受人工检查。</p>
+            <p class="section-kicker">现在能做什么</p>
+            <h2>重点不在“画图”，而在“能查清楚”</h2>
+            <p>点开一个知识对象，应该能看到它的定义、相关关系、教材出处和审核状态。搜索和回答也应该使用同一份信息。</p>
           </div>
 
           <div class="capability-grid">
             <article class="capability-card capability-card-wide">
               <div class="capability-copy">
-                <span class="capability-label">来源可追溯</span>
-                <h3>从教材目录一路查到知识对象与证据</h3>
-                <p>教材树、课时切块、对象提及和原始证据保持关联，便于检查对象为什么存在、定义来自哪里。</p>
+                <span class="capability-label">查出处</span>
+                <h3>从知识对象回到教材原文</h3>
+                <p>教材目录、课时、对象提及和证据保持关联。点开一个对象，就能继续追到它在哪个课时出现、原文写了什么。</p>
                 <ul>
-                  <li>课时级来源定位</li>
-                  <li>对象与教材提及关联</li>
-                  <li>证据编号和复核状态</li>
+                  <li>定位到具体课时</li>
+                  <li>查看对象在教材中的提及</li>
+                  <li>保留证据编号和审核状态</li>
                 </ul>
               </div>
               <div class="screen-frame">
@@ -280,18 +283,18 @@
             </article>
 
             <article class="capability-card">
-              <span class="capability-label">完整知识单元</span>
-              <h3>一次取得对象的完整上下文</h3>
-              <p>统一聚合定义、关系、证据、提及、卡片、知识正文、领域画像和完整度信息。</p>
+              <span class="capability-label">看完整对象</span>
+              <h3>定义、关系和证据放在一起</h3>
+              <p>一个接口就能拿到定义、关系、证据、教材提及、知识正文、领域信息和当前完整度，不需要临时拼表。</p>
               <div class="unit-stack" aria-label="完整知识单元包含的内容">
                 <span>语义核心</span><span>关系</span><span>证据</span><span>知识正文</span><span>教学画像</span>
               </div>
             </article>
 
             <article class="capability-card capability-card-image">
-              <span class="capability-label">检索与人工检查</span>
-              <h3>同一套知识单元服务于查找和复核</h3>
-              <p>支持文本、向量与混合检索，并在生成结果中校验引用编号是否属于当前检索上下文。</p>
+              <span class="capability-label">搜索与提问</span>
+              <h3>先找到相关对象，再组织回答</h3>
+              <p>系统可以使用文本、向量或两者结合的方式检索。生成回答时，还会检查引用编号是否真的来自本次检索结果。</p>
               <div class="screen-frame compact-frame">
                 <img
                   src="./assets/grounded-answer.png"
@@ -301,7 +304,7 @@
                   loading="lazy"
                 />
               </div>
-              <p class="fine-print">引用编号归属校验不等同于语义蕴含证明。</p>
+              <p class="fine-print">这只能说明引用编号存在，不能证明回答一定正确。</p>
             </article>
           </div>
         </div>
@@ -310,34 +313,34 @@
       <section class="section standards-section" id="standards">
         <div class="container standards-layout">
           <div class="section-heading">
-            <p class="section-kicker">标准与契约</p>
-            <h2>三层边界，避免概念与工程实现混在一起</h2>
-            <p>顶层概念标准、可执行工程结构和公共消费接口分别演进，又通过明确契约相互连接。</p>
+            <p class="section-kicker">数据怎么组织</p>
+            <h2>概念、数据库和接口，各管一层</h2>
+            <p>项目没有把所有定义堆在一份大文档里。概念怎么解释、数据怎么落库、应用怎么取用，分别由三套约定负责。</p>
             <a
               class="inline-link"
               href="https://github.com/Titan-Frank/Open-Knowledge-Map/blob/main/docs/current-system-architecture.md"
               target="_blank"
               rel="noreferrer"
             >
-              阅读系统架构<span aria-hidden="true">→</span>
+              看完整架构说明<span aria-hidden="true">→</span>
             </a>
           </div>
 
           <div class="standard-stack">
             <article>
-              <span>概念层</span>
+              <span>概念说明</span>
               <code>ai-nks-v0.1</code>
-              <p>定义知识对象、知识单元、知识网络、运行时和治理边界。</p>
+              <p>说明什么是知识对象、知识单元和知识网络，以及它们之间是什么关系。</p>
             </article>
             <article>
-              <span>工程层</span>
+              <span>落库结构</span>
               <code>world-v1.2</code>
-              <p>约束当前数据表、结构模式、节点类型、关系类型和证据规则。</p>
+              <p>对应现在正在运行的数据库表、结构约束、节点类型、关系类型和证据规则。</p>
             </article>
             <article>
-              <span>消费层</span>
+              <span>对外接口</span>
               <code>ApiUnit</code>
-              <p>为查看器、检索和带依据生成提供统一的完整知识对象视图。</p>
+              <p>查看器、搜索和生成服务都通过这个接口取得一份完整的知识对象。</p>
             </article>
           </div>
         </div>
@@ -346,27 +349,27 @@
       <section class="section boundaries-section" id="boundaries">
         <div class="container">
           <div class="section-heading centered-heading">
-            <p class="section-kicker">研究边界</p>
-            <h2>把已经实现的，与仍需验证的分开说明</h2>
+            <p class="section-kicker">目前做到哪了</p>
+            <h2>哪些已经能跑，哪些还没有答案</h2>
           </div>
 
           <div class="boundary-grid">
             <article class="boundary-card boundary-done">
-              <div class="boundary-title"><span></span><h3>目前已经形成工程闭环</h3></div>
+              <div class="boundary-title"><span></span><h3>已经在系统里跑通</h3></div>
               <ul>
-                <li>课时级知识对象与关系抽取</li>
-                <li>来源证据保留和完整知识单元组装</li>
-                <li>暂存、归并、规范化和质量检查</li>
-                <li>检索、图谱查看和人工复核界面</li>
+                <li>按课时抽取知识对象、关系和证据</li>
+                <li>暂存、归并、去重和质量检查</li>
+                <li>把完整对象交给搜索和查看器</li>
+                <li>提供教材树、图谱和人工检查界面</li>
               </ul>
             </article>
             <article class="boundary-card boundary-open">
-              <div class="boundary-title"><span></span><h3>仍需通过独立研究验证</h3></div>
+              <div class="boundary-title"><span></span><h3>还需要继续验证</h3></div>
               <ul>
-                <li>每条生成结论是否被证据充分蕴含</li>
-                <li>知识图谱结构是否达到教学最优</li>
-                <li>对象级检索是否改善真实学习效果</li>
-                <li>大规模、多学科的专家一致性评测</li>
+                <li>自动生成的结论是否真的被原文支持</li>
+                <li>当前知识结构是否适合实际教学</li>
+                <li>对象级检索能不能改善真实学习效果</li>
+                <li>跨学科、大样本的专家评测</li>
               </ul>
             </article>
           </div>
@@ -376,9 +379,9 @@
       <section class="section start-section" id="start">
         <div class="container start-card">
           <div class="start-copy">
-            <p class="section-kicker">开始使用</p>
-            <h2>先看成果，再运行自己的安全样例</h2>
-            <p>本地演示使用隔离的仓库原创数据，不修改正式数据库，也不需要模型密钥。</p>
+            <p class="section-kicker">自己跑一下</p>
+            <h2>先打开在线版本，或者在本地跑一份样例</h2>
+            <p>本地样例使用仓库自带的原创数据，单独建库，不调用模型服务，也不会碰正式数据。</p>
             <div class="start-actions">
               <a
                 class="button button-light"
@@ -386,7 +389,7 @@
                 target="_blank"
                 rel="noreferrer"
               >
-                打开只读成果
+                打开在线查看器
               </a>
               <a
                 class="button button-ghost"
@@ -394,7 +397,7 @@
                 target="_blank"
                 rel="noreferrer"
               >
-                阅读完整说明
+                查看运行说明
               </a>
             </div>
           </div>
@@ -414,25 +417,25 @@
       <div class="container footer-main">
         <div class="footer-brand">
           <img src="./assets/favicon.svg" alt="" width="42" height="42" />
-          <div><strong>Open Knowledge Map</strong><p>证据支撑的教材知识对象基础设施</p></div>
+          <div><strong>Open Knowledge Map</strong><p>把教材整理成能查到出处的知识对象</p></div>
         </div>
         <div class="footer-links">
           <div>
             <strong>项目</strong>
-            <a href="https://github.com/Titan-Frank/Open-Knowledge-Map">代码仓库</a>
-            <a href="https://open-knowledge-map.pages.dev/">只读成果</a>
+            <a href="https://github.com/Titan-Frank/Open-Knowledge-Map">查看源码</a>
+            <a href="https://open-knowledge-map.pages.dev/">在线查看器</a>
             <a href="https://github.com/Titan-Frank/Open-Knowledge-Map/blob/main/CHANGELOG.md">更新记录</a>
           </div>
           <div>
             <strong>文档</strong>
             <a href="https://github.com/Titan-Frank/Open-Knowledge-Map/blob/main/docs/current-system-architecture.md">系统架构</a>
             <a href="https://github.com/Titan-Frank/Open-Knowledge-Map/blob/main/docs/knowledge-unit-contract.md">知识单元契约</a>
-            <a href="https://github.com/Titan-Frank/Open-Knowledge-Map/blob/main/PROVENANCE.md">数据来源边界</a>
+            <a href="https://github.com/Titan-Frank/Open-Knowledge-Map/blob/main/PROVENANCE.md">数据来源说明</a>
           </div>
         </div>
       </div>
       <div class="container footer-bottom">
-        <p>当前为研究与工程预览成果，不代表论文级基准或教学效果结论。</p>
+        <p>这是一个仍在开发中的研究项目。页面里的数量不是准确率或教学效果结论。</p>
         <p>© 2026 Open Knowledge Map</p>
       </div>
     </footer>
