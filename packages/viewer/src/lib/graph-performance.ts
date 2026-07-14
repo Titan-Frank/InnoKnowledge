@@ -14,13 +14,20 @@ const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 export const LIGHTWEIGHT_FORCE_LAYOUT = {
   type: 'force',
-  animation: false,
+  animation: true,
   iterations: 100,
+  minMovement: 1.2,
   preventOverlap: true,
   linkDistance: 140,
   maxSpeed: 80,
   damping: 0.82,
 } as const;
+
+export function resolveLightweightForceLayout(prefersReducedMotion: boolean) {
+  return prefersReducedMotion
+    ? { ...LIGHTWEIGHT_FORCE_LAYOUT, animation: false as const }
+    : LIGHTWEIGHT_FORCE_LAYOUT;
+}
 
 export function clampGraphDevicePixelRatio(value: number): number {
   if (!Number.isFinite(value) || value <= 0) return 1;

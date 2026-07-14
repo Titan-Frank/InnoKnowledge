@@ -4,7 +4,7 @@ import { useG6 } from '@/hooks/useG6';
 import { okmKnowledgeGraphToG6 } from '@/lib/graph-adapter';
 import { getVisibleNodes } from '@/lib/visibility';
 import { getNodeTypeLabel } from '@/core/graph/knowledge-data';
-import { ZoomIn, ZoomOut, Maximize2, Play, Pause, RotateCcw } from '@/lib/lucide-icons';
+import { ZoomIn, ZoomOut, Maximize2, RefreshCw, Pause, RotateCcw } from '@/lib/lucide-icons';
 
 const EMPTY_SEARCH_HIT_IDS = new Set<string>();
 
@@ -201,16 +201,16 @@ export function GraphCanvas() {
         <div className="my-1 h-px bg-border-subtle" />
         <button
           onClick={isLayoutRunning ? stopLayout : startLayout}
-          aria-label={isLayoutRunning ? '停止布局优化' : '重新开始布局优化'}
+          aria-label={isLayoutRunning ? '停止自动布局' : '重新整理图谱'}
           aria-pressed={isLayoutRunning}
           className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${
             isLayoutRunning
               ? 'animate-pulse bg-accent text-white shadow-glow'
               : 'text-text-secondary hover:bg-hover hover:text-text-primary'
           }`}
-          title={isLayoutRunning ? '停止布局优化' : '重新开始布局优化'}
+          title={isLayoutRunning ? '停止自动布局' : '重新整理图谱'}
         >
-          {isLayoutRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          {isLayoutRunning ? <Pause className="h-4 w-4" /> : <RefreshCw className="h-4 w-4" />}
         </button>
       </div>
     </div>

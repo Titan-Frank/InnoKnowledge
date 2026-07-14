@@ -12,8 +12,8 @@ import type { G6EdgePair } from '@/lib/graph-adapter';
 import type { ThemeMode } from '@/core/graph/types';
 import {
   clampGraphDevicePixelRatio,
-  LIGHTWEIGHT_FORCE_LAYOUT,
   reuseGraphNodePositions,
+  resolveLightweightForceLayout,
   resolveStyledPreviewNodeId,
 } from '@/lib/graph-performance';
 
@@ -38,7 +38,6 @@ interface SetGraphPayload {
 const VIEWPORT_ANIMATION = { duration: 360, easing: 'ease-in-out' as const };
 const ELEMENT_UPDATE_ANIMATION = { duration: 0 };
 
-const DEFAULT_LAYOUT: LayoutOptions = LIGHTWEIGHT_FORCE_LAYOUT;
 const DEFAULT_NODE_Z_INDEX = 0;
 const DEFAULT_EDGE_Z_INDEX = 0;
 const CLICK_MOVE_THRESHOLD_PX = 6;
@@ -121,11 +120,17 @@ function waitForNextFrame(): Promise<void> {
   });
 }
 
+function getDefaultLayout(): LayoutOptions {
+  const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  return resolveLightweightForceLayout(prefersReducedMotion);
+}
+
 export function useG6(options: UseG6Options) {
   const styledPreviewNodeId = resolveStyledPreviewNodeId(options.searchHitIds, options.previewNodeId);
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<G6Graph | null>(null);
   const dataRef = useRef<SetGraphPayload | null>(null);
+  const stopLayoutWaitRef = useRef<(() => void) | null>(null);
   const callbacksRef = useRef({
     onNodeClick: options.onNodeClick,
     onNodeHover: options.onNodeHover,
@@ -185,6 +190,29 @@ export function useG6(options: UseG6Options) {
     suppressStageClickUntilRef.current = now + STAGE_CLEAR_DEDUPE_MS;
     selectedNodeRef.current = null;
     callbacksRef.current.onStageClick?.();
+  }, []);
+
+  const stopActiveLayout = useCallback(() => {
+    const stopWaiting = stopLayoutWaitRef.current;
+    if (stopWaiting) {
+      graphRef.current?.stopLayout();
+      stopWaiting();
+    }
+    stopLayoutWaitRef.current = null;
+    callbacksRef.current.onLayoutRunningChange?.(false);
+  }, []);
+
+  const waitForLayout = useCallback(async (operation: () => Promise<void>) => {
+    let stopWaiting = () => {};
+    const stopped = new Promise<void>((resolve) => {
+      stopWaiting = resolve;
+    });
+    stopLayoutWaitRef.current = stopWaiting;
+    try {
+      await Promise.race([operation(), stopped]);
+    } finally {
+      if (stopLayoutWaitRef.current === stopWaiting) stopLayoutWaitRef.current = null;
+    }
   }, []);
 
   useEffect(() => {
@@ -461,7 +489,7 @@ export function useG6(options: UseG6Options) {
       theme: getThemeName(options.themeMode),
       animation: ELEMENT_UPDATE_ANIMATION,
       data: { nodes: [], edges: [] },
-      layout: DEFAULT_LAYOUT,
+      layout: getDefaultLayout(),
       node: {
         type: 'circle',
       },
@@ -561,6 +589,12 @@ export function useG6(options: UseG6Options) {
     });
 
     return () => {
+      const stopWaiting = stopLayoutWaitRef.current;
+      if (stopWaiting) {
+        graph.stopLayout();
+        stopWaiting();
+      }
+      stopLayoutWaitRef.current = null;
       callbacksRef.current.onLayoutRunningChange?.(false);
       container.removeEventListener('pointerdown', onContainerPointerDown);
       container.removeEventListener('pointermove', onContainerPointerMove);
@@ -593,12 +627,12 @@ export function useG6(options: UseG6Options) {
   const setGraph = useCallback((payload: SetGraphPayload): Promise<void> => {
     const token = ++renderTokenRef.current;
     selectionVersionRef.current += 1;
+    stopActiveLayout();
     return enqueueGraphMutation(async () => {
       const graph = graphRef.current;
       if (!graph || graph.destroyed || token !== renderTokenRef.current) return;
 
       const previousPayload = dataRef.current;
-      if (previousPayload) graph.stopLayout();
       const [centerX, centerY] = previousPayload && graph.rendered
         ? graph.getViewportCenter()
         : [0, 0];
@@ -611,15 +645,17 @@ export function useG6(options: UseG6Options) {
       dataRef.current = nextPayload;
       styleSnapshotRef.current = createStyleSnapshot(nextPayload.data);
       graph.setData(nextPayload.data);
+      const layout = getDefaultLayout();
+      graph.setLayout(layout);
 
       try {
         if (positionResult.shouldReusePositions) {
-          callbacksRef.current.onLayoutRunningChange?.(false);
           await graph.draw();
+          callbacksRef.current.onLayoutRunningChange?.(true);
+          await waitForLayout(() => graph.layout(layout));
         } else {
           callbacksRef.current.onLayoutRunningChange?.(true);
-          graph.setLayout(DEFAULT_LAYOUT);
-          await graph.render();
+          await waitForLayout(() => graph.render());
         }
         if (
           token !== renderTokenRef.current ||
@@ -635,7 +671,7 @@ export function useG6(options: UseG6Options) {
         ) callbacksRef.current.onLayoutRunningChange?.(false);
       }
     });
-  }, [applySelectionStyle, enqueueGraphMutation]);
+  }, [applySelectionStyle, enqueueGraphMutation, stopActiveLayout, waitForLayout]);
 
   const zoomIn = useCallback(() => {
     void graphRef.current?.zoomBy(1.35, VIEWPORT_ANIMATION);
@@ -669,7 +705,9 @@ export function useG6(options: UseG6Options) {
 
       callbacksRef.current.onLayoutRunningChange?.(true);
       try {
-        await graph.layout(DEFAULT_LAYOUT);
+        const layout = getDefaultLayout();
+        graph.setLayout(layout);
+        await waitForLayout(() => graph.layout(layout));
         if (
           token !== renderTokenRef.current ||
           graphRef.current !== graph ||
@@ -684,12 +722,11 @@ export function useG6(options: UseG6Options) {
         ) callbacksRef.current.onLayoutRunningChange?.(false);
       }
     });
-  }, [applySelectionStyle, enqueueGraphMutation]);
+  }, [applySelectionStyle, enqueueGraphMutation, waitForLayout]);
 
   const stopLayout = useCallback(() => {
-    graphRef.current?.stopLayout();
-    callbacksRef.current.onLayoutRunningChange?.(false);
-  }, []);
+    stopActiveLayout();
+  }, [stopActiveLayout]);
 
   return {
     containerRef,

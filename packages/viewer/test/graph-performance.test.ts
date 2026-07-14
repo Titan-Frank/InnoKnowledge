@@ -4,6 +4,7 @@ import {
   clampGraphDevicePixelRatio,
   LIGHTWEIGHT_FORCE_LAYOUT,
   reuseGraphNodePositions,
+  resolveLightweightForceLayout,
   resolveStyledPreviewNodeId,
 } from '../src/lib/graph-performance.ts';
 
@@ -22,12 +23,18 @@ test('only applies hover preview styling when search results are visible', () =>
   assert.equal(resolveStyledPreviewNodeId(new Set(['node-1']), null), null);
 });
 
-test('keeps force layout bounded and non-animated', () => {
+test('keeps real-time force layout bounded', () => {
   assert.equal(LIGHTWEIGHT_FORCE_LAYOUT.type, 'force');
-  assert.equal(LIGHTWEIGHT_FORCE_LAYOUT.animation, false);
+  assert.equal(LIGHTWEIGHT_FORCE_LAYOUT.animation, true);
   assert.ok(LIGHTWEIGHT_FORCE_LAYOUT.iterations > 0);
   assert.ok(LIGHTWEIGHT_FORCE_LAYOUT.iterations <= 120);
+  assert.ok(LIGHTWEIGHT_FORCE_LAYOUT.minMovement >= 1);
   assert.equal('enableWorker' in LIGHTWEIGHT_FORCE_LAYOUT, false);
+});
+
+test('disables moving layout when reduced motion is preferred', () => {
+  assert.equal(resolveLightweightForceLayout(false).animation, true);
+  assert.equal(resolveLightweightForceLayout(true).animation, false);
 });
 
 test('reuses existing positions and places new nodes near positioned neighbors', () => {

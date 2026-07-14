@@ -4,6 +4,7 @@ export {
   ZoomOut,
   Maximize2,
   RotateCcw,
+  RefreshCw,
   Play,
   Pause,
   Sun,
