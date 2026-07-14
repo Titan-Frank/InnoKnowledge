@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   clampGraphDevicePixelRatio,
+  FINAL_FORCE_LAYOUT,
   LIGHTWEIGHT_FORCE_LAYOUT,
   reuseGraphNodePositions,
   resolveLightweightForceLayout,
@@ -26,15 +27,35 @@ test('only applies hover preview styling when search results are visible', () =>
 test('keeps real-time force layout bounded', () => {
   assert.equal(LIGHTWEIGHT_FORCE_LAYOUT.type, 'force');
   assert.equal(LIGHTWEIGHT_FORCE_LAYOUT.animation, true);
-  assert.ok(LIGHTWEIGHT_FORCE_LAYOUT.iterations > 0);
-  assert.ok(LIGHTWEIGHT_FORCE_LAYOUT.iterations <= 120);
-  assert.ok(LIGHTWEIGHT_FORCE_LAYOUT.minMovement >= 1);
+  assert.equal(LIGHTWEIGHT_FORCE_LAYOUT.iterations, 240);
+  assert.equal(LIGHTWEIGHT_FORCE_LAYOUT.minMovement, 0.9);
+  assert.equal(LIGHTWEIGHT_FORCE_LAYOUT.interval, 0.03);
   assert.equal('enableWorker' in LIGHTWEIGHT_FORCE_LAYOUT, false);
 });
 
-test('disables moving layout when reduced motion is preferred', () => {
-  assert.equal(resolveLightweightForceLayout(false).animation, true);
-  assert.equal(resolveLightweightForceLayout(true).animation, false);
+test('finishes an animated layout with a complete static settling pass', () => {
+  const layout = resolveLightweightForceLayout(false, 90);
+  assert.ok(Array.isArray(layout));
+  assert.equal(layout.length, 2);
+  assert.equal(layout[0].animation, true);
+  assert.equal(layout[0].iterations, 240);
+  assert.equal(layout[1].animation, false);
+  assert.equal(layout[1].iterations, 900);
+  assert.equal(layout[1].minMovement, 0.4);
+});
+
+test('bounds the animated pass for a large graph before final settling', () => {
+  const layout = resolveLightweightForceLayout(false, 182);
+  assert.ok(Array.isArray(layout));
+  assert.equal(layout[0].iterations, 140);
+  assert.equal(layout[1], FINAL_FORCE_LAYOUT);
+});
+
+test('uses only the static settling pass when reduced motion is preferred', () => {
+  const layout = resolveLightweightForceLayout(true, 90);
+  assert.ok(!Array.isArray(layout));
+  assert.equal(layout.animation, false);
+  assert.equal(layout.iterations, 900);
 });
 
 test('reuses existing positions and places new nodes near positioned neighbors', () => {

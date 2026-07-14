@@ -120,9 +120,9 @@ function waitForNextFrame(): Promise<void> {
   });
 }
 
-function getDefaultLayout(): LayoutOptions {
+function getDefaultLayout(nodeCount = 0): LayoutOptions {
   const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-  return resolveLightweightForceLayout(prefersReducedMotion);
+  return resolveLightweightForceLayout(prefersReducedMotion, nodeCount);
 }
 
 export function useG6(options: UseG6Options) {
@@ -645,7 +645,7 @@ export function useG6(options: UseG6Options) {
       dataRef.current = nextPayload;
       styleSnapshotRef.current = createStyleSnapshot(nextPayload.data);
       graph.setData(nextPayload.data);
-      const layout = getDefaultLayout();
+      const layout = getDefaultLayout(payload.nodeIds.length);
       graph.setLayout(layout);
 
       try {
@@ -705,7 +705,7 @@ export function useG6(options: UseG6Options) {
 
       callbacksRef.current.onLayoutRunningChange?.(true);
       try {
-        const layout = getDefaultLayout();
+        const layout = getDefaultLayout(payload.nodeIds.length);
         graph.setLayout(layout);
         await waitForLayout(() => graph.layout(layout));
         if (

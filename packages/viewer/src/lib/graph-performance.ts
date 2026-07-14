@@ -1,4 +1,4 @@
-import type { GraphData, NodeData } from '@antv/g6';
+import type { GraphData, LayoutOptions, NodeData } from '@antv/g6';
 
 const MAX_GRAPH_DEVICE_PIXEL_RATIO = 1.5;
 const MIN_POSITION_REUSE_RATIO = 0.5;
@@ -11,22 +11,41 @@ const NODES_PER_PLACEMENT_RING = 12;
 const PLACEMENT_RING_START = 64;
 const PLACEMENT_RING_STEP = 28;
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+const LARGE_GRAPH_NODE_THRESHOLD = 120;
+const LARGE_GRAPH_ANIMATED_ITERATIONS = 140;
 
 export const LIGHTWEIGHT_FORCE_LAYOUT = {
   type: 'force',
   animation: true,
-  iterations: 100,
-  minMovement: 1.2,
+  iterations: 240,
+  minMovement: 0.9,
   preventOverlap: true,
   linkDistance: 140,
   maxSpeed: 80,
   damping: 0.82,
+  interval: 0.03,
 } as const;
 
-export function resolveLightweightForceLayout(prefersReducedMotion: boolean) {
-  return prefersReducedMotion
-    ? { ...LIGHTWEIGHT_FORCE_LAYOUT, animation: false as const }
-    : LIGHTWEIGHT_FORCE_LAYOUT;
+export const FINAL_FORCE_LAYOUT = {
+  ...LIGHTWEIGHT_FORCE_LAYOUT,
+  animation: false,
+  iterations: 900,
+  minMovement: 0.4,
+} as const;
+
+export function resolveLightweightForceLayout(
+  prefersReducedMotion: boolean,
+  nodeCount = 0,
+): LayoutOptions {
+  if (prefersReducedMotion) return FINAL_FORCE_LAYOUT;
+
+  const animatedIterations = nodeCount > LARGE_GRAPH_NODE_THRESHOLD
+    ? LARGE_GRAPH_ANIMATED_ITERATIONS
+    : LIGHTWEIGHT_FORCE_LAYOUT.iterations;
+  return [
+    { ...LIGHTWEIGHT_FORCE_LAYOUT, iterations: animatedIterations },
+    FINAL_FORCE_LAYOUT,
+  ];
 }
 
 export function clampGraphDevicePixelRatio(value: number): number {
