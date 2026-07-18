@@ -73,6 +73,12 @@ function templateDisplayRecord(properties: Record<string, unknown> | undefined):
   return display && typeof display === 'object' && !Array.isArray(display) ? display as Record<string, unknown> : {};
 }
 
+function optionalFiniteNumber(value: unknown): number | null {
+  if (typeof value !== 'number' && typeof value !== 'string') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function deriveDisplayType(node: ApiNode): string {
   const props = node.properties as Record<string, unknown> | undefined;
   const templateDisplay = templateDisplayRecord(props);
@@ -142,7 +148,11 @@ function normalizeNode(node: ApiNode, profilesForNode: ApiProfile[]): OKMNode {
   const nodeType = deriveDisplayType(normalized);
   const nodeKind = normalized.node_kind || deriveLegacyNodeKind(nodeType);
   const nodeLayer = resolveNodeLayer({ ...normalized, node_type: nodeType, node_kind: nodeKind });
-  const templateDisplay = templateDisplayRecord((normalized.properties as Record<string, unknown>) || {});
+  const properties = (normalized.properties as Record<string, unknown>) || {};
+  const templateDisplay = templateDisplayRecord(properties);
+  const communityId = optionalFiniteNumber(
+    (normalized as Record<string, unknown>).community_id ?? properties.community_id,
+  );
 
   return {
     id: normalized.id,
@@ -156,13 +166,13 @@ function normalizeNode(node: ApiNode, profilesForNode: ApiProfile[]): OKMNode {
     nodeLayer,
     aliases: Array.isArray(normalized.aliases) ? normalized.aliases : [],
     frameworkRefs,
-    properties: (normalized.properties as Record<string, unknown>) || {},
+    properties,
     degree: 0, // filled later
     mentions: [], // filled later
     profiles: profilesForNode,
     mentionBookIds: new Set<string>(),
     scopeBookIds: new Set<string>(),
-    communityId: (normalized as Record<string, unknown>).community_id as number | null ?? null,
+    communityId: communityId == null ? null : Math.trunc(communityId),
   };
 }
 

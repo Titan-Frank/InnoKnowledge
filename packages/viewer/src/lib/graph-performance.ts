@@ -77,6 +77,11 @@ function readNodePosition(node: NodeData): GraphPoint | null {
   return Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null;
 }
 
+export function hasCompleteGraphNodePositions(data: GraphData): boolean {
+  const nodes = data.nodes ?? [];
+  return nodes.length > 0 && nodes.every((node) => readNodePosition(node) !== null);
+}
+
 function stableAngle(id: string): number {
   let hash = 0;
   for (let index = 0; index < id.length; index += 1) {

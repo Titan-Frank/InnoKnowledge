@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   clampGraphDevicePixelRatio,
   FINAL_FORCE_LAYOUT,
+  hasCompleteGraphNodePositions,
   LIGHTWEIGHT_FORCE_LAYOUT,
   reuseGraphNodePositions,
   resolveLightweightForceLayout,
@@ -22,6 +23,24 @@ test('only applies hover preview styling when search results are visible', () =>
   assert.equal(resolveStyledPreviewNodeId(new Set(), 'node-1'), null);
   assert.equal(resolveStyledPreviewNodeId(new Set(['node-1']), 'node-1'), 'node-1');
   assert.equal(resolveStyledPreviewNodeId(new Set(['node-1']), null), null);
+});
+
+test('recognizes a complete fixed graph layout', () => {
+  assert.equal(hasCompleteGraphNodePositions({
+    nodes: [
+      { id: 'one', style: { x: 10, y: 20 } },
+      { id: 'two', style: { x: -5, y: 0 } },
+    ],
+    edges: [],
+  }), true);
+  assert.equal(hasCompleteGraphNodePositions({
+    nodes: [
+      { id: 'one', style: { x: 10, y: 20 } },
+      { id: 'two', style: { x: Number.POSITIVE_INFINITY, y: 0 } },
+    ],
+    edges: [],
+  }), false);
+  assert.equal(hasCompleteGraphNodePositions({ nodes: [], edges: [] }), false);
 });
 
 test('keeps real-time force layout bounded', () => {

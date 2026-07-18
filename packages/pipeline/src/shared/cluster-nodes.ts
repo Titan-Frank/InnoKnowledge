@@ -138,7 +138,7 @@ export function summarizeClusterRun(totalNodes: number, clusteredNodes: number, 
 export function buildSelectClusterNodesStatement(datasetId: string): SqlStatement {
   return {
     name: "select-world-nodes-cluster-source",
-    sql: "SELECT id, embedding, properties_json FROM world_nodes WHERE dataset_id = $1 AND embedding IS NOT NULL AND status != 'deprecated'",
+    sql: "SELECT id, embedding, properties_json FROM world_nodes WHERE dataset_id = $1 AND embedding IS NOT NULL AND status != 'deprecated' ORDER BY id",
     params: [datasetId],
   };
 }

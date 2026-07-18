@@ -6,7 +6,7 @@ import { buildClusterNodesSqlPlan, buildSelectClusterNodesStatement } from "./cl
 test("builds cluster source select statement like Python cluster_nodes", () => {
   assert.deepEqual(buildSelectClusterNodesStatement("main"), {
     name: "select-world-nodes-cluster-source",
-    sql: "SELECT id, embedding, properties_json FROM world_nodes WHERE dataset_id = $1 AND embedding IS NOT NULL AND status != 'deprecated'",
+    sql: "SELECT id, embedding, properties_json FROM world_nodes WHERE dataset_id = $1 AND embedding IS NOT NULL AND status != 'deprecated' ORDER BY id",
     params: ["main"],
   });
 });

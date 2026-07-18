@@ -69,6 +69,8 @@ export async function loadNodes(sql: Sql, datasetId: string): Promise<ApiNode[]>
       'properties', 'external_ids', 'tags',
     ]);
     const properties = asRecord(parsed.properties);
+    const layout = asRecord(properties.layout);
+    const communityId = optionalNumber(properties.community_id);
     return {
       ...parsed,
       canonical_name: textValue(parsed.name) || textValue(parsed.id),
@@ -89,9 +91,9 @@ export async function loadNodes(sql: Sql, datasetId: string): Promise<ApiNode[]>
         bridge_tags: parsed.tags || [],
         tags: parsed.tags || [],
       },
-      community_id: null,
-      pca_x: null,
-      pca_y: null,
+      community_id: communityId == null ? null : Math.trunc(communityId),
+      pca_x: optionalNumber(layout.x),
+      pca_y: optionalNumber(layout.y),
     } as unknown as ApiNode;
   });
 }
@@ -273,6 +275,12 @@ function textValue(value: unknown): string {
 function numberValue(value: unknown, fallback: number): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function optionalNumber(value: unknown): number | null {
+  if (typeof value !== 'number' && typeof value !== 'string') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function resolveImagePath(row: Record<string, unknown>): string {

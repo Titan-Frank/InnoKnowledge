@@ -12,6 +12,7 @@ import type { G6EdgePair } from '@/lib/graph-adapter';
 import type { ThemeMode } from '@/core/graph/types';
 import {
   clampGraphDevicePixelRatio,
+  hasCompleteGraphNodePositions,
   reuseGraphNodePositions,
   resolveLightweightForceLayout,
   resolveStyledPreviewNodeId,
@@ -489,7 +490,6 @@ export function useG6(options: UseG6Options) {
       theme: getThemeName(options.themeMode),
       animation: ELEMENT_UPDATE_ANIMATION,
       data: { nodes: [], edges: [] },
-      layout: getDefaultLayout(),
       node: {
         type: 'circle',
       },
@@ -636,26 +636,39 @@ export function useG6(options: UseG6Options) {
       const [centerX, centerY] = previousPayload && graph.rendered
         ? graph.getViewportCenter()
         : [0, 0];
-      const positionResult = reuseGraphNodePositions(
-        payload.data,
-        previousPayload ? graph.getNodeData() : [],
-        { x: centerX, y: centerY },
-      );
+      const hasPresetPositions = hasCompleteGraphNodePositions(payload.data);
+      const positionResult = hasPresetPositions
+        ? { data: payload.data, reusedNodeCount: 0, shouldReusePositions: false }
+        : reuseGraphNodePositions(
+            payload.data,
+            previousPayload ? graph.getNodeData() : [],
+            { x: centerX, y: centerY },
+          );
       const nextPayload = { ...payload, data: positionResult.data };
       dataRef.current = nextPayload;
       styleSnapshotRef.current = createStyleSnapshot(nextPayload.data);
       graph.setData(nextPayload.data);
-      const layout = getDefaultLayout(payload.nodeIds.length);
-      graph.setLayout(layout);
 
       try {
-        if (positionResult.shouldReusePositions) {
-          await graph.draw();
-          callbacksRef.current.onLayoutRunningChange?.(true);
-          await waitForLayout(() => graph.layout(layout));
+        if (hasPresetPositions) {
+          const wasRendered = graph.rendered;
+          if (wasRendered) {
+            await graph.draw();
+          } else {
+            await graph.render();
+            await graph.fitView({ when: 'always', direction: 'both' });
+          }
         } else {
-          callbacksRef.current.onLayoutRunningChange?.(true);
-          await waitForLayout(() => graph.render());
+          const layout = getDefaultLayout(payload.nodeIds.length);
+          graph.setLayout(layout);
+          if (positionResult.shouldReusePositions) {
+            await graph.draw();
+            callbacksRef.current.onLayoutRunningChange?.(true);
+            await waitForLayout(() => graph.layout(layout));
+          } else {
+            callbacksRef.current.onLayoutRunningChange?.(true);
+            await waitForLayout(() => graph.render());
+          }
         }
         if (
           token !== renderTokenRef.current ||
