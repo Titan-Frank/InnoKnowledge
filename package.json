@@ -17,8 +17,8 @@
     "packages/pipeline"
   ],
   "scripts": {
-    "demo": "bash scripts/demo-local.sh serve",
-    "demo:seed": "bash scripts/demo-local.sh seed-only",
+    "demo": "node scripts/demo-local.mjs serve",
+    "demo:seed": "node scripts/demo-local.mjs seed-only",
     "artifact:export": "npm run build -w packages/server && node scripts/export-public-artifact.mjs --allow-unreviewed && npm run artifact:viewer",
     "artifact:viewer": "node scripts/sync-public-viewer.mjs",
     "artifact:verify": "node scripts/verify-public-artifact.mjs",
