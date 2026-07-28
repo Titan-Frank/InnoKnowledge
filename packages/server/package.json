@@ -10,8 +10,7 @@
     "backfill-unit-embeddings": "npm run build && node dist/cli/backfill-unit-embeddings.js",
     "start": "node dist/index.js",
     "check": "tsc --noEmit",
-    "test": "npm run build && node --test \"dist/**/*.test.js\"",
-    "evaluate-runtime": "npm run build && node dist/cli/evaluate-runtime.js"
+    "test": "npm run build && node --test \"dist/**/*.test.js\""
   },
   "dependencies": {
     "@hono/node-server": "^1.13.8",

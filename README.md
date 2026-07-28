@@ -179,8 +179,6 @@ packages/server     Hono API, PostgreSQL query layer, and runtime
 packages/viewer     React/Vite graph and review workbench
 schemas             JSON Schemas, PostgreSQL DDL, and knowledge standards
 examples/demo-data  Repository-authored populated demo
-examples/sample-data Legacy import fixtures; audit rights before public release
-experiments         Reproducible experiment source, schemas, and reviewed fixtures/reports
 docs                Theory, architecture, contracts, reports, and run notes
 artifacts           Versioned, read-only public result layers
 ```
@@ -191,7 +189,7 @@ PostgreSQL is the only canonical application store. Generated `data`, `runs`, `s
 
 The implemented system demonstrates governed object extraction, evidence preservation, structured unit assembly, retrieval, and citation-identifier membership checks. It does **not** yet establish semantic entailment for every generated claim, that the graph is pedagogically optimal, or that object-level retrieval improves learning outcomes.
 
-The hosted artifact and populated fixture are structural and interface releases, not paper-grade benchmarks. The repository includes pilot and ablation scaffolding plus reviewed summary reports, but adjudicated multi-subject labels, completed independent human review, fully reproducible external baselines, and learning-outcome evaluation remain open work.
+The hosted artifact and populated fixture are structural and interface releases, not paper-grade benchmarks. Research experiments and textbook-derived fixtures remain outside the public source release until they have a separate provenance, rights, and reproducibility review. Adjudicated multi-subject labels, completed independent human review, fully reproducible external baselines, and learning-outcome evaluation remain open work.
 
 ## Data rights, license, and citation
 

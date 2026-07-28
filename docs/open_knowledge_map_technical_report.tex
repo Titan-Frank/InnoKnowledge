@@ -872,18 +872,9 @@ Quality dashboard & Operational quality metrics are visible in the server and de
 
 The July 13 verification command \code{npm run verify} covers repository-wide type checks, pipeline, server, and viewer tests, and production builds. Exact test counts are deliberately left to the machine-generated command output so that the report does not become stale whenever coverage grows. The Vite build may emit a bundle-size warning for the main viewer chunk; this does not fail the build, but it remains a frontend performance item. The current test design should continue to grow around business-output parity and database correctness. For database paths, useful tests should create temporary rows, verify writes and reads, and clean up after themselves. For extraction behavior, focused fixtures are more valuable than broad snapshots because the model layer itself is probabilistic.
 
-\section{Preliminary Runtime Evaluation and Reproducibility}
+\section{Evaluation and Reproducibility Boundary}
 
-The tracked repository contains a small five-question physics fixture under \code{experiments/}, named \code{runtime-apiunit-grounding-small.jsonl}, and a command-line evaluator:
-
-\begin{lstlisting}[language=bash]
-npm run evaluate-runtime -w packages/server -- \
-  --source main --db "$DATABASE_URL" --retrieval-mode hybrid
-\end{lstlisting}
-
-The fixture contains five hand-authored physics questions, each with one expected node identifier. Without \code{--generate}, the command reports retrieval hit rate and recall against those identifiers. With \code{--generate}, it additionally reports expected-term coverage, identifier-level citation validity, invalid-citation count, and the model-reported \code{unsupported_claims} field. The repository does not include the evaluated database snapshot or a machine-readable output for the July 10 local run, so this report does not present those local values as reproducible effectiveness results.
-
-The fixture and evaluator provide a development smoke check rather than a paper-grade benchmark: they cover one subject, only five questions, locally assigned node identifiers, and no independent adjudication. The tracked repository also includes pilot and ablation scripts, manuals, and result summaries. Generated experiment outputs remain excluded by default, and the current materials do not provide a completed independent human-scoring record; this report therefore makes no paper-grade comparative-performance claim from them.
+The public source release does not include research experiment workspaces, textbook-derived evaluation fixtures, local database snapshots, or machine-readable benchmark outputs. Those materials remain local until they have a separate provenance, rights, and reproducibility review. The repository verification suite therefore supports software-contract and regression claims only; it does not provide paper-grade comparative-performance evidence or a completed independent human-scoring record.
 
 \subsection{Artifact, Data, and Rights Boundary}
 
@@ -893,7 +884,7 @@ The repository contains a read-only public inspection artifact at \code{artifact
 
 Figures~\ref{fig:ui-graph-overview}--\ref{fig:ui-pipeline-debug} use \code{examples/demo-data}, a repository-authored synthetic home-solar module with nine directly seeded Knowledge Objects, twelve typed relations, and nine synthetic evidence records marked \code{quality_excluded}. It is not a real textbook, a model-extraction run, or an evaluation benchmark. A fresh clone can use this module to exercise database, API, and interface contracts without a model provider.
 
-The \code{examples/sample-data} directory is a legacy import-fixture set and is not public-safe as a whole. Its small Markdown snippets are explicitly synthetic, while its named-edition outlines and enrichment trees require file-by-file provenance and redistribution review. Original textbook PDFs, OCR or MinerU derivatives, source images, development database snapshots, and run logs are not public release artifacts. Reproducing the historical physics counts requires authorized access to the source material, compatible configured services, and the recorded run configuration; those counts are operational observations rather than a released benchmark.
+Legacy textbook-derived import fixtures and research experiment workspaces are excluded from the public source-release boundary. Original textbook PDFs, OCR or MinerU derivatives, source images, development database snapshots, and run logs are not public release artifacts. Reproducing the historical physics counts requires authorized access to the source material, compatible configured services, and the recorded run configuration; those counts are operational observations rather than a released benchmark.
 
 \subsection{Ethics, Authorship, and Disclosure Boundary}
 

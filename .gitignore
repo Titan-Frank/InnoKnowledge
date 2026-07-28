@@ -39,31 +39,10 @@ lesson1_*.txt
 /data/outlines/*
 !/data/outlines/.gitkeep
 
-# Experiment source, fixtures, schemas, and reports are versioned.
-# Generated results and third-party runtimes stay local.
-/experiments/**/outputs/*
-!/experiments/**/outputs/.gitignore
-/experiments/**/external/cache/
-/experiments/**/external/work/
-
-# Benchmark data derived from local textbooks stays local until rights review.
-/experiments/**/data/
-/experiments/**/fixtures/**/*.json
-/experiments/**/fixtures/**/*.jsonl
-/experiments/**/fixtures/**/*.csv
-
-/experiments/**/*.zip
-/experiments/**/*.tar
-/experiments/**/*.tar.gz
-/experiments/**/*.jar
-/experiments/**/*.pt
-/experiments/**/*.pth
-/experiments/**/*.ckpt
-/experiments/**/*.safetensors
-/experiments/**/*.onnx
-/experiments/**/*.parquet
-/experiments/**/*.sqlite
-/experiments/**/*.sqlite3
+# Research work and legacy textbook-derived fixtures stay local until a
+# separate, rights-reviewed release is prepared.
+/experiments/
+/examples/sample-data/
 
 # Local helper tools
 /tools/

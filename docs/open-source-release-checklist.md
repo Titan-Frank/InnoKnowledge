@@ -14,7 +14,6 @@ This checklist separates release blockers from presentation improvements. Comple
 - [ ] Review `.env`, logs, run manifests, screenshots, PDFs, database exports, and benchmark outputs before staging.
 - [ ] Confirm that the author names, affiliations, and email addresses embedded in the technical report are intended for public release.
 - [ ] Confirm whether the software citation author and the technical-report authors belong to different attribution scopes; update `CITATION.cff` accordingly.
-- [ ] Complete a file-by-file provenance and rights audit of the legacy `examples/sample-data` fixtures.
 - [ ] Decide whether the repository itself will become public or whether a separate public release repository will contain the safe output layer.
 
 ## High-priority release work
@@ -32,6 +31,7 @@ This checklist separates release blockers from presentation improvements. Comple
 - [x] Add a versioned release manifest with counts and checksums for every public data file.
 - [x] Add a versioned changelog entry for the first public preview.
 - [x] Add a root documentation index and ensure every README link resolves.
+- [x] Remove legacy textbook-derived fixtures and research experiments from the public source-release boundary.
 
 ## GitHub release configuration
 
