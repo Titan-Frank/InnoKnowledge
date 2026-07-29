@@ -72,7 +72,7 @@ function inferMineruLanguage(text: string): string {
 }
 
 function extractionTemplateForSubject(subject: string): string {
-  if (subject === 'physics' || subject === 'chemistry' || subject === 'biology') return `textbook/${subject}`;
+  if (subject === 'physics' || subject === 'chemistry' || subject === 'biology' || subject === 'mathematics') return `textbook/${subject}`;
   return 'auto';
 }
 

@@ -1072,6 +1072,12 @@ The fixed template prompt fields currently present in \code{schemas/extraction-t
 关系规则：公式表示物理量关系时，优先使用 represents 或 depends\_on。过程导致状态或物理量变化时，优先使用 causes 或 affects。实验方法使用器材、产生数据或验证规律时，使用 uses、produces、represents。\par
 证据规则：公式、图像、表格、实验说明都可以作为 evidence，但必须保留 locator 和 modality。\par
 
+数学教材抽取模板。\par
+抽取重点：优先抽取可复用的数学对象与概念、定义、公理、定理或命题、性质、公式或恒等式、运算与变换、证明或解题方法，以及符号、图形、表格和函数图像等表征。明确区分数学对象、关于对象的断言、操作或推理方法和外在表征。对定义域、取值范围、前提条件、量词、变量含义、结论、适用边界和反例要放入 properties.semantic\_core。\par
+节点规则：可独立指称的数学对象使用 entity，抽象类别和一般性术语使用 concept，可复用性质或数量特征使用 property。公理、定理、命题、公式、恒等式和运算法则使用 rule；运算或变换过程使用 process；证明策略、算法、作图方法和解题程序使用 method；符号、代数式、方程、坐标表示、图形、函数图像和统计图表使用 representation。单个变量、题号、题型标签、一次性例题数据、普通中间步骤和仅对当前习题成立的数值答案不得提升为正式知识节点。\par
+关系规则：类别与实例使用 is\_a 或 instance\_of，整体结构使用 part\_of 或 contains，对象与性质使用 has\_property。定理、结论或方法对定义、条件和其他规则的依赖使用 depends\_on；证明、算法或解题方法引用规则时使用 uses，得到稳定结果时使用 produces。表征指向数学对象或关系时使用 represents；仅在教材明确给出等价关系时使用 same\_as。不要把逻辑蕴含误写为 causes 或 affects。\par
+证据规则：定义、命题和定理证据必须尽量同时保留条件与结论；不得省略否定词、量词、定义域、取值范围或关键限定。公式证据应保留完整表达式、变量含义和适用条件。公式、几何图、函数图像、统计图表和表格都可以作为核心 evidence，但必须保留 locator 和正确的 modality。\par
+
 化学教材抽取模板。\par
 抽取重点：优先抽取物质、微粒、结构、性质、反应、条件、现象、实验操作和化学符号。对反应条件、现象、产物、守恒、结构性质关系要放入 properties.semantic\_core。关系重点关注物质组成、结构决定性质、条件影响反应、方法使用试剂或仪器。\par
 节点规则：具体物质、微粒、仪器和样品使用 entity。物质性质使用 property，反应或变化过程使用 process，化学方程式和规则使用 rule 或 representation。实验操作和检验方法使用 method。\par

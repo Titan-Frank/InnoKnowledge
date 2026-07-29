@@ -104,6 +104,7 @@ const initialForm: PipelineForm = {
 
 const EXTRACTION_TEMPLATE_OPTIONS = [
   { value: 'auto', label: '自动选择' },
+  { value: 'textbook/mathematics', label: '数学教材' },
   { value: 'textbook/physics', label: '物理教材' },
   { value: 'textbook/chemistry', label: '化学教材' },
   { value: 'textbook/biology', label: '生物教材' },
