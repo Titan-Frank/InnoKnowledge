@@ -8,11 +8,12 @@
 
 [线上只读查看器](https://open-knowledge-map.pages.dev/)当前使用版本化的 `knowledge/main` 成果快照：**182 个知识对象、144 条类型化关系、537 条导出证据、182 张知识卡片和 182 篇知识正文**。上面的截图特意使用较小的仓库原创太阳能样例，避免在项目首页展示第三方教材内容；其中的 9 个对象和 12 条关系既不代表公开成果规模，也不是准确率基准。
 
-## 三层体验方式
+## 运行方式
 
 1. **直接打开线上查看器：** 不需要 PostgreSQL 和模型密钥，立即检查当前 `main` 成果。
-2. **运行本地安全样例：** 执行 `npm install && npm run demo`，在 <http://127.0.0.1:8765/viewer/> 打开独立的仓库原创图谱。
-3. **处理你有权使用的材料：** 配置 PostgreSQL、MinerU 和模型服务后，运行下文的课时级 TypeScript 流水线。
+2. **本地开发运行：** 按下文初始化 PostgreSQL，再执行 `npm run dev`，从 <http://127.0.0.1:8765/viewer/> 访问 API 和 viewer。
+3. **运行带数据的安全样例：** 执行 `npm install && npm run demo`，在同一本地地址打开隔离的仓库原创图谱。
+4. **处理你有权使用的材料：** 配置 MinerU 和模型服务后，运行下文的课时级 TypeScript 流水线。
 
 ## 项目解决什么问题
 
@@ -72,16 +73,29 @@ flowchart LR
 
 详细说明见[理论决策记录](docs/theory-decision-record.md)、[AI-NKS v0.1](docs/ai-nks-v0.1.md)和[知识单元契约](docs/knowledge-unit-contract.md)。
 
-## 本地一键安全样例
+## 本地开发
 
 需要 Node.js 22+、npm、Docker 和 Docker Compose。
 
 ```bash
 npm install
+docker compose up -d postgres
+export DATABASE_URL=postgresql://okm:okm@127.0.0.1:5432/knowledge
+docker compose exec -T postgres psql -U okm -d knowledge < schemas/pg/knowledge_store.sql
+npm run dev
+```
+
+打开 <http://127.0.0.1:8765/viewer/>。根目录的 `dev` 命令会先构建 viewer，再启动 API 服务，并持续监听 server 和 viewer 的代码变化。本地只保留一个 HTTP 入口，viewer 由服务端从 `/viewer/` 提供。
+
+## 一键安全样例
+
+如需在隔离的 `okm_demo` 数据库中运行仓库原创图谱：
+
+```bash
 npm run demo
 ```
 
-打开 <http://127.0.0.1:8765/viewer/>。该命令会启动 PostgreSQL、创建独立的 `okm_demo` 数据库、导入原创图谱、构建应用并启动服务。它不会修改默认的 `knowledge` 数据库，也不需要模型密钥。演示数据的准确范围和解释边界见[完整说明](examples/demo-data/README.md)。
+该命令会启动 PostgreSQL、创建演示数据库、导入原创图谱、构建应用并启动服务。它不会修改默认的 `knowledge` 数据库，也不需要模型密钥。演示数据的准确范围和解释边界见[完整说明](examples/demo-data/README.md)。
 
 如果只想初始化或刷新演示数据库：
 
@@ -91,15 +105,7 @@ npm run demo:seed
 
 ## 处理你有权使用的材料
 
-先初始化正式应用数据库：
-
-```bash
-docker compose up -d postgres
-export DATABASE_URL=postgresql://okm:okm@127.0.0.1:5432/knowledge
-docker compose exec -T postgres psql -U okm -d knowledge < schemas/pg/knowledge_store.sql
-```
-
-配置抽取流程需要的服务：
+按上文初始化正式应用数据库后，配置抽取流程需要的服务：
 
 ```bash
 export MINERU_API_KEY=你的_MinerU_令牌

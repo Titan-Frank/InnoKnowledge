@@ -13,11 +13,12 @@
 
 The [hosted read-only viewer](https://open-knowledge-map.pages.dev/) currently serves the versioned `knowledge/main` snapshot: **182 knowledge objects**, **144 typed relations**, **537 exported evidence records**, **182 cards**, and **182 knowledge bodies**. The screenshot above deliberately uses the smaller repository-authored solar fixture so that the interface can be shown without reproducing third-party textbook content; its 9 objects and 12 relations are not the scale of the published snapshot or an accuracy benchmark.
 
-## Three ways to try it
+## Ways to run it
 
 1. **Open the hosted viewer:** inspect the current `main` snapshot immediately, without PostgreSQL or model credentials.
-2. **Run the safe local fixture:** `npm install && npm run demo` starts an isolated, repository-authored graph at <http://127.0.0.1:8765/viewer/>.
-3. **Process authorized material:** configure PostgreSQL, MinerU, and a model endpoint, then run the lesson-level TypeScript pipeline described below.
+2. **Run local development:** initialize PostgreSQL as described below, then use `npm run dev` to serve the API and viewer at <http://127.0.0.1:8765/viewer/>.
+3. **Run the safe populated fixture:** `npm install && npm run demo` starts an isolated, repository-authored graph on the same local URL.
+4. **Process authorized material:** configure MinerU and a model endpoint, then run the lesson-level TypeScript pipeline described below.
 
 ## Why this project exists
 
@@ -77,16 +78,29 @@ The project separates three versioned layers:
 
 See [the theory decision record](docs/theory-decision-record.md), [AI-NKS v0.1](docs/ai-nks-v0.1.md), and [the knowledge unit contract](docs/knowledge-unit-contract.md).
 
-## One-command local fixture
+## Local development
 
 Requirements: Node.js 22+, npm, Docker, and Docker Compose.
 
 ```bash
 npm install
+docker compose up -d postgres
+export DATABASE_URL=postgresql://okm:okm@127.0.0.1:5432/knowledge
+docker compose exec -T postgres psql -U okm -d knowledge < schemas/pg/knowledge_store.sql
+npm run dev
+```
+
+Open <http://127.0.0.1:8765/viewer/>. The root `dev` command builds the viewer once, starts the API server, and watches both the server and viewer for changes. The server is the only local HTTP entry point; the viewer is served from `/viewer/`.
+
+## One-command safe fixture
+
+To run the repository-authored graph in an isolated `okm_demo` database:
+
+```bash
 npm run demo
 ```
 
-Open <http://127.0.0.1:8765/viewer/>. The command starts PostgreSQL, creates an isolated `okm_demo` database, loads the self-authored graph, builds the application, and starts the server. It does not modify the default `knowledge` database and does not require a model API key. See [the demo documentation](examples/demo-data/README.md) for its exact contents and interpretation boundary.
+The demo command starts PostgreSQL, creates the demo database, loads the self-authored graph, builds the application, and starts the server. It does not modify the default `knowledge` database and does not require a model API key. See [the demo documentation](examples/demo-data/README.md) for its exact contents and interpretation boundary.
 
 To initialize only the demo database:
 
@@ -96,15 +110,7 @@ npm run demo:seed
 
 ## Process material you are authorized to use
 
-Initialize the normal application database:
-
-```bash
-docker compose up -d postgres
-export DATABASE_URL=postgresql://okm:okm@127.0.0.1:5432/knowledge
-docker compose exec -T postgres psql -U okm -d knowledge < schemas/pg/knowledge_store.sql
-```
-
-Configure the services needed by the extraction flow:
+After initializing the normal application database as shown above, configure the services needed by the extraction flow:
 
 ```bash
 export MINERU_API_KEY=your_mineru_token
