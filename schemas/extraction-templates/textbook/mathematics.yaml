@@ -1,0 +1,120 @@
+id: textbook/mathematics
+version: 1
+name: 数学教材抽取模板
+description: 面向数学教材，强调数学对象、定义、性质、命题、公式、运算、证明与解题方法，以及符号、图形和函数图像等表征。
+selector:
+  subjects:
+    - mathematics
+    - math
+    - 数学
+  book_id_patterns:
+    - mathematics
+    - math
+    - 数学
+prompt:
+  focus:
+    - 优先抽取可复用的数学对象与概念、定义、公理、定理或命题、性质、公式或恒等式、运算与变换、证明或解题方法，以及符号、图形、表格和函数图像等表征。
+    - 明确区分数学对象、关于对象的断言、操作或推理方法和外在表征，避免把同一内容重复建成多个不同主类节点。
+    - 对定义域、取值范围、前提条件、量词、变量含义、结论、适用边界和反例要放入 properties.semantic_core。
+  node_rules:
+    - 可独立指称的数集、特定几何对象、函数、数列等数学对象使用 entity；抽象类别和一般性术语使用 concept；可复用的性质或数量特征使用 property。
+    - 公理、定理、命题、公式、恒等式和运算法则使用 rule；运算或变换过程使用 process；证明策略、算法、作图方法和解题程序使用 method。
+    - 符号、代数式、方程、坐标表示、图形、函数图像和统计图表使用 representation；若公式表达的是可复用数学断言，优先建为 rule，并把公式本身保存在 formal_expressions 中，避免重复建点。
+    - 单个变量、题号、题型标签、一次性例题数据、普通中间步骤和仅对当前习题成立的数值答案不得提升为正式知识节点。
+  edge_rules:
+    - 类别与实例使用 is_a 或 instance_of，整体结构使用 part_of 或 contains，对象与性质使用 has_property。
+    - 定理、结论或方法对定义、条件和其他规则的依赖使用 depends_on；证明、算法或解题方法引用规则时使用 uses，得到稳定结果时使用 produces。
+    - 符号、式子、图形或函数图像指向其数学对象或关系时使用 represents；仅在教材明确给出等价关系时使用 same_as。
+    - prerequisite_for 只表达教材明确支持的学习前置关系；不要把逻辑蕴含误写为 causes 或 affects，证据不足时使用 related_to 或不输出关系。
+  evidence_rules:
+    - 定义、命题和定理证据必须尽量同时保留条件与结论；不得省略否定词、量词、定义域、取值范围或关键限定。
+    - 公式证据应保留完整表达式、变量含义和适用条件；证明或方法关系必须由当前教材片段中的推理、步骤或明确引用直接支持。
+    - 公式、几何图、函数图像、统计图表和表格都可以作为核心 evidence，但必须保留 locator 和正确的 modality。
+output:
+  node_fields:
+    - id
+    - name
+    - kind
+    - subkind
+    - definition
+    - aliases
+    - domains
+    - knowledge_form
+    - learning_mode
+    - scope
+    - properties.semantic_core.core_claims
+    - properties.semantic_core.formal_expressions
+    - properties.semantic_core.conditions
+    - properties.semantic_core.boundaries
+    - properties.semantic_core.counterexamples
+    - properties.semantic_core.misconceptions
+    - tags
+  edge_fields:
+    - from
+    - to
+    - type
+    - directionality
+    - confidence
+    - evidence_anchor
+    - notes
+  evidence_fields:
+    - anchor
+    - excerpt
+    - locator
+    - modality
+    - node_ids
+  allowed_node_kinds:
+    - entity
+    - concept
+    - property
+    - process
+    - method
+    - rule
+    - representation
+  preferred_edge_types:
+    - is_a
+    - instance_of
+    - part_of
+    - contains
+    - has_property
+    - uses
+    - produces
+    - depends_on
+    - prerequisite_for
+    - represents
+    - same_as
+    - related_to
+identifiers:
+  node_id: "{kind}:{mathematics_role}:{normalized_name}"
+  relation_id: "{from}:{type}:{to}"
+  evidence_anchor: "ev{index}"
+display:
+  node_labels:
+    entity: 数学对象
+    concept: 数学概念
+    property: 性质/数量特征
+    process: 运算/变换
+    method: 证明/解题方法
+    rule: 公理/定理/公式
+    representation: 符号/式/图形
+  edge_labels:
+    is_a: 属于
+    instance_of: 是实例
+    part_of: 是组成部分
+    contains: 包含
+    has_property: 具有性质
+    uses: 使用
+    produces: 得到
+    depends_on: 依赖
+    prerequisite_for: 前置知识
+    represents: 表征
+    same_as: 等价于
+    related_to: 相关
+  colors:
+    entity: "#3782FF"
+    concept: "#8C55FF"
+    property: "#FFB400"
+    process: "#2BA876"
+    method: "#1EB478"
+    rule: "#D05A3A"
+    representation: "#5580CC"
