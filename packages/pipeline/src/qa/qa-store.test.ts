@@ -26,6 +26,34 @@ test("runs strict QA from canonical database rows", async () => {
   ]);
 });
 
+test("scopes strict QA failures to nodes sourced from the requested book", async () => {
+  const result = await runStrictQaFromDatabase({
+    datasetId: "main",
+    bookId: "book-a",
+    query: (statement) => {
+      if (statement.name === "select-strict-qa-book-node-ids") return [{ id: "node:water" }];
+      if (statement.name === "select-strict-qa-nodes") {
+        return [
+          ...qaRowsForStatement(statement.name),
+          {
+            id: "node:legacy",
+            name: "Legacy",
+            kind: "concept",
+            definition: "Legacy fixture.",
+            domains_json: ["invalid-domain"],
+            learning_mode_json: ["conceptual"],
+          },
+        ];
+      }
+      return qaRowsForStatement(statement.name);
+    },
+  });
+
+  assert.equal(result.status, "success");
+  assert.deepEqual(result.errors, []);
+  assert.ok(result.read_statements.includes("select-strict-qa-book-node-ids"));
+});
+
 test("runs graph integrity and marks selected lesson runs QA passed when requested", async () => {
   const executed: string[] = [];
   const result = await runGraphIntegrityFromDatabase({

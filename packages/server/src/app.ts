@@ -27,7 +27,7 @@ export function createApp(sql: Sql, dbUrl: string): Hono {
   registerBundleRoutes(app, sql);
   registerNodeCardRoutes(app, sql);
   registerUnitRoutes(app, sql);
-  registerPipelineRoutes(app, sql);
+  registerPipelineRoutes(app, sql, dbUrl);
   registerImageReviewRoutes(app, sql);
   registerSearchRoutes(app, sql);
   registerRuntimeRoutes(app, sql);

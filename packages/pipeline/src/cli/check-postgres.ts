@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { isMainModule } from "../shared/cli-entry.js";
+
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -59,7 +61,7 @@ function parseSeconds(value: string | undefined, fallback: number): number {
   return parsed;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   main(process.argv.slice(2))
     .then((code) => {
       process.exitCode = code;

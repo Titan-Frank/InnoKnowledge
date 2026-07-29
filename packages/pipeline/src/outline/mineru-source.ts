@@ -1,6 +1,7 @@
-import { spawn } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { cpSync, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { pipeline } from "node:stream/promises";
+import yauzl from "yauzl";
 
 type RawRecord = Record<string, unknown>;
 
@@ -228,7 +229,7 @@ function withDefaultDependencies(apiKey: string, deps: MineruSourceDependencies)
     requestJson: deps.requestJson ?? ((method, url, payload) => defaultRequestJson(method, url, apiKey, payload)),
     putFile: deps.putFile ?? defaultPutFile,
     downloadFile: deps.downloadFile ?? defaultDownloadFile,
-    extractZip: deps.extractZip ?? defaultExtractZip,
+    extractZip: deps.extractZip ?? extractZipArchive,
     sleep: deps.sleep ?? ((ms) => new Promise((resolvePromise) => setTimeout(resolvePromise, ms))),
     now: deps.now ?? (() => Date.now()),
   };
@@ -262,39 +263,45 @@ async function defaultDownloadFile(url: string, outPath: string): Promise<void> 
   writeFileSync(outPath, Buffer.from(await response.arrayBuffer()));
 }
 
-async function defaultExtractZip(zipPath: string, targetDir: string): Promise<void> {
+export async function extractZipArchive(zipPath: string, targetDir: string): Promise<void> {
+  const zipFile = await yauzl.openPromise(zipPath, {
+    autoClose: false,
+    lazyEntries: true,
+    strictFileNames: true,
+    validateEntrySizes: true,
+  });
+  rmSync(targetDir, { recursive: true, force: true });
   mkdirSync(targetDir, { recursive: true });
-  const members = (await runProcess("unzip", ["-Z1", zipPath])).split(/\r?\n/).filter(Boolean);
-  for (const member of members) {
-    assertSafeZipMember(member, targetDir);
+  try {
+    for await (const entry of zipFile.eachEntry()) {
+      const destination = assertSafeZipMember(entry.fileName, targetDir);
+      if (entry.fileName.endsWith("/")) {
+        mkdirSync(destination, { recursive: true });
+        continue;
+      }
+      mkdirSync(dirname(destination), { recursive: true });
+      const source = await zipFile.openReadStreamPromise(entry);
+      await pipeline(source, createWriteStream(destination));
+    }
+  } finally {
+    zipFile.close();
   }
-  await runProcess("unzip", ["-q", zipPath, "-d", targetDir]);
 }
 
-function assertSafeZipMember(member: string, targetDir: string): void {
-  if (isAbsolute(member)) throw new Error(`Refusing unsafe zip member path: ${member}`);
-  const destination = resolve(targetDir, member);
+export function assertSafeZipMember(member: string, targetDir: string): string {
+  const normalizedMember = member.replace(/\\/g, "/");
+  if (
+    !normalizedMember
+    || normalizedMember.includes("\0")
+    || isAbsolute(normalizedMember)
+    || /^[a-zA-Z]:/.test(normalizedMember)
+  ) {
+    throw new Error(`Refusing unsafe zip member path: ${member}`);
+  }
+  const destination = resolve(targetDir, normalizedMember);
   const relativePath = relative(resolve(targetDir), destination);
   if (relativePath === "" || relativePath.startsWith("..") || isAbsolute(relativePath)) throw new Error(`Refusing unsafe zip member path: ${member}`);
-}
-
-function runProcess(command: string, args: string[]): Promise<string> {
-  return new Promise((resolvePromise, reject) => {
-    const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"] });
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (chunk) => {
-      stdout += String(chunk);
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr += String(chunk);
-    });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code === 0) resolvePromise(stdout);
-      else reject(new Error(stderr.trim() || `${command} exited with code ${code ?? "unknown"}.`));
-    });
-  });
+  return destination;
 }
 
 function walkFiles(root: string): string[] {

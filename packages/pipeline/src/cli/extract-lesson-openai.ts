@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { isMainModule } from "../shared/cli-entry.js";
+
 import { existsSync, readFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
 import { env as processEnv } from "node:process";
@@ -651,7 +653,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   raise(main(process.argv.slice(2)));
 }
 

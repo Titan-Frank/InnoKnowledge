@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { isMainModule } from "../shared/cli-entry.js";
+
 import { runStoreStaging, type StoreStagingInput } from "../staging/staging-store.js";
 import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
@@ -113,7 +115,7 @@ function required(flags: Map<string, string>, name: string): string {
   return value;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   raise(main(process.argv.slice(2)));
 }
 

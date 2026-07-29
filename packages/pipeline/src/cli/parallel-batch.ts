@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { isMainModule } from "../shared/cli-entry.js";
+
 import { runParallelBatchPlan } from "../extraction/parallel-batch-runner.js";
 
 async function main(argv: string[]): Promise<number> {
@@ -84,7 +86,7 @@ function parseApiMode(value: string | undefined): "responses" | "chat_completion
   throw new Error(`Invalid --api-mode '${value}'. Expected responses or chat_completions.`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   raise(main(process.argv.slice(2)));
 }
 

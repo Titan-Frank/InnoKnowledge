@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { isMainModule } from "../shared/cli-entry.js";
+
 import { runStrictQaFromDatabase } from "../qa/qa-store.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
@@ -23,6 +25,7 @@ async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promi
   try {
     return await runStrictQaFromDatabase({
       datasetId: required(flags, "dataset-id"),
+      bookId: flags.get("book-id") ?? "",
       query: async (statement) => {
         assertSelectStatement(statement);
         const rows = await sql.unsafe(statement.sql, statement.params as never[]);
@@ -72,7 +75,7 @@ function isRecord(value: unknown): value is RawRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   raise(main(process.argv.slice(2)));
 }
 

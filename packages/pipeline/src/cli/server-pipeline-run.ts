@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { isMainModule } from "../shared/cli-entry.js";
+
 import { spawn } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
@@ -116,6 +118,7 @@ type RunnerOptions = {
 type RawRecord = Record<string, unknown>;
 
 const CLI_DIR = dirname(fileURLToPath(import.meta.url));
+const TRANSIENT_EXTRACTION_RETRY_COUNT = 1;
 
 async function main(argv: string[]): Promise<number> {
   try {
@@ -221,7 +224,11 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       );
     }
 
-    if (!existsSync(outlinePath) && options.pdfPath) {
+    if (shouldExtractPdfOutline({
+      outlineExists: existsSync(outlinePath),
+      pdfPath: options.pdfPath,
+      sourceMarkdownPath,
+    })) {
       await recordStage(result, progressStore, { id: "extract_pdf_outline", status: "running" });
       const pdfOutlineStage = await extractPdfOutline({
         bookId: options.bookId,
@@ -332,20 +339,62 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
 
     const lessonStage: ServerPipelineStage = { id: "lesson_staging", status: "running", output: lessonProgress(commands.length, 0, 0, [], []) };
     await recordStage(result, progressStore, lessonStage);
-    const lessonResults = await runExtractionCommands(commands, options.parallelism, {
+    const initialLessonResults = await runExtractionCommands(commands, options.parallelism, {
       commandRunner: options.commandRunner,
       progressStore,
       result,
       stage: lessonStage,
     });
+    const initialFailed = initialLessonResults.filter((lessonResult) => lessonResult.exit_code !== 0);
+    const transientRetryCommands = commands.filter((command) => {
+      const failedResult = initialFailed.find((lessonResult) => lessonResult.lesson_run_id === command.lesson_run_id);
+      return failedResult ? isRetryableExtractionFailure(failedResult) : false;
+    });
+    let lessonResults = initialLessonResults;
+    if (transientRetryCommands.length > 0 && TRANSIENT_EXTRACTION_RETRY_COUNT > 0) {
+      const retryStage: ServerPipelineStage = {
+        id: "lesson_staging_retry_transport_1",
+        status: "running",
+        output: lessonProgress(transientRetryCommands.length, 0, 0, [], []),
+      };
+      await recordStage(result, progressStore, retryStage);
+      const retryResults = await runExtractionCommands(transientRetryCommands, options.parallelism, {
+        commandRunner: options.commandRunner,
+        progressStore,
+        result,
+        stage: retryStage,
+      });
+      const retryByLessonRunId = new Map(retryResults.map((retryResult) => [String(retryResult.lesson_run_id), retryResult]));
+      lessonResults = initialLessonResults.map(
+        (lessonResult) => retryByLessonRunId.get(String(lessonResult.lesson_run_id)) ?? lessonResult,
+      );
+      const retryFailed = retryResults.filter((retryResult) => retryResult.exit_code !== 0);
+      retryStage.status = retryFailed.length > 0 ? "blocked" : "completed";
+      retryStage.output = {
+        ...lessonProgress(
+          transientRetryCommands.length,
+          retryResults.length - retryFailed.length,
+          retryFailed.length,
+          [],
+          compactLessonResults(retryResults).slice(-12),
+        ),
+        results: compactLessonResults(retryResults),
+      };
+      if (retryFailed.length > 0) {
+        retryStage.error = extractionFailureSummary(retryFailed, "transient retry");
+      }
+      await recordStage(result, progressStore, retryStage);
+    }
     const failed = lessonResults.filter((lessonResult) => lessonResult.exit_code !== 0);
     lessonStage.status = failed.length > 0 ? "blocked" : "completed";
     lessonStage.output = {
       ...lessonProgress(commands.length, lessonResults.length - failed.length, failed.length, [], compactLessonResults(lessonResults).slice(-12)),
       results: compactLessonResults(lessonResults),
+      initial_failed: compactLessonResults(initialFailed),
+      recovered_transient_failures: initialFailed.length - failed.length,
     };
     if (failed.length > 0) {
-      lessonStage.error = `${failed.length} lesson extraction command(s) failed.`;
+      lessonStage.error = extractionFailureSummary(failed, "lesson extraction");
       await recordStage(result, progressStore, lessonStage);
       await progressStore.updateJob({
         datasetId: options.datasetId,
@@ -406,6 +455,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
         "node_bodies",
         buildNodeBodiesCommand(options),
         "Node body generation command failed.",
+        1,
       );
       if (!nodeBodiesOk) return result;
     }
@@ -462,6 +512,14 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
     await assetStore.close();
     await progressStore.close();
   }
+}
+
+export function shouldExtractPdfOutline(input: {
+  outlineExists: boolean;
+  pdfPath: string;
+  sourceMarkdownPath: string;
+}): boolean {
+  return !input.outlineExists && Boolean(input.pdfPath.trim()) && !input.sourceMarkdownPath.trim();
 }
 
 function addExtractionExecutionFlags(command: string[], options: RunnerOptions): string[] {
@@ -787,7 +845,16 @@ function buildUnitEmbeddingsCommand(options: RunnerOptions): string[] {
 }
 
 function buildStrictQaCommand(options: RunnerOptions): string[] {
-  return ["node", resolve(CLI_DIR, "strict-qa.js"), "--dataset-id", options.datasetId, "--db", options.dbUrl];
+  return [
+    "node",
+    resolve(CLI_DIR, "strict-qa.js"),
+    "--dataset-id",
+    options.datasetId,
+    "--db",
+    options.dbUrl,
+    "--book-id",
+    options.bookId,
+  ];
 }
 
 function buildGraphIntegrityCommand(options: RunnerOptions): string[] {
@@ -822,17 +889,32 @@ async function runPipelineCommandStage(
   id: string,
   command: string[],
   errorMessage: string,
+  outputRetryCount = 0,
 ): Promise<boolean> {
   const stage: ServerPipelineStage = { id, status: "running", output: { command } };
   await recordStage(result, progressStore, stage);
-  const commandResult = await runCommand(command, options.commandRunner);
-  const outputFailure = commandResult.exitCode === 0 ? stageFailureFromOutput(id, commandResult.stdout) : null;
+  const attempts: Array<Record<string, unknown>> = [];
+  let commandResult: CommandOutput = { exitCode: 1, stdout: "", stderr: "" };
+  let outputFailure: string | null = null;
+  for (let attempt = 0; attempt <= outputRetryCount; attempt += 1) {
+    commandResult = await runCommand(command, options.commandRunner);
+    outputFailure = commandResult.exitCode === 0 ? stageFailureFromOutput(id, commandResult.stdout) : null;
+    attempts.push({
+      attempt: attempt + 1,
+      exit_code: commandResult.exitCode,
+      output_failure: outputFailure,
+      stdout_tail: tail(commandResult.stdout),
+      stderr_tail: tail(commandResult.stderr),
+    });
+    if (commandResult.exitCode !== 0 || !outputFailure || attempt >= outputRetryCount) break;
+  }
   stage.status = commandResult.exitCode === 0 && !outputFailure ? "completed" : "blocked";
   stage.output = {
     command,
     exit_code: commandResult.exitCode,
     stdout_tail: tail(commandResult.stdout),
     stderr_tail: tail(commandResult.stderr),
+    ...(attempts.length > 1 ? { attempts } : {}),
   };
   if (stage.status === "blocked") {
     stage.error = outputFailure ?? errorMessage;
@@ -1333,6 +1415,24 @@ function compactLessonResult(result: Record<string, unknown>): Record<string, un
   };
 }
 
+function isRetryableExtractionFailure(result: Record<string, unknown>): boolean {
+  const output = `${String(result.stderr_tail ?? "")}\n${String(result.stdout_tail ?? "")}`;
+  return /fetch failed|network|socket|timeout|timed out|aborted|429|500|502|503|504/i.test(output);
+}
+
+function extractionFailureSummary(results: Array<Record<string, unknown>>, label: string): string {
+  const details = results.slice(0, 3).map((result) => {
+    const anchor = String(result.batch_anchor ?? result.lesson_run_id ?? "unknown lesson");
+    const stdout = String(result.stdout_tail ?? "");
+    const parsed = parseJsonObjectFromOutput(stdout);
+    const issues = Array.isArray(parsed?.issues) ? parsed.issues.map(String).filter(Boolean) : [];
+    const message = issues[0] ?? (String(result.stderr_tail ?? "").trim() || stdout.trim() || "command failed");
+    return `${anchor}: ${message}`;
+  });
+  const omitted = Math.max(0, results.length - details.length);
+  return `${results.length} ${label} command(s) failed: ${details.join("; ")}${omitted > 0 ? `; and ${omitted} more` : ""}`;
+}
+
 function parseOptions(argv: string[]): RunnerOptions {
   const flags = parseFlags(argv);
   const bookId = required(flags, "book-id");
@@ -1449,7 +1549,7 @@ function parseBoolean(value: string | undefined, fallback: boolean): boolean {
   return ["1", "true", "yes", "on"].includes(value.toLowerCase());
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   raise(main(process.argv.slice(2)));
 }
 

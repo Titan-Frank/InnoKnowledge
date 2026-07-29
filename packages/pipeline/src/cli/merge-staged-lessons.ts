@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { isMainModule } from "../shared/cli-entry.js";
+
 import { runMergeStagedLessonsFromDatabase } from "../merge/merge-staged-lessons-runner.js";
 import { isTransactionControlSql } from "../shared/dataset-transaction.js";
 import { preparePostgresJsParams } from "../shared/postgres-executor.js";
@@ -131,7 +133,7 @@ function isRecord(value: unknown): value is RawRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   raise(main(process.argv.slice(2)));
 }
 

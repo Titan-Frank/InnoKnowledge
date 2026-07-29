@@ -4,9 +4,22 @@ import test from "node:test";
 import { createNoopPipelineAssetStore } from "../shared/pg-assets.js";
 import { makeLessonRunId } from "../shared/pathing.js";
 import { createNoopPipelineProgressStore } from "../shared/pipeline-progress.js";
-import { runServerPipeline } from "./server-pipeline-run.js";
+import { runServerPipeline, shouldExtractPdfOutline } from "./server-pipeline-run.js";
 
 const bookId = "chem-hukj-xb2-structure";
+
+test("prefers MinerU Markdown over the optional pdftotext outline path", () => {
+  assert.equal(shouldExtractPdfOutline({
+    outlineExists: false,
+    pdfPath: "E:\\books\\math.pdf",
+    sourceMarkdownPath: "E:\\data\\mineru\\math\\full.md",
+  }), false);
+  assert.equal(shouldExtractPdfOutline({
+    outlineExists: false,
+    pdfPath: "E:\\books\\math.pdf",
+    sourceMarkdownPath: "",
+  }), true);
+});
 
 test("server pipeline runner plans TypeScript lesson extraction commands", async () => {
   const executed: string[][] = [];
@@ -58,6 +71,58 @@ test("server pipeline runner plans TypeScript lesson extraction commands", async
   assert.ok(commands[0]?.includes("--enrich-context-limit"));
   assert.ok(!commands[0]?.some((part) => part.includes("run_okm_harness.py")));
   assert.equal(executed.filter((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))).length, 37);
+});
+
+test("server pipeline retries only lessons with transient extraction failures", async () => {
+  const extractionAttempts = new Map<string, number>();
+  const result = await runServerPipeline({
+    bookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-a",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 8,
+    noChunks: false,
+    pdfPath: "",
+    subject: "computer-science",
+    schoolStage: "higher",
+    gradeBand: "university",
+    textbookId: bookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: createNoopPipelineAssetStore(),
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async (command) => {
+      if (!isExtractionCommand(command)) return { exitCode: 0, stdout: "{}", stderr: "" };
+      const anchorIndex = command.indexOf("--batch-anchor");
+      const anchor = command[anchorIndex + 1] ?? "";
+      const attempts = (extractionAttempts.get(anchor) ?? 0) + 1;
+      extractionAttempts.set(anchor, attempts);
+      if (extractionAttempts.size === 1 && attempts === 1) {
+        return {
+          exitCode: 2,
+          stdout: JSON.stringify({ status: "blocked", issues: ["OpenAI Responses extraction failed: fetch failed"] }),
+          stderr: "",
+        };
+      }
+      return { exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  });
+
+  assert.equal(result.status, "completed");
+  assert.equal([...extractionAttempts.values()].filter((attempts) => attempts === 2).length, 1);
+  assert.equal(result.stages.find((stage) => stage.id === "lesson_staging_retry_transport_1")?.status, "completed");
+  const lessonStage = result.stages.find((stage) => stage.id === "lesson_staging");
+  assert.equal(lessonStage?.status, "completed");
+  assert.equal(lessonStage?.output?.recovered_transient_failures, 1);
 });
 
 test("server pipeline runner executes TypeScript quality gate and canonical reducer after staging", async () => {
@@ -151,6 +216,8 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.ok(unitEmbeddingsCommand.includes("--dataset-id"));
   assert.ok(unitEmbeddingsCommand.includes("dataset-a"));
   assert.equal(qaStage?.status, "completed");
+  assert.ok(commands.at(-3)?.includes("--book-id"));
+  assert.ok(commands.at(-3)?.includes(bookId));
   assert.equal(integrityStage?.status, "completed");
   assert.ok(integrityCommand.some((part) => part.endsWith("graph-integrity.js")));
   assert.ok(integrityCommand.includes("--mark-qa-passed"));
@@ -292,6 +359,65 @@ test("server pipeline blocks when node body generation reports model failures", 
   assert.equal(nodeBodiesStage?.status, "blocked");
   assert.match(nodeBodiesStage?.error ?? "", /2 node body generation/);
   assert.equal(commands.some((command) => command.some((part) => part.endsWith("strict-qa.js"))), false);
+});
+
+test("server pipeline retries missing node bodies before blocking the run", async () => {
+  let nodeBodyCalls = 0;
+  const result = await runServerPipeline({
+    bookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-a",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 8,
+    noChunks: false,
+    pdfPath: "",
+    subject: "computer-science",
+    schoolStage: "higher",
+    gradeBand: "university",
+    textbookId: bookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: createNoopPipelineAssetStore(),
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async (command) => {
+      if (isNodeBodiesCommand(command)) {
+        nodeBodyCalls += 1;
+        if (nodeBodyCalls === 1) {
+          return {
+            exitCode: 0,
+            stdout: JSON.stringify({
+              selected: 44,
+              generated: 43,
+              failed_model_generation: 1,
+              model_failures: [{ node_id: "node-failed", message: "Model output must be a JSON object" }],
+            }),
+            stderr: "",
+          };
+        }
+        return {
+          exitCode: 0,
+          stdout: JSON.stringify({ selected: 1, generated: 1, failed_model_generation: 0, model_failures: [] }),
+          stderr: "",
+        };
+      }
+      return { exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  });
+
+  assert.equal(result.status, "completed");
+  assert.equal(nodeBodyCalls, 2);
+  const nodeBodiesStage = result.stages.find((stage) => stage.id === "node_bodies");
+  assert.equal(nodeBodiesStage?.status, "completed");
+  assert.equal((nodeBodiesStage?.output?.attempts as unknown[])?.length, 2);
 });
 
 test("server pipeline blocks when pedagogical profile generation reports model failures", async () => {

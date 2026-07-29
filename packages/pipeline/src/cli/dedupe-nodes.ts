@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { isMainModule } from "../shared/cli-entry.js";
+
 import { mergeJsonObjects, mergeTextBlocks, mergeUniqueStrings, utcNow } from "../shared/knowledge.js";
 import { buildNodeTermsUpsertStatement, planNodeTerms } from "../shared/node-terms.js";
 import { addNodeSubkindClassification, choosePrimarySubkind, isGenericSubkind, normalizeNodeSubkind } from "../shared/node-subkind.js";
@@ -627,7 +629,7 @@ function isRecord(value: unknown): value is RawRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   raise(main(process.argv.slice(2)));
 }
 
