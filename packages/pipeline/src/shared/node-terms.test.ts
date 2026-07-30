@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildNodeTermsSqlPlan, buildSelectNodesForNodeTermsQuery, planNodeTerms } from "./node-terms.js";
+import {
+  buildNodeTermsSqlPlan,
+  buildNodeTermsUpsertStatement,
+  buildSelectNodesForNodeTermsQuery,
+  planNodeTerms,
+} from "./node-terms.js";
 
 test("plans node term rows like Python rebuild_node_terms", () => {
   const plan = planNodeTerms("main", [
@@ -68,6 +73,89 @@ test("plans node term rows like Python rebuild_node_terms", () => {
       },
     ].filter((row) => row.term_norm),
   });
+});
+
+test("deduplicates normalized node terms by the database conflict key", () => {
+  const plan = planNodeTerms("demo", [
+    {
+      id: "concept:zero",
+      name: "函数的零点",
+      aliases_json: ["zero", "Zero", "  ZERO  "],
+      tags_json: ["ZERO", "zero"],
+      status: "active",
+    },
+    {
+      id: "method:bisection",
+      name: "二分法",
+      aliases_json: ["bisection method", "Bisection   Method"],
+      tags_json: [],
+      status: "active",
+    },
+    {
+      id: "concept:other-zero",
+      name: "Zero",
+      aliases_json: [],
+      tags_json: [],
+      status: "active",
+    },
+  ]);
+
+  assert.equal(plan.count, 6);
+  assert.equal(plan.count, plan.rows.length);
+  assert.equal(
+    new Set(plan.rows.map((row) => JSON.stringify([row.dataset_id, row.node_id, row.term_norm, row.term_type]))).size,
+    plan.rows.length,
+  );
+  assert.deepEqual(
+    plan.rows.filter((row) => row.term_type === "alias"),
+    [
+      {
+        dataset_id: "demo",
+        node_id: "concept:zero",
+        term: "zero",
+        term_norm: "zero",
+        term_type: "alias",
+      },
+      {
+        dataset_id: "demo",
+        node_id: "method:bisection",
+        term: "bisection method",
+        term_norm: "bisection method",
+        term_type: "alias",
+      },
+    ],
+  );
+  assert.deepEqual(
+    plan.rows.filter((row) => row.term_norm === "zero").map((row) => [row.node_id, row.term, row.term_type]),
+    [
+      ["concept:zero", "zero", "alias"],
+      ["concept:zero", "ZERO", "tag"],
+      ["concept:other-zero", "Zero", "canonical"],
+    ],
+  );
+});
+
+test("deduplicates direct node term upsert rows defensively", () => {
+  const statement = buildNodeTermsUpsertStatement([
+    {
+      dataset_id: "demo",
+      node_id: "concept:zero",
+      term: "zero",
+      term_norm: "zero",
+      term_type: "alias",
+    },
+    {
+      dataset_id: "demo",
+      node_id: "concept:zero",
+      term: "Zero",
+      term_norm: "zero",
+      term_type: "alias",
+    },
+  ]);
+
+  assert.ok(statement);
+  assert.deepEqual(statement.params, ["demo", "concept:zero", "zero", "zero", "alias"]);
+  assert.equal((statement.sql.match(/\(\$\d+, \$\d+, \$\d+, \$\d+, \$\d+\)/g) ?? []).length, 1);
 });
 
 test("builds node term SQL plan without executing database operations", () => {
