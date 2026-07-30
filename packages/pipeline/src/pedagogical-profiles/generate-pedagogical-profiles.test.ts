@@ -123,6 +123,19 @@ test("builds an evidence-grounded pedagogical profile prompt", () => {
   assert.match(prompt.user_payload, /senior-secondary/);
   assert.match(prompt.user_payload, /concept:solution/);
   assert.match(prompt.user_payload, /ev1/);
+  for (const field of [
+    "learning_objectives",
+    "difficulty_level",
+    "diagnostic_questions",
+    "common_errors",
+    "assessment_tasks",
+    "remediation_suggestions",
+    "extension_suggestions",
+    "source_refs",
+    "confidence",
+  ]) {
+    assert.match(prompt.instructions, new RegExp(field));
+  }
   const required = (prompt.response_schema.schema as { required: string[] }).required;
   assert.ok(required.includes("learning_objectives"));
   assert.ok(required.includes("source_refs"));
@@ -134,6 +147,22 @@ test("builds an evidence-grounded pedagogical profile prompt", () => {
 test("parses and validates model pedagogical profile JSON", () => {
   assert.deepEqual(
     parseModelPedagogicalProfileResultText(`\`\`\`json\n${JSON.stringify(generatedResult())}\n\`\`\``),
+    generatedResult(),
+  );
+  assert.deepEqual(
+    parseModelPedagogicalProfileResultText(`{${JSON.stringify(generatedResult())}`),
+    generatedResult(),
+  );
+  assert.deepEqual(
+    parseModelPedagogicalProfileResultText(`{${JSON.stringify(generatedResult())}}`),
+    generatedResult(),
+  );
+  assert.deepEqual(
+    parseModelPedagogicalProfileResultText(`{\r\n  ${JSON.stringify(generatedResult())}\r\n}`),
+    generatedResult(),
+  );
+  assert.deepEqual(
+    parseModelPedagogicalProfileResultText(JSON.stringify(JSON.stringify(generatedResult()))),
     generatedResult(),
   );
   assert.throws(
@@ -264,6 +293,78 @@ test("skips unchanged generated contexts by input fingerprint", async () => {
   assert.equal(calls, 0);
   assert.equal(second.generatedContexts, 0);
   assert.equal(second.skippedExisting.length, 2);
+});
+
+test("keeps the fingerprint stable when generated source refs reorder selected evidence", async () => {
+  const evidenceZero = {
+    ...evidence,
+    id: "ev0",
+    excerpt: "零号证据只用于验证证据选择优先级。",
+    locator: "p.0",
+  };
+  const evidenceTwo = {
+    ...evidence,
+    id: "ev2",
+    excerpt: "二号证据由领域画像优先引用。",
+    locator: "p.2",
+  };
+  const sourceProfile = {
+    ...profile,
+    school_stages_json: ["primary"],
+    source_refs_json: ["ev2"],
+  };
+  const sourceCard = {
+    ...card,
+    source_refs_json: ["ev1", "ev0"],
+    sections_json: [{
+      title: "定义",
+      section_type: "definition",
+      content: ["水是一种常见物质。"],
+      source_refs: ["ev1", "ev0"],
+    }],
+  };
+  let firstEvidenceIds: string[] = [];
+  const first = await planModelPedagogicalProfiles(planInput({
+    profiles: [sourceProfile],
+    cards: [sourceCard],
+    evidence: [evidenceZero, evidence, evidenceTwo],
+    maxEvidencePerContext: 2,
+    generateProfile: (input: { evidence: Array<{ id: string }> }) => {
+      firstEvidenceIds = input.evidence.map((row) => row.id);
+      return generatedResult();
+    },
+  }));
+
+  assert.deepEqual(firstEvidenceIds, ["ev1", "ev2"]);
+  assert.deepEqual(first.rows[0]!.source_refs_json, ["ev1"]);
+
+  let retryCalls = 0;
+  const persistedSourceRefs = [...new Set([
+    ...sourceProfile.source_refs_json,
+    ...first.rows[0]!.source_refs_json,
+  ])].sort();
+  const second = await planModelPedagogicalProfiles(planInput({
+    profiles: [{
+      ...sourceProfile,
+      source_refs_json: persistedSourceRefs,
+      properties_json: {
+        ...sourceProfile.properties_json,
+        pedagogical_profiles_by_stage: first.rows[0]!.stage_profiles_json,
+      },
+    }],
+    cards: [sourceCard],
+    evidence: [evidenceZero, evidence, evidenceTwo],
+    maxEvidencePerContext: 2,
+    generateProfile: () => {
+      retryCalls += 1;
+      return generatedResult();
+    },
+  }));
+
+  assert.deepEqual(persistedSourceRefs, ["ev1", "ev2"]);
+  assert.equal(retryCalls, 0);
+  assert.equal(second.generatedContexts, 0);
+  assert.deepEqual(second.skippedExisting, [`${profile.id}:primary`]);
 });
 
 test("regenerates pending profiles when the model changes", async () => {

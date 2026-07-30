@@ -333,7 +333,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
         total_units: plan.total_units,
         unit_kind: plan.unit_kind,
         parallel: plan.parallel,
-        commands: commands.map((item) => item.command),
+        commands: commands.map((item) => redactCommandForOutput(item.command)),
       },
     });
 
@@ -417,13 +417,13 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
     const canonicalStage: ServerPipelineStage = {
       id: "canonical_commit",
       status: "running",
-      output: { command: canonicalCommand },
+      output: { command: redactCommandForOutput(canonicalCommand) },
     };
     await recordStage(result, progressStore, canonicalStage);
     const canonicalResult = await runCommand(canonicalCommand, options.commandRunner);
     canonicalStage.status = canonicalResult.exitCode === 0 ? "completed" : "blocked";
     canonicalStage.output = {
-      command: canonicalCommand,
+      command: redactCommandForOutput(canonicalCommand),
       exit_code: canonicalResult.exitCode,
       stdout_tail: tail(canonicalResult.stdout),
       stderr_tail: tail(canonicalResult.stderr),
@@ -467,6 +467,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
         "pedagogical_profiles",
         buildPedagogicalProfilesCommand(options),
         "Pedagogical profile generation command failed.",
+        1,
       );
       if (!pedagogicalProfilesOk) return result;
     }
@@ -651,14 +652,14 @@ async function runStagingQualityAttempt(
   const runningStage: ServerPipelineStage = {
     id: "staging_quality",
     status: "running",
-    output: { command, attempts: previousAttempts },
+    output: { command: redactCommandForOutput(command), attempts: previousAttempts },
   };
   await recordStage(result, progressStore, runningStage);
   const commandResult = await runCommand(command, options.commandRunner);
   const parsed = parseStagingQualityOutput(commandResult.stdout);
   const blockedLessonIds = extractBlockedLessonRunIds(parsed);
   const stageOutput = {
-    command,
+    command: redactCommandForOutput(command),
     exit_code: commandResult.exitCode,
     stdout_tail: tail(commandResult.stdout),
     stderr_tail: tail(commandResult.stderr),
@@ -891,27 +892,47 @@ async function runPipelineCommandStage(
   errorMessage: string,
   outputRetryCount = 0,
 ): Promise<boolean> {
-  const stage: ServerPipelineStage = { id, status: "running", output: { command } };
+  const stage: ServerPipelineStage = {
+    id,
+    status: "running",
+    output: { command: redactCommandForOutput(command) },
+  };
   await recordStage(result, progressStore, stage);
   const attempts: Array<Record<string, unknown>> = [];
   let commandResult: CommandOutput = { exitCode: 1, stdout: "", stderr: "" };
   let outputFailure: string | null = null;
+  let outputSummary: RawRecord | null = null;
+  let executedCommand = command;
   for (let attempt = 0; attempt <= outputRetryCount; attempt += 1) {
-    commandResult = await runCommand(command, options.commandRunner);
-    outputFailure = commandResult.exitCode === 0 ? stageFailureFromOutput(id, commandResult.stdout) : null;
+    executedCommand = commandForPipelineOutputAttempt(id, command, attempt);
+    commandResult = await runCommand(executedCommand, options.commandRunner);
+    const parsedOutput = commandResult.exitCode === 0 ? parseJsonObjectFromOutput(commandResult.stdout) : null;
+    outputFailure = commandResult.exitCode === 0 ? stageFailureFromOutput(id, parsedOutput) : null;
+    outputSummary = compactPipelineCommandOutput(parsedOutput);
     attempts.push({
       attempt: attempt + 1,
+      command: redactCommandForOutput(executedCommand),
       exit_code: commandResult.exitCode,
       output_failure: outputFailure,
+      ...(outputSummary ? { output_summary: outputSummary } : {}),
       stdout_tail: tail(commandResult.stdout),
       stderr_tail: tail(commandResult.stderr),
     });
-    if (commandResult.exitCode !== 0 || !outputFailure || attempt >= outputRetryCount) break;
+    if (
+      commandResult.exitCode !== 0
+      || !outputFailure
+      || attempt >= outputRetryCount
+      || !isRetryablePipelineOutputFailure(id, parsedOutput)
+    ) {
+      break;
+    }
   }
   stage.status = commandResult.exitCode === 0 && !outputFailure ? "completed" : "blocked";
   stage.output = {
-    command,
+    command: redactCommandForOutput(command),
+    ...(executedCommand !== command ? { final_command: redactCommandForOutput(executedCommand) } : {}),
     exit_code: commandResult.exitCode,
+    ...(outputSummary ? { output_summary: outputSummary } : {}),
     stdout_tail: tail(commandResult.stdout),
     stderr_tail: tail(commandResult.stderr),
     ...(attempts.length > 1 ? { attempts } : {}),
@@ -935,8 +956,7 @@ async function runPipelineCommandStage(
   return true;
 }
 
-function stageFailureFromOutput(stageId: string, stdout: string): string | null {
-  const output = parseJsonObjectFromOutput(stdout);
+function stageFailureFromOutput(stageId: string, output: RawRecord | null): string | null {
   if (!output) return null;
   if (stageId === "node_bodies") {
     const failed = numberValue(output.failed_model_generation) ?? 0;
@@ -965,6 +985,47 @@ function stageFailureFromOutput(stageId: string, stdout: string): string | null 
     }
   }
   return null;
+}
+
+export function isRetryablePipelineOutputFailure(stageId: string, output: RawRecord | null): boolean {
+  if (!output) return false;
+  return (stageId === "node_bodies" || stageId === "pedagogical_profiles")
+    && (numberValue(output.failed_model_generation) ?? 0) > 0;
+}
+
+export function commandForPipelineOutputAttempt(stageId: string, command: string[], attempt: number): string[] {
+  if (attempt === 0) return command;
+  const flagsToRemove = new Set<string>();
+  if (stageId === "node_bodies") flagsToRemove.add("--overwrite-existing");
+  if (stageId === "pedagogical_profiles") flagsToRemove.add("--overwrite-generated");
+  return flagsToRemove.size > 0
+    ? command.filter((part) => !flagsToRemove.has(part))
+    : command;
+}
+
+export function compactPipelineCommandOutput(output: RawRecord | null): RawRecord | null {
+  if (!output) return null;
+  const summary: RawRecord = {};
+  const statementLists = new Set(["read_statements", "statements", "executedStatements"]);
+  for (const [key, value] of Object.entries(output)) {
+    if (key === "model_failures" && Array.isArray(value)) {
+      summary[key] = value;
+    } else if (statementLists.has(key) && Array.isArray(value)) {
+      summary[`${key}_count`] = value.length;
+    } else if (
+      value === null
+      || typeof value === "string"
+      || typeof value === "number"
+      || typeof value === "boolean"
+    ) {
+      summary[key] = value;
+    }
+  }
+  return summary;
+}
+
+export function redactCommandForOutput(command: string[]): string[] {
+  return command.map((part) => part.replace(/(\/\/[^:/\s]+:)[^@/\s]+@/g, "$1****@"));
 }
 
 function parseJsonObjectFromOutput(stdout: string): RawRecord | null {
@@ -1100,7 +1161,7 @@ async function runOneExtractionCommand(item: ParallelExtractionCommand, started:
     book_id: item.book_id,
     batch_anchor: item.batch_anchor,
     lesson_run_id: item.lesson_run_id,
-    command: item.command,
+    command: redactCommandForOutput(item.command),
     exit_code: output.exitCode,
     stdout_tail: tail(output.stdout),
     stderr_tail: tail(output.stderr),

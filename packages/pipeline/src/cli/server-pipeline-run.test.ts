@@ -4,9 +4,89 @@ import test from "node:test";
 import { createNoopPipelineAssetStore } from "../shared/pg-assets.js";
 import { makeLessonRunId } from "../shared/pathing.js";
 import { createNoopPipelineProgressStore } from "../shared/pipeline-progress.js";
-import { runServerPipeline, shouldExtractPdfOutline } from "./server-pipeline-run.js";
+import {
+  commandForPipelineOutputAttempt,
+  compactPipelineCommandOutput,
+  isRetryablePipelineOutputFailure,
+  redactCommandForOutput,
+  runServerPipeline,
+  shouldExtractPdfOutline,
+} from "./server-pipeline-run.js";
 
 const bookId = "chem-hukj-xb2-structure";
+
+test("keeps model failures in compact command output while counting verbose statement lists", () => {
+  const modelFailures = [{
+    profile_id: "profile-failed",
+    school_stage: "higher",
+    message: `Model output invalid.\nRaw model output:\n${"x".repeat(10_000)}`,
+  }];
+  assert.deepEqual(compactPipelineCommandOutput({
+    status: "success",
+    selected: 44,
+    generated: 40,
+    failed_model_generation: 4,
+    model_failures: modelFailures,
+    read_statements: ["read-a", "read-b"],
+    statements: new Array(41).fill("update"),
+    executedStatements: new Array(41).fill("update"),
+  }), {
+    status: "success",
+    selected: 44,
+    generated: 40,
+    failed_model_generation: 4,
+    model_failures: modelFailures,
+    read_statements_count: 2,
+    statements_count: 41,
+    executedStatements_count: 41,
+  });
+});
+
+test("redacts database passwords from commands stored in pipeline output", () => {
+  assert.deepEqual(
+    redactCommandForOutput([
+      "node",
+      "generate.js",
+      "--db",
+      "postgresql://okm:secret-value@127.0.0.1:5432/knowledge",
+    ]),
+    [
+      "node",
+      "generate.js",
+      "--db",
+      "postgresql://okm:****@127.0.0.1:5432/knowledge",
+    ],
+  );
+});
+
+test("retries only model failures and disables overwrite flags after the first attempt", () => {
+  assert.equal(isRetryablePipelineOutputFailure("pedagogical_profiles", {
+    failed_model_generation: 4,
+    skipped_missing_context: 0,
+  }), true);
+  assert.equal(isRetryablePipelineOutputFailure("pedagogical_profiles", {
+    failed_model_generation: 0,
+    skipped_missing_context: 2,
+  }), false);
+  assert.equal(isRetryablePipelineOutputFailure("node_bodies", {
+    failed_model_generation: 1,
+  }), true);
+  assert.equal(isRetryablePipelineOutputFailure("strict_qa", {
+    failed_model_generation: 1,
+  }), false);
+
+  const dbUrl = "postgresql://okm:secret@localhost:5432/knowledge";
+  const pedagogicalCommand = ["node", "generate-pedagogical-profiles.js", "--db", dbUrl, "--overwrite-generated"];
+  assert.equal(commandForPipelineOutputAttempt("pedagogical_profiles", pedagogicalCommand, 0), pedagogicalCommand);
+  assert.deepEqual(
+    commandForPipelineOutputAttempt("pedagogical_profiles", pedagogicalCommand, 1),
+    ["node", "generate-pedagogical-profiles.js", "--db", dbUrl],
+  );
+  assert.deepEqual(
+    commandForPipelineOutputAttempt("node_bodies", ["node", "generate-node-bodies.js", "--overwrite-existing"], 1),
+    ["node", "generate-node-bodies.js"],
+  );
+});
 
 test("prefers MinerU Markdown over the optional pdftotext outline path", () => {
   assert.equal(shouldExtractPdfOutline({
@@ -460,6 +540,7 @@ test("server pipeline blocks when pedagogical profile generation reports model f
   const stage = result.stages.find((item) => item.id === "pedagogical_profiles");
   assert.equal(stage?.status, "blocked");
   assert.match(stage?.error ?? "", /2 pedagogical profile generation/);
+  assert.equal(commands.filter(isPedagogicalProfilesCommand).length, 2);
   assert.equal(commands.some((command) => command.some((part) => part.endsWith("backfill-embeddings.js"))), false);
   assert.equal(commands.some((command) => command.some((part) => part.endsWith("strict-qa.js"))), false);
 });

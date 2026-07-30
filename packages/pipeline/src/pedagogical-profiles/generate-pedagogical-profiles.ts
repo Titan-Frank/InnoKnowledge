@@ -1,12 +1,13 @@
 import { createHash } from "node:crypto";
 
+import { parseModelJsonObject } from "../shared/model-json.js";
 import { VALID_SCHOOL_STAGES } from "../shared/knowledge.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
 type RawRecord = Record<string, unknown>;
 
 const DIFFICULTY_LEVELS = new Set(["introductory", "basic", "intermediate", "advanced", "expert"]);
-const PROMPT_VERSION = "pedagogical-profile-v1";
+const PROMPT_VERSION = "pedagogical-profile-v2";
 const MODEL_GENERATED_FROM = "model_generation";
 
 export type PedagogicalDomainProfileRow = {
@@ -266,7 +267,8 @@ export function buildModelPedagogicalProfilePrompt(input: ModelPedagogicalProfil
     "5. 难度必须相对于当前 school_stage 判断，只能使用 introductory、basic、intermediate、advanced、expert。",
     "6. source_refs 只能填写 allowed_source_refs 中出现的证据编号，不能创造编号。",
     "7. common_errors 只描述与当前知识边界直接相关的典型错误，不要编造教材没有涉及的事实。",
-    "8. 输出必须严格符合 JSON schema，不要输出额外解释。",
+    "8. 输出必须是可由 JSON.parse 直接解析的单个 JSON 对象，并严格符合 JSON schema；只能以一个左花括号开始、一个右花括号结束，不要输出额外解释。",
+    "9. 根对象必须且只能包含以下 9 个必填键：learning_objectives、difficulty_level、diagnostic_questions、common_errors、assessment_tasks、remediation_suggestions、extension_suggestions、source_refs、confidence。",
   ].join("\n");
   const userPayload = JSON.stringify({
     dataset_id: input.datasetId,
@@ -368,7 +370,7 @@ export function buildModelPedagogicalProfileResponseSchema(): RawRecord {
 }
 
 export function parseModelPedagogicalProfileResultText(text: string): ModelPedagogicalProfileResult {
-  return normalizeModelResult(parseJsonObjectFromText(text));
+  return normalizeModelResult(parseModelJsonObject(text));
 }
 
 export async function planModelPedagogicalProfiles(input: {
@@ -782,21 +784,18 @@ function collectEvidenceForPedagogicalProfile(input: {
   return [...ids]
     .map((id) => input.evidenceById.get(id))
     .filter((row): row is PedagogicalEvidenceRow => Boolean(row))
-    .slice(0, input.maxEvidence);
+    .slice(0, input.maxEvidence)
+    .sort((left, right) => left.id < right.id ? -1 : left.id > right.id ? 1 : 0);
 }
 
 function pedagogicalInputFingerprint(input: ModelPedagogicalProfileInput, modelName: string): string {
+  const prompt = buildModelPedagogicalProfilePrompt(input);
   const value = JSON.stringify({
     prompt_version: PROMPT_VERSION,
     model: modelName,
-    domain: input.profile.domain,
-    school_stage: input.schoolStage,
-    grade_band: input.gradeBand,
-    curriculum_roles: stringArray(input.profile.curriculum_roles_json),
-    node: input.node,
-    card: input.card,
-    relations: input.relations,
-    evidence: input.evidence,
+    instructions: prompt.instructions,
+    user_payload: prompt.user_payload,
+    response_schema: prompt.response_schema,
   });
   return createHash("sha256").update(value).digest("hex");
 }
@@ -849,27 +848,6 @@ function requiredTeachingList(value: unknown, field: string): string[] {
   const items = uniqueStrings(stringArray(value));
   if (items.length === 0) throw new Error(`Model output field '${field}' must contain at least one non-empty string.`);
   return items.slice(0, 3);
-}
-
-function parseJsonObjectFromText(text: string): RawRecord {
-  const trimmed = text.trim();
-  const candidates = [trimmed];
-  const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
-  if (fenced) candidates.push(fenced[1]!.trim());
-  const firstBrace = trimmed.indexOf("{");
-  const lastBrace = trimmed.lastIndexOf("}");
-  if (firstBrace >= 0 && lastBrace > firstBrace) candidates.push(trimmed.slice(firstBrace, lastBrace + 1));
-  const errors: string[] = [];
-  for (const candidate of uniqueStrings(candidates.filter(Boolean))) {
-    try {
-      const parsed = JSON.parse(candidate) as unknown;
-      if (isRecord(parsed)) return parsed;
-      errors.push("JSON value is not an object.");
-    } catch (error) {
-      errors.push((error as Error).message);
-    }
-  }
-  throw new Error(`Model output must be a JSON object: ${errors.join("; ")}`);
 }
 
 async function mapWithConcurrency<T, R>(items: T[], concurrency: number, worker: (item: T) => Promise<R>): Promise<R[]> {

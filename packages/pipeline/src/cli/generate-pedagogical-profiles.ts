@@ -21,6 +21,11 @@ import {
   type ModelPedagogicalProfileGenerator,
 } from "../pedagogical-profiles/generate-pedagogical-profiles.js";
 import { preparePostgresJsParams } from "../shared/postgres-executor.js";
+import {
+  addModelOutputPreview,
+  buildJsonRetryUserPayload,
+  isModelOutputValidationError,
+} from "../shared/model-output-retry.js";
 import { REPO_ROOT } from "../shared/pathing.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
@@ -110,29 +115,37 @@ function makeModelPedagogicalProfileGenerator(options: {
   const baseUrl = options.baseUrl.replace(/\/+$/, "");
   return async (input) => {
     const prompt = buildModelPedagogicalProfilePrompt(input);
-    const body = buildOpenAiBody({
-      apiMode: options.apiMode,
-      model: options.model,
-      instructions: prompt.instructions,
-      userPayload: prompt.user_payload,
-      schema: prompt.response_schema,
-      reasoningEffort: options.reasoningEffort,
-    });
     let lastError: Error | null = null;
     for (let attempt = 0; attempt <= options.retryCount; attempt += 1) {
       try {
+        const userPayload = lastError && isModelOutputValidationError(lastError)
+          ? buildJsonRetryUserPayload(prompt.user_payload, lastError)
+          : prompt.user_payload;
+        const body = buildOpenAiBody({
+          apiMode: options.apiMode,
+          model: options.model,
+          instructions: prompt.instructions,
+          userPayload,
+          schema: prompt.response_schema,
+          reasoningEffort: options.reasoningEffort,
+        });
         const response = await callModelExtractionRequest({
           api_mode: options.apiMode,
           endpoint: `${baseUrl}/${options.apiMode === "responses" ? "responses" : "chat/completions"}`,
           timeout_ms: options.timeoutMs,
           instructions: prompt.instructions,
-          user_payload: prompt.user_payload,
+          user_payload: userPayload,
           body,
         }, options.apiKey);
-        return parseModelPedagogicalProfileResultText(extractTextOutput(response));
+        const outputText = extractTextOutput(response);
+        try {
+          return parseModelPedagogicalProfileResultText(outputText);
+        } catch (error) {
+          throw addModelOutputPreview(error, outputText);
+        }
       } catch (error) {
         lastError = error as Error;
-        if (attempt >= options.retryCount || (!isRetryableGeneratedProfileError(lastError) && !isRetryableModelError(lastError))) break;
+        if (attempt >= options.retryCount || (!isModelOutputValidationError(lastError) && !isRetryableModelError(lastError))) break;
         await sleep(Math.min(2000 * (attempt + 1), 8000));
       }
     }
@@ -172,10 +185,6 @@ function buildOpenAiBody(input: {
 
 function isRetryableModelError(error: Error): boolean {
   return /fetch failed|network|socket|timeout|aborted|429|500|502|503|504/i.test(error.message);
-}
-
-function isRetryableGeneratedProfileError(error: Error): boolean {
-  return /^Model output/i.test(error.message);
 }
 
 function sleep(ms: number): Promise<void> {
