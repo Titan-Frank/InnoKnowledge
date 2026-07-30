@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { isMainModule } from "../shared/cli-entry.js";
+
 import { extractPdfOutline } from "../outline/pdf-outline.js";
 import { REPO_ROOT, outlinePathForBook } from "../shared/pathing.js";
 
@@ -57,7 +59,7 @@ function parseInteger(value: string | undefined, fallback: number): number {
   return parsed;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   main(process.argv.slice(2))
     .then((code) => {
       process.exitCode = code;

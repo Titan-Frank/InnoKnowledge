@@ -1,4 +1,5 @@
 import { normalizeTerm } from "../shared/pathing.js";
+import { formatEmbeddingVector } from "../shared/embeddings.js";
 import { mergeCandidates, type RetrievalCandidate, type RetrievalMode } from "./retrieve-candidates.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
@@ -116,13 +117,19 @@ export function mapLocalCandidateRows(rows: LocalCandidateRow[]): RetrievalCandi
 }
 
 export function buildVectorCandidatesQuery(options: VectorCandidateQueryOptions): SqlStatement {
+  const embeddingText = formatEmbeddingVector(options.embedding);
+  if (embeddingText === null) {
+    throw new Error("Vector candidate query requires a non-empty finite embedding");
+  }
   const clauses = ["dataset_id = $2", "status != 'deprecated'", "embedding IS NOT NULL"];
-  const params: unknown[] = [options.embedding, options.datasetId];
+  // postgres.js serializes JavaScript arrays as PostgreSQL arrays. pgvector's
+  // `vector` input parser instead expects text in the form "[0.1,0.2,...]".
+  const params: unknown[] = [embeddingText, options.datasetId];
   if (options.nodeKind) {
     params.push(options.nodeKind);
     clauses.push(`kind = $${params.length}`);
   }
-  params.push(options.embedding, (options.limit ?? 8) * 2);
+  params.push(embeddingText, (options.limit ?? 8) * 2);
   const orderEmbeddingIndex = params.length - 1;
   const limitIndex = params.length;
 

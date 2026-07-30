@@ -5,6 +5,7 @@ import { basename, join } from "node:path";
 import test from "node:test";
 
 import {
+  assertSafeZipMember,
   bearerToken,
   buildMineruTaskPayload,
   copyMarkdownForPipeline,
@@ -14,6 +15,15 @@ import {
   runMineruSourceMarkdown,
   selectMineruResult,
 } from "./mineru-source.js";
+
+test("rejects unsafe ZIP member paths on every platform", () => {
+  const target = join(tmpdir(), "okm-safe-zip");
+  assert.equal(assertSafeZipMember("nested/full.md", target), join(target, "nested", "full.md"));
+  assert.throws(() => assertSafeZipMember("../outside.txt", target), /unsafe zip member/);
+  assert.throws(() => assertSafeZipMember("nested\\..\\..\\outside.txt", target), /unsafe zip member/);
+  assert.throws(() => assertSafeZipMember("C:\\outside.txt", target), /unsafe zip member/);
+  assert.throws(() => assertSafeZipMember("/outside.txt", target), /unsafe zip member/);
+});
 
 test("builds MinerU request payloads like the Python script", () => {
   assert.equal(bearerToken("abc"), "Bearer abc");

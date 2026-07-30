@@ -43,9 +43,10 @@ export function planNodeTerms(datasetId: string, nodes: Array<Record<string, unk
       });
     }
   }
+  const uniqueRows = deduplicateNodeTermRows(rows);
   return {
-    rows,
-    count: rows.length,
+    rows: uniqueRows,
+    count: uniqueRows.length,
   };
 }
 
@@ -64,7 +65,8 @@ export function buildNodeTermsSqlPlan(datasetId: string, rows: NodeTermRow[]): N
 }
 
 export function buildNodeTermsUpsertStatement(rows: NodeTermRow[]): SqlStatement | null {
-  return rows.length > 0 ? buildNodeTermsInsertStatement(rows) : null;
+  const uniqueRows = deduplicateNodeTermRows(rows);
+  return uniqueRows.length > 0 ? buildNodeTermsInsertStatement(uniqueRows) : null;
 }
 
 export function buildSelectNodesForNodeTermsQuery(datasetId: string): SqlStatement {
@@ -95,6 +97,16 @@ function buildNodeTermsInsertStatement(rows: NodeTermRow[]): SqlStatement {
     ].join("\n"),
     params,
   };
+}
+
+function deduplicateNodeTermRows(rows: NodeTermRow[]): NodeTermRow[] {
+  const seen = new Set<string>();
+  return rows.filter((row) => {
+    const key = JSON.stringify([row.dataset_id, row.node_id, row.term_norm, row.term_type]);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function listValue(value: unknown): unknown[] {

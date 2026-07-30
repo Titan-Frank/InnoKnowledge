@@ -24,6 +24,20 @@ import {
 import { useAppState } from '@/hooks/useAppState';
 import { invalidateUnitCache } from '@/hooks/useUnitLoader';
 import {
+  forgetPipelineJob,
+  rememberPipelineJob,
+  restorePipelineJob,
+} from '@/lib/pipeline-job-session';
+import {
+  buildPipelineStepStatuses,
+  lessonStageIds,
+  matchesPipelineStageId,
+  mergeStageIds,
+  outlineStageIds,
+  sourceStageIds,
+  type PipelineStepStatus,
+} from '@/lib/pipeline-steps';
+import {
   AlertCircle,
   BarChart3,
   Check,
@@ -64,8 +78,6 @@ type PipelineForm = {
   vlm_api_key: string;
   vlm_model: string;
 };
-
-type PipelineStepStatus = 'complete' | 'active' | 'blocked' | 'pending';
 
 type PipelineStep = {
   id: string;
@@ -631,29 +643,6 @@ function sourceReady(form: PipelineForm): boolean {
   return Boolean(form.pdf_path.trim() || form.mineru_file_url.trim());
 }
 
-function latestUpdatedAt(payload: PipelineResponse | null): string | null {
-  const times = [
-    ...(payload?.lesson_runs ?? []).map((row) => row.updated_at),
-    ...(payload?.merge_runs ?? []).map((row) => row.updated_at),
-  ].filter(Boolean) as string[];
-  return times.sort().at(-1) ?? null;
-}
-
-function hasRunningPipeline(payload: PipelineResponse | null): boolean {
-  if (!payload) return false;
-  return (
-    payload.summary.staged > 0 ||
-    payload.summary.merging > 0 ||
-    payload.merge_runs.some((row) => row.status === 'in_progress')
-  );
-}
-
-function pipelineBlocked(payload: PipelineResponse | null): boolean {
-  if (!payload) return false;
-  const latestMerge = payload.merge_runs[0] ?? null;
-  return payload.summary.blocked > 0 || latestMerge?.status === 'blocked';
-}
-
 function pipelineComplete(payload: PipelineResponse | null): boolean {
   if (!payload || payload.summary.lesson_runs === 0) return false;
   const latestMerge = payload.merge_runs[0] ?? null;
@@ -685,33 +674,17 @@ const stageLabels: Record<string, string> = {
   quality_dashboard: '生成质量仪表盘',
 };
 
-const sourceStageIds = ['check_postgres', 'mineru_source_markdown', 'prepare_source_markdown'];
-const outlineStageIds = ['extract_pdf_outline', 'ensure_outline', 'prepare_outline_chunks', 'lesson_plan'];
-const lessonStageIds = ['lesson_staging'];
-const mergeStageIds = [
-  'staging_quality',
-  'canonical_commit',
-  'normalize',
-  'node_bodies',
-  'pedagogical_profiles',
-  'node_embeddings',
-  'unit_embeddings',
-  'strict_qa',
-  'graph_integrity',
-  'quality_dashboard',
-];
-
 function stageLabel(stageId: string | undefined): string {
   if (!stageId) return '';
+  if (stageId.startsWith('lesson_staging_retry_transport_')) return '重试传输失败课时';
+  if (stageId.startsWith('lesson_staging_retry_')) {
+    return `重抽未通过课时 ${stageId.replace('lesson_staging_retry_', '')}`;
+  }
   return stageLabels[stageId] || stageId;
 }
 
-function stageIn(stage: PipelineJobStatusResponse['current_stage'], ids: string[]): boolean {
-  return Boolean(stage?.id && ids.includes(stage.id));
-}
-
-function hasStageStatus(jobStatus: PipelineJobStatusResponse | null, ids: string[], status: string): boolean {
-  return Boolean(jobStatus?.stages.some((stage) => ids.includes(stage.id) && stage.status === status));
+function stageIn(stage: PipelineJobStatusResponse['current_stage'], ids: readonly string[]): boolean {
+  return matchesPipelineStageId(stage?.id, ids);
 }
 
 function buildPipelineSteps(input: {
@@ -722,93 +695,87 @@ function buildPipelineSteps(input: {
   startResult: PipelineStartResponse | null;
 }): PipelineStep[] {
   const { payload, imageReviews, jobStatus, starting, startResult } = input;
-  const launched = starting || Boolean(startResult);
-  const lessonCount = payload?.summary.lesson_runs ?? 0;
-  const qaPassed = payload?.summary.qa_passed ?? 0;
-  const latestMerge = payload?.merge_runs[0] ?? null;
-  const blocked = pipelineBlocked(payload);
-  const complete = pipelineComplete(payload);
   const reviews = reviewCount(payload, imageReviews);
-  const currentStage = jobStatus?.current_stage ?? null;
+  const currentJobStatus = startResult && jobStatus?.job_id === startResult.job_id ? jobStatus : null;
+  const currentStage = currentJobStatus?.current_stage ?? null;
   const currentStageText = currentStage ? `正在${stageLabel(currentStage.id)}` : '';
-  const jobBlocked = jobStatus?.status === 'blocked';
-  const sourceBlocked = hasStageStatus(jobStatus, sourceStageIds, 'blocked');
-  const outlineBlocked = hasStageStatus(jobStatus, outlineStageIds, 'blocked');
-  const lessonBlocked = hasStageStatus(jobStatus, lessonStageIds, 'blocked');
-  const mergeBlocked = hasStageStatus(jobStatus, mergeStageIds, 'blocked');
-  const lessonStage = findJobStage(jobStatus, lessonStageIds);
-  const lessonRuntimeDetail = lessonStage ? lessonProgressText(lessonStage, jobStatus) : '';
-  const sourceComplete = hasStageStatus(jobStatus, sourceStageIds, 'completed') || lessonCount > 0;
-  const outlineComplete = hasStageStatus(jobStatus, ['lesson_plan'], 'completed') || lessonCount > 0;
-  const lessonComplete = hasStageStatus(jobStatus, lessonStageIds, 'completed') || qaPassed > 0;
-  const mergeComplete = hasStageStatus(jobStatus, ['graph_integrity'], 'completed') || complete;
+  const lessonStage = findJobStage(currentJobStatus, lessonStageIds);
+  const lessonRuntimeDetail = lessonStage ? lessonProgressText(lessonStage, currentJobStatus) : '';
+  const statuses = buildPipelineStepStatuses({
+    jobStatus,
+    currentJobId: startResult?.job_id ?? null,
+    starting,
+    reviewCount: reviews,
+  });
 
   return [
     {
       id: 'source',
       label: 'PDF 与 MinerU',
-      detail: stageIn(currentStage, sourceStageIds) ? currentStageText : sourceComplete ? '源文件已经准备完成' : '等待填写 PDF 或 MinerU 文件 URL',
-      status: sourceBlocked || (jobBlocked && stageIn(currentStage, sourceStageIds))
-        ? 'blocked'
-        : stageIn(currentStage, sourceStageIds)
-          ? 'active'
-          : sourceComplete
-            ? 'complete'
-            : launched
-              ? 'active'
-              : 'pending',
+      detail: statuses.source === 'active'
+        ? stageIn(currentStage, sourceStageIds) ? currentStageText : '正在启动本轮任务'
+        : statuses.source === 'complete'
+          ? '源文件已经准备完成'
+          : statuses.source === 'blocked'
+            ? '当前任务的源文件准备被阻断'
+            : '等待启动本轮任务',
+      status: statuses.source,
     },
     {
       id: 'outline',
       label: '目录与切分',
-      detail: stageIn(currentStage, outlineStageIds) ? currentStageText : outlineComplete ? '课时任务已经生成' : '等待目录和切分',
-      status: outlineBlocked || (jobBlocked && stageIn(currentStage, outlineStageIds))
-        ? 'blocked'
-        : stageIn(currentStage, outlineStageIds)
-          ? 'active'
-          : outlineComplete
-            ? 'complete'
-            : 'pending',
+      detail: statuses.outline === 'active' && stageIn(currentStage, outlineStageIds)
+        ? currentStageText
+        : statuses.outline === 'complete'
+          ? '课时任务已经生成'
+          : statuses.outline === 'blocked'
+            ? '当前任务的目录或切分被阻断'
+            : '等待当前任务进入目录与切分',
+      status: statuses.outline,
     },
     {
       id: 'lesson',
       label: '模型抽取',
-      detail: stageIn(currentStage, lessonStageIds) && lessonRuntimeDetail
+      detail: statuses.lesson === 'active' && lessonRuntimeDetail
         ? lessonRuntimeDetail
-        : lessonCount > 0
-          ? `${lessonCount} 个课时任务，${qaPassed} 个已通过 QA`
-          : '等待课时抽取写入结果',
-      status: lessonBlocked || (blocked && lessonCount > 0)
-        ? 'blocked'
-        : stageIn(currentStage, lessonStageIds) || (lessonCount > 0 && qaPassed < lessonCount)
-          ? 'active'
-          : lessonComplete
-            ? 'complete'
-            : 'pending',
+        : statuses.lesson === 'complete'
+          ? '当前任务的课时抽取已经完成'
+          : statuses.lesson === 'blocked'
+            ? '当前任务的课时抽取被阻断'
+            : '等待当前任务进入课时抽取',
+      status: statuses.lesson,
     },
     {
       id: 'merge',
       label: '合并与质检',
-      detail: stageIn(currentStage, mergeStageIds) ? currentStageText : latestMerge ? `最近合并：${statusLabel(latestMerge.status)}` : '等待暂存结果合并',
-      status: mergeBlocked || (blocked && !lessonBlocked)
-        ? 'blocked'
-        : stageIn(currentStage, mergeStageIds) || hasRunningPipeline(payload)
-          ? 'active'
-          : mergeComplete
-            ? 'complete'
-            : 'pending',
+      detail: statuses.merge === 'active' && stageIn(currentStage, mergeStageIds)
+        ? currentStageText
+        : statuses.merge === 'complete'
+          ? '当前任务的合并与质检已经完成'
+          : statuses.merge === 'blocked'
+            ? '当前任务的合并或质检被阻断'
+            : '等待当前任务进入合并与质检',
+      status: statuses.merge,
     },
     {
       id: 'review',
       label: '人工确认',
-      detail: reviews > 0 ? `${reviews} 项需要确认` : complete ? '暂无待确认项' : '抽取完成后显示待确认项',
-      status: reviews > 0 ? 'active' : complete ? 'complete' : 'pending',
+      detail: statuses.review === 'active'
+        ? `${reviews} 项需要确认`
+        : statuses.review === 'complete'
+          ? '暂无待确认项'
+          : '本轮抽取完成后显示待确认项',
+      status: statuses.review,
     },
   ];
 }
 
-function findJobStage(jobStatus: PipelineJobStatusResponse | null, ids: string[]): PipelineJobStatusResponse['stages'][number] | null {
-  return jobStatus?.stages.find((stage) => ids.includes(stage.id)) ?? null;
+function findJobStage(jobStatus: PipelineJobStatusResponse | null, ids: readonly string[]): PipelineJobStatusResponse['stages'][number] | null {
+  if (!jobStatus) return null;
+  if (stageIn(jobStatus.current_stage, ids)) return jobStatus.current_stage;
+  return jobStatus.stages.find((stage) => matchesPipelineStageId(stage.id, ids) && stage.status === 'running')
+    ?? jobStatus.stages.find((stage) => matchesPipelineStageId(stage.id, ids))
+    ?? null;
 }
 
 function progressNumber(stage: PipelineJobStatusResponse['stages'][number] | null | undefined, key: string): number {
@@ -826,7 +793,9 @@ function progressPercent(stage: PipelineJobStatusResponse['stages'][number] | nu
 }
 
 function runningLessonWorkers(jobStatus: PipelineJobStatusResponse | null): PipelineJobStatusResponse['worker_states'] {
-  return (jobStatus?.worker_states ?? []).filter((worker) => worker.stage_id === 'lesson_staging' && worker.status === 'running');
+  return (jobStatus?.worker_states ?? []).filter(
+    (worker) => matchesPipelineStageId(worker.stage_id, lessonStageIds) && worker.status === 'running',
+  );
 }
 
 function lessonProgressText(
@@ -888,7 +857,7 @@ function PipelineProgressPanel({
   const lessonFailed = progressNumber(lessonStage, 'failed');
   const runningWorkers = runningLessonWorkers(jobStatus);
   const recentLessonEvents = (jobStatus?.recent_events ?? [])
-    .filter((event) => event.stage_id === 'lesson_staging')
+    .filter((event) => matchesPipelineStageId(event.stage_id, lessonStageIds))
     .slice(0, 5);
 
   return (
@@ -1161,7 +1130,7 @@ function QualityDashboardPanel({
 }
 
 export function PipelineDebugPage() {
-  const { selectedSourceKey } = useAppState();
+  const { selectedSourceKey, switchSource } = useAppState();
   const activeSourceKey =
     selectedSourceKey ||
     new URLSearchParams(window.location.search).get('source') ||
@@ -1289,6 +1258,7 @@ export function PipelineDebugPage() {
         vlm_api_key: form.vlm_api_key.trim() || undefined,
         vlm_model: form.vlm_model.trim() || undefined,
       });
+      rememberPipelineJob(window.localStorage, activeSourceKey, result);
       setStartResult(result);
       window.setTimeout(() => {
         void refreshJobStatus(result.job_id);
@@ -1332,11 +1302,32 @@ export function PipelineDebugPage() {
   }, [activeSourceKey, form.book_id, form.pdf_path, form.mineru_file_url]);
 
   useEffect(() => {
-    setStartResult(null);
+    let cancelled = false;
+    const restoredJob = restorePipelineJob(window.localStorage, activeSourceKey);
+    setStartResult(restoredJob);
     setJobStatus(null);
     void refresh();
     void refreshImageReviews();
     void refreshQuality();
+    if (restoredJob) {
+      void loadPipelineJobStatus(activeSourceKey, restoredJob.job_id)
+        .then((status) => {
+          if (cancelled) return;
+          if (status.status === 'unknown') {
+            forgetPipelineJob(window.localStorage, activeSourceKey);
+            setStartResult(null);
+            setJobStatus(null);
+            return;
+          }
+          setJobStatus(status);
+        })
+        .catch(() => {
+          if (!cancelled) setJobStatus(null);
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
   }, [activeSourceKey]);
 
   const submitImageReview = async (item: ImageReviewItem, action: ImageReviewAction) => {
@@ -1364,18 +1355,25 @@ export function PipelineDebugPage() {
   const successRate = payload?.summary.lesson_runs
     ? payload.summary.qa_passed / Math.max(payload.summary.lesson_runs, 1)
     : 0;
+  const activeJobStatus = startResult
+    && jobStatus?.job_id === startResult.job_id
+    && jobStatus.status !== 'unknown'
+    ? jobStatus
+    : null;
   const steps = useMemo(
-    () => buildPipelineSteps({ payload, imageReviews, jobStatus, starting, startResult }),
-    [payload, imageReviews, jobStatus, starting, startResult],
+    () => buildPipelineSteps({ payload, imageReviews, jobStatus: activeJobStatus, starting, startResult }),
+    [payload, imageReviews, activeJobStatus, starting, startResult],
   );
   const pipelineDone = pipelineComplete(payload);
-  const jobDone = jobStatus?.status === 'completed' || jobStatus?.status === 'blocked';
-  const autoRefreshing = starting || Boolean(startResult && !jobDone && !pipelineBlocked(payload));
-  const lastUpdatedAt = jobStatus?.updated_at ?? latestUpdatedAt(payload);
+  const jobDone = activeJobStatus?.status === 'completed' || activeJobStatus?.status === 'blocked';
+  const autoRefreshing = starting || Boolean(startResult && !jobDone);
+  const lastUpdatedAt = activeJobStatus?.updated_at ?? null;
 
   useEffect(() => {
-    if (startResult && jobDone) invalidateUnitCache(activeSourceKey);
-  }, [activeSourceKey, jobDone, startResult?.job_id]);
+    if (!startResult || activeJobStatus?.status !== 'completed') return;
+    invalidateUnitCache(activeSourceKey);
+    void switchSource(activeSourceKey);
+  }, [activeSourceKey, activeJobStatus?.status, startResult?.job_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!autoRefreshing) return undefined;
@@ -1610,7 +1608,7 @@ export function PipelineDebugPage() {
           </section>
 
           <section className="min-w-0 space-y-5">
-            <PipelineProgressPanel steps={steps} jobStatus={jobStatus} autoRefreshing={autoRefreshing} lastUpdatedAt={lastUpdatedAt} />
+            <PipelineProgressPanel steps={steps} jobStatus={activeJobStatus} autoRefreshing={autoRefreshing} lastUpdatedAt={lastUpdatedAt} />
 
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <MetricCard label="课时运行" value={payload?.summary.lesson_runs ?? 0} detail={latestLesson ? `最近：${timeText(latestLesson.updated_at)}` : '暂无运行'} />
@@ -1706,13 +1704,13 @@ export function PipelineDebugPage() {
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-text-muted">当前任务</span>
-                  <span className={jobStatus ? 'text-text-primary' : 'text-text-secondary'}>
-                    {jobStatus ? statusLabel(jobStatus.status) : '暂无'}
+                  <span className={activeJobStatus ? 'text-text-primary' : 'text-text-secondary'}>
+                    {activeJobStatus ? statusLabel(activeJobStatus.status) : '暂无'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-text-muted">当前阶段</span>
-                  <span className="truncate text-text-primary">{stageLabel(jobStatus?.current_stage?.id) || '暂无'}</span>
+                  <span className="truncate text-text-primary">{stageLabel(activeJobStatus?.current_stage?.id) || '暂无'}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-text-muted">合并运行</span>

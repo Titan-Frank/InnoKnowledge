@@ -144,6 +144,14 @@ test("parses model node body JSON from plain or fenced output", () => {
     parseModelNodeBodyResultText('{"content":"正文内容 [ev1]"}'),
     { content: "正文内容 [ev1]", source_refs: ["ev1"], media_refs: [], properties: {} },
   );
+  assert.deepEqual(
+    parseModelNodeBodyResultText('{{"content":"正文","source_refs":["ev1"]}'),
+    { content: "正文", source_refs: ["ev1"], media_refs: [], properties: {} },
+  );
+  assert.deepEqual(
+    parseModelNodeBodyResultText('{{"content":"正文","source_refs":["ev1"]}}'),
+    { content: "正文", source_refs: ["ev1"], media_refs: [], properties: {} },
+  );
 });
 
 test("builds model body node query scoped to a source book", () => {

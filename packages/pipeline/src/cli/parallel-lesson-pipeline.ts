@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { isMainModule } from "../shared/cli-entry.js";
+
 import {
   buildMarkLessonRunsQaPassedStatement,
   buildSelectMergedLessonRunIdsStatement,
@@ -147,7 +149,7 @@ function parseNumber(value: string | undefined, name: string): number | undefine
   return parsed;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   raise(main(process.argv.slice(2)));
 }
 

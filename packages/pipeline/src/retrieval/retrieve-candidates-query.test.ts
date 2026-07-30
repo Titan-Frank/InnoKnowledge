@@ -79,7 +79,7 @@ test("builds vector candidate query like Python fetch_vector_candidates", () => 
   });
 
   assert.equal(statement.name, "select-vector-retrieval-candidates");
-  assert.deepEqual(statement.params, [embedding, "main", "concept", embedding, 16]);
+  assert.deepEqual(statement.params, ["[0.1,0.2,0.3]", "main", "concept", "[0.1,0.2,0.3]", 16]);
   assert.match(statement.sql, /SELECT id, name, kind, 1 - \(embedding <=> \$1::vector\) AS similarity/);
   assert.match(statement.sql, /dataset_id = \$2 AND status != 'deprecated' AND embedding IS NOT NULL AND kind = \$3/);
   assert.match(statement.sql, /ORDER BY embedding <=> \$4::vector\nLIMIT \$5/);
@@ -92,9 +92,20 @@ test("builds vector candidate query without optional node kind", () => {
     embedding,
   });
 
-  assert.deepEqual(statement.params, [embedding, "main", embedding, 16]);
+  assert.deepEqual(statement.params, ["[0.1,0.2]", "main", "[0.1,0.2]", 16]);
   assert.doesNotMatch(statement.sql, /kind =/);
   assert.match(statement.sql, /ORDER BY embedding <=> \$3::vector\nLIMIT \$4/);
+});
+
+test("rejects invalid vector candidate embeddings before querying PostgreSQL", () => {
+  assert.throws(
+    () =>
+      buildVectorCandidatesQuery({
+        datasetId: "main",
+        embedding: [0.1, Number.NaN],
+      }),
+    /non-empty finite embedding/,
+  );
 });
 
 test("maps vector rows with Python-compatible score threshold", () => {

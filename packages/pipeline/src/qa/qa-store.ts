@@ -25,7 +25,11 @@ export type QaLessonRunFilter = {
   batchAnchors?: string[];
 };
 
-export async function runStrictQaFromDatabase(input: { datasetId: string; query: QaSqlQueryExecutor }): Promise<StrictQaDatabaseOutput> {
+export async function runStrictQaFromDatabase(input: {
+  datasetId: string;
+  bookId?: string | null;
+  query: QaSqlQueryExecutor;
+}): Promise<StrictQaDatabaseOutput> {
   const readStatements: string[] = [];
   const query = async (statement: SqlStatement): Promise<RawRecord[]> => {
     readStatements.push(statement.name);
@@ -42,10 +46,15 @@ export async function runStrictQaFromDatabase(input: { datasetId: string; query:
     node_cards: (await query(buildSelectQaNodeCardsQuery(input.datasetId))).map(toStrictQaNodeCard),
     node_bodies: (await query(buildSelectQaNodeBodiesQuery(input.datasetId))).map(toStrictQaNodeBody),
   };
+  const result = runStrictQa(rows);
+  const scopedNodeIds = input.bookId
+    ? new Set((await query(buildSelectQaBookNodeIdsQuery(input.datasetId, input.bookId))).map((row) => String(row.id ?? "")).filter(Boolean))
+    : null;
+  const scopedResult = scopedNodeIds ? filterStrictQaResult(result, rows, scopedNodeIds) : result;
   return {
     dataset_id: input.datasetId,
     read_statements: readStatements,
-    ...runStrictQa(rows),
+    ...scopedResult,
   };
 }
 
@@ -147,6 +156,41 @@ export function buildSelectQaNodeBodiesQuery(datasetId: string): SqlStatement {
     sql: "SELECT node_id, format, content, media_refs_json, source_refs_json, generated_from, status FROM world_node_bodies WHERE dataset_id = $1 AND status != 'deprecated' ORDER BY node_id",
     params: [datasetId],
   };
+}
+
+export function buildSelectQaBookNodeIdsQuery(datasetId: string, bookId: string): SqlStatement {
+  return {
+    name: "select-strict-qa-book-node-ids",
+    sql: [
+      "SELECT DISTINCT mention.target_id AS id",
+      "FROM world_mentions AS mention",
+      "JOIN LATERAL jsonb_array_elements_text(mention.source_refs_json) AS mention_ref(evidence_id) ON true",
+      "JOIN world_evidence AS evidence",
+      "  ON evidence.dataset_id = mention.dataset_id",
+      " AND evidence.id = mention_ref.evidence_id",
+      "WHERE mention.dataset_id = $1",
+      "  AND mention.target_type = 'node'",
+      "  AND evidence.source_id = $2",
+      "ORDER BY id",
+    ].join("\n"),
+    params: [datasetId, bookId],
+  };
+}
+
+function filterStrictQaResult(result: StrictQaResult, rows: StrictQaRows, nodeIds: Set<string>): StrictQaResult {
+  const edgeIds = new Set(rows.edges.filter((row) => nodeIds.has(row.from_id) || nodeIds.has(row.to_id)).map((row) => row.id));
+  const profileIds = new Set(rows.domain_profiles.filter((row) => nodeIds.has(row.node_id)).map((row) => row.id));
+  const inScope = (issue: StrictQaResult["errors"][number]): boolean => {
+    if (issue.category === "edge") return edgeIds.has(issue.id);
+    if (issue.category === "domain_profile") return nodeIds.has(issue.id) || profileIds.has(issue.id);
+    if (issue.category === "pedagogical_profile") {
+      return [...profileIds].some((profileId) => issue.id === profileId || issue.id.startsWith(`${profileId}:`));
+    }
+    return nodeIds.has(issue.id);
+  };
+  const errors = result.errors.filter(inScope);
+  const warnings = result.warnings.filter(inScope);
+  return { status: errors.length === 0 ? "success" : "blocked", errors, warnings };
 }
 
 export function buildSelectGraphNodesQuery(datasetId: string): SqlStatement {

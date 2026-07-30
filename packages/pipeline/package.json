@@ -35,10 +35,12 @@
     "test": "npm run build && node --test \"dist/**/*.test.js\""
   },
   "dependencies": {
-    "postgres": "^3.4.5"
+    "postgres": "^3.4.5",
+    "yauzl": "^3.4.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",
+    "@types/yauzl": "^3.4.0",
     "typescript": "^5.7.3"
   }
 }

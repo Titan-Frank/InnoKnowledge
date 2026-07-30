@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { isMainModule } from "../shared/cli-entry.js";
+
 import { runChunkOutlineFile } from "../outline/chunk-outline-files.js";
 import { runChunkOutline } from "../outline/chunk-outline-runner.js";
 
@@ -65,7 +67,7 @@ function parseInteger(value: string | undefined, name: string): number | undefin
   return parsed;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule(import.meta.url)) {
   raise(main(process.argv.slice(2)));
 }
 

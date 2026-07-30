@@ -1,5 +1,5 @@
 import type { Hono } from 'hono';
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createWriteStream, mkdirSync } from 'node:fs';
 import { basename, join } from 'node:path';
@@ -10,7 +10,111 @@ import type {
 import type { Sql } from '../db/connection.js';
 import { resolveDatasetRow, loadPipelinePayload, loadPipelineJobStatusPayload, loadTextbookOutlinePayload } from '../db/queries.js';
 import { loadPipelineQualityPayload } from '../db/quality-dashboard.js';
-import { DEFAULT_DATABASE_URL, REPO_ROOT } from '../utils/paths.js';
+import { REPO_ROOT } from '../utils/paths.js';
+
+interface CommandInvocation {
+  command: string;
+  args: string[];
+}
+
+export function redactCommand(command: string[]): string {
+  return command.map((part) => part.replace(/(\/\/[^:/\s]+:)[^@/\s]+@/g, '$1****@')).join(' ');
+}
+
+function databaseTarget(dbUrl: string): string {
+  try {
+    const parsed = new URL(dbUrl);
+    return `${parsed.hostname}:${parsed.port || '5432'}${parsed.pathname}`;
+  } catch {
+    return 'invalid-database-url';
+  }
+}
+
+function timestamp(): string {
+  return new Date().toISOString();
+}
+
+function logPipelineEvent(
+  level: 'info' | 'error',
+  event: string,
+  details: Record<string, unknown>,
+): void {
+  const message = `[pipeline] ${event} ${JSON.stringify(details)}`;
+  if (level === 'error') {
+    console.error(message);
+  } else {
+    console.log(message);
+  }
+}
+
+export function resolveNpmInvocation(
+  args: string[],
+  options: {
+    env?: NodeJS.ProcessEnv;
+    execPath?: string;
+    platform?: NodeJS.Platform;
+  } = {},
+): CommandInvocation {
+  const env = options.env ?? process.env;
+  const execPath = options.execPath ?? process.execPath;
+  const platform = options.platform ?? process.platform;
+  const npmExecPath = env.npm_execpath;
+
+  if (npmExecPath) {
+    return {
+      command: execPath,
+      args: [npmExecPath, ...args],
+    };
+  }
+
+  if (platform === 'win32') {
+    return {
+      command: env.ComSpec || 'cmd.exe',
+      args: ['/d', '/s', '/c', 'npm.cmd', ...args],
+    };
+  }
+
+  return { command: 'npm', args };
+}
+
+function waitForSpawn(child: ChildProcess, onError: (error: Error) => void): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let started = false;
+
+    child.once('spawn', () => {
+      started = true;
+      resolve();
+    });
+    child.on('error', (error) => {
+      onError(error);
+      if (!started) reject(error);
+    });
+  });
+}
+
+async function markPipelineProcessFailed(
+  sql: Sql,
+  datasetId: string,
+  jobId: string,
+  error: string,
+): Promise<void> {
+  const now = new Date().toISOString();
+  await sql`
+    UPDATE world_pipeline_worker_states
+    SET status = 'failed', error = COALESCE(error, ${error}), completed_at = ${now}, updated_at = ${now}
+    WHERE dataset_id = ${datasetId} AND job_id = ${jobId} AND status = 'running'
+  `;
+  await sql`
+    UPDATE world_pipeline_job_stages
+    SET status = 'blocked', error = COALESCE(error, ${error}), completed_at = ${now}, updated_at = ${now}
+    WHERE dataset_id = ${datasetId} AND job_id = ${jobId} AND status = 'running'
+  `;
+  await sql`
+    UPDATE world_pipeline_jobs
+    SET status = 'blocked', error = COALESCE(error, ${error}), completed_at = ${now}, updated_at = ${now}
+    WHERE dataset_id = ${datasetId} AND job_id = ${jobId} AND status = 'running'
+  `;
+}
 
 function safeToken(value: string): string {
   return value.replace(/[^a-zA-Z0-9._-]+/g, '__').replace(/^_+|_+$/g, '') || 'job';
@@ -188,10 +292,11 @@ function inferTextbookMetadata(
   };
 }
 
-function buildPipelineCommand(
+export function buildPipelineCommand(
   body: PipelineStartRequest,
   jobId: string,
   logPath: string,
+  dbUrl: string,
   outline: Record<string, unknown> | null = null,
 ): string[] {
   const bookId = inferBookId(body);
@@ -217,7 +322,7 @@ function buildPipelineCommand(
     '--parallelism',
     String(asInt(body.parallelism, 8)),
     '--db',
-    process.env.DATABASE_URL || DEFAULT_DATABASE_URL,
+    dbUrl,
     '--job-id',
     jobId,
     '--log-path',
@@ -272,7 +377,7 @@ function buildPipelineCommand(
   return command;
 }
 
-export function registerPipelineRoutes(app: Hono, sql: Sql) {
+export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
   app.get('/api/source/:key/pipeline', async (c) => {
     const key = c.req.param('key');
     const datasetRow = await resolveDatasetRow(sql, key);
@@ -335,35 +440,95 @@ export function registerPipelineRoutes(app: Hono, sql: Sql) {
     const logPath = join(jobDir, `${jobId}.log`);
 
     let command: string[];
+    let datasetKey: string;
     try {
       const outputRoot = asString(body.output_root, 'data/main');
-      const datasetKey = asString(body.dataset_id, outputRoot.split('/').filter(Boolean).at(-1) || key || 'main');
+      datasetKey = asString(body.dataset_id, outputRoot.split('/').filter(Boolean).at(-1) || key || 'main');
       const datasetRow = await resolveDatasetRow(sql, datasetKey);
       const outline = datasetRow ? await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId) : null;
-      command = buildPipelineCommand(body, jobId, logPath, outline);
+      command = buildPipelineCommand(body, jobId, logPath, dbUrl, outline);
     } catch (error) {
       return c.json({ error: (error as Error).message }, 400);
     }
 
+    const startedAt = Date.now();
+    const targetDatabase = databaseTarget(dbUrl);
+    logPipelineEvent('info', 'starting', {
+      jobId,
+      bookId,
+      datasetId: datasetKey,
+      database: targetDatabase,
+      logPath,
+    });
     const logStream = createWriteStream(logPath, { flags: 'a' });
-    logStream.write(`$ ${command.join(' ')}\n\n`);
+    logStream.write(
+      `[${timestamp()}] [pipeline] starting job=${jobId} book=${bookId} dataset=${datasetKey} database=${targetDatabase}\n`
+      + `$ ${redactCommand(command)}\n\n`,
+    );
     const vlmApiKey = asString(body.vlm_api_key);
+    const invocation = resolveNpmInvocation(command.slice(1));
 
-    const child = spawn(command[0], command.slice(1), {
+    const child = spawn(invocation.command, invocation.args, {
       cwd: REPO_ROOT,
       env: {
         ...process.env,
-        DATABASE_URL: process.env.DATABASE_URL || DEFAULT_DATABASE_URL,
+        DATABASE_URL: dbUrl,
         ...(vlmApiKey ? { VLM_API_KEY: vlmApiKey } : {}),
       },
       stdio: ['ignore', 'pipe', 'pipe'],
       detached: true,
+      windowsHide: true,
     });
     child.stdout.pipe(logStream, { end: false });
     child.stderr.pipe(logStream, { end: false });
-    child.on('close', (code) => {
-      logStream.write(`\n[exit ${code ?? 'unknown'}]\n`);
-      logStream.end();
+    let logEnded = false;
+    const endLog = (message: string) => {
+      if (logEnded) return;
+      logEnded = true;
+      logStream.end(message);
+    };
+    try {
+      await waitForSpawn(child, (error) => {
+        logPipelineEvent('error', 'spawn-error', {
+          jobId,
+          message: error.message,
+          durationMs: Date.now() - startedAt,
+        });
+        endLog(`\n[${timestamp()}] [pipeline] spawn-error message=${JSON.stringify(error.message)}\n`);
+      });
+    } catch (error) {
+      return c.json({ error: `Failed to start pipeline: ${(error as Error).message}` }, 500);
+    }
+    logPipelineEvent('info', 'spawned', {
+      jobId,
+      pid: child.pid ?? null,
+      database: targetDatabase,
+    });
+    logStream.write(`[${timestamp()}] [pipeline] spawned pid=${child.pid ?? 'unknown'}\n\n`);
+    child.on('close', (code, signal) => {
+      const durationMs = Date.now() - startedAt;
+      const event = code === 0 ? 'completed' : 'failed';
+      const details = {
+        jobId,
+        exitCode: code,
+        signal,
+        durationMs,
+        logPath,
+      };
+      logPipelineEvent(code === 0 ? 'info' : 'error', event, details);
+      endLog(
+        `\n[${timestamp()}] [pipeline] ${event} exitCode=${code ?? 'unknown'}`
+        + ` signal=${signal ?? 'none'} durationMs=${durationMs}\n`,
+      );
+      if (code !== 0) {
+        const processError = `Pipeline process exited with code ${code ?? 'unknown'}${signal ? ` (${signal})` : ''}.`;
+        void markPipelineProcessFailed(sql, datasetKey, jobId, processError).catch((error) => {
+          logPipelineEvent('error', 'status-update-error', {
+            jobId,
+            message: (error as Error).message,
+          });
+        });
+      }
     });
     child.unref();
 

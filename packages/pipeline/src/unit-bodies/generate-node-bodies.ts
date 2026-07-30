@@ -1,3 +1,4 @@
+import { parseModelJsonObject } from "../shared/model-json.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
 type RawRecord = Record<string, unknown>;
@@ -241,7 +242,7 @@ export function buildModelNodeBodyPrompt(input: ModelNodeBodyInput): ModelNodeBo
     "4. 如果证据不足以支持某个小节，就省略该小节，不要硬写。",
     "5. 如果在正文句末标注证据，直接用完整证据 ID 加方括号，例如 `[evidence:auto-64c1ee9124ae]`，不要用反引号包裹证据标记。",
     "6. Markdown 不要使用一级标题；正文可以包含 `## 定义`、`## 核心解释`、`## 关键要点`、`## 示例或应用`、`## 易错点` 等二级标题。",
-    "7. 输出必须是 JSON，不要输出额外解释。",
+    "7. 输出必须是可由 JSON.parse 直接解析的单个 JSON 对象；只能以一个左花括号开始、一个右花括号结束，不要输出额外解释。",
   ].join("\n");
   const userPayload = JSON.stringify({
     dataset_id: input.datasetId,
@@ -316,7 +317,7 @@ export function buildModelNodeBodyResponseSchema(): RawRecord {
 }
 
 export function parseModelNodeBodyResultText(text: string): ModelNodeBodyResult {
-  const parsed = parseJsonObjectFromText(text);
+  const parsed = parseModelJsonObject(text);
   const content = textValue(parsed.content)
     || textValue(parsed.markdown)
     || textValue(parsed.body)
@@ -779,28 +780,6 @@ function truncateText(value: string, maxLength: number): string {
   const text = value.trim();
   if (text.length <= maxLength) return text;
   return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
-}
-
-function parseJsonObjectFromText(text: string): RawRecord {
-  const trimmed = text.trim();
-  const candidates = [trimmed];
-  const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
-  if (fenced) candidates.push(fenced[1]!.trim());
-  const firstBrace = trimmed.indexOf("{");
-  const lastBrace = trimmed.lastIndexOf("}");
-  if (firstBrace >= 0 && lastBrace > firstBrace) candidates.push(trimmed.slice(firstBrace, lastBrace + 1));
-
-  const errors: string[] = [];
-  for (const candidate of uniqueStrings(candidates.filter(Boolean))) {
-    try {
-      const parsed = JSON.parse(candidate) as unknown;
-      if (isRecord(parsed)) return parsed;
-      errors.push("JSON value is not an object.");
-    } catch (error) {
-      errors.push((error as Error).message);
-    }
-  }
-  throw new Error(`Model output must be a JSON object: ${errors.join("; ")}`);
 }
 
 function uniqueStrings(values: unknown[]): string[] {
