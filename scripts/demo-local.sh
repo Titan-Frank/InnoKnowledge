@@ -14,8 +14,8 @@ if [[ ! "$DEMO_DB_NAME" =~ ^[A-Za-z0-9_]+$ ]]; then
   exit 1
 fi
 
-if [[ "$MODE" != "serve" && "$MODE" != "seed-only" ]]; then
-  echo "Usage: scripts/demo-local.sh [serve|seed-only]" >&2
+if [[ "$MODE" != "serve" && "$MODE" != "serve-existing" && "$MODE" != "seed-only" ]]; then
+  echo "Usage: scripts/demo-local.sh [serve|serve-existing|seed-only]" >&2
   exit 1
 fi
 
@@ -43,21 +43,34 @@ if [[ "$ready" -ne 1 ]]; then
   exit 1
 fi
 
-if ! docker compose exec -T postgres psql -U okm -d postgres -tAc \
+database_exists=0
+if docker compose exec -T postgres psql -U okm -d postgres -tAc \
   "SELECT 1 FROM pg_database WHERE datname = '${DEMO_DB_NAME}'" | tr -d '[:space:]' | grep -qx '1'; then
+  database_exists=1
+fi
+
+if [[ "$database_exists" -ne 1 ]]; then
+  if [[ "$MODE" == "serve-existing" ]]; then
+    echo "Demo database '${DEMO_DB_NAME}' does not exist. Run 'npm run demo' once to initialize it." >&2
+    exit 1
+  fi
   echo "Creating isolated demo database ${DEMO_DB_NAME}..."
   docker compose exec -T postgres createdb -U okm "$DEMO_DB_NAME"
 fi
 
-echo "Applying world-v1.2 schema to ${DEMO_DB_NAME}..."
-docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U okm -d "$DEMO_DB_NAME" \
-  < schemas/pg/knowledge_store.sql
+if [[ "$MODE" == "serve-existing" ]]; then
+  echo "Reusing existing demo database ${DEMO_DB_NAME}; schema and seed steps are skipped."
+else
+  echo "Applying world-v1.2 schema to ${DEMO_DB_NAME}..."
+  docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U okm -d "$DEMO_DB_NAME" \
+    < schemas/pg/knowledge_store.sql
 
-echo "Loading the repository-safe synthetic graph..."
-docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U okm -d "$DEMO_DB_NAME" \
-  < examples/demo-data/seed-demo.sql
+  echo "Loading the repository-safe synthetic graph..."
+  docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U okm -d "$DEMO_DB_NAME" \
+    < examples/demo-data/seed-demo.sql
 
-echo "Demo dataset loaded into ${DEMO_DATABASE_URL}."
+  echo "Demo dataset loaded into ${DEMO_DATABASE_URL}."
+fi
 
 if [[ "$MODE" == "seed-only" ]]; then
   exit 0

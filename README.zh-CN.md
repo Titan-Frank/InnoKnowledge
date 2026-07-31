@@ -97,6 +97,14 @@ npm run demo
 
 该命令会启动 PostgreSQL、创建演示数据库、导入原创图谱、构建应用并启动服务。它不会修改默认的 `knowledge` 数据库，也不需要模型密钥。演示数据的准确范围和解释边界见[完整说明](examples/demo-data/README.md)。
 
+如果需要重新启动应用并保留 `okm_demo` 中的现有图谱：
+
+```bash
+npm run demo:resume
+```
+
+该命令会启动 PostgreSQL、构建应用，并直接使用已有的演示数据库，不会重新应用 Schema，也不会执行 `seed-demo.sql`。如果尚未初始化 `okm_demo`，需要先运行一次 `npm run demo`。
+
 如果只想初始化或刷新演示数据库：
 
 ```bash
@@ -136,6 +144,20 @@ npm run server-pipeline-run -w packages/pipeline -- \
 ```
 
 如果 PDF 已有公网地址，可用 `--mineru-file-url` 代替 `--pdf-path`。只有在你已经配置并信任向量服务后，才应删除 `--skip-embeddings`。
+
+如果流水线任务被阻断，流水线工作台会显示“从失败步骤继续运行”按钮。系统会在原作业上从该步骤重新运行，保留作业编号、前序完成状态、历史事件以及已经生成的文件、目录、暂存记录和正式图谱数据。命令行也可以使用相同的分阶段运行能力：
+
+流水线工作台同时提供最近作业列表，显示每个作业的教材、状态、当前阶段、进度和更新时间。点击一行可以查看该作业的阶段、Worker 与事件详情。续跑作业中被复用的前序阶段会显示为已完成。
+
+```bash
+npm run server-pipeline-run -w packages/pipeline -- \
+  --book-id physics-example \
+  --dataset-id main \
+  --db "$DATABASE_URL" \
+  --start-stage normalize
+```
+
+续跑时仍会检查数据库连接。指定步骤所依赖的前序产物必须已经存在，例如从 `canonical_commit` 继续需要已有暂存记录，从 `node_bodies` 继续需要已有正式节点和证据。
 
 正式数据归一化后，默认流程会依次生成知识正文和按学段教学画像，再进入可选的向量阶段与最终质量检查。教学画像写入 `world_domain_profiles.properties_json.pedagogical_profiles_by_stage`；自动生成内容会保留证据引用、模型与提示词版本、输入指纹、置信度和审核状态。代码会校验返回的证据编号是否属于输入上下文，但编号合法不等于内容在语义上已被证据充分证明，因此自动生成结果仍保持待审核状态。若要单独重跑教学画像阶段，可使用：
 

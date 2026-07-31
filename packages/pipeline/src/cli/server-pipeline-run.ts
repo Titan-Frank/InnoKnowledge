@@ -53,6 +53,28 @@ type StagingQualityOutput = {
   results?: unknown;
 };
 
+export const PIPELINE_START_STAGES = [
+  "mineru_source_markdown",
+  "extract_pdf_outline",
+  "prepare_source_markdown",
+  "ensure_outline",
+  "prepare_outline_chunks",
+  "lesson_plan",
+  "lesson_staging",
+  "staging_quality",
+  "canonical_commit",
+  "normalize",
+  "node_bodies",
+  "pedagogical_profiles",
+  "node_embeddings",
+  "unit_embeddings",
+  "strict_qa",
+  "graph_integrity",
+  "quality_dashboard",
+] as const;
+
+export type PipelineStartStage = typeof PIPELINE_START_STAGES[number];
+
 type RunnerOptions = {
   jobId?: string;
   logPath?: string;
@@ -108,6 +130,8 @@ type RunnerOptions = {
   skipEmbeddings?: boolean;
   nodeEmbeddingBatchSize?: number;
   unitEmbeddingBatchSize?: number;
+  startStage?: PipelineStartStage;
+  resumeExistingJob?: boolean;
   progressStore?: PipelineProgressStore;
   assetStore?: PipelineAssetStore;
   commandRunner?: CommandRunner;
@@ -160,6 +184,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       context: result.context,
     });
     await recordStage(result, progressStore, { id: "check_postgres", status: "completed", output: postgresStage });
+    await recordReusedResumeStages(result, progressStore, options);
 
     const outlinePath = outlinePathForBook(options.bookId);
     let outlineRecord = await assetStore.loadOutline({ datasetId: options.datasetId, bookId: options.bookId });
@@ -169,7 +194,21 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
     let sourceMarkdownPath = "";
     if (outlineRecord) sourceMarkdownPath = stringValue(outlineRecord.source_path);
     const mineruFileUrl = options.mineruFileUrl ?? "";
-    const shouldRunMineru = (options.mineruForce || !outlineRecord) && Boolean(options.pdfPath || mineruFileUrl);
+    if (
+      options.startStage === "mineru_source_markdown"
+      && !options.pdfPath.trim()
+      && !mineruFileUrl.trim()
+    ) {
+      return await blockRun(
+        result,
+        progressStore,
+        "mineru_source_markdown",
+        "Cannot resume MinerU parsing without a PDF path or MinerU file URL.",
+      );
+    }
+    const shouldRunMineru = shouldRunStage(options, "mineru_source_markdown")
+      && (options.startStage === "mineru_source_markdown" || options.mineruForce || !outlineRecord)
+      && Boolean(options.pdfPath || mineruFileUrl);
     if (shouldRunMineru) {
       await recordStage(result, progressStore, { id: "mineru_source_markdown", status: "running" });
       const mineruStage = await runMineruSourceMarkdown({
@@ -215,6 +254,29 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       }
     }
 
+    if (
+      !outlineRecord
+      && existsSync(outlinePath)
+      && options.startStage
+      && stageIndex(options.startStage) >= stageIndex("lesson_plan")
+    ) {
+      outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
+      if (outlineRecord) sourceMarkdownPath = stringValue(outlineRecord.source_path);
+    }
+
+    if (
+      !outlineRecord
+      && options.startStage
+      && stageIndex(options.startStage) >= stageIndex("lesson_plan")
+    ) {
+      return await blockRun(
+        result,
+        progressStore,
+        options.startStage,
+        `Cannot resume at '${options.startStage}' because no stored outline exists for book '${options.bookId}'.`,
+      );
+    }
+
     if (!existsSync(outlinePath) && !sourceMarkdownPath.trim()) {
       return await blockRun(
         result,
@@ -224,11 +286,22 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       );
     }
 
-    if (shouldExtractPdfOutline({
-      outlineExists: existsSync(outlinePath),
-      pdfPath: options.pdfPath,
-      sourceMarkdownPath,
-    })) {
+    if (options.startStage === "extract_pdf_outline" && !options.pdfPath.trim()) {
+      return await blockRun(
+        result,
+        progressStore,
+        "extract_pdf_outline",
+        "Cannot resume PDF outline extraction without a PDF path.",
+      );
+    }
+    const shouldRunPdfOutline = options.startStage === "extract_pdf_outline"
+      ? Boolean(options.pdfPath.trim())
+      : shouldExtractPdfOutline({
+        outlineExists: existsSync(outlinePath),
+        pdfPath: options.pdfPath,
+        sourceMarkdownPath,
+      });
+    if (shouldRunStage(options, "extract_pdf_outline") && shouldRunPdfOutline) {
       await recordStage(result, progressStore, { id: "extract_pdf_outline", status: "running" });
       const pdfOutlineStage = await extractPdfOutline({
         bookId: options.bookId,
@@ -247,47 +320,55 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       await recordStage(result, progressStore, { id: "extract_pdf_outline", status: "completed", output: pdfOutlineStage });
     }
 
-    await recordStage(result, progressStore, { id: "prepare_source_markdown", status: "running" });
-    const sourceStage = prepareSourceMarkdown({
-      bookId: options.bookId,
-      outlinePath,
-      repoRoot: REPO_ROOT,
-      sourceMarkdownPath,
-    });
-    if (sourceStage.status === "blocked") {
-      return await blockRun(result, progressStore, "prepare_source_markdown", sourceStage.error);
+    let preparedMarkdownPath = sourceMarkdownPath;
+    if (shouldRunStage(options, "prepare_source_markdown")) {
+      await recordStage(result, progressStore, { id: "prepare_source_markdown", status: "running" });
+      const sourceStage = prepareSourceMarkdown({
+        bookId: options.bookId,
+        outlinePath,
+        repoRoot: REPO_ROOT,
+        sourceMarkdownPath,
+      });
+      if (sourceStage.status === "blocked") {
+        return await blockRun(result, progressStore, "prepare_source_markdown", sourceStage.error);
+      }
+      preparedMarkdownPath = sourceStage.markdown_path;
+      await recordStage(result, progressStore, { id: "prepare_source_markdown", status: "completed", output: sourceStage });
     }
-    await recordStage(result, progressStore, { id: "prepare_source_markdown", status: "completed", output: sourceStage });
 
-    await recordStage(result, progressStore, { id: "ensure_outline", status: "running" });
-    const outlineStage = ensureOutlineFromMarkdown({
-      bookId: options.bookId,
-      outlinePath,
-      repoRoot: REPO_ROOT,
-      markdownPath: sourceStage.markdown_path,
-      title: options.bookId,
-    });
-    if (outlineStage.status === "blocked") {
-      return await blockRun(result, progressStore, "ensure_outline", outlineStage.error);
+    if (shouldRunStage(options, "ensure_outline")) {
+      await recordStage(result, progressStore, { id: "ensure_outline", status: "running" });
+      const outlineStage = ensureOutlineFromMarkdown({
+        bookId: options.bookId,
+        outlinePath,
+        repoRoot: REPO_ROOT,
+        markdownPath: preparedMarkdownPath,
+        title: options.bookId,
+      });
+      if (outlineStage.status === "blocked") {
+        return await blockRun(result, progressStore, "ensure_outline", outlineStage.error);
+      }
+      outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
+      await recordStage(result, progressStore, { id: "ensure_outline", status: "completed", output: outlineStage });
     }
-    outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
-    await recordStage(result, progressStore, { id: "ensure_outline", status: "completed", output: outlineStage });
 
-    await recordStage(result, progressStore, { id: "prepare_outline_chunks", status: "running" });
-    const chunkStage = ensureChunkedOutline({
-      outlinePath,
-      repoRoot: REPO_ROOT,
-      noChunks: options.noChunks,
-    });
-    if (chunkStage.status === "blocked") {
-      return await blockRun(result, progressStore, "prepare_outline_chunks", chunkStage.error);
+    if (shouldRunStage(options, "prepare_outline_chunks")) {
+      await recordStage(result, progressStore, { id: "prepare_outline_chunks", status: "running" });
+      const chunkStage = ensureChunkedOutline({
+        outlinePath,
+        repoRoot: REPO_ROOT,
+        noChunks: options.noChunks,
+      });
+      if (chunkStage.status === "blocked") {
+        return await blockRun(result, progressStore, "prepare_outline_chunks", chunkStage.error);
+      }
+      outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
+      await recordStage(result, progressStore, {
+        id: "prepare_outline_chunks",
+        status: chunkStage.status === "completed" ? "completed" : "skipped",
+        output: chunkStage,
+      });
     }
-    outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
-    await recordStage(result, progressStore, {
-      id: "prepare_outline_chunks",
-      status: chunkStage.status === "completed" ? "completed" : "skipped",
-      output: chunkStage,
-    });
 
     const outlineItems = outlineItemsFromRecord(outlineRecord);
     if (outlineItems.length === 0) {
@@ -326,128 +407,138 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       ...item,
       command: addExtractionExecutionFlags(item.command, options),
     }));
-    await recordStage(result, progressStore, {
-      id: "lesson_plan",
-      status: "completed",
-      output: {
-        total_units: plan.total_units,
-        unit_kind: plan.unit_kind,
-        parallel: plan.parallel,
-        commands: commands.map((item) => redactCommandForOutput(item.command)),
-      },
-    });
+    if (shouldRunStage(options, "lesson_plan")) {
+      await recordStage(result, progressStore, {
+        id: "lesson_plan",
+        status: "completed",
+        output: {
+          total_units: plan.total_units,
+          unit_kind: plan.unit_kind,
+          parallel: plan.parallel,
+          commands: commands.map((item) => redactCommandForOutput(item.command)),
+        },
+      });
+    }
 
-    const lessonStage: ServerPipelineStage = { id: "lesson_staging", status: "running", output: lessonProgress(commands.length, 0, 0, [], []) };
-    await recordStage(result, progressStore, lessonStage);
-    const initialLessonResults = await runExtractionCommands(commands, options.parallelism, {
-      commandRunner: options.commandRunner,
-      progressStore,
-      result,
-      stage: lessonStage,
-    });
-    const initialFailed = initialLessonResults.filter((lessonResult) => lessonResult.exit_code !== 0);
-    const transientRetryCommands = commands.filter((command) => {
-      const failedResult = initialFailed.find((lessonResult) => lessonResult.lesson_run_id === command.lesson_run_id);
-      return failedResult ? isRetryableExtractionFailure(failedResult) : false;
-    });
-    let lessonResults = initialLessonResults;
-    if (transientRetryCommands.length > 0 && TRANSIENT_EXTRACTION_RETRY_COUNT > 0) {
-      const retryStage: ServerPipelineStage = {
-        id: "lesson_staging_retry_transport_1",
-        status: "running",
-        output: lessonProgress(transientRetryCommands.length, 0, 0, [], []),
-      };
-      await recordStage(result, progressStore, retryStage);
-      const retryResults = await runExtractionCommands(transientRetryCommands, options.parallelism, {
+    if (shouldRunStage(options, "lesson_staging")) {
+      const lessonStage: ServerPipelineStage = { id: "lesson_staging", status: "running", output: lessonProgress(commands.length, 0, 0, [], []) };
+      await recordStage(result, progressStore, lessonStage);
+      const initialLessonResults = await runExtractionCommands(commands, options.parallelism, {
         commandRunner: options.commandRunner,
         progressStore,
         result,
-        stage: retryStage,
+        stage: lessonStage,
       });
-      const retryByLessonRunId = new Map(retryResults.map((retryResult) => [String(retryResult.lesson_run_id), retryResult]));
-      lessonResults = initialLessonResults.map(
-        (lessonResult) => retryByLessonRunId.get(String(lessonResult.lesson_run_id)) ?? lessonResult,
-      );
-      const retryFailed = retryResults.filter((retryResult) => retryResult.exit_code !== 0);
-      retryStage.status = retryFailed.length > 0 ? "blocked" : "completed";
-      retryStage.output = {
-        ...lessonProgress(
-          transientRetryCommands.length,
-          retryResults.length - retryFailed.length,
-          retryFailed.length,
-          [],
-          compactLessonResults(retryResults).slice(-12),
-        ),
-        results: compactLessonResults(retryResults),
-      };
-      if (retryFailed.length > 0) {
-        retryStage.error = extractionFailureSummary(retryFailed, "transient retry");
+      const initialFailed = initialLessonResults.filter((lessonResult) => lessonResult.exit_code !== 0);
+      const transientRetryCommands = commands.filter((command) => {
+        const failedResult = initialFailed.find((lessonResult) => lessonResult.lesson_run_id === command.lesson_run_id);
+        return failedResult ? isRetryableExtractionFailure(failedResult) : false;
+      });
+      let lessonResults = initialLessonResults;
+      if (transientRetryCommands.length > 0 && TRANSIENT_EXTRACTION_RETRY_COUNT > 0) {
+        const retryStage: ServerPipelineStage = {
+          id: "lesson_staging_retry_transport_1",
+          status: "running",
+          output: lessonProgress(transientRetryCommands.length, 0, 0, [], []),
+        };
+        await recordStage(result, progressStore, retryStage);
+        const retryResults = await runExtractionCommands(transientRetryCommands, options.parallelism, {
+          commandRunner: options.commandRunner,
+          progressStore,
+          result,
+          stage: retryStage,
+        });
+        const retryByLessonRunId = new Map(retryResults.map((retryResult) => [String(retryResult.lesson_run_id), retryResult]));
+        lessonResults = initialLessonResults.map(
+          (lessonResult) => retryByLessonRunId.get(String(lessonResult.lesson_run_id)) ?? lessonResult,
+        );
+        const retryFailed = retryResults.filter((retryResult) => retryResult.exit_code !== 0);
+        retryStage.status = retryFailed.length > 0 ? "blocked" : "completed";
+        retryStage.output = {
+          ...lessonProgress(
+            transientRetryCommands.length,
+            retryResults.length - retryFailed.length,
+            retryFailed.length,
+            [],
+            compactLessonResults(retryResults).slice(-12),
+          ),
+          results: compactLessonResults(retryResults),
+        };
+        if (retryFailed.length > 0) {
+          retryStage.error = extractionFailureSummary(retryFailed, "transient retry");
+        }
+        await recordStage(result, progressStore, retryStage);
       }
-      await recordStage(result, progressStore, retryStage);
-    }
-    const failed = lessonResults.filter((lessonResult) => lessonResult.exit_code !== 0);
-    lessonStage.status = failed.length > 0 ? "blocked" : "completed";
-    lessonStage.output = {
-      ...lessonProgress(commands.length, lessonResults.length - failed.length, failed.length, [], compactLessonResults(lessonResults).slice(-12)),
-      results: compactLessonResults(lessonResults),
-      initial_failed: compactLessonResults(initialFailed),
-      recovered_transient_failures: initialFailed.length - failed.length,
-    };
-    if (failed.length > 0) {
-      lessonStage.error = extractionFailureSummary(failed, "lesson extraction");
+      const failed = lessonResults.filter((lessonResult) => lessonResult.exit_code !== 0);
+      lessonStage.status = failed.length > 0 ? "blocked" : "completed";
+      lessonStage.output = {
+        ...lessonProgress(commands.length, lessonResults.length - failed.length, failed.length, [], compactLessonResults(lessonResults).slice(-12)),
+        results: compactLessonResults(lessonResults),
+        initial_failed: compactLessonResults(initialFailed),
+        recovered_transient_failures: initialFailed.length - failed.length,
+      };
+      if (failed.length > 0) {
+        lessonStage.error = extractionFailureSummary(failed, "lesson extraction");
+        await recordStage(result, progressStore, lessonStage);
+        await progressStore.updateJob({
+          datasetId: options.datasetId,
+          jobId: result.job_id,
+          status: "blocked",
+          currentStageId: lessonStage.id,
+          progress: sanitizeStageOutput(lessonStage),
+          error: lessonStage.error,
+          completed: true,
+        });
+        result.status = "blocked";
+        return result;
+      }
       await recordStage(result, progressStore, lessonStage);
-      await progressStore.updateJob({
-        datasetId: options.datasetId,
-        jobId: result.job_id,
-        status: "blocked",
-        currentStageId: lessonStage.id,
-        progress: sanitizeStageOutput(lessonStage),
-        error: lessonStage.error,
-        completed: true,
-      });
-      result.status = "blocked";
-      return result;
     }
-    await recordStage(result, progressStore, lessonStage);
 
-    const stagingQualityOk = await runStagingQualityWithRetries(result, progressStore, options, commands);
-    if (!stagingQualityOk) return result;
+    if (shouldRunStage(options, "staging_quality")) {
+      const stagingQualityOk = await runStagingQualityWithRetries(result, progressStore, options, commands);
+      if (!stagingQualityOk) return result;
+    }
 
-    const canonicalCommand = buildCanonicalMergeCommand(options);
-    const canonicalStage: ServerPipelineStage = {
-      id: "canonical_commit",
-      status: "running",
-      output: { command: redactCommandForOutput(canonicalCommand) },
-    };
-    await recordStage(result, progressStore, canonicalStage);
-    const canonicalResult = await runCommand(canonicalCommand, options.commandRunner);
-    canonicalStage.status = canonicalResult.exitCode === 0 ? "completed" : "blocked";
-    canonicalStage.output = {
-      command: redactCommandForOutput(canonicalCommand),
-      exit_code: canonicalResult.exitCode,
-      stdout_tail: tail(canonicalResult.stdout),
-      stderr_tail: tail(canonicalResult.stderr),
-    };
-    if (canonicalResult.exitCode !== 0) {
-      canonicalStage.error = "Canonical reducer command failed.";
+    if (shouldRunStage(options, "canonical_commit")) {
+      const canonicalCommand = buildCanonicalMergeCommand(options);
+      const canonicalStage: ServerPipelineStage = {
+        id: "canonical_commit",
+        status: "running",
+        output: { command: redactCommandForOutput(canonicalCommand) },
+      };
       await recordStage(result, progressStore, canonicalStage);
-      await progressStore.updateJob({
-        datasetId: options.datasetId,
-        jobId: result.job_id,
-        status: "blocked",
-        currentStageId: canonicalStage.id,
-        progress: sanitizeStageOutput(canonicalStage),
-        error: canonicalStage.error,
-        completed: true,
-      });
-      result.status = "blocked";
-      return result;
+      const canonicalResult = await runCommand(canonicalCommand, options.commandRunner);
+      canonicalStage.status = canonicalResult.exitCode === 0 ? "completed" : "blocked";
+      canonicalStage.output = {
+        command: redactCommandForOutput(canonicalCommand),
+        exit_code: canonicalResult.exitCode,
+        stdout_tail: tail(canonicalResult.stdout),
+        stderr_tail: tail(canonicalResult.stderr),
+      };
+      if (canonicalResult.exitCode !== 0) {
+        canonicalStage.error = "Canonical reducer command failed.";
+        await recordStage(result, progressStore, canonicalStage);
+        await progressStore.updateJob({
+          datasetId: options.datasetId,
+          jobId: result.job_id,
+          status: "blocked",
+          currentStageId: canonicalStage.id,
+          progress: sanitizeStageOutput(canonicalStage),
+          error: canonicalStage.error,
+          completed: true,
+        });
+        result.status = "blocked";
+        return result;
+      }
+      await recordStage(result, progressStore, canonicalStage);
     }
-    await recordStage(result, progressStore, canonicalStage);
 
-    const normalizeOk = await runPipelineCommandStage(result, progressStore, options, "normalize", buildNormalizeCommand(options), "Normalize command failed.");
-    if (!normalizeOk) return result;
-    if (!options.skipNodeBodies) {
+    if (shouldRunStage(options, "normalize")) {
+      const normalizeOk = await runPipelineCommandStage(result, progressStore, options, "normalize", buildNormalizeCommand(options), "Normalize command failed.");
+      if (!normalizeOk) return result;
+    }
+    if (shouldRunStage(options, "node_bodies") && !options.skipNodeBodies) {
       const nodeBodiesOk = await runPipelineCommandStage(
         result,
         progressStore,
@@ -459,7 +550,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       );
       if (!nodeBodiesOk) return result;
     }
-    if (!options.skipPedagogicalProfiles) {
+    if (shouldRunStage(options, "pedagogical_profiles") && !options.skipPedagogicalProfiles) {
       const pedagogicalProfilesOk = await runPipelineCommandStage(
         result,
         progressStore,
@@ -471,7 +562,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       );
       if (!pedagogicalProfilesOk) return result;
     }
-    if (!options.skipEmbeddings) {
+    if (!options.skipEmbeddings && shouldRunStage(options, "node_embeddings")) {
       const nodeEmbeddingsOk = await runPipelineCommandStage(
         result,
         progressStore,
@@ -481,30 +572,30 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
         "Node embedding backfill command failed.",
       );
       if (!nodeEmbeddingsOk) return result;
-
-      const unitEmbeddingsOk = await runPipelineCommandStage(
-        result,
-        progressStore,
-        options,
-        "unit_embeddings",
-        buildUnitEmbeddingsCommand(options),
-        "Unit embedding backfill command failed.",
-      );
+    }
+    if (!options.skipEmbeddings && shouldRunStage(options, "unit_embeddings")) {
+      const unitEmbeddingsOk = await runPipelineCommandStage(result, progressStore, options, "unit_embeddings", buildUnitEmbeddingsCommand(options), "Unit embedding backfill command failed.");
       if (!unitEmbeddingsOk) return result;
     }
-    const qaOk = await runPipelineCommandStage(result, progressStore, options, "strict_qa", buildStrictQaCommand(options), "Strict QA command failed.");
-    if (!qaOk) return result;
-    const integrityOk = await runPipelineCommandStage(result, progressStore, options, "graph_integrity", buildGraphIntegrityCommand(options), "Graph integrity command failed.");
-    if (!integrityOk) return result;
-    const qualityDashboardOk = await runPipelineCommandStage(result, progressStore, options, "quality_dashboard", buildQualityDashboardCommand(options), "Quality dashboard command failed.");
-    if (!qualityDashboardOk) return result;
+    if (shouldRunStage(options, "strict_qa")) {
+      const qaOk = await runPipelineCommandStage(result, progressStore, options, "strict_qa", buildStrictQaCommand(options), "Strict QA command failed.");
+      if (!qaOk) return result;
+    }
+    if (shouldRunStage(options, "graph_integrity")) {
+      const integrityOk = await runPipelineCommandStage(result, progressStore, options, "graph_integrity", buildGraphIntegrityCommand(options), "Graph integrity command failed.");
+      if (!integrityOk) return result;
+    }
+    if (shouldRunStage(options, "quality_dashboard")) {
+      const qualityDashboardOk = await runPipelineCommandStage(result, progressStore, options, "quality_dashboard", buildQualityDashboardCommand(options), "Quality dashboard command failed.");
+      if (!qualityDashboardOk) return result;
+    }
 
     result.status = "completed";
     await progressStore.updateJob({
       datasetId: options.datasetId,
       jobId: result.job_id,
       status: "completed",
-      currentStageId: "quality_dashboard",
+      currentStageId: result.stages.at(-1)?.id ?? options.startStage ?? "check_postgres",
       progress: { completed_stages: result.stages.length },
       completed: true,
     });
@@ -521,6 +612,52 @@ export function shouldExtractPdfOutline(input: {
   sourceMarkdownPath: string;
 }): boolean {
   return !input.outlineExists && Boolean(input.pdfPath.trim()) && !input.sourceMarkdownPath.trim();
+}
+
+export function shouldRunStage(
+  options: Pick<RunnerOptions, "startStage">,
+  stageId: PipelineStartStage,
+): boolean {
+  return !options.startStage || stageIndex(stageId) >= stageIndex(options.startStage);
+}
+
+async function recordReusedResumeStages(
+  result: ServerPipelineResult,
+  progressStore: PipelineProgressStore,
+  options: Pick<RunnerOptions, "startStage" | "resumeExistingJob">,
+): Promise<void> {
+  if (!shouldRecordReusedResumeStages(options)) return;
+  const startStage = options.startStage!;
+  for (const stageId of PIPELINE_START_STAGES.slice(0, stageIndex(startStage))) {
+    await recordStage(result, progressStore, {
+      id: stageId,
+      status: "skipped",
+      output: {
+        reused: true,
+        reason: `Reused output from an earlier job; resumed at '${startStage}'.`,
+      },
+    });
+  }
+}
+
+export function shouldRecordReusedResumeStages(
+  options: Pick<RunnerOptions, "startStage" | "resumeExistingJob">,
+): boolean {
+  return Boolean(options.startStage && !options.resumeExistingJob);
+}
+
+function stageIndex(stageId: PipelineStartStage): number {
+  return PIPELINE_START_STAGES.indexOf(stageId);
+}
+
+export function parsePipelineStartStage(value: string | undefined): PipelineStartStage | undefined {
+  if (!value) return undefined;
+  if ((PIPELINE_START_STAGES as readonly string[]).includes(value)) {
+    return value as PipelineStartStage;
+  }
+  throw new Error(
+    `Invalid --start-stage '${value}'. Expected one of: ${PIPELINE_START_STAGES.join(", ")}.`,
+  );
 }
 
 function addExtractionExecutionFlags(command: string[], options: RunnerOptions): string[] {
@@ -1310,6 +1447,7 @@ function createRunResult(options: RunnerOptions): ServerPipelineResult {
       vlm_concurrency: options.vlmConcurrency,
       vlm_cache_dir: options.vlmCacheDir,
       quality_retry_count: options.qualityRetryCount,
+      start_stage: options.startStage,
     },
     stages: [],
   };
@@ -1554,6 +1692,8 @@ function parseOptions(argv: string[]): RunnerOptions {
     skipEmbeddings: flags.has("skip-embeddings"),
     nodeEmbeddingBatchSize: parseInteger(flags.get("node-embedding-batch-size") ?? flags.get("embedding-batch-size"), 8),
     unitEmbeddingBatchSize: parseInteger(flags.get("unit-embedding-batch-size") ?? flags.get("embedding-batch-size"), 8),
+    startStage: parsePipelineStartStage(flags.get("start-stage")),
+    resumeExistingJob: flags.has("resume-existing-job"),
   };
 }
 

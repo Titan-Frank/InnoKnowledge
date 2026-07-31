@@ -18,8 +18,8 @@ if (!/^[A-Za-z0-9_]+$/.test(demoDbName)) {
   fail("DEMO_DB_NAME may contain only letters, numbers, and underscores.");
 }
 
-if (mode !== "serve" && mode !== "seed-only") {
-  fail("Usage: node scripts/demo-local.mjs [serve|seed-only]");
+if (mode !== "serve" && mode !== "serve-existing" && mode !== "seed-only") {
+  fail("Usage: node scripts/demo-local.mjs [serve|serve-existing|seed-only]");
 }
 
 try {
@@ -72,6 +72,11 @@ async function main() {
   ).trim() === "1";
 
   if (!databaseExists) {
+    if (mode === "serve-existing") {
+      fail(
+        `Demo database '${demoDbName}' does not exist. Run 'npm run demo' once to initialize it.`,
+      );
+    }
     console.log(`Creating isolated demo database ${demoDbName}...`);
     run(
       dockerCommand,
@@ -79,13 +84,17 @@ async function main() {
     );
   }
 
-  console.log(`Applying world-v1.2 schema to ${demoDbName}...`);
-  runSqlFile("schemas/pg/knowledge_store.sql");
+  if (mode === "serve-existing") {
+    console.log(`Reusing existing demo database ${demoDbName}; schema and seed steps are skipped.`);
+  } else {
+    console.log(`Applying world-v1.2 schema to ${demoDbName}...`);
+    runSqlFile("schemas/pg/knowledge_store.sql");
 
-  console.log("Loading the repository-safe synthetic graph...");
-  runSqlFile("examples/demo-data/seed-demo.sql");
+    console.log("Loading the repository-safe synthetic graph...");
+    runSqlFile("examples/demo-data/seed-demo.sql");
 
-  console.log(`Demo dataset loaded into ${demoDatabaseUrl}.`);
+    console.log(`Demo dataset loaded into ${demoDatabaseUrl}.`);
+  }
 
   if (mode === "seed-only") {
     return;

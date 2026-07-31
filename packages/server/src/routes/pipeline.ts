@@ -4,11 +4,17 @@ import { createHash } from 'node:crypto';
 import { createWriteStream, mkdirSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import type {
-  PipelineStartRequest, PipelineStartResponse,
+  PipelineStartRequest, PipelineStartResponse, PipelineStartStage,
   TextbookMetadataRequest, TextbookMetadataResponse,
 } from '@okm/types';
 import type { Sql } from '../db/connection.js';
-import { resolveDatasetRow, loadPipelinePayload, loadPipelineJobStatusPayload, loadTextbookOutlinePayload } from '../db/queries.js';
+import {
+  resolveDatasetRow,
+  loadPipelinePayload,
+  loadPipelineJobListPayload,
+  loadPipelineJobStatusPayload,
+  loadTextbookOutlinePayload,
+} from '../db/queries.js';
 import { loadPipelineQualityPayload } from '../db/quality-dashboard.js';
 import { REPO_ROOT } from '../utils/paths.js';
 
@@ -16,6 +22,26 @@ interface CommandInvocation {
   command: string;
   args: string[];
 }
+
+const PIPELINE_START_STAGES = new Set<PipelineStartStage>([
+  'mineru_source_markdown',
+  'extract_pdf_outline',
+  'prepare_source_markdown',
+  'ensure_outline',
+  'prepare_outline_chunks',
+  'lesson_plan',
+  'lesson_staging',
+  'staging_quality',
+  'canonical_commit',
+  'normalize',
+  'node_bodies',
+  'pedagogical_profiles',
+  'node_embeddings',
+  'unit_embeddings',
+  'strict_qa',
+  'graph_integrity',
+  'quality_dashboard',
+]);
 
 export function redactCommand(command: string[]): string {
   return command.map((part) => part.replace(/(\/\/[^:/\s]+:)[^@/\s]+@/g, '$1****@')).join(' ');
@@ -114,6 +140,66 @@ async function markPipelineProcessFailed(
     SET status = 'blocked', error = COALESCE(error, ${error}), completed_at = ${now}, updated_at = ${now}
     WHERE dataset_id = ${datasetId} AND job_id = ${jobId} AND status = 'running'
   `;
+}
+
+export async function claimPipelineJobResume(
+  sql: Sql,
+  datasetId: string,
+  jobId: string,
+): Promise<boolean> {
+  const now = new Date().toISOString();
+  const rows = await sql<{ job_id: string }[]>`
+    UPDATE world_pipeline_jobs
+    SET status = 'running',
+        error = NULL,
+        completed_at = NULL,
+        updated_at = ${now}
+    WHERE dataset_id = ${datasetId}
+      AND job_id = ${jobId}
+      AND status = 'blocked'
+    RETURNING job_id
+  `;
+  if (rows.length !== 1) return false;
+
+  try {
+    await sql`
+      UPDATE world_pipeline_job_stages
+      SET status = 'pending',
+          error = NULL,
+          started_at = NULL,
+          completed_at = NULL,
+          updated_at = ${now}
+      WHERE dataset_id = ${datasetId}
+        AND job_id = ${jobId}
+        AND status = 'blocked'
+    `;
+    await sql`
+      UPDATE world_pipeline_worker_states
+      SET status = 'idle',
+          lesson_run_id = NULL,
+          batch_anchor = NULL,
+          error = NULL,
+          data_json = '{}'::jsonb,
+          started_at = NULL,
+          completed_at = NULL,
+          updated_at = ${now}
+      WHERE dataset_id = ${datasetId}
+        AND job_id = ${jobId}
+    `;
+  } catch (error) {
+    await sql`
+      UPDATE world_pipeline_jobs
+      SET status = 'blocked',
+          error = ${`Failed to prepare job retry: ${(error as Error).message}`},
+          completed_at = ${now},
+          updated_at = ${now}
+      WHERE dataset_id = ${datasetId}
+        AND job_id = ${jobId}
+        AND status = 'running'
+    `;
+    throw error;
+  }
+  return true;
 }
 
 function safeToken(value: string): string {
@@ -374,6 +460,18 @@ export function buildPipelineCommand(
   const mineruPageRanges = asString(body.mineru_page_ranges);
   if (mineruPageRanges) command.push('--mineru-page-ranges', mineruPageRanges);
   if (body.mineru_force === true) command.push('--mineru-force');
+  const startStage = asString(body.start_stage);
+  const resumeJobId = asString(body.resume_job_id);
+  if (resumeJobId && !startStage) {
+    throw new Error('resume_job_id requires start_stage.');
+  }
+  if (startStage) {
+    if (!PIPELINE_START_STAGES.has(startStage as PipelineStartStage)) {
+      throw new Error(`Unknown pipeline start stage '${startStage}'.`);
+    }
+    command.push('--start-stage', startStage);
+  }
+  if (resumeJobId) command.push('--resume-existing-job');
   return command;
 }
 
@@ -417,6 +515,19 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     }
   });
 
+  app.get('/api/source/:key/pipeline/jobs', async (c) => {
+    const key = c.req.param('key');
+    const datasetRow = await resolveDatasetRow(sql, key);
+    if (!datasetRow) {
+      return c.json({ error: `Unknown source '${key}'` }, 404);
+    }
+    return c.json(await loadPipelineJobListPayload(
+      sql,
+      datasetRow.dataset_id,
+      asInt(c.req.query('limit'), 50),
+    ));
+  });
+
   app.get('/api/source/:key/pipeline/jobs/:job_id', async (c) => {
     const key = c.req.param('key');
     const datasetRow = await resolveDatasetRow(sql, key);
@@ -434,21 +545,55 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     const bookId = inferBookId(body);
     if (!bookId) return c.json({ error: 'PDF path, MinerU file URL, or book_id is required.' }, 400);
 
-    const jobId = `${safeToken(bookId)}.${Date.now()}`;
+    const requestedResumeJobId = asString(body.resume_job_id);
+    let jobId = requestedResumeJobId || `${safeToken(bookId)}.${Date.now()}`;
     const jobDir = join(REPO_ROOT, 'runs', 'server-jobs');
     mkdirSync(jobDir, { recursive: true });
-    const logPath = join(jobDir, `${jobId}.log`);
+    let logPath = join(jobDir, `${safeToken(jobId)}.log`);
 
     let command: string[];
     let datasetKey: string;
+    let statusDatasetId: string;
+    let resumeDatasetId: string | null = null;
     try {
       const outputRoot = asString(body.output_root, 'data/main');
       datasetKey = asString(body.dataset_id, outputRoot.split('/').filter(Boolean).at(-1) || key || 'main');
       const datasetRow = await resolveDatasetRow(sql, datasetKey);
+      statusDatasetId = datasetRow?.dataset_id ?? datasetKey;
+      if (requestedResumeJobId) {
+        if (!body.start_stage) {
+          throw new Error('Resuming an existing job requires start_stage.');
+        }
+        if (!datasetRow) {
+          throw new Error(`Cannot resume job '${requestedResumeJobId}' because dataset '${datasetKey}' does not exist.`);
+        }
+        const existingJob = await loadPipelineJobStatusPayload(sql, datasetRow.dataset_id, requestedResumeJobId);
+        if (existingJob.status === 'unknown') {
+          throw new Error(`Pipeline job '${requestedResumeJobId}' does not exist in dataset '${datasetKey}'.`);
+        }
+        if (existingJob.status !== 'blocked') {
+          throw new Error(`Pipeline job '${requestedResumeJobId}' is '${existingJob.status}', not blocked.`);
+        }
+        if (existingJob.book_id !== bookId) {
+          throw new Error(
+            `Pipeline job '${requestedResumeJobId}' belongs to book '${existingJob.book_id}', not '${bookId}'.`,
+          );
+        }
+        jobId = existingJob.job_id;
+        logPath = existingJob.log_path || logPath;
+        resumeDatasetId = datasetRow.dataset_id;
+      }
       const outline = datasetRow ? await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId) : null;
       command = buildPipelineCommand(body, jobId, logPath, dbUrl, outline);
     } catch (error) {
       return c.json({ error: (error as Error).message }, 400);
+    }
+
+    if (resumeDatasetId) {
+      const claimed = await claimPipelineJobResume(sql, resumeDatasetId, jobId);
+      if (!claimed) {
+        return c.json({ error: `Pipeline job '${jobId}' is no longer blocked and cannot be resumed.` }, 409);
+      }
     }
 
     const startedAt = Date.now();
@@ -497,6 +642,14 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         endLog(`\n[${timestamp()}] [pipeline] spawn-error message=${JSON.stringify(error.message)}\n`);
       });
     } catch (error) {
+      if (resumeDatasetId) {
+        await markPipelineProcessFailed(
+          sql,
+          resumeDatasetId,
+          jobId,
+          `Failed to restart pipeline process: ${(error as Error).message}`,
+        );
+      }
       return c.json({ error: `Failed to start pipeline: ${(error as Error).message}` }, 500);
     }
     logPipelineEvent('info', 'spawned', {
@@ -522,7 +675,7 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
       );
       if (code !== 0) {
         const processError = `Pipeline process exited with code ${code ?? 'unknown'}${signal ? ` (${signal})` : ''}.`;
-        void markPipelineProcessFailed(sql, datasetKey, jobId, processError).catch((error) => {
+        void markPipelineProcessFailed(sql, statusDatasetId, jobId, processError).catch((error) => {
           logPipelineEvent('error', 'status-update-error', {
             jobId,
             message: (error as Error).message,

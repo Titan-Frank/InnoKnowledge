@@ -454,6 +454,7 @@ schemas/pg/knowledge_store.sql
 | `POST /api/source/:key/grounded-generate/stream` | 以服务器事件流返回检索结果和增量回答 |
 | `GET /api/source/:key/pipeline` | 返回流水线运行状态 |
 | `GET /api/source/:key/pipeline/quality` | 返回质量仪表盘数据 |
+| `GET /api/source/:key/pipeline/jobs` | 返回最近的流水线作业列表 |
 | `GET /api/source/:key/pipeline/jobs/:job_id` | 返回单次任务详情 |
 | `POST /api/source/:key/pipeline/start` | 从前端启动 pipeline |
 | `POST /api/source/:key/pipeline/infer-textbook` | 根据 book id 和 PDF 名称推断教材元信息 |

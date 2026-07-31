@@ -151,8 +151,14 @@ export function createPostgresPipelineProgressStore(databaseUrl: string): Pipeli
           label = EXCLUDED.label,
           progress_json = EXCLUDED.progress_json,
           error = EXCLUDED.error,
-          started_at = COALESCE(world_pipeline_job_stages.started_at, EXCLUDED.started_at),
-          completed_at = COALESCE(EXCLUDED.completed_at, world_pipeline_job_stages.completed_at),
+          started_at = CASE
+            WHEN EXCLUDED.status = 'running' THEN EXCLUDED.started_at
+            ELSE COALESCE(world_pipeline_job_stages.started_at, EXCLUDED.started_at)
+          END,
+          completed_at = CASE
+            WHEN EXCLUDED.status = 'running' THEN NULL
+            ELSE COALESCE(EXCLUDED.completed_at, world_pipeline_job_stages.completed_at)
+          END,
           updated_at = EXCLUDED.updated_at
       `;
     },

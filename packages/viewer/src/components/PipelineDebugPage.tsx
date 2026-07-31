@@ -3,17 +3,22 @@ import type {
   ImageReviewAction,
   ImageReviewItem,
   ImageReviewResponse,
+  PipelineJobListResponse,
+  PipelineJobSummary,
   PipelineJobStatusResponse,
   PipelineExtractionTemplateId,
   PipelineLessonBackendKind,
   PipelineQualityDashboardResponse,
   PipelineResponse,
   PipelineReviewItem,
+  PipelineStartRequest,
   PipelineStartResponse,
+  PipelineStartStage,
   TextbookMetadataResponse,
 } from '@okm/types';
 import {
   inferTextbookMetadata,
+  loadPipelineJobs,
   loadPipelineJobStatus,
   loadImageReviews,
   loadPipeline,
@@ -42,6 +47,7 @@ import {
   BarChart3,
   Check,
   ChevronRight,
+  ClipboardList,
   GitBranch,
   Info,
   Loader2,
@@ -172,6 +178,7 @@ function statusLabel(status: string): string {
     staged: '已暂存',
     running: '运行中',
     started: '已启动',
+    skipped: '已复用',
     ready: '就绪',
     unknown: '未知',
   };
@@ -179,7 +186,7 @@ function statusLabel(status: string): string {
 }
 
 function statusTone(status: string): 'ok' | 'warn' | 'active' | 'neutral' {
-  if (status === 'qa_passed' || status === 'completed' || status === 'success' || status === 'merged') return 'ok';
+  if (status === 'qa_passed' || status === 'completed' || status === 'success' || status === 'merged' || status === 'skipped') return 'ok';
   if (status === 'blocked' || status === 'failed') return 'warn';
   if (status === 'running' || status === 'started' || status === 'merging' || status === 'staged') return 'active';
   return 'neutral';
@@ -683,6 +690,35 @@ function stageLabel(stageId: string | undefined): string {
   return stageLabels[stageId] || stageId;
 }
 
+const RESUMABLE_STAGE_IDS = new Set<PipelineStartStage>([
+  'mineru_source_markdown',
+  'extract_pdf_outline',
+  'prepare_source_markdown',
+  'ensure_outline',
+  'prepare_outline_chunks',
+  'lesson_plan',
+  'lesson_staging',
+  'staging_quality',
+  'canonical_commit',
+  'normalize',
+  'node_bodies',
+  'pedagogical_profiles',
+  'node_embeddings',
+  'unit_embeddings',
+  'strict_qa',
+  'graph_integrity',
+  'quality_dashboard',
+]);
+
+function resumeStageFor(stageId?: string | null): PipelineStartStage | null {
+  if (!stageId || stageId === 'check_postgres') return 'mineru_source_markdown';
+  if (stageId.startsWith('lesson_staging_retry_transport_')) return 'lesson_staging';
+  if (stageId.startsWith('lesson_staging_retry_')) return 'staging_quality';
+  return RESUMABLE_STAGE_IDS.has(stageId as PipelineStartStage)
+    ? stageId as PipelineStartStage
+    : null;
+}
+
 function stageIn(stage: PipelineJobStatusResponse['current_stage'], ids: readonly string[]): boolean {
   return matchesPipelineStageId(stage?.id, ids);
 }
@@ -837,6 +873,119 @@ function PipelineStepIcon({ status }: { status: PipelineStepStatus }) {
   if (status === 'blocked') return <AlertCircle className="h-3.5 w-3.5" />;
   if (status === 'active') return <Loader2 className="h-3.5 w-3.5 animate-spin" />;
   return <span className="h-1.5 w-1.5 rounded-full bg-current" />;
+}
+
+function jobProgressText(job: PipelineJobSummary): string {
+  const explicit = Number(job.progress.percent);
+  const total = Number(job.progress.total_units);
+  const completed = Number(job.progress.completed);
+  const failed = Number(job.progress.failed);
+  if (Number.isFinite(total) && total > 0) {
+    const done = (Number.isFinite(completed) ? completed : 0) + (Number.isFinite(failed) ? failed : 0);
+    const percent = Number.isFinite(explicit) ? explicit : done / total;
+    return `${done}/${total} · ${Math.round(Math.max(0, Math.min(1, percent)) * 100)}%`;
+  }
+  if (job.status === 'completed') return '100%';
+  return '—';
+}
+
+function PipelineJobListPanel({
+  jobs,
+  selectedJobId,
+  loading,
+  error,
+  onSelect,
+  onRefresh,
+}: {
+  jobs: PipelineJobSummary[];
+  selectedJobId: string | null;
+  loading: boolean;
+  error: string;
+  onSelect: (job: PipelineJobSummary) => void;
+  onRefresh: () => void;
+}) {
+  return (
+    <section className="overflow-hidden rounded-lg border border-border-subtle bg-elevated">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
+        <div className="flex items-center gap-2">
+          <ClipboardList className="h-4 w-4 text-accent" />
+          <div>
+            <div className="text-sm font-semibold text-text-primary">Pipeline 作业</div>
+            <div className="text-[11px] text-text-muted">选择作业可查看阶段、Worker、事件和续跑操作。</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-text-muted">{jobs.length} 个作业</span>
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={loading}
+            className="flex h-7 items-center gap-1.5 rounded-md border border-border-subtle bg-surface px-2 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
+            刷新
+          </button>
+        </div>
+      </div>
+      {error && (
+        <div className="m-3 flex items-start gap-2 rounded-md border border-node-event/40 bg-node-event/10 p-2.5 text-xs text-node-event">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+      <div className="max-h-[360px] overflow-auto scrollbar-thin">
+        <table className="w-full min-w-[860px] text-left text-xs">
+          <thead className="sticky top-0 z-10 bg-elevated text-text-muted">
+            <tr>
+              <th className="px-3 py-2 font-medium">状态</th>
+              <th className="px-3 py-2 font-medium">教材</th>
+              <th className="px-3 py-2 font-medium">当前阶段</th>
+              <th className="px-3 py-2 font-medium">进度</th>
+              <th className="px-3 py-2 font-medium">更新时间</th>
+              <th className="px-3 py-2 font-medium">作业编号</th>
+            </tr>
+          </thead>
+          <tbody>
+            {jobs.map((job) => {
+              const selected = job.job_id === selectedJobId;
+              return (
+                <tr
+                  key={job.job_id}
+                  onClick={() => onSelect(job)}
+                  className={`cursor-pointer border-t border-border-subtle transition-colors ${
+                    selected ? 'bg-accent/15' : 'hover:bg-hover'
+                  }`}
+                >
+                  <td className="px-3 py-2"><StatusPill status={job.status} /></td>
+                  <td className="max-w-[220px] px-3 py-2">
+                    <div className="truncate font-medium text-text-primary" title={job.book_id}>{job.book_id}</div>
+                    {job.error && (
+                      <div className="mt-1 truncate text-[10px] text-node-event" title={job.error}>{job.error}</div>
+                    )}
+                  </td>
+                  <td className="max-w-[220px] px-3 py-2">
+                    <div className="truncate text-text-secondary">
+                      {job.current_stage_label || stageLabel(job.current_stage_id || undefined) || '等待启动'}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 tabular-nums text-text-secondary">{jobProgressText(job)}</td>
+                  <td className="px-3 py-2 text-text-muted">{timeText(job.updated_at)}</td>
+                  <td className="max-w-[240px] px-3 py-2">
+                    <div className="truncate font-mono text-[10px] text-text-muted" title={job.job_id}>{job.job_id}</div>
+                  </td>
+                </tr>
+              );
+            })}
+            {!loading && jobs.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-3 py-10 text-center text-text-muted">暂无 Pipeline 作业。</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
 }
 
 function PipelineProgressPanel({
@@ -1143,6 +1292,9 @@ export function PipelineDebugPage() {
   const [startError, setStartError] = useState('');
   const [startResult, setStartResult] = useState<PipelineStartResponse | null>(null);
   const [jobStatus, setJobStatus] = useState<PipelineJobStatusResponse | null>(null);
+  const [jobList, setJobList] = useState<PipelineJobListResponse | null>(null);
+  const [jobListLoading, setJobListLoading] = useState(false);
+  const [jobListError, setJobListError] = useState('');
   const [metadata, setMetadata] = useState<TextbookMetadataResponse | null>(null);
   const [inferring, setInferring] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -1164,6 +1316,18 @@ export function PipelineDebugPage() {
       setError((err as Error).message || '读取管线状态失败');
     } finally {
       if (!options.silent) setLoading(false);
+    }
+  };
+
+  const refreshJobs = async (options: { silent?: boolean } = {}) => {
+    if (!options.silent) setJobListLoading(true);
+    setJobListError('');
+    try {
+      setJobList(await loadPipelineJobs(activeSourceKey));
+    } catch (err) {
+      setJobListError((err as Error).message || '读取 Pipeline 作业列表失败');
+    } finally {
+      if (!options.silent) setJobListLoading(false);
     }
   };
 
@@ -1222,46 +1386,49 @@ export function PipelineDebugPage() {
     }));
   };
 
-  const submitStart = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!canStart) return;
+  const startRequest = (startStage?: PipelineStartStage): PipelineStartRequest => ({
+    resume_job_id: startStage ? activeJobStatus?.job_id : undefined,
+    book_id: form.book_id.trim() || jobStatus?.book_id || undefined,
+    book_title: form.book_title.trim() || undefined,
+    pdf_path: form.pdf_path.trim() || undefined,
+    mineru_file_url: form.mineru_file_url.trim() || undefined,
+    mineru_base_url: form.mineru_base_url.trim() || undefined,
+    mineru_model_version: form.mineru_model_version.trim() || undefined,
+    mineru_language: optionalAutoString(form.mineru_language),
+    mineru_page_ranges: form.mineru_page_ranges.trim() || undefined,
+    mineru_force: startStage ? false : form.mineru_force,
+    outline_start_page: optionalNumber(form.outline_start_page),
+    outline_end_page: optionalNumber(form.outline_end_page),
+    dataset_id: activeSourceKey,
+    output_root: form.output_root.trim() || 'data/main',
+    parallelism: Number(form.parallelism) || 8,
+    extraction_template: form.extraction_template,
+    quality_retry_count: Number(form.quality_retry_count) || 1,
+    model_retry_count: Number(form.model_retry_count) || 2,
+    lesson_backend_kind: form.lesson_backend_kind,
+    lesson_subject: form.lesson_subject.trim() || undefined,
+    lesson_school_stage: form.lesson_school_stage.trim() || undefined,
+    lesson_grade_band: form.lesson_grade_band.trim() || undefined,
+    openai_base_url: form.openai_base_url.trim() || undefined,
+    openai_model: form.openai_model.trim() || undefined,
+    vlm_api_url: form.vlm_api_url.trim() || undefined,
+    vlm_api_key: form.vlm_api_key.trim() || undefined,
+    vlm_model: form.vlm_model.trim() || undefined,
+    start_stage: startStage,
+  });
+
+  const launchPipeline = async (startStage?: PipelineStartStage) => {
     setStarting(true);
     setStartError('');
     setStartResult(null);
     setJobStatus(null);
     try {
-      const result = await startPipeline(activeSourceKey, {
-        book_id: form.book_id.trim() || undefined,
-        book_title: form.book_title.trim() || undefined,
-        pdf_path: form.pdf_path.trim() || undefined,
-        mineru_file_url: form.mineru_file_url.trim() || undefined,
-        mineru_base_url: form.mineru_base_url.trim() || undefined,
-        mineru_model_version: form.mineru_model_version.trim() || undefined,
-        mineru_language: optionalAutoString(form.mineru_language),
-        mineru_page_ranges: form.mineru_page_ranges.trim() || undefined,
-        mineru_force: form.mineru_force,
-        outline_start_page: optionalNumber(form.outline_start_page),
-        outline_end_page: optionalNumber(form.outline_end_page),
-        dataset_id: activeSourceKey,
-        output_root: form.output_root.trim() || 'data/main',
-        parallelism: Number(form.parallelism) || 8,
-        extraction_template: form.extraction_template,
-        quality_retry_count: Number(form.quality_retry_count) || 1,
-        model_retry_count: Number(form.model_retry_count) || 2,
-        lesson_backend_kind: form.lesson_backend_kind,
-        lesson_subject: form.lesson_subject.trim() || undefined,
-        lesson_school_stage: form.lesson_school_stage.trim() || undefined,
-        lesson_grade_band: form.lesson_grade_band.trim() || undefined,
-        openai_base_url: form.openai_base_url.trim() || undefined,
-        openai_model: form.openai_model.trim() || undefined,
-        vlm_api_url: form.vlm_api_url.trim() || undefined,
-        vlm_api_key: form.vlm_api_key.trim() || undefined,
-        vlm_model: form.vlm_model.trim() || undefined,
-      });
+      const result = await startPipeline(activeSourceKey, startRequest(startStage));
       rememberPipelineJob(window.localStorage, activeSourceKey, result);
       setStartResult(result);
       window.setTimeout(() => {
         void refreshJobStatus(result.job_id);
+        void refreshJobs({ silent: true });
         void refresh({ silent: true });
         void refreshImageReviews({ silent: true });
         void refreshQuality({ silent: true });
@@ -1271,6 +1438,12 @@ export function PipelineDebugPage() {
     } finally {
       setStarting(false);
     }
+  };
+
+  const submitStart = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!canStart) return;
+    await launchPipeline();
   };
 
   const submitInfer = async (options: { silent?: boolean } = {}) => {
@@ -1307,6 +1480,7 @@ export function PipelineDebugPage() {
     setStartResult(restoredJob);
     setJobStatus(null);
     void refresh();
+    void refreshJobs();
     void refreshImageReviews();
     void refreshQuality();
     if (restoredJob) {
@@ -1329,6 +1503,28 @@ export function PipelineDebugPage() {
       cancelled = true;
     };
   }, [activeSourceKey]);
+
+  const selectJob = async (job: PipelineJobSummary) => {
+    const selected: PipelineStartResponse = {
+      job_id: job.job_id,
+      status: 'started',
+      command: [],
+      log_path: job.log_path,
+    };
+    rememberPipelineJob(window.localStorage, activeSourceKey, selected);
+    setStartResult(selected);
+    setJobStatus(null);
+    setStartError('');
+    setForm((current) => ({
+      ...current,
+      book_id: job.book_id,
+    }));
+    try {
+      setJobStatus(await loadPipelineJobStatus(activeSourceKey, job.job_id));
+    } catch (err) {
+      setStartError((err as Error).message || '读取作业详情失败');
+    }
+  };
 
   const submitImageReview = async (item: ImageReviewItem, action: ImageReviewAction) => {
     setImageReviewUpdating(item.evidence_id);
@@ -1366,6 +1562,10 @@ export function PipelineDebugPage() {
   );
   const pipelineDone = pipelineComplete(payload);
   const jobDone = activeJobStatus?.status === 'completed' || activeJobStatus?.status === 'blocked';
+  const resumeStage = activeJobStatus?.status === 'blocked'
+    ? resumeStageFor(activeJobStatus.current_stage?.id)
+    : null;
+  const canResume = Boolean(resumeStage && activeJobStatus?.book_id) && !starting;
   const autoRefreshing = starting || Boolean(startResult && !jobDone);
   const lastUpdatedAt = activeJobStatus?.updated_at ?? null;
 
@@ -1379,6 +1579,7 @@ export function PipelineDebugPage() {
     if (!autoRefreshing) return undefined;
     const timer = window.setInterval(() => {
       void refreshJobStatus();
+      void refreshJobs({ silent: true });
       void refresh({ silent: true });
       void refreshImageReviews({ silent: true });
       void refreshQuality({ silent: true });
@@ -1402,6 +1603,7 @@ export function PipelineDebugPage() {
             type="button"
             onClick={() => {
               void refreshJobStatus();
+              void refreshJobs();
               void refresh();
               void refreshImageReviews();
               void refreshQuality();
@@ -1591,7 +1793,7 @@ export function PipelineDebugPage() {
 
               {startResult && (
                 <div className="rounded-lg border border-node-process/40 bg-node-process/10 p-3 text-xs text-text-secondary">
-                  <div className="font-medium text-node-process">任务已启动：{startResult.job_id}</div>
+                  <div className="font-medium text-node-process">当前作业：{startResult.job_id}</div>
                   <div className="mt-1 truncate">日志：{startResult.log_path}</div>
                 </div>
               )}
@@ -1604,10 +1806,36 @@ export function PipelineDebugPage() {
                 {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                 一键生成最终结果
               </button>
+              {resumeStage && (
+                <button
+                  type="button"
+                  disabled={!canResume}
+                  onClick={() => {
+                    void launchPipeline(resumeStage);
+                  }}
+                  className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-accent/50 bg-accent/10 px-4 text-sm font-semibold text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-surface disabled:text-text-muted"
+                >
+                  {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+                  从“{stageLabel(resumeStage)}”继续运行
+                </button>
+              )}
             </form>
           </section>
 
           <section className="min-w-0 space-y-5">
+            <PipelineJobListPanel
+              jobs={jobList?.jobs ?? []}
+              selectedJobId={startResult?.job_id ?? null}
+              loading={jobListLoading}
+              error={jobListError}
+              onSelect={(job) => {
+                void selectJob(job);
+              }}
+              onRefresh={() => {
+                void refreshJobs();
+              }}
+            />
+
             <PipelineProgressPanel steps={steps} jobStatus={activeJobStatus} autoRefreshing={autoRefreshing} lastUpdatedAt={lastUpdatedAt} />
 
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

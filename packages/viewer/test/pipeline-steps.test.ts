@@ -144,6 +144,31 @@ test('uses terminal stages from the current job to advance the stepper', () => {
   });
 });
 
+test('shows reused stages as complete when a job resumes from a later checkpoint', () => {
+  const resumedJob = jobStatus({
+    stages: [
+      stage('prepare_source_markdown', 'skipped'),
+      stage('lesson_plan', 'skipped'),
+      stage('lesson_staging', 'skipped'),
+      stage('staging_quality', 'running'),
+    ],
+    currentStageId: 'staging_quality',
+  });
+
+  assert.deepEqual(buildPipelineStepStatuses({
+    jobStatus: resumedJob,
+    currentJobId: resumedJob.job_id,
+    starting: false,
+    reviewCount: 0,
+  }), {
+    source: 'complete',
+    outline: 'complete',
+    lesson: 'complete',
+    merge: 'active',
+    review: 'pending',
+  });
+});
+
 test('keeps model extraction active while failed lessons are being retried', () => {
   const currentJob = jobStatus({
     stages: [

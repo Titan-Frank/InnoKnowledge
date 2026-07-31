@@ -102,6 +102,14 @@ npm run demo
 
 The demo command starts PostgreSQL, creates the demo database, loads the self-authored graph, builds the application, and starts the server. It does not modify the default `knowledge` database and does not require a model API key. See [the demo documentation](examples/demo-data/README.md) for its exact contents and interpretation boundary.
 
+To restart the application while preserving the current graph in `okm_demo`:
+
+```bash
+npm run demo:resume
+```
+
+This command starts PostgreSQL, builds the application, and serves the existing demo database without applying the schema or running `seed-demo.sql`. Run `npm run demo` once first if `okm_demo` has not been initialized.
+
 To initialize only the demo database:
 
 ```bash
@@ -141,6 +149,20 @@ npm run server-pipeline-run -w packages/pipeline -- \
 ```
 
 If the PDF is already available at a public URL, use `--mineru-file-url` instead of `--pdf-path`. Remove `--skip-embeddings` only after configuring an embedding endpoint you trust.
+
+If a pipeline job is blocked, the pipeline workbench shows a **Continue from “failed stage”** button. It reruns that stage in the original job, preserving the job ID, completed upstream stages, event history, and durable artifacts. The CLI provides the same stage checkpoint selection:
+
+The workbench also lists recent jobs with their textbook, status, current stage, progress, and update time. Select a row to inspect its stages, workers, and events. Earlier stages reused by a resumed job are displayed as complete.
+
+```bash
+npm run server-pipeline-run -w packages/pipeline -- \
+  --book-id physics-example \
+  --dataset-id main \
+  --db "$DATABASE_URL" \
+  --start-stage normalize
+```
+
+The database readiness check always runs. Resume stages require their upstream artifacts to exist; for example, resuming at `canonical_commit` requires completed staging rows, while resuming at `node_bodies` requires canonical nodes and evidence.
 
 After canonical normalization, the default pipeline generates knowledge bodies and school-stage pedagogical profiles before the optional embedding stages and final quality checks. The pedagogical profiles are stored under `world_domain_profiles.properties_json.pedagogical_profiles_by_stage`; generated entries retain evidence references, model and prompt metadata, an input fingerprint, confidence, and review state. The code validates that returned evidence identifiers belong to the supplied context, but this identifier check is not a semantic entailment judgment; generated profiles remain pending review. To rerun that stage separately:
 

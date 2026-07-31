@@ -3,7 +3,7 @@ import type {
   GroundedGenerationRequest, GroundedGenerationResponse, GroundedGenerationStreamEvent,
   UnitRetrievalMode, UnitRetrievalResponse,
   AnnotationLessonTextResponse, AnnotationTextbookListResponse,
-  PipelineJobStatusResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
+  PipelineJobListResponse, PipelineJobStatusResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
 } from '@okm/types';
@@ -380,6 +380,16 @@ export async function loadPipelineJobStatus(
 ): Promise<PipelineJobStatusResponse> {
   return fetchJson<PipelineJobStatusResponse>(
     `/api/source/${encodeURIComponent(sourceKey)}/pipeline/jobs/${encodeURIComponent(jobId)}`,
+  );
+}
+
+export async function loadPipelineJobs(
+  sourceKey: string,
+  limit = 50,
+): Promise<PipelineJobListResponse> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  return fetchJson<PipelineJobListResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/jobs?${params}`,
   );
 }
 

@@ -18,6 +18,7 @@
   ],
   "scripts": {
     "demo": "node scripts/demo-local.mjs serve",
+    "demo:resume": "node scripts/demo-local.mjs serve-existing",
     "demo:seed": "node scripts/demo-local.mjs seed-only",
     "artifact:export": "npm run build -w packages/server && node scripts/export-public-artifact.mjs --allow-unreviewed && npm run artifact:viewer",
     "artifact:viewer": "node scripts/sync-public-viewer.mjs",
