@@ -2,7 +2,7 @@ import type { Sql } from './connection.js';
 import type {
   ApiNode, ApiEdge, ApiProfile, ApiMention, ApiEvidence, ApiNodeCard, ApiUnit, ApiUnitBody, ApiUnitDomainProfile,
   ApiUnitMedia, ApiUnitNode, ApiUnitRelation, ApiUnitSourceFragment,
-  OutlineData, OutlineItem, PipelineJobEvent, PipelineJobStage, PipelineJobStatusResponse, PipelineResponse,
+  OutlineData, OutlineItem, PipelineJobEvent, PipelineJobListResponse, PipelineJobStage, PipelineJobStatusResponse, PipelineResponse,
   PipelineWorkerState,
 } from '@okm/types';
 import { existsSync, readFileSync } from 'node:fs';
@@ -880,6 +880,58 @@ interface PipelineJobRow {
   updated_at: string | null;
   completed_at: string | null;
   error: string | null;
+}
+
+interface PipelineJobSummaryRow extends PipelineJobRow {
+  current_stage_label: string | null;
+  created_at: string | null;
+}
+
+export async function loadPipelineJobListPayload(
+  sql: Sql,
+  datasetId: string,
+  limit = 50,
+): Promise<PipelineJobListResponse> {
+  const boundedLimit = Math.max(1, Math.min(100, Math.trunc(limit)));
+  const rows = await sql<PipelineJobSummaryRow[]>`
+    SELECT
+      jobs.job_id,
+      jobs.book_id,
+      jobs.status,
+      jobs.current_stage_id,
+      stages.label AS current_stage_label,
+      jobs.progress_json,
+      jobs.log_path,
+      jobs.created_at,
+      jobs.updated_at,
+      jobs.completed_at,
+      jobs.error
+    FROM world_pipeline_jobs AS jobs
+    LEFT JOIN world_pipeline_job_stages AS stages
+      ON stages.dataset_id = jobs.dataset_id
+      AND stages.job_id = jobs.job_id
+      AND stages.stage_id = jobs.current_stage_id
+    WHERE jobs.dataset_id = ${datasetId}
+    ORDER BY jobs.updated_at DESC, jobs.created_at DESC
+    LIMIT ${boundedLimit}
+  `;
+
+  return {
+    dataset_id: datasetId,
+    jobs: rows.map((row) => ({
+      job_id: row.job_id,
+      book_id: row.book_id,
+      status: row.status === 'completed' || row.status === 'blocked' ? row.status : 'running',
+      current_stage_id: row.current_stage_id ?? null,
+      current_stage_label: row.current_stage_label ?? null,
+      progress: asRecord(row.progress_json),
+      log_path: row.log_path ?? '',
+      created_at: row.created_at ?? null,
+      updated_at: row.updated_at ?? null,
+      completed_at: row.completed_at ?? null,
+      error: row.error ?? null,
+    })),
+  };
 }
 
 interface PipelineStageRow {

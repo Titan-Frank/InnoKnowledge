@@ -1,15 +1,19 @@
 import assert from "node:assert/strict";
+import { rmSync } from "node:fs";
 import test from "node:test";
 
 import { createNoopPipelineAssetStore } from "../shared/pg-assets.js";
-import { makeLessonRunId } from "../shared/pathing.js";
+import { makeLessonRunId, outlinePathForBook } from "../shared/pathing.js";
 import { createNoopPipelineProgressStore } from "../shared/pipeline-progress.js";
 import {
   commandForPipelineOutputAttempt,
   compactPipelineCommandOutput,
   isRetryablePipelineOutputFailure,
+  parsePipelineStartStage,
   redactCommandForOutput,
   runServerPipeline,
+  shouldRecordReusedResumeStages,
+  shouldRunStage,
   shouldExtractPdfOutline,
 } from "./server-pipeline-run.js";
 
@@ -99,6 +103,96 @@ test("prefers MinerU Markdown over the optional pdftotext outline path", () => {
     pdfPath: "E:\\books\\math.pdf",
     sourceMarkdownPath: "",
   }), true);
+});
+
+test("validates resume stages and skips stages before the requested checkpoint", () => {
+  assert.equal(parsePipelineStartStage("node_bodies"), "node_bodies");
+  assert.throws(() => parsePipelineStartStage("unknown"), /Invalid --start-stage/);
+  assert.equal(shouldRunStage({ startStage: "node_bodies" }, "normalize"), false);
+  assert.equal(shouldRunStage({ startStage: "node_bodies" }, "node_bodies"), true);
+  assert.equal(shouldRunStage({ startStage: "node_bodies" }, "strict_qa"), true);
+  assert.equal(shouldRecordReusedResumeStages({ startStage: "node_bodies" }), true);
+  assert.equal(shouldRecordReusedResumeStages({
+    startStage: "node_bodies",
+    resumeExistingJob: true,
+  }), false);
+});
+
+test("server pipeline resumes from a durable stage without rerunning extraction or merge", async (context) => {
+  const resumeBookId = "resume-test-book";
+  context.after(() => rmSync(outlinePathForBook(resumeBookId), { force: true }));
+  const executed: string[][] = [];
+  const result = await runServerPipeline({
+    bookId: resumeBookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-a",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 2,
+    noChunks: false,
+    pdfPath: "",
+    subject: "computer-science",
+    schoolStage: "higher",
+    gradeBand: "university",
+    textbookId: resumeBookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    startStage: "node_bodies",
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: {
+      async loadOutline() {
+        return {
+          book_id: resumeBookId,
+          title: "Chemistry",
+          source_path: `data/mineru/${resumeBookId}/full.md`,
+          items: [{
+            id: `struct:${resumeBookId}:lesson:1`,
+            kind: "lesson",
+            title: "Structure",
+            order_path: "1",
+            md_start: 1,
+            md_end: 10,
+          }],
+        };
+      },
+      async upsertOutline() {},
+      async upsertMineruSource() {},
+      async close() {},
+    },
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async (command) => {
+      executed.push(command);
+      return { exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  });
+
+  assert.equal(result.status, "completed");
+  const reusedStages = result.stages.filter((stage) => stage.status === "skipped");
+  assert.deepEqual(reusedStages.map((stage) => stage.id), [
+    "mineru_source_markdown",
+    "extract_pdf_outline",
+    "prepare_source_markdown",
+    "ensure_outline",
+    "prepare_outline_chunks",
+    "lesson_plan",
+    "lesson_staging",
+    "staging_quality",
+    "canonical_commit",
+    "normalize",
+  ]);
+  assert.equal(reusedStages.every((stage) => stage.output?.reused === true), true);
+  assert.equal(result.stages.find((stage) => stage.id === "node_bodies")?.status, "completed");
+  assert.equal(executed.some(isExtractionCommand), false);
+  assert.equal(executed.some((command) => command.some((part) => part.endsWith("merge-staged-lessons.js"))), false);
+  assert.equal(executed.some((command) => command.some((part) => part.endsWith("normalize.js"))), false);
+  assert.equal(executed[0]?.some((part) => part.endsWith("generate-node-bodies.js")), true);
 });
 
 test("server pipeline runner plans TypeScript lesson extraction commands", async () => {

@@ -74,7 +74,10 @@ function groupStatus(
   ) {
     return 'active';
   }
-  if (hasStageStatus(jobStatus, [completedStageId], 'completed')) return 'complete';
+  if (
+    hasStageStatus(jobStatus, [completedStageId], 'completed')
+    || hasStageStatus(jobStatus, [completedStageId], 'skipped')
+  ) return 'complete';
   return 'pending';
 }
 

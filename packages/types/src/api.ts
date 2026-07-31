@@ -299,8 +299,27 @@ export interface PipelineQualityDashboardResponse {
 
 export type PipelineLessonBackendKind = 'openai_responses' | 'openai_chat_completions';
 export type PipelineExtractionTemplateId = 'auto' | string;
+export type PipelineStartStage =
+  | 'mineru_source_markdown'
+  | 'extract_pdf_outline'
+  | 'prepare_source_markdown'
+  | 'ensure_outline'
+  | 'prepare_outline_chunks'
+  | 'lesson_plan'
+  | 'lesson_staging'
+  | 'staging_quality'
+  | 'canonical_commit'
+  | 'normalize'
+  | 'node_bodies'
+  | 'pedagogical_profiles'
+  | 'node_embeddings'
+  | 'unit_embeddings'
+  | 'strict_qa'
+  | 'graph_integrity'
+  | 'quality_dashboard';
 
 export interface PipelineStartRequest {
+  resume_job_id?: string;
   book_id?: string;
   pdf_path?: string;
   book_title?: string;
@@ -327,6 +346,7 @@ export interface PipelineStartRequest {
   vlm_api_url?: string;
   vlm_api_key?: string;
   vlm_model?: string;
+  start_stage?: PipelineStartStage;
 }
 
 export interface PipelineStartResponse {
@@ -334,6 +354,25 @@ export interface PipelineStartResponse {
   status: 'started';
   command: string[];
   log_path: string;
+}
+
+export interface PipelineJobSummary {
+  job_id: string;
+  book_id: string;
+  status: 'running' | 'completed' | 'blocked';
+  current_stage_id: string | null;
+  current_stage_label: string | null;
+  progress: Record<string, unknown>;
+  log_path: string;
+  created_at: string | null;
+  updated_at: string | null;
+  completed_at: string | null;
+  error: string | null;
+}
+
+export interface PipelineJobListResponse {
+  dataset_id: string;
+  jobs: PipelineJobSummary[];
 }
 
 export interface PipelineJobStage {
