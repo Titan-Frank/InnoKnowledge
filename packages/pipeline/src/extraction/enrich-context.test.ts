@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   buildEnrichBookCandidatesQuery,
+  buildEnrichBookTreesQuery,
   loadEnrichHintsForLesson,
   outlineTitlePathFromRecord,
 } from "./enrich-context.js";
@@ -22,6 +23,14 @@ test("builds a read-only enrich book query with subject and stage filters", () =
   assert.deepEqual(statement.params, ["main", "化学", "%化学%", "%化学%", "高中", "%高中%", "%高中%", 12]);
 });
 
+test("builds an exact path query after choosing an enrich book", () => {
+  const statement = buildEnrichBookTreesQuery("main", ["data/enrich/a.json", "data/enrich/b.json"]);
+
+  assert.equal(statement.name, "select-enrich-context-book-trees");
+  assert.match(statement.sql, /path = ANY\(\$2::text\[\]\)/);
+  assert.deepEqual(statement.params, ["main", ["data/enrich/a.json", "data/enrich/b.json"]]);
+});
+
 test("loads only matching enrich hints for the current lesson", async () => {
   const statements: string[] = [];
   const hints = await loadEnrichHintsForLesson({
@@ -35,7 +44,7 @@ test("loads only matching enrich hints for the current lesson", async () => {
     limit: 1,
     executor: (statement) => {
       statements.push(statement.name);
-      return [
+      const rows = [
         {
           path: "data/enrich/化学/高中_化学_沪科技版_选择性必修2物质结构与性质_enriched.json",
           filename: "高中_化学_沪科技版_选择性必修2物质结构与性质_enriched.json",
@@ -69,15 +78,71 @@ test("loads only matching enrich hints for the current lesson", async () => {
           ],
         },
       ];
+      if (statement.name === "select-enrich-context-books") {
+        return rows.map(({ tree_json, ...row }) => row);
+      }
+      return rows;
     },
   });
 
-  assert.deepEqual(statements, ["select-enrich-context-books"]);
+  assert.deepEqual(statements, ["select-enrich-context-books", "select-enrich-context-book-trees"]);
   assert.equal(hints.length, 1);
   assert.equal(hints[0]?.title, "共价键");
   assert.deepEqual(hints[0]?.title_path, ["第一章 原子结构与性质", "共价键"]);
   assert.match(hints[0]?.definition ?? "", /共用电子对/);
   assert.match(hints[0]?.match_reason ?? "", /课时标题/);
+});
+
+test("locks the enrich book by subject, stage, grade, publisher, and volume before lesson matching", async () => {
+  const selectedPaths: string[][] = [];
+  const rows = [
+    {
+      path: "data/enrich/物理/初中_八年级_物理_教科版_下册_enriched.json",
+      filename: "初中_八年级_物理_教科版_下册_enriched.json",
+      title: "初中 八年级 物理 教科版 下册",
+      subject: "物理",
+      stage: "初中",
+      grade: "八年级",
+      course: "物理",
+      publisher: "教科版",
+      volume: "下册",
+      tree_json: [{ title: "光的反射", enrichment: { definition: "错误版本。" } }],
+    },
+    {
+      path: "data/enrich/物理/初中_八年级_物理_人教版_上册_enriched.json",
+      filename: "初中_八年级_物理_人教版_上册_enriched.json",
+      title: "初中 八年级 物理 人教版 上册",
+      subject: "物理",
+      stage: "初中",
+      grade: "八年级",
+      course: "物理",
+      publisher: "人教版",
+      volume: "上册",
+      tree_json: [{ title: "光的反射", enrichment: { definition: "正确版本。" } }],
+    },
+  ];
+
+  const hints = await loadEnrichHintsForLesson({
+    datasetId: "main",
+    subject: "physics",
+    schoolStage: "junior-secondary",
+    gradeBand: "grade8",
+    bookTitle: "初中 八年级 物理 人教版 上册",
+    lessonTitle: "光的反射",
+    limit: 2,
+    executor: (statement) => {
+      if (statement.name === "select-enrich-context-books") {
+        return rows.map(({ tree_json, ...row }) => row);
+      }
+      selectedPaths.push(statement.params[1] as string[]);
+      const paths = new Set(statement.params[1] as string[]);
+      return rows.filter((row) => paths.has(row.path));
+    },
+  });
+
+  assert.deepEqual(selectedPaths, [["data/enrich/物理/初中_八年级_物理_人教版_上册_enriched.json"]]);
+  assert.equal(hints.length, 1);
+  assert.equal(hints[0]?.definition, "正确版本。");
 });
 
 test("resolves an outline title path for the current anchor", () => {

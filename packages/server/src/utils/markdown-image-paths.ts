@@ -56,6 +56,31 @@ export function resolveSourcePath(sourcePath: string): string {
   return path.isAbsolute(sourcePath) ? path.resolve(sourcePath) : path.resolve(REPO_ROOT, sourcePath);
 }
 
+export function resolveExistingMineruAssetPath(
+  value: string,
+  mineruRoot = path.resolve(REPO_ROOT, 'data', 'mineru'),
+): string {
+  const resolved = path.resolve(value);
+  if (existsSync(resolved)) return resolved;
+
+  const relativePath = path.relative(mineruRoot, resolved);
+  if (!relativePath || relativePath.startsWith('..') || path.isAbsolute(relativePath)) return resolved;
+  const parts = relativePath.split(path.sep).filter(Boolean);
+  if (parts.length < 2) return resolved;
+  const requestedBookDirectory = parts[0]!;
+  const assetSuffix = parts.slice(1);
+  const safeBookDirectory = requestedBookDirectory
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]+/g, '__')
+    .replace(/^[._]+|[._]+$/g, '') || 'item';
+  const candidates = [
+    path.join(mineruRoot, safeBookDirectory, ...assetSuffix),
+    path.join(mineruRoot, safeBookDirectory, 'extract', ...assetSuffix),
+    path.join(mineruRoot, requestedBookDirectory, 'extract', ...assetSuffix),
+  ];
+  return candidates.find((candidate) => existsSync(candidate)) || resolved;
+}
+
 export function readSourceLines(sourcePath: string, sourceCache?: SourceLineCache): string[] | null {
   if (sourceCache?.has(sourcePath)) return sourceCache.get(sourcePath) ?? null;
   let lines: string[] | null = null;
@@ -154,7 +179,9 @@ function resolveImagePathAgainstSource(rawPath: string, sourcePath: string): str
   if (resolvedSourcePath) candidates.push(path.resolve(path.dirname(resolvedSourcePath), withoutQuery));
   candidates.push(path.resolve(REPO_ROOT, withoutQuery));
 
-  return candidates.find((candidate) => existsSync(candidate)) || candidates[0] || withoutQuery;
+  const exactMatch = candidates.find((candidate) => existsSync(candidate));
+  if (exactMatch) return exactMatch;
+  return candidates[0] ? resolveExistingMineruAssetPath(candidates[0]) : withoutQuery;
 }
 
 function imagePathCandidates(...values: string[]): string[] {

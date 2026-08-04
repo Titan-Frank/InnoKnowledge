@@ -1,16 +1,22 @@
 import { useAppState } from '@/hooks/useAppState';
 import type { SearchHitMeta } from '@/core/graph/types';
-import { Sun, Moon, Search, Network, BarChart3, BookOpen, ClipboardList, Database, Eye } from '@/lib/lucide-icons';
+import { Sun, Moon, Search, Network, BarChart3, BookOpen, Database, Eye, Download, Check, AlertCircle, Loader2 } from '@/lib/lucide-icons';
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { searchNodes } from '@/services/backend-client';
+import { loadUnit, searchNodes } from '@/services/backend-client';
 import { PUBLIC_ARTIFACT_MODE } from '@/lib/runtime';
+import { collectApiUnitsForExport, downloadKnowledgePackageJson } from '@/lib/graph-export';
 
 const WORKSPACE_ITEMS = [
   { id: 'graph', label: '图谱', icon: Network },
   { id: 'textbook', label: '教材', icon: BookOpen },
   { id: 'pipeline', label: '调试', icon: BarChart3 },
-  { id: 'annotation', label: '标注', icon: ClipboardList },
 ] as const;
+
+type ExportState =
+  | { status: 'idle' }
+  | { status: 'loading'; completed: number; total: number }
+  | { status: 'success'; total: number }
+  | { status: 'error'; failed: number; total: number };
 
 export function Header() {
   const {
@@ -24,14 +30,65 @@ export function Header() {
   } = useAppState();
 
   const [searchFocused, setSearchFocused] = useState(false);
+  const [exportState, setExportState] = useState<ExportState>({ status: 'idle' });
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const exportFeedbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sourceLabel = selectedSourceKey ? sourceConfigs.get(selectedSourceKey)?.label : null;
   const currentWorkspace = WORKSPACE_ITEMS.find((item) => item.id === workspace);
 
   const handleThemeToggle = useCallback(() => {
     setThemeMode(themeMode === 'dark' ? 'light' : 'dark');
   }, [themeMode, setThemeMode]);
+
+  const handleExport = useCallback(async () => {
+    if (!knowledgeGraph || !selectedSourceKey) return;
+    const nodeIds = knowledgeGraph.nodes.map((node) => node.id);
+    setExportState({ status: 'loading', completed: 0, total: nodeIds.length });
+    try {
+      const result = await collectApiUnitsForExport(
+        nodeIds,
+        (nodeId) => loadUnit(selectedSourceKey, nodeId),
+        {
+          concurrency: 6,
+          onProgress: (completed, total) => setExportState({ status: 'loading', completed, total }),
+        },
+      );
+      if (result.failedNodeIds.length > 0) {
+        setExportState({
+          status: 'error',
+          failed: result.failedNodeIds.length,
+          total: nodeIds.length,
+        });
+        return;
+      }
+      downloadKnowledgePackageJson(knowledgeGraph, result.units, {
+        datasetId: selectedSourceKey,
+        datasetLabel: sourceLabel,
+      });
+      setExportState({ status: 'success', total: result.units.length });
+    } catch {
+      setExportState({ status: 'error', failed: nodeIds.length, total: nodeIds.length });
+    } finally {
+      if (exportFeedbackRef.current) clearTimeout(exportFeedbackRef.current);
+      exportFeedbackRef.current = setTimeout(() => setExportState({ status: 'idle' }), 4000);
+    }
+  }, [knowledgeGraph, selectedSourceKey, sourceLabel]);
+
+  const exportLabel = exportState.status === 'loading'
+    ? `${exportState.completed}/${exportState.total}`
+    : exportState.status === 'success'
+      ? '已导出'
+      : exportState.status === 'error'
+        ? `缺少 ${exportState.failed}`
+        : '全量导出';
+  const exportAriaLabel = exportState.status === 'loading'
+    ? `正在获取完整知识单元，已完成 ${exportState.completed} 个，共 ${exportState.total} 个`
+    : exportState.status === 'success'
+      ? `已导出 ${exportState.total} 个完整知识单元`
+      : exportState.status === 'error'
+        ? `全量导出失败，${exportState.total} 个知识单元中有 ${exportState.failed} 个未能获取，请重试`
+        : '导出全量知识包 JSON';
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchTerm(value);
@@ -72,6 +129,11 @@ export function Header() {
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
+  }, []);
+
+  useEffect(() => () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (exportFeedbackRef.current) clearTimeout(exportFeedbackRef.current);
   }, []);
 
   return (
@@ -181,6 +243,39 @@ export function Header() {
               <span className="font-medium text-text-secondary">{knowledgeGraph.edgeCount}</span>
               <span>边</span>
             </div>
+          )}
+
+          {knowledgeGraph && selectedSourceKey && (
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exportState.status === 'loading'}
+              aria-busy={exportState.status === 'loading'}
+              aria-label={exportAriaLabel}
+              className={`okm-control-surface flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-colors ${
+                exportState.status === 'success'
+                  ? 'border-accent/40 bg-accent/15 text-accent'
+                  : exportState.status === 'error'
+                    ? 'border-node-event/50 bg-node-event/10 text-node-event'
+                    : exportState.status === 'loading'
+                      ? 'cursor-wait border-accent/35 bg-accent/10 text-accent'
+                      : 'border-border-subtle bg-elevated/90 text-text-secondary hover:border-accent/40 hover:bg-hover hover:text-text-primary'
+              }`}
+              title={exportAriaLabel}
+            >
+              {exportState.status === 'success' ? (
+                <Check className="h-3.5 w-3.5" />
+              ) : exportState.status === 'error' ? (
+                <AlertCircle className="h-3.5 w-3.5" />
+              ) : exportState.status === 'loading' ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Download className="h-3.5 w-3.5" />
+              )}
+              <span aria-live={exportState.status === 'error' ? 'assertive' : 'polite'}>
+                {exportLabel}
+              </span>
+            </button>
           )}
 
           <button

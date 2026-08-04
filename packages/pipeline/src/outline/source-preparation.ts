@@ -2,6 +2,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 import { parseHeadings, planChunkOutline, type ChunkOutlineItem } from "./chunk-outline.js";
+import { safePathToken } from "../shared/pathing.js";
 
 type RawRecord = Record<string, unknown>;
 
@@ -66,7 +67,10 @@ export function prepareSourceMarkdown(input: {
     const sourcePath = resolveInputPath(input.sourceMarkdownPath, input.repoRoot);
     if (!existsSync(sourcePath)) return { status: "blocked", error: `Source Markdown not found: ${sourcePath}` };
 
-    const targetPath = resolve(input.repoRoot, "data", "mineru", input.bookId, "full.md");
+    // MinerU writes Markdown and its sibling image directories under the safe
+    // book token. Reuse that same directory so relative image references stay
+    // attached to the source instead of copying only full.md elsewhere.
+    const targetPath = resolve(input.repoRoot, "data", "mineru", safePathToken(input.bookId), "full.md");
     mkdirSync(dirname(targetPath), { recursive: true });
     const imported = sourcePath !== targetPath;
     if (imported) copyFileSync(sourcePath, targetPath);

@@ -8,7 +8,7 @@ import type {
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { REPO_ROOT } from '../utils/paths.js';
-import { resolveEvidenceImagePath } from '../utils/markdown-image-paths.js';
+import { resolveEvidenceImagePath, resolveExistingMineruAssetPath } from '../utils/markdown-image-paths.js';
 import { buildApiUnitCompleteness } from './unit-completeness.js';
 
 // ── Helpers ───────────────────────────────────────────────
@@ -417,10 +417,6 @@ function assetUrlForPath(sourceKey: string, resolvedPath: string): string {
   return `/api/source/${encodeURIComponent(sourceKey)}/assets/${encodeURIComponent(resolvedPath)}`;
 }
 
-function assetPathKey(resolvedPath: string): string {
-  return path.resolve(resolvedPath).replace(/\\/g, '/');
-}
-
 function resolveMarkdownAssetPath(markdownPath: string, assetRef: string): string | null {
   const cleanRef = assetRef.trim();
   if (!cleanRef || /^(https?:|data:|blob:|\/api\/)/i.test(cleanRef) || cleanRef.startsWith('#')) {
@@ -435,31 +431,21 @@ function resolveMarkdownAssetPath(markdownPath: string, assetRef: string): strin
       path.resolve(REPO_ROOT, withoutQuery),
     ];
 
-  return candidates.find((candidate) => existsSync(candidate)) || null;
-}
-
-function visibleImageAssetPaths(rows: Record<string, unknown>[]): Set<string> {
-  const paths = new Set<string>();
-  for (const row of rows) {
-    if (String(row.modality || '').toLowerCase() !== 'image') continue;
-    if (isHiddenImageEvidence(row)) continue;
-    const resolvedPath = resolveImagePath(row);
-    if (!resolvedPath || /^https?:\/\//i.test(resolvedPath)) continue;
-    paths.add(assetPathKey(resolvedPath));
-  }
-  return paths;
+  const exactMatch = candidates.find((candidate) => existsSync(candidate));
+  if (exactMatch) return exactMatch;
+  if (!candidates[0]) return null;
+  const fallback = resolveExistingMineruAssetPath(candidates[0]);
+  return existsSync(fallback) ? fallback : null;
 }
 
 function rewriteMarkdownImageUrls(
   markdown: string,
   markdownPath: string,
   sourceKey: string,
-  allowedAssetPaths?: Set<string>,
 ): string {
   return markdown.replace(/!\[([^\]]*)\]\(([^)\n]+)\)/g, (match, alt: string, src: string) => {
     const resolvedPath = resolveMarkdownAssetPath(markdownPath, src);
     if (!resolvedPath) return match;
-    if (allowedAssetPaths && !allowedAssetPaths.has(assetPathKey(resolvedPath))) return '';
     return `![${alt}](${assetUrlForPath(sourceKey, resolvedPath)})`;
   });
 }
@@ -515,7 +501,7 @@ function markdownFragmentFromOutline(
     if (!markdown) continue;
 
     const normalizedMarkdown = normalizeDetailsSummaries(
-      rewriteMarkdownImageUrls(markdown, markdownPath, sourceKey, visibleImageAssetPaths(items)),
+      rewriteMarkdownImageUrls(markdown, markdownPath, sourceKey),
     );
     const fallbackModalities = uniqueStrings(items.map((row) => textValue(row.modality) || 'text'));
     const pageStart = item.page_start ?? first.page_start;

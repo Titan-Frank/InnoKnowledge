@@ -206,7 +206,7 @@ test("passes matching enrich context as auxiliary lesson hints", async () => {
         },
         enrichContextExecutor: (statement) => {
           statementNames.push(statement.name);
-          return [
+          const rows = [
             {
               path: "data/enrich/化学/高中_化学_沪科技版_选择性必修2物质结构与性质_enriched.json",
               filename: "高中_化学_沪科技版_选择性必修2物质结构与性质_enriched.json",
@@ -228,12 +228,16 @@ test("passes matching enrich context as auxiliary lesson hints", async () => {
               ],
             },
           ];
+          if (statement.name === "select-enrich-context-books") {
+            return rows.map(({ tree_json, ...row }) => row);
+          }
+          return rows;
         },
       },
     );
 
     assert.equal(code, 0);
-    assert.deepEqual(statementNames, ["select-enrich-context-books"]);
+    assert.deepEqual(statementNames, ["select-enrich-context-books", "select-enrich-context-book-trees"]);
     const requestBody = requestBodies[0] as { messages: Array<{ content: string }> };
     const lessonPayload = JSON.parse(requestBody.messages[1]!.content) as {
       lesson_context: { enrich_hints: Array<{ title: string; definition: string }> };

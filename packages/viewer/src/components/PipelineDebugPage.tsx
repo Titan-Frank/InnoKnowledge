@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import type {
   ImageReviewAction,
   ImageReviewItem,
@@ -6,6 +6,7 @@ import type {
   PipelineJobListResponse,
   PipelineJobSummary,
   PipelineJobStatusResponse,
+  PipelinePdfUploadResponse,
   PipelineExtractionTemplateId,
   PipelineLessonBackendKind,
   PipelineQualityDashboardResponse,
@@ -24,6 +25,7 @@ import {
   loadPipeline,
   loadPipelineQuality,
   startPipeline,
+  uploadPipelinePdf,
   updateImageReview,
 } from '@/services/backend-client';
 import { useAppState } from '@/hooks/useAppState';
@@ -55,6 +57,7 @@ import {
   Play,
   RotateCcw,
   Search,
+  Upload,
 } from '@/lib/lucide-icons';
 
 type PipelineForm = {
@@ -644,6 +647,11 @@ function sourceReadyLabel(form: PipelineForm): string {
   if (form.pdf_path.trim()) return 'PDF 已填写，其他参数自动处理';
   if (form.mineru_file_url.trim()) return 'MinerU 文件 URL 已填写，其他参数自动处理';
   return '需要 PDF 绝对路径或 MinerU 文件 URL';
+}
+
+function fileSizeText(sizeBytes: number): string {
+  if (sizeBytes < 1024 * 1024) return `${Math.max(1, Math.round(sizeBytes / 1024))} KB`;
+  return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function sourceReady(form: PipelineForm): boolean {
@@ -1297,6 +1305,9 @@ export function PipelineDebugPage() {
   const [jobListError, setJobListError] = useState('');
   const [metadata, setMetadata] = useState<TextbookMetadataResponse | null>(null);
   const [inferring, setInferring] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadedPdf, setUploadedPdf] = useState<PipelinePdfUploadResponse | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [form, setForm] = useState<PipelineForm>(initialForm);
   const [imageReviews, setImageReviews] = useState<ImageReviewResponse | null>(null);
@@ -1306,6 +1317,7 @@ export function PipelineDebugPage() {
   const [quality, setQuality] = useState<PipelineQualityDashboardResponse | null>(null);
   const [qualityLoading, setQualityLoading] = useState(false);
   const [qualityError, setQualityError] = useState('');
+  const pdfInputRef = useRef<HTMLInputElement>(null);
 
   const refresh = async (options: { silent?: boolean } = {}) => {
     if (!options.silent) setLoading(true);
@@ -1369,7 +1381,40 @@ export function PipelineDebugPage() {
   };
 
   const canInfer = Boolean(form.book_id.trim() || form.pdf_path.trim() || form.mineru_file_url.trim());
-  const canStart = sourceReady(form) && !starting;
+  const canStart = sourceReady(form) && !starting && !uploadingPdf;
+
+  const selectLocalPdf = () => {
+    pdfInputRef.current?.click();
+  };
+
+  const handleLocalPdf = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.pdf') || (file.type && file.type !== 'application/pdf')) {
+      setStartError('请选择 PDF 文件。');
+      return;
+    }
+    if (file.size > 512 * 1024 * 1024) {
+      setStartError('PDF 不能超过 512 MB。');
+      return;
+    }
+
+    setUploadingPdf(true);
+    setUploadProgress(0);
+    setUploadedPdf(null);
+    setStartError('');
+    try {
+      const result = await uploadPipelinePdf(activeSourceKey, file, setUploadProgress);
+      setUploadedPdf(result);
+      setUploadProgress(100);
+      setForm((current) => ({ ...current, pdf_path: result.pdf_path, mineru_file_url: '' }));
+    } catch (err) {
+      setStartError((err as Error).message || 'PDF 上传失败');
+    } finally {
+      setUploadingPdf(false);
+    }
+  };
 
   const applyInferredMetadata = (result: TextbookMetadataResponse) => {
     const previous = metadata;
@@ -1647,7 +1692,50 @@ export function PipelineDebugPage() {
                     </div>
                   </div>
                   <div className="grid gap-3">
-                    <Field label="PDF 绝对路径" value={form.pdf_path} onChange={(value) => updateForm('pdf_path', value)} placeholder="/Users/.../book.pdf" />
+                    <div>
+                      <span className="mb-1.5 block text-[11px] font-medium text-text-muted">本地 PDF</span>
+                      <input
+                        ref={pdfInputRef}
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        onChange={(event) => void handleLocalPdf(event)}
+                        className="sr-only"
+                        aria-label="选择本地 PDF 文件"
+                      />
+                      <button
+                        type="button"
+                        onClick={selectLocalPdf}
+                        disabled={uploadingPdf || starting}
+                        className="flex min-h-12 w-full cursor-pointer items-center gap-3 rounded-md border border-dashed border-accent/50 bg-surface px-3 py-2 text-left transition-colors hover:border-accent hover:bg-accent/5 focus-visible:border-accent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
+                          {uploadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-xs font-medium text-text-primary">
+                            {uploadingPdf ? `正在上传 ${uploadProgress}%` : uploadedPdf ? uploadedPdf.file_name : '选择本地 PDF'}
+                          </span>
+                          <span className="mt-0.5 block truncate text-[10px] text-text-muted">
+                            {uploadedPdf ? `${fileSizeText(uploadedPdf.size_bytes)} · 已上传，可直接开始抽取` : '点击打开文件选择窗口，最大 512 MB'}
+                          </span>
+                        </span>
+                        {!uploadingPdf && <span className="shrink-0 text-[10px] font-medium text-accent">浏览文件</span>}
+                      </button>
+                      {uploadingPdf && (
+                        <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-border-subtle" aria-label={`上传进度 ${uploadProgress}%`}>
+                          <div className="h-full rounded-full bg-accent transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} />
+                        </div>
+                      )}
+                    </div>
+                    <Field
+                      label="或输入服务端 PDF 绝对路径"
+                      value={form.pdf_path}
+                      onChange={(value) => {
+                        setUploadedPdf(null);
+                        updateForm('pdf_path', value);
+                      }}
+                      placeholder="/Users/.../book.pdf"
+                    />
                     <Field label="MinerU 文件 URL" value={form.mineru_file_url} onChange={(value) => updateForm('mineru_file_url', value)} placeholder="已有公网文件地址时填写，可不填" />
                   </div>
                 </div>

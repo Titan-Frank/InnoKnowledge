@@ -356,6 +356,12 @@ export interface PipelineStartResponse {
   log_path: string;
 }
 
+export interface PipelinePdfUploadResponse {
+  pdf_path: string;
+  file_name: string;
+  size_bytes: number;
+}
+
 export interface PipelineJobSummary {
   job_id: string;
   book_id: string;
