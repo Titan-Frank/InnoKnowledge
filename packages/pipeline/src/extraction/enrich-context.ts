@@ -24,7 +24,7 @@ type EnrichBookRow = {
   course: string;
   publisher: string;
   volume: string;
-  tree_json: unknown;
+  tree_json?: unknown;
 };
 
 export type EnrichHint = {
@@ -74,19 +74,22 @@ type LessonQuery = {
 
 export async function loadEnrichHintsForLesson(input: LoadEnrichHintsForLessonInput): Promise<EnrichHint[]> {
   if (!input.datasetId.trim()) return [];
-  const rows = await input.executor(
+  const metadataRows = await input.executor(
     buildEnrichBookCandidatesQuery({
       datasetId: input.datasetId,
       subject: input.subject,
       schoolStage: input.schoolStage,
-      limit: Math.max(8, (input.limit ?? 6) * 8),
+      limit: Math.max(256, (input.limit ?? 6) * 32),
     }),
   );
+  const selectedBooks = lockEnrichBooks(metadataRows.map(normalizeBookRow), input);
+  if (selectedBooks.length === 0) return [];
+  const rawRows = await input.executor(buildEnrichBookTreesQuery(input.datasetId, selectedBooks.map((row) => row.path)));
+  const rows = rawRows.map(normalizeBookRow);
   const query = buildLessonQuery(input);
   const hints: Array<EnrichHint & { raw_score: number }> = [];
 
-  for (const rawRow of rows) {
-    const row = normalizeBookRow(rawRow);
+  for (const row of rows) {
     const bookScore = scoreBook(row, input);
     for (const node of flattenEnrichTree(row.tree_json)) {
       const nodeScore = scoreEnrichNode(node, query);
@@ -104,6 +107,55 @@ export async function loadEnrichHintsForLesson(input: LoadEnrichHintsForLessonIn
     .map(({ raw_score, ...hint }) => hint);
 }
 
+function lockEnrichBooks(rows: EnrichBookRow[], input: LoadEnrichHintsForLessonInput): EnrichBookRow[] {
+  const exactRows = exactBookMatches(rows, input);
+  if (exactRows.length > 0) {
+    return exactRows.sort((left, right) => scoreBook(right, input) - scoreBook(left, input) || left.path.localeCompare(right.path));
+  }
+  return rows
+    .sort((left, right) => scoreBook(right, input) - scoreBook(left, input) || left.path.localeCompare(right.path))
+    .slice(0, Math.max(8, (input.limit ?? 6) * 8));
+}
+
+function exactBookMatches(rows: EnrichBookRow[], input: LoadEnrichHintsForLessonInput): EnrichBookRow[] {
+  const subjectTerms = subjectAliases(input.subject).map(normalizeForMatch);
+  const stageTerms = stageAliases(input.schoolStage).map(normalizeForMatch);
+  const gradeTerms = gradeAliases(input.gradeBand).map(normalizeForMatch);
+  const identityText = normalizeForMatch([input.bookTitle, input.bookId, input.textbookId].map(stringValue).join(" "));
+  if (subjectTerms.length === 0 || stageTerms.length === 0 || !identityText) return [];
+
+  let candidates = rows.filter((row) => {
+    const subject = normalizeForMatch(row.subject);
+    const stage = normalizeForMatch(row.stage);
+    const stageMatches = stageTerms.includes(stage) || (stageTerms.some((term) => stage.startsWith(term)) && identityText.includes(stage));
+    return subjectTerms.includes(subject) && stageMatches;
+  });
+  if (candidates.length === 0) return [];
+
+  if (gradeTerms.length > 0 && candidates.some((row) => normalizeForMatch(row.grade))) {
+    candidates = candidates.filter((row) => {
+      const grade = normalizeForMatch(row.grade);
+      return gradeTerms.includes(grade) || gradeTerms.some((term) => normalizeForMatch([row.title, row.path].join(" ")).includes(term));
+    });
+    if (candidates.length === 0) return [];
+  }
+
+  const publisherMatches = candidates.filter((row) => {
+    const publisher = normalizeForMatch(row.publisher);
+    return publisher.length > 0 && identityText.includes(publisher);
+  });
+  if (publisherMatches.length === 0) return [];
+  candidates = publisherMatches;
+
+  const volumeMatches = candidates.filter((row) => {
+    const volume = normalizeForMatch(row.volume);
+    return volume.length > 0 && identityText.includes(volume);
+  });
+  if (volumeMatches.length === 0) return [];
+
+  return volumeMatches;
+}
+
 export function buildEnrichBookCandidatesQuery(input: EnrichBookCandidateQueryInput): SqlStatement {
   const params: unknown[] = [input.datasetId];
   const clauses = ["dataset_id = $1"];
@@ -117,13 +169,26 @@ export function buildEnrichBookCandidatesQuery(input: EnrichBookCandidateQueryIn
   return {
     name: "select-enrich-context-books",
     sql: [
-      "SELECT path, filename, title, subject, stage, grade, course, publisher, volume, tree_json",
+      "SELECT path, filename, title, subject, stage, grade, course, publisher, volume",
       "FROM world_enrich_books",
       `WHERE ${clauses.join(" AND ")}`,
       "ORDER BY subject NULLS LAST, stage NULLS LAST, grade NULLS LAST, title ASC, path ASC",
       `LIMIT $${limitIndex}`,
     ].join("\n"),
     params,
+  };
+}
+
+export function buildEnrichBookTreesQuery(datasetId: string, paths: string[]): SqlStatement {
+  return {
+    name: "select-enrich-context-book-trees",
+    sql: [
+      "SELECT path, filename, title, subject, stage, grade, course, publisher, volume, tree_json",
+      "FROM world_enrich_books",
+      "WHERE dataset_id = $1 AND path = ANY($2::text[])",
+      "ORDER BY path ASC",
+    ].join("\n"),
+    params: [datasetId, uniqueNonEmpty(paths)],
   };
 }
 
@@ -346,6 +411,13 @@ function subjectAliases(subject: string | undefined): string[] {
     "language-arts": ["语文"],
     english: ["英语"],
     "computer-science": ["信息技术", "信息科技"],
+    engineering: ["通用技术", "劳动与技术"],
+    civics: ["思想政治", "道德与法治"],
+    arts: ["艺术", "美术"],
+    music: ["音乐"],
+    sports: ["体育"],
+    health: ["体育", "体育与健康"],
+    general: ["科学"],
   };
   return aliases[(subject ?? "").trim().toLowerCase()] ?? [];
 }
@@ -374,7 +446,7 @@ function gradeAliases(gradeBand: string | undefined): string[] {
     grade11: ["高二", "选择性必修"],
     grade12: ["高三"],
   };
-  return aliases[(gradeBand ?? "").trim().toLowerCase()] ?? [];
+  return aliases[(gradeBand ?? "").trim().toLowerCase().replace(/[-_\s]+/g, "")] ?? [];
 }
 
 function bookKeywordVariants(input: LoadEnrichHintsForLessonInput): string[] {

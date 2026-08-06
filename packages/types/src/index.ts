@@ -21,7 +21,7 @@ export type {
   GroundedGenerationStreamEvent,
   PipelineLessonRun, PipelineMergeRun, PipelineReviewItem, PipelineResponse,
   PipelineQualityLessonRow, PipelineQualityDashboardResponse,
-  PipelineLessonBackendKind, PipelineExtractionTemplateId, PipelineStartStage, PipelineStartRequest, PipelineStartResponse,
+  PipelineLessonBackendKind, PipelineExtractionTemplateId, PipelineStartStage, PipelineStartRequest, PipelineStartResponse, PipelinePdfUploadResponse,
   PipelineJobSummary, PipelineJobListResponse, PipelineJobStage, PipelineWorkerState, PipelineJobEvent, PipelineJobStatusResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewRelevance, ImageReviewStatus, ImageReviewAction,

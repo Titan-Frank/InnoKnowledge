@@ -53,6 +53,34 @@ test("imports Markdown even when the outline does not exist yet", () => {
   }
 });
 
+test("keeps MinerU Markdown beside its images when the book id needs path sanitizing", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-"));
+  try {
+    const sourceDir = join(repoRoot, "data", "mineru", "-_-");
+    const markdownPath = join(sourceDir, "full.md");
+    const imagePath = join(sourceDir, "images", "figure.jpg");
+    mkdirSync(join(sourceDir, "images"), { recursive: true });
+    writeFileSync(markdownPath, "# 数学\n![](images/figure.jpg)\n", "utf8");
+    writeFileSync(imagePath, "image", "utf8");
+
+    const result = prepareSourceMarkdown({
+      bookId: "_-_-_",
+      outlinePath: join(repoRoot, "data", "outlines", "_-_-_.outline.json"),
+      repoRoot,
+      sourceMarkdownPath: markdownPath,
+    });
+
+    assert.equal(result.status, "completed");
+    assert.equal(result.imported, false);
+    assert.equal(result.markdown_path, markdownPath);
+    assert.equal(result.outline_source_path, "data/mineru/-_-/full.md");
+    assert.equal(existsSync(imagePath), true);
+    assert.equal(existsSync(join(repoRoot, "data", "mineru", "_-_-_", "full.md")), false);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test("derives a basic outline from Markdown headings when outline is missing", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-"));
   try {

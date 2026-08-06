@@ -2,8 +2,7 @@ import type {
   ApiNodeCard, ApiUnit, MetaResponse, BundleResponse, SearchResponse,
   GroundedGenerationRequest, GroundedGenerationResponse, GroundedGenerationStreamEvent,
   UnitRetrievalMode, UnitRetrievalResponse,
-  AnnotationLessonTextResponse, AnnotationTextbookListResponse,
-  PipelineJobListResponse, PipelineJobStatusResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
+  PipelineJobListResponse, PipelineJobStatusResponse, PipelinePdfUploadResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
 } from '@okm/types';
@@ -147,19 +146,6 @@ export async function loadEnrichBooks(sourceKey: string): Promise<EnrichIndexRes
 export async function loadEnrichBook(sourceKey: string, path: string): Promise<EnrichBookResponse> {
   const params = new URLSearchParams({ source: sourceKey, path });
   return fetchJson<EnrichBookResponse>(`/api/enrich/book?${params}`);
-}
-
-export async function loadAnnotationTextbooks(): Promise<AnnotationTextbookListResponse> {
-  return fetchJson<AnnotationTextbookListResponse>('/api/annotation/textbooks');
-}
-
-export async function loadAnnotationLessonText(
-  bookId: string,
-  lessonId: string,
-): Promise<AnnotationLessonTextResponse> {
-  return fetchJson<AnnotationLessonTextResponse>(
-    `/api/annotation/textbooks/${encodeURIComponent(bookId)}/lessons/${encodeURIComponent(lessonId)}`,
-  );
 }
 
 export async function loadNodeCard(
@@ -372,6 +358,43 @@ export async function startPipeline(
     `/api/source/${encodeURIComponent(sourceKey)}/pipeline/start`,
     payload,
   );
+}
+
+export async function uploadPipelinePdf(
+  sourceKey: string,
+  file: File,
+  onProgress?: (progress: number) => void,
+): Promise<PipelinePdfUploadResponse> {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', `/api/source/${encodeURIComponent(sourceKey)}/pipeline/upload-pdf`);
+    request.setRequestHeader('Content-Type', file.type || 'application/pdf');
+    request.setRequestHeader('X-File-Name', encodeURIComponent(file.name));
+    request.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100));
+    });
+    request.addEventListener('load', () => {
+      if (request.status >= 200 && request.status < 300) {
+        try {
+          resolve(JSON.parse(request.responseText) as PipelinePdfUploadResponse);
+        } catch {
+          reject(new BackendError('上传接口返回了无效数据。', 502, 'server'));
+        }
+        return;
+      }
+      let message = 'PDF 上传失败';
+      try {
+        const payload = JSON.parse(request.responseText) as { error?: unknown };
+        if (typeof payload.error === 'string' && payload.error.trim()) message = payload.error;
+      } catch {
+        // Keep the fallback message for non-JSON server errors.
+      }
+      reject(new BackendError(message, request.status, 'server'));
+    });
+    request.addEventListener('error', () => reject(new BackendError('无法连接上传服务。', 0, 'network')));
+    request.addEventListener('abort', () => reject(new BackendError('PDF 上传已取消。', 0, 'abort')));
+    request.send(file);
+  });
 }
 
 export async function loadPipelineJobStatus(

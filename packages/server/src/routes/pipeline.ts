@@ -1,10 +1,13 @@
 import type { Hono } from 'hono';
 import { spawn, type ChildProcess } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { createWriteStream, mkdirSync } from 'node:fs';
+import { mkdir, rm } from 'node:fs/promises';
 import { basename, join } from 'node:path';
+import { Readable, Transform } from 'node:stream';
+import { pipeline as streamPipeline } from 'node:stream/promises';
 import type {
-  PipelineStartRequest, PipelineStartResponse, PipelineStartStage,
+  PipelinePdfUploadResponse, PipelineStartRequest, PipelineStartResponse, PipelineStartStage,
   TextbookMetadataRequest, TextbookMetadataResponse,
 } from '@okm/types';
 import type { Sql } from '../db/connection.js';
@@ -22,6 +25,8 @@ interface CommandInvocation {
   command: string;
   args: string[];
 }
+
+const MAX_PDF_UPLOAD_BYTES = 512 * 1024 * 1024;
 
 const PIPELINE_START_STAGES = new Set<PipelineStartStage>([
   'mineru_source_markdown',
@@ -236,6 +241,47 @@ function sourceName(value: string): string {
 
 function sourceStem(value: string): string {
   return sourceName(value).replace(/\.[^.]+$/, '');
+}
+
+export function safePdfUploadName(value: string): string {
+  let decoded = value;
+  try {
+    decoded = decodeURIComponent(value);
+  } catch {
+    // Keep the original header value so validation can return a useful error.
+  }
+  const name = basename(decoded.trim()).replace(/[\u0000-\u001f\u007f]/g, '');
+  if (!name || !name.toLowerCase().endsWith('.pdf')) {
+    throw new Error('Only PDF files can be uploaded.');
+  }
+  return name;
+}
+
+async function savePdfUpload(body: ReadableStream<Uint8Array>, destination: string): Promise<number> {
+  let sizeBytes = 0;
+  let signature = Buffer.alloc(0);
+  const limiter = new Transform({
+    transform(chunk: Buffer, _encoding, callback) {
+      sizeBytes += chunk.length;
+      if (signature.length < 5) {
+        signature = Buffer.concat([signature, chunk.subarray(0, 5 - signature.length)]);
+      }
+      if (sizeBytes > MAX_PDF_UPLOAD_BYTES) {
+        callback(new Error('PDF exceeds the 512 MB upload limit.'));
+        return;
+      }
+      callback(null, chunk);
+    },
+  });
+
+  await streamPipeline(
+    Readable.fromWeb(body as import('node:stream/web').ReadableStream<Uint8Array>),
+    limiter,
+    createWriteStream(destination, { flags: 'wx' }),
+  );
+  if (sizeBytes === 0) throw new Error('The uploaded PDF is empty.');
+  if (signature.toString('ascii') !== '%PDF-') throw new Error('The selected file is not a valid PDF.');
+  return sizeBytes;
 }
 
 function generatedBookId(value: string): string {
@@ -497,6 +543,39 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     }
 
     return c.json(await loadPipelineQualityPayload(sql, datasetRow.dataset_id));
+  });
+
+  app.post('/api/source/:key/pipeline/upload-pdf', async (c) => {
+    let fileName: string;
+    try {
+      fileName = safePdfUploadName(c.req.header('x-file-name') || '');
+    } catch (error) {
+      return c.json({ error: (error as Error).message }, 400);
+    }
+
+    const contentLength = Number(c.req.header('content-length') || 0);
+    if (Number.isFinite(contentLength) && contentLength > MAX_PDF_UPLOAD_BYTES) {
+      return c.json({ error: 'PDF exceeds the 512 MB upload limit.' }, 413);
+    }
+    const body = c.req.raw.body;
+    if (!body) return c.json({ error: 'PDF upload body is required.' }, 400);
+
+    const uploadDir = join(REPO_ROOT, 'storage', 'pipeline-uploads', randomUUID());
+    const pdfPath = join(uploadDir, fileName);
+    try {
+      await mkdir(uploadDir, { recursive: true });
+      const sizeBytes = await savePdfUpload(body, pdfPath);
+      const response: PipelinePdfUploadResponse = {
+        pdf_path: pdfPath,
+        file_name: fileName,
+        size_bytes: sizeBytes,
+      };
+      return c.json(response, 201);
+    } catch (error) {
+      await rm(uploadDir, { recursive: true, force: true }).catch(() => undefined);
+      const message = (error as Error).message || 'PDF upload failed.';
+      return c.json({ error: message }, message.includes('512 MB') ? 413 : 400);
+    }
   });
 
   app.post('/api/source/:key/pipeline/infer-textbook', async (c) => {

@@ -1,12 +1,57 @@
 import assert from 'node:assert/strict';
+import { rm } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import test from 'node:test';
+import { Hono } from 'hono';
+import type { PipelinePdfUploadResponse } from '@okm/types';
 import type { Sql } from '../db/connection.js';
 import {
   buildPipelineCommand,
   claimPipelineJobResume,
   redactCommand,
+  registerPipelineRoutes,
   resolveNpmInvocation,
+  safePdfUploadName,
 } from './pipeline.js';
+
+test('safePdfUploadName accepts encoded PDF names and removes path components', () => {
+  assert.equal(safePdfUploadName(encodeURIComponent('八年级化学.pdf')), '八年级化学.pdf');
+  assert.equal(safePdfUploadName('../../chemistry.pdf'), 'chemistry.pdf');
+  assert.throws(() => safePdfUploadName('chemistry.txt'), /Only PDF files/);
+  assert.throws(() => safePdfUploadName(''), /Only PDF files/);
+});
+
+test('pipeline PDF upload stores a validated file and returns its server path', async () => {
+  const app = new Hono();
+  const sql = (() => Promise.resolve([])) as unknown as Sql;
+  registerPipelineRoutes(app, sql, 'postgresql://okm:okm@localhost:5432/knowledge');
+
+  const response = await app.request('/api/source/main/pipeline/upload-pdf', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/pdf',
+      'X-File-Name': encodeURIComponent('八年级化学.pdf'),
+    },
+    body: '%PDF-1.7\nlocal upload test',
+  });
+  assert.equal(response.status, 201);
+  const payload = await response.json() as PipelinePdfUploadResponse;
+  assert.equal(payload.file_name, '八年级化学.pdf');
+  assert.equal(payload.size_bytes, 26);
+  assert.match(payload.pdf_path, /storage\/pipeline-uploads\/.+\/八年级化学\.pdf$/);
+  await rm(dirname(payload.pdf_path), { recursive: true, force: true });
+
+  const invalidResponse = await app.request('/api/source/main/pipeline/upload-pdf', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/pdf',
+      'X-File-Name': 'not-a-pdf.pdf',
+    },
+    body: 'plain text',
+  });
+  assert.equal(invalidResponse.status, 400);
+  assert.match((await invalidResponse.json() as { error: string }).error, /not a valid PDF/);
+});
 
 test('resolveNpmInvocation uses the npm CLI inherited from npm', () => {
   assert.deepEqual(

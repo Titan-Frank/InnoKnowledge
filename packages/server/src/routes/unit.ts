@@ -4,6 +4,7 @@ import { resolveDatasetRow, loadUnit } from '../db/queries.js';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { REPO_ROOT } from '../utils/paths.js';
+import { resolveExistingMineruAssetPath } from '../utils/markdown-image-paths.js';
 
 const MIME_TYPES: Record<string, string> = {
   '.png': 'image/png',
@@ -39,10 +40,11 @@ export function registerUnitRoutes(app: Hono, sql: Sql) {
       return c.json({ error: `Unknown source '${key}'` }, 404);
     }
 
-    const resolvedPath = resolveAssetPath(assetPath);
-    if (!resolvedPath) {
+    const requestedPath = resolveAssetPath(assetPath);
+    if (!requestedPath) {
       return c.json({ error: 'Asset path is not allowed' }, 403);
     }
+    const resolvedPath = resolveExistingMineruAssetPath(requestedPath);
 
     try {
       const info = await stat(resolvedPath);

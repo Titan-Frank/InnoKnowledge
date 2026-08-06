@@ -5,7 +5,7 @@ import { GraphStateProvider, useGraphState } from './app-state/graph';
 import { prepareGraphData } from '@/core/graph/knowledge-data';
 import { loadBundle } from '@/services/backend-client';
 
-type Workspace = 'graph' | 'textbook' | 'pipeline' | 'annotation';
+type Workspace = 'graph' | 'textbook' | 'pipeline';
 
 interface AppState {
   // Source management
