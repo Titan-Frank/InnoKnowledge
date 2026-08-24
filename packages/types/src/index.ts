@@ -27,6 +27,9 @@ export type {
   ImageReviewRelevance, ImageReviewStatus, ImageReviewAction,
   ImageReviewDecision, ImageReviewContext, ImageReviewItem, ImageReviewResponse,
   ImageReviewUpdateRequest, ImageReviewUpdateResponse,
+  PgAdminColumn, PgAdminTable, PgAdminCatalogResponse, PgAdminRowsResponse,
+  PgAdminUpdateRequest, PgAdminDeleteRequest, PgAdminMutationResponse,
+  PgAdminBookSummary, PgAdminBooksResponse, PgAdminBookDeleteRequest, PgAdminBookDeleteResponse,
 } from './api.js';
 
 export type {

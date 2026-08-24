@@ -8,6 +8,7 @@ import { StatusBar } from './components/StatusBar';
 import { PipelineDebugPage } from './components/PipelineDebugPage';
 import { TextbookTreePage } from './components/TextbookTreePage';
 import { GraphSearchPanel } from './components/GraphSearchPanel';
+import { PgAdminPage } from './components/PgAdminPage';
 import { useAppState } from './hooks/useAppState';
 import { PUBLIC_ARTIFACT_MODE } from './lib/runtime';
 
@@ -20,6 +21,8 @@ function AppContent() {
       <Header />
       {workspace === 'pipeline' ? (
         <PipelineDebugPage />
+      ) : workspace === 'pg' ? (
+        <PgAdminPage />
       ) : workspace === 'textbook' ? (
         <TextbookTreePage />
       ) : (
