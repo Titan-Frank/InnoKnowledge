@@ -1,4 +1,5 @@
 import type { GraphData } from '@antv/g6';
+import type { SemanticNeighbor } from '@okm/types';
 import type { KnowledgeGraph, ThemeMode } from '@/core/graph/types';
 import { resolveEdgeVisual } from './edge-styles';
 import { COMMUNITY_EDGE_TYPES, getCommunityColor, TYPE_META } from './constants';
@@ -24,6 +25,7 @@ export interface BuildResult {
   communityMap: Map<string, number>;
   nodeIds: string[];
   edgePairs: G6EdgePair[];
+  communitySource: 'embedding' | 'topology';
 }
 
 const NODE_SIZE_MAP: Record<string, number> = {
@@ -41,7 +43,11 @@ function getTypeColor(type: string): string {
   return TYPE_META[type]?.color ?? TYPE_META.other.color;
 }
 
-function detectCommunities(data: KnowledgeGraph, visibleNodeIds: Set<string>): { memberships: Map<string, number>; count: number } {
+function detectCommunities(data: KnowledgeGraph, visibleNodeIds: Set<string>): {
+  memberships: Map<string, number>;
+  count: number;
+  source: 'embedding' | 'topology';
+} {
   const hasServerCommunities = data.nodes.some((node) => node.communityId != null && visibleNodeIds.has(node.id));
   if (hasServerCommunities) {
     const memberships = new Map<string, number>();
@@ -51,7 +57,7 @@ function detectCommunities(data: KnowledgeGraph, visibleNodeIds: Set<string>): {
       memberships.set(node.id, node.communityId);
       maxCommunityId = Math.max(maxCommunityId, node.communityId);
     }
-    return { memberships, count: maxCommunityId + 1 };
+    return { memberships, count: maxCommunityId + 1, source: 'embedding' };
   }
 
   const adjacency = new Map<string, Set<string>>();
@@ -90,7 +96,7 @@ function detectCommunities(data: KnowledgeGraph, visibleNodeIds: Set<string>): {
     }
   }
 
-  return { memberships, count: communityId };
+  return { memberships, count: communityId, source: 'topology' };
 }
 
 function buildCommunityInfo(
@@ -215,5 +221,97 @@ export function okmKnowledgeGraphToG6(
     communityMap: communityMemberships,
     nodeIds: visibleNodes.map((node) => node.id),
     edgePairs,
+    communitySource: communityResult.source,
+  };
+}
+
+export interface RadialFocusResult extends BuildResult {
+  formalNeighborIds: string[];
+  semanticNeighborIds: string[];
+}
+
+const MAX_FORMAL_NEIGHBORS = 18;
+
+export function buildRadialFocusGraph(
+  graph: KnowledgeGraph,
+  centerNodeId: string,
+  semanticNeighbors: SemanticNeighbor[],
+  allowedNodeIds: Set<string>,
+  mode: ThemeMode = 'dark',
+): RadialFocusResult {
+  const formalEdges = graph.edges
+    .filter((edge) => {
+      if (edge.from !== centerNodeId && edge.to !== centerNodeId) return false;
+      const neighborId = edge.from === centerNodeId ? edge.to : edge.from;
+      return allowedNodeIds.has(neighborId);
+    })
+    .sort((left, right) => {
+      const layerOrder = Number(right.edgeLayer === 'backbone') - Number(left.edgeLayer === 'backbone');
+      if (layerOrder !== 0) return layerOrder;
+      const leftNeighbor = graph.nodeById.get(left.from === centerNodeId ? left.to : left.from);
+      const rightNeighbor = graph.nodeById.get(right.from === centerNodeId ? right.to : right.from);
+      return (rightNeighbor?.degree ?? 0) - (leftNeighbor?.degree ?? 0) || left.id.localeCompare(right.id);
+    });
+
+  const formalNeighborIds: string[] = [];
+  const includedFormalEdges = [];
+  const seenFormal = new Set<string>();
+  for (const edge of formalEdges) {
+    const neighborId = edge.from === centerNodeId ? edge.to : edge.from;
+    if (!graph.nodeById.has(neighborId)) continue;
+    if (!seenFormal.has(neighborId)) {
+      if (seenFormal.size >= MAX_FORMAL_NEIGHBORS) continue;
+      seenFormal.add(neighborId);
+      formalNeighborIds.push(neighborId);
+    }
+    includedFormalEdges.push(edge);
+  }
+
+  const semanticNeighborIds = semanticNeighbors
+    .map((neighbor) => neighbor.node_id)
+    .filter((nodeId) => (
+      nodeId !== centerNodeId &&
+      allowedNodeIds.has(nodeId) &&
+      graph.nodeById.has(nodeId) &&
+      !seenFormal.has(nodeId)
+    ));
+  const visibleNodeIds = new Set([centerNodeId, ...formalNeighborIds, ...semanticNeighborIds]);
+  const result = okmKnowledgeGraphToG6(graph, visibleNodeIds, mode);
+  const includedEdgeIds = new Set(includedFormalEdges.map((edge) => edge.id));
+  const formalG6Edges = (result.data.edges ?? []).filter((edge) => includedEdgeIds.has(String(edge.id)));
+  const similarityById = new Map(semanticNeighbors.map((neighbor) => [neighbor.node_id, neighbor.similarity]));
+  const semanticEdges = semanticNeighborIds.map((nodeId) => ({
+    id: `semantic:${centerNodeId}:${nodeId}`,
+    source: centerNodeId,
+    target: nodeId,
+    data: {
+      edgeType: 'semantic_similarity',
+      edgeLayer: 'semantic',
+      category: 'Embedding 语义相似',
+      similarity: similarityById.get(nodeId) ?? null,
+    },
+    style: {
+      stroke: mode === 'light' ? '#64748b' : '#94a3b8',
+      strokeOpacity: 0.5,
+      lineWidth: 1.2,
+      lineDash: [5, 5],
+      endArrow: false,
+      label: false,
+    },
+  }));
+
+  return {
+    ...result,
+    data: { nodes: result.data.nodes, edges: [...formalG6Edges, ...semanticEdges] },
+    edgePairs: [
+      ...result.edgePairs.filter((edge) => includedEdgeIds.has(edge.id)),
+      ...semanticNeighborIds.map((nodeId) => ({
+        id: `semantic:${centerNodeId}:${nodeId}`,
+        source: centerNodeId,
+        target: nodeId,
+      })),
+    ],
+    formalNeighborIds,
+    semanticNeighborIds,
   };
 }

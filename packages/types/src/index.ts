@@ -13,7 +13,7 @@ export type {
 
 export type {
   HealthResponse, SourceSummary, MetaResponse,
-  BundleSourceInfo, ApiBookBundle, BundleResponse,
+  BundleSourceInfo, ApiBookBundle, BundleResponse, SemanticNeighbor, SemanticNeighborsResponse,
   AnnotationLessonSummary, AnnotationTextbookSummary, AnnotationTextbookListResponse, AnnotationLessonTextResponse,
   NodeCardResponse, UnitResponse, SearchHit, SearchResponse, ApiErrorResponse,
   UnitRetrievalMode, UnitRetrievalExecutionMode, UnitRetrievalHit, UnitRetrievalResponse,

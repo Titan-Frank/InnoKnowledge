@@ -1,5 +1,5 @@
 import type {
-  ApiNodeCard, ApiUnit, MetaResponse, BundleResponse, SearchResponse,
+  ApiNodeCard, ApiUnit, MetaResponse, BundleResponse, SearchResponse, SemanticNeighborsResponse,
   GroundedGenerationRequest, GroundedGenerationResponse, GroundedGenerationStreamEvent,
   UnitRetrievalMode, UnitRetrievalResponse,
   PipelineJobListResponse, PipelineJobStatusResponse, PipelinePdfUploadResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
@@ -136,6 +136,19 @@ export async function loadBundle(sourceKey: string): Promise<BundleResponse> {
     return createPublicArtifactBundle(graph, publicArtifactPath('data/units'));
   }
   return fetchJson<BundleResponse>(`/api/source/${encodeURIComponent(sourceKey)}/bundle`);
+}
+
+export async function loadSemanticNeighbors(
+  sourceKey: string,
+  nodeId: string,
+  limit = 10,
+): Promise<SemanticNeighborsResponse> {
+  if (PUBLIC_ARTIFACT_MODE) {
+    return { dataset_id: sourceKey, node_id: nodeId, neighbors: [] };
+  }
+  return fetchJson<SemanticNeighborsResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/semantic-neighbors/${encodeURIComponent(nodeId)}?limit=${limit}`,
+  );
 }
 
 export async function loadEnrichBooks(sourceKey: string): Promise<EnrichIndexResponse> {
