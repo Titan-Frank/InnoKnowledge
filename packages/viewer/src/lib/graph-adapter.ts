@@ -236,10 +236,15 @@ export function buildRadialFocusGraph(
   graph: KnowledgeGraph,
   centerNodeId: string,
   semanticNeighbors: SemanticNeighbor[],
+  allowedNodeIds: Set<string>,
   mode: ThemeMode = 'dark',
 ): RadialFocusResult {
   const formalEdges = graph.edges
-    .filter((edge) => edge.from === centerNodeId || edge.to === centerNodeId)
+    .filter((edge) => {
+      if (edge.from !== centerNodeId && edge.to !== centerNodeId) return false;
+      const neighborId = edge.from === centerNodeId ? edge.to : edge.from;
+      return allowedNodeIds.has(neighborId);
+    })
     .sort((left, right) => {
       const layerOrder = Number(right.edgeLayer === 'backbone') - Number(left.edgeLayer === 'backbone');
       if (layerOrder !== 0) return layerOrder;
@@ -264,7 +269,12 @@ export function buildRadialFocusGraph(
 
   const semanticNeighborIds = semanticNeighbors
     .map((neighbor) => neighbor.node_id)
-    .filter((nodeId) => nodeId !== centerNodeId && graph.nodeById.has(nodeId) && !seenFormal.has(nodeId));
+    .filter((nodeId) => (
+      nodeId !== centerNodeId &&
+      allowedNodeIds.has(nodeId) &&
+      graph.nodeById.has(nodeId) &&
+      !seenFormal.has(nodeId)
+    ));
   const visibleNodeIds = new Set([centerNodeId, ...formalNeighborIds, ...semanticNeighborIds]);
   const result = okmKnowledgeGraphToG6(graph, visibleNodeIds, mode);
   const includedEdgeIds = new Set(includedFormalEdges.map((edge) => edge.id));

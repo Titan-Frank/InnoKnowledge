@@ -93,11 +93,13 @@ export function GraphCanvas() {
     () => serverSearchHits.size > 0 ? new Set(serverSearchHits.keys()) : EMPTY_SEARCH_HIT_IDS,
     [serverSearchHits],
   );
-  const selectedNode = selectedNodeId && knowledgeGraph ? knowledgeGraph.nodeById.get(selectedNodeId) ?? null : null;
+  const selectedNode = selectedNodeId && visibleNodeIds.has(selectedNodeId) && knowledgeGraph
+    ? knowledgeGraph.nodeById.get(selectedNodeId) ?? null
+    : null;
   const sourceKey = String(knowledgeGraph?.source.key ?? '');
 
   useEffect(() => {
-    if (!selectedNodeId || !sourceKey) {
+    if (!selectedNodeId || !sourceKey || !visibleNodeIds.has(selectedNodeId)) {
       setSemanticResult(null);
       return;
     }
@@ -115,13 +117,13 @@ export function GraphCanvas() {
     return () => {
       active = false;
     };
-  }, [selectedNodeId, sourceKey]);
+  }, [selectedNodeId, sourceKey, visibleNodeIds]);
 
   const graphBuild = useMemo(() => {
     if (!knowledgeGraph || visibleNodeIds.size === 0) return null;
-    if (selectedNodeId && knowledgeGraph.nodeById.has(selectedNodeId)) {
+    if (selectedNodeId && visibleNodeIds.has(selectedNodeId)) {
       const semanticNeighbors = semanticResult?.nodeId === selectedNodeId ? semanticResult.neighbors : [];
-      return buildRadialFocusGraph(knowledgeGraph, selectedNodeId, semanticNeighbors, themeMode);
+      return buildRadialFocusGraph(knowledgeGraph, selectedNodeId, semanticNeighbors, visibleNodeIds, themeMode);
     }
     return okmKnowledgeGraphToG6(knowledgeGraph, visibleNodeIds, themeMode);
   }, [knowledgeGraph, visibleNodeIds, selectedNodeId, semanticResult, themeMode]);

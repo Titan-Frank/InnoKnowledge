@@ -254,6 +254,7 @@ function worldJsonRow(
 ): Record<string, unknown> {
   const parsed = stripJsonSuffix(row, fields);
   delete parsed.embedding;
+  delete parsed.embedding_text;
   return parsed;
 }
 
