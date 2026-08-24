@@ -7,6 +7,9 @@ import {
   reuseGraphNodePositions,
   resolveLightweightForceLayout,
   resolveStyledPreviewNodeId,
+  seedGraphNodePositions,
+  positionEmbeddingCommunities,
+  positionRadialFocus,
 } from '../src/lib/graph-performance.ts';
 
 test('limits graph canvas pixel density on high-resolution screens', () => {
@@ -56,6 +59,46 @@ test('uses only the static settling pass when reduced motion is preferred', () =
   assert.ok(!Array.isArray(layout));
   assert.equal(layout.animation, false);
   assert.equal(layout.iterations, 900);
+});
+
+test('assigns deterministic initial positions around the requested center', () => {
+  const data = {
+    nodes: [
+      { id: 'leaf', data: { degree: 1 }, style: { size: 20 } },
+      { id: 'hub', data: { degree: 8 }, style: { size: 26 } },
+      { id: 'middle', data: { degree: 3 }, style: { size: 22 } },
+    ],
+    edges: [],
+  };
+
+  const first = seedGraphNodePositions(data, { x: 500, y: 320 });
+  const second = seedGraphNodePositions(data, { x: 500, y: 320 });
+
+  assert.deepEqual(first, second);
+  for (const node of first.nodes ?? []) {
+    assert.ok(Number.isFinite(Number(node.style?.x)));
+    assert.ok(Number.isFinite(Number(node.style?.y)));
+  }
+  const hub = first.nodes?.find((node) => node.id === 'hub');
+  assert.equal(hub?.style?.x, 500);
+  assert.equal(hub?.style?.y, 320);
+});
+
+test('preserves supplied node positions while seeding only missing nodes', () => {
+  const data = {
+    nodes: [
+      { id: 'fixed', style: { x: 40, y: 60, size: 24 } },
+      { id: 'new', style: { size: 24 } },
+    ],
+    edges: [],
+  };
+
+  const result = seedGraphNodePositions(data, { x: 40, y: 60 });
+  assert.deepEqual(result.nodes?.[0].style, { x: 40, y: 60, size: 24 });
+  assert.ok(Math.hypot(
+    Number(result.nodes?.[1].style?.x) - 40,
+    Number(result.nodes?.[1].style?.y) - 60,
+  ) >= 34);
 });
 
 test('reuses existing positions and places new nodes near positioned neighbors', () => {
@@ -154,4 +197,46 @@ test('falls back to a fresh layout when every incremental placement is occupied'
 
   assert.equal(result.shouldReusePositions, false);
   assert.equal(result.data, data);
+});
+
+test('places embedding communities into stable separated partitions', () => {
+  const data = {
+    nodes: [
+      { id: 'a', data: { community: 0, degree: 3 } },
+      { id: 'b', data: { community: 0, degree: 1 } },
+      { id: 'c', data: { community: 1, degree: 3 } },
+      { id: 'd', data: { community: 1, degree: 1 } },
+    ],
+    edges: [],
+  };
+  const first = positionEmbeddingCommunities(data, { x: 500, y: 400 });
+  const second = positionEmbeddingCommunities(data, { x: 500, y: 400 });
+  assert.deepEqual(first, second);
+  const nodes = new Map(first.nodes?.map((node) => [String(node.id), node.style]));
+  assert.ok(Math.hypot(
+    Number(nodes.get('a')?.x) - Number(nodes.get('c')?.x),
+    Number(nodes.get('a')?.y) - Number(nodes.get('c')?.y),
+  ) > 700);
+});
+
+test('places formal and semantic neighbors on separate rings', () => {
+  const data = {
+    nodes: ['center', 'formal-a', 'formal-b', 'semantic-a'].map((id) => ({ id })),
+    edges: [],
+  };
+  const result = positionRadialFocus(data, { x: 300, y: 300 }, {
+    type: 'radial-focus',
+    centerNodeId: 'center',
+    formalNeighborIds: ['formal-a', 'formal-b'],
+    semanticNeighborIds: ['semantic-a'],
+  });
+  const nodes = new Map(result.nodes?.map((node) => [String(node.id), node]));
+  const distance = (id: string) => Math.hypot(
+    Number(nodes.get(id)?.style?.x) - 300,
+    Number(nodes.get(id)?.style?.y) - 300,
+  );
+  assert.equal(distance('center'), 0);
+  assert.ok(distance('semantic-a') > distance('formal-a'));
+  assert.equal(nodes.get('center')?.data?.focusRole, 'center');
+  assert.equal(nodes.get('semantic-a')?.data?.focusRole, 'semantic');
 });

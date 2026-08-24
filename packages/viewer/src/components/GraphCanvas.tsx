@@ -1,12 +1,30 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
+import type { SemanticNeighbor } from '@okm/types';
 import { useAppState } from '@/hooks/useAppState';
 import { useG6 } from '@/hooks/useG6';
-import { okmKnowledgeGraphToG6 } from '@/lib/graph-adapter';
+import {
+  buildRadialFocusGraph,
+  okmKnowledgeGraphToG6,
+  type BuildResult,
+  type RadialFocusResult,
+} from '@/lib/graph-adapter';
 import { getVisibleNodes } from '@/lib/visibility';
 import { getNodeTypeLabel } from '@/core/graph/knowledge-data';
+import { loadSemanticNeighbors } from '@/services/backend-client';
 import { ZoomIn, ZoomOut, Maximize2, RefreshCw, Pause, RotateCcw } from '@/lib/lucide-icons';
 
 const EMPTY_SEARCH_HIT_IDS = new Set<string>();
+const DEFAULT_DETAIL_PANEL_WIDTH = 384;
+
+function isRadialFocusResult(result: BuildResult): result is RadialFocusResult {
+  return Array.isArray((result as RadialFocusResult).formalNeighborIds);
+}
+
+function getDetailPanelRightInset(): number {
+  if (!window.matchMedia('(min-width: 1024px)').matches) return 0;
+  const stored = Number(window.localStorage.getItem('okm-detail-panel-width'));
+  return Number.isFinite(stored) && stored > 0 ? stored : DEFAULT_DETAIL_PANEL_WIDTH;
+}
 
 export function GraphCanvas() {
   const appState = useAppState();
@@ -19,6 +37,11 @@ export function GraphCanvas() {
   } = appState;
 
   const [hoveredNode, setHoveredNode] = useState<{ id: string; name: string } | null>(null);
+  const [semanticResult, setSemanticResult] = useState<{
+    nodeId: string;
+    neighbors: SemanticNeighbor[];
+    loading: boolean;
+  } | null>(null);
 
   // Compute visible node IDs — only structural filters (not selection)
   const structuralVisibility = useMemo(() => ({
@@ -71,8 +94,43 @@ export function GraphCanvas() {
     [serverSearchHits],
   );
   const selectedNode = selectedNodeId && knowledgeGraph ? knowledgeGraph.nodeById.get(selectedNodeId) ?? null : null;
+  const sourceKey = String(knowledgeGraph?.source.key ?? '');
+
+  useEffect(() => {
+    if (!selectedNodeId || !sourceKey) {
+      setSemanticResult(null);
+      return;
+    }
+    let active = true;
+    setSemanticResult({ nodeId: selectedNodeId, neighbors: [], loading: true });
+    void loadSemanticNeighbors(sourceKey, selectedNodeId, 10)
+      .then((response) => {
+        if (active && response.node_id === selectedNodeId) {
+          setSemanticResult({ nodeId: selectedNodeId, neighbors: response.neighbors, loading: false });
+        }
+      })
+      .catch(() => {
+        if (active) setSemanticResult({ nodeId: selectedNodeId, neighbors: [], loading: false });
+      });
+    return () => {
+      active = false;
+    };
+  }, [selectedNodeId, sourceKey]);
+
+  const graphBuild = useMemo(() => {
+    if (!knowledgeGraph || visibleNodeIds.size === 0) return null;
+    if (selectedNodeId && knowledgeGraph.nodeById.has(selectedNodeId)) {
+      const semanticNeighbors = semanticResult?.nodeId === selectedNodeId ? semanticResult.neighbors : [];
+      return buildRadialFocusGraph(knowledgeGraph, selectedNodeId, semanticNeighbors, themeMode);
+    }
+    return okmKnowledgeGraphToG6(knowledgeGraph, visibleNodeIds, themeMode);
+  }, [knowledgeGraph, visibleNodeIds, selectedNodeId, semanticResult, themeMode]);
+
+  const radialBuild = graphBuild && isRadialFocusResult(graphBuild) ? graphBuild : null;
   const canvasSummary = selectedNode
-    ? getNodeTypeLabel(selectedNode)
+    ? radialBuild
+      ? `${getNodeTypeLabel(selectedNode)} · ${radialBuild.formalNeighborIds.length} 个正式邻居 · ${radialBuild.semanticNeighborIds.length} 个语义邻居`
+      : getNodeTypeLabel(selectedNode)
     : searchHitIds.size > 0
       ? `${searchHitIds.size} 个检索命中`
       : `${visibleNodeIds.size} 个可见节点`;
@@ -94,17 +152,26 @@ export function GraphCanvas() {
 
   // Build and set graph ONLY when data or structural filters change
   useEffect(() => {
-    if (!knowledgeGraph || !containerReady) return;
-    if (visibleNodeIds.size === 0) return;
-
-    const result = okmKnowledgeGraphToG6(knowledgeGraph, visibleNodeIds, themeMode);
-    setCommunityInfo(result.communityCount, result.communities, result.communityMap);
+    if (!graphBuild || !containerReady) return;
+    setCommunityInfo(graphBuild.communityCount, graphBuild.communities, graphBuild.communityMap);
+    const positioning = isRadialFocusResult(graphBuild)
+      ? {
+          type: 'radial-focus' as const,
+          centerNodeId: selectedNodeId!,
+          formalNeighborIds: graphBuild.formalNeighborIds,
+          semanticNeighborIds: graphBuild.semanticNeighborIds,
+          viewportRightInset: getDetailPanelRightInset(),
+        }
+      : graphBuild.communitySource === 'embedding'
+        ? { type: 'embedding-overview' as const }
+        : undefined;
     void setGraph({
-      data: result.data,
-      nodeIds: result.nodeIds,
-      edgePairs: result.edgePairs,
+      data: graphBuild.data,
+      nodeIds: graphBuild.nodeIds,
+      edgePairs: graphBuild.edgePairs,
+      positioning,
     });
-  }, [knowledgeGraph, visibleNodeIds, themeMode, containerReady, setGraph, setCommunityInfo]);
+  }, [graphBuild, selectedNodeId, containerReady, setGraph, setCommunityInfo]);
 
   // Focus on selected node
   const handleFocusSelected = useCallback(() => {
@@ -165,6 +232,19 @@ export function GraphCanvas() {
         </div>
       </div>
 
+      {selectedNode && radialBuild && (
+        <div className="pointer-events-none absolute left-4 top-[76px] z-20 max-w-[min(560px,calc(100%-2rem))] rounded-lg border border-border-subtle bg-elevated/90 px-3 py-2 text-[11px] leading-5 text-text-muted shadow-panel backdrop-blur-sm">
+          <span className="mr-3 inline-flex items-center gap-1.5 text-text-secondary">
+            <span className="h-0.5 w-4 bg-accent" />正式关系
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-text-secondary">
+            <span className="w-4 border-t border-dashed border-slate-400" />Embedding 语义相似
+          </span>
+          <span className="ml-2">语义相似不代表图谱中的正式关系</span>
+          {semanticResult?.loading && <span className="ml-2 text-accent">正在查找相关节点…</span>}
+        </div>
+      )}
+
       {/* Hovered node tooltip */}
       {hoveredNode && !selectedNodeId && (
         <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 animate-fade-in rounded-lg border border-border-subtle bg-elevated/95 px-3 py-1.5 shadow-panel backdrop-blur-sm">
@@ -198,20 +278,24 @@ export function GraphCanvas() {
             <RotateCcw className="h-4 w-4" />
           </button>
         )}
-        <div className="my-1 h-px bg-border-subtle" />
-        <button
-          onClick={isLayoutRunning ? stopLayout : startLayout}
-          aria-label={isLayoutRunning ? '停止自动布局' : '重新整理图谱'}
-          aria-pressed={isLayoutRunning}
-          className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${
-            isLayoutRunning
-              ? 'animate-pulse bg-accent text-white shadow-glow'
-              : 'text-text-secondary hover:bg-hover hover:text-text-primary'
-          }`}
-          title={isLayoutRunning ? '停止自动布局' : '重新整理图谱'}
-        >
-          {isLayoutRunning ? <Pause className="h-4 w-4" /> : <RefreshCw className="h-4 w-4" />}
-        </button>
+        {!selectedNode && graphBuild?.communitySource !== 'embedding' && (
+          <>
+            <div className="my-1 h-px bg-border-subtle" />
+            <button
+              onClick={isLayoutRunning ? stopLayout : startLayout}
+              aria-label={isLayoutRunning ? '停止自动布局' : '重新整理图谱'}
+              aria-pressed={isLayoutRunning}
+              className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${
+                isLayoutRunning
+                  ? 'animate-pulse bg-accent text-white shadow-glow'
+                  : 'text-text-secondary hover:bg-hover hover:text-text-primary'
+              }`}
+              title={isLayoutRunning ? '停止自动布局' : '重新整理图谱'}
+            >
+              {isLayoutRunning ? <Pause className="h-4 w-4" /> : <RefreshCw className="h-4 w-4" />}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

@@ -62,6 +62,17 @@ export interface BundleResponse {
   loadWarnings: string[];
 }
 
+export interface SemanticNeighbor {
+  node_id: string;
+  similarity: number;
+}
+
+export interface SemanticNeighborsResponse {
+  dataset_id: string;
+  node_id: string;
+  neighbors: SemanticNeighbor[];
+}
+
 // ── GET /api/annotation/textbooks ────────────────────────
 
 export interface AnnotationLessonSummary {

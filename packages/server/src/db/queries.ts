@@ -10,6 +10,7 @@ import path from 'node:path';
 import { REPO_ROOT } from '../utils/paths.js';
 import { resolveEvidenceImagePath, resolveExistingMineruAssetPath } from '../utils/markdown-image-paths.js';
 import { buildApiUnitCompleteness } from './unit-completeness.js';
+import { clusterEmbeddingCommunities } from '../runtime/embedding-communities.js';
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -60,8 +61,17 @@ export async function resolveDatasetRow(
 
 export async function loadNodes(sql: Sql, datasetId: string): Promise<ApiNode[]> {
   const rows = await sql`
-    SELECT * FROM world_nodes WHERE dataset_id = ${datasetId} ORDER BY id
+    SELECT *, embedding::text AS embedding_text
+    FROM world_nodes
+    WHERE dataset_id = ${datasetId}
+    ORDER BY id
   `;
+
+  const communities = clusterEmbeddingCommunities(rows.flatMap((row: Record<string, unknown>) => (
+    typeof row.embedding_text === 'string'
+      ? [{ id: textValue(row.id), embedding: row.embedding_text }]
+      : []
+  )));
 
   return rows.map((row: Record<string, unknown>) => {
     const parsed = worldJsonRow(row, [
@@ -89,11 +99,41 @@ export async function loadNodes(sql: Sql, datasetId: string): Promise<ApiNode[]>
         bridge_tags: parsed.tags || [],
         tags: parsed.tags || [],
       },
-      community_id: null,
+      community_id: communities.get(textValue(parsed.id)) ?? null,
       pca_x: null,
       pca_y: null,
     } as unknown as ApiNode;
   });
+}
+
+export async function loadSemanticNeighbors(
+  sql: Sql,
+  datasetId: string,
+  nodeId: string,
+  limit = 10,
+): Promise<Array<{ node_id: string; similarity: number }>> {
+  const safeLimit = Math.max(1, Math.min(24, Math.floor(limit)));
+  const rows = await sql<Array<{ node_id: string; similarity: number | string }>>`
+    WITH selected AS (
+      SELECT embedding
+      FROM world_nodes
+      WHERE dataset_id = ${datasetId}
+        AND id = ${nodeId}
+        AND status != 'deprecated'
+        AND embedding IS NOT NULL
+    )
+    SELECT candidate.id AS node_id,
+           1 - (candidate.embedding <=> selected.embedding) AS similarity
+    FROM world_nodes AS candidate
+    CROSS JOIN selected
+    WHERE candidate.dataset_id = ${datasetId}
+      AND candidate.id != ${nodeId}
+      AND candidate.status != 'deprecated'
+      AND candidate.embedding IS NOT NULL
+    ORDER BY candidate.embedding <=> selected.embedding, candidate.id
+    LIMIT ${safeLimit}
+  `.catch(() => []);
+  return rows.map((row) => ({ node_id: row.node_id, similarity: Number(row.similarity) }));
 }
 
 // ── Edges ─────────────────────────────────────────────────

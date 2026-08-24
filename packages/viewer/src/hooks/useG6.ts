@@ -15,6 +15,9 @@ import {
   reuseGraphNodePositions,
   resolveLightweightForceLayout,
   resolveStyledPreviewNodeId,
+  seedGraphNodePositions,
+  positionGraphPreset,
+  type GraphPresetPositioning,
 } from '@/lib/graph-performance';
 
 interface UseG6Options {
@@ -33,6 +36,7 @@ interface SetGraphPayload {
   data: GraphData;
   nodeIds: string[];
   edgePairs: G6EdgePair[];
+  positioning?: GraphPresetPositioning;
 }
 
 const VIEWPORT_ANIMATION = { duration: 360, easing: 'ease-in-out' as const };
@@ -633,15 +637,50 @@ export function useG6(options: UseG6Options) {
       if (!graph || graph.destroyed || token !== renderTokenRef.current) return;
 
       const previousPayload = dataRef.current;
+      const containerBounds = containerRef.current?.getBoundingClientRect();
       const [centerX, centerY] = previousPayload && graph.rendered
         ? graph.getViewportCenter()
-        : [0, 0];
+        : [
+            Math.max(0, (containerBounds?.width ?? 0) / 2),
+            Math.max(0, (containerBounds?.height ?? 0) / 2),
+          ];
+      if (payload.positioning) {
+        const positionedData = positionGraphPreset(payload.data, { x: centerX, y: centerY }, payload.positioning);
+        const nextPayload = { ...payload, data: positionedData };
+        dataRef.current = nextPayload;
+        styleSnapshotRef.current = createStyleSnapshot(nextPayload.data);
+        graph.setData(nextPayload.data);
+        await graph.draw();
+        if (
+          token !== renderTokenRef.current ||
+          graphRef.current !== graph ||
+          graph.destroyed
+        ) return;
+        applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
+        await graph.fitView({ when: 'always', direction: 'both' }, VIEWPORT_ANIMATION);
+        if (payload.positioning.type === 'radial-focus' && payload.positioning.viewportRightInset) {
+          const viewportWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
+          const availableWidthRatio = viewportWidth > 0
+            ? Math.max(0.1, (viewportWidth - payload.positioning.viewportRightInset - 48) / viewportWidth)
+            : 1;
+          const visibleRatio = viewportWidth > 0
+            ? Math.max(0.7, Math.min(0.95, Math.sqrt(Math.sqrt(availableWidthRatio))))
+            : 1;
+          await graph.zoomBy(visibleRatio, false);
+          await graph.translateBy([-payload.positioning.viewportRightInset / 2, 0], VIEWPORT_ANIMATION);
+        }
+        callbacksRef.current.onLayoutRunningChange?.(false);
+        return;
+      }
       const positionResult = reuseGraphNodePositions(
         payload.data,
         previousPayload ? graph.getNodeData() : [],
         { x: centerX, y: centerY },
       );
-      const nextPayload = { ...payload, data: positionResult.data };
+      const positionedData = positionResult.shouldReusePositions
+        ? positionResult.data
+        : seedGraphNodePositions(positionResult.data, { x: centerX, y: centerY });
+      const nextPayload = { ...payload, data: positionedData };
       dataRef.current = nextPayload;
       styleSnapshotRef.current = createStyleSnapshot(nextPayload.data);
       graph.setData(nextPayload.data);
@@ -682,8 +721,24 @@ export function useG6(options: UseG6Options) {
   }, []);
 
   const fitToScreen = useCallback(() => {
-    void graphRef.current?.fitView({ when: 'always', direction: 'both' }, VIEWPORT_ANIMATION);
-  }, []);
+    void enqueueGraphMutation(async () => {
+      const graph = graphRef.current;
+      if (!graph || graph.destroyed) return;
+      await graph.fitView({ when: 'always', direction: 'both' }, VIEWPORT_ANIMATION);
+      const positioning = dataRef.current?.positioning;
+      if (positioning?.type === 'radial-focus' && positioning.viewportRightInset) {
+        const viewportWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
+        const availableWidthRatio = viewportWidth > 0
+          ? Math.max(0.1, (viewportWidth - positioning.viewportRightInset - 48) / viewportWidth)
+          : 1;
+        const visibleRatio = viewportWidth > 0
+          ? Math.max(0.7, Math.min(0.95, Math.sqrt(Math.sqrt(availableWidthRatio))))
+          : 1;
+        await graph.zoomBy(visibleRatio, false);
+        await graph.translateBy([-positioning.viewportRightInset / 2, 0], VIEWPORT_ANIMATION);
+      }
+    });
+  }, [enqueueGraphMutation]);
 
   const focusNode = useCallback((nodeId: string) => {
     void graphRef.current?.focusElement(nodeId, VIEWPORT_ANIMATION);
