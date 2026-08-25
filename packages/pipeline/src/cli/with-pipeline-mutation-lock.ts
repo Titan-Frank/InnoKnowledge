@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import { resolve } from "node:path";
 
 import postgres from "postgres";
@@ -34,11 +34,37 @@ async function main(argv: string[]): Promise<number> {
 function runChild(commandPath: string, args: string[]): Promise<number> {
   return new Promise((resolveExit, reject) => {
     const child = spawn(process.execPath, [commandPath, ...args], { stdio: "inherit", env: process.env });
-    child.once("error", reject);
+    const removeSignalHandlers = forwardTerminationSignals(child);
+    child.once("error", (error) => {
+      removeSignalHandlers();
+      reject(error);
+    });
     child.once("exit", (code, signal) => {
+      removeSignalHandlers();
       resolveExit(code ?? (signal ? 1 : 0));
     });
   });
+}
+
+type TerminationSignal = "SIGINT" | "SIGTERM";
+type SignalSource = {
+  on(signal: TerminationSignal, listener: () => void): unknown;
+  off(signal: TerminationSignal, listener: () => void): unknown;
+};
+
+export function forwardTerminationSignals(
+  child: Pick<ChildProcess, "kill">,
+  source: SignalSource = process,
+): () => void {
+  const handlers = new Map<TerminationSignal, () => void>();
+  for (const signal of ["SIGINT", "SIGTERM"] as const) {
+    const handler = () => { child.kill(signal); };
+    handlers.set(signal, handler);
+    source.on(signal, handler);
+  }
+  return () => {
+    for (const [signal, handler] of handlers) source.off(signal, handler);
+  };
 }
 
 if (isMainModule(import.meta.url)) {
