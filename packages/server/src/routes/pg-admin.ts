@@ -13,7 +13,7 @@ import type {
   PgAdminTable,
   PgAdminUpdateRequest,
 } from '@okm/types';
-import type { Sql } from '../db/connection.js';
+import type { Sql, TransactionSql } from '../db/connection.js';
 import { DATASET_ADVISORY_LOCK_SQL, PIPELINE_MUTATION_ADVISORY_LOCK_SQL } from '../db/dataset-lock.js';
 import { resolveDatasetRow } from '../db/queries.js';
 
@@ -60,6 +60,7 @@ const TABLE_GROUPS: Record<string, TableGroup> = {
 export const PG_ADMIN_TABLES = Object.freeze(Object.keys(TABLE_GROUPS));
 export const PG_ADMIN_DATASET_ADVISORY_LOCK_SQL = DATASET_ADVISORY_LOCK_SQL;
 export const PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL = PIPELINE_MUTATION_ADVISORY_LOCK_SQL;
+export const PG_ADMIN_EXPORT_MAX_BYTES = 32 * 1024 * 1024;
 
 const PG_ADMIN_PROTECTED_TABLES = new Set([
   'world_datasets',
@@ -69,6 +70,7 @@ const PG_ADMIN_PROTECTED_TABLES = new Set([
 const PG_ADMIN_READ_ONLY_GROUPS = new Set<TableGroup>(['canonical', 'evidence', 'pipeline']);
 
 class AdminConflictError extends Error {}
+class AdminExportTooLargeError extends Error {}
 
 export function isPgAdminTable(table: string): boolean {
   return Object.hasOwn(TABLE_GROUPS, table);
@@ -111,6 +113,12 @@ function exportFilename(datasetId: string, exportedAt: string): string {
   return `okm-pg-${safeDatasetId}-${exportedAt.slice(0, 10)}.json`;
 }
 
+function exportSizeError(bytes: number): AdminExportTooLargeError {
+  const requestedMiB = Math.max(1, Math.ceil(bytes / 1024 / 1024));
+  const limitMiB = PG_ADMIN_EXPORT_MAX_BYTES / 1024 / 1024;
+  return new AdminExportTooLargeError(`Export is approximately ${requestedMiB} MiB; the limit is ${limitMiB} MiB. Select fewer tables.`);
+}
+
 function isEditableColumn(
   table: string,
   column: { data_type: string; udt_name: string; primary_key: boolean; name: string },
@@ -122,7 +130,7 @@ function isEditableColumn(
     && column.data_type !== 'USER-DEFINED';
 }
 
-async function loadTableMetadata(sql: Sql, onlyTable?: string): Promise<PgAdminTable[]> {
+async function loadTableMetadata(sql: Sql | TransactionSql, onlyTable?: string): Promise<PgAdminTable[]> {
   const rows = await sql`
     SELECT
       c.table_name,
@@ -260,7 +268,7 @@ function wherePrimaryKey(table: PgAdminTable, primaryKey: Record<string, unknown
   };
 }
 
-async function loadBooks(sql: Sql, datasetId: string): Promise<PgAdminBooksResponse> {
+async function loadBooks(sql: Sql | TransactionSql, datasetId: string): Promise<PgAdminBooksResponse> {
   const rows = await sql`
     WITH book_keys AS (
       SELECT book_id FROM world_textbook_outlines WHERE dataset_id = ${datasetId}
@@ -416,6 +424,7 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       const payload: PgAdminCatalogResponse = {
         dataset_id: textValue(dataset.dataset_id),
         schema_version: textValue(dataset.schema_version) || 'world-v1.2',
+        export_max_bytes: PG_ADMIN_EXPORT_MAX_BYTES,
         tables: await loadTableMetadata(sql),
       };
       return c.json(payload);
@@ -467,39 +476,59 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
         return c.json({ error: 'Export contains an unsupported PostgreSQL table.' }, 400);
       }
 
-      const tableNames = [...new Set(body.tables)];
-      const availableTables = await loadTableMetadata(sql);
-      const selectedTables = tableNames.map((tableName) => requireAdminTable(tableName, availableTables));
-      const exportedTables: PgAdminExportPayload['tables'] = {};
-      for (const table of selectedTables) {
-        const orderBy = table.primary_key.length
-          ? ` ORDER BY ${table.primary_key.map(quoteIdentifier).join(', ')}`
-          : '';
-        const rows = await sql.unsafe(
-          `SELECT * FROM ${quoteIdentifier(table.name)} WHERE dataset_id = $1${orderBy}`,
-          [dataset.dataset_id],
-        ) as unknown as Row[];
-        exportedTables[table.name] = { columns: table.columns, rows };
-      }
-
-      const exportedAt = new Date().toISOString();
       const datasetId = textValue(dataset.dataset_id);
-      const payload: PgAdminExportPayload = {
-        export_version: 'pg-admin-v1',
-        exported_at: exportedAt,
-        dataset_id: datasetId,
-        schema_version: textValue(dataset.schema_version) || 'world-v1.2',
-        ...(body.include_books ? { books: (await loadBooks(sql, datasetId)).books } : {}),
-        tables: exportedTables,
-      };
-      return new Response(JSON.stringify(payload, null, 2), {
+      const tableNames = [...new Set(body.tables)];
+      const result = await sql.begin('ISOLATION LEVEL REPEATABLE READ READ ONLY', async (tx) => {
+        const availableTables = await loadTableMetadata(tx);
+        const selectedTables = tableNames.map((tableName) => requireAdminTable(tableName, availableTables));
+        let projectedBytes = 1024 + Buffer.byteLength(JSON.stringify(
+          selectedTables.map((table) => ({ name: table.name, columns: table.columns })),
+        ));
+        for (const table of selectedTables) {
+          const sizeRows = await tx.unsafe(
+            `SELECT count(*) AS row_count, COALESCE(sum(octet_length(to_jsonb(t)::text)), 0) AS json_bytes FROM ${quoteIdentifier(table.name)} t WHERE t.dataset_id = $1`,
+            [dataset.dataset_id],
+          ) as unknown as Row[];
+          const rowCount = numberValue(sizeRows[0]?.row_count);
+          projectedBytes += numberValue(sizeRows[0]?.json_bytes) + rowCount * 256;
+          if (projectedBytes > PG_ADMIN_EXPORT_MAX_BYTES) throw exportSizeError(projectedBytes);
+        }
+
+        const exportedTables: PgAdminExportPayload['tables'] = {};
+        for (const table of selectedTables) {
+          const orderBy = table.primary_key.length
+            ? ` ORDER BY ${table.primary_key.map(quoteIdentifier).join(', ')}`
+            : '';
+          const rows = await tx.unsafe(
+            `SELECT * FROM ${quoteIdentifier(table.name)} WHERE dataset_id = $1${orderBy}`,
+            [dataset.dataset_id],
+          ) as unknown as Row[];
+          exportedTables[table.name] = { columns: table.columns, rows };
+        }
+
+        const exportedAt = new Date().toISOString();
+        const payload: PgAdminExportPayload = {
+          export_version: 'pg-admin-v1',
+          exported_at: exportedAt,
+          dataset_id: datasetId,
+          schema_version: textValue(dataset.schema_version) || 'world-v1.2',
+          ...(body.include_books ? { books: (await loadBooks(tx, datasetId)).books } : {}),
+          tables: exportedTables,
+        };
+        const json = JSON.stringify(payload);
+        const actualBytes = Buffer.byteLength(json);
+        if (actualBytes > PG_ADMIN_EXPORT_MAX_BYTES) throw exportSizeError(actualBytes);
+        return { json, filename: exportFilename(datasetId, exportedAt) };
+      });
+      return new Response(result.json, {
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
-          'Content-Disposition': `attachment; filename="${exportFilename(datasetId, exportedAt)}"`,
+          'Content-Disposition': `attachment; filename="${result.filename}"`,
           'Cache-Control': 'no-store',
         },
       });
     } catch (error) {
+      if (error instanceof AdminExportTooLargeError) return c.json({ error: error.message }, 413);
       return c.json({ error: (error as Error).message || 'Failed to export PostgreSQL data.' }, 400);
     }
   });

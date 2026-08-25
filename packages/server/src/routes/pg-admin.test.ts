@@ -4,6 +4,7 @@ import { Hono } from 'hono';
 import type { Sql } from '../db/connection.js';
 import {
   PG_ADMIN_DATASET_ADVISORY_LOCK_SQL,
+  PG_ADMIN_EXPORT_MAX_BYTES,
   PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL,
   isPgAdminTable,
   isPgAdminTableMutable,
@@ -17,6 +18,7 @@ function sqlText(strings: TemplateStringsArray): string {
 }
 
 function routeSql(options: {
+  exportJsonBytes?: Record<string, number>;
   exportRows?: Record<string, Array<Record<string, unknown>>>;
   matchedOnlyCount?: number;
   runningJobCount?: number;
@@ -27,9 +29,11 @@ function routeSql(options: {
   sql: Sql;
   queryCalls: Array<{ query: string; values: unknown[] }>;
   unsafeCalls: Array<{ query: string; values: unknown[] }>;
+  transactionOptions: string[];
 } {
   const queryCalls: Array<{ query: string; values: unknown[] }> = [];
   const unsafeCalls: Array<{ query: string; values: unknown[] }> = [];
+  const transactionOptions: string[] = [];
   const query = ((strings: TemplateStringsArray, ...values: unknown[]) => {
     const text = sqlText(strings);
     queryCalls.push({ query: text, values });
@@ -82,12 +86,28 @@ function routeSql(options: {
   query.unsafe = (async (sql: string, values: unknown[] = []) => {
     unsafeCalls.push({ query: sql, values });
     if (options.stopBookDeleteAtLock) throw new Error('book-delete-reached-shared-lock');
+    const sizeTable = sql.match(/AS json_bytes FROM "([a-z0-9_]+)" t WHERE t\.dataset_id = \$1/)?.[1];
+    if (sizeTable) {
+      const rows = options.exportRows?.[sizeTable] ?? [];
+      return [{
+        row_count: rows.length,
+        json_bytes: options.exportJsonBytes?.[sizeTable] ?? Buffer.byteLength(rows.map((row) => JSON.stringify(row)).join('')),
+      }];
+    }
     const exportTable = sql.match(/^SELECT \* FROM "([a-z0-9_]+)" WHERE dataset_id = \$1/)?.[1];
     if (exportTable) return options.exportRows?.[exportTable] ?? [];
     return [];
   }) as Sql['unsafe'];
-  query.begin = (async (callback: (tx: Sql) => Promise<unknown>) => callback(query)) as unknown as Sql['begin'];
-  return { sql: query, queryCalls, unsafeCalls };
+  query.begin = (async (
+    optionsOrCallback: string | ((tx: Sql) => Promise<unknown>),
+    maybeCallback?: (tx: Sql) => Promise<unknown>,
+  ) => {
+    if (typeof optionsOrCallback === 'string') transactionOptions.push(optionsOrCallback);
+    const callback = typeof optionsOrCallback === 'string' ? maybeCallback : optionsOrCallback;
+    if (!callback) throw new Error('Missing transaction callback');
+    return callback(query);
+  }) as unknown as Sql['begin'];
+  return { sql: query, queryCalls, unsafeCalls, transactionOptions };
 }
 
 test('PG admin table allowlist exposes world-v1.2 tables without accepting arbitrary identifiers', () => {
@@ -97,8 +117,19 @@ test('PG admin table allowlist exposes world-v1.2 tables without accepting arbit
   assert.equal(isPgAdminTable('world_nodes; DROP TABLE world_nodes'), false);
 });
 
-test('PG admin exports only selected allowlisted tables for the resolved dataset', async () => {
-  const { sql, unsafeCalls } = routeSql({
+test('PG admin catalog advertises the enforced export size limit', async () => {
+  const { sql } = routeSql();
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/tables');
+  assert.equal(response.status, 200);
+  const payload = await response.json() as { export_max_bytes: number };
+  assert.equal(payload.export_max_bytes, PG_ADMIN_EXPORT_MAX_BYTES);
+});
+
+test('PG admin exports selected tables from one bounded repeatable-read snapshot', async () => {
+  const { sql, unsafeCalls, transactionOptions } = routeSql({
     exportRows: { world_nodes: [{ dataset_id: 'main', id: 'node-1', name: 'Motion' }] },
   });
   const app = new Hono();
@@ -128,10 +159,33 @@ test('PG admin exports only selected allowlisted tables for the resolved dataset
   assert.deepEqual(Object.keys(payload.tables), ['world_nodes']);
   assert.deepEqual(payload.tables.world_nodes?.rows, [{ dataset_id: 'main', id: 'node-1', name: 'Motion' }]);
   assert.ok((payload.tables.world_nodes?.columns.length ?? 0) > 0);
-  assert.deepEqual(unsafeCalls, [{
+  assert.deepEqual(transactionOptions, ['ISOLATION LEVEL REPEATABLE READ READ ONLY']);
+  assert.match(unsafeCalls[0]?.query ?? '', /^SELECT count\(\*\) AS row_count, COALESCE\(sum\(octet_length\(to_jsonb\(t\)::text\)\), 0\) AS json_bytes FROM "world_nodes"/);
+  assert.deepEqual(unsafeCalls[0]?.values, ['main']);
+  assert.deepEqual(unsafeCalls[1], {
     query: 'SELECT * FROM "world_nodes" WHERE dataset_id = $1 ORDER BY "dataset_id", "id"',
     values: ['main'],
-  }]);
+  });
+});
+
+test('PG admin rejects oversized exports before materializing table rows', async () => {
+  const { sql, unsafeCalls, transactionOptions } = routeSql({
+    exportJsonBytes: { world_nodes: PG_ADMIN_EXPORT_MAX_BYTES + 1 },
+  });
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tables: ['world_nodes'], include_books: false }),
+  });
+
+  assert.equal(response.status, 413);
+  assert.match((await response.json() as { error: string }).error, /limit is 32 MiB.*Select fewer tables/);
+  assert.deepEqual(transactionOptions, ['ISOLATION LEVEL REPEATABLE READ READ ONLY']);
+  assert.equal(unsafeCalls.length, 1);
+  assert.match(unsafeCalls[0]?.query ?? '', /AS json_bytes FROM "world_nodes"/);
 });
 
 test('PG admin export rejects empty and unsupported selections without reading table rows', async () => {

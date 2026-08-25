@@ -589,7 +589,7 @@ function ExportDialog({
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-border-subtle bg-surface/50 px-5 py-3">
-          <span className="text-[10px] text-text-muted">向量表可能生成较大的文件，导出期间请保持页面打开。</span>
+          <span className="text-[10px] text-text-muted">单次导出上限 {Math.floor(catalog.export_max_bytes / 1024 / 1024)} MiB；超限时请减少所选数据表。</span>
           <div className="flex shrink-0 gap-2">
             <button type="button" onClick={onClose} disabled={busy} className="h-9 cursor-pointer rounded-md border border-border-subtle bg-elevated px-4 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50">取消</button>
             <button type="button" onClick={onExport} disabled={busy || selectionCount === 0} className="flex h-9 cursor-pointer items-center gap-1.5 rounded-md bg-accent px-4 text-xs font-medium text-white transition-colors hover:bg-accent/85 disabled:cursor-not-allowed disabled:opacity-40">

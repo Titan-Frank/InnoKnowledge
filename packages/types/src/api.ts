@@ -551,6 +551,7 @@ export interface PgAdminTable {
 export interface PgAdminCatalogResponse {
   dataset_id: string;
   schema_version: string;
+  export_max_bytes: number;
   tables: PgAdminTable[];
 }
 

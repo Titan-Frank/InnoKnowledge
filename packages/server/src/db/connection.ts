@@ -1,6 +1,7 @@
 import postgres from 'postgres';
 
 export type Sql = postgres.Sql<{}>;
+export type TransactionSql = postgres.TransactionSql<{}>;
 
 export function createPool(connectionString?: string): Sql {
   const url = connectionString || process.env.DATABASE_URL;
