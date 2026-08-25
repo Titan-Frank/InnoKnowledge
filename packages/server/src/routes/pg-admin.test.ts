@@ -15,7 +15,12 @@ function sqlText(strings: TemplateStringsArray): string {
   return strings.join('$value').replace(/\s+/g, ' ').trim();
 }
 
-function routeSql(options: { matchedOnlyCount?: number; stopBookDeleteAtLock?: boolean; stopBookDeleteAtTargetNodes?: boolean } = {}): {
+function routeSql(options: {
+  matchedOnlyCount?: number;
+  stopBookDeleteAtLock?: boolean;
+  stopBookDeleteAtTargetMerges?: boolean;
+  stopBookDeleteAtTargetNodes?: boolean;
+} = {}): {
   sql: Sql;
   queryCalls: Array<{ query: string; values: unknown[] }>;
   unsafeCalls: Array<{ query: string; values: unknown[] }>;
@@ -57,6 +62,9 @@ function routeSql(options: { matchedOnlyCount?: number; stopBookDeleteAtLock?: b
     }
     if (text === 'SELECT count(*) AS count FROM _pg_admin_target_matched_only_nodes') {
       return Promise.resolve([{ count: options.matchedOnlyCount ?? 0 }]);
+    }
+    if (text.includes('CREATE TEMP TABLE _pg_admin_target_merges') && options.stopBookDeleteAtTargetMerges) {
+      throw new Error('book-delete-reached-target-merges');
     }
     return Promise.resolve([]);
   }) as unknown as Sql;
@@ -169,6 +177,25 @@ test('book deletion rejects matched-only mappings whose reducer outputs cannot b
   });
   assert.equal(response.status, 409);
   assert.match((await response.json() as { error: string }).error, /matched.*schema.*reducer/);
+});
+
+test('book deletion discovers merge runs from selection JSON when lessons have no node mappings', async () => {
+  const { sql, queryCalls } = routeSql({ stopBookDeleteAtTargetMerges: true });
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/books/book-1', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirmation: 'DELETE BOOK book-1' }),
+  });
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { error: 'book-delete-reached-target-merges' });
+
+  const targetMergeQuery = queryCalls.find((call) => call.query.includes('CREATE TEMP TABLE _pg_admin_target_merges'));
+  assert.ok(targetMergeQuery);
+  assert.match(targetMergeQuery.query, /jsonb_array_elements_text/);
+  assert.match(targetMergeQuery.query, /JOIN _pg_admin_target_lessons/);
 });
 
 test('mutable staging changes acquire the reducer dataset lock in the same transaction', async () => {
