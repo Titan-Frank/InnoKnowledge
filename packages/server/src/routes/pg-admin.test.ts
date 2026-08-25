@@ -4,6 +4,7 @@ import { Hono } from 'hono';
 import type { Sql } from '../db/connection.js';
 import {
   PG_ADMIN_DATASET_ADVISORY_LOCK_SQL,
+  PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL,
   isPgAdminTable,
   isPgAdminTableMutable,
   quoteIdentifier,
@@ -157,7 +158,7 @@ test('book deletion keeps the Hono-decoded id and acquires the reducer lock key'
 });
 
 test('book deletion blocks while any pipeline job in the dataset is running', async () => {
-  const { sql, queryCalls } = routeSql({ runningJobCount: 1 });
+  const { sql, queryCalls, unsafeCalls } = routeSql({ runningJobCount: 1 });
   const app = new Hono();
   registerPgAdminRoutes(app, sql);
 
@@ -172,6 +173,10 @@ test('book deletion blocks while any pipeline job in the dataset is running', as
   assert.ok(runningQuery);
   assert.deepEqual(runningQuery.values, ['main']);
   assert.doesNotMatch(runningQuery.query, /book_id/);
+  assert.deepEqual(unsafeCalls, [
+    { query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] },
+    { query: PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL, values: [] },
+  ]);
 });
 
 test('book deletion targets canonical nodes created or queued for review by the selected lessons', async () => {
@@ -240,7 +245,8 @@ test('mutable staging changes acquire the reducer dataset lock in the same trans
   });
   assert.equal(response.status, 404);
   assert.deepEqual(unsafeCalls[0], { query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] });
-  assert.match(unsafeCalls[1]?.query ?? '', /^UPDATE "world_staging_nodes"/);
+  assert.deepEqual(unsafeCalls[1], { query: PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL, values: [] });
+  assert.match(unsafeCalls[2]?.query ?? '', /^UPDATE "world_staging_nodes"/);
 
   const deleteRoute = routeSql();
   const deleteApp = new Hono();
@@ -255,7 +261,8 @@ test('mutable staging changes acquire the reducer dataset lock in the same trans
   });
   assert.equal(deleteResponse.status, 404);
   assert.deepEqual(deleteRoute.unsafeCalls[0], { query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] });
-  assert.match(deleteRoute.unsafeCalls[1]?.query ?? '', /^DELETE FROM "world_staging_nodes"/);
+  assert.deepEqual(deleteRoute.unsafeCalls[1], { query: PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL, values: [] });
+  assert.match(deleteRoute.unsafeCalls[2]?.query ?? '', /^DELETE FROM "world_staging_nodes"/);
 });
 
 test('PG admin rejects blank required numeric values before issuing an update', async () => {
@@ -355,7 +362,9 @@ test('PG admin blocks mutable staging and catalog rows while a pipeline job is r
   }
   assert.deepEqual(unsafeCalls, [
     { query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] },
+    { query: PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL, values: [] },
     { query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] },
+    { query: PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL, values: [] },
   ]);
 });
 

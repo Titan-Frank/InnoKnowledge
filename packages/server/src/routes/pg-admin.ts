@@ -12,7 +12,7 @@ import type {
   PgAdminUpdateRequest,
 } from '@okm/types';
 import type { Sql } from '../db/connection.js';
-import { DATASET_ADVISORY_LOCK_SQL } from '../db/dataset-lock.js';
+import { DATASET_ADVISORY_LOCK_SQL, PIPELINE_MUTATION_ADVISORY_LOCK_SQL } from '../db/dataset-lock.js';
 import { resolveDatasetRow } from '../db/queries.js';
 
 type Row = Record<string, unknown>;
@@ -57,6 +57,7 @@ const TABLE_GROUPS: Record<string, TableGroup> = {
 
 export const PG_ADMIN_TABLES = Object.freeze(Object.keys(TABLE_GROUPS));
 export const PG_ADMIN_DATASET_ADVISORY_LOCK_SQL = DATASET_ADVISORY_LOCK_SQL;
+export const PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL = PIPELINE_MUTATION_ADVISORY_LOCK_SQL;
 
 const PG_ADMIN_PROTECTED_TABLES = new Set([
   'world_datasets',
@@ -352,6 +353,7 @@ async function loadBooks(sql: Sql, datasetId: string): Promise<PgAdminBooksRespo
 async function deleteBook(sql: Sql, datasetId: string, bookId: string): Promise<PgAdminBookDeleteResponse> {
   return sql.begin(async (tx) => {
     await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [datasetId]);
+    await tx.unsafe(PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL);
     const running = await tx`SELECT count(*) AS count FROM world_pipeline_jobs WHERE dataset_id = ${datasetId} AND status = 'running'` as unknown as Row[];
     if (numberValue(running[0]?.count) > 0) throw new AdminConflictError('当前数据集仍有运行中的流水线任务。');
     await tx`CREATE TEMP TABLE _pg_admin_target_lessons ON COMMIT DROP AS SELECT lesson_run_id FROM world_lesson_runs WHERE dataset_id = ${datasetId} AND book_id = ${bookId}`;
@@ -463,6 +465,7 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       const keyWhere = wherePrimaryKey(table, primaryKey, values.length + 2);
       const rows = await sql.begin(async (tx) => {
         await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [textValue(dataset.dataset_id)]);
+        await tx.unsafe(PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL);
         const running = await tx`
           SELECT count(*) AS count
           FROM world_pipeline_jobs
@@ -498,6 +501,7 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       const keyWhere = wherePrimaryKey(table, primaryKey, 2);
       const rows = await sql.begin(async (tx) => {
         await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [textValue(dataset.dataset_id)]);
+        await tx.unsafe(PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL);
         const running = await tx`
           SELECT count(*) AS count
           FROM world_pipeline_jobs
