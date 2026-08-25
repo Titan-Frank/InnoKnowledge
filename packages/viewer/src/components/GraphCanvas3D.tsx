@@ -9,9 +9,17 @@ import {
 } from 'react';
 import ForceGraph3D, {
   type ForceGraphMethods,
+  type LinkObject,
   type NodeObject,
 } from 'react-force-graph-3d';
-import { Object3D } from 'three';
+import {
+  BufferAttribute,
+  BufferGeometry,
+  Float32BufferAttribute,
+  Line,
+  LineDashedMaterial,
+  Object3D,
+} from 'three';
 import SpriteText from 'three-spritetext';
 import type { ThemeMode } from '@/core/graph/types';
 import type { BuildResult } from '@/lib/graph-adapter';
@@ -46,6 +54,11 @@ interface GraphCanvas3DProps {
 
 interface CameraControls {
   target?: { x: number; y: number; z: number };
+}
+
+interface LinkCoordinates {
+  start: { x: number; y: number; z: number };
+  end: { x: number; y: number; z: number };
 }
 
 const CAMERA_TRANSITION_MS = 420;
@@ -87,6 +100,7 @@ const GraphCanvas3D = forwardRef<GraphCanvas3DHandle, GraphCanvas3DProps>(functi
   const reducedMotion = usePrefersReducedMotion();
   const focusedGraph = 'formalNeighborIds' in build && Array.isArray(build.formalNeighborIds);
   const graphData = useMemo(() => buildGraph3DData(build), [build]);
+  const dashedLinkMaterials = useMemo(() => new Map<string, LineDashedMaterial>(), [themeMode]);
   const labelIds = useMemo(() => resolveGraph3DLabelIds(
     graphData.nodes,
     showLabels,
@@ -95,6 +109,51 @@ const GraphCanvas3D = forwardRef<GraphCanvas3DHandle, GraphCanvas3DProps>(functi
     previewNodeId,
   ), [graphData.nodes, previewNodeId, searchHitIds, selectedNodeId, showLabels]);
   const transitionMs = reducedMotion ? 0 : CAMERA_TRANSITION_MS;
+
+  useEffect(() => () => {
+    for (const material of dashedLinkMaterials.values()) material.dispose();
+    dashedLinkMaterials.clear();
+  }, [dashedLinkMaterials]);
+
+  const linkWidth = useCallback((link: Graph3DLink) => link.dashed ? 0 : link.width, []);
+
+  const linkMaterial = useCallback((link: Graph3DLink) => {
+    if (!link.dashed) return null;
+    const key = `${link.color}:${link.dashSize}:${link.gapSize}`;
+    const cached = dashedLinkMaterials.get(key);
+    if (cached) return cached;
+    const material = new LineDashedMaterial({
+      color: link.color,
+      dashSize: link.dashSize,
+      gapSize: link.gapSize,
+      transparent: true,
+      opacity: themeMode === 'light' ? 0.58 : 0.64,
+      depthWrite: false,
+    });
+    dashedLinkMaterials.set(key, material);
+    return material;
+  }, [dashedLinkMaterials, themeMode]);
+
+  const updateDashedLinkDistances = useCallback((
+    object: Object3D,
+    { start, end }: LinkCoordinates,
+    link: LinkObject,
+  ) => {
+    if (!link.dashed || !(object instanceof Line)) return false;
+    const line = object as Line<BufferGeometry, LineDashedMaterial>;
+    const distance = Math.hypot(end.x - start.x, end.y - start.y, end.z - start.z);
+    let distances = line.geometry.getAttribute('lineDistance') as BufferAttribute | undefined;
+    if (!distances || distances.count !== 2) {
+      distances = new Float32BufferAttribute([0, distance], 1);
+      line.geometry.setAttribute('lineDistance', distances);
+    } else {
+      distances.setX(0, 0);
+      distances.setX(1, distance);
+      distances.needsUpdate = true;
+    }
+    // Returning false lets the graph update the endpoint positions normally.
+    return false;
+  }, []);
 
   const fitConnectedStructure = useCallback(() => {
     const connectedNodeCount = graphData.nodes.filter((node) => node.visibleDegree > 0).length;
@@ -290,7 +349,9 @@ const GraphCanvas3D = forwardRef<GraphCanvas3DHandle, GraphCanvas3DProps>(functi
         linkTarget="target"
         linkLabel="label"
         linkColor="color"
-        linkWidth="width"
+        linkWidth={linkWidth}
+        linkMaterial={linkMaterial}
+        linkPositionUpdate={updateDashedLinkDistances}
         linkOpacity={themeMode === 'light' ? 0.42 : 0.34}
         linkResolution={4}
         linkDirectionalArrowLength="arrowLength"

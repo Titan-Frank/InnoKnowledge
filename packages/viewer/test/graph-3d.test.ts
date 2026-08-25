@@ -31,6 +31,7 @@ test('buildGraph3DData preserves graph identity and visual metadata', () => {
   assert.equal(result.links[0]?.target, 'n2');
   assert.equal(result.links[0]?.label, '关联');
   assert.equal(result.links[0]?.arrowLength, 3.4);
+  assert.equal(result.links[0]?.dashed, false);
 });
 
 test('buildGraph3DData keeps semantic similarity links undirected', () => {
@@ -49,6 +50,27 @@ test('buildGraph3DData keeps semantic similarity links undirected', () => {
   });
 
   assert.equal(result.links[0]?.arrowLength, 0);
+  assert.equal(result.links[0]?.dashed, false);
+});
+
+test('buildGraph3DData carries dashed semantic-link styling into 3D', () => {
+  const result = buildGraph3DData({
+    ...BUILD,
+    data: {
+      nodes: BUILD.data.nodes,
+      edges: [{
+        id: 'semantic:n1:n2',
+        source: 'n1',
+        target: 'n2',
+        data: { category: 'Embedding 语义相似' },
+        style: { stroke: '#94a3b8', lineWidth: 1.2, lineDash: [5, 3], endArrow: false },
+      }],
+    },
+  });
+
+  assert.equal(result.links[0]?.dashed, true);
+  assert.equal(result.links[0]?.dashSize, 5);
+  assert.equal(result.links[0]?.gapSize, 3);
 });
 
 test('resolveGraph3DLabelIds prioritizes interaction targets and important nodes', () => {

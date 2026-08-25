@@ -191,10 +191,16 @@ export function GraphCanvas() {
     if (displayMode === '3d') stopLayout();
   }, [displayMode, stopLayout]);
 
-  // Build and set graph ONLY when data or structural filters change
+  // Community metadata is shared by both renderers.
   useEffect(() => {
-    if (!graphBuild || !containerReady) return;
+    if (!graphBuild) return;
     setCommunityInfo(graphBuild.communityCount, graphBuild.communities, graphBuild.communityMap);
+  }, [graphBuild, setCommunityInfo]);
+
+  // Keep the hidden G6 instance idle while 3D is active. Including displayMode
+  // ensures it receives the latest focused graph as soon as the user returns.
+  useEffect(() => {
+    if (displayMode !== '2d' || !graphBuild || !containerReady) return;
     const positioning = isRadialFocusResult(graphBuild)
       ? {
           type: 'radial-focus' as const,
@@ -212,7 +218,7 @@ export function GraphCanvas() {
       edgePairs: graphBuild.edgePairs,
       positioning,
     });
-  }, [graphBuild, selectedNodeId, containerReady, setGraph, setCommunityInfo]);
+  }, [displayMode, graphBuild, selectedNodeId, containerReady, setGraph]);
 
   // Focus on selected node
   const handleFocusSelected = useCallback(() => {

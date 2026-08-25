@@ -20,6 +20,9 @@ export interface Graph3DLink {
   color: string;
   width: number;
   arrowLength: number;
+  dashed: boolean;
+  dashSize: number;
+  gapSize: number;
 }
 
 type UnknownRecord = Record<string, unknown>;
@@ -63,6 +66,8 @@ export function buildGraph3DData(build: BuildResult): GraphData<Graph3DNode, Gra
     const style = asRecord(edge.style);
     const id = String(edge.id ?? '');
     const width = Math.max(0.65, asNumber(style.lineWidth, 1));
+    const lineDash = Array.isArray(style.lineDash) ? style.lineDash : [];
+    const dashed = lineDash.length > 0;
     return {
       id,
       source: String(edge.source ?? ''),
@@ -71,6 +76,9 @@ export function buildGraph3DData(build: BuildResult): GraphData<Graph3DNode, Gra
       color: asString(style.stroke, '#64748b'),
       width,
       arrowLength: style.endArrow === false ? 0 : width > 1 ? 3.4 : 2.4,
+      dashed,
+      dashSize: Math.max(0.5, asNumber(lineDash[0], 5)),
+      gapSize: Math.max(0.5, asNumber(lineDash[1], 5)),
     };
   });
 
