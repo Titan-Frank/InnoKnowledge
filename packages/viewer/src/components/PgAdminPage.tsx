@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import type {
   PgAdminBookSummary,
   PgAdminBooksResponse,
@@ -36,6 +36,7 @@ import {
   loadPgAdminRows,
   updatePgAdminRow,
 } from '@/services/backend-client';
+import { isCurrentPgAdminRequest } from '@/lib/pg-admin-requests';
 
 type AdminView = 'books' | 'tables';
 type DialogTarget = { kind: 'book'; book: PgAdminBookSummary } | { kind: 'row'; row: Record<string, unknown> } | null;
@@ -356,6 +357,11 @@ function RowEditor({
         </div>
       </div>
       <form onSubmit={submit} className="p-4">
+        {!table.mutable && (
+          <div className="mb-4 flex gap-2 rounded-md border border-node-method/35 bg-node-method/10 p-2.5 text-xs text-node-method">
+            <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />Canonical 表在管理台中只读；修改必须通过 reducer 流程完成。
+          </div>
+        )}
         <div className="space-y-4">
           {editableColumns.map((column) => {
             const value = draft[column.name] ?? '';
@@ -377,7 +383,7 @@ function RowEditor({
         {error && <div className="mt-4 flex gap-2 rounded-md border border-node-event/35 bg-node-event/10 p-2.5 text-xs text-node-event"><AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{error}</div>}
         <div className="mt-5 grid grid-cols-2 gap-2">
           <button type="submit" disabled={saving || editableColumns.length === 0} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-xs font-medium text-white transition-colors hover:bg-accent-dim disabled:cursor-not-allowed disabled:opacity-45">{saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}保存修改</button>
-          <button type="button" onClick={onDelete} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-node-event/35 bg-node-event/8 px-3 text-xs font-medium text-node-event transition-colors hover:bg-node-event/15"><Trash2 className="h-3.5 w-3.5" />删除记录</button>
+          <button type="button" onClick={onDelete} disabled={!table.mutable} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-node-event/35 bg-node-event/8 px-3 text-xs font-medium text-node-event transition-colors hover:bg-node-event/15 disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-transparent disabled:text-text-muted"><Trash2 className="h-3.5 w-3.5" />删除记录</button>
         </div>
       </form>
     </aside>
@@ -496,48 +502,76 @@ export function PgAdminPage() {
   const [confirmation, setConfirmation] = useState('');
   const [mutationBusy, setMutationBusy] = useState(false);
   const [mutationError, setMutationError] = useState('');
+  const sourceKeyRef = useRef(sourceKey);
+  const catalogRequestRef = useRef(0);
+  const booksRequestRef = useRef(0);
+  const rowsRequestRef = useRef(0);
+  sourceKeyRef.current = sourceKey;
 
   const activeTable = catalog?.tables.find((table) => table.name === activeTableName) ?? null;
 
   const refreshCatalog = useCallback(async () => {
+    const requestSourceKey = sourceKey;
+    const requestId = ++catalogRequestRef.current;
     setLoadingCatalog(true);
     try {
       const next = await loadPgAdminCatalog(sourceKey);
+      if (!isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, catalogRequestRef.current)) return;
       setCatalog(next);
       if (!next.tables.some((table) => table.name === activeTableName)) setActiveTableName(next.tables[0]?.name || 'world_nodes');
     } catch (loadError) {
+      if (!isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, catalogRequestRef.current)) return;
       setError((loadError as Error).message || '读取 PG 表目录失败');
     } finally {
-      setLoadingCatalog(false);
+      if (isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, catalogRequestRef.current)) setLoadingCatalog(false);
     }
   }, [sourceKey, activeTableName]);
 
   const refreshBooks = useCallback(async () => {
+    const requestSourceKey = sourceKey;
+    const requestId = ++booksRequestRef.current;
     setLoadingBooks(true);
     try {
-      setBooks(await loadPgAdminBooks(sourceKey));
+      const next = await loadPgAdminBooks(sourceKey);
+      if (!isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, booksRequestRef.current)) return;
+      setBooks(next);
     } catch (loadError) {
+      if (!isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, booksRequestRef.current)) return;
       setError((loadError as Error).message || '读取教材数据失败');
     } finally {
-      setLoadingBooks(false);
+      if (isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, booksRequestRef.current)) setLoadingBooks(false);
     }
   }, [sourceKey]);
 
   const refreshRows = useCallback(async () => {
     if (!activeTableName) return;
+    const requestSourceKey = sourceKey;
+    const requestId = ++rowsRequestRef.current;
     setLoadingRows(true);
     try {
       const payload = await loadPgAdminRows(sourceKey, activeTableName, { query: appliedTableQuery, limit: PAGE_SIZE, offset });
+      if (!isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, rowsRequestRef.current)) return;
       setRows(payload);
       setSelectedRow((current) => current ? payload.rows.find((row) => rowIdentity(payload.table, row) === rowIdentity(payload.table, current)) ?? null : null);
     } catch (loadError) {
+      if (!isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, rowsRequestRef.current)) return;
       setError((loadError as Error).message || '读取 PG 数据失败');
     } finally {
-      setLoadingRows(false);
+      if (isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, rowsRequestRef.current)) setLoadingRows(false);
     }
   }, [sourceKey, activeTableName, appliedTableQuery, offset]);
 
   useEffect(() => {
+    catalogRequestRef.current += 1;
+    booksRequestRef.current += 1;
+    rowsRequestRef.current += 1;
+    setCatalog(null);
+    setBooks(null);
+    setRows(null);
+    setSelectedRow(null);
+    setDialogTarget(null);
+    setConfirmation('');
+    setMutationError('');
     setError('');
     setNotice('');
     void Promise.all([refreshCatalog(), refreshBooks()]);

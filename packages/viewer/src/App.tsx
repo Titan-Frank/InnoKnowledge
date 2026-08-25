@@ -14,7 +14,7 @@ import { PUBLIC_ARTIFACT_MODE } from './lib/runtime';
 
 function AppContent() {
   useBootData();
-  const { workspace } = useAppState();
+  const { workspace, selectedSourceKey } = useAppState();
 
   return (
     <div className="okm-app-shell flex h-screen flex-col overflow-hidden text-text-primary">
@@ -22,7 +22,7 @@ function AppContent() {
       {workspace === 'pipeline' ? (
         <PipelineDebugPage />
       ) : workspace === 'pg' ? (
-        <PgAdminPage />
+        <PgAdminPage key={selectedSourceKey || 'main'} />
       ) : workspace === 'textbook' ? (
         <TextbookTreePage />
       ) : (

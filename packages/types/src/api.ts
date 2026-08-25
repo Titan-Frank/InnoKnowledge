@@ -542,6 +542,7 @@ export interface PgAdminColumn {
 export interface PgAdminTable {
   name: string;
   group: 'catalog' | 'canonical' | 'evidence' | 'pipeline' | 'staging' | 'runtime';
+  mutable: boolean;
   estimated_rows: number;
   primary_key: string[];
   columns: PgAdminColumn[];

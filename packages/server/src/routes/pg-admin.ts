@@ -55,11 +55,16 @@ const TABLE_GROUPS: Record<string, TableGroup> = {
 };
 
 export const PG_ADMIN_TABLES = Object.freeze(Object.keys(TABLE_GROUPS));
+export const PG_ADMIN_DATASET_ADVISORY_LOCK_SQL = 'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))';
 
 class AdminConflictError extends Error {}
 
 export function isPgAdminTable(table: string): boolean {
   return Object.hasOwn(TABLE_GROUPS, table);
+}
+
+export function isPgAdminTableMutable(table: string): boolean {
+  return isPgAdminTable(table) && TABLE_GROUPS[table] !== 'canonical';
 }
 
 export function quoteIdentifier(identifier: string): string {
@@ -88,8 +93,15 @@ function parseOffset(value: string | undefined): number {
   return Math.max(0, Math.floor(Number(value) || 0));
 }
 
-function isEditableColumn(column: { data_type: string; udt_name: string; primary_key: boolean; name: string }): boolean {
-  return !column.primary_key && column.name !== 'dataset_id' && column.udt_name !== 'vector' && column.data_type !== 'USER-DEFINED';
+function isEditableColumn(
+  table: string,
+  column: { data_type: string; udt_name: string; primary_key: boolean; name: string },
+): boolean {
+  return isPgAdminTableMutable(table)
+    && !column.primary_key
+    && column.name !== 'dataset_id'
+    && column.udt_name !== 'vector'
+    && column.data_type !== 'USER-DEFINED';
 }
 
 async function loadTableMetadata(sql: Sql, onlyTable?: string): Promise<PgAdminTable[]> {
@@ -133,7 +145,7 @@ async function loadTableMetadata(sql: Sql, onlyTable?: string): Promise<PgAdminT
       udt_name: textValue(row.udt_name),
       nullable: row.is_nullable === 'YES',
       primary_key: primaryKey,
-      editable: isEditableColumn({
+      editable: isEditableColumn(name, {
         name: textValue(row.column_name),
         data_type: textValue(row.data_type),
         udt_name: textValue(row.udt_name),
@@ -143,6 +155,7 @@ async function loadTableMetadata(sql: Sql, onlyTable?: string): Promise<PgAdminT
     const table = byTable.get(name) ?? {
       name,
       group: TABLE_GROUPS[name]!,
+      mutable: isPgAdminTableMutable(name),
       estimated_rows: numberValue(row.estimated_rows),
       primary_key: [],
       columns: [],
@@ -299,7 +312,7 @@ async function loadBooks(sql: Sql, datasetId: string): Promise<PgAdminBooksRespo
 
 async function deleteBook(sql: Sql, datasetId: string, bookId: string): Promise<PgAdminBookDeleteResponse> {
   return sql.begin(async (tx) => {
-    await tx`SELECT pg_advisory_xact_lock(hashtext(${datasetId}))`;
+    await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [datasetId]);
     await tx`CREATE TEMP TABLE _pg_admin_target_lessons ON COMMIT DROP AS SELECT lesson_run_id FROM world_lesson_runs WHERE dataset_id = ${datasetId} AND book_id = ${bookId}`;
     await tx`CREATE TEMP TABLE _pg_admin_target_nodes ON COMMIT DROP AS SELECT DISTINCT cm.canonical_node_id AS node_id FROM world_canonical_node_map cm JOIN _pg_admin_target_lessons tl ON tl.lesson_run_id = cm.lesson_run_id WHERE cm.dataset_id = ${datasetId}`;
     await tx`CREATE TEMP TABLE _pg_admin_target_edges ON COMMIT DROP AS SELECT id FROM world_edges WHERE dataset_id = ${datasetId} AND (from_id IN (SELECT node_id FROM _pg_admin_target_nodes) OR to_id IN (SELECT node_id FROM _pg_admin_target_nodes))`;
@@ -393,6 +406,7 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       if (!dataset) return c.json({ error: 'Unknown source' }, 404);
       const tableName = c.req.param('table');
       const table = requireAdminTable(tableName, await loadTableMetadata(sql, tableName));
+      if (!table.mutable) return c.json({ error: `${tableName} is read-only; canonical mutations must run through a reducer.` }, 403);
       const body = await c.req.json<PgAdminUpdateRequest>().catch(() => null);
       if (!body) return c.json({ error: 'Invalid update payload.' }, 400);
       const primaryKey = requirePrimaryKey(table, body.primary_key);
@@ -419,6 +433,7 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       if (!dataset) return c.json({ error: 'Unknown source' }, 404);
       const tableName = c.req.param('table');
       const table = requireAdminTable(tableName, await loadTableMetadata(sql, tableName));
+      if (!table.mutable) return c.json({ error: `${tableName} is read-only; canonical mutations must run through a reducer.` }, 403);
       const body = await c.req.json<PgAdminDeleteRequest>().catch(() => null);
       if (!body) return c.json({ error: 'Invalid delete payload.' }, 400);
       const primaryKey = requirePrimaryKey(table, body.primary_key);
@@ -448,7 +463,7 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
     try {
       const dataset = await resolveDatasetRow(sql, c.req.param('key'));
       if (!dataset) return c.json({ error: 'Unknown source' }, 404);
-      const bookId = decodeURIComponent(c.req.param('bookId'));
+      const bookId = c.req.param('bookId');
       const body = await c.req.json<PgAdminBookDeleteRequest>().catch(() => null);
       const expected = `DELETE BOOK ${bookId}`;
       if (!body || body.confirmation !== expected) return c.json({ error: `Confirmation must exactly match: ${expected}` }, 400);

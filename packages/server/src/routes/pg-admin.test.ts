@@ -1,12 +1,98 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { isPgAdminTable, quoteIdentifier, rowDeleteConfirmation } from './pg-admin.js';
+import { Hono } from 'hono';
+import type { Sql } from '../db/connection.js';
+import {
+  PG_ADMIN_DATASET_ADVISORY_LOCK_SQL,
+  isPgAdminTable,
+  isPgAdminTableMutable,
+  quoteIdentifier,
+  registerPgAdminRoutes,
+  rowDeleteConfirmation,
+} from './pg-admin.js';
+
+function sqlText(strings: TemplateStringsArray): string {
+  return strings.join('$value').replace(/\s+/g, ' ').trim();
+}
+
+function routeSql(options: { stopBookDeleteAtLock?: boolean } = {}): { sql: Sql; unsafeCalls: Array<{ query: string; values: unknown[] }> } {
+  const unsafeCalls: Array<{ query: string; values: unknown[] }> = [];
+  const query = ((strings: TemplateStringsArray) => {
+    const text = sqlText(strings);
+    if (text.includes('FROM world_datasets')) {
+      return Promise.resolve([{
+        dataset_id: 'main',
+        version_key: 'main',
+        schema_version: 'world-v1.2',
+        root_path: '',
+        is_active: 1,
+      }]);
+    }
+    if (text.includes('FROM information_schema.columns')) {
+      return Promise.resolve([
+        { table_name: 'world_nodes', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_nodes', column_name: 'id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_nodes', column_name: 'name', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: false },
+      ]);
+    }
+    return Promise.resolve([]);
+  }) as unknown as Sql;
+  query.unsafe = (async (sql: string, values: unknown[] = []) => {
+    unsafeCalls.push({ query: sql, values });
+    if (options.stopBookDeleteAtLock) throw new Error('book-delete-reached-shared-lock');
+    return [];
+  }) as Sql['unsafe'];
+  query.begin = (async (callback: (tx: Sql) => Promise<unknown>) => callback(query)) as unknown as Sql['begin'];
+  return { sql: query, unsafeCalls };
+}
 
 test('PG admin table allowlist exposes world-v1.2 tables without accepting arbitrary identifiers', () => {
   assert.equal(isPgAdminTable('world_nodes'), true);
   assert.equal(isPgAdminTable('world_evidence'), true);
   assert.equal(isPgAdminTable('users'), false);
   assert.equal(isPgAdminTable('world_nodes; DROP TABLE world_nodes'), false);
+});
+
+test('canonical tables are browse-only in the generic PG admin routes', async () => {
+  assert.equal(isPgAdminTableMutable('world_nodes'), false);
+  assert.equal(isPgAdminTableMutable('world_edges'), false);
+  assert.equal(isPgAdminTableMutable('world_staging_nodes'), true);
+
+  const { sql, unsafeCalls } = routeSql();
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const updateResponse = await app.request('/api/source/main/pg/tables/world_nodes/rows', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ primary_key: { dataset_id: 'main', id: 'node-1' }, changes: { name: 'Changed' } }),
+  });
+  assert.equal(updateResponse.status, 403);
+  assert.match((await updateResponse.json() as { error: string }).error, /read-only.*reducer/);
+
+  const deleteResponse = await app.request('/api/source/main/pg/tables/world_nodes/rows', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ primary_key: { dataset_id: 'main', id: 'node-1' }, confirmation: 'DELETE world_nodes main / node-1' }),
+  });
+  assert.equal(deleteResponse.status, 403);
+  assert.equal(unsafeCalls.length, 0);
+});
+
+test('book deletion keeps the Hono-decoded id and acquires the reducer lock key', async () => {
+  const { sql, unsafeCalls } = routeSql({ stopBookDeleteAtLock: true });
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+  const bookId = 'book%2Fpart';
+
+  const response = await app.request(`/api/source/main/pg/books/${encodeURIComponent(bookId)}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirmation: `DELETE BOOK ${bookId}` }),
+  });
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { error: 'book-delete-reached-shared-lock' });
+  assert.deepEqual(unsafeCalls, [{ query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
 });
 
 test('quoteIdentifier only quotes normalized PostgreSQL identifiers', () => {
