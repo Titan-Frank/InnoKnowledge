@@ -17,6 +17,7 @@ function sqlText(strings: TemplateStringsArray): string {
 
 function routeSql(options: {
   matchedOnlyCount?: number;
+  runningJobCount?: number;
   stopBookDeleteAtLock?: boolean;
   stopBookDeleteAtTargetMerges?: boolean;
   stopBookDeleteAtTargetNodes?: boolean;
@@ -56,6 +57,7 @@ function routeSql(options: {
         { table_name: 'world_staging_nodes', column_name: 'raw_node_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_staging_nodes', column_name: 'name', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: false },
         { table_name: 'world_staging_nodes', column_name: 'confidence', data_type: 'real', udt_name: 'float4', is_nullable: 'NO', estimated_rows: 1, primary_key: false },
+        { table_name: 'world_staging_nodes', column_name: 'exact_counter', data_type: 'bigint', udt_name: 'int8', is_nullable: 'NO', estimated_rows: 1, primary_key: false },
       ]);
     }
     if (text.includes('CREATE TEMP TABLE _pg_admin_target_nodes') && options.stopBookDeleteAtTargetNodes) {
@@ -63,6 +65,9 @@ function routeSql(options: {
     }
     if (text === 'SELECT count(*) AS count FROM _pg_admin_target_matched_only_nodes') {
       return Promise.resolve([{ count: options.matchedOnlyCount ?? 0 }]);
+    }
+    if (text.includes('FROM world_pipeline_jobs') && text.includes("status = 'running'")) {
+      return Promise.resolve([{ count: options.runningJobCount ?? 0 }]);
     }
     if (text.includes('CREATE TEMP TABLE _pg_admin_target_merges') && options.stopBookDeleteAtTargetMerges) {
       throw new Error('book-delete-reached-target-merges');
@@ -248,6 +253,55 @@ test('PG admin rejects blank required numeric values before issuing an update', 
   assert.equal(response.status, 400);
   assert.match((await response.json() as { error: string }).error, /confidence cannot be blank/);
   assert.equal(unsafeCalls.length, 0);
+});
+
+test('PG admin rejects non-numeric JSON values instead of coercing them', async () => {
+  const { sql, unsafeCalls } = routeSql();
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  for (const value of [false, [], [1]]) {
+    const response = await app.request('/api/source/main/pg/tables/world_staging_nodes/rows', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        primary_key: { dataset_id: 'main', lesson_run_id: 'lesson-1', raw_node_id: 'raw-1' },
+        changes: { confidence: value },
+      }),
+    });
+    assert.equal(response.status, 400);
+    assert.match((await response.json() as { error: string }).error, /confidence must be a number/);
+  }
+
+  const bigintResponse = await app.request('/api/source/main/pg/tables/world_staging_nodes/rows', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      primary_key: { dataset_id: 'main', lesson_run_id: 'lesson-1', raw_node_id: 'raw-1' },
+      changes: { exact_counter: Number.MAX_SAFE_INTEGER + 1 },
+    }),
+  });
+  assert.equal(bigintResponse.status, 400);
+  assert.match((await bigintResponse.json() as { error: string }).error, /exact integer string/);
+  assert.equal(unsafeCalls.length, 0);
+});
+
+test('PG admin blocks staging mutations while a pipeline job is running', async () => {
+  const { sql, unsafeCalls } = routeSql({ runningJobCount: 1 });
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/tables/world_staging_nodes/rows', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      primary_key: { dataset_id: 'main', lesson_run_id: 'lesson-1', raw_node_id: 'raw-1' },
+      changes: { name: 'Changed' },
+    }),
+  });
+  assert.equal(response.status, 409);
+  assert.match((await response.json() as { error: string }).error, /pipeline job is running/);
+  assert.deepEqual(unsafeCalls, [{ query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
 });
 
 test('quoteIdentifier only quotes normalized PostgreSQL identifiers', () => {

@@ -35,3 +35,15 @@ test('clearing a required numeric PG field reports a validation error', () => {
     /page_start cannot be blank/,
   );
 });
+
+test('invalid numeric editor input is rejected without losing exact decimal values', () => {
+  assert.throws(() => parsePgAdminEditorValue(column({}), 'not-a-number'), /must be an integer/);
+  assert.equal(
+    parsePgAdminEditorValue(column({ data_type: 'numeric' }), '1234567890.123456789'),
+    '1234567890.123456789',
+  );
+  assert.equal(
+    parsePgAdminEditorValue(column({ data_type: 'bigint' }), '9007199254740993'),
+    '9007199254740993',
+  );
+});

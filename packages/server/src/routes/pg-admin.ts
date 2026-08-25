@@ -217,14 +217,23 @@ function mutationValue(sql: Sql, column: PgAdminColumn, value: unknown): { value
     return { value: sql.json(parsed as JsonValue), cast: '' };
   }
   if (['smallint', 'integer', 'bigint'].includes(column.data_type)) {
-    if (typeof value === 'string' && value.trim() === '') throw new Error(`${column.name} cannot be blank.`);
-    const parsed = Number(value);
-    if (!Number.isInteger(parsed)) throw new Error(`${column.name} must be an integer.`);
+    if (typeof value !== 'string' && typeof value !== 'number') throw new Error(`${column.name} must be an integer.`);
+    const normalized = String(value).trim();
+    if (!normalized) throw new Error(`${column.name} cannot be blank.`);
+    if (!/^[+-]?\d+$/.test(normalized)) throw new Error(`${column.name} must be an integer.`);
+    if (typeof value === 'number' && !Number.isSafeInteger(value)) throw new Error(`${column.name} must be provided as an exact integer string.`);
+    if (column.data_type === 'bigint') return { value: normalized, cast: '::bigint' };
+    const parsed = Number(normalized);
+    if (!Number.isSafeInteger(parsed)) throw new Error(`${column.name} must be a safe integer.`);
     return { value: parsed, cast: `::${column.data_type}` };
   }
   if (['real', 'double precision', 'numeric', 'decimal'].includes(column.data_type)) {
-    if (typeof value === 'string' && value.trim() === '') throw new Error(`${column.name} cannot be blank.`);
-    const parsed = Number(value);
+    if (typeof value !== 'string' && typeof value !== 'number') throw new Error(`${column.name} must be a number.`);
+    const normalized = String(value).trim();
+    if (!normalized) throw new Error(`${column.name} cannot be blank.`);
+    if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(normalized)) throw new Error(`${column.name} must be a number.`);
+    if (column.data_type === 'numeric' || column.data_type === 'decimal') return { value: normalized, cast: `::${column.data_type}` };
+    const parsed = Number(normalized);
     if (!Number.isFinite(parsed)) throw new Error(`${column.name} must be a number.`);
     return { value: parsed, cast: `::${column.data_type}` };
   }
@@ -453,12 +462,17 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       const keyWhere = wherePrimaryKey(table, primaryKey, values.length + 2);
       const rows = await sql.begin(async (tx) => {
         await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [textValue(dataset.dataset_id)]);
+        if (table.group === 'staging') {
+          const running = await tx`SELECT count(*) AS count FROM world_pipeline_jobs WHERE dataset_id = ${dataset.dataset_id} AND status = 'running'` as unknown as Row[];
+          if (numberValue(running[0]?.count) > 0) throw new AdminConflictError('Staging rows cannot be changed while a pipeline job is running.');
+        }
         return tx.unsafe(`UPDATE ${quoteIdentifier(tableName)} SET ${setSql} WHERE dataset_id = $${values.length + 1} AND ${keyWhere.sql} RETURNING *`, [...values, dataset.dataset_id, ...keyWhere.values]);
       }) as unknown as Row[];
       if (!rows.length) return c.json({ error: 'Row not found.' }, 404);
       const payload: PgAdminMutationResponse = { status: 'success', table: tableName, affected: 1, row: rows[0] };
       return c.json(payload);
     } catch (error) {
+      if (error instanceof AdminConflictError) return c.json({ error: error.message }, 409);
       return c.json({ error: (error as Error).message || 'Failed to update PostgreSQL row.' }, 400);
     }
   });
@@ -478,12 +492,17 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       const keyWhere = wherePrimaryKey(table, primaryKey, 2);
       const rows = await sql.begin(async (tx) => {
         await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [textValue(dataset.dataset_id)]);
+        if (table.group === 'staging') {
+          const running = await tx`SELECT count(*) AS count FROM world_pipeline_jobs WHERE dataset_id = ${dataset.dataset_id} AND status = 'running'` as unknown as Row[];
+          if (numberValue(running[0]?.count) > 0) throw new AdminConflictError('Staging rows cannot be changed while a pipeline job is running.');
+        }
         return tx.unsafe(`DELETE FROM ${quoteIdentifier(tableName)} WHERE dataset_id = $1 AND ${keyWhere.sql} RETURNING 1`, [dataset.dataset_id, ...keyWhere.values]);
       }) as unknown as Row[];
       if (!rows.length) return c.json({ error: 'Row not found.' }, 404);
       const payload: PgAdminMutationResponse = { status: 'success', table: tableName, affected: rows.length };
       return c.json(payload);
     } catch (error) {
+      if (error instanceof AdminConflictError) return c.json({ error: error.message }, 409);
       return c.json({ error: (error as Error).message || 'Failed to delete PostgreSQL row.' }, 400);
     }
   });
