@@ -6,7 +6,7 @@ import type {
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
   PgAdminBookDeleteResponse, PgAdminBooksResponse, PgAdminCatalogResponse,
-  PgAdminDeleteRequest, PgAdminMutationResponse, PgAdminRowsResponse, PgAdminUpdateRequest,
+  PgAdminDeleteRequest, PgAdminExportRequest, PgAdminMutationResponse, PgAdminRowsResponse, PgAdminUpdateRequest,
 } from '@okm/types';
 import { PUBLIC_ARTIFACT_MODE, publicArtifactPath } from '@/lib/runtime';
 import {
@@ -179,6 +179,20 @@ export function deletePgAdminRow(
 
 export function loadPgAdminBooks(sourceKey: string): Promise<PgAdminBooksResponse> {
   return fetchJson<PgAdminBooksResponse>(`/api/source/${encodeURIComponent(sourceKey)}/pg/books`);
+}
+
+export async function exportPgAdminData(sourceKey: string, request: PgAdminExportRequest): Promise<{ blob: Blob; filename: string }> {
+  const response = await fetch(`/api/source/${encodeURIComponent(sourceKey)}/pg/export`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) {
+    throw new BackendError(await backendErrorMessage(response, '导出 PostgreSQL 数据失败'), response.status, 'server');
+  }
+  const disposition = response.headers.get('Content-Disposition') || '';
+  const filename = disposition.match(/filename="([^"]+)"/)?.[1] || `okm-pg-${sourceKey}.json`;
+  return { blob: await response.blob(), filename };
 }
 
 export function deletePgAdminBook(sourceKey: string, bookId: string, confirmation: string): Promise<PgAdminBookDeleteResponse> {
