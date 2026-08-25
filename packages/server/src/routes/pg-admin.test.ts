@@ -55,6 +55,7 @@ function routeSql(options: {
         { table_name: 'world_staging_nodes', column_name: 'lesson_run_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_staging_nodes', column_name: 'raw_node_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_staging_nodes', column_name: 'name', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: false },
+        { table_name: 'world_staging_nodes', column_name: 'confidence', data_type: 'real', udt_name: 'float4', is_nullable: 'NO', estimated_rows: 1, primary_key: false },
       ]);
     }
     if (text.includes('CREATE TEMP TABLE _pg_admin_target_nodes') && options.stopBookDeleteAtTargetNodes) {
@@ -229,6 +230,24 @@ test('mutable staging changes acquire the reducer dataset lock in the same trans
   assert.equal(deleteResponse.status, 404);
   assert.deepEqual(deleteRoute.unsafeCalls[0], { query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] });
   assert.match(deleteRoute.unsafeCalls[1]?.query ?? '', /^DELETE FROM "world_staging_nodes"/);
+});
+
+test('PG admin rejects blank required numeric values before issuing an update', async () => {
+  const { sql, unsafeCalls } = routeSql();
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/tables/world_staging_nodes/rows', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      primary_key: { dataset_id: 'main', lesson_run_id: 'lesson-1', raw_node_id: 'raw-1' },
+      changes: { confidence: '' },
+    }),
+  });
+  assert.equal(response.status, 400);
+  assert.match((await response.json() as { error: string }).error, /confidence cannot be blank/);
+  assert.equal(unsafeCalls.length, 0);
 });
 
 test('quoteIdentifier only quotes normalized PostgreSQL identifiers', () => {

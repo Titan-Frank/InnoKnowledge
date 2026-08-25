@@ -217,11 +217,13 @@ function mutationValue(sql: Sql, column: PgAdminColumn, value: unknown): { value
     return { value: sql.json(parsed as JsonValue), cast: '' };
   }
   if (['smallint', 'integer', 'bigint'].includes(column.data_type)) {
+    if (typeof value === 'string' && value.trim() === '') throw new Error(`${column.name} cannot be blank.`);
     const parsed = Number(value);
     if (!Number.isInteger(parsed)) throw new Error(`${column.name} must be an integer.`);
     return { value: parsed, cast: `::${column.data_type}` };
   }
   if (['real', 'double precision', 'numeric', 'decimal'].includes(column.data_type)) {
+    if (typeof value === 'string' && value.trim() === '') throw new Error(`${column.name} cannot be blank.`);
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) throw new Error(`${column.name} must be a number.`);
     return { value: parsed, cast: `::${column.data_type}` };

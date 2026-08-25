@@ -14,6 +14,7 @@ export function parsePgAdminEditorValue(column: PgAdminColumn, value: string): u
   if (column.nullable && value.trim() === '') return null;
   if (column.data_type === 'boolean') return value === 'true';
   if (NUMERIC_TYPES.has(column.data_type)) {
+    if (value.trim() === '') throw new Error(`${column.name} cannot be blank.`);
     return Number(value);
   }
   return value;

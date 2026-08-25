@@ -28,3 +28,10 @@ test('non-empty PG editor values retain their existing conversions', () => {
   assert.equal(parsePgAdminEditorValue(column({ data_type: 'boolean' }), 'false'), false);
   assert.equal(parsePgAdminEditorValue(column({ data_type: 'text', nullable: false }), ''), '');
 });
+
+test('clearing a required numeric PG field reports a validation error', () => {
+  assert.throws(
+    () => parsePgAdminEditorValue(column({ nullable: false }), ''),
+    /page_start cannot be blank/,
+  );
+});
