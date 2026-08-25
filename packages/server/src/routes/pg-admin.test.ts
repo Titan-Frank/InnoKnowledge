@@ -15,10 +15,16 @@ function sqlText(strings: TemplateStringsArray): string {
   return strings.join('$value').replace(/\s+/g, ' ').trim();
 }
 
-function routeSql(options: { stopBookDeleteAtLock?: boolean } = {}): { sql: Sql; unsafeCalls: Array<{ query: string; values: unknown[] }> } {
+function routeSql(options: { stopBookDeleteAtLock?: boolean; stopBookDeleteAtTargetNodes?: boolean } = {}): {
+  sql: Sql;
+  queryCalls: Array<{ query: string; values: unknown[] }>;
+  unsafeCalls: Array<{ query: string; values: unknown[] }>;
+} {
+  const queryCalls: Array<{ query: string; values: unknown[] }> = [];
   const unsafeCalls: Array<{ query: string; values: unknown[] }> = [];
-  const query = ((strings: TemplateStringsArray) => {
+  const query = ((strings: TemplateStringsArray, ...values: unknown[]) => {
     const text = sqlText(strings);
+    queryCalls.push({ query: text, values });
     if (text.includes('FROM world_datasets')) {
       return Promise.resolve([{
         dataset_id: 'main',
@@ -34,10 +40,16 @@ function routeSql(options: { stopBookDeleteAtLock?: boolean } = {}): { sql: Sql;
         { table_name: 'world_nodes', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_nodes', column_name: 'id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_nodes', column_name: 'name', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: false },
+        { table_name: 'world_evidence', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_lesson_runs', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_pipeline_jobs', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_merge_runs', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_canonical_node_map', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_unit_embeddings', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
       ]);
+    }
+    if (text.includes('CREATE TEMP TABLE _pg_admin_target_nodes') && options.stopBookDeleteAtTargetNodes) {
+      throw new Error('book-delete-reached-target-nodes');
     }
     return Promise.resolve([]);
   }) as unknown as Sql;
@@ -47,7 +59,7 @@ function routeSql(options: { stopBookDeleteAtLock?: boolean } = {}): { sql: Sql;
     return [];
   }) as Sql['unsafe'];
   query.begin = (async (callback: (tx: Sql) => Promise<unknown>) => callback(query)) as unknown as Sql['begin'];
-  return { sql: query, unsafeCalls };
+  return { sql: query, queryCalls, unsafeCalls };
 }
 
 test('PG admin table allowlist exposes world-v1.2 tables without accepting arbitrary identifiers', () => {
@@ -57,13 +69,21 @@ test('PG admin table allowlist exposes world-v1.2 tables without accepting arbit
   assert.equal(isPgAdminTable('world_nodes; DROP TABLE world_nodes'), false);
 });
 
-test('canonical and reducer-lineage tables are browse-only in the generic PG admin routes', async () => {
+test('canonical, reducer-output, and pipeline-lineage tables are browse-only in generic PG admin routes', async () => {
   assert.equal(isPgAdminTableMutable('world_nodes'), false);
   assert.equal(isPgAdminTableMutable('world_edges'), false);
+  assert.equal(isPgAdminTableMutable('world_evidence'), false);
+  assert.equal(isPgAdminTableMutable('world_evidence_links'), false);
+  assert.equal(isPgAdminTableMutable('world_node_cards'), false);
+  assert.equal(isPgAdminTableMutable('world_node_bodies'), false);
   assert.equal(isPgAdminTableMutable('world_datasets'), false);
   assert.equal(isPgAdminTableMutable('world_lesson_runs'), false);
+  assert.equal(isPgAdminTableMutable('world_pipeline_jobs'), false);
+  assert.equal(isPgAdminTableMutable('world_pipeline_job_events'), false);
   assert.equal(isPgAdminTableMutable('world_merge_runs'), false);
   assert.equal(isPgAdminTableMutable('world_canonical_node_map'), false);
+  assert.equal(isPgAdminTableMutable('world_unit_embeddings'), false);
+  assert.equal(isPgAdminTableMutable('retrieval_candidates'), true);
   assert.equal(isPgAdminTableMutable('world_staging_nodes'), true);
 
   const { sql, unsafeCalls } = routeSql();
@@ -85,7 +105,7 @@ test('canonical and reducer-lineage tables are browse-only in the generic PG adm
   });
   assert.equal(deleteResponse.status, 403);
 
-  for (const table of ['world_datasets', 'world_lesson_runs', 'world_merge_runs', 'world_canonical_node_map']) {
+  for (const table of ['world_datasets', 'world_evidence', 'world_lesson_runs', 'world_pipeline_jobs', 'world_merge_runs', 'world_canonical_node_map', 'world_unit_embeddings']) {
     const protectedDeleteResponse = await app.request(`/api/source/main/pg/tables/${table}/rows`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -110,6 +130,24 @@ test('book deletion keeps the Hono-decoded id and acquires the reducer lock key'
   assert.equal(response.status, 400);
   assert.deepEqual(await response.json(), { error: 'book-delete-reached-shared-lock' });
   assert.deepEqual(unsafeCalls, [{ query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
+});
+
+test('book deletion only targets canonical nodes created by the selected lessons', async () => {
+  const { sql, queryCalls } = routeSql({ stopBookDeleteAtTargetNodes: true });
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/books/book-1', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirmation: 'DELETE BOOK book-1' }),
+  });
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { error: 'book-delete-reached-target-nodes' });
+
+  const targetNodeQuery = queryCalls.find((call) => call.query.includes('CREATE TEMP TABLE _pg_admin_target_nodes'));
+  assert.ok(targetNodeQuery);
+  assert.match(targetNodeQuery.query, /cm\.resolution = 'created'/);
 });
 
 test('quoteIdentifier only quotes normalized PostgreSQL identifiers', () => {

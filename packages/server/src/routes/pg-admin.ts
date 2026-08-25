@@ -59,10 +59,10 @@ export const PG_ADMIN_DATASET_ADVISORY_LOCK_SQL = 'SELECT pg_advisory_xact_lock(
 
 const PG_ADMIN_PROTECTED_TABLES = new Set([
   'world_datasets',
-  'world_lesson_runs',
-  'world_merge_runs',
-  'world_canonical_node_map',
+  'world_unit_embeddings',
 ]);
+
+const PG_ADMIN_READ_ONLY_GROUPS = new Set<TableGroup>(['canonical', 'evidence', 'pipeline']);
 
 class AdminConflictError extends Error {}
 
@@ -72,7 +72,7 @@ export function isPgAdminTable(table: string): boolean {
 
 export function isPgAdminTableMutable(table: string): boolean {
   return isPgAdminTable(table)
-    && TABLE_GROUPS[table] !== 'canonical'
+    && !PG_ADMIN_READ_ONLY_GROUPS.has(TABLE_GROUPS[table]!)
     && !PG_ADMIN_PROTECTED_TABLES.has(table);
 }
 
@@ -252,7 +252,7 @@ async function loadBooks(sql: Sql, datasetId: string): Promise<PgAdminBooksRespo
       FROM world_lesson_runs lr
       JOIN world_canonical_node_map cm
         ON cm.dataset_id = lr.dataset_id AND cm.lesson_run_id = lr.lesson_run_id
-      WHERE lr.dataset_id = ${datasetId}
+      WHERE lr.dataset_id = ${datasetId} AND cm.resolution = 'created'
       GROUP BY lr.book_id, cm.canonical_node_id
     )
     SELECT
@@ -323,7 +323,7 @@ async function deleteBook(sql: Sql, datasetId: string, bookId: string): Promise<
   return sql.begin(async (tx) => {
     await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [datasetId]);
     await tx`CREATE TEMP TABLE _pg_admin_target_lessons ON COMMIT DROP AS SELECT lesson_run_id FROM world_lesson_runs WHERE dataset_id = ${datasetId} AND book_id = ${bookId}`;
-    await tx`CREATE TEMP TABLE _pg_admin_target_nodes ON COMMIT DROP AS SELECT DISTINCT cm.canonical_node_id AS node_id FROM world_canonical_node_map cm JOIN _pg_admin_target_lessons tl ON tl.lesson_run_id = cm.lesson_run_id WHERE cm.dataset_id = ${datasetId}`;
+    await tx`CREATE TEMP TABLE _pg_admin_target_nodes ON COMMIT DROP AS SELECT DISTINCT cm.canonical_node_id AS node_id FROM world_canonical_node_map cm JOIN _pg_admin_target_lessons tl ON tl.lesson_run_id = cm.lesson_run_id WHERE cm.dataset_id = ${datasetId} AND cm.resolution = 'created'`;
     await tx`CREATE TEMP TABLE _pg_admin_target_edges ON COMMIT DROP AS SELECT id FROM world_edges WHERE dataset_id = ${datasetId} AND (from_id IN (SELECT node_id FROM _pg_admin_target_nodes) OR to_id IN (SELECT node_id FROM _pg_admin_target_nodes))`;
     await tx`CREATE TEMP TABLE _pg_admin_target_profiles ON COMMIT DROP AS SELECT id FROM world_domain_profiles WHERE dataset_id = ${datasetId} AND node_id IN (SELECT node_id FROM _pg_admin_target_nodes)`;
     await tx`CREATE TEMP TABLE _pg_admin_target_mentions ON COMMIT DROP AS SELECT id FROM world_mentions WHERE dataset_id = ${datasetId} AND (source_id = ${bookId} OR (target_type = 'node' AND target_id IN (SELECT node_id FROM _pg_admin_target_nodes)) OR (target_type = 'edge' AND target_id IN (SELECT id FROM _pg_admin_target_edges)) OR (target_type = 'domain_profile' AND target_id IN (SELECT id FROM _pg_admin_target_profiles)))`;
