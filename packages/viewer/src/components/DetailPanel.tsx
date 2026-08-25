@@ -63,6 +63,7 @@ export function DetailPanel() {
 
   useEffect(() => {
     window.localStorage.setItem(DETAIL_PANEL_WIDTH_KEY, String(width));
+    document.documentElement.style.setProperty('--okm-detail-panel-width', `${width}px`);
   }, [width]);
 
   useEffect(() => {

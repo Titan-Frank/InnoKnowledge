@@ -263,6 +263,52 @@ body {
   inset: 0;
 }
 
+.okm-graph-3d canvas {
+  display: block;
+  outline: none;
+}
+
+.okm-graph-3d .scene-tooltip {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--color-elevated) 94%, transparent);
+  box-shadow: var(--shadow-panel);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  pointer-events: none;
+}
+
+.okm-graph-3d-tooltip {
+  display: flex;
+  min-width: 7rem;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.5rem 0.65rem;
+}
+
+.okm-graph-3d-tooltip strong {
+  max-width: 20rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.okm-graph-3d-tooltip span {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+}
+
+.okm-detail-aware-right {
+  right: 1rem;
+  transition: right 180ms ease;
+}
+
+@media (min-width: 1024px) {
+  .okm-detail-aware-right[data-detail-open="true"] {
+    right: calc(var(--okm-detail-panel-width, 384px) + 1rem);
+  }
+}
+
 /* Custom scrollbar */
 .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
