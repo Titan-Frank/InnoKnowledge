@@ -13,6 +13,7 @@ import { registerEnrichRoutes } from './routes/enrich.js';
 import { registerImageReviewRoutes } from './routes/image-review.js';
 import { registerAnnotationRoutes } from './routes/annotation.js';
 import { registerSemanticNeighborRoutes } from './routes/semantic-neighbors.js';
+import { registerPgAdminRoutes } from './routes/pg-admin.js';
 import { VIEWER_DIST_DIR } from './utils/paths.js';
 import { existsSync } from 'node:fs';
 
@@ -35,6 +36,7 @@ export function createApp(sql: Sql, dbUrl: string): Hono {
   registerRuntimeRoutes(app, sql);
   registerEnrichRoutes(app, sql);
   registerAnnotationRoutes(app);
+  registerPgAdminRoutes(app, sql);
 
   // Serve built viewer assets (production mode)
   if (existsSync(VIEWER_DIST_DIR)) {

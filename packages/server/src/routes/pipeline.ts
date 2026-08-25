@@ -11,6 +11,7 @@ import type {
   TextbookMetadataRequest, TextbookMetadataResponse,
 } from '@okm/types';
 import type { Sql } from '../db/connection.js';
+import { DATASET_ADVISORY_LOCK_SQL } from '../db/dataset-lock.js';
 import {
   resolveDatasetRow,
   loadPipelinePayload,
@@ -153,21 +154,22 @@ export async function claimPipelineJobResume(
   jobId: string,
 ): Promise<boolean> {
   const now = new Date().toISOString();
-  const rows = await sql<{ job_id: string }[]>`
-    UPDATE world_pipeline_jobs
-    SET status = 'running',
-        error = NULL,
-        completed_at = NULL,
-        updated_at = ${now}
-    WHERE dataset_id = ${datasetId}
-      AND job_id = ${jobId}
-      AND status = 'blocked'
-    RETURNING job_id
-  `;
-  if (rows.length !== 1) return false;
+  return sql.begin(async (tx) => {
+    await tx.unsafe(DATASET_ADVISORY_LOCK_SQL, [datasetId]);
+    const rows = await tx<{ job_id: string }[]>`
+      UPDATE world_pipeline_jobs
+      SET status = 'running',
+          error = NULL,
+          completed_at = NULL,
+          updated_at = ${now}
+      WHERE dataset_id = ${datasetId}
+        AND job_id = ${jobId}
+        AND status = 'blocked'
+      RETURNING job_id
+    `;
+    if (rows.length !== 1) return false;
 
-  try {
-    await sql`
+    await tx`
       UPDATE world_pipeline_job_stages
       SET status = 'pending',
           error = NULL,
@@ -178,7 +180,7 @@ export async function claimPipelineJobResume(
         AND job_id = ${jobId}
         AND status = 'blocked'
     `;
-    await sql`
+    await tx`
       UPDATE world_pipeline_worker_states
       SET status = 'idle',
           lesson_run_id = NULL,
@@ -191,20 +193,44 @@ export async function claimPipelineJobResume(
       WHERE dataset_id = ${datasetId}
         AND job_id = ${jobId}
     `;
-  } catch (error) {
-    await sql`
-      UPDATE world_pipeline_jobs
-      SET status = 'blocked',
-          error = ${`Failed to prepare job retry: ${(error as Error).message}`},
-          completed_at = ${now},
-          updated_at = ${now}
-      WHERE dataset_id = ${datasetId}
-        AND job_id = ${jobId}
-        AND status = 'running'
+    return true;
+  }) as Promise<boolean>;
+}
+
+export async function reservePipelineJobStart(
+  sql: Sql,
+  input: { datasetId: string; jobId: string; bookId: string; logPath: string },
+): Promise<boolean> {
+  const now = new Date().toISOString();
+  return sql.begin(async (tx) => {
+    await tx.unsafe(DATASET_ADVISORY_LOCK_SQL, [input.datasetId]);
+    await tx`
+      INSERT INTO world_datasets (
+        dataset_id, dataset_name, schema_version, status, is_active,
+        root_path, created_at, updated_at, notes
+      )
+      VALUES (
+        ${input.datasetId}, ${input.datasetId}, 'world-v1.2', 'active', 0,
+        NULL, ${now}, ${now}, NULL
+      )
+      ON CONFLICT (dataset_id) DO NOTHING
     `;
-    throw error;
-  }
-  return true;
+    const rows = await tx<{ job_id: string }[]>`
+      INSERT INTO world_pipeline_jobs (
+        dataset_id, job_id, book_id, status, current_stage_id,
+        progress_json, log_path, command_json, context_json,
+        created_at, updated_at, completed_at, error
+      )
+      VALUES (
+        ${input.datasetId}, ${input.jobId}, ${input.bookId}, 'running', NULL,
+        ${tx.json({})}, ${input.logPath}, ${tx.json([])}, ${tx.json({ reserved_by: 'server' })},
+        ${now}, ${now}, NULL, NULL
+      )
+      ON CONFLICT (dataset_id, job_id) DO NOTHING
+      RETURNING job_id
+    `;
+    return rows.length === 1;
+  }) as Promise<boolean>;
 }
 
 function safeToken(value: string): string {
@@ -673,6 +699,16 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
       if (!claimed) {
         return c.json({ error: `Pipeline job '${jobId}' is no longer blocked and cannot be resumed.` }, 409);
       }
+    } else {
+      const reserved = await reservePipelineJobStart(sql, {
+        datasetId: statusDatasetId,
+        jobId,
+        bookId,
+        logPath,
+      });
+      if (!reserved) {
+        return c.json({ error: `Pipeline job '${jobId}' already exists and cannot be started again.` }, 409);
+      }
     }
 
     const startedAt = Date.now();
@@ -721,14 +757,12 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         endLog(`\n[${timestamp()}] [pipeline] spawn-error message=${JSON.stringify(error.message)}\n`);
       });
     } catch (error) {
-      if (resumeDatasetId) {
-        await markPipelineProcessFailed(
-          sql,
-          resumeDatasetId,
-          jobId,
-          `Failed to restart pipeline process: ${(error as Error).message}`,
-        );
-      }
+      await markPipelineProcessFailed(
+        sql,
+        statusDatasetId,
+        jobId,
+        `Failed to start pipeline process: ${(error as Error).message}`,
+      );
       return c.json({ error: `Failed to start pipeline: ${(error as Error).message}` }, 500);
     }
     logPipelineEvent('info', 'spawned', {

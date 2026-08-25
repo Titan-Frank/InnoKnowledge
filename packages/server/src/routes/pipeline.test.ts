@@ -5,11 +5,13 @@ import test from 'node:test';
 import { Hono } from 'hono';
 import type { PipelinePdfUploadResponse } from '@okm/types';
 import type { Sql } from '../db/connection.js';
+import { DATASET_ADVISORY_LOCK_SQL } from '../db/dataset-lock.js';
 import {
   buildPipelineCommand,
   claimPipelineJobResume,
   redactCommand,
   registerPipelineRoutes,
+  reservePipelineJobStart,
   resolveNpmInvocation,
   safePdfUploadName,
 } from './pipeline.js';
@@ -147,14 +149,21 @@ test('buildPipelineCommand forwards the requested resume stage', () => {
 
 test('claimPipelineJobResume reuses one blocked job and resets its runtime state', async () => {
   const statements: string[] = [];
+  const unsafeCalls: Array<{ query: string; values: unknown[] }> = [];
   const sql = ((
     strings: TemplateStringsArray,
   ) => {
     statements.push(strings.join(' '));
     return Promise.resolve(statements.length === 1 ? [{ job_id: 'chemistry.123' }] : []);
   }) as unknown as Sql;
+  sql.unsafe = (async (query: string, values: unknown[] = []) => {
+    unsafeCalls.push({ query, values });
+    return [];
+  }) as Sql['unsafe'];
+  sql.begin = (async (callback: (tx: Sql) => Promise<unknown>) => callback(sql)) as unknown as Sql['begin'];
 
   assert.equal(await claimPipelineJobResume(sql, 'main', 'chemistry.123'), true);
+  assert.deepEqual(unsafeCalls, [{ query: DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
   assert.equal(statements.length, 3);
   assert.match(statements[0]!, /UPDATE world_pipeline_jobs/);
   assert.match(statements[1]!, /UPDATE world_pipeline_job_stages/);
@@ -169,9 +178,38 @@ test('claimPipelineJobResume rejects a job that is no longer blocked', async () 
     calls += 1;
     return Promise.resolve([]);
   }) as unknown as Sql;
+  sql.unsafe = (async () => []) as unknown as Sql['unsafe'];
+  sql.begin = (async (callback: (tx: Sql) => Promise<unknown>) => callback(sql)) as unknown as Sql['begin'];
 
   assert.equal(await claimPipelineJobResume(sql, 'main', 'chemistry.123'), false);
   assert.equal(calls, 1);
+});
+
+test('reservePipelineJobStart records a running job under the shared dataset lock', async () => {
+  const statements: string[] = [];
+  const unsafeCalls: Array<{ query: string; values: unknown[] }> = [];
+  const sql = ((strings: TemplateStringsArray) => {
+    const statement = strings.join(' ').replace(/\s+/g, ' ').trim();
+    statements.push(statement);
+    return Promise.resolve(statement.includes('INSERT INTO world_pipeline_jobs') ? [{ job_id: 'chemistry.123' }] : []);
+  }) as unknown as Sql;
+  sql.unsafe = (async (query: string, values: unknown[] = []) => {
+    unsafeCalls.push({ query, values });
+    return [];
+  }) as Sql['unsafe'];
+  sql.begin = (async (callback: (tx: Sql) => Promise<unknown>) => callback(sql)) as unknown as Sql['begin'];
+  sql.json = ((value: unknown) => value) as Sql['json'];
+
+  assert.equal(await reservePipelineJobStart(sql, {
+    datasetId: 'main',
+    jobId: 'chemistry.123',
+    bookId: 'chemistry',
+    logPath: '/tmp/chemistry.123.log',
+  }), true);
+  assert.deepEqual(unsafeCalls, [{ query: DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
+  assert.equal(statements.length, 2);
+  assert.match(statements[0]!, /INSERT INTO world_datasets/);
+  assert.match(statements[1]!, /INSERT INTO world_pipeline_jobs/);
 });
 
 test('redactCommand removes passwords from database URLs', () => {

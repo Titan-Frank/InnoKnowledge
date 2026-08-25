@@ -5,6 +5,8 @@ import type {
   PipelineJobListResponse, PipelineJobStatusResponse, PipelinePdfUploadResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
+  PgAdminBookDeleteResponse, PgAdminBooksResponse, PgAdminCatalogResponse,
+  PgAdminDeleteRequest, PgAdminMutationResponse, PgAdminRowsResponse, PgAdminUpdateRequest,
 } from '@okm/types';
 import { PUBLIC_ARTIFACT_MODE, publicArtifactPath } from '@/lib/runtime';
 import {
@@ -117,6 +119,74 @@ export async function postJson<T = unknown>(path: string, body: unknown): Promis
     throw new BackendError(await backendErrorMessage(response, `Failed to post ${path}`), response.status, 'server');
   }
   return response.json() as Promise<T>;
+}
+
+async function mutationJson<T>(path: string, method: 'PATCH' | 'DELETE', body: unknown): Promise<T> {
+  const response = await fetch(path, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new BackendError(await backendErrorMessage(response, `Failed to ${method.toLowerCase()} ${path}`), response.status, 'server');
+  }
+  return response.json() as Promise<T>;
+}
+
+export function loadPgAdminCatalog(sourceKey: string): Promise<PgAdminCatalogResponse> {
+  return fetchJson<PgAdminCatalogResponse>(`/api/source/${encodeURIComponent(sourceKey)}/pg/tables`);
+}
+
+export function loadPgAdminRows(
+  sourceKey: string,
+  table: string,
+  options: { query?: string; limit?: number; offset?: number; sort?: string; direction?: 'asc' | 'desc' } = {},
+): Promise<PgAdminRowsResponse> {
+  const params = new URLSearchParams();
+  if (options.query) params.set('q', options.query);
+  if (options.limit) params.set('limit', String(options.limit));
+  if (options.offset) params.set('offset', String(options.offset));
+  if (options.sort) params.set('sort', options.sort);
+  if (options.direction) params.set('direction', options.direction);
+  return fetchJson<PgAdminRowsResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pg/tables/${encodeURIComponent(table)}/rows?${params}`,
+  );
+}
+
+export function updatePgAdminRow(
+  sourceKey: string,
+  table: string,
+  request: PgAdminUpdateRequest,
+): Promise<PgAdminMutationResponse> {
+  return mutationJson<PgAdminMutationResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pg/tables/${encodeURIComponent(table)}/rows`,
+    'PATCH',
+    request,
+  );
+}
+
+export function deletePgAdminRow(
+  sourceKey: string,
+  table: string,
+  request: PgAdminDeleteRequest,
+): Promise<PgAdminMutationResponse> {
+  return mutationJson<PgAdminMutationResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pg/tables/${encodeURIComponent(table)}/rows`,
+    'DELETE',
+    request,
+  );
+}
+
+export function loadPgAdminBooks(sourceKey: string): Promise<PgAdminBooksResponse> {
+  return fetchJson<PgAdminBooksResponse>(`/api/source/${encodeURIComponent(sourceKey)}/pg/books`);
+}
+
+export function deletePgAdminBook(sourceKey: string, bookId: string, confirmation: string): Promise<PgAdminBookDeleteResponse> {
+  return mutationJson<PgAdminBookDeleteResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pg/books/${encodeURIComponent(bookId)}`,
+    'DELETE',
+    { confirmation },
+  );
 }
 
 export async function loadMeta(): Promise<MetaResponse> {

@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import { DATASET_ADVISORY_LOCK_SQL } from "./dataset-transaction.js";
 
 export type PipelineJobStatus = "running" | "completed" | "blocked";
 export type PipelineStageStatus = "pending" | "running" | "completed" | "blocked" | "skipped";
@@ -36,15 +37,17 @@ export type PipelineWorkerState = {
   data?: Record<string, unknown>;
 };
 
+export type PipelineStartInput = {
+  datasetId: string;
+  jobId: string;
+  bookId: string;
+  logPath?: string;
+  command?: string[];
+  context?: Record<string, unknown>;
+};
+
 export type PipelineProgressStore = {
-  startJob(input: {
-    datasetId: string;
-    jobId: string;
-    bookId: string;
-    logPath?: string;
-    command?: string[];
-    context?: Record<string, unknown>;
-  }): Promise<void>;
+  startJob(input: PipelineStartInput): Promise<void>;
   updateJob(input: {
     datasetId: string;
     jobId: string;
@@ -87,30 +90,7 @@ export function createPostgresPipelineProgressStore(databaseUrl: string): Pipeli
   const sql = postgres(databaseUrl, { max: 3 });
   return {
     async startJob(input) {
-      const now = nowIso();
-      await sql`
-        INSERT INTO world_pipeline_jobs (
-          dataset_id, job_id, book_id, status, current_stage_id,
-          progress_json, log_path, command_json, context_json,
-          created_at, updated_at, completed_at, error
-        )
-        VALUES (
-          ${input.datasetId}, ${input.jobId}, ${input.bookId}, 'running', NULL,
-          ${sql.json(toJson({}))}, ${input.logPath ?? null}, ${sql.json(toJson(input.command ?? []))}, ${sql.json(toJson(input.context ?? {}))},
-          ${now}, ${now}, NULL, NULL
-        )
-        ON CONFLICT (dataset_id, job_id) DO UPDATE SET
-          book_id = EXCLUDED.book_id,
-          status = 'running',
-          current_stage_id = NULL,
-          progress_json = '{}'::jsonb,
-          log_path = EXCLUDED.log_path,
-          command_json = EXCLUDED.command_json,
-          context_json = EXCLUDED.context_json,
-          updated_at = EXCLUDED.updated_at,
-          completed_at = NULL,
-          error = NULL
-      `;
+      await startPostgresPipelineJob(sql, input);
     },
     async updateJob(input) {
       const now = nowIso();
@@ -213,6 +193,39 @@ export function createPostgresPipelineProgressStore(databaseUrl: string): Pipeli
       await sql.end({ timeout: 1 });
     },
   };
+}
+
+export async function startPostgresPipelineJob(
+  sql: postgres.Sql,
+  input: PipelineStartInput,
+  now = nowIso(),
+): Promise<void> {
+  await sql.begin(async (tx) => {
+    await tx.unsafe(DATASET_ADVISORY_LOCK_SQL, [input.datasetId]);
+    await tx`
+      INSERT INTO world_pipeline_jobs (
+        dataset_id, job_id, book_id, status, current_stage_id,
+        progress_json, log_path, command_json, context_json,
+        created_at, updated_at, completed_at, error
+      )
+      VALUES (
+        ${input.datasetId}, ${input.jobId}, ${input.bookId}, 'running', NULL,
+        ${tx.json(toJson({}))}, ${input.logPath ?? null}, ${tx.json(toJson(input.command ?? []))}, ${tx.json(toJson(input.context ?? {}))},
+        ${now}, ${now}, NULL, NULL
+      )
+      ON CONFLICT (dataset_id, job_id) DO UPDATE SET
+        book_id = EXCLUDED.book_id,
+        status = 'running',
+        current_stage_id = NULL,
+        progress_json = '{}'::jsonb,
+        log_path = EXCLUDED.log_path,
+        command_json = EXCLUDED.command_json,
+        context_json = EXCLUDED.context_json,
+        updated_at = EXCLUDED.updated_at,
+        completed_at = NULL,
+        error = NULL
+    `;
+  });
 }
 
 function isTerminalStageStatus(status: PipelineStageStatus): boolean {

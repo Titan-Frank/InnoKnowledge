@@ -1,6 +1,6 @@
 import { useAppState } from '@/hooks/useAppState';
 import type { SearchHitMeta } from '@/core/graph/types';
-import { Sun, Moon, Search, Network, BarChart3, BookOpen, Database, Eye, Download, Check, AlertCircle, Loader2 } from '@/lib/lucide-icons';
+import { Sun, Moon, Search, Network, BarChart3, BookOpen, Database, Eye, Download, Check, AlertCircle, Loader2, Table2 } from '@/lib/lucide-icons';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { loadUnit, searchNodes } from '@/services/backend-client';
 import { PUBLIC_ARTIFACT_MODE } from '@/lib/runtime';
@@ -10,6 +10,7 @@ const WORKSPACE_ITEMS = [
   { id: 'graph', label: '图谱', icon: Network },
   { id: 'textbook', label: '教材', icon: BookOpen },
   { id: 'pipeline', label: '调试', icon: BarChart3 },
+  { id: 'pg', label: 'PG', icon: Table2 },
 ] as const;
 
 type ExportState =
@@ -211,7 +212,7 @@ export function Header() {
 
           <div className="min-w-0 flex-1" />
 
-          <label className={`okm-control-surface order-3 flex h-9 w-full min-w-0 items-center gap-2 rounded-lg border px-3 transition-colors sm:order-none sm:w-72 lg:w-80 ${
+          {workspace === 'graph' && <label className={`okm-control-surface order-3 flex h-9 w-full min-w-0 items-center gap-2 rounded-lg border px-3 transition-colors sm:order-none sm:w-72 lg:w-80 ${
             searchFocused
               ? 'border-accent bg-elevated shadow-glow-soft'
               : serverSearchError
@@ -233,9 +234,9 @@ export function Header() {
             {serverSearchLoading && (
               <div className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-accent border-t-transparent" />
             )}
-          </label>
+          </label>}
 
-          {knowledgeGraph && (
+          {workspace === 'graph' && knowledgeGraph && (
             <div className="okm-control-surface hidden items-center gap-2 rounded-lg border border-border-subtle bg-elevated/90 px-2.5 py-1.5 text-[11px] text-text-muted md:flex">
               <span className="font-medium text-text-secondary">{knowledgeGraph.nodeCount}</span>
               <span>节点</span>
@@ -245,7 +246,7 @@ export function Header() {
             </div>
           )}
 
-          {knowledgeGraph && selectedSourceKey && (
+          {workspace === 'graph' && knowledgeGraph && selectedSourceKey && (
             <button
               type="button"
               onClick={handleExport}

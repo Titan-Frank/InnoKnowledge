@@ -8,18 +8,21 @@ import { StatusBar } from './components/StatusBar';
 import { PipelineDebugPage } from './components/PipelineDebugPage';
 import { TextbookTreePage } from './components/TextbookTreePage';
 import { GraphSearchPanel } from './components/GraphSearchPanel';
+import { PgAdminPage } from './components/PgAdminPage';
 import { useAppState } from './hooks/useAppState';
 import { PUBLIC_ARTIFACT_MODE } from './lib/runtime';
 
 function AppContent() {
   useBootData();
-  const { workspace } = useAppState();
+  const { workspace, selectedSourceKey } = useAppState();
 
   return (
     <div className="okm-app-shell flex h-screen flex-col overflow-hidden text-text-primary">
       <Header />
       {workspace === 'pipeline' ? (
         <PipelineDebugPage />
+      ) : workspace === 'pg' ? (
+        <PgAdminPage key={selectedSourceKey || 'main'} />
       ) : workspace === 'textbook' ? (
         <TextbookTreePage />
       ) : (

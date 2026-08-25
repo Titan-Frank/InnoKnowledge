@@ -530,6 +530,88 @@ export interface ImageReviewUpdateResponse {
 
 // ── Error ─────────────────────────────────────────────────
 
+export interface PgAdminColumn {
+  name: string;
+  data_type: string;
+  udt_name: string;
+  nullable: boolean;
+  primary_key: boolean;
+  editable: boolean;
+}
+
+export interface PgAdminTable {
+  name: string;
+  group: 'catalog' | 'canonical' | 'evidence' | 'pipeline' | 'staging' | 'runtime';
+  mutable: boolean;
+  estimated_rows: number;
+  primary_key: string[];
+  columns: PgAdminColumn[];
+}
+
+export interface PgAdminCatalogResponse {
+  dataset_id: string;
+  schema_version: string;
+  tables: PgAdminTable[];
+}
+
+export interface PgAdminRowsResponse {
+  dataset_id: string;
+  table: PgAdminTable;
+  rows: Array<Record<string, unknown>>;
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface PgAdminUpdateRequest {
+  primary_key: Record<string, unknown>;
+  changes: Record<string, unknown>;
+}
+
+export interface PgAdminDeleteRequest {
+  primary_key: Record<string, unknown>;
+  confirmation: string;
+}
+
+export interface PgAdminMutationResponse {
+  status: 'success';
+  table: string;
+  affected: number;
+  row?: Record<string, unknown>;
+}
+
+export interface PgAdminBookSummary {
+  book_id: string;
+  title: string;
+  lesson_runs: number;
+  pipeline_jobs: number;
+  running_jobs: number;
+  canonical_nodes: number;
+  shared_nodes: number;
+  edges: number;
+  evidence: number;
+  mentions: number;
+  updated_at: string | null;
+  deletable: boolean;
+  blocker?: string;
+}
+
+export interface PgAdminBooksResponse {
+  dataset_id: string;
+  books: PgAdminBookSummary[];
+}
+
+export interface PgAdminBookDeleteRequest {
+  confirmation: string;
+}
+
+export interface PgAdminBookDeleteResponse {
+  status: 'success';
+  dataset_id: string;
+  book_id: string;
+  deleted: Record<string, number>;
+}
+
 export interface ApiErrorResponse {
   error: string;
 }

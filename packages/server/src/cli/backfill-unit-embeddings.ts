@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import type { ApiUnit } from '@okm/types';
 import { closePool, createPool } from '../db/connection.js';
+import { withPipelineMutationSessionLock } from '../db/dataset-lock.js';
 import { loadUnit, resolveDatasetRow } from '../db/queries.js';
 import { embedTextBatch } from '../services/embedding.js';
 import { composeApiUnitEmbeddingText, hashApiUnitEmbeddingText } from '../runtime/unit-embedding-text.js';
@@ -35,8 +36,9 @@ async function main(argv: string[]): Promise<number> {
   const flags = parseFlags(argv);
   const sql = createPool(flags.db);
   try {
-    const dataset = await resolveDatasetRow(sql, flags.source);
-    if (!dataset) throw new Error(`Source "${flags.source}" not found.`);
+    return await withPipelineMutationSessionLock(sql, async () => {
+      const dataset = await resolveDatasetRow(sql, flags.source);
+      if (!dataset) throw new Error(`Source "${flags.source}" not found.`);
 
     const nodes = await sql<NodeRow[]>`
       SELECT id
@@ -110,16 +112,17 @@ async function main(argv: string[]): Promise<number> {
       }
     }
 
-    console.log(JSON.stringify({
-      status: 'success',
-      source: dataset.dataset_id,
-      selected: nodes.length,
-      pending: jobs.length,
-      updated,
-      skipped: nodes.length - jobs.length,
-      batch_size: flags.batchSize,
-    }, null, 2));
-    return 0;
+      console.log(JSON.stringify({
+        status: 'success',
+        source: dataset.dataset_id,
+        selected: nodes.length,
+        pending: jobs.length,
+        updated,
+        skipped: nodes.length - jobs.length,
+        batch_size: flags.batchSize,
+      }, null, 2));
+      return 0;
+    });
   } finally {
     await closePool(sql);
   }

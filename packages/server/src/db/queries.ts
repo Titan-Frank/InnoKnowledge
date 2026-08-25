@@ -39,6 +39,7 @@ function stripJsonSuffix(
 interface DatasetRow {
   dataset_id: string;
   version_key: string;
+  schema_version: string;
   root_path: string;
   is_active: number;
 }
@@ -48,7 +49,7 @@ export async function resolveDatasetRow(
   key: string,
 ): Promise<DatasetRow | undefined> {
   const rows = await sql<DatasetRow[]>`
-    SELECT dataset_id, dataset_name AS version_key, COALESCE(root_path, '') AS root_path, is_active
+    SELECT dataset_id, dataset_name AS version_key, schema_version, COALESCE(root_path, '') AS root_path, is_active
     FROM world_datasets
     WHERE dataset_id = ${key} OR dataset_name = ${key}
     ORDER BY is_active DESC, dataset_id ASC
