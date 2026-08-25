@@ -26,6 +26,7 @@ export {
   Check,
   AlertCircle,
   Network,
+  Box,
   ClipboardList,
   Database,
   Table2,

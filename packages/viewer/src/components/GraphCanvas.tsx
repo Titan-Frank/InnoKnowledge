@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import type { SemanticNeighbor } from '@okm/types';
 import { useAppState } from '@/hooks/useAppState';
 import { useG6 } from '@/hooks/useG6';
@@ -11,10 +11,30 @@ import {
 import { getVisibleNodes } from '@/lib/visibility';
 import { getNodeTypeLabel } from '@/core/graph/knowledge-data';
 import { loadSemanticNeighbors } from '@/services/backend-client';
-import { ZoomIn, ZoomOut, Maximize2, RefreshCw, Pause, RotateCcw } from '@/lib/lucide-icons';
+import { ZoomIn, ZoomOut, Maximize2, RefreshCw, Pause, RotateCcw, Network, Box, Loader2 } from '@/lib/lucide-icons';
+import type { GraphCanvas3DHandle } from './GraphCanvas3D';
+
+const LazyGraphCanvas3D = lazy(() => import('./GraphCanvas3D'));
 
 const EMPTY_SEARCH_HIT_IDS = new Set<string>();
 const DEFAULT_DETAIL_PANEL_WIDTH = 384;
+const GRAPH_DISPLAY_MODE_KEY = 'okm-graph-display-mode';
+
+type GraphDisplayMode = '2d' | '3d';
+
+function supportsWebGL(): boolean {
+  try {
+    const canvas = document.createElement('canvas');
+    return Boolean(canvas.getContext('webgl2') || canvas.getContext('webgl'));
+  } catch {
+    return false;
+  }
+}
+
+function getInitialDisplayMode(): GraphDisplayMode {
+  if (typeof window === 'undefined') return '2d';
+  return window.localStorage.getItem(GRAPH_DISPLAY_MODE_KEY) === '3d' && supportsWebGL() ? '3d' : '2d';
+}
 
 function isRadialFocusResult(result: BuildResult): result is RadialFocusResult {
   return Array.isArray((result as RadialFocusResult).formalNeighborIds);
@@ -37,6 +57,10 @@ export function GraphCanvas() {
   } = appState;
 
   const [hoveredNode, setHoveredNode] = useState<{ id: string; name: string } | null>(null);
+  const [displayMode, setDisplayModeState] = useState<GraphDisplayMode>(getInitialDisplayMode);
+  const [hasLoaded3D, setHasLoaded3D] = useState(() => getInitialDisplayMode() === '3d');
+  const canUse3D = useMemo(supportsWebGL, []);
+  const graph3DRef = useRef<GraphCanvas3DHandle>(null);
   const [semanticResult, setSemanticResult] = useState<{
     nodeId: string;
     neighbors: SemanticNeighbor[];
@@ -128,6 +152,10 @@ export function GraphCanvas() {
     return okmKnowledgeGraphToG6(knowledgeGraph, visibleNodeIds, themeMode);
   }, [knowledgeGraph, visibleNodeIds, selectedNodeId, semanticResult, themeMode]);
 
+  // Keep 2D and 3D on the same overview/focus data contract. Selecting a node
+  // therefore shows the same formal and semantic neighbors in either mode.
+  const graph3DBuild = graphBuild;
+
   const radialBuild = graphBuild && isRadialFocusResult(graphBuild) ? graphBuild : null;
   const canvasSummary = selectedNode
     ? radialBuild
@@ -151,6 +179,17 @@ export function GraphCanvas() {
     themeMode,
     showLabels,
   });
+
+  const setDisplayMode = useCallback((mode: GraphDisplayMode) => {
+    if (mode === '3d' && !canUse3D) return;
+    window.localStorage.setItem(GRAPH_DISPLAY_MODE_KEY, mode);
+    if (mode === '3d') setHasLoaded3D(true);
+    setDisplayModeState(mode);
+  }, [canUse3D]);
+
+  useEffect(() => {
+    if (displayMode === '3d') stopLayout();
+  }, [displayMode, stopLayout]);
 
   // Build and set graph ONLY when data or structural filters change
   useEffect(() => {
@@ -177,14 +216,31 @@ export function GraphCanvas() {
 
   // Focus on selected node
   const handleFocusSelected = useCallback(() => {
-    if (selectedNodeId) focusNode(selectedNodeId);
-  }, [selectedNodeId, focusNode]);
+    if (!selectedNodeId) return;
+    if (displayMode === '3d') graph3DRef.current?.focusNode(selectedNodeId);
+    else focusNode(selectedNodeId);
+  }, [displayMode, selectedNodeId, focusNode]);
+
+  const handleZoomIn = useCallback(() => {
+    if (displayMode === '3d') graph3DRef.current?.zoomIn();
+    else zoomIn();
+  }, [displayMode, zoomIn]);
+
+  const handleZoomOut = useCallback(() => {
+    if (displayMode === '3d') graph3DRef.current?.zoomOut();
+    else zoomOut();
+  }, [displayMode, zoomOut]);
+
+  const handleFitToScreen = useCallback(() => {
+    if (displayMode === '3d') graph3DRef.current?.fitToScreen();
+    else fitToScreen();
+  }, [displayMode, fitToScreen]);
 
   // Clear selection
   const handleClearSelection = useCallback(() => {
     setSelectedNodeId(null);
-    fitToScreen();
-  }, [setSelectedNodeId, fitToScreen]);
+    handleFitToScreen();
+  }, [setSelectedNodeId, handleFitToScreen]);
 
   const isLayoutRunning = appState.isLayoutRunning;
 
@@ -196,8 +252,42 @@ export function GraphCanvas() {
       {/* G6 container */}
       <div
         ref={containerRef}
-        className="g6-container h-full w-full cursor-grab active:cursor-grabbing"
+        aria-hidden={displayMode === '3d'}
+        className={`g6-container h-full w-full cursor-grab active:cursor-grabbing ${
+          displayMode === '3d' ? 'invisible pointer-events-none' : ''
+        }`}
       />
+
+      {hasLoaded3D && graph3DBuild && (
+        <div
+          aria-hidden={displayMode !== '3d'}
+          className={`absolute inset-0 z-[5] ${displayMode !== '3d' ? 'invisible pointer-events-none' : ''}`}
+        >
+          <Suspense fallback={(
+            <div className="absolute inset-0 flex items-center justify-center bg-void" role="status">
+              <div className="flex items-center gap-2 rounded-lg border border-border-subtle bg-elevated/95 px-4 py-3 text-sm text-text-secondary shadow-panel">
+                <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                正在加载 3D 图谱…
+              </div>
+            </div>
+          )}>
+            <LazyGraphCanvas3D
+              ref={graph3DRef}
+              active={displayMode === '3d'}
+              build={graph3DBuild}
+              selectedNodeId={selectedNodeId}
+              searchHitIds={searchHitIds}
+              previewNodeId={hoveredNode?.id ?? hoverNodeId}
+              themeMode={themeMode}
+              showLabels={showLabels}
+              onNodeClick={handleNodeClick}
+              onNodeHover={handleNodeHover}
+              onStageClick={handleStageClick}
+              onLayoutRunningChange={setIsLayoutRunning}
+            />
+          </Suspense>
+        </div>
+      )}
 
       <div className="absolute left-4 top-4 z-20 flex max-w-[min(660px,calc(100%-2rem))] animate-slide-up items-center gap-2 rounded-lg border border-border-subtle bg-elevated/95 px-3 py-2 shadow-panel backdrop-blur-sm">
         <div className={`h-2.5 w-2.5 shrink-0 rounded-full ${selectedNode ? 'bg-accent shadow-glow' : 'bg-node-process'}`} />
@@ -225,7 +315,7 @@ export function GraphCanvas() {
             </>
           ) : (
             <button
-              onClick={fitToScreen}
+              onClick={handleFitToScreen}
               className="rounded-md border border-border-subtle bg-surface px-2 py-1 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
             >
               适应
@@ -233,6 +323,48 @@ export function GraphCanvas() {
           )}
         </div>
       </div>
+
+      <div
+        className="okm-detail-aware-right absolute top-4 z-30 flex items-center rounded-lg border border-border-subtle bg-elevated/95 p-1 shadow-panel backdrop-blur-sm"
+        data-detail-open={Boolean(selectedNode)}
+        role="group"
+        aria-label="图谱显示模式"
+      >
+        <button
+          type="button"
+          onClick={() => setDisplayMode('2d')}
+          aria-pressed={displayMode === '2d'}
+          className={`flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors ${
+            displayMode === '2d' ? 'bg-accent text-white shadow-glow-soft' : 'text-text-secondary hover:bg-hover hover:text-text-primary'
+          }`}
+          title="二维分析视图"
+        >
+          <Network className="h-3.5 w-3.5" />
+          2D
+        </button>
+        <button
+          type="button"
+          onClick={() => setDisplayMode('3d')}
+          disabled={!canUse3D}
+          aria-pressed={displayMode === '3d'}
+          className={`flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors disabled:opacity-40 ${
+            displayMode === '3d' ? 'bg-accent text-white shadow-glow-soft' : 'text-text-secondary hover:bg-hover hover:text-text-primary'
+          }`}
+          title={canUse3D ? '三维探索视图' : '当前浏览器不支持 WebGL'}
+        >
+          <Box className="h-3.5 w-3.5" />
+          3D
+        </button>
+      </div>
+
+      {displayMode === '3d' && (
+        <div
+          className="okm-detail-aware-right pointer-events-none absolute top-[60px] z-20 rounded-md border border-border-subtle bg-elevated/82 px-2.5 py-1.5 text-[11px] text-text-muted shadow-panel backdrop-blur-sm"
+          data-detail-open={Boolean(selectedNode)}
+        >
+          拖拽旋转 · 滚轮缩放 · 点击节点查看关联节点
+        </div>
+      )}
 
       {selectedNode && radialBuild && (
         <div className="pointer-events-none absolute left-4 top-[76px] z-20 max-w-[min(560px,calc(100%-2rem))] rounded-lg border border-border-subtle bg-elevated/90 px-3 py-2 text-[11px] leading-5 text-text-muted shadow-panel backdrop-blur-sm">
@@ -264,14 +396,17 @@ export function GraphCanvas() {
       )}
 
       {/* Graph Controls - Bottom Right */}
-      <div className="okm-tool-dock absolute bottom-4 right-4 z-10 flex flex-col gap-1 rounded-lg border border-border-subtle bg-elevated/95 p-1 shadow-panel backdrop-blur-sm">
-        <button onClick={zoomIn} aria-label="放大图谱" className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary" title="放大">
+      <div
+        className="okm-detail-aware-right okm-tool-dock absolute bottom-4 z-10 flex flex-col gap-1 rounded-lg border border-border-subtle bg-elevated/95 p-1 shadow-panel backdrop-blur-sm"
+        data-detail-open={Boolean(selectedNode)}
+      >
+        <button onClick={handleZoomIn} aria-label="放大图谱" className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary" title="放大">
           <ZoomIn className="h-4 w-4" />
         </button>
-        <button onClick={zoomOut} aria-label="缩小图谱" className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary" title="缩小">
+        <button onClick={handleZoomOut} aria-label="缩小图谱" className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary" title="缩小">
           <ZoomOut className="h-4 w-4" />
         </button>
-        <button onClick={fitToScreen} aria-label="让图谱适应屏幕" className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary" title="适应屏幕">
+        <button onClick={handleFitToScreen} aria-label="让图谱适应屏幕" className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-hover hover:text-text-primary" title="适应屏幕">
           <Maximize2 className="h-4 w-4" />
         </button>
         <div className="my-1 h-px bg-border-subtle" />
@@ -280,7 +415,7 @@ export function GraphCanvas() {
             <RotateCcw className="h-4 w-4" />
           </button>
         )}
-        {!selectedNode && graphBuild?.communitySource !== 'embedding' && (
+        {displayMode === '2d' && !selectedNode && graphBuild?.communitySource !== 'embedding' && (
           <>
             <div className="my-1 h-px bg-border-subtle" />
             <button
