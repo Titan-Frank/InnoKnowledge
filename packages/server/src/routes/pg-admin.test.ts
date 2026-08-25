@@ -17,6 +17,7 @@ function sqlText(strings: TemplateStringsArray): string {
 }
 
 function routeSql(options: {
+  exportRows?: Record<string, Array<Record<string, unknown>>>;
   matchedOnlyCount?: number;
   runningJobCount?: number;
   stopBookDeleteAtLock?: boolean;
@@ -81,6 +82,8 @@ function routeSql(options: {
   query.unsafe = (async (sql: string, values: unknown[] = []) => {
     unsafeCalls.push({ query: sql, values });
     if (options.stopBookDeleteAtLock) throw new Error('book-delete-reached-shared-lock');
+    const exportTable = sql.match(/^SELECT \* FROM "([a-z0-9_]+)" WHERE dataset_id = \$1/)?.[1];
+    if (exportTable) return options.exportRows?.[exportTable] ?? [];
     return [];
   }) as Sql['unsafe'];
   query.begin = (async (callback: (tx: Sql) => Promise<unknown>) => callback(query)) as unknown as Sql['begin'];
@@ -92,6 +95,66 @@ test('PG admin table allowlist exposes world-v1.2 tables without accepting arbit
   assert.equal(isPgAdminTable('world_evidence'), true);
   assert.equal(isPgAdminTable('users'), false);
   assert.equal(isPgAdminTable('world_nodes; DROP TABLE world_nodes'), false);
+});
+
+test('PG admin exports only selected allowlisted tables for the resolved dataset', async () => {
+  const { sql, unsafeCalls } = routeSql({
+    exportRows: { world_nodes: [{ dataset_id: 'main', id: 'node-1', name: 'Motion' }] },
+  });
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tables: ['world_nodes', 'world_nodes'], include_books: false }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('Content-Type') ?? '', /^application\/json/);
+  assert.match(response.headers.get('Content-Disposition') ?? '', /^attachment; filename="okm-pg-main-\d{4}-\d{2}-\d{2}\.json"$/);
+  assert.equal(response.headers.get('Cache-Control'), 'no-store');
+  const payload = await response.json() as {
+    export_version: string;
+    dataset_id: string;
+    schema_version: string;
+    books?: unknown[];
+    tables: Record<string, { columns: unknown[]; rows: unknown[] }>;
+  };
+  assert.equal(payload.export_version, 'pg-admin-v1');
+  assert.equal(payload.dataset_id, 'main');
+  assert.equal(payload.schema_version, 'world-v1.2');
+  assert.equal('books' in payload, false);
+  assert.deepEqual(Object.keys(payload.tables), ['world_nodes']);
+  assert.deepEqual(payload.tables.world_nodes?.rows, [{ dataset_id: 'main', id: 'node-1', name: 'Motion' }]);
+  assert.ok((payload.tables.world_nodes?.columns.length ?? 0) > 0);
+  assert.deepEqual(unsafeCalls, [{
+    query: 'SELECT * FROM "world_nodes" WHERE dataset_id = $1 ORDER BY "dataset_id", "id"',
+    values: ['main'],
+  }]);
+});
+
+test('PG admin export rejects empty and unsupported selections without reading table rows', async () => {
+  const { sql, unsafeCalls } = routeSql();
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const emptyResponse = await app.request('/api/source/main/pg/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tables: [], include_books: false }),
+  });
+  assert.equal(emptyResponse.status, 400);
+  assert.match((await emptyResponse.json() as { error: string }).error, /Select at least one/);
+
+  const unsupportedResponse = await app.request('/api/source/main/pg/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tables: ['users; DROP TABLE users'], include_books: false }),
+  });
+  assert.equal(unsupportedResponse.status, 400);
+  assert.match((await unsupportedResponse.json() as { error: string }).error, /unsupported PostgreSQL table/);
+  assert.equal(unsafeCalls.length, 0);
 });
 
 test('canonical, reducer-output, and pipeline-lineage tables are browse-only in generic PG admin routes', async () => {

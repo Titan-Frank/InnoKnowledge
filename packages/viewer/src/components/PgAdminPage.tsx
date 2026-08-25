@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Database,
+  Download,
   KeyRound,
   Loader2,
   Pencil,
@@ -31,6 +32,7 @@ import {
 import {
   deletePgAdminBook,
   deletePgAdminRow,
+  exportPgAdminData,
   loadPgAdminBooks,
   loadPgAdminCatalog,
   loadPgAdminRows,
@@ -478,6 +480,129 @@ function TableView({
   );
 }
 
+function ExportDialog({
+  catalog,
+  includeBooks,
+  selectedTables,
+  busy,
+  error,
+  onIncludeBooksChange,
+  onSelectedTablesChange,
+  onSelectCurrent,
+  onClose,
+  onExport,
+}: {
+  catalog: PgAdminCatalogResponse;
+  includeBooks: boolean;
+  selectedTables: string[];
+  busy: boolean;
+  error: string;
+  onIncludeBooksChange: (value: boolean) => void;
+  onSelectedTablesChange: (tables: string[]) => void;
+  onSelectCurrent: () => void;
+  onClose: () => void;
+  onExport: () => void;
+}) {
+  const selected = new Set(selectedTables);
+  const selectionCount = selectedTables.length + (includeBooks ? 1 : 0);
+  const estimatedRows = catalog.tables
+    .filter((table) => selected.has(table.name))
+    .reduce((sum, table) => sum + table.estimated_rows, 0);
+
+  const toggleTable = (tableName: string, checked: boolean) => {
+    onSelectedTablesChange(checked
+      ? [...selectedTables, tableName]
+      : selectedTables.filter((name) => name !== tableName));
+  };
+
+  const toggleGroup = (group: PgAdminTable['group'], checked: boolean) => {
+    const groupNames = catalog.tables.filter((table) => table.group === group).map((table) => table.name);
+    const next = checked
+      ? [...new Set([...selectedTables, ...groupNames])]
+      : selectedTables.filter((name) => !groupNames.includes(name));
+    onSelectedTablesChange(next);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-void/75 p-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <div className="flex max-h-[min(820px,calc(100vh-2rem))] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-border-default bg-elevated shadow-panel" role="dialog" aria-modal="true" aria-labelledby="pg-export-title">
+        <div className="flex items-start justify-between border-b border-border-subtle px-5 py-4">
+          <div className="flex min-w-0 gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/12 text-accent"><Download className="h-4.5 w-4.5" /></div>
+            <div className="min-w-0">
+              <h2 id="pg-export-title" className="text-sm font-semibold text-text-primary">导出 PostgreSQL 数据</h2>
+              <p className="mt-1 text-xs leading-5 text-text-muted">选择要写入 JSON 文件的教材汇总和原始数据表。所有表均限定为当前数据集。</p>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} disabled={busy} className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-text-muted transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50" aria-label="关闭导出面板"><X className="h-4 w-4" /></button>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle bg-surface/45 px-5 py-2.5">
+          <div className="flex flex-wrap gap-1.5">
+            <button type="button" onClick={onSelectCurrent} className="h-7 cursor-pointer rounded-md border border-border-subtle bg-elevated px-2.5 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary">当前内容</button>
+            <button type="button" onClick={() => { onIncludeBooksChange(true); onSelectedTablesChange(catalog.tables.map((table) => table.name)); }} className="h-7 cursor-pointer rounded-md border border-border-subtle bg-elevated px-2.5 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary">全选</button>
+            <button type="button" onClick={() => { onIncludeBooksChange(false); onSelectedTablesChange([]); }} className="h-7 cursor-pointer rounded-md border border-border-subtle bg-elevated px-2.5 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary">清空</button>
+          </div>
+          <div className="text-[11px] text-text-muted">已选 <span className="font-mono font-semibold text-text-primary">{selectionCount}</span> 项 · 约 <span className="font-mono text-text-primary">{estimatedRows.toLocaleString()}</span> 行表数据</div>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 scrollbar-thin">
+          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border-subtle bg-surface px-3 py-2.5 transition-colors hover:border-border-default hover:bg-hover/60">
+            <span className="flex min-w-0 items-center gap-2.5">
+              <input type="checkbox" checked={includeBooks} onChange={(event) => onIncludeBooksChange(event.target.checked)} className="h-3.5 w-3.5 cursor-pointer accent-accent" />
+              <span><span className="block text-xs font-medium text-text-primary">教材汇总</span><span className="mt-0.5 block text-[10px] text-text-muted">教材名称、课时、任务、节点、边和证据统计</span></span>
+            </span>
+            <BookOpen className="h-4 w-4 shrink-0 text-text-muted" />
+          </label>
+
+          <div className="mt-4 space-y-4">
+            {GROUP_ORDER.map((group) => {
+              const tables = catalog.tables.filter((table) => table.group === group);
+              if (!tables.length) return null;
+              const checkedCount = tables.filter((table) => selected.has(table.name)).length;
+              const allChecked = checkedCount === tables.length;
+              return (
+                <fieldset key={group}>
+                  <legend className="flex w-full items-center justify-between pb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">
+                    <span>{GROUP_LABELS[group]}</span>
+                    <label className="flex cursor-pointer items-center gap-1.5 normal-case tracking-normal">
+                      <input type="checkbox" checked={allChecked} ref={(input) => { if (input) input.indeterminate = checkedCount > 0 && !allChecked; }} onChange={(event) => toggleGroup(group, event.target.checked)} className="h-3.5 w-3.5 cursor-pointer accent-accent" />
+                      {checkedCount}/{tables.length}
+                    </label>
+                  </legend>
+                  <div className="grid gap-1.5 sm:grid-cols-2">
+                    {tables.map((table) => (
+                      <label key={table.name} className="flex cursor-pointer items-center justify-between gap-3 rounded-md border border-border-subtle bg-surface px-3 py-2 transition-colors hover:border-border-default hover:bg-hover/60">
+                        <span className="flex min-w-0 items-center gap-2">
+                          <input type="checkbox" checked={selected.has(table.name)} onChange={(event) => toggleTable(table.name, event.target.checked)} className="h-3.5 w-3.5 shrink-0 cursor-pointer accent-accent" />
+                          <span className="truncate font-mono text-[11px] text-text-primary">{table.name}</span>
+                        </span>
+                        <span className="shrink-0 font-mono text-[10px] text-text-muted">~{table.estimated_rows.toLocaleString()}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              );
+            })}
+          </div>
+          {error && <div className="mt-4 flex items-start gap-2 rounded-md border border-node-event/35 bg-node-event/10 p-2.5 text-xs text-node-event" role="alert"><AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{error}</div>}
+        </div>
+
+        <div className="flex items-center justify-between gap-3 border-t border-border-subtle bg-surface/50 px-5 py-3">
+          <span className="text-[10px] text-text-muted">向量表可能生成较大的文件，导出期间请保持页面打开。</span>
+          <div className="flex shrink-0 gap-2">
+            <button type="button" onClick={onClose} disabled={busy} className="h-9 cursor-pointer rounded-md border border-border-subtle bg-elevated px-4 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50">取消</button>
+            <button type="button" onClick={onExport} disabled={busy || selectionCount === 0} className="flex h-9 cursor-pointer items-center gap-1.5 rounded-md bg-accent px-4 text-xs font-medium text-white transition-colors hover:bg-accent/85 disabled:cursor-not-allowed disabled:opacity-40">
+              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+              {busy ? '正在导出' : '下载 JSON'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PgAdminPage() {
   const { selectedSourceKey } = useAppState();
   const sourceKey = selectedSourceKey || new URLSearchParams(window.location.search).get('source') || 'main';
@@ -501,6 +626,11 @@ export function PgAdminPage() {
   const [confirmation, setConfirmation] = useState('');
   const [mutationBusy, setMutationBusy] = useState(false);
   const [mutationError, setMutationError] = useState('');
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportTables, setExportTables] = useState<string[]>([]);
+  const [exportBooks, setExportBooks] = useState(false);
+  const [exportBusy, setExportBusy] = useState(false);
+  const [exportError, setExportError] = useState('');
   const sourceKeyRef = useRef(sourceKey);
   const catalogRequestRef = useRef(0);
   const booksRequestRef = useRef(0);
@@ -569,6 +699,7 @@ export function PgAdminPage() {
     setRows(null);
     setSelectedRow(null);
     setDialogTarget(null);
+    setExportOpen(false);
     setConfirmation('');
     setMutationError('');
     setError('');
@@ -638,6 +769,41 @@ export function PgAdminPage() {
     }
   };
 
+  const selectCurrentExportContent = () => {
+    setExportBooks(view === 'books');
+    setExportTables(view === 'tables' && activeTable ? [activeTable.name] : []);
+  };
+
+  const openExport = () => {
+    selectCurrentExportContent();
+    setExportError('');
+    setExportOpen(true);
+  };
+
+  const runExport = async () => {
+    if (!catalog || (!exportBooks && exportTables.length === 0)) return;
+    setExportBusy(true);
+    setExportError('');
+    try {
+      const { blob, filename } = await exportPgAdminData(sourceKey, { tables: exportTables, include_books: exportBooks });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.style.display = 'none';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      setExportOpen(false);
+      setNotice(`已导出 ${exportTables.length + (exportBooks ? 1 : 0)} 项内容：${filename}`);
+    } catch (downloadError) {
+      setExportError((downloadError as Error).message || '导出失败');
+    } finally {
+      setExportBusy(false);
+    }
+  };
+
   const estimatedRows = catalog?.tables.reduce((sum, table) => sum + table.estimated_rows, 0) ?? 0;
 
   return (
@@ -658,6 +824,7 @@ export function PgAdminPage() {
                 return <button key={item.id} type="button" onClick={() => setView(item.id)} className={`flex min-w-24 cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 text-xs font-medium transition-colors ${view === item.id ? 'bg-accent text-white shadow-glow-soft' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}><Icon className="h-3.5 w-3.5" />{item.label}</button>;
               })}
             </nav>
+            <button type="button" onClick={openExport} disabled={!catalog} className="flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-accent/35 bg-accent/10 px-3 text-xs font-medium text-accent transition-colors hover:bg-accent/15 disabled:cursor-not-allowed disabled:opacity-40"><Download className="h-3.5 w-3.5" />导出</button>
             <button type="button" onClick={() => void refreshAll()} disabled={loadingCatalog || loadingBooks || loadingRows} className="flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-3 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-wait disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${loadingCatalog || loadingBooks || loadingRows ? 'animate-spin' : ''}`} />刷新</button>
           </div>
         </div>
@@ -702,6 +869,7 @@ export function PgAdminPage() {
       </div>
 
       {dialogTarget && <ConfirmDialog target={dialogTarget} table={activeTable} confirmation={confirmation} setConfirmation={setConfirmation} busy={mutationBusy} error={mutationError} onClose={closeDialog} onConfirm={() => void confirmDelete()} />}
+      {exportOpen && catalog && <ExportDialog catalog={catalog} includeBooks={exportBooks} selectedTables={exportTables} busy={exportBusy} error={exportError} onIncludeBooksChange={setExportBooks} onSelectedTablesChange={setExportTables} onSelectCurrent={selectCurrentExportContent} onClose={() => !exportBusy && setExportOpen(false)} onExport={() => void runExport()} />}
     </main>
   );
 }

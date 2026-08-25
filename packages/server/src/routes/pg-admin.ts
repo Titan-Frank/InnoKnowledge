@@ -6,6 +6,8 @@ import type {
   PgAdminCatalogResponse,
   PgAdminColumn,
   PgAdminDeleteRequest,
+  PgAdminExportPayload,
+  PgAdminExportRequest,
   PgAdminMutationResponse,
   PgAdminRowsResponse,
   PgAdminTable,
@@ -102,6 +104,11 @@ function parseLimit(value: string | undefined): number {
 
 function parseOffset(value: string | undefined): number {
   return Math.max(0, Math.floor(Number(value) || 0));
+}
+
+function exportFilename(datasetId: string, exportedAt: string): string {
+  const safeDatasetId = datasetId.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'dataset';
+  return `okm-pg-${safeDatasetId}-${exportedAt.slice(0, 10)}.json`;
 }
 
 function isEditableColumn(
@@ -442,6 +449,58 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
     } catch (error) {
       const message = (error as Error).message || 'Failed to load PostgreSQL rows.';
       return c.json({ error: message }, message.startsWith('Unsupported') ? 404 : 400);
+    }
+  });
+
+  app.post('/api/source/:key/pg/export', async (c) => {
+    try {
+      const dataset = await resolveDatasetRow(sql, c.req.param('key'));
+      if (!dataset) return c.json({ error: 'Unknown source' }, 404);
+      const body = await c.req.json<PgAdminExportRequest>().catch(() => null);
+      if (!body || !Array.isArray(body.tables) || typeof body.include_books !== 'boolean') {
+        return c.json({ error: 'Invalid export payload.' }, 400);
+      }
+      if (!body.include_books && body.tables.length === 0) {
+        return c.json({ error: 'Select at least one export item.' }, 400);
+      }
+      if (body.tables.some((table) => typeof table !== 'string' || !isPgAdminTable(table))) {
+        return c.json({ error: 'Export contains an unsupported PostgreSQL table.' }, 400);
+      }
+
+      const tableNames = [...new Set(body.tables)];
+      const availableTables = await loadTableMetadata(sql);
+      const selectedTables = tableNames.map((tableName) => requireAdminTable(tableName, availableTables));
+      const exportedTables: PgAdminExportPayload['tables'] = {};
+      for (const table of selectedTables) {
+        const orderBy = table.primary_key.length
+          ? ` ORDER BY ${table.primary_key.map(quoteIdentifier).join(', ')}`
+          : '';
+        const rows = await sql.unsafe(
+          `SELECT * FROM ${quoteIdentifier(table.name)} WHERE dataset_id = $1${orderBy}`,
+          [dataset.dataset_id],
+        ) as unknown as Row[];
+        exportedTables[table.name] = { columns: table.columns, rows };
+      }
+
+      const exportedAt = new Date().toISOString();
+      const datasetId = textValue(dataset.dataset_id);
+      const payload: PgAdminExportPayload = {
+        export_version: 'pg-admin-v1',
+        exported_at: exportedAt,
+        dataset_id: datasetId,
+        schema_version: textValue(dataset.schema_version) || 'world-v1.2',
+        ...(body.include_books ? { books: (await loadBooks(sql, datasetId)).books } : {}),
+        tables: exportedTables,
+      };
+      return new Response(JSON.stringify(payload, null, 2), {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Content-Disposition': `attachment; filename="${exportFilename(datasetId, exportedAt)}"`,
+          'Cache-Control': 'no-store',
+        },
+      });
+    } catch (error) {
+      return c.json({ error: (error as Error).message || 'Failed to export PostgreSQL data.' }, 400);
     }
   });
 

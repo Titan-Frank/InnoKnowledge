@@ -612,6 +612,25 @@ export interface PgAdminBookDeleteResponse {
   deleted: Record<string, number>;
 }
 
+export interface PgAdminExportRequest {
+  tables: string[];
+  include_books: boolean;
+}
+
+export interface PgAdminExportTable {
+  columns: PgAdminColumn[];
+  rows: Array<Record<string, unknown>>;
+}
+
+export interface PgAdminExportPayload {
+  export_version: 'pg-admin-v1';
+  exported_at: string;
+  dataset_id: string;
+  schema_version: string;
+  books?: PgAdminBookSummary[];
+  tables: Record<string, PgAdminExportTable>;
+}
+
 export interface ApiErrorResponse {
   error: string;
 }

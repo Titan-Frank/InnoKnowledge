@@ -30,6 +30,7 @@ export type {
   PgAdminColumn, PgAdminTable, PgAdminCatalogResponse, PgAdminRowsResponse,
   PgAdminUpdateRequest, PgAdminDeleteRequest, PgAdminMutationResponse,
   PgAdminBookSummary, PgAdminBooksResponse, PgAdminBookDeleteRequest, PgAdminBookDeleteResponse,
+  PgAdminExportRequest, PgAdminExportTable, PgAdminExportPayload,
 } from './api.js';
 
 export type {
