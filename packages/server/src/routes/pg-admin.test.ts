@@ -52,6 +52,9 @@ function routeSql(options: {
         { table_name: 'world_merge_runs', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_canonical_node_map', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_unit_embeddings', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_textbook_outlines', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_textbook_outlines', column_name: 'book_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_textbook_outlines', column_name: 'title', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: false },
         { table_name: 'world_staging_nodes', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_staging_nodes', column_name: 'lesson_run_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_staging_nodes', column_name: 'raw_node_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
@@ -286,22 +289,56 @@ test('PG admin rejects non-numeric JSON values instead of coercing them', async 
   assert.equal(unsafeCalls.length, 0);
 });
 
-test('PG admin blocks staging mutations while a pipeline job is running', async () => {
+test('PG admin rejects structured values for text columns instead of coercing them', async () => {
+  const { sql, unsafeCalls } = routeSql();
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  for (const value of [{}, [], 42, true]) {
+    const response = await app.request('/api/source/main/pg/tables/world_staging_nodes/rows', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        primary_key: { dataset_id: 'main', lesson_run_id: 'lesson-1', raw_node_id: 'raw-1' },
+        changes: { name: value },
+      }),
+    });
+    assert.equal(response.status, 400);
+    assert.match((await response.json() as { error: string }).error, /name must be a string/);
+  }
+  assert.equal(unsafeCalls.length, 0);
+});
+
+test('PG admin blocks mutable staging and catalog rows while a pipeline job is running', async () => {
   const { sql, unsafeCalls } = routeSql({ runningJobCount: 1 });
   const app = new Hono();
   registerPgAdminRoutes(app, sql);
 
-  const response = await app.request('/api/source/main/pg/tables/world_staging_nodes/rows', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+  const mutations = [
+    {
+      table: 'world_staging_nodes',
       primary_key: { dataset_id: 'main', lesson_run_id: 'lesson-1', raw_node_id: 'raw-1' },
       changes: { name: 'Changed' },
-    }),
-  });
-  assert.equal(response.status, 409);
-  assert.match((await response.json() as { error: string }).error, /pipeline job is running/);
-  assert.deepEqual(unsafeCalls, [{ query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
+    },
+    {
+      table: 'world_textbook_outlines',
+      primary_key: { dataset_id: 'main', book_id: 'book-1' },
+      changes: { title: 'Changed' },
+    },
+  ];
+  for (const mutation of mutations) {
+    const response = await app.request(`/api/source/main/pg/tables/${mutation.table}/rows`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ primary_key: mutation.primary_key, changes: mutation.changes }),
+    });
+    assert.equal(response.status, 409);
+    assert.match((await response.json() as { error: string }).error, /pipeline job is running/);
+  }
+  assert.deepEqual(unsafeCalls, [
+    { query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] },
+    { query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] },
+  ]);
 });
 
 test('quoteIdentifier only quotes normalized PostgreSQL identifiers', () => {

@@ -241,7 +241,8 @@ function mutationValue(sql: Sql, column: PgAdminColumn, value: unknown): { value
     if (typeof value !== 'boolean') throw new Error(`${column.name} must be true or false.`);
     return { value, cast: '::boolean' };
   }
-  return { value: String(value), cast: '' };
+  if (typeof value !== 'string') throw new Error(`${column.name} must be a string.`);
+  return { value, cast: '' };
 }
 
 function wherePrimaryKey(table: PgAdminTable, primaryKey: Record<string, unknown>, startIndex: number): { sql: string; values: SqlParameter[] } {
@@ -462,9 +463,14 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       const keyWhere = wherePrimaryKey(table, primaryKey, values.length + 2);
       const rows = await sql.begin(async (tx) => {
         await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [textValue(dataset.dataset_id)]);
-        if (table.group === 'staging') {
-          const running = await tx`SELECT count(*) AS count FROM world_pipeline_jobs WHERE dataset_id = ${dataset.dataset_id} AND status = 'running'` as unknown as Row[];
-          if (numberValue(running[0]?.count) > 0) throw new AdminConflictError('Staging rows cannot be changed while a pipeline job is running.');
+        const running = await tx`
+          SELECT count(*) AS count
+          FROM world_pipeline_jobs
+          WHERE dataset_id = ${dataset.dataset_id}
+            AND status = 'running'
+        ` as unknown as Row[];
+        if (numberValue(running[0]?.count) > 0) {
+          throw new AdminConflictError('Rows cannot be changed while a pipeline job is running.');
         }
         return tx.unsafe(`UPDATE ${quoteIdentifier(tableName)} SET ${setSql} WHERE dataset_id = $${values.length + 1} AND ${keyWhere.sql} RETURNING *`, [...values, dataset.dataset_id, ...keyWhere.values]);
       }) as unknown as Row[];
@@ -492,9 +498,14 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       const keyWhere = wherePrimaryKey(table, primaryKey, 2);
       const rows = await sql.begin(async (tx) => {
         await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [textValue(dataset.dataset_id)]);
-        if (table.group === 'staging') {
-          const running = await tx`SELECT count(*) AS count FROM world_pipeline_jobs WHERE dataset_id = ${dataset.dataset_id} AND status = 'running'` as unknown as Row[];
-          if (numberValue(running[0]?.count) > 0) throw new AdminConflictError('Staging rows cannot be changed while a pipeline job is running.');
+        const running = await tx`
+          SELECT count(*) AS count
+          FROM world_pipeline_jobs
+          WHERE dataset_id = ${dataset.dataset_id}
+            AND status = 'running'
+        ` as unknown as Row[];
+        if (numberValue(running[0]?.count) > 0) {
+          throw new AdminConflictError('Rows cannot be changed while a pipeline job is running.');
         }
         return tx.unsafe(`DELETE FROM ${quoteIdentifier(tableName)} WHERE dataset_id = $1 AND ${keyWhere.sql} RETURNING 1`, [dataset.dataset_id, ...keyWhere.values]);
       }) as unknown as Row[];
