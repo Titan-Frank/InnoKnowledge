@@ -2,11 +2,11 @@ import type { Hono } from 'hono';
 import type {
   PgAdminBookDeleteRequest,
   PgAdminBookDeleteResponse,
+  PgAdminBookSummary,
   PgAdminBooksResponse,
   PgAdminCatalogResponse,
   PgAdminColumn,
   PgAdminDeleteRequest,
-  PgAdminExportPayload,
   PgAdminExportRequest,
   PgAdminMutationResponse,
   PgAdminRowsResponse,
@@ -117,6 +117,26 @@ function exportSizeError(bytes: number): AdminExportTooLargeError {
   const requestedMiB = Math.max(1, Math.ceil(bytes / 1024 / 1024));
   const limitMiB = PG_ADMIN_EXPORT_MAX_BYTES / 1024 / 1024;
   return new AdminExportTooLargeError(`Export is approximately ${requestedMiB} MiB; the limit is ${limitMiB} MiB. Select fewer tables.`);
+}
+
+function buildExportJson(options: {
+  exportedAt: string;
+  datasetId: string;
+  schemaVersion: string;
+  books?: PgAdminBookSummary[];
+  tables: Array<{ table: PgAdminTable; rowJson: string[] }>;
+}): string {
+  const fields = [
+    `"export_version":"pg-admin-v1"`,
+    `"exported_at":${JSON.stringify(options.exportedAt)}`,
+    `"dataset_id":${JSON.stringify(options.datasetId)}`,
+    `"schema_version":${JSON.stringify(options.schemaVersion)}`,
+    ...(options.books ? [`"books":${JSON.stringify(options.books)}`] : []),
+    `"tables":{${options.tables.map(({ table, rowJson }) => (
+      `${JSON.stringify(table.name)}:{"columns":${JSON.stringify(table.columns)},"rows":[${rowJson.join(',')}]}`
+    )).join(',')}}`,
+  ];
+  return `{${fields.join(',')}}`;
 }
 
 function isEditableColumn(
@@ -365,6 +385,30 @@ async function loadBooks(sql: Sql | TransactionSql, datasetId: string): Promise<
   };
 }
 
+async function estimateBooksExportBytes(sql: Sql | TransactionSql, datasetId: string): Promise<number> {
+  const rows = await sql`
+    WITH book_keys AS (
+      SELECT book_id FROM world_textbook_outlines WHERE dataset_id = ${datasetId}
+      UNION SELECT book_id FROM world_mineru_sources WHERE dataset_id = ${datasetId}
+      UNION SELECT book_id FROM world_lesson_runs WHERE dataset_id = ${datasetId}
+      UNION SELECT book_id FROM world_pipeline_jobs WHERE dataset_id = ${datasetId}
+      UNION SELECT book_id FROM world_source_artifacts WHERE dataset_id = ${datasetId} AND book_id IS NOT NULL
+    ), book_export_rows AS (
+      SELECT bk.book_id, COALESCE(MAX(o.title), MAX(a.title), bk.book_id) AS title
+      FROM book_keys bk
+      LEFT JOIN world_textbook_outlines o ON o.dataset_id = ${datasetId} AND o.book_id = bk.book_id
+      LEFT JOIN world_source_artifacts a ON a.dataset_id = ${datasetId} AND a.book_id = bk.book_id
+      WHERE bk.book_id IS NOT NULL AND bk.book_id <> ''
+      GROUP BY bk.book_id
+    )
+    SELECT
+      count(*) AS row_count,
+      COALESCE(sum(octet_length(to_jsonb(book_export_rows)::text)), 0) AS json_bytes
+    FROM book_export_rows
+  ` as unknown as Row[];
+  return numberValue(rows[0]?.json_bytes) + numberValue(rows[0]?.row_count) * 512;
+}
+
 async function deleteBook(sql: Sql, datasetId: string, bookId: string): Promise<PgAdminBookDeleteResponse> {
   return sql.begin(async (tx) => {
     await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [datasetId]);
@@ -484,6 +528,10 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
         let projectedBytes = 1024 + Buffer.byteLength(JSON.stringify(
           selectedTables.map((table) => ({ name: table.name, columns: table.columns })),
         ));
+        if (body.include_books) {
+          projectedBytes += await estimateBooksExportBytes(tx, datasetId);
+          if (projectedBytes > PG_ADMIN_EXPORT_MAX_BYTES) throw exportSizeError(projectedBytes);
+        }
         for (const table of selectedTables) {
           const sizeRows = await tx.unsafe(
             `SELECT count(*) AS row_count, COALESCE(sum(octet_length(to_jsonb(t)::text)), 0) AS json_bytes FROM ${quoteIdentifier(table.name)} t WHERE t.dataset_id = $1`,
@@ -494,28 +542,31 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
           if (projectedBytes > PG_ADMIN_EXPORT_MAX_BYTES) throw exportSizeError(projectedBytes);
         }
 
-        const exportedTables: PgAdminExportPayload['tables'] = {};
+        const exportedTables: Array<{ table: PgAdminTable; rowJson: string[] }> = [];
         for (const table of selectedTables) {
           const orderBy = table.primary_key.length
             ? ` ORDER BY ${table.primary_key.map(quoteIdentifier).join(', ')}`
             : '';
           const rows = await tx.unsafe(
-            `SELECT * FROM ${quoteIdentifier(table.name)} WHERE dataset_id = $1${orderBy}`,
+            `SELECT to_jsonb(t)::text AS row_json FROM ${quoteIdentifier(table.name)} t WHERE t.dataset_id = $1${orderBy}`,
             [dataset.dataset_id],
           ) as unknown as Row[];
-          exportedTables[table.name] = { columns: table.columns, rows };
+          const rowJson = rows.map((row) => {
+            if (typeof row.row_json !== 'string') throw new Error(`PostgreSQL export returned invalid JSON text for ${table.name}.`);
+            return row.row_json;
+          });
+          exportedTables.push({ table, rowJson });
         }
 
         const exportedAt = new Date().toISOString();
-        const payload: PgAdminExportPayload = {
-          export_version: 'pg-admin-v1',
-          exported_at: exportedAt,
-          dataset_id: datasetId,
-          schema_version: textValue(dataset.schema_version) || 'world-v1.2',
-          ...(body.include_books ? { books: (await loadBooks(tx, datasetId)).books } : {}),
+        const books = body.include_books ? (await loadBooks(tx, datasetId)).books : undefined;
+        const json = buildExportJson({
+          exportedAt,
+          datasetId,
+          schemaVersion: textValue(dataset.schema_version) || 'world-v1.2',
+          books,
           tables: exportedTables,
-        };
-        const json = JSON.stringify(payload);
+        });
         const actualBytes = Buffer.byteLength(json);
         if (actualBytes > PG_ADMIN_EXPORT_MAX_BYTES) throw exportSizeError(actualBytes);
         return { json, filename: exportFilename(datasetId, exportedAt) };

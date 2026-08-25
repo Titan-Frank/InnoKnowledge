@@ -18,7 +18,10 @@ function sqlText(strings: TemplateStringsArray): string {
 }
 
 function routeSql(options: {
+  exportBookJsonBytes?: number;
+  exportBookRowCount?: number;
   exportJsonBytes?: Record<string, number>;
+  exportRowJson?: Record<string, string[]>;
   exportRows?: Record<string, Array<Record<string, unknown>>>;
   matchedOnlyCount?: number;
   runningJobCount?: number;
@@ -69,6 +72,12 @@ function routeSql(options: {
         { table_name: 'world_staging_nodes', column_name: 'exact_counter', data_type: 'bigint', udt_name: 'int8', is_nullable: 'NO', estimated_rows: 1, primary_key: false },
       ]);
     }
+    if (text.includes('book_export_rows') && text.includes('AS json_bytes')) {
+      return Promise.resolve([{
+        row_count: options.exportBookRowCount ?? 0,
+        json_bytes: options.exportBookJsonBytes ?? 0,
+      }]);
+    }
     if (text.includes('CREATE TEMP TABLE _pg_admin_target_nodes') && options.stopBookDeleteAtTargetNodes) {
       throw new Error('book-delete-reached-target-nodes');
     }
@@ -88,14 +97,19 @@ function routeSql(options: {
     if (options.stopBookDeleteAtLock) throw new Error('book-delete-reached-shared-lock');
     const sizeTable = sql.match(/AS json_bytes FROM "([a-z0-9_]+)" t WHERE t\.dataset_id = \$1/)?.[1];
     if (sizeTable) {
-      const rows = options.exportRows?.[sizeTable] ?? [];
+      const rowJson = options.exportRowJson?.[sizeTable]
+        ?? (options.exportRows?.[sizeTable] ?? []).map((row) => JSON.stringify(row));
       return [{
-        row_count: rows.length,
-        json_bytes: options.exportJsonBytes?.[sizeTable] ?? Buffer.byteLength(rows.map((row) => JSON.stringify(row)).join('')),
+        row_count: rowJson.length,
+        json_bytes: options.exportJsonBytes?.[sizeTable] ?? Buffer.byteLength(rowJson.join('')),
       }];
     }
-    const exportTable = sql.match(/^SELECT \* FROM "([a-z0-9_]+)" WHERE dataset_id = \$1/)?.[1];
-    if (exportTable) return options.exportRows?.[exportTable] ?? [];
+    const exportTable = sql.match(/^SELECT to_jsonb\(t\)::text AS row_json FROM "([a-z0-9_]+)" t WHERE t\.dataset_id = \$1/)?.[1];
+    if (exportTable) {
+      const rowJson = options.exportRowJson?.[exportTable]
+        ?? (options.exportRows?.[exportTable] ?? []).map((row) => JSON.stringify(row));
+      return rowJson.map((value) => ({ row_json: value }));
+    }
     return [];
   }) as Sql['unsafe'];
   query.begin = (async (
@@ -163,9 +177,31 @@ test('PG admin exports selected tables from one bounded repeatable-read snapshot
   assert.match(unsafeCalls[0]?.query ?? '', /^SELECT count\(\*\) AS row_count, COALESCE\(sum\(octet_length\(to_jsonb\(t\)::text\)\), 0\) AS json_bytes FROM "world_nodes"/);
   assert.deepEqual(unsafeCalls[0]?.values, ['main']);
   assert.deepEqual(unsafeCalls[1], {
-    query: 'SELECT * FROM "world_nodes" WHERE dataset_id = $1 ORDER BY "dataset_id", "id"',
+    query: 'SELECT to_jsonb(t)::text AS row_json FROM "world_nodes" t WHERE t.dataset_id = $1 ORDER BY "dataset_id", "id"',
     values: ['main'],
   });
+});
+
+test('PG admin preserves exact JSONB numeric tokens in exported rows', async () => {
+  const { sql } = routeSql({
+    exportRowJson: {
+      world_nodes: ['{"dataset_id":"main","id":"node-1","properties_json":{"integer":9007199254740993,"decimal":1234567890.123456789}}'],
+    },
+  });
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tables: ['world_nodes'], include_books: false }),
+  });
+
+  assert.equal(response.status, 200);
+  const json = await response.text();
+  assert.match(json, /"integer":9007199254740993/);
+  assert.match(json, /"decimal":1234567890\.123456789/);
+  assert.doesNotMatch(json, /9007199254740992|1234567890\.1234567(?:\D|$)/);
 });
 
 test('PG admin rejects oversized exports before materializing table rows', async () => {
@@ -186,6 +222,28 @@ test('PG admin rejects oversized exports before materializing table rows', async
   assert.deepEqual(transactionOptions, ['ISOLATION LEVEL REPEATABLE READ READ ONLY']);
   assert.equal(unsafeCalls.length, 1);
   assert.match(unsafeCalls[0]?.query ?? '', /AS json_bytes FROM "world_nodes"/);
+});
+
+test('PG admin rejects oversized book summaries before loading the aggregate payload', async () => {
+  const { sql, queryCalls, unsafeCalls, transactionOptions } = routeSql({
+    exportBookJsonBytes: PG_ADMIN_EXPORT_MAX_BYTES + 1,
+    exportBookRowCount: 1,
+  });
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tables: [], include_books: true }),
+  });
+
+  assert.equal(response.status, 413);
+  assert.match((await response.json() as { error: string }).error, /limit is 32 MiB.*Select fewer tables/);
+  assert.deepEqual(transactionOptions, ['ISOLATION LEVEL REPEATABLE READ READ ONLY']);
+  assert.equal(unsafeCalls.length, 0);
+  assert.equal(queryCalls.filter((call) => call.query.includes('book_export_rows')).length, 1);
+  assert.equal(queryCalls.some((call) => call.query.includes('book_node_mappings')), false);
 });
 
 test('PG admin export rejects empty and unsupported selections without reading table rows', async () => {
