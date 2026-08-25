@@ -15,7 +15,7 @@ function sqlText(strings: TemplateStringsArray): string {
   return strings.join('$value').replace(/\s+/g, ' ').trim();
 }
 
-function routeSql(options: { stopBookDeleteAtLock?: boolean; stopBookDeleteAtTargetNodes?: boolean } = {}): {
+function routeSql(options: { matchedOnlyCount?: number; stopBookDeleteAtLock?: boolean; stopBookDeleteAtTargetNodes?: boolean } = {}): {
   sql: Sql;
   queryCalls: Array<{ query: string; values: unknown[] }>;
   unsafeCalls: Array<{ query: string; values: unknown[] }>;
@@ -46,10 +46,17 @@ function routeSql(options: { stopBookDeleteAtLock?: boolean; stopBookDeleteAtTar
         { table_name: 'world_merge_runs', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_canonical_node_map', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_unit_embeddings', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_staging_nodes', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_staging_nodes', column_name: 'lesson_run_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_staging_nodes', column_name: 'raw_node_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_staging_nodes', column_name: 'name', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: false },
       ]);
     }
     if (text.includes('CREATE TEMP TABLE _pg_admin_target_nodes') && options.stopBookDeleteAtTargetNodes) {
       throw new Error('book-delete-reached-target-nodes');
+    }
+    if (text === 'SELECT count(*) AS count FROM _pg_admin_target_matched_only_nodes') {
+      return Promise.resolve([{ count: options.matchedOnlyCount ?? 0 }]);
     }
     return Promise.resolve([]);
   }) as unknown as Sql;
@@ -132,7 +139,7 @@ test('book deletion keeps the Hono-decoded id and acquires the reducer lock key'
   assert.deepEqual(unsafeCalls, [{ query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
 });
 
-test('book deletion only targets canonical nodes created by the selected lessons', async () => {
+test('book deletion targets canonical nodes created or queued for review by the selected lessons', async () => {
   const { sql, queryCalls } = routeSql({ stopBookDeleteAtTargetNodes: true });
   const app = new Hono();
   registerPgAdminRoutes(app, sql);
@@ -147,7 +154,54 @@ test('book deletion only targets canonical nodes created by the selected lessons
 
   const targetNodeQuery = queryCalls.find((call) => call.query.includes('CREATE TEMP TABLE _pg_admin_target_nodes'));
   assert.ok(targetNodeQuery);
-  assert.match(targetNodeQuery.query, /cm\.resolution = 'created'/);
+  assert.match(targetNodeQuery.query, /cm\.resolution IN \('created', 'review'\)/);
+});
+
+test('book deletion rejects matched-only mappings whose reducer outputs cannot be attributed safely', async () => {
+  const { sql } = routeSql({ matchedOnlyCount: 1 });
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/books/book-1', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirmation: 'DELETE BOOK book-1' }),
+  });
+  assert.equal(response.status, 409);
+  assert.match((await response.json() as { error: string }).error, /matched.*schema.*reducer/);
+});
+
+test('mutable staging changes acquire the reducer dataset lock in the same transaction', async () => {
+  const { sql, unsafeCalls } = routeSql();
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/tables/world_staging_nodes/rows', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      primary_key: { dataset_id: 'main', lesson_run_id: 'lesson-1', raw_node_id: 'raw-1' },
+      changes: { name: 'Changed' },
+    }),
+  });
+  assert.equal(response.status, 404);
+  assert.deepEqual(unsafeCalls[0], { query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] });
+  assert.match(unsafeCalls[1]?.query ?? '', /^UPDATE "world_staging_nodes"/);
+
+  const deleteRoute = routeSql();
+  const deleteApp = new Hono();
+  registerPgAdminRoutes(deleteApp, deleteRoute.sql);
+  const deleteResponse = await deleteApp.request('/api/source/main/pg/tables/world_staging_nodes/rows', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      primary_key: { dataset_id: 'main', lesson_run_id: 'lesson-1', raw_node_id: 'raw-1' },
+      confirmation: 'DELETE world_staging_nodes main / lesson-1 / raw-1',
+    }),
+  });
+  assert.equal(deleteResponse.status, 404);
+  assert.deepEqual(deleteRoute.unsafeCalls[0], { query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] });
+  assert.match(deleteRoute.unsafeCalls[1]?.query ?? '', /^DELETE FROM "world_staging_nodes"/);
 });
 
 test('quoteIdentifier only quotes normalized PostgreSQL identifiers', () => {

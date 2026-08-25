@@ -247,13 +247,20 @@ async function loadBooks(sql: Sql, datasetId: string): Promise<PgAdminBooksRespo
       UNION SELECT book_id FROM world_lesson_runs WHERE dataset_id = ${datasetId}
       UNION SELECT book_id FROM world_pipeline_jobs WHERE dataset_id = ${datasetId}
       UNION SELECT book_id FROM world_source_artifacts WHERE dataset_id = ${datasetId} AND book_id IS NOT NULL
-    ), target_nodes AS (
-      SELECT lr.book_id, cm.canonical_node_id
+    ), book_node_mappings AS (
+      SELECT
+        lr.book_id,
+        cm.canonical_node_id,
+        bool_or(cm.resolution IN ('created', 'review')) AS owned
       FROM world_lesson_runs lr
       JOIN world_canonical_node_map cm
         ON cm.dataset_id = lr.dataset_id AND cm.lesson_run_id = lr.lesson_run_id
-      WHERE lr.dataset_id = ${datasetId} AND cm.resolution = 'created'
+      WHERE lr.dataset_id = ${datasetId}
       GROUP BY lr.book_id, cm.canonical_node_id
+    ), target_nodes AS (
+      SELECT book_id, canonical_node_id FROM book_node_mappings WHERE owned
+    ), matched_only_nodes AS (
+      SELECT book_id, canonical_node_id FROM book_node_mappings WHERE NOT owned
     )
     SELECT
       bk.book_id,
@@ -262,12 +269,19 @@ async function loadBooks(sql: Sql, datasetId: string): Promise<PgAdminBooksRespo
       (SELECT count(*) FROM world_pipeline_jobs j WHERE j.dataset_id = ${datasetId} AND j.book_id = bk.book_id) AS pipeline_jobs,
       (SELECT count(*) FROM world_pipeline_jobs j WHERE j.dataset_id = ${datasetId} AND j.book_id = bk.book_id AND j.status = 'running') AS running_jobs,
       (SELECT count(*) FROM target_nodes tn WHERE tn.book_id = bk.book_id) AS canonical_nodes,
+      (SELECT count(*) FROM matched_only_nodes mn WHERE mn.book_id = bk.book_id) AS matched_only_nodes,
       (
         SELECT count(*) FROM target_nodes tn
         WHERE tn.book_id = bk.book_id
           AND EXISTS (
-            SELECT 1 FROM target_nodes other
-            WHERE other.canonical_node_id = tn.canonical_node_id AND other.book_id <> bk.book_id
+            SELECT 1
+            FROM world_canonical_node_map other_map
+            JOIN world_lesson_runs other_lesson
+              ON other_lesson.dataset_id = other_map.dataset_id
+             AND other_lesson.lesson_run_id = other_map.lesson_run_id
+            WHERE other_map.dataset_id = ${datasetId}
+              AND other_map.canonical_node_id = tn.canonical_node_id
+              AND other_lesson.book_id <> bk.book_id
           )
       ) AS shared_nodes,
       (
@@ -294,6 +308,7 @@ async function loadBooks(sql: Sql, datasetId: string): Promise<PgAdminBooksRespo
   return {
     dataset_id: datasetId,
     books: rows.map((row) => {
+      const matchedOnlyNodes = numberValue(row.matched_only_nodes);
       const sharedNodes = numberValue(row.shared_nodes);
       const runningJobs = numberValue(row.running_jobs);
       return {
@@ -303,14 +318,16 @@ async function loadBooks(sql: Sql, datasetId: string): Promise<PgAdminBooksRespo
         pipeline_jobs: numberValue(row.pipeline_jobs),
         running_jobs: runningJobs,
         canonical_nodes: numberValue(row.canonical_nodes),
-        shared_nodes: sharedNodes,
+        shared_nodes: sharedNodes + matchedOnlyNodes,
         edges: numberValue(row.edges),
         evidence: numberValue(row.evidence),
         mentions: numberValue(row.mentions),
         updated_at: row.updated_at == null ? null : textValue(row.updated_at),
-        deletable: sharedNodes === 0 && runningJobs === 0,
+        deletable: matchedOnlyNodes === 0 && sharedNodes === 0 && runningJobs === 0,
         blocker: runningJobs > 0
           ? '教材仍有运行中的流水线任务'
+          : matchedOnlyNodes > 0
+            ? `${matchedOnlyNodes} 个 canonical 节点仅为 matched 映射，无法证明其输出归属`
           : sharedNodes > 0
             ? `${sharedNodes} 个 canonical 节点已被其他教材复用`
             : undefined,
@@ -323,7 +340,11 @@ async function deleteBook(sql: Sql, datasetId: string, bookId: string): Promise<
   return sql.begin(async (tx) => {
     await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [datasetId]);
     await tx`CREATE TEMP TABLE _pg_admin_target_lessons ON COMMIT DROP AS SELECT lesson_run_id FROM world_lesson_runs WHERE dataset_id = ${datasetId} AND book_id = ${bookId}`;
-    await tx`CREATE TEMP TABLE _pg_admin_target_nodes ON COMMIT DROP AS SELECT DISTINCT cm.canonical_node_id AS node_id FROM world_canonical_node_map cm JOIN _pg_admin_target_lessons tl ON tl.lesson_run_id = cm.lesson_run_id WHERE cm.dataset_id = ${datasetId} AND cm.resolution = 'created'`;
+    await tx`CREATE TEMP TABLE _pg_admin_target_nodes ON COMMIT DROP AS SELECT DISTINCT cm.canonical_node_id AS node_id FROM world_canonical_node_map cm JOIN _pg_admin_target_lessons tl ON tl.lesson_run_id = cm.lesson_run_id WHERE cm.dataset_id = ${datasetId} AND cm.resolution IN ('created', 'review')`;
+    await tx`CREATE TEMP TABLE _pg_admin_target_matched_only_nodes ON COMMIT DROP AS SELECT DISTINCT cm.canonical_node_id AS node_id FROM world_canonical_node_map cm JOIN _pg_admin_target_lessons tl ON tl.lesson_run_id = cm.lesson_run_id WHERE cm.dataset_id = ${datasetId} AND cm.canonical_node_id NOT IN (SELECT node_id FROM _pg_admin_target_nodes)`;
+
+    const matchedOnly = await tx`SELECT count(*) AS count FROM _pg_admin_target_matched_only_nodes` as unknown as Row[];
+    if (numberValue(matchedOnly[0]?.count) > 0) throw new AdminConflictError('存在仅通过 matched 映射关联的 canonical 节点；当前 schema 无法安全判定其 reducer 输出归属。');
     await tx`CREATE TEMP TABLE _pg_admin_target_edges ON COMMIT DROP AS SELECT id FROM world_edges WHERE dataset_id = ${datasetId} AND (from_id IN (SELECT node_id FROM _pg_admin_target_nodes) OR to_id IN (SELECT node_id FROM _pg_admin_target_nodes))`;
     await tx`CREATE TEMP TABLE _pg_admin_target_profiles ON COMMIT DROP AS SELECT id FROM world_domain_profiles WHERE dataset_id = ${datasetId} AND node_id IN (SELECT node_id FROM _pg_admin_target_nodes)`;
     await tx`CREATE TEMP TABLE _pg_admin_target_mentions ON COMMIT DROP AS SELECT id FROM world_mentions WHERE dataset_id = ${datasetId} AND (source_id = ${bookId} OR (target_type = 'node' AND target_id IN (SELECT node_id FROM _pg_admin_target_nodes)) OR (target_type = 'edge' AND target_id IN (SELECT id FROM _pg_admin_target_edges)) OR (target_type = 'domain_profile' AND target_id IN (SELECT id FROM _pg_admin_target_profiles)))`;
@@ -427,7 +448,10 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       const values = changes.map((change) => change.value);
       const setSql = changes.map((change, index) => `${quoteIdentifier(change.column.name)} = $${index + 1}${change.cast}`).join(', ');
       const keyWhere = wherePrimaryKey(table, primaryKey, values.length + 2);
-      const rows = await sql.unsafe(`UPDATE ${quoteIdentifier(tableName)} SET ${setSql} WHERE dataset_id = $${values.length + 1} AND ${keyWhere.sql} RETURNING *`, [...values, dataset.dataset_id, ...keyWhere.values]) as unknown as Row[];
+      const rows = await sql.begin(async (tx) => {
+        await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [textValue(dataset.dataset_id)]);
+        return tx.unsafe(`UPDATE ${quoteIdentifier(tableName)} SET ${setSql} WHERE dataset_id = $${values.length + 1} AND ${keyWhere.sql} RETURNING *`, [...values, dataset.dataset_id, ...keyWhere.values]);
+      }) as unknown as Row[];
       if (!rows.length) return c.json({ error: 'Row not found.' }, 404);
       const payload: PgAdminMutationResponse = { status: 'success', table: tableName, affected: 1, row: rows[0] };
       return c.json(payload);
@@ -449,7 +473,10 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       const expected = rowDeleteConfirmation(tableName, primaryKey, table.primary_key);
       if (body.confirmation !== expected) return c.json({ error: `Confirmation must exactly match: ${expected}` }, 400);
       const keyWhere = wherePrimaryKey(table, primaryKey, 2);
-      const rows = await sql.unsafe(`DELETE FROM ${quoteIdentifier(tableName)} WHERE dataset_id = $1 AND ${keyWhere.sql} RETURNING 1`, [dataset.dataset_id, ...keyWhere.values]) as unknown as Row[];
+      const rows = await sql.begin(async (tx) => {
+        await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [textValue(dataset.dataset_id)]);
+        return tx.unsafe(`DELETE FROM ${quoteIdentifier(tableName)} WHERE dataset_id = $1 AND ${keyWhere.sql} RETURNING 1`, [dataset.dataset_id, ...keyWhere.values]);
+      }) as unknown as Row[];
       if (!rows.length) return c.json({ error: 'Row not found.' }, 404);
       const payload: PgAdminMutationResponse = { status: 'success', table: tableName, affected: rows.length };
       return c.json(payload);
