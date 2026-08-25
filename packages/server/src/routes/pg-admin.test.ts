@@ -156,6 +156,24 @@ test('book deletion keeps the Hono-decoded id and acquires the reducer lock key'
   assert.deepEqual(unsafeCalls, [{ query: PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
 });
 
+test('book deletion blocks while any pipeline job in the dataset is running', async () => {
+  const { sql, queryCalls } = routeSql({ runningJobCount: 1 });
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/books/book-1', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirmation: 'DELETE BOOK book-1' }),
+  });
+  assert.equal(response.status, 409);
+  assert.match((await response.json() as { error: string }).error, /数据集.*运行中的流水线任务/);
+  const runningQuery = queryCalls.find((call) => call.query.includes('FROM world_pipeline_jobs') && call.query.includes("status = 'running'"));
+  assert.ok(runningQuery);
+  assert.deepEqual(runningQuery.values, ['main']);
+  assert.doesNotMatch(runningQuery.query, /book_id/);
+});
+
 test('book deletion targets canonical nodes created or queued for review by the selected lessons', async () => {
   const { sql, queryCalls } = routeSql({ stopBookDeleteAtTargetNodes: true });
   const app = new Hono();

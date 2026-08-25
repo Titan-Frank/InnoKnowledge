@@ -280,7 +280,7 @@ async function loadBooks(sql: Sql, datasetId: string): Promise<PgAdminBooksRespo
       COALESCE(MAX(o.title), MAX(a.title), bk.book_id) AS title,
       (SELECT count(*) FROM world_lesson_runs lr WHERE lr.dataset_id = ${datasetId} AND lr.book_id = bk.book_id) AS lesson_runs,
       (SELECT count(*) FROM world_pipeline_jobs j WHERE j.dataset_id = ${datasetId} AND j.book_id = bk.book_id) AS pipeline_jobs,
-      (SELECT count(*) FROM world_pipeline_jobs j WHERE j.dataset_id = ${datasetId} AND j.book_id = bk.book_id AND j.status = 'running') AS running_jobs,
+      (SELECT count(*) FROM world_pipeline_jobs j WHERE j.dataset_id = ${datasetId} AND j.status = 'running') AS running_jobs,
       (SELECT count(*) FROM target_nodes tn WHERE tn.book_id = bk.book_id) AS canonical_nodes,
       (SELECT count(*) FROM matched_only_nodes mn WHERE mn.book_id = bk.book_id) AS matched_only_nodes,
       (
@@ -338,7 +338,7 @@ async function loadBooks(sql: Sql, datasetId: string): Promise<PgAdminBooksRespo
         updated_at: row.updated_at == null ? null : textValue(row.updated_at),
         deletable: matchedOnlyNodes === 0 && sharedNodes === 0 && runningJobs === 0,
         blocker: runningJobs > 0
-          ? '教材仍有运行中的流水线任务'
+          ? '当前数据集仍有运行中的流水线任务'
           : matchedOnlyNodes > 0
             ? `${matchedOnlyNodes} 个 canonical 节点仅为 matched 映射，无法证明其输出归属`
           : sharedNodes > 0
@@ -352,6 +352,8 @@ async function loadBooks(sql: Sql, datasetId: string): Promise<PgAdminBooksRespo
 async function deleteBook(sql: Sql, datasetId: string, bookId: string): Promise<PgAdminBookDeleteResponse> {
   return sql.begin(async (tx) => {
     await tx.unsafe(PG_ADMIN_DATASET_ADVISORY_LOCK_SQL, [datasetId]);
+    const running = await tx`SELECT count(*) AS count FROM world_pipeline_jobs WHERE dataset_id = ${datasetId} AND status = 'running'` as unknown as Row[];
+    if (numberValue(running[0]?.count) > 0) throw new AdminConflictError('当前数据集仍有运行中的流水线任务。');
     await tx`CREATE TEMP TABLE _pg_admin_target_lessons ON COMMIT DROP AS SELECT lesson_run_id FROM world_lesson_runs WHERE dataset_id = ${datasetId} AND book_id = ${bookId}`;
     await tx`CREATE TEMP TABLE _pg_admin_target_nodes ON COMMIT DROP AS SELECT DISTINCT cm.canonical_node_id AS node_id FROM world_canonical_node_map cm JOIN _pg_admin_target_lessons tl ON tl.lesson_run_id = cm.lesson_run_id WHERE cm.dataset_id = ${datasetId} AND cm.resolution IN ('created', 'review')`;
     await tx`CREATE TEMP TABLE _pg_admin_target_matched_only_nodes ON COMMIT DROP AS SELECT DISTINCT cm.canonical_node_id AS node_id FROM world_canonical_node_map cm JOIN _pg_admin_target_lessons tl ON tl.lesson_run_id = cm.lesson_run_id WHERE cm.dataset_id = ${datasetId} AND cm.canonical_node_id NOT IN (SELECT node_id FROM _pg_admin_target_nodes)`;
@@ -366,8 +368,6 @@ async function deleteBook(sql: Sql, datasetId: string, bookId: string): Promise<
     await tx`CREATE TEMP TABLE _pg_admin_target_section_owners ON COMMIT DROP AS SELECT DISTINCT links.owner_id FROM world_evidence_links links WHERE links.dataset_id = ${datasetId} AND links.owner_type = 'node_card_section' AND (links.evidence_id IN (SELECT id FROM _pg_admin_target_evidence) OR EXISTS (SELECT 1 FROM _pg_admin_target_cards cards WHERE links.owner_id LIKE cards.id || ':%'))`;
     await tx`CREATE TEMP TABLE _pg_admin_target_merges ON COMMIT DROP AS SELECT DISTINCT merge_run_id FROM world_canonical_node_map WHERE dataset_id = ${datasetId} AND lesson_run_id IN (SELECT lesson_run_id FROM _pg_admin_target_lessons) UNION SELECT DISTINCT mr.merge_run_id FROM world_merge_runs mr CROSS JOIN LATERAL jsonb_array_elements_text(CASE WHEN jsonb_typeof(mr.selection_json) = 'array' THEN mr.selection_json ELSE '[]'::jsonb END) selected(lesson_run_id) JOIN _pg_admin_target_lessons tl ON tl.lesson_run_id = selected.lesson_run_id WHERE mr.dataset_id = ${datasetId}`;
 
-    const running = await tx`SELECT count(*) AS count FROM world_pipeline_jobs WHERE dataset_id = ${datasetId} AND book_id = ${bookId} AND status = 'running'` as unknown as Row[];
-    if (numberValue(running[0]?.count) > 0) throw new AdminConflictError('教材仍有运行中的流水线任务。');
     const shared = await tx`SELECT count(*) AS count FROM world_canonical_node_map cm WHERE cm.dataset_id = ${datasetId} AND cm.canonical_node_id IN (SELECT node_id FROM _pg_admin_target_nodes) AND cm.lesson_run_id NOT IN (SELECT lesson_run_id FROM _pg_admin_target_lessons)` as unknown as Row[];
     if (numberValue(shared[0]?.count) > 0) throw new AdminConflictError('存在被其他教材复用的 canonical 节点；当前模型无法无损回滚已合并的定义。');
     const mixedMerges = await tx`SELECT count(*) AS count FROM (SELECT cm.lesson_run_id FROM world_canonical_node_map cm WHERE cm.dataset_id = ${datasetId} AND cm.merge_run_id IN (SELECT merge_run_id FROM _pg_admin_target_merges) AND cm.lesson_run_id NOT IN (SELECT lesson_run_id FROM _pg_admin_target_lessons) UNION ALL SELECT selected.lesson_run_id FROM world_merge_runs mr CROSS JOIN LATERAL jsonb_array_elements_text(CASE WHEN jsonb_typeof(mr.selection_json) = 'array' THEN mr.selection_json ELSE '[]'::jsonb END) selected(lesson_run_id) WHERE mr.dataset_id = ${datasetId} AND mr.merge_run_id IN (SELECT merge_run_id FROM _pg_admin_target_merges) AND selected.lesson_run_id NOT IN (SELECT lesson_run_id FROM _pg_admin_target_lessons)) conflicts` as unknown as Row[];
