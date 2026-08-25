@@ -57,6 +57,13 @@ const TABLE_GROUPS: Record<string, TableGroup> = {
 export const PG_ADMIN_TABLES = Object.freeze(Object.keys(TABLE_GROUPS));
 export const PG_ADMIN_DATASET_ADVISORY_LOCK_SQL = 'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))';
 
+const PG_ADMIN_PROTECTED_TABLES = new Set([
+  'world_datasets',
+  'world_lesson_runs',
+  'world_merge_runs',
+  'world_canonical_node_map',
+]);
+
 class AdminConflictError extends Error {}
 
 export function isPgAdminTable(table: string): boolean {
@@ -64,7 +71,9 @@ export function isPgAdminTable(table: string): boolean {
 }
 
 export function isPgAdminTableMutable(table: string): boolean {
-  return isPgAdminTable(table) && TABLE_GROUPS[table] !== 'canonical';
+  return isPgAdminTable(table)
+    && TABLE_GROUPS[table] !== 'canonical'
+    && !PG_ADMIN_PROTECTED_TABLES.has(table);
 }
 
 export function quoteIdentifier(identifier: string): string {
@@ -406,7 +415,7 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       if (!dataset) return c.json({ error: 'Unknown source' }, 404);
       const tableName = c.req.param('table');
       const table = requireAdminTable(tableName, await loadTableMetadata(sql, tableName));
-      if (!table.mutable) return c.json({ error: `${tableName} is read-only; canonical mutations must run through a reducer.` }, 403);
+      if (!table.mutable) return c.json({ error: `${tableName} is read-only; protected graph and lineage mutations require a dedicated workflow.` }, 403);
       const body = await c.req.json<PgAdminUpdateRequest>().catch(() => null);
       if (!body) return c.json({ error: 'Invalid update payload.' }, 400);
       const primaryKey = requirePrimaryKey(table, body.primary_key);
@@ -433,7 +442,7 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
       if (!dataset) return c.json({ error: 'Unknown source' }, 404);
       const tableName = c.req.param('table');
       const table = requireAdminTable(tableName, await loadTableMetadata(sql, tableName));
-      if (!table.mutable) return c.json({ error: `${tableName} is read-only; canonical mutations must run through a reducer.` }, 403);
+      if (!table.mutable) return c.json({ error: `${tableName} is read-only; protected graph and lineage mutations require a dedicated workflow.` }, 403);
       const body = await c.req.json<PgAdminDeleteRequest>().catch(() => null);
       if (!body) return c.json({ error: 'Invalid delete payload.' }, 400);
       const primaryKey = requirePrimaryKey(table, body.primary_key);

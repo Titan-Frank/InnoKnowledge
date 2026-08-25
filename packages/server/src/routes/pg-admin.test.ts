@@ -30,9 +30,13 @@ function routeSql(options: { stopBookDeleteAtLock?: boolean } = {}): { sql: Sql;
     }
     if (text.includes('FROM information_schema.columns')) {
       return Promise.resolve([
+        { table_name: 'world_datasets', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_nodes', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_nodes', column_name: 'id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
         { table_name: 'world_nodes', column_name: 'name', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: false },
+        { table_name: 'world_lesson_runs', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_merge_runs', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
+        { table_name: 'world_canonical_node_map', column_name: 'dataset_id', data_type: 'text', udt_name: 'text', is_nullable: 'NO', estimated_rows: 1, primary_key: true },
       ]);
     }
     return Promise.resolve([]);
@@ -53,9 +57,13 @@ test('PG admin table allowlist exposes world-v1.2 tables without accepting arbit
   assert.equal(isPgAdminTable('world_nodes; DROP TABLE world_nodes'), false);
 });
 
-test('canonical tables are browse-only in the generic PG admin routes', async () => {
+test('canonical and reducer-lineage tables are browse-only in the generic PG admin routes', async () => {
   assert.equal(isPgAdminTableMutable('world_nodes'), false);
   assert.equal(isPgAdminTableMutable('world_edges'), false);
+  assert.equal(isPgAdminTableMutable('world_datasets'), false);
+  assert.equal(isPgAdminTableMutable('world_lesson_runs'), false);
+  assert.equal(isPgAdminTableMutable('world_merge_runs'), false);
+  assert.equal(isPgAdminTableMutable('world_canonical_node_map'), false);
   assert.equal(isPgAdminTableMutable('world_staging_nodes'), true);
 
   const { sql, unsafeCalls } = routeSql();
@@ -68,7 +76,7 @@ test('canonical tables are browse-only in the generic PG admin routes', async ()
     body: JSON.stringify({ primary_key: { dataset_id: 'main', id: 'node-1' }, changes: { name: 'Changed' } }),
   });
   assert.equal(updateResponse.status, 403);
-  assert.match((await updateResponse.json() as { error: string }).error, /read-only.*reducer/);
+  assert.match((await updateResponse.json() as { error: string }).error, /read-only.*dedicated workflow/);
 
   const deleteResponse = await app.request('/api/source/main/pg/tables/world_nodes/rows', {
     method: 'DELETE',
@@ -76,6 +84,15 @@ test('canonical tables are browse-only in the generic PG admin routes', async ()
     body: JSON.stringify({ primary_key: { dataset_id: 'main', id: 'node-1' }, confirmation: 'DELETE world_nodes main / node-1' }),
   });
   assert.equal(deleteResponse.status, 403);
+
+  for (const table of ['world_datasets', 'world_lesson_runs', 'world_merge_runs', 'world_canonical_node_map']) {
+    const protectedDeleteResponse = await app.request(`/api/source/main/pg/tables/${table}/rows`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ primary_key: { dataset_id: 'main' }, confirmation: `DELETE ${table} main` }),
+    });
+    assert.equal(protectedDeleteResponse.status, 403, table);
+  }
   assert.equal(unsafeCalls.length, 0);
 });
 

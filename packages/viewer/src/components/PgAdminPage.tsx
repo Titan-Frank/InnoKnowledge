@@ -37,6 +37,7 @@ import {
   updatePgAdminRow,
 } from '@/services/backend-client';
 import { isCurrentPgAdminRequest } from '@/lib/pg-admin-requests';
+import { parsePgAdminEditorValue } from '@/lib/pg-admin-values';
 
 type AdminView = 'books' | 'tables';
 type DialogTarget = { kind: 'book'; book: PgAdminBookSummary } | { kind: 'row'; row: Record<string, unknown> } | null;
@@ -326,9 +327,7 @@ function RowEditor({
       const before = editorValue(row[column.name], column);
       const after = draft[column.name] ?? '';
       if (before === after) continue;
-      if (column.data_type === 'boolean') changes[column.name] = after === 'true';
-      else if (['smallint', 'integer', 'bigint', 'real', 'double precision', 'numeric', 'decimal'].includes(column.data_type)) changes[column.name] = Number(after);
-      else changes[column.name] = after;
+      changes[column.name] = parsePgAdminEditorValue(column, after);
     }
     if (!Object.keys(changes).length) {
       setError('没有需要保存的更改。');
@@ -359,7 +358,7 @@ function RowEditor({
       <form onSubmit={submit} className="p-4">
         {!table.mutable && (
           <div className="mb-4 flex gap-2 rounded-md border border-node-method/35 bg-node-method/10 p-2.5 text-xs text-node-method">
-            <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />Canonical 表在管理台中只读；修改必须通过 reducer 流程完成。
+            <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />受保护的图谱与 lineage 表在管理台中只读；修改必须通过专用流程完成。
           </div>
         )}
         <div className="space-y-4">
