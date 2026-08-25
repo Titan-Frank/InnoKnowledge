@@ -15,13 +15,16 @@ function column(overrides: Partial<PgAdminColumn>): PgAdminColumn {
   };
 }
 
-test('clearing a nullable numeric PG field preserves null', () => {
+test('clearing a nullable PG field preserves null across editor types', () => {
   assert.equal(parsePgAdminEditorValue(column({}), ''), null);
   assert.equal(parsePgAdminEditorValue(column({ data_type: 'numeric' }), '   '), null);
+  assert.equal(parsePgAdminEditorValue(column({ data_type: 'text' }), ''), null);
+  assert.equal(parsePgAdminEditorValue(column({ data_type: 'jsonb' }), '   '), null);
+  assert.equal(parsePgAdminEditorValue(column({ data_type: 'boolean' }), ''), null);
 });
 
 test('non-empty PG editor values retain their existing conversions', () => {
   assert.equal(parsePgAdminEditorValue(column({}), '42'), 42);
   assert.equal(parsePgAdminEditorValue(column({ data_type: 'boolean' }), 'false'), false);
-  assert.equal(parsePgAdminEditorValue(column({ data_type: 'text' }), ''), '');
+  assert.equal(parsePgAdminEditorValue(column({ data_type: 'text', nullable: false }), ''), '');
 });
