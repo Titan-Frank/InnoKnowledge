@@ -15,12 +15,14 @@ import {
   inferBookId,
   MAX_ACTIVE_PIPELINE_JOBS,
   pipelineBookNodeLimit,
+  qualityReviewPatch,
   redactCommand,
   registerPipelineRoutes,
   reservePipelineJobStart,
   resolveNpmInvocation,
   scanPdfFolder,
   safePdfUploadName,
+  updatePendingQualityReview,
 } from './pipeline.js';
 
 test('quality review action closes the pending flag and preserves review evidence', () => {
@@ -35,6 +37,39 @@ test('quality review action closes the pending flag and preserves review evidenc
   assert.equal(next.quality_review_note, '确认允许保持孤立');
   assert.deepEqual(next.review_node_ids, ['node-a']);
   assert.deepEqual(next.quality_warnings, ['Node node-a has no staged relations.']);
+});
+
+test('quality review patch contains only atomic review metadata', () => {
+  assert.deepEqual(qualityReviewPatch('resolved', '已修正', '2026-08-26T04:05:00.000Z'), {
+    quality_review_required: false,
+    quality_review_status: 'resolved',
+    quality_review_note: '已修正',
+    quality_reviewed_at: '2026-08-26T04:05:00.000Z',
+    quality_reviewed_via: 'viewer',
+  });
+});
+
+test('quality review update merges review metadata into the current JSONB value', async () => {
+  let statement = '';
+  let parameters: unknown[] = [];
+  const sql = ((strings: TemplateStringsArray, ...values: unknown[]) => {
+    statement = strings.join(' ').replace(/\s+/g, ' ').trim();
+    parameters = values;
+    return Promise.resolve([{ lesson_run_id: 'lesson-1' }]);
+  }) as unknown as Sql;
+  sql.json = ((value: unknown) => value) as Sql['json'];
+
+  assert.equal(await updatePendingQualityReview(sql, {
+    datasetId: 'main',
+    lessonRunId: 'lesson-1',
+    action: 'accept',
+    note: '确认接受',
+    reviewedAt: '2026-08-26T04:10:00.000Z',
+  }), true);
+  assert.match(statement, /COALESCE\(properties_json, '\{\}'::jsonb\) \|\| .*::jsonb/);
+  assert.deepEqual(parameters.find((value) => (
+    value != null && typeof value === 'object' && 'quality_review_status' in value
+  )), qualityReviewPatch('accept', '确认接受', '2026-08-26T04:10:00.000Z'));
 });
 
 test('textbook IDs are stable internal keys derived from the displayed name', () => {
@@ -206,11 +241,14 @@ test('buildPipelineCommand forwards the requested resume stage', () => {
 
 test('claimPipelineJobResume reuses one blocked job and resets its runtime state', async () => {
   const statements: string[] = [];
+  const parameterSets: unknown[][] = [];
   const unsafeCalls: Array<{ query: string; values: unknown[] }> = [];
   const sql = ((
     strings: TemplateStringsArray,
+    ...parameters: unknown[]
   ) => {
     statements.push(strings.join(' '));
+    parameterSets.push(parameters);
     return Promise.resolve(statements.length === 1 ? [{ job_id: 'chemistry.123' }] : []);
   }) as unknown as Sql;
   sql.unsafe = (async (query: string, values: unknown[] = []) => {
@@ -223,6 +261,9 @@ test('claimPipelineJobResume reuses one blocked job and resets its runtime state
   assert.deepEqual(unsafeCalls, [{ query: DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
   assert.equal(statements.length, 3);
   assert.match(statements[0]!, /UPDATE world_pipeline_jobs/);
+  assert.match(statements[0]!, /NOT EXISTS[\s\S]*running\.book_id = target\.book_id/);
+  assert.match(statements[0]!, /SELECT COUNT\(\*\)[\s\S]*running\.status = 'running'[\s\S]*</);
+  assert.ok(parameterSets[0]?.includes(MAX_ACTIVE_PIPELINE_JOBS));
   assert.match(statements[1]!, /UPDATE world_pipeline_job_stages/);
   assert.match(statements[2]!, /UPDATE world_pipeline_worker_states/);
 });

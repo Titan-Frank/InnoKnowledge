@@ -202,15 +202,28 @@ export async function claimPipelineJobResume(
   return sql.begin(async (tx) => {
     await tx.unsafe(DATASET_ADVISORY_LOCK_SQL, [datasetId]);
     const rows = await tx<{ job_id: string }[]>`
-      UPDATE world_pipeline_jobs
+      UPDATE world_pipeline_jobs AS target
       SET status = 'running',
           error = NULL,
           completed_at = NULL,
           updated_at = ${now}
-      WHERE dataset_id = ${datasetId}
-        AND job_id = ${jobId}
-        AND status = 'blocked'
-      RETURNING job_id
+      WHERE target.dataset_id = ${datasetId}
+        AND target.job_id = ${jobId}
+        AND target.status = 'blocked'
+        AND NOT EXISTS (
+          SELECT 1
+          FROM world_pipeline_jobs AS running
+          WHERE running.dataset_id = target.dataset_id
+            AND running.book_id = target.book_id
+            AND running.status = 'running'
+        )
+        AND (
+          SELECT COUNT(*)
+          FROM world_pipeline_jobs AS running
+          WHERE running.dataset_id = target.dataset_id
+            AND running.status = 'running'
+        ) < ${MAX_ACTIVE_PIPELINE_JOBS}
+      RETURNING target.job_id
     `;
     if (rows.length !== 1) return false;
 
@@ -310,12 +323,46 @@ export function applyQualityReviewAction(
 ): Record<string, unknown> {
   return {
     ...asRecord(propertiesValue),
+    ...qualityReviewPatch(action, note, reviewedAt),
+  };
+}
+
+export function qualityReviewPatch(
+  action: PipelineQualityReviewAction,
+  note: string,
+  reviewedAt: string,
+): Record<string, unknown> {
+  return {
     quality_review_required: false,
     quality_review_status: action === 'accept' ? 'accepted' : 'resolved',
     quality_review_note: note,
     quality_reviewed_at: reviewedAt,
     quality_reviewed_via: 'viewer',
   };
+}
+
+export async function updatePendingQualityReview(
+  sql: Sql,
+  input: {
+    datasetId: string;
+    lessonRunId: string;
+    action: PipelineQualityReviewAction;
+    note: string;
+    reviewedAt: string;
+  },
+): Promise<boolean> {
+  const patch = qualityReviewPatch(input.action, input.note, input.reviewedAt);
+  const updatedRows = await sql<{ lesson_run_id: string }[]>`
+    UPDATE world_lesson_runs
+    SET properties_json = COALESCE(properties_json, '{}'::jsonb)
+          || ${sql.json(patch as unknown as JsonValue)}::jsonb,
+        updated_at = ${input.reviewedAt}
+    WHERE dataset_id = ${input.datasetId}
+      AND lesson_run_id = ${input.lessonRunId}
+      AND COALESCE((properties_json->>'quality_review_required')::boolean, false) = true
+    RETURNING lesson_run_id
+  `;
+  return updatedRows.length === 1;
 }
 
 function asInt(value: unknown, fallback: number): number {
@@ -686,17 +733,14 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     }
 
     const reviewedAt = timestamp();
-    const nextProperties = applyQualityReviewAction(properties, body.action, note, reviewedAt);
-    const updatedRows = await sql`
-      UPDATE world_lesson_runs
-      SET properties_json = ${sql.json(nextProperties as unknown as JsonValue)}::jsonb,
-          updated_at = ${reviewedAt}
-      WHERE dataset_id = ${datasetRow.dataset_id}
-        AND lesson_run_id = ${lessonRunId}
-        AND COALESCE((properties_json->>'quality_review_required')::boolean, false) = true
-      RETURNING lesson_run_id
-    `;
-    if (!updatedRows.length) return c.json({ error: 'This quality review is no longer pending.' }, 409);
+    const updated = await updatePendingQualityReview(sql, {
+      datasetId: datasetRow.dataset_id,
+      lessonRunId,
+      action: body.action,
+      note,
+      reviewedAt,
+    });
+    if (!updated) return c.json({ error: 'This quality review is no longer pending.' }, 409);
 
     const response: PipelineQualityReviewUpdateResponse = {
       status: 'success',
@@ -905,7 +949,9 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     if (resumeDatasetId) {
       const claimed = await claimPipelineJobResume(sql, resumeDatasetId, jobId);
       if (!claimed) {
-        return c.json({ error: `Pipeline job '${jobId}' is no longer blocked and cannot be resumed.` }, 409);
+        return c.json({
+          error: `Cannot resume '${jobId}': it is no longer blocked, this book already has a running job, or the dataset has reached its ${MAX_ACTIVE_PIPELINE_JOBS}-job limit.`,
+        }, 409);
       }
     } else {
       const reserved = await reservePipelineJobStart(sql, {
