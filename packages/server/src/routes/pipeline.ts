@@ -24,6 +24,8 @@ import {
 import { loadPipelineQualityPayload } from '../db/quality-dashboard.js';
 import { REPO_ROOT } from '../utils/paths.js';
 
+export const MAX_ACTIVE_PIPELINE_JOBS = 4;
+
 interface CommandInvocation {
   command: string;
   args: string[];
@@ -264,11 +266,23 @@ export async function reservePipelineJobStart(
         progress_json, log_path, command_json, context_json,
         created_at, updated_at, completed_at, error
       )
-      VALUES (
+      SELECT
         ${input.datasetId}, ${input.jobId}, ${input.bookId}, 'running', NULL,
         ${tx.json({})}, ${input.logPath}, ${tx.json([])}, ${tx.json({ reserved_by: 'server', book_title: input.bookTitle })},
         ${now}, ${now}, NULL, NULL
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM world_pipeline_jobs
+        WHERE dataset_id = ${input.datasetId}
+          AND book_id = ${input.bookId}
+          AND status = 'running'
       )
+        AND (
+          SELECT COUNT(*)
+          FROM world_pipeline_jobs
+          WHERE dataset_id = ${input.datasetId}
+            AND status = 'running'
+        ) < ${MAX_ACTIVE_PIPELINE_JOBS}
       ON CONFLICT (dataset_id, job_id) DO NOTHING
       RETURNING job_id
     `;
@@ -902,7 +916,9 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         logPath,
       });
       if (!reserved) {
-        return c.json({ error: `Pipeline job '${jobId}' already exists and cannot be started again.` }, 409);
+        return c.json({
+          error: `Cannot start '${jobId}': this book already has a running job, the dataset has reached its ${MAX_ACTIVE_PIPELINE_JOBS}-job limit, or the job ID already exists.`,
+        }, 409);
       }
     }
 

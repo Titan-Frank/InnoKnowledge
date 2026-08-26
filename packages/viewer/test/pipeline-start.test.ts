@@ -4,6 +4,8 @@ import type { PipelineJobSummary } from '@okm/types';
 import {
   buildPipelineBatchStartRequest,
   buildPipelineBookWorkbenchRows,
+  MAX_ACTIVE_PIPELINE_JOBS,
+  reconcileTerminalBatchQueue,
   resolvePipelineStartBookId,
   selectBatchLaunchCandidates,
 } from '../src/lib/pipeline-start.ts';
@@ -37,6 +39,48 @@ test('batch launch candidates are unique by book and exclude the latest running 
     selectBatchLaunchCandidates(queue, [job('physics', 'running'), job('physics', 'completed')]).map((item) => item.id),
     ['chem-a'],
   );
+});
+
+test('batch launch candidates use only the remaining active job slots', () => {
+  const queue = Array.from({ length: 5 }, (_, index) => ({
+    id: `queued-${index}`,
+    bookId: `queued-${index}`,
+    pdfPath: `/tmp/queued-${index}.pdf`,
+    selected: true,
+    status: 'ready' as const,
+  }));
+  const runningJobs = Array.from({ length: MAX_ACTIVE_PIPELINE_JOBS - 1 }, (_, index) => (
+    job(`running-${index}`, 'running')
+  ));
+
+  assert.deepEqual(
+    selectBatchLaunchCandidates(queue, runningJobs).map((item) => item.id),
+    ['queued-0'],
+  );
+  assert.deepEqual(
+    selectBatchLaunchCandidates(queue, [...runningJobs, job('running-last', 'running')]),
+    [],
+  );
+});
+
+test('terminal batch jobs become unselected ready entries that can be run again', () => {
+  const queue = [
+    { id: 'completed', bookId: 'chemistry', pdfPath: '/tmp/chem.pdf', selected: true, status: 'started' as const },
+    { id: 'blocked', bookId: 'physics', pdfPath: '/tmp/physics.pdf', selected: true, status: 'started' as const },
+    { id: 'running', bookId: 'biology', pdfPath: '/tmp/biology.pdf', selected: true, status: 'started' as const },
+  ];
+
+  const reconciled = reconcileTerminalBatchQueue(queue, [
+    job('chemistry', 'completed'),
+    job('physics', 'blocked'),
+    job('biology', 'running'),
+  ]);
+
+  assert.deepEqual(reconciled.map((item) => [item.id, item.status, item.selected]), [
+    ['completed', 'ready', false],
+    ['blocked', 'ready', false],
+    ['running', 'started', true],
+  ]);
 });
 
 test('fresh and resumed starts preserve the selected textbook identifier', () => {

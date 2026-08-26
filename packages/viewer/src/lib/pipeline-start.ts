@@ -2,6 +2,8 @@ import type { PgAdminBookSummary, PipelineJobSummary, PipelineStartRequest } fro
 
 export type PipelineQueueStatus = 'uploading' | 'ready' | 'starting' | 'started' | 'error';
 
+export const MAX_ACTIVE_PIPELINE_JOBS = 4;
+
 export interface PipelineBatchQueueItem {
   id: string;
   bookId: string;
@@ -84,6 +86,10 @@ export function selectBatchLaunchCandidates<T extends PipelineBatchQueueItem>(
   jobs: PipelineJobSummary[],
 ): T[] {
   const latestJobs = latestJobsByBook(jobs);
+  const availableSlots = Math.max(
+    0,
+    MAX_ACTIVE_PIPELINE_JOBS - jobs.filter((job) => job.status === 'running').length,
+  );
 
   const selectedBookIds = new Set<string>();
   return queue.filter((item) => {
@@ -92,7 +98,22 @@ export function selectBatchLaunchCandidates<T extends PipelineBatchQueueItem>(
     if (latestJobs.get(bookId)?.status === 'running' || selectedBookIds.has(bookId)) return false;
     selectedBookIds.add(bookId);
     return true;
+  }).slice(0, availableSlots);
+}
+
+export function reconcileTerminalBatchQueue<T extends PipelineBatchQueueItem>(
+  queue: T[],
+  jobs: PipelineJobSummary[],
+): T[] {
+  const latestJobs = latestJobsByBook(jobs);
+  let changed = false;
+  const reconciled = queue.map((item) => {
+    const jobStatus = latestJobs.get(item.bookId.trim())?.status;
+    if (item.status !== 'started' || (jobStatus !== 'completed' && jobStatus !== 'blocked')) return item;
+    changed = true;
+    return { ...item, status: 'ready' as const, selected: false };
   });
+  return changed ? reconciled : queue;
 }
 
 export function buildPipelineBatchStartRequest(

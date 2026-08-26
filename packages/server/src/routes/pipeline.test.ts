@@ -13,6 +13,7 @@ import {
   claimPipelineJobResume,
   generatedBookId,
   inferBookId,
+  MAX_ACTIVE_PIPELINE_JOBS,
   pipelineBookNodeLimit,
   redactCommand,
   registerPipelineRoutes,
@@ -269,6 +270,9 @@ test('reservePipelineJobStart records a running job under the shared dataset loc
   assert.equal(statements.length, 2);
   assert.match(statements[0]!, /INSERT INTO world_datasets/);
   assert.match(statements[1]!, /INSERT INTO world_pipeline_jobs/);
+  assert.match(statements[1]!, /WHERE NOT EXISTS .*book_id = .*status = 'running'/);
+  assert.match(statements[1]!, /SELECT COUNT\(\*\).*status = 'running'.*</);
+  assert.ok(parameterSets[1]?.includes(MAX_ACTIVE_PIPELINE_JOBS));
   assert.deepEqual(parameterSets[1]?.find((value) => (
     value != null && typeof value === 'object' && 'reserved_by' in value
   )), { reserved_by: 'server', book_title: '八年级化学' });

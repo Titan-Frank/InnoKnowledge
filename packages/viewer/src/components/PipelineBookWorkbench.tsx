@@ -28,6 +28,8 @@ import {
 } from '@/lib/lucide-icons';
 import {
   buildPipelineBookWorkbenchRows,
+  MAX_ACTIVE_PIPELINE_JOBS,
+  reconcileTerminalBatchQueue,
   selectBatchLaunchCandidates,
   type PipelineBatchQueueItem,
   type PipelineBookWorkbenchRow as WorkbenchRow,
@@ -79,11 +81,11 @@ function rowStatus(row: WorkbenchRow): { label: string; tone: string; detail: st
   if (row.queueStatus === 'uploading') return { label: `上传 ${row.progress}%`, tone: 'active', detail: '正在传到工作台存储' };
   if (row.queueStatus === 'starting') return { label: '启动中', tone: 'active', detail: '正在创建后台任务' };
   if (row.queueStatus === 'error') return { label: '待处理', tone: 'warn', detail: row.queueError };
+  if (row.job?.status === 'completed') return { label: '已完成抽取', tone: 'ok', detail: row.job.completed_at || row.job.updated_at || '' };
+  if (row.job?.status === 'blocked') return { label: '抽取阻断', tone: 'warn', detail: row.job.error || row.job.current_stage_label || '需要检查任务详情' };
   if (row.job?.status === 'running' || row.queueStatus === 'started') {
     return { label: '抽取中', tone: 'active', detail: row.job?.current_stage_label || '后台任务已启动' };
   }
-  if (row.job?.status === 'completed') return { label: '已完成抽取', tone: 'ok', detail: row.job.completed_at || row.job.updated_at || '' };
-  if (row.job?.status === 'blocked') return { label: '抽取阻断', tone: 'warn', detail: row.job.error || row.job.current_stage_label || '需要检查任务详情' };
   if ((row.database?.canonical_nodes ?? 0) > 0) return { label: '已有抽取结果', tone: 'ok', detail: '数据库中已有教材节点' };
   if (row.pdfPath) return { label: '等待抽取', tone: 'neutral', detail: row.selected ? '已加入本次批量任务' : '本次不抽取' };
   return { label: '已有教材记录', tone: 'neutral', detail: '未关联可启动的 PDF 路径' };
@@ -223,6 +225,10 @@ export function PipelineBookWorkbench({
     const persistent = queue.filter((item) => item.pdfPath);
     window.localStorage.setItem(queueStorageKey(sourceKey), JSON.stringify(persistent));
   }, [queue, sourceKey]);
+
+  useEffect(() => {
+    setQueue((current) => reconcileTerminalBatchQueue(current, jobs));
+  }, [jobs]);
 
   const updateQueue = (id: string, changes: Partial<QueueBook>) => {
     setQueue((current) => current.map((item) => item.id === id ? { ...item, ...changes } : item));
@@ -413,7 +419,7 @@ export function PipelineBookWorkbench({
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
-        <div className="text-xs text-text-muted">共 {rows.length} 本 · {queue.filter((item) => item.selected).length} 本已勾选</div>
+        <div className="text-xs text-text-muted">共 {rows.length} 本 · {queue.filter((item) => item.selected).length} 本已勾选 · 最多同时抽取 {MAX_ACTIVE_PIPELINE_JOBS} 本</div>
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => setQueue((current) => current.map((item) => ({ ...item, selected: true })))} className="cursor-pointer text-[11px] font-medium text-accent hover:text-accent-dim">全选待处理</button>
           <span className="text-border-strong">/</span>
