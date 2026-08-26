@@ -63,7 +63,7 @@ import {
   Upload,
 } from '@/lib/lucide-icons';
 import { PipelineBookWorkbench } from './PipelineBookWorkbench';
-import { resolvePipelineStartBookId } from '@/lib/pipeline-start';
+import { buildPipelineBatchStartRequest, resolvePipelineStartBookId } from '@/lib/pipeline-start';
 
 type PipelineForm = {
   book_id: string;
@@ -1676,15 +1676,7 @@ export function PipelineDebugPage() {
   };
 
   const launchBatchBook = async (book: { bookId: string; title: string; pdfPath: string }): Promise<PipelineStartResponse> => {
-    const result = await startPipeline(activeSourceKey, {
-      ...startRequest(),
-      resume_job_id: undefined,
-      start_stage: undefined,
-      book_id: book.bookId,
-      book_title: book.title,
-      pdf_path: book.pdfPath,
-      mineru_file_url: undefined,
-    });
+    const result = await startPipeline(activeSourceKey, buildPipelineBatchStartRequest(startRequest(), book));
     rememberPipelineJob(window.localStorage, activeSourceKey, result);
     setStartResult(result);
     setJobStatus(null);

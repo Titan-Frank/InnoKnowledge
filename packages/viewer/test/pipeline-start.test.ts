@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { PipelineJobSummary } from '@okm/types';
 import {
+  buildPipelineBatchStartRequest,
+  buildPipelineBookWorkbenchRows,
   resolvePipelineStartBookId,
   selectBatchLaunchCandidates,
 } from '../src/lib/pipeline-start.ts';
@@ -41,4 +43,47 @@ test('fresh and resumed starts preserve the selected textbook identifier', () =>
   assert.equal(resolvePipelineStartBookId('chem-grade8', null, false), 'chem-grade8');
   assert.equal(resolvePipelineStartBookId('stale-form-id', 'active-job-id', true), 'active-job-id');
   assert.equal(resolvePipelineStartBookId('', null, false), undefined);
+});
+
+test('batch requests keep shared runtime settings but infer metadata for each book', () => {
+  const request = buildPipelineBatchStartRequest({
+    book_id: 'chemistry',
+    book_title: '八年级化学',
+    pdf_path: '/tmp/chemistry.pdf',
+    mineru_language: 'ch',
+    mineru_page_ranges: '1-80',
+    outline_start_page: 2,
+    outline_end_page: 12,
+    extraction_template: 'textbook/chemistry',
+    lesson_subject: 'chemistry',
+    lesson_school_stage: 'junior-secondary',
+    lesson_grade_band: 'grade8',
+    parallelism: 6,
+    openai_model: 'shared-model',
+  }, {
+    bookId: 'physics',
+    title: '高中物理 必修一',
+    pdfPath: '/tmp/physics.pdf',
+  });
+
+  assert.deepEqual(request, {
+    book_id: 'physics',
+    book_title: '高中物理 必修一',
+    pdf_path: '/tmp/physics.pdf',
+    parallelism: 6,
+    openai_model: 'shared-model',
+  });
+});
+
+test('workbench rows preserve every duplicate-ID queue entry', () => {
+  const queue = [
+    { id: 'first', bookId: 'physics', title: '物理 A', pdfPath: '/tmp/a.pdf', sizeBytes: 10, selected: true, status: 'ready' as const, progress: 100, error: '' },
+    { id: 'second', bookId: 'physics', title: '物理 B', pdfPath: '/tmp/b.pdf', sizeBytes: 20, selected: false, status: 'ready' as const, progress: 100, error: '' },
+  ];
+  const rows = buildPipelineBookWorkbenchRows(queue, [], []);
+
+  assert.deepEqual(rows.map((row) => [row.key, row.pdfPath, row.selected]), [
+    ['first', '/tmp/a.pdf', true],
+    ['second', '/tmp/b.pdf', false],
+  ]);
 });

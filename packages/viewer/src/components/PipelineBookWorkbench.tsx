@@ -26,36 +26,16 @@ import {
   Upload,
   X,
 } from '@/lib/lucide-icons';
-import { selectBatchLaunchCandidates } from '@/lib/pipeline-start';
+import {
+  buildPipelineBookWorkbenchRows,
+  selectBatchLaunchCandidates,
+  type PipelineBatchQueueItem,
+  type PipelineBookWorkbenchRow as WorkbenchRow,
+} from '@/lib/pipeline-start';
 
-type QueueStatus = 'uploading' | 'ready' | 'starting' | 'started' | 'error';
-
-type QueueBook = {
-  id: string;
-  pdfPath: string;
+type QueueBook = PipelineBatchQueueItem & {
   fileName: string;
-  sizeBytes: number;
-  bookId: string;
-  title: string;
-  selected: boolean;
-  status: QueueStatus;
-  progress: number;
-  error: string;
   jobId?: string;
-};
-
-type WorkbenchRow = {
-  key: string;
-  bookId: string;
-  title: string;
-  pdfPath: string;
-  sizeBytes: number;
-  selected: boolean;
-  queueStatus: QueueStatus | null;
-  queueError: string;
-  progress: number;
-  job: PipelineJobSummary | null;
-  database: PgAdminBookSummary | null;
 };
 
 function queueStorageKey(sourceKey: string): string {
@@ -341,53 +321,10 @@ export function PipelineBookWorkbench({
     }
   };
 
-  const latestJobByBook = useMemo(() => {
-    const result = new Map<string, PipelineJobSummary>();
-    jobs.forEach((job) => {
-      if (!result.has(job.book_id)) result.set(job.book_id, job);
-    });
-    return result;
-  }, [jobs]);
-
-  const rows = useMemo<WorkbenchRow[]>(() => {
-    const byBook = new Map<string, WorkbenchRow>();
-    databaseBooks.forEach((book) => {
-      byBook.set(book.book_id, {
-        key: `db:${book.book_id}`,
-        bookId: book.book_id,
-        title: book.title,
-        pdfPath: '',
-        sizeBytes: 0,
-        selected: false,
-        queueStatus: null,
-        queueError: '',
-        progress: 0,
-        job: latestJobByBook.get(book.book_id) ?? null,
-        database: book,
-      });
-    });
-    queue.forEach((item) => {
-      const database = databaseBooks.find((book) => book.book_id === item.bookId) ?? null;
-      byBook.set(item.bookId || item.id, {
-        key: item.id,
-        bookId: item.bookId,
-        title: item.title,
-        pdfPath: item.pdfPath,
-        sizeBytes: item.sizeBytes,
-        selected: item.selected,
-        queueStatus: item.status,
-        queueError: item.error,
-        progress: item.progress,
-        job: latestJobByBook.get(item.bookId) ?? null,
-        database,
-      });
-    });
-    return [...byBook.values()].sort((left, right) => {
-      if (left.pdfPath && !right.pdfPath) return -1;
-      if (!left.pdfPath && right.pdfPath) return 1;
-      return left.title.localeCompare(right.title, 'zh-CN');
-    });
-  }, [databaseBooks, latestJobByBook, queue]);
+  const rows = useMemo(
+    () => buildPipelineBookWorkbenchRows(queue, databaseBooks, jobs),
+    [databaseBooks, jobs, queue],
+  );
 
   const selectedReady = useMemo(() => selectBatchLaunchCandidates(queue, jobs), [jobs, queue]);
 
