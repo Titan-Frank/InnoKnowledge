@@ -911,6 +911,7 @@ interface PipelineJobRow {
 }
 
 interface PipelineJobSummaryRow extends PipelineJobRow {
+  book_title: string | null;
   current_stage_label: string | null;
   created_at: string | null;
 }
@@ -925,6 +926,7 @@ export async function loadPipelineJobListPayload(
     SELECT
       jobs.job_id,
       jobs.book_id,
+      COALESCE(outlines.title, jobs.book_id) AS book_title,
       jobs.status,
       jobs.current_stage_id,
       stages.label AS current_stage_label,
@@ -939,6 +941,9 @@ export async function loadPipelineJobListPayload(
       ON stages.dataset_id = jobs.dataset_id
       AND stages.job_id = jobs.job_id
       AND stages.stage_id = jobs.current_stage_id
+    LEFT JOIN world_textbook_outlines AS outlines
+      ON outlines.dataset_id = jobs.dataset_id
+      AND outlines.book_id = jobs.book_id
     WHERE jobs.dataset_id = ${datasetId}
     ORDER BY jobs.updated_at DESC, jobs.created_at DESC
     LIMIT ${boundedLimit}
@@ -949,6 +954,7 @@ export async function loadPipelineJobListPayload(
     jobs: rows.map((row) => ({
       job_id: row.job_id,
       book_id: row.book_id,
+      book_title: row.book_title || row.book_id,
       status: row.status === 'completed' || row.status === 'blocked' ? row.status : 'running',
       current_stage_id: row.current_stage_id ?? null,
       current_stage_label: row.current_stage_label ?? null,

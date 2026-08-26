@@ -13,6 +13,7 @@ test('loadPipelineJobListPayload maps recent jobs for the viewer', async () => {
     return Promise.resolve([{
       job_id: 'physics.123',
       book_id: 'physics',
+      book_title: '高中物理 必修一',
       status: 'blocked',
       current_stage_id: 'node_bodies',
       current_stage_label: 'Generate node bodies',
@@ -33,6 +34,7 @@ test('loadPipelineJobListPayload maps recent jobs for the viewer', async () => {
     jobs: [{
       job_id: 'physics.123',
       book_id: 'physics',
+      book_title: '高中物理 必修一',
       status: 'blocked',
       current_stage_id: 'node_bodies',
       current_stage_label: 'Generate node bodies',

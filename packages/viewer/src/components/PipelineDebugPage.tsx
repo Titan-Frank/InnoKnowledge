@@ -10,6 +10,8 @@ import type {
   PipelineExtractionTemplateId,
   PipelineLessonBackendKind,
   PipelineQualityDashboardResponse,
+  PipelineQualityLessonRow,
+  PipelineQualityReviewAction,
   PipelineResponse,
   PipelineReviewItem,
   PipelineStartRequest,
@@ -24,6 +26,7 @@ import {
   loadImageReviews,
   loadPipeline,
   loadPipelineQuality,
+  updatePipelineQualityReview,
   startPipeline,
   uploadPipelinePdf,
   updateImageReview,
@@ -59,6 +62,7 @@ import {
   Search,
   Upload,
 } from '@/lib/lucide-icons';
+import { PipelineBookWorkbench } from './PipelineBookWorkbench';
 
 type PipelineForm = {
   book_id: string;
@@ -284,18 +288,39 @@ function MetricCard({
   value,
   detail,
   tone = 'neutral',
+  onClick,
+  ariaLabel,
 }: {
   label: string;
   value: number | string;
   detail?: string;
   tone?: 'neutral' | 'ok' | 'warn' | 'active';
+  onClick?: () => void;
+  ariaLabel?: string;
 }) {
   const color = tone === 'ok' ? 'text-node-process' : tone === 'warn' ? 'text-node-event' : tone === 'active' ? 'text-accent' : 'text-text-primary';
-  return (
-    <div className="rounded-lg border border-border-subtle bg-elevated p-3">
+  const content = (
+    <>
       <div className={`text-xl font-semibold tabular-nums ${color}`}>{value}</div>
       <div className="mt-1 text-[11px] font-medium text-text-secondary">{label}</div>
       {detail && <div className="mt-1 truncate text-[10px] text-text-muted">{detail}</div>}
+    </>
+  );
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={ariaLabel || label}
+        className="cursor-pointer rounded-lg border border-border-subtle bg-elevated p-3 text-left transition-colors hover:border-accent/50 hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      >
+        {content}
+      </button>
+    );
+  }
+  return (
+    <div className="rounded-lg border border-border-subtle bg-elevated p-3">
+      {content}
     </div>
   );
 }
@@ -966,7 +991,7 @@ function PipelineJobListPanel({
                 >
                   <td className="px-3 py-2"><StatusPill status={job.status} /></td>
                   <td className="max-w-[220px] px-3 py-2">
-                    <div className="truncate font-medium text-text-primary" title={job.book_id}>{job.book_id}</div>
+                    <div className="truncate font-medium text-text-primary" title={job.book_title}>{job.book_title}</div>
                     {job.error && (
                       <div className="mt-1 truncate text-[10px] text-node-event" title={job.error}>{job.error}</div>
                     )}
@@ -1158,17 +1183,49 @@ function QualityDashboardPanel({
   quality,
   loading,
   error,
+  reviewUpdatingId,
   onRefresh,
+  onReviewAction,
 }: {
   quality: PipelineQualityDashboardResponse | null;
   loading: boolean;
   error: string;
+  reviewUpdatingId: string;
   onRefresh: () => void;
+  onReviewAction: (lessonRunId: string, action: PipelineQualityReviewAction, note: string) => void;
 }) {
   const summary = quality?.summary;
   const lessons = quality?.lessons ?? [];
+  const pendingQualityLessons = lessons.filter((row) => row.quality_review_required);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [activeReviewId, setActiveReviewId] = useState('');
+  const [reviewNote, setReviewNote] = useState('');
+  const activeReview = pendingQualityLessons.find((row) => row.lesson_run_id === activeReviewId) ?? pendingQualityLessons[0] ?? null;
   const lowCoverageCount = lessons.filter((row) => row.evidence_coverage < 0.8 && row.node_count + row.relation_count > 0).length;
   const highIsolationCount = lessons.filter((row) => row.isolated_node_ratio > 0.4 && row.node_count > 0).length;
+
+  useEffect(() => {
+    if (!reviewOpen) return;
+    if (pendingQualityLessons.length === 0) {
+      setReviewOpen(false);
+      setActiveReviewId('');
+      setReviewNote('');
+      return;
+    }
+    if (!pendingQualityLessons.some((row) => row.lesson_run_id === activeReviewId)) {
+      setActiveReviewId(pendingQualityLessons[0]!.lesson_run_id);
+      setReviewNote('');
+    }
+  }, [activeReviewId, pendingQualityLessons, reviewOpen]);
+
+  const openReview = (row?: PipelineQualityLessonRow) => {
+    const target = row ?? pendingQualityLessons[0];
+    if (!target) return;
+    setActiveReviewId(target.lesson_run_id);
+    setReviewNote('');
+    setReviewOpen(true);
+  };
+
   return (
     <section className="overflow-hidden rounded-lg border border-border-subtle bg-elevated">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
@@ -1223,7 +1280,9 @@ function QualityDashboardPanel({
             label="人工待处理"
             value={summary?.manual_pending_items ?? '暂无'}
             tone={summary && summary.manual_pending_items > 0 ? 'warn' : 'ok'}
-            detail={summary ? `图片 ${summary.image_review_count}，合并 ${summary.merge_review_count}，质量 ${summary.quality_review_count}` : '等待统计'}
+            detail={summary ? `图片 ${summary.image_review_count}，合并 ${summary.merge_review_count}，质量 ${summary.quality_review_count}${summary.quality_review_count > 0 ? ' · 点击处理' : ''}` : '等待统计'}
+            onClick={pendingQualityLessons.length > 0 ? () => openReview() : undefined}
+            ariaLabel={pendingQualityLessons.length > 0 ? `处理 ${summary?.quality_review_count ?? 0} 个质量复核项` : undefined}
           />
         </div>
 
@@ -1268,7 +1327,19 @@ function QualityDashboardPanel({
                       <td className={`px-3 py-2 tabular-nums ${isolationWarn ? 'text-node-event' : 'text-text-secondary'}`}>{percentValue(row.isolated_node_ratio)}</td>
                       <td className="px-3 py-2 tabular-nums text-text-secondary">{row.disconnected_components}</td>
                       <td className={`px-3 py-2 tabular-nums ${row.image_review_count > 0 ? 'text-accent' : 'text-text-secondary'}`}>{row.image_review_count}</td>
-                      <td className={`px-3 py-2 tabular-nums ${row.manual_pending_items > 0 ? 'text-node-event' : 'text-text-secondary'}`}>{row.manual_pending_items}</td>
+                      <td className={`px-3 py-2 tabular-nums ${row.manual_pending_items > 0 ? 'text-node-event' : 'text-text-secondary'}`}>
+                        {row.quality_review_required ? (
+                          <button
+                            type="button"
+                            onClick={() => openReview(row)}
+                            className="inline-flex cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 font-semibold transition-colors hover:bg-node-event/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                            aria-label={`处理课时 ${row.batch_anchor} 的质量复核`}
+                          >
+                            {row.manual_pending_items}
+                            <ChevronRight className="h-3 w-3" />
+                          </button>
+                        ) : row.manual_pending_items}
+                      </td>
                     </tr>
                   );
                 })}
@@ -1281,6 +1352,109 @@ function QualityDashboardPanel({
             </table>
           </div>
         </div>
+
+        {reviewOpen && activeReview && (
+          <section id="quality-review-panel" className="overflow-hidden rounded-lg border border-accent/40 bg-surface" aria-label="质量复核处理区">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-3 py-2.5">
+              <div>
+                <div className="text-xs font-semibold text-text-primary">质量复核处理</div>
+                <div className="mt-0.5 text-[10px] text-text-muted">共 {pendingQualityLessons.length} 个课时待处理；操作会保留原始告警记录。</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReviewOpen(false)}
+                className="cursor-pointer text-[11px] text-text-muted transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                收起
+              </button>
+            </div>
+
+            <div className="grid min-h-[300px] lg:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.4fr)]">
+              <div className="max-h-[420px] space-y-1 overflow-auto border-b border-border-subtle p-2 lg:border-b-0 lg:border-r">
+                {pendingQualityLessons.map((row) => (
+                  <button
+                    key={row.lesson_run_id}
+                    type="button"
+                    onClick={() => {
+                      setActiveReviewId(row.lesson_run_id);
+                      setReviewNote('');
+                    }}
+                    className={`w-full cursor-pointer rounded-md border px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${row.lesson_run_id === activeReview.lesson_run_id ? 'border-accent/50 bg-accent/10' : 'border-transparent hover:border-border-subtle hover:bg-hover'}`}
+                    aria-pressed={row.lesson_run_id === activeReview.lesson_run_id}
+                  >
+                    <div className="truncate text-[11px] font-medium text-text-primary" title={row.batch_anchor}>{row.batch_anchor}</div>
+                    <div className="mt-1 text-[10px] text-text-muted">{row.quality_review_count} 个节点 · {row.quality_warnings.length || row.quality_issues.length} 条告警</div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="space-y-4 p-3">
+                <div>
+                  <div className="text-xs font-semibold text-text-primary">{activeReview.batch_anchor}</div>
+                  <div className="mt-1 text-[10px] text-text-muted">课时运行：{activeReview.lesson_run_id}</div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-md border border-border-subtle bg-elevated p-2.5">
+                    <div className="text-[10px] font-semibold text-text-secondary">待复核节点</div>
+                    <div className="mt-2 max-h-28 space-y-1 overflow-auto">
+                      {activeReview.review_node_ids.map((nodeId) => (
+                        <div key={nodeId} className="break-all rounded bg-surface px-2 py-1 font-mono text-[10px] text-text-primary">{nodeId}</div>
+                      ))}
+                      {activeReview.review_node_ids.length === 0 && <div className="text-[10px] text-text-muted">未记录具体节点 ID。</div>}
+                    </div>
+                  </div>
+                  <div className="rounded-md border border-border-subtle bg-elevated p-2.5">
+                    <div className="text-[10px] font-semibold text-text-secondary">质量告警</div>
+                    <div className="mt-2 max-h-28 space-y-1 overflow-auto">
+                      {[...activeReview.quality_issues, ...activeReview.quality_warnings].map((warning) => (
+                        <div key={warning} className="text-[10px] leading-4 text-node-event">{warning}</div>
+                      ))}
+                      {activeReview.quality_issues.length + activeReview.quality_warnings.length === 0 && <div className="text-[10px] text-text-muted">未记录告警文本。</div>}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-md border border-border-subtle bg-elevated p-2.5 text-[10px] leading-4 text-text-muted">
+                  如需修改节点名称或补充关系，请先在顶部“PG”工作区完成。下面的操作只关闭本课时的人工复核标记，不会自动修改图谱。
+                </div>
+
+                <div>
+                  <label htmlFor="quality-review-note" className="text-[10px] font-medium text-text-secondary">处理说明（可选）</label>
+                  <textarea
+                    id="quality-review-note"
+                    value={reviewNote}
+                    onChange={(event) => setReviewNote(event.target.value)}
+                    maxLength={1000}
+                    rows={2}
+                    placeholder="例如：该节点为章节入口，允许暂时保持孤立。"
+                    className="mt-1 w-full resize-y rounded-md border border-border-subtle bg-elevated px-2.5 py-2 text-xs text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent"
+                  />
+                </div>
+
+                <div className="flex flex-wrap justify-end gap-2">
+                  <button
+                    type="button"
+                    disabled={Boolean(reviewUpdatingId)}
+                    onClick={() => onReviewAction(activeReview.lesson_run_id, 'accept', reviewNote)}
+                    className="cursor-pointer rounded-md border border-border-subtle bg-elevated px-3 py-2 text-[11px] font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    接受当前质量状态
+                  </button>
+                  <button
+                    type="button"
+                    disabled={Boolean(reviewUpdatingId)}
+                    onClick={() => onReviewAction(activeReview.lesson_run_id, 'resolved', reviewNote)}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {reviewUpdatingId === activeReview.lesson_run_id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                    已修复并完成复核
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
       </div>
     </section>
   );
@@ -1317,6 +1491,7 @@ export function PipelineDebugPage() {
   const [quality, setQuality] = useState<PipelineQualityDashboardResponse | null>(null);
   const [qualityLoading, setQualityLoading] = useState(false);
   const [qualityError, setQualityError] = useState('');
+  const [qualityReviewUpdating, setQualityReviewUpdating] = useState('');
   const pdfInputRef = useRef<HTMLInputElement>(null);
 
   const refresh = async (options: { silent?: boolean } = {}) => {
@@ -1367,6 +1542,20 @@ export function PipelineDebugPage() {
     }
   };
 
+  const submitQualityReview = async (lessonRunId: string, action: PipelineQualityReviewAction, note: string) => {
+    if (qualityReviewUpdating) return;
+    setQualityReviewUpdating(lessonRunId);
+    setQualityError('');
+    try {
+      await updatePipelineQualityReview(activeSourceKey, lessonRunId, { action, note: note.trim() || undefined });
+      await refreshQuality({ silent: true });
+    } catch (err) {
+      setQualityError((err as Error).message || '更新质量复核失败');
+    } finally {
+      setQualityReviewUpdating('');
+    }
+  };
+
   const refreshJobStatus = async (jobId = startResult?.job_id) => {
     if (!jobId) return;
     try {
@@ -1380,7 +1569,7 @@ export function PipelineDebugPage() {
     setForm((current) => ({ ...current, [key]: value }));
   };
 
-  const canInfer = Boolean(form.book_id.trim() || form.pdf_path.trim() || form.mineru_file_url.trim());
+  const canInfer = Boolean(form.book_title.trim() || form.pdf_path.trim() || form.mineru_file_url.trim());
   const canStart = sourceReady(form) && !starting && !uploadingPdf;
 
   const selectLocalPdf = () => {
@@ -1433,7 +1622,7 @@ export function PipelineDebugPage() {
 
   const startRequest = (startStage?: PipelineStartStage): PipelineStartRequest => ({
     resume_job_id: startStage ? activeJobStatus?.job_id : undefined,
-    book_id: form.book_id.trim() || jobStatus?.book_id || undefined,
+    book_id: startStage ? activeJobStatus?.book_id || form.book_id.trim() || undefined : undefined,
     book_title: form.book_title.trim() || undefined,
     pdf_path: form.pdf_path.trim() || undefined,
     mineru_file_url: form.mineru_file_url.trim() || undefined,
@@ -1485,6 +1674,22 @@ export function PipelineDebugPage() {
     }
   };
 
+  const launchBatchBook = async (book: { bookId: string; title: string; pdfPath: string }): Promise<PipelineStartResponse> => {
+    const result = await startPipeline(activeSourceKey, {
+      ...startRequest(),
+      resume_job_id: undefined,
+      start_stage: undefined,
+      book_id: book.bookId,
+      book_title: book.title,
+      pdf_path: book.pdfPath,
+      mineru_file_url: undefined,
+    });
+    rememberPipelineJob(window.localStorage, activeSourceKey, result);
+    setStartResult(result);
+    setJobStatus(null);
+    return result;
+  };
+
   const submitStart = async (event: FormEvent) => {
     event.preventDefault();
     if (!canStart) return;
@@ -1499,7 +1704,7 @@ export function PipelineDebugPage() {
     }
     try {
       const result = await inferTextbookMetadata(activeSourceKey, {
-        book_id: form.book_id.trim() || undefined,
+        book_title: form.book_title.trim() || undefined,
         pdf_path: form.pdf_path.trim() || undefined,
         mineru_file_url: form.mineru_file_url.trim() || undefined,
       });
@@ -1517,7 +1722,7 @@ export function PipelineDebugPage() {
       void submitInfer({ silent: true });
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [activeSourceKey, form.book_id, form.pdf_path, form.mineru_file_url]);
+  }, [activeSourceKey, form.book_title, form.pdf_path, form.mineru_file_url]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1563,6 +1768,7 @@ export function PipelineDebugPage() {
     setForm((current) => ({
       ...current,
       book_id: job.book_id,
+      book_title: job.book_title,
     }));
     try {
       setJobStatus(await loadPipelineJobStatus(activeSourceKey, job.job_id));
@@ -1669,6 +1875,17 @@ export function PipelineDebugPage() {
           </div>
         )}
 
+        <PipelineBookWorkbench
+          key={activeSourceKey}
+          sourceKey={activeSourceKey}
+          jobs={jobList?.jobs ?? []}
+          onStartBook={launchBatchBook}
+          onRefreshJobs={() => {
+            void refreshJobs();
+            void refresh({ silent: true });
+          }}
+        />
+
         <div className="grid gap-5 xl:grid-cols-[420px_minmax(0,1fr)_340px]">
           <section className="min-w-0 overflow-hidden rounded-lg border border-border-subtle bg-elevated">
             <div className="border-b border-border-subtle p-4">
@@ -1754,9 +1971,8 @@ export function PipelineDebugPage() {
                     重新识别
                   </button>
                 </div>
-                <div className="mb-3 grid grid-cols-2 gap-2">
-                  <Field label="教材编号" value={form.book_id} onChange={(value) => updateForm('book_id', value)} placeholder="留空自动生成" />
-                  <Field label="教材标题" value={form.book_title} onChange={(value) => updateForm('book_title', value)} placeholder="留空自动识别" />
+                <div className="mb-3">
+                  <Field label="教材名称" value={form.book_title} onChange={(value) => updateForm('book_title', value)} placeholder="可从 PDF 自动识别，也可以直接修改" />
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <Field label="学科" value={form.lesson_subject} onChange={(value) => updateForm('lesson_subject', value)} placeholder="chemistry" />
@@ -1939,7 +2155,9 @@ export function PipelineDebugPage() {
               quality={quality}
               loading={qualityLoading}
               error={qualityError}
+              reviewUpdatingId={qualityReviewUpdating}
               onRefresh={() => void refreshQuality()}
+              onReviewAction={(lessonRunId, action, note) => void submitQualityReview(lessonRunId, action, note)}
             />
 
             <ImageReviewPanel

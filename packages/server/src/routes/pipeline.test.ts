@@ -1,20 +1,59 @@
 import assert from 'node:assert/strict';
-import { rm } from 'node:fs/promises';
-import { dirname } from 'node:path';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { Hono } from 'hono';
 import type { PipelinePdfUploadResponse } from '@okm/types';
 import type { Sql } from '../db/connection.js';
 import { DATASET_ADVISORY_LOCK_SQL } from '../db/dataset-lock.js';
 import {
+  applyQualityReviewAction,
   buildPipelineCommand,
   claimPipelineJobResume,
+  generatedBookId,
+  inferBookId,
+  pipelineBookNodeLimit,
   redactCommand,
   registerPipelineRoutes,
   reservePipelineJobStart,
   resolveNpmInvocation,
+  scanPdfFolder,
   safePdfUploadName,
 } from './pipeline.js';
+
+test('quality review action closes the pending flag and preserves review evidence', () => {
+  const next = applyQualityReviewAction({
+    quality_review_required: true,
+    review_node_ids: ['node-a'],
+    quality_warnings: ['Node node-a has no staged relations.'],
+  }, 'accept', '确认允许保持孤立', '2026-08-26T04:00:00.000Z');
+
+  assert.equal(next.quality_review_required, false);
+  assert.equal(next.quality_review_status, 'accepted');
+  assert.equal(next.quality_review_note, '确认允许保持孤立');
+  assert.deepEqual(next.review_node_ids, ['node-a']);
+  assert.deepEqual(next.quality_warnings, ['Node node-a has no staged relations.']);
+});
+
+test('textbook IDs are stable internal keys derived from the displayed name', () => {
+  assert.equal(
+    inferBookId({ book_title: '高中物理 必修 第一册', pdf_path: '/tmp/random-a/book.pdf' }),
+    inferBookId({ book_title: '高中物理 必修 第一册', pdf_path: '/tmp/random-b/renamed.pdf' }),
+  );
+  assert.equal(
+    inferBookId({ pdf_path: '/tmp/upload-a/八年级化学.pdf' }),
+    inferBookId({ pdf_path: '/tmp/upload-b/八年级化学.pdf' }),
+  );
+  assert.equal(generatedBookId('Chemistry Grade 8'), 'chemistry-grade-8');
+});
+
+test('book node detail limits preserve the 200-row default and cap large requests', () => {
+  assert.equal(pipelineBookNodeLimit(undefined), 200);
+  assert.equal(pipelineBookNodeLimit('350'), 350);
+  assert.equal(pipelineBookNodeLimit('1000'), 500);
+  assert.equal(pipelineBookNodeLimit('invalid'), 200);
+});
 
 test('safePdfUploadName accepts encoded PDF names and removes path components', () => {
   assert.equal(safePdfUploadName(encodeURIComponent('八年级化学.pdf')), '八年级化学.pdf');
@@ -53,6 +92,23 @@ test('pipeline PDF upload stores a validated file and returns its server path', 
   });
   assert.equal(invalidResponse.status, 400);
   assert.match((await invalidResponse.json() as { error: string }).error, /not a valid PDF/);
+});
+
+test('scanPdfFolder discovers nested PDFs and ignores non-PDF files', async () => {
+  const folder = await mkdtemp(join(tmpdir(), 'okm-pdf-folder-'));
+  await mkdir(join(folder, 'nested'));
+  await writeFile(join(folder, 'book-a.pdf'), '%PDF-1.7\nA');
+  await writeFile(join(folder, 'notes.txt'), 'not a PDF');
+  await writeFile(join(folder, 'nested', 'book-b.PDF'), '%PDF-1.7\nB');
+  try {
+    const recursive = await scanPdfFolder(folder);
+    assert.deepEqual(recursive.files.map((file) => file.relative_path), ['book-a.pdf', join('nested', 'book-b.PDF')]);
+    const topLevel = await scanPdfFolder(folder, false);
+    assert.deepEqual(topLevel.files.map((file) => file.relative_path), ['book-a.pdf']);
+    await assert.rejects(() => scanPdfFolder(join(folder, 'missing')), /does not exist/);
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
 });
 
 test('resolveNpmInvocation uses the npm CLI inherited from npm', () => {
