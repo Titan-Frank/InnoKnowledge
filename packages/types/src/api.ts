@@ -308,6 +308,20 @@ export interface PipelineQualityDashboardResponse {
   lessons: PipelineQualityLessonRow[];
 }
 
+export type PipelineQualityReviewAction = 'accept' | 'resolved';
+
+export interface PipelineQualityReviewUpdateRequest {
+  action: PipelineQualityReviewAction;
+  note?: string;
+}
+
+export interface PipelineQualityReviewUpdateResponse {
+  status: 'success';
+  lesson_run_id: string;
+  action: PipelineQualityReviewAction;
+  reviewed_at: string;
+}
+
 export type PipelineLessonBackendKind = 'openai_responses' | 'openai_chat_completions';
 export type PipelineExtractionTemplateId = 'auto' | string;
 export type PipelineStartStage =
@@ -373,9 +387,48 @@ export interface PipelinePdfUploadResponse {
   size_bytes: number;
 }
 
+export interface PipelineFolderScanRequest {
+  folder_path: string;
+  recursive?: boolean;
+}
+
+export interface PipelineFolderPdf {
+  pdf_path: string;
+  file_name: string;
+  relative_path: string;
+  size_bytes: number;
+}
+
+export interface PipelineFolderScanResponse {
+  folder_path: string;
+  recursive: boolean;
+  files: PipelineFolderPdf[];
+}
+
+export interface PipelineBookNode {
+  id: string;
+  name: string;
+  kind: string;
+  subkind: string | null;
+  definition: string;
+  status: string;
+  ownership: 'created' | 'review' | 'matched';
+  lesson_count: number;
+  shared: boolean;
+  updated_at: string | null;
+}
+
+export interface PipelineBookNodesResponse {
+  dataset_id: string;
+  book_id: string;
+  total: number;
+  nodes: PipelineBookNode[];
+}
+
 export interface PipelineJobSummary {
   job_id: string;
   book_id: string;
+  book_title: string;
   status: 'running' | 'completed' | 'blocked';
   current_stage_id: string | null;
   current_stage_label: string | null;
@@ -446,6 +499,7 @@ export interface PipelineJobStatusResponse {
 
 export interface TextbookMetadataRequest {
   book_id?: string;
+  book_title?: string;
   pdf_path?: string;
   mineru_file_url?: string;
 }

@@ -1,20 +1,95 @@
 import assert from 'node:assert/strict';
-import { rm } from 'node:fs/promises';
-import { dirname } from 'node:path';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { Hono } from 'hono';
 import type { PipelinePdfUploadResponse } from '@okm/types';
 import type { Sql } from '../db/connection.js';
 import { DATASET_ADVISORY_LOCK_SQL } from '../db/dataset-lock.js';
 import {
+  applyQualityReviewAction,
   buildPipelineCommand,
   claimPipelineJobResume,
+  generatedBookId,
+  inferBookId,
+  MAX_ACTIVE_PIPELINE_JOBS,
+  pipelineBookNodeLimit,
+  qualityReviewPatch,
   redactCommand,
   registerPipelineRoutes,
   reservePipelineJobStart,
   resolveNpmInvocation,
+  scanPdfFolder,
   safePdfUploadName,
+  updatePendingQualityReview,
 } from './pipeline.js';
+
+test('quality review action closes the pending flag and preserves review evidence', () => {
+  const next = applyQualityReviewAction({
+    quality_review_required: true,
+    review_node_ids: ['node-a'],
+    quality_warnings: ['Node node-a has no staged relations.'],
+  }, 'accept', '确认允许保持孤立', '2026-08-26T04:00:00.000Z');
+
+  assert.equal(next.quality_review_required, false);
+  assert.equal(next.quality_review_status, 'accepted');
+  assert.equal(next.quality_review_note, '确认允许保持孤立');
+  assert.deepEqual(next.review_node_ids, ['node-a']);
+  assert.deepEqual(next.quality_warnings, ['Node node-a has no staged relations.']);
+});
+
+test('quality review patch contains only atomic review metadata', () => {
+  assert.deepEqual(qualityReviewPatch('resolved', '已修正', '2026-08-26T04:05:00.000Z'), {
+    quality_review_required: false,
+    quality_review_status: 'resolved',
+    quality_review_note: '已修正',
+    quality_reviewed_at: '2026-08-26T04:05:00.000Z',
+    quality_reviewed_via: 'viewer',
+  });
+});
+
+test('quality review update merges review metadata into the current JSONB value', async () => {
+  let statement = '';
+  let parameters: unknown[] = [];
+  const sql = ((strings: TemplateStringsArray, ...values: unknown[]) => {
+    statement = strings.join(' ').replace(/\s+/g, ' ').trim();
+    parameters = values;
+    return Promise.resolve([{ lesson_run_id: 'lesson-1' }]);
+  }) as unknown as Sql;
+  sql.json = ((value: unknown) => value) as Sql['json'];
+
+  assert.equal(await updatePendingQualityReview(sql, {
+    datasetId: 'main',
+    lessonRunId: 'lesson-1',
+    action: 'accept',
+    note: '确认接受',
+    reviewedAt: '2026-08-26T04:10:00.000Z',
+  }), true);
+  assert.match(statement, /COALESCE\(properties_json, '\{\}'::jsonb\) \|\| .*::jsonb/);
+  assert.deepEqual(parameters.find((value) => (
+    value != null && typeof value === 'object' && 'quality_review_status' in value
+  )), qualityReviewPatch('accept', '确认接受', '2026-08-26T04:10:00.000Z'));
+});
+
+test('textbook IDs are stable internal keys derived from the displayed name', () => {
+  assert.equal(
+    inferBookId({ book_title: '高中物理 必修 第一册', pdf_path: '/tmp/random-a/book.pdf' }),
+    inferBookId({ book_title: '高中物理 必修 第一册', pdf_path: '/tmp/random-b/renamed.pdf' }),
+  );
+  assert.equal(
+    inferBookId({ pdf_path: '/tmp/upload-a/八年级化学.pdf' }),
+    inferBookId({ pdf_path: '/tmp/upload-b/八年级化学.pdf' }),
+  );
+  assert.equal(generatedBookId('Chemistry Grade 8'), 'chemistry-grade-8');
+});
+
+test('book node detail limits preserve the 200-row default and cap large requests', () => {
+  assert.equal(pipelineBookNodeLimit(undefined), 200);
+  assert.equal(pipelineBookNodeLimit('350'), 350);
+  assert.equal(pipelineBookNodeLimit('1000'), 500);
+  assert.equal(pipelineBookNodeLimit('invalid'), 200);
+});
 
 test('safePdfUploadName accepts encoded PDF names and removes path components', () => {
   assert.equal(safePdfUploadName(encodeURIComponent('八年级化学.pdf')), '八年级化学.pdf');
@@ -53,6 +128,23 @@ test('pipeline PDF upload stores a validated file and returns its server path', 
   });
   assert.equal(invalidResponse.status, 400);
   assert.match((await invalidResponse.json() as { error: string }).error, /not a valid PDF/);
+});
+
+test('scanPdfFolder discovers nested PDFs and ignores non-PDF files', async () => {
+  const folder = await mkdtemp(join(tmpdir(), 'okm-pdf-folder-'));
+  await mkdir(join(folder, 'nested'));
+  await writeFile(join(folder, 'book-a.pdf'), '%PDF-1.7\nA');
+  await writeFile(join(folder, 'notes.txt'), 'not a PDF');
+  await writeFile(join(folder, 'nested', 'book-b.PDF'), '%PDF-1.7\nB');
+  try {
+    const recursive = await scanPdfFolder(folder);
+    assert.deepEqual(recursive.files.map((file) => file.relative_path), ['book-a.pdf', join('nested', 'book-b.PDF')]);
+    const topLevel = await scanPdfFolder(folder, false);
+    assert.deepEqual(topLevel.files.map((file) => file.relative_path), ['book-a.pdf']);
+    await assert.rejects(() => scanPdfFolder(join(folder, 'missing')), /does not exist/);
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
 });
 
 test('resolveNpmInvocation uses the npm CLI inherited from npm', () => {
@@ -149,11 +241,14 @@ test('buildPipelineCommand forwards the requested resume stage', () => {
 
 test('claimPipelineJobResume reuses one blocked job and resets its runtime state', async () => {
   const statements: string[] = [];
+  const parameterSets: unknown[][] = [];
   const unsafeCalls: Array<{ query: string; values: unknown[] }> = [];
   const sql = ((
     strings: TemplateStringsArray,
+    ...parameters: unknown[]
   ) => {
     statements.push(strings.join(' '));
+    parameterSets.push(parameters);
     return Promise.resolve(statements.length === 1 ? [{ job_id: 'chemistry.123' }] : []);
   }) as unknown as Sql;
   sql.unsafe = (async (query: string, values: unknown[] = []) => {
@@ -166,6 +261,9 @@ test('claimPipelineJobResume reuses one blocked job and resets its runtime state
   assert.deepEqual(unsafeCalls, [{ query: DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
   assert.equal(statements.length, 3);
   assert.match(statements[0]!, /UPDATE world_pipeline_jobs/);
+  assert.match(statements[0]!, /NOT EXISTS[\s\S]*running\.book_id = target\.book_id/);
+  assert.match(statements[0]!, /SELECT COUNT\(\*\)[\s\S]*running\.status = 'running'[\s\S]*</);
+  assert.ok(parameterSets[0]?.includes(MAX_ACTIVE_PIPELINE_JOBS));
   assert.match(statements[1]!, /UPDATE world_pipeline_job_stages/);
   assert.match(statements[2]!, /UPDATE world_pipeline_worker_states/);
 });
@@ -187,10 +285,12 @@ test('claimPipelineJobResume rejects a job that is no longer blocked', async () 
 
 test('reservePipelineJobStart records a running job under the shared dataset lock', async () => {
   const statements: string[] = [];
+  const parameterSets: unknown[][] = [];
   const unsafeCalls: Array<{ query: string; values: unknown[] }> = [];
-  const sql = ((strings: TemplateStringsArray) => {
+  const sql = ((strings: TemplateStringsArray, ...parameters: unknown[]) => {
     const statement = strings.join(' ').replace(/\s+/g, ' ').trim();
     statements.push(statement);
+    parameterSets.push(parameters);
     return Promise.resolve(statement.includes('INSERT INTO world_pipeline_jobs') ? [{ job_id: 'chemistry.123' }] : []);
   }) as unknown as Sql;
   sql.unsafe = (async (query: string, values: unknown[] = []) => {
@@ -204,12 +304,19 @@ test('reservePipelineJobStart records a running job under the shared dataset loc
     datasetId: 'main',
     jobId: 'chemistry.123',
     bookId: 'chemistry',
+    bookTitle: '八年级化学',
     logPath: '/tmp/chemistry.123.log',
   }), true);
   assert.deepEqual(unsafeCalls, [{ query: DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
   assert.equal(statements.length, 2);
   assert.match(statements[0]!, /INSERT INTO world_datasets/);
   assert.match(statements[1]!, /INSERT INTO world_pipeline_jobs/);
+  assert.match(statements[1]!, /WHERE NOT EXISTS .*book_id = .*status = 'running'/);
+  assert.match(statements[1]!, /SELECT COUNT\(\*\).*status = 'running'.*</);
+  assert.ok(parameterSets[1]?.includes(MAX_ACTIVE_PIPELINE_JOBS));
+  assert.deepEqual(parameterSets[1]?.find((value) => (
+    value != null && typeof value === 'object' && 'reserved_by' in value
+  )), { reserved_by: 'server', book_title: '八年级化学' });
 });
 
 test('redactCommand removes passwords from database URLs', () => {

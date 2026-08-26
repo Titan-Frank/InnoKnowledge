@@ -43,4 +43,7 @@ export {
   Save,
   Trash2,
   Upload,
+  FolderOpen,
+  ListChecks,
+  ExternalLink,
 } from 'lucide-react';

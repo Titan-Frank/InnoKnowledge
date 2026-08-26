@@ -2,12 +2,14 @@ import type { Hono } from 'hono';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { createWriteStream, mkdirSync } from 'node:fs';
-import { mkdir, rm } from 'node:fs/promises';
-import { basename, join } from 'node:path';
+import { mkdir, readdir, realpath, rm, stat } from 'node:fs/promises';
+import { basename, extname, isAbsolute, join, relative } from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { pipeline as streamPipeline } from 'node:stream/promises';
 import type {
+  PipelineBookNodesResponse, PipelineFolderPdf, PipelineFolderScanRequest, PipelineFolderScanResponse,
   PipelinePdfUploadResponse, PipelineStartRequest, PipelineStartResponse, PipelineStartStage,
+  PipelineQualityReviewAction, PipelineQualityReviewUpdateRequest, PipelineQualityReviewUpdateResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
 } from '@okm/types';
 import type { Sql } from '../db/connection.js';
@@ -22,12 +24,55 @@ import {
 import { loadPipelineQualityPayload } from '../db/quality-dashboard.js';
 import { REPO_ROOT } from '../utils/paths.js';
 
+export const MAX_ACTIVE_PIPELINE_JOBS = 4;
+
 interface CommandInvocation {
   command: string;
   args: string[];
 }
 
+type JsonValue = Parameters<Sql['json']>[0];
+
 const MAX_PDF_UPLOAD_BYTES = 512 * 1024 * 1024;
+const MAX_FOLDER_PDFS = 1000;
+
+export async function scanPdfFolder(folderPath: string, recursive = true): Promise<PipelineFolderScanResponse> {
+  const trimmed = folderPath.trim();
+  if (!trimmed || !isAbsolute(trimmed)) throw new Error('Folder path must be an absolute path.');
+  const root = await realpath(trimmed).catch(() => null);
+  if (!root) throw new Error('Folder path does not exist or cannot be read.');
+  const rootStat = await stat(root);
+  if (!rootStat.isDirectory()) throw new Error('Folder path must point to a directory.');
+
+  const files: PipelineFolderPdf[] = [];
+  const pending = [root];
+  while (pending.length > 0) {
+    const current = pending.shift()!;
+    const entries = await readdir(current, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isSymbolicLink()) continue;
+      const entryPath = join(current, entry.name);
+      if (entry.isDirectory()) {
+        if (recursive) pending.push(entryPath);
+        continue;
+      }
+      if (!entry.isFile() || extname(entry.name).toLowerCase() !== '.pdf') continue;
+      const fileStat = await stat(entryPath);
+      if (fileStat.size <= 0 || fileStat.size > MAX_PDF_UPLOAD_BYTES) continue;
+      files.push({
+        pdf_path: entryPath,
+        file_name: entry.name,
+        relative_path: relative(root, entryPath),
+        size_bytes: fileStat.size,
+      });
+      if (files.length > MAX_FOLDER_PDFS) {
+        throw new Error(`Folder contains more than ${MAX_FOLDER_PDFS} PDF files. Narrow the folder and try again.`);
+      }
+    }
+  }
+  files.sort((left, right) => left.relative_path.localeCompare(right.relative_path, 'zh-CN'));
+  return { folder_path: root, recursive, files };
+}
 
 const PIPELINE_START_STAGES = new Set<PipelineStartStage>([
   'mineru_source_markdown',
@@ -157,15 +202,28 @@ export async function claimPipelineJobResume(
   return sql.begin(async (tx) => {
     await tx.unsafe(DATASET_ADVISORY_LOCK_SQL, [datasetId]);
     const rows = await tx<{ job_id: string }[]>`
-      UPDATE world_pipeline_jobs
+      UPDATE world_pipeline_jobs AS target
       SET status = 'running',
           error = NULL,
           completed_at = NULL,
           updated_at = ${now}
-      WHERE dataset_id = ${datasetId}
-        AND job_id = ${jobId}
-        AND status = 'blocked'
-      RETURNING job_id
+      WHERE target.dataset_id = ${datasetId}
+        AND target.job_id = ${jobId}
+        AND target.status = 'blocked'
+        AND NOT EXISTS (
+          SELECT 1
+          FROM world_pipeline_jobs AS running
+          WHERE running.dataset_id = target.dataset_id
+            AND running.book_id = target.book_id
+            AND running.status = 'running'
+        )
+        AND (
+          SELECT COUNT(*)
+          FROM world_pipeline_jobs AS running
+          WHERE running.dataset_id = target.dataset_id
+            AND running.status = 'running'
+        ) < ${MAX_ACTIVE_PIPELINE_JOBS}
+      RETURNING target.job_id
     `;
     if (rows.length !== 1) return false;
 
@@ -199,7 +257,7 @@ export async function claimPipelineJobResume(
 
 export async function reservePipelineJobStart(
   sql: Sql,
-  input: { datasetId: string; jobId: string; bookId: string; logPath: string },
+  input: { datasetId: string; jobId: string; bookId: string; bookTitle: string; logPath: string },
 ): Promise<boolean> {
   const now = new Date().toISOString();
   return sql.begin(async (tx) => {
@@ -221,11 +279,23 @@ export async function reservePipelineJobStart(
         progress_json, log_path, command_json, context_json,
         created_at, updated_at, completed_at, error
       )
-      VALUES (
+      SELECT
         ${input.datasetId}, ${input.jobId}, ${input.bookId}, 'running', NULL,
-        ${tx.json({})}, ${input.logPath}, ${tx.json([])}, ${tx.json({ reserved_by: 'server' })},
+        ${tx.json({})}, ${input.logPath}, ${tx.json([])}, ${tx.json({ reserved_by: 'server', book_title: input.bookTitle })},
         ${now}, ${now}, NULL, NULL
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM world_pipeline_jobs
+        WHERE dataset_id = ${input.datasetId}
+          AND book_id = ${input.bookId}
+          AND status = 'running'
       )
+        AND (
+          SELECT COUNT(*)
+          FROM world_pipeline_jobs
+          WHERE dataset_id = ${input.datasetId}
+            AND status = 'running'
+        ) < ${MAX_ACTIVE_PIPELINE_JOBS}
       ON CONFLICT (dataset_id, job_id) DO NOTHING
       RETURNING job_id
     `;
@@ -241,6 +311,60 @@ function asString(value: unknown, fallback = ''): string {
   return typeof value === 'string' && value.trim() ? value.trim() : fallback;
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+export function applyQualityReviewAction(
+  propertiesValue: unknown,
+  action: PipelineQualityReviewAction,
+  note: string,
+  reviewedAt: string,
+): Record<string, unknown> {
+  return {
+    ...asRecord(propertiesValue),
+    ...qualityReviewPatch(action, note, reviewedAt),
+  };
+}
+
+export function qualityReviewPatch(
+  action: PipelineQualityReviewAction,
+  note: string,
+  reviewedAt: string,
+): Record<string, unknown> {
+  return {
+    quality_review_required: false,
+    quality_review_status: action === 'accept' ? 'accepted' : 'resolved',
+    quality_review_note: note,
+    quality_reviewed_at: reviewedAt,
+    quality_reviewed_via: 'viewer',
+  };
+}
+
+export async function updatePendingQualityReview(
+  sql: Sql,
+  input: {
+    datasetId: string;
+    lessonRunId: string;
+    action: PipelineQualityReviewAction;
+    note: string;
+    reviewedAt: string;
+  },
+): Promise<boolean> {
+  const patch = qualityReviewPatch(input.action, input.note, input.reviewedAt);
+  const updatedRows = await sql<{ lesson_run_id: string }[]>`
+    UPDATE world_lesson_runs
+    SET properties_json = COALESCE(properties_json, '{}'::jsonb)
+          || ${sql.json(patch as unknown as JsonValue)}::jsonb,
+        updated_at = ${input.reviewedAt}
+    WHERE dataset_id = ${input.datasetId}
+      AND lesson_run_id = ${input.lessonRunId}
+      AND COALESCE((properties_json->>'quality_review_required')::boolean, false) = true
+    RETURNING lesson_run_id
+  `;
+  return updatedRows.length === 1;
+}
+
 function asInt(value: unknown, fallback: number): number {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
@@ -251,6 +375,10 @@ function asPositiveInt(value: unknown, fallback: number): number {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.max(1, Math.floor(parsed));
+}
+
+export function pipelineBookNodeLimit(value: unknown): number {
+  return Math.min(500, asPositiveInt(value, 200));
 }
 
 function sourceName(value: string): string {
@@ -310,22 +438,24 @@ async function savePdfUpload(body: ReadableStream<Uint8Array>, destination: stri
   return sizeBytes;
 }
 
-function generatedBookId(value: string): string {
-  const ascii = sourceStem(value)
-    .toLowerCase()
+export function generatedBookId(value: string): string {
+  const seed = value.normalize('NFKC').trim().toLowerCase();
+  const ascii = seed
     .replace(/[^a-z0-9._-]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .replace(/-{2,}/g, '-');
   if (ascii.length >= 3) return ascii;
-  const digest = createHash('sha1').update(value).digest('hex').slice(0, 8);
+  const digest = createHash('sha1').update(seed).digest('hex').slice(0, 8);
   return `textbook-${digest}`;
 }
 
-function inferBookId(input: { book_id?: unknown; pdf_path?: unknown; mineru_file_url?: unknown }): string {
+export function inferBookId(input: { book_id?: unknown; book_title?: unknown; pdf_path?: unknown; mineru_file_url?: unknown }): string {
   const explicit = asString(input.book_id);
   if (explicit) return explicit;
+  const title = asString(input.book_title);
+  if (title) return generatedBookId(title);
   const source = asString(input.pdf_path) || asString(input.mineru_file_url);
-  return source ? generatedBookId(source) : '';
+  return source ? generatedBookId(sourceStem(source)) : '';
 }
 
 function inferMineruLanguage(text: string): string {
@@ -353,7 +483,8 @@ function inferTextbookMetadata(
   outline: Record<string, unknown> | null = null,
 ): TextbookMetadataResponse {
   const bookId = inferBookId(input);
-  if (!bookId) throw new Error('PDF path, MinerU file URL, or book_id is required.');
+  if (!bookId) throw new Error('Textbook name, PDF path, MinerU file URL, or book_id is required.');
+  const requestedTitle = asString(input.book_title);
   const sourcePath = asString(input.pdf_path) || asString(input.mineru_file_url);
   const pdfName = sourcePath ? sourceName(sourcePath) : '';
   let outlineText = '';
@@ -365,13 +496,13 @@ function inferTextbookMetadata(
     });
   }
 
-  const rawHaystack = `${bookId} ${pdfName} ${outlineText}`;
+  const rawHaystack = `${requestedTitle} ${bookId} ${pdfName} ${outlineText}`;
   const haystack = rawHaystack.toLowerCase();
   const signals: string[] = [];
   let subject = 'general';
   let schoolStage = 'higher';
   let gradeBand = 'unknown';
-  let title = pdfName.replace(/\.[^.]+$/, '') || bookId;
+  let title = requestedTitle || pdfName.replace(/\.[^.]+$/, '') || bookId;
   let confidence = 0.25;
 
   const subjectRules: Array<[string, string, RegExp]> = [
@@ -458,8 +589,13 @@ export function buildPipelineCommand(
   outline: Record<string, unknown> | null = null,
 ): string[] {
   const bookId = inferBookId(body);
-  if (!bookId) throw new Error('PDF path, MinerU file URL, or book_id is required.');
-  const inferred = inferTextbookMetadata({ book_id: bookId, pdf_path: body.pdf_path, mineru_file_url: body.mineru_file_url }, outline);
+  if (!bookId) throw new Error('Textbook name, PDF path, MinerU file URL, or book_id is required.');
+  const inferred = inferTextbookMetadata({
+    book_id: bookId,
+    book_title: body.book_title,
+    pdf_path: body.pdf_path,
+    mineru_file_url: body.mineru_file_url,
+  }, outline);
 
   const outputRoot = asString(body.output_root, 'data/main');
   const datasetId = asString(body.dataset_id, outputRoot.split('/').filter(Boolean).at(-1) || 'main');
@@ -571,6 +707,50 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     return c.json(await loadPipelineQualityPayload(sql, datasetRow.dataset_id));
   });
 
+  app.post('/api/source/:key/pipeline/quality-reviews/:lesson_run_id', async (c) => {
+    const key = c.req.param('key');
+    const lessonRunId = decodeURIComponent(c.req.param('lesson_run_id'));
+    const datasetRow = await resolveDatasetRow(sql, key);
+    if (!datasetRow) return c.json({ error: `Unknown source '${key}'` }, 404);
+
+    const body = await c.req.json<PipelineQualityReviewUpdateRequest>().catch(() => null);
+    if (!body || (body.action !== 'accept' && body.action !== 'resolved')) {
+      return c.json({ error: 'Invalid quality review action.' }, 400);
+    }
+    const note = typeof body.note === 'string' ? body.note.trim().slice(0, 1000) : '';
+    const lessonRows = await sql`
+      SELECT properties_json
+      FROM world_lesson_runs
+      WHERE dataset_id = ${datasetRow.dataset_id}
+        AND lesson_run_id = ${lessonRunId}
+      LIMIT 1
+    `;
+    if (!lessonRows.length) return c.json({ error: `Lesson run not found: ${lessonRunId}` }, 404);
+
+    const properties = asRecord((lessonRows[0] as Record<string, unknown>).properties_json);
+    if (properties.quality_review_required !== true) {
+      return c.json({ error: 'This quality review is no longer pending.' }, 409);
+    }
+
+    const reviewedAt = timestamp();
+    const updated = await updatePendingQualityReview(sql, {
+      datasetId: datasetRow.dataset_id,
+      lessonRunId,
+      action: body.action,
+      note,
+      reviewedAt,
+    });
+    if (!updated) return c.json({ error: 'This quality review is no longer pending.' }, 409);
+
+    const response: PipelineQualityReviewUpdateResponse = {
+      status: 'success',
+      lesson_run_id: lessonRunId,
+      action: body.action,
+      reviewed_at: reviewedAt,
+    };
+    return c.json(response);
+  });
+
   app.post('/api/source/:key/pipeline/upload-pdf', async (c) => {
     let fileName: string;
     try {
@@ -602,6 +782,78 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
       const message = (error as Error).message || 'PDF upload failed.';
       return c.json({ error: message }, message.includes('512 MB') ? 413 : 400);
     }
+  });
+
+  app.post('/api/source/:key/pipeline/scan-folder', async (c) => {
+    const body = await c.req.json<PipelineFolderScanRequest>().catch(() => null);
+    if (!body) return c.json({ error: 'Invalid JSON body.' }, 400);
+    try {
+      return c.json(await scanPdfFolder(asString(body.folder_path), body.recursive !== false));
+    } catch (error) {
+      return c.json({ error: (error as Error).message || 'Folder scan failed.' }, 400);
+    }
+  });
+
+  app.get('/api/source/:key/pipeline/books/:book_id/nodes', async (c) => {
+    const key = c.req.param('key');
+    const datasetRow = await resolveDatasetRow(sql, key);
+    if (!datasetRow) return c.json({ error: `Unknown source '${key}'` }, 404);
+    const datasetId = datasetRow.dataset_id;
+    const bookId = c.req.param('book_id');
+    const limit = pipelineBookNodeLimit(c.req.query('limit'));
+    const rows = await sql`
+      WITH mapped AS (
+        SELECT
+          cm.canonical_node_id,
+          CASE
+            WHEN bool_or(cm.resolution = 'created') THEN 'created'
+            WHEN bool_or(cm.resolution = 'review') THEN 'review'
+            ELSE 'matched'
+          END AS ownership,
+          count(DISTINCT lr.lesson_run_id) AS lesson_count
+        FROM world_lesson_runs lr
+        JOIN world_canonical_node_map cm
+          ON cm.dataset_id = lr.dataset_id AND cm.lesson_run_id = lr.lesson_run_id
+        WHERE lr.dataset_id = ${datasetId} AND lr.book_id = ${bookId}
+        GROUP BY cm.canonical_node_id
+      )
+      SELECT
+        n.id, n.name, n.kind, n.subkind, n.definition, n.status, n.updated_at,
+        mapped.ownership, mapped.lesson_count,
+        EXISTS (
+          SELECT 1
+          FROM world_canonical_node_map other_map
+          JOIN world_lesson_runs other_lesson
+            ON other_lesson.dataset_id = other_map.dataset_id
+           AND other_lesson.lesson_run_id = other_map.lesson_run_id
+          WHERE other_map.dataset_id = ${datasetId}
+            AND other_map.canonical_node_id = n.id
+            AND other_lesson.book_id <> ${bookId}
+        ) AS shared,
+        count(*) OVER() AS total
+      FROM mapped
+      JOIN world_nodes n ON n.dataset_id = ${datasetId} AND n.id = mapped.canonical_node_id
+      ORDER BY mapped.ownership <> 'created', n.kind, n.name
+      LIMIT ${limit}
+    ` as unknown as Array<Record<string, unknown>>;
+    const response: PipelineBookNodesResponse = {
+      dataset_id: datasetId,
+      book_id: bookId,
+      total: Number(rows[0]?.total ?? 0),
+      nodes: rows.map((row) => ({
+        id: String(row.id),
+        name: String(row.name),
+        kind: String(row.kind),
+        subkind: row.subkind == null ? null : String(row.subkind),
+        definition: String(row.definition ?? ''),
+        status: String(row.status ?? ''),
+        ownership: String(row.ownership) as 'created' | 'review' | 'matched',
+        lesson_count: Number(row.lesson_count ?? 0),
+        shared: row.shared === true,
+        updated_at: row.updated_at == null ? null : String(row.updated_at),
+      })),
+    };
+    return c.json(response);
   });
 
   app.post('/api/source/:key/pipeline/infer-textbook', async (c) => {
@@ -648,7 +900,7 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     if (!body) return c.json({ error: 'Invalid JSON body.' }, 400);
 
     const bookId = inferBookId(body);
-    if (!bookId) return c.json({ error: 'PDF path, MinerU file URL, or book_id is required.' }, 400);
+    if (!bookId) return c.json({ error: 'Textbook name, PDF path, MinerU file URL, or book_id is required.' }, 400);
 
     const requestedResumeJobId = asString(body.resume_job_id);
     let jobId = requestedResumeJobId || `${safeToken(bookId)}.${Date.now()}`;
@@ -697,17 +949,22 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     if (resumeDatasetId) {
       const claimed = await claimPipelineJobResume(sql, resumeDatasetId, jobId);
       if (!claimed) {
-        return c.json({ error: `Pipeline job '${jobId}' is no longer blocked and cannot be resumed.` }, 409);
+        return c.json({
+          error: `Cannot resume '${jobId}': it is no longer blocked, this book already has a running job, or the dataset has reached its ${MAX_ACTIVE_PIPELINE_JOBS}-job limit.`,
+        }, 409);
       }
     } else {
       const reserved = await reservePipelineJobStart(sql, {
         datasetId: statusDatasetId,
         jobId,
         bookId,
+        bookTitle: asString(body.book_title, bookId),
         logPath,
       });
       if (!reserved) {
-        return c.json({ error: `Pipeline job '${jobId}' already exists and cannot be started again.` }, 409);
+        return c.json({
+          error: `Cannot start '${jobId}': this book already has a running job, the dataset has reached its ${MAX_ACTIVE_PIPELINE_JOBS}-job limit, or the job ID already exists.`,
+        }, 409);
       }
     }
 

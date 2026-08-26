@@ -2,7 +2,9 @@ import type {
   ApiNodeCard, ApiUnit, MetaResponse, BundleResponse, SearchResponse, SemanticNeighborsResponse,
   GroundedGenerationRequest, GroundedGenerationResponse, GroundedGenerationStreamEvent,
   UnitRetrievalMode, UnitRetrievalResponse,
+  PipelineBookNodesResponse, PipelineFolderScanRequest, PipelineFolderScanResponse,
   PipelineJobListResponse, PipelineJobStatusResponse, PipelinePdfUploadResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
+  PipelineQualityReviewUpdateRequest, PipelineQualityReviewUpdateResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
   PgAdminBookDeleteResponse, PgAdminBooksResponse, PgAdminCatalogResponse,
@@ -447,6 +449,17 @@ export async function loadPipelineQuality(sourceKey: string): Promise<PipelineQu
   );
 }
 
+export async function updatePipelineQualityReview(
+  sourceKey: string,
+  lessonRunId: string,
+  payload: PipelineQualityReviewUpdateRequest,
+): Promise<PipelineQualityReviewUpdateResponse> {
+  return postJson<PipelineQualityReviewUpdateResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/quality-reviews/${encodeURIComponent(lessonRunId)}`,
+    payload,
+  );
+}
+
 export async function startPipeline(
   sourceKey: string,
   payload: PipelineStartRequest,
@@ -492,6 +505,27 @@ export async function uploadPipelinePdf(
     request.addEventListener('abort', () => reject(new BackendError('PDF 上传已取消。', 0, 'abort')));
     request.send(file);
   });
+}
+
+export async function scanPipelineFolder(
+  sourceKey: string,
+  payload: PipelineFolderScanRequest,
+): Promise<PipelineFolderScanResponse> {
+  return postJson<PipelineFolderScanResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/scan-folder`,
+    payload,
+  );
+}
+
+export async function loadPipelineBookNodes(
+  sourceKey: string,
+  bookId: string,
+  limit = 200,
+): Promise<PipelineBookNodesResponse> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  return fetchJson<PipelineBookNodesResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/books/${encodeURIComponent(bookId)}/nodes?${params}`,
+  );
 }
 
 export async function loadPipelineJobStatus(

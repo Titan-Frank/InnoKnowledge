@@ -317,13 +317,11 @@ function countValue(value: unknown, key: string): number {
 }
 
 function qualityIssues(value: unknown): string[] {
-  const issues = asRecord(value).quality_issues;
-  return Array.isArray(issues) ? issues.map(String).filter(Boolean) : [];
+  return stringArray(asRecord(value).quality_issues);
 }
 
 function qualityWarnings(value: unknown): string[] {
-  const warnings = asRecord(value).quality_warnings;
-  return Array.isArray(warnings) ? warnings.map(String).filter(Boolean) : [];
+  return stringArray(asRecord(value).quality_warnings);
 }
 
 function qualityReviewRequiredValue(value: unknown): boolean {
@@ -334,8 +332,15 @@ function qualityReviewNodeIds(value: unknown): string[] {
   return [...new Set(stringArray(asRecord(value).review_node_ids))].sort();
 }
 
-function stringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.map(String).map((item) => item.trim()).filter(Boolean) : [];
+export function stringArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String).map((item) => item.trim()).filter(Boolean);
+  if (typeof value !== 'string' || !value.trim().startsWith('[')) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.map(String).map((item) => item.trim()).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
 }
 
 function hasValidEvidenceRef(value: unknown, evidenceIds: Set<string>): boolean {

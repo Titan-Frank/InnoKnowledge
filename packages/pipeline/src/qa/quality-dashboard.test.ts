@@ -1,11 +1,33 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildSelectQualityReviewItemsQuery, runQualityDashboardFromDatabase } from "./quality-dashboard.js";
+import { buildSelectQualityReviewItemsQuery, runQualityDashboardFromDatabase, stringArray } from "./quality-dashboard.js";
 
 test("loads merge review node ids for per-node deduplication", () => {
   const statement = buildSelectQualityReviewItemsQuery("main");
   assert.match(statement.sql, /SELECT lesson_run_id, raw_node_id/);
+});
+
+test("reads native and legacy stringified dashboard arrays", () => {
+  assert.deepEqual(stringArray(["node-a", " node-b "]), ["node-a", "node-b"]);
+  assert.deepEqual(stringArray('["node-a","node-b"]'), ["node-a", "node-b"]);
+  assert.deepEqual(stringArray("not-json"), []);
+  assert.deepEqual(stringArray('{"node":"a"}'), []);
+});
+
+test("preserves legacy stringified issues, warnings, and review node ids", async () => {
+  const result = await runQualityDashboardFromDatabase({
+    datasetId: "main",
+    now: "2026-06-29T00:00:00.000Z",
+    query: (statement) => rowsForLegacyStringArrays(statement.name),
+  });
+
+  assert.deepEqual(result.lessons[0]?.quality_warnings, [
+    "Node n3 requires review.",
+    "Node n3 has a second warning.",
+  ]);
+  assert.deepEqual(result.lessons[0]?.review_node_ids, ["n3", "n4"]);
+  assert.deepEqual(result.lessons[1]?.quality_issues, ["Lesson produced no staged edges."]);
 });
 
 test("builds lesson and global quality dashboard metrics", async () => {
@@ -174,6 +196,22 @@ function rowsForSyntheticEvidence(name: string): Array<Record<string, unknown>> 
   }
   if (name.startsWith("select-quality-canonical-")) return [];
   return rowsFor(name);
+}
+
+function rowsForLegacyStringArrays(name: string): Array<Record<string, unknown>> {
+  if (name !== "select-quality-lesson-runs") return rowsFor(name);
+  return rowsFor(name).map((row, index) => {
+    const properties = row.properties_json as Record<string, unknown>;
+    return {
+      ...row,
+      properties_json: {
+        ...properties,
+        quality_issues: JSON.stringify(properties.quality_issues ?? []),
+        quality_warnings: JSON.stringify(properties.quality_warnings ?? []),
+        review_node_ids: index === 0 ? '["n3","n4"]' : JSON.stringify(properties.review_node_ids ?? []),
+      },
+    };
+  });
 }
 
 function rowsForCanonicalApproved(name: string): Array<Record<string, unknown>> {

@@ -5,14 +5,17 @@ import { loadPipelineJobListPayload } from './queries.js';
 
 test('loadPipelineJobListPayload maps recent jobs for the viewer', async () => {
   const values: unknown[] = [];
+  const statements: string[] = [];
   const sql = ((
-    _strings: TemplateStringsArray,
+    strings: TemplateStringsArray,
     ...parameters: unknown[]
   ) => {
+    statements.push(strings.join(' '));
     values.push(...parameters);
     return Promise.resolve([{
       job_id: 'physics.123',
       book_id: 'physics',
+      book_title: '高中物理 必修一',
       status: 'blocked',
       current_stage_id: 'node_bodies',
       current_stage_label: 'Generate node bodies',
@@ -28,11 +31,13 @@ test('loadPipelineJobListPayload maps recent jobs for the viewer', async () => {
   const payload = await loadPipelineJobListPayload(sql, 'main', 200);
 
   assert.deepEqual(values, ['main', 100]);
+  assert.match(statements[0]!, /context_json->>'book_title'/);
   assert.deepEqual(payload, {
     dataset_id: 'main',
     jobs: [{
       job_id: 'physics.123',
       book_id: 'physics',
+      book_title: '高中物理 必修一',
       status: 'blocked',
       current_stage_id: 'node_bodies',
       current_stage_label: 'Generate node bodies',
