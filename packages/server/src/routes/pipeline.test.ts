@@ -243,10 +243,12 @@ test('claimPipelineJobResume rejects a job that is no longer blocked', async () 
 
 test('reservePipelineJobStart records a running job under the shared dataset lock', async () => {
   const statements: string[] = [];
+  const parameterSets: unknown[][] = [];
   const unsafeCalls: Array<{ query: string; values: unknown[] }> = [];
-  const sql = ((strings: TemplateStringsArray) => {
+  const sql = ((strings: TemplateStringsArray, ...parameters: unknown[]) => {
     const statement = strings.join(' ').replace(/\s+/g, ' ').trim();
     statements.push(statement);
+    parameterSets.push(parameters);
     return Promise.resolve(statement.includes('INSERT INTO world_pipeline_jobs') ? [{ job_id: 'chemistry.123' }] : []);
   }) as unknown as Sql;
   sql.unsafe = (async (query: string, values: unknown[] = []) => {
@@ -260,12 +262,16 @@ test('reservePipelineJobStart records a running job under the shared dataset loc
     datasetId: 'main',
     jobId: 'chemistry.123',
     bookId: 'chemistry',
+    bookTitle: '八年级化学',
     logPath: '/tmp/chemistry.123.log',
   }), true);
   assert.deepEqual(unsafeCalls, [{ query: DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
   assert.equal(statements.length, 2);
   assert.match(statements[0]!, /INSERT INTO world_datasets/);
   assert.match(statements[1]!, /INSERT INTO world_pipeline_jobs/);
+  assert.deepEqual(parameterSets[1]?.find((value) => (
+    value != null && typeof value === 'object' && 'reserved_by' in value
+  )), { reserved_by: 'server', book_title: '八年级化学' });
 });
 
 test('redactCommand removes passwords from database URLs', () => {

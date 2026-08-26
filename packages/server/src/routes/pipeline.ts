@@ -242,7 +242,7 @@ export async function claimPipelineJobResume(
 
 export async function reservePipelineJobStart(
   sql: Sql,
-  input: { datasetId: string; jobId: string; bookId: string; logPath: string },
+  input: { datasetId: string; jobId: string; bookId: string; bookTitle: string; logPath: string },
 ): Promise<boolean> {
   const now = new Date().toISOString();
   return sql.begin(async (tx) => {
@@ -266,7 +266,7 @@ export async function reservePipelineJobStart(
       )
       VALUES (
         ${input.datasetId}, ${input.jobId}, ${input.bookId}, 'running', NULL,
-        ${tx.json({})}, ${input.logPath}, ${tx.json([])}, ${tx.json({ reserved_by: 'server' })},
+        ${tx.json({})}, ${input.logPath}, ${tx.json([])}, ${tx.json({ reserved_by: 'server', book_title: input.bookTitle })},
         ${now}, ${now}, NULL, NULL
       )
       ON CONFLICT (dataset_id, job_id) DO NOTHING
@@ -898,6 +898,7 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         datasetId: statusDatasetId,
         jobId,
         bookId,
+        bookTitle: asString(body.book_title, bookId),
         logPath,
       });
       if (!reserved) {

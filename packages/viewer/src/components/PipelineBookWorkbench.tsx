@@ -26,6 +26,7 @@ import {
   Upload,
   X,
 } from '@/lib/lucide-icons';
+import { selectBatchLaunchCandidates } from '@/lib/pipeline-start';
 
 type QueueStatus = 'uploading' | 'ready' | 'starting' | 'started' | 'error';
 
@@ -388,7 +389,7 @@ export function PipelineBookWorkbench({
     });
   }, [databaseBooks, latestJobByBook, queue]);
 
-  const selectedReady = queue.filter((item) => item.selected && item.status === 'ready' && item.pdfPath);
+  const selectedReady = useMemo(() => selectBatchLaunchCandidates(queue, jobs), [jobs, queue]);
 
   const startSelected = async () => {
     if (selectedReady.length === 0) return;

@@ -63,6 +63,7 @@ import {
   Upload,
 } from '@/lib/lucide-icons';
 import { PipelineBookWorkbench } from './PipelineBookWorkbench';
+import { resolvePipelineStartBookId } from '@/lib/pipeline-start';
 
 type PipelineForm = {
   book_id: string;
@@ -1622,7 +1623,7 @@ export function PipelineDebugPage() {
 
   const startRequest = (startStage?: PipelineStartStage): PipelineStartRequest => ({
     resume_job_id: startStage ? activeJobStatus?.job_id : undefined,
-    book_id: startStage ? activeJobStatus?.book_id || form.book_id.trim() || undefined : undefined,
+    book_id: resolvePipelineStartBookId(form.book_id, activeJobStatus?.book_id, Boolean(startStage)),
     book_title: form.book_title.trim() || undefined,
     pdf_path: form.pdf_path.trim() || undefined,
     mineru_file_url: form.mineru_file_url.trim() || undefined,

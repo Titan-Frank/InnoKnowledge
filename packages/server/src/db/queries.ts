@@ -926,7 +926,11 @@ export async function loadPipelineJobListPayload(
     SELECT
       jobs.job_id,
       jobs.book_id,
-      COALESCE(outlines.title, jobs.book_id) AS book_title,
+      COALESCE(
+        NULLIF(outlines.title, ''),
+        NULLIF(jobs.context_json->>'book_title', ''),
+        jobs.book_id
+      ) AS book_title,
       jobs.status,
       jobs.current_stage_id,
       stages.label AS current_stage_label,
