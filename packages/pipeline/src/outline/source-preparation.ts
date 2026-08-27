@@ -2,7 +2,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 import { parseHeadings, planChunkOutline, type ChunkOutlineItem } from "./chunk-outline.js";
-import { safePathToken } from "../shared/pathing.js";
+import { iterOutlineItems, safePathToken, type OutlineItem } from "../shared/pathing.js";
 
 type RawRecord = Record<string, unknown>;
 
@@ -10,6 +10,7 @@ type MarkdownAlignmentResult = {
   updated: boolean;
   matched_items: number;
   total_items: number;
+  unmatched_item_ids: string[];
   source_path: string;
 };
 
@@ -56,6 +57,46 @@ export type MarkdownOutlinePreparationResult =
       error: string;
       outline_path: string;
     };
+
+export type OutlineSourceResetResult = {
+  outline_path: string;
+  reset_items: number;
+  removed_chunks: number;
+};
+
+export function resetOutlineForSourceReplacement(input: { outlinePath: string; sourcePath?: string }): OutlineSourceResetResult {
+  const outline = loadOutlineRecord(input.outlinePath);
+  const itemKey = Array.isArray(outline.items) ? "items" : Array.isArray(outline.structure) ? "structure" : null;
+  if (!itemKey) throw new Error(`Outline is missing items/structure: ${input.outlinePath}`);
+
+  let resetItems = 0;
+  let removedChunks = 0;
+  const resetValues = (values: unknown[]): RawRecord[] => values.flatMap((value) => {
+    if (!isRecord(value)) return [];
+    if (value.kind === "chunk") {
+      removedChunks += 1;
+      return [];
+    }
+    const item = { ...value };
+    if ("md_start" in item || "md_end" in item || "raw_line" in item) resetItems += 1;
+    delete item.md_start;
+    delete item.md_end;
+    delete item.raw_line;
+    if (Array.isArray(item.children)) item.children = resetValues(item.children);
+    return [item];
+  });
+
+  writeOutlineRecord(input.outlinePath, {
+    ...outline,
+    source_path: input.sourcePath ?? outline.source_path,
+    [itemKey]: resetValues(outline[itemKey] as unknown[]),
+  });
+  return {
+    outline_path: input.outlinePath,
+    reset_items: resetItems,
+    removed_chunks: removedChunks,
+  };
+}
 
 export function prepareSourceMarkdown(input: {
   bookId: string;
@@ -117,6 +158,13 @@ export function ensureOutlineFromMarkdown(input: {
       markdownPath: input.markdownPath,
       repoRoot: input.repoRoot,
     });
+    if (alignment.unmatched_item_ids.length > 0) {
+      return {
+        status: "blocked",
+        outline_path: input.outlinePath,
+        error: `Could not align extraction items to Markdown headings: ${alignment.unmatched_item_ids.slice(0, 10).join(", ")}`,
+      };
+    }
     return {
       status: "completed",
       created: false,
@@ -198,7 +246,8 @@ export function alignOutlineToMarkdown(input: { outlinePath: string; markdownPat
   const outline = loadOutlineRecord(input.outlinePath);
   const itemKey = Array.isArray(outline.items) ? "items" : Array.isArray(outline.structure) ? "structure" : null;
   if (!itemKey) throw new Error(`Outline has no items list: ${input.outlinePath}`);
-  const items = (outline[itemKey] as unknown[]).filter(isRecord) as RawRecord[];
+  const rootItems = (outline[itemKey] as unknown[]).filter(isRecord) as OutlineItem[];
+  const items = iterOutlineItems(rootItems) as RawRecord[];
   const lines = readPlainLines(markdownPath);
   const markerLines = new Map<string, number>();
   const headings: Array<{ line: number; title: string; norm: string; raw: string }> = [];
@@ -260,11 +309,15 @@ export function alignOutlineToMarkdown(input: { outlinePath: string; markdownPat
   });
 
   const sourcePath = toRepoRelativePath(markdownPath, input.repoRoot);
-  writeOutlineRecord(input.outlinePath, { ...outline, source_path: sourcePath, [itemKey]: items });
+  writeOutlineRecord(input.outlinePath, { ...outline, source_path: sourcePath, [itemKey]: rootItems });
+  const unmatchedItemIds = items
+    .filter((item) => (item.kind === "lesson" || item.kind === "activity") && (!hasNumber(item.md_start) || !hasNumber(item.md_end)))
+    .map((item) => typeof item.id === "string" && item.id ? item.id : String(item.title ?? item.label ?? "unknown-item"));
   return {
     updated: true,
     matched_items: matchedSorted.length,
     total_items: items.length,
+    unmatched_item_ids: unmatchedItemIds,
     source_path: sourcePath,
   };
 }
@@ -280,7 +333,8 @@ export function ensureChunkedOutline(input: {
   const outline = loadOutlineRecord(input.outlinePath);
   const itemKey = Array.isArray(outline.items) ? "items" : Array.isArray(outline.structure) ? "structure" : null;
   if (!itemKey) return { status: "blocked", outline_path: input.outlinePath, error: `Outline is missing items/structure: ${input.outlinePath}` };
-  const items = (outline[itemKey] as unknown[]).filter(isRecord) as ChunkOutlineItem[];
+  const rootItems = (outline[itemKey] as unknown[]).filter(isRecord) as OutlineItem[];
+  const items = (iterOutlineItems(rootItems) as ChunkOutlineItem[]).sort(compareDocumentOrder);
   if (items.some((item) => item.kind === "chunk")) {
     return { status: "skipped", outline_path: input.outlinePath, reason: "Outline already contains chunk items." };
   }
@@ -301,7 +355,7 @@ export function ensureChunkedOutline(input: {
 
   writeOutlineRecord(input.outlinePath, {
     ...outline,
-    [itemKey]: [...items, ...plan.chunks],
+    [itemKey]: [...rootItems, ...plan.chunks],
   });
   return {
     status: "completed",
@@ -362,6 +416,13 @@ function compareOrderPath(left: RawRecord, right: RawRecord): number {
     if (delta !== 0) return delta;
   }
   return 0;
+}
+
+function compareDocumentOrder(left: RawRecord, right: RawRecord): number {
+  const leftStart = hasNumber(left.md_start) ? Number(left.md_start) : Number.POSITIVE_INFINITY;
+  const rightStart = hasNumber(right.md_start) ? Number(right.md_start) : Number.POSITIVE_INFINITY;
+  if (leftStart !== rightStart) return leftStart - rightStart;
+  return compareOrderPath(left, right);
 }
 
 function orderKey(item: RawRecord): number[] {

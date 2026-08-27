@@ -65,6 +65,55 @@ test("builds a model lesson payload from one chunk, not a local extractor payloa
   }
 });
 
+test("includes nested activity content when extracting a whole lesson", () => {
+  const root = mkdtempSync(join(tmpdir(), "okm-model-extraction-nested-"));
+  try {
+    mkdirSync(join(root, "data", "outlines"), { recursive: true });
+    mkdirSync(join(root, "data", "mineru", bookId), { recursive: true });
+    writeFileSync(
+      join(root, "data", "outlines", `${bookId}.outline.json`),
+      JSON.stringify({
+        source_path: `data/mineru/${bookId}/full.md`,
+        structure: [{
+          id: "struct:model-book:lesson:1-1",
+          kind: "lesson",
+          title: "第一课",
+          md_start: 2,
+          md_end: 3,
+          children: [{
+            id: "struct:model-book:activity:1-1-a",
+            kind: "activity",
+            title: "探究活动",
+            md_start: 4,
+            md_end: 6,
+          }],
+        }, {
+          id: "struct:model-book:lesson:1-2",
+          kind: "lesson",
+          title: "第二课",
+          md_start: 7,
+          md_end: 8,
+        }],
+      }),
+    );
+    writeFileSync(
+      join(root, "data", "mineru", bookId, "full.md"),
+      ["教材标题", "# 第一课", "课程正文", "## 探究活动", "活动步骤", "活动结论", "# 第二课", "后续正文"].join("\n"),
+    );
+
+    const payload = buildModelLessonPayload({
+      bookId,
+      batchAnchor: "struct:model-book:lesson:1-1",
+      repoRoot: root,
+    });
+
+    assert.equal(payload.lesson_context.lesson_title, "第一课");
+    assert.deepEqual(payload.markdown_lines, ["# 第一课", "课程正文", "## 探究活动", "活动步骤", "活动结论"]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("builds two-stage model requests with chat completions as the default API", () => {
   const repo = makeFixtureRepo();
   try {

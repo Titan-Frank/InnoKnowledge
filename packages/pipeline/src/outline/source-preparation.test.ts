@@ -4,7 +4,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { alignOutlineToMarkdown, ensureChunkedOutline, ensureOutlineFromMarkdown, prepareSourceMarkdown } from "./source-preparation.js";
+import {
+  alignOutlineToMarkdown,
+  ensureChunkedOutline,
+  ensureOutlineFromMarkdown,
+  prepareSourceMarkdown,
+  resetOutlineForSourceReplacement,
+} from "./source-preparation.js";
 
 test("imports an existing Markdown file and updates outline source_path", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-"));
@@ -168,6 +174,229 @@ test("aligns an existing outline to Markdown headings", () => {
         ["struct:book-a:lesson:1-1", 3, 5],
       ],
     );
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("resets stale spans and chunks before aligning replacement OCR", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-"));
+  try {
+    const outlinePath = makeOutline(repoRoot);
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    outline.items.push({
+      id: "struct:book-a:chunk:1-1-a",
+      kind: "chunk",
+      parent_id: "struct:book-a:lesson:1-1",
+      md_start: 1,
+      md_end: 4,
+      order_path: "1.1-a",
+    });
+    writeFileSync(outlinePath, `${JSON.stringify(outline, null, 2)}\n`, "utf8");
+
+    const reset = resetOutlineForSourceReplacement({ outlinePath });
+
+    assert.equal(reset.reset_items, 1);
+    assert.equal(reset.removed_chunks, 1);
+    const resetOutline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    assert.equal(resetOutline.items.some((item) => item.kind === "chunk"), false);
+    const lesson = resetOutline.items.find((item) => item.kind === "lesson");
+    assert.equal("md_start" in (lesson ?? {}), false);
+    assert.equal("md_end" in (lesson ?? {}), false);
+    assert.equal("raw_line" in (lesson ?? {}), false);
+    assert.equal(lesson?.page_start, 1);
+    assert.equal(lesson?.page_end, 1);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("realigns nested lesson spans without flattening the outline hierarchy", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-nested-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const markdownPath = join(repoRoot, "data", "mineru", "book-a", "full.md");
+    mkdirSync(join(repoRoot, "data", "outlines"), { recursive: true });
+    mkdirSync(join(repoRoot, "data", "mineru", "book-a"), { recursive: true });
+    writeFileSync(outlinePath, `${JSON.stringify({
+      book_id: "book-a",
+      items: [{
+        id: "struct:book-a:theme:1",
+        kind: "theme",
+        title: "第一章",
+        order_path: "1",
+        md_start: 1,
+        md_end: 4,
+        children: [{
+          id: "struct:book-a:lesson:1-1",
+          kind: "lesson",
+          title: "第一课",
+          order_path: "1.1",
+          md_start: 1,
+          md_end: 2,
+          children: [{
+            id: "struct:book-a:chunk:1-1-a",
+            kind: "chunk",
+            order_path: "1.1-a",
+            md_start: 1,
+            md_end: 2,
+          }],
+        }, {
+          id: "struct:book-a:lesson:1-2",
+          kind: "lesson",
+          title: "第二课",
+          order_path: "1.2",
+          md_start: 3,
+          md_end: 4,
+        }],
+      }],
+    }, null, 2)}\n`, "utf8");
+    writeFileSync(markdownPath, [
+      "preface",
+      "# 第一章",
+      "chapter intro",
+      "## 第一课",
+      "lesson one",
+      "## 第二课",
+      "lesson two",
+    ].join("\n"), "utf8");
+
+    const reset = resetOutlineForSourceReplacement({ outlinePath });
+    const alignment = alignOutlineToMarkdown({ outlinePath, markdownPath, repoRoot });
+
+    assert.equal(reset.removed_chunks, 1);
+    assert.equal(alignment.matched_items, 3);
+    assert.equal(alignment.total_items, 3);
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as {
+      items: Array<{ children?: Array<Record<string, unknown>> }>;
+    };
+    assert.equal(outline.items.length, 1);
+    const children = outline.items[0]?.children ?? [];
+    assert.equal(children.length, 2);
+    assert.equal(children[0]?.md_start, 4);
+    assert.equal(children[0]?.md_end, 5);
+    assert.equal(children[1]?.md_start, 6);
+    assert.equal(children[1]?.md_end, 7);
+    assert.equal(Array.isArray(children[0]?.children) ? children[0].children.length : 0, 0);
+
+    const chunkResult = ensureChunkedOutline({
+      outlinePath,
+      repoRoot,
+      minLines: 1,
+      maxLines: 2,
+      targetLines: 1,
+    });
+    assert.equal(chunkResult.status, "completed");
+    const chunkedOutline = JSON.parse(readFileSync(outlinePath, "utf8")) as {
+      items: Array<Record<string, unknown>>;
+    };
+    const chunks = chunkedOutline.items.filter((item) => item.kind === "chunk");
+    assert.equal(chunks.length, 2);
+    assert.deepEqual(chunks.map((item) => [item.md_start, item.md_end]), [[4, 5], [6, 7]]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("chunks nested outline leaves in Markdown document order", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-nested-order-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    mkdirSync(join(repoRoot, "data", "outlines"), { recursive: true });
+    writeFileSync(outlinePath, `${JSON.stringify({
+      book_id: "book-a",
+      items: [{
+        id: "struct:book-a:theme:1",
+        kind: "theme",
+        title: "第一章",
+        order_path: "1",
+        md_start: 1,
+        md_end: 6,
+        children: [{
+          id: "struct:book-a:lesson:1",
+          kind: "lesson",
+          title: "第一课",
+          order_path: "1.1",
+          parent_id: "struct:book-a:theme:1",
+          md_start: 1,
+          md_end: 2,
+          children: [{
+            id: "struct:book-a:activity:1-1-1",
+            kind: "activity",
+            title: "活动",
+            order_path: "1.1.1",
+            parent_id: "struct:book-a:lesson:1",
+            md_start: 3,
+            md_end: 4,
+          }],
+        }, {
+          id: "struct:book-a:lesson:2",
+          kind: "lesson",
+          title: "第二课",
+          order_path: "1.2",
+          parent_id: "struct:book-a:theme:1",
+          md_start: 5,
+          md_end: 6,
+        }],
+      }],
+    }, null, 2)}\n`, "utf8");
+
+    const result = ensureChunkedOutline({
+      outlinePath,
+      repoRoot,
+      minLines: 10,
+      maxLines: 20,
+      targetLines: 10,
+    });
+
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as {
+      items: Array<Record<string, unknown>>;
+    };
+    const chunk = outline.items.find((item) => item.kind === "chunk");
+    assert.ok(chunk);
+    assert.equal(chunk.md_start, 1);
+    assert.equal(chunk.md_end, 6);
+    assert.deepEqual(chunk.source_ids, [
+      "struct:book-a:lesson:1",
+      "struct:book-a:activity:1-1-1",
+      "struct:book-a:lesson:2",
+    ]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("blocks source preparation when a reset lesson cannot be realigned", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-unmatched-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const markdownPath = join(repoRoot, "data", "mineru", "book-a", "full.md");
+    mkdirSync(join(repoRoot, "data", "outlines"), { recursive: true });
+    mkdirSync(join(repoRoot, "data", "mineru", "book-a"), { recursive: true });
+    writeFileSync(outlinePath, `${JSON.stringify({
+      book_id: "book-a",
+      items: [{
+        id: "struct:book-a:lesson:missing",
+        kind: "lesson",
+        title: "Missing lesson",
+        order_path: "1",
+        md_start: 1,
+        md_end: 2,
+      }],
+    }, null, 2)}\n`, "utf8");
+    writeFileSync(markdownPath, "# Different lesson\nbody\n", "utf8");
+
+    resetOutlineForSourceReplacement({ outlinePath });
+    const result = ensureOutlineFromMarkdown({
+      bookId: "book-a",
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "blocked");
+    assert.match(result.status === "blocked" ? result.error : "", /struct:book-a:lesson:missing/);
   } finally {
     rmSync(repoRoot, { recursive: true, force: true });
   }

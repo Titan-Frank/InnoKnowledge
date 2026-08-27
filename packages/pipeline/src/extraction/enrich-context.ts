@@ -46,6 +46,7 @@ export type EnrichContextQueryExecutor = (statement: SqlStatement) => Promise<Ra
 export type LoadEnrichHintsForLessonInput = {
   datasetId: string;
   executor: EnrichContextQueryExecutor;
+  bookPath?: string;
   bookId?: string;
   textbookId?: string;
   bookTitle?: string;
@@ -74,17 +75,26 @@ type LessonQuery = {
 
 export async function loadEnrichHintsForLesson(input: LoadEnrichHintsForLessonInput): Promise<EnrichHint[]> {
   if (!input.datasetId.trim()) return [];
-  const metadataRows = await input.executor(
-    buildEnrichBookCandidatesQuery({
-      datasetId: input.datasetId,
-      subject: input.subject,
-      schoolStage: input.schoolStage,
-      limit: Math.max(256, (input.limit ?? 6) * 32),
-    }),
-  );
-  const selectedBooks = lockEnrichBooks(metadataRows.map(normalizeBookRow), input);
-  if (selectedBooks.length === 0) return [];
-  const rawRows = await input.executor(buildEnrichBookTreesQuery(input.datasetId, selectedBooks.map((row) => row.path)));
+  let selectedPaths: string[];
+  if (input.bookPath?.trim()) {
+    selectedPaths = [input.bookPath.trim()];
+  } else {
+    const metadataRows = await input.executor(
+      buildEnrichBookCandidatesQuery({
+        datasetId: input.datasetId,
+        subject: input.subject,
+        schoolStage: input.schoolStage,
+        limit: Math.max(256, (input.limit ?? 6) * 32),
+      }),
+    );
+    const selectedBooks = lockEnrichBooks(metadataRows.map(normalizeBookRow), input);
+    if (selectedBooks.length === 0) return [];
+    selectedPaths = selectedBooks.map((row) => row.path);
+  }
+  const rawRows = await input.executor(buildEnrichBookTreesQuery(input.datasetId, selectedPaths));
+  if (input.bookPath?.trim() && rawRows.length === 0) {
+    throw new Error(`Selected Enrich book '${input.bookPath.trim()}' does not exist in dataset '${input.datasetId}'.`);
+  }
   const rows = rawRows.map(normalizeBookRow);
   const query = buildLessonQuery(input);
   const hints: Array<EnrichHint & { raw_score: number }> = [];

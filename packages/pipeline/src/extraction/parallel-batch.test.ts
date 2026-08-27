@@ -86,6 +86,9 @@ test("plans TypeScript model extraction commands for parallel workers", () => {
     extractionTemplate: "textbook/chemistry",
     modelRetryCount: 2,
     timeoutSeconds: 90,
+    enrichContext: true,
+    enrichBookPath: "data/enrich/chemistry.json",
+    enrichContextLimit: 6,
   });
 
   assert.equal(commands.length, 2);
@@ -118,6 +121,11 @@ test("plans TypeScript model extraction commands for parallel workers", () => {
     "2",
     "--timeout",
     "90",
+    "--enrich-context",
+    "--enrich-book-path",
+    "data/enrich/chemistry.json",
+    "--enrich-context-limit",
+    "6",
   ]);
   assert.ok(!commands[0]?.command.some((part) => part.includes("extract_lesson_openai.py")));
 });

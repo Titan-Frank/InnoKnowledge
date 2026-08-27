@@ -10,11 +10,128 @@ import {
   buildMineruTaskPayload,
   copyMarkdownForPipeline,
   extractMineruResults,
+  importOcrBundle,
+  inspectOcrBundle,
   parseMineruBatchId,
   parseMineruUploadUrl,
   runMineruSourceMarkdown,
   selectMineruResult,
 } from "./mineru-source.js";
+
+test("inspects and imports a nested MinerU OCR bundle without a PDF or API call", () => {
+  const root = mkdtempSync(join(tmpdir(), "okm-ocr-import-"));
+  const bundle = join(root, "book", "hybrid_ocr");
+  const output = join(root, "imported");
+  try {
+    mkdirSync(join(bundle, "images"), { recursive: true });
+    writeFileSync(join(bundle, "book.md"), "# 第一章 有理数\n正文\n![](images/a.jpg)\n", "utf8");
+    writeFileSync(join(bundle, "book_content_list.json"), JSON.stringify([{ type: "text", page_idx: 0, text: "正文" }]), "utf8");
+    writeFileSync(join(bundle, "book_content_list_v2.json"), JSON.stringify([
+      [{ type: "title", content: { level: 1, title_content: [{ type: "text", content: "第一章 有理数" }] } }],
+      [{ type: "paragraph", content: { paragraph_content: [{ type: "text", content: "正文" }] } }],
+    ]), "utf8");
+    writeFileSync(join(bundle, "images", "a.jpg"), "image", "utf8");
+
+    const inspection = inspectOcrBundle(root);
+    assert.equal(inspection.folder_path, bundle);
+    assert.equal(inspection.quality, "complete");
+    assert.equal(inspection.preferred_input, "markdown_with_v2");
+    assert.equal(inspection.page_count, 2);
+    assert.equal(inspection.block_count, 2);
+    assert.equal(inspection.image_count, 1);
+
+    const result = importOcrBundle({ bookId: "math-grade7", folderPath: root, outputDir: output });
+    assert.equal(result.source_kind, "ocr_import");
+    assert.equal(result.created, false);
+    assert.equal(readFileSync(join(output, "full.md"), "utf8"), "# 第一章 有理数\n正文\n![](images/a.jpg)\n");
+    assert.equal(existsSync(join(output, "book_content_list_v2.json")), true);
+    assert.equal(existsSync(join(output, "images", "a.jpg")), true);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("renders compatible Markdown when an OCR bundle only contains content_list_v2 JSON", () => {
+  const root = mkdtempSync(join(tmpdir(), "okm-ocr-json-"));
+  const output = join(root, "imported");
+  try {
+    writeFileSync(join(root, "book_content_list_v2.json"), JSON.stringify([[
+      { type: "title", content: { level: 2, title_content: [{ type: "text", content: "1.1 正数和负数" }] } },
+      { type: "paragraph", content: { paragraph_content: [
+        { type: "text", content: "增长" },
+        { type: "equation_inline", content: "7.8\\%" },
+      ] } },
+      { type: "equation_interline", content: { math_content: "a+b=c", math_type: "latex" } },
+      { type: "image", content: {
+        image_caption: [{ type: "text", content: "图 1 温度变化" }],
+        image_footnote: [{ type: "text", content: "注：数据来自实验记录" }],
+        image_source: { path: "images/temperature.png" },
+      } },
+      { type: "table", content: {
+        table_caption: [],
+        table_footnote: [],
+        html: "<table><tr><td>北京</td><td>-4.6°C</td></tr></table>",
+      } },
+      { type: "table", content: {
+        table_caption: [{ type: "text", content: "表 1 季度利润" }],
+        table_footnote: [{ type: "text", content: "注：单位为万元" }],
+        html: "<table><tr><td>第一季度</td><td>-6.8</td></tr></table>",
+      } },
+    ]]), "utf8");
+
+    const result = importOcrBundle({ bookId: "math-grade7", folderPath: root, outputDir: output });
+    const markdown = readFileSync(result.source_markdown_path, "utf8");
+    assert.match(markdown, /<!-- page:1 -->/);
+    assert.match(markdown, /## 1\.1 正数和负数/);
+    assert.match(markdown, /增长\$7\.8\\%\$/);
+    assert.match(markdown, /\$\$\na\+b=c\n\$\$/);
+    assert.match(markdown, /!\[图 1 温度变化\]\(images\/temperature\.png\)\n\n注：数据来自实验记录/);
+    assert.match(markdown, /<table><tr><td>北京<\/td><td>-4\.6°C<\/td><\/tr><\/table>/);
+    assert.match(markdown, /表 1 季度利润\n\n<table><tr><td>第一季度<\/td><td>-6\.8<\/td><\/tr><\/table>\n\n注：单位为万元/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("replaces stale OCR assets instead of merging a corrected bundle", () => {
+  const root = mkdtempSync(join(tmpdir(), "okm-ocr-replace-"));
+  const bundle = join(root, "replacement", "hybrid_ocr");
+  const output = join(root, "imported");
+  try {
+    mkdirSync(bundle, { recursive: true });
+    mkdirSync(join(output, "images"), { recursive: true });
+    writeFileSync(join(bundle, "book.md"), "# Corrected source\n![](images/old.jpg)\n", "utf8");
+    writeFileSync(join(output, "images", "old.jpg"), "stale image", "utf8");
+    writeFileSync(join(output, "old_content_list.json"), "[]", "utf8");
+
+    const result = importOcrBundle({ bookId: "math-grade7", folderPath: bundle, outputDir: output });
+
+    assert.equal(readFileSync(result.source_markdown_path, "utf8"), "# Corrected source\n![](images/old.jpg)\n");
+    assert.equal(existsSync(join(output, "images", "old.jpg")), false);
+    assert.equal(existsSync(join(output, "old_content_list.json")), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("rejects legacy-only and images-only OCR folders", () => {
+  const root = mkdtempSync(join(tmpdir(), "okm-ocr-invalid-"));
+  try {
+    const legacy = join(root, "legacy");
+    const imagesOnly = join(root, "images-only", "images");
+    mkdirSync(legacy, { recursive: true });
+    mkdirSync(imagesOnly, { recursive: true });
+    writeFileSync(join(legacy, "book_content_list.json"), "[]", "utf8");
+    writeFileSync(join(imagesOnly, "old.jpg"), "stale image", "utf8");
+
+    assert.throws(
+      () => inspectOcrBundle(root),
+      /Expected a Markdown file or \*_content_list_v2\.json/,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test("rejects unsafe ZIP member paths on every platform", () => {
   const target = join(tmpdir(), "okm-safe-zip");

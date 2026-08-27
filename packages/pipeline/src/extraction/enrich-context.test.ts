@@ -145,6 +145,69 @@ test("locks the enrich book by subject, stage, grade, publisher, and volume befo
   assert.equal(hints[0]?.definition, "正确版本。");
 });
 
+test("uses the manually selected enrich book path without candidate fallback", async () => {
+  const selectedPaths: string[][] = [];
+  const rows = [
+    {
+      path: "data/enrich/物理/高中_物理_教科版_必修第三册_enriched.json",
+      filename: "高中_物理_教科版_必修第三册_enriched.json",
+      title: "高中 · 物理 · 教科版 · 必修第三册",
+      subject: "物理",
+      stage: "高中",
+      grade: "物理",
+      course: "教科版",
+      publisher: "必修第三册",
+      volume: "",
+      tree_json: [{ title: "机械波", enrichment: { definition: "错误版本。" } }],
+    },
+    {
+      path: "data/enrich/物理/高中_物理_沪科技版_必修第三册_enriched.json",
+      filename: "高中_物理_沪科技版_必修第三册_enriched.json",
+      title: "高中 · 物理 · 沪科技版 · 必修第三册",
+      subject: "物理",
+      stage: "高中",
+      grade: "物理",
+      course: "沪科技版",
+      publisher: "必修第三册",
+      volume: "",
+      tree_json: [{ title: "机械波", enrichment: { definition: "人工确认版本。" } }],
+    },
+  ];
+  const selectedPath = rows[1]!.path;
+
+  const hints = await loadEnrichHintsForLesson({
+    datasetId: "main",
+    bookPath: selectedPath,
+    lessonTitle: "机械波",
+    executor: (statement) => {
+      assert.equal(statement.name, "select-enrich-context-book-trees");
+      selectedPaths.push(statement.params[1] as string[]);
+      return rows.filter((row) => (statement.params[1] as string[]).includes(row.path));
+    },
+  });
+
+  assert.deepEqual(selectedPaths, [[selectedPath]]);
+  assert.equal(hints[0]?.book_path, selectedPath);
+  assert.equal(hints[0]?.definition, "人工确认版本。");
+});
+
+test("blocks when the manually selected enrich book is absent", async () => {
+  const selectedPath = "data/enrich/物理/missing.json";
+  await assert.rejects(
+    loadEnrichHintsForLesson({
+      datasetId: "main",
+      bookPath: selectedPath,
+      lessonTitle: "机械波",
+      executor: (statement) => {
+        assert.equal(statement.name, "select-enrich-context-book-trees");
+        assert.deepEqual(statement.params[1], [selectedPath]);
+        return [];
+      },
+    }),
+    /Selected Enrich book .*missing\.json.* does not exist in dataset 'main'/,
+  );
+});
+
 test("resolves an outline title path for the current anchor", () => {
   const path = outlineTitlePathFromRecord(
     {

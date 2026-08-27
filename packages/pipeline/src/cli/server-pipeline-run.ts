@@ -11,8 +11,13 @@ import postgres from "postgres";
 
 import { planParallelBatches, planTsModelExtractionCommands, type ParallelExtractionCommand } from "../extraction/parallel-batch.js";
 import { extractPdfOutline } from "../outline/pdf-outline.js";
-import { runMineruSourceMarkdown } from "../outline/mineru-source.js";
-import { ensureChunkedOutline, ensureOutlineFromMarkdown, prepareSourceMarkdown } from "../outline/source-preparation.js";
+import { importOcrBundle, runMineruSourceMarkdown, type MineruSourceResult } from "../outline/mineru-source.js";
+import {
+  ensureChunkedOutline,
+  ensureOutlineFromMarkdown,
+  prepareSourceMarkdown,
+  resetOutlineForSourceReplacement,
+} from "../outline/source-preparation.js";
 import {
   createPostgresPipelineAssetStore,
   outlineItemsFromRecord,
@@ -85,6 +90,7 @@ type RunnerOptions = {
   parallelism: number;
   noChunks: boolean;
   pdfPath: string;
+  ocrFolderPath?: string;
   bookTitle?: string;
   outlineStartPage?: number;
   outlineEndPage?: number;
@@ -115,6 +121,7 @@ type RunnerOptions = {
   retrievalContext: boolean;
   retrievalLimit: number;
   enrichContext?: boolean;
+  enrichBookPath?: string;
   enrichContextLimit?: number;
   qualityRetryCount: number;
   skipNodeBodies?: boolean;
@@ -194,38 +201,69 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
     let sourceMarkdownPath = "";
     if (outlineRecord) sourceMarkdownPath = stringValue(outlineRecord.source_path);
     const mineruFileUrl = options.mineruFileUrl ?? "";
+    const ocrFolderPath = options.ocrFolderPath ?? "";
     if (
       options.startStage === "mineru_source_markdown"
       && !options.pdfPath.trim()
       && !mineruFileUrl.trim()
+      && !ocrFolderPath.trim()
     ) {
       return await blockRun(
         result,
         progressStore,
         "mineru_source_markdown",
-        "Cannot resume MinerU parsing without a PDF path or MinerU file URL.",
+        "Cannot resume source preparation without a PDF path, MinerU file URL, or imported OCR folder.",
       );
     }
     const shouldRunMineru = shouldRunStage(options, "mineru_source_markdown")
       && (options.startStage === "mineru_source_markdown" || options.mineruForce || !outlineRecord)
       && Boolean(options.pdfPath || mineruFileUrl);
-    if (shouldRunMineru) {
+    const shouldImportOcr = shouldRunStage(options, "mineru_source_markdown")
+      && Boolean(ocrFolderPath.trim());
+    if (shouldImportOcr || shouldRunMineru) {
       await recordStage(result, progressStore, { id: "mineru_source_markdown", status: "running" });
-      const mineruStage = await runMineruSourceMarkdown({
-        bookId: options.bookId,
-        outputDir: resolve(REPO_ROOT, "data", "mineru", safePathToken(options.bookId)),
-        apiKey: process.env[options.mineruApiKeyEnv ?? "MINERU_API_KEY"] ?? "",
-        pdfPath: options.pdfPath || undefined,
-        fileUrl: mineruFileUrl || undefined,
-        baseUrl: options.mineruBaseUrl || "https://mineru.net",
-        modelVersion: options.mineruModelVersion || "vlm",
-        language: options.mineruLanguage || "ch",
-        pageRanges: options.mineruPageRanges || undefined,
-        timeoutMs: (options.mineruTimeoutSeconds ?? 1800) * 1000,
-        force: options.mineruForce ?? false,
-      });
+      let mineruStage: MineruSourceResult;
+      if (shouldImportOcr) {
+        try {
+          mineruStage = importOcrBundle({
+            bookId: options.bookId,
+            folderPath: ocrFolderPath,
+            outputDir: resolve(REPO_ROOT, "data", "mineru", safePathToken(options.bookId)),
+          });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return await blockRun(result, progressStore, "mineru_source_markdown", `OCR import failed: ${message}`);
+        }
+      } else {
+        mineruStage = await runMineruSourceMarkdown({
+          bookId: options.bookId,
+          outputDir: resolve(REPO_ROOT, "data", "mineru", safePathToken(options.bookId)),
+          apiKey: process.env[options.mineruApiKeyEnv ?? "MINERU_API_KEY"] ?? "",
+          pdfPath: options.pdfPath || undefined,
+          fileUrl: mineruFileUrl || undefined,
+          baseUrl: options.mineruBaseUrl || "https://mineru.net",
+          modelVersion: options.mineruModelVersion || "vlm",
+          language: options.mineruLanguage || "ch",
+          pageRanges: options.mineruPageRanges || undefined,
+          timeoutMs: (options.mineruTimeoutSeconds ?? 1800) * 1000,
+          force: options.mineruForce ?? false,
+        });
+      }
       if (mineruStage.status === "blocked") {
         return await blockRun(result, progressStore, "mineru_source_markdown", mineruStage.error);
+      }
+      let outlineReset = null;
+      if (shouldImportOcr && existsSync(outlinePath)) {
+        try {
+          outlineReset = resetOutlineForSourceReplacement({
+            outlinePath,
+            sourcePath: relativeRepoPath(mineruStage.source_markdown_path),
+          });
+          outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return await blockRun(result, progressStore, "mineru_source_markdown", `OCR outline reset failed: ${message}`);
+        }
       }
       sourceMarkdownPath = mineruStage.source_markdown_path;
       await assetStore.upsertMineruSource({
@@ -242,7 +280,11 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
           createdByMineru: mineruStage.created,
         },
       });
-      await recordStage(result, progressStore, { id: "mineru_source_markdown", status: "completed", output: mineruStage });
+      await recordStage(result, progressStore, {
+        id: "mineru_source_markdown",
+        status: "completed",
+        output: outlineReset ? { ...mineruStage, outline_reset: outlineReset } : mineruStage,
+      });
     }
 
     if (!existsSync(outlinePath) && !sourceMarkdownPath.trim()) {
@@ -346,6 +388,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
         title: options.bookId,
       });
       if (outlineStage.status === "blocked") {
+        outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
         return await blockRun(result, progressStore, "ensure_outline", outlineStage.error);
       }
       outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
@@ -402,6 +445,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       vlmConcurrency: options.vlmApiUrl ? options.vlmConcurrency : undefined,
       vlmModel: options.vlmApiUrl ? options.vlmModel : undefined,
       enrichContext: options.enrichContext ?? true,
+      enrichBookPath: options.enrichBookPath,
       enrichContextLimit: options.enrichContextLimit ?? 6,
     }).map((item) => ({
       ...item,
@@ -1447,6 +1491,10 @@ function createRunResult(options: RunnerOptions): ServerPipelineResult {
       vlm_concurrency: options.vlmConcurrency,
       vlm_cache_dir: options.vlmCacheDir,
       quality_retry_count: options.qualityRetryCount,
+      enrich_context: options.enrichContext ?? true,
+      enrich_book_path: options.enrichBookPath || undefined,
+      source_kind: options.ocrFolderPath?.trim() ? "ocr_import" : "pdf_or_url",
+      ocr_folder_path: options.ocrFolderPath?.trim() ? resolve(options.ocrFolderPath) : undefined,
       start_stage: options.startStage,
     },
     stages: [],
@@ -1537,7 +1585,7 @@ function stageLabel(stageId: string): string {
   }
   const labels: Record<string, string> = {
     check_postgres: "检查数据库",
-    mineru_source_markdown: "MinerU 解析 PDF",
+    mineru_source_markdown: "准备 OCR / MinerU 来源",
     extract_pdf_outline: "读取 PDF 目录",
     prepare_source_markdown: "准备解析文本",
     ensure_outline: "生成教材目录",
@@ -1647,6 +1695,7 @@ function parseOptions(argv: string[]): RunnerOptions {
     parallelism: parseInteger(flags.get("parallelism"), 8),
     noChunks: flags.has("no-chunks"),
     pdfPath: flags.get("pdf-path") ?? "",
+    ocrFolderPath: flags.get("ocr-folder-path") ?? "",
     bookTitle: flags.get("book-title") ?? "",
     outlineStartPage: parseInteger(flags.get("outline-start-page"), 1),
     outlineEndPage: parseInteger(flags.get("outline-end-page"), 20),
@@ -1677,6 +1726,7 @@ function parseOptions(argv: string[]): RunnerOptions {
     retrievalContext: parseBoolean(flags.get("retrieval-context"), true),
     retrievalLimit: parseInteger(flags.get("retrieval-limit"), 8),
     enrichContext: parseBoolean(flags.get("enrich-context"), true),
+    enrichBookPath: flags.get("enrich-book-path") ?? "",
     enrichContextLimit: parseInteger(flags.get("enrich-context-limit"), 6),
     qualityRetryCount: parseNonNegativeInteger(flags.get("quality-retry-count") ?? flags.get("quality-retries"), 1),
     skipNodeBodies: flags.has("skip-node-bodies"),

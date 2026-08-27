@@ -1,4 +1,16 @@
-import { cpSync, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { pipeline } from "node:stream/promises";
 import yauzl from "yauzl";
@@ -44,6 +56,25 @@ export type MineruSourceResult =
       status: "blocked";
       error: string;
     };
+
+export type OcrBundleInspection = {
+  folder_path: string;
+  markdown_path: string | null;
+  content_list_path: string | null;
+  content_list_v2_path: string | null;
+  images_path: string | null;
+  page_count: number | null;
+  block_count: number | null;
+  image_count: number;
+  preferred_input: "markdown_with_v2" | "markdown" | "content_list_v2";
+  quality: "complete" | "structured" | "markdown_only";
+  warnings: string[];
+};
+
+export type ImportedOcrSourceResult = Extract<MineruSourceResult, { status: "success" }> & {
+  source_kind: "ocr_import";
+  inspection: OcrBundleInspection;
+};
 
 export type MineruSourceDependencies = {
   requestJson?: (method: "GET" | "POST", url: string, payload?: RawRecord) => Promise<RawRecord>;
@@ -156,6 +187,135 @@ export async function runMineruSourceMarkdown(options: MineruSourceOptions, depe
   } catch (error) {
     return { status: "blocked", error: (error as Error).message };
   }
+}
+
+export function inspectOcrBundle(folderPath: string): OcrBundleInspection {
+  const requestedPath = resolveRequiredPath(folderPath);
+  if (!existsSync(requestedPath) || !statSync(requestedPath).isDirectory()) {
+    throw new Error(`OCR folder not found: ${requestedPath}`);
+  }
+
+  const bundleDir = findOcrBundleDirectory(requestedPath);
+  if (!bundleDir) {
+    throw new Error("No MinerU OCR bundle found. Expected a Markdown file or *_content_list_v2.json within the selected folder.");
+  }
+  const entries = readdirSync(bundleDir);
+  const markdownPath = chooseLargestFile(bundleDir, entries.filter((name) => name.toLowerCase().endsWith(".md")), "full.md");
+  const contentListV2Path = chooseLargestFile(bundleDir, entries.filter((name) => /_content_list_v2\.json$/i.test(name)));
+  const contentListPath = chooseLargestFile(bundleDir, entries.filter((name) => /_content_list\.json$/i.test(name) && !/_v2\.json$/i.test(name)));
+  const imagesPath = existsSync(join(bundleDir, "images")) && statSync(join(bundleDir, "images")).isDirectory()
+    ? join(bundleDir, "images")
+    : null;
+  const warnings: string[] = [];
+  let pageCount: number | null = null;
+  let blockCount: number | null = null;
+
+  if (contentListV2Path) {
+    try {
+      const parsed = JSON.parse(readFileSync(contentListV2Path, "utf8")) as unknown;
+      if (!Array.isArray(parsed) || !parsed.every(Array.isArray)) throw new Error("top-level value is not an array of pages");
+      pageCount = parsed.length;
+      blockCount = parsed.reduce((sum, page) => sum + page.length, 0);
+    } catch (error) {
+      throw new Error(`Invalid MinerU content_list_v2 JSON: ${(error as Error).message}`);
+    }
+  } else if (contentListPath) {
+    try {
+      const parsed = JSON.parse(readFileSync(contentListPath, "utf8")) as unknown;
+      if (!Array.isArray(parsed)) throw new Error("top-level value is not an array");
+      blockCount = parsed.length;
+      const pageIndexes = parsed
+        .map((item) => isRecord(item) ? Number(item.page_idx) : Number.NaN)
+        .filter(Number.isFinite);
+      pageCount = pageIndexes.length > 0 ? Math.max(...pageIndexes) + 1 : null;
+    } catch (error) {
+      throw new Error(`Invalid MinerU content_list JSON: ${(error as Error).message}`);
+    }
+  }
+
+  if (!markdownPath) warnings.push("未找到 Markdown；将从 content_list_v2.json 生成兼容 Markdown。");
+  if (!contentListV2Path) warnings.push("未找到 content_list_v2.json；页结构、块类型和 bbox 无法完整校验。");
+  if (!imagesPath) warnings.push("未找到 images 目录；图片证据与 VLM 复核不可用。");
+
+  const preferredInput = markdownPath && contentListV2Path
+    ? "markdown_with_v2"
+    : markdownPath
+      ? "markdown"
+      : "content_list_v2";
+  return {
+    folder_path: bundleDir,
+    markdown_path: markdownPath,
+    content_list_path: contentListPath,
+    content_list_v2_path: contentListV2Path,
+    images_path: imagesPath,
+    page_count: pageCount,
+    block_count: blockCount,
+    image_count: imagesPath ? walkFiles(imagesPath).length : 0,
+    preferred_input: preferredInput,
+    quality: markdownPath && contentListV2Path && imagesPath
+      ? "complete"
+      : contentListV2Path
+        ? "structured"
+        : "markdown_only",
+    warnings,
+  };
+}
+
+export function importOcrBundle(input: { bookId: string; folderPath: string; outputDir: string }): ImportedOcrSourceResult {
+  const inspection = inspectOcrBundle(input.folderPath);
+  const outputDir = resolve(input.outputDir);
+  const sourceNames = readdirSync(inspection.folder_path);
+  mkdirSync(dirname(outputDir), { recursive: true });
+  const stagingDir = mkdtempSync(join(dirname(outputDir), `.${basename(outputDir)}-ocr-import-`));
+  const backupDir = `${stagingDir}.previous`;
+  let installed = false;
+  try {
+    for (const name of sourceNames) {
+      const sourcePath = join(inspection.folder_path, name);
+      const targetPath = join(stagingDir, name);
+      if (resolve(sourcePath) === outputDir) continue;
+      if (statSync(sourcePath).isDirectory()) {
+        cpSync(sourcePath, targetPath, { recursive: true, force: true });
+      } else if (name.toLowerCase().endsWith(".json")) {
+        cpSync(sourcePath, targetPath, { force: true });
+      }
+    }
+
+    const stagedMarkdown = join(stagingDir, "full.md");
+    if (inspection.markdown_path) {
+      cpSync(inspection.markdown_path, stagedMarkdown, { force: true });
+      const stagedRawMarkdown = join(stagingDir, basename(inspection.markdown_path));
+      if (resolve(stagedRawMarkdown) !== resolve(stagedMarkdown)) {
+        cpSync(inspection.markdown_path, stagedRawMarkdown, { force: true });
+      }
+    } else if (inspection.content_list_v2_path) {
+      writeFileSync(stagedMarkdown, renderContentListV2Markdown(inspection.content_list_v2_path), "utf8");
+    }
+
+    if (existsSync(outputDir)) renameSync(outputDir, backupDir);
+    try {
+      renameSync(stagingDir, outputDir);
+      installed = true;
+    } catch (error) {
+      if (existsSync(backupDir) && !existsSync(outputDir)) renameSync(backupDir, outputDir);
+      throw error;
+    }
+    rmSync(backupDir, { recursive: true, force: true });
+  } finally {
+    if (!installed) rmSync(stagingDir, { recursive: true, force: true });
+  }
+
+  const finalMarkdown = join(outputDir, "full.md");
+  return {
+    status: "success",
+    created: false,
+    source_kind: "ocr_import",
+    book_id: input.bookId,
+    source_markdown_path: finalMarkdown,
+    raw_markdown_path: inspection.markdown_path ?? undefined,
+    extract_dir: inspection.folder_path,
+    inspection,
+  };
 }
 
 export function findFullMarkdown(targetDir: string): string {
@@ -314,6 +474,94 @@ function walkFiles(root: string): string[] {
     else if (stats.isFile()) result.push(path);
   }
   return result;
+}
+
+function findOcrBundleDirectory(root: string): string | null {
+  const candidates: Array<{ path: string; score: number }> = [];
+  const visit = (path: string, depth: number) => {
+    const entries = readdirSync(path, { withFileTypes: true });
+    const names = entries.map((entry) => entry.name);
+    const hasMarkdown = names.some((name) => name.toLowerCase().endsWith(".md"));
+    const hasV2 = names.some((name) => /_content_list_v2\.json$/i.test(name));
+    const hasContentList = names.some((name) => /_content_list\.json$/i.test(name));
+    const hasImages = entries.some((entry) => entry.isDirectory() && entry.name === "images");
+    const score = (hasV2 ? 100 : 0) + (hasMarkdown ? 80 : 0) + (hasContentList ? 20 : 0) + (hasImages ? 10 : 0);
+    if (hasMarkdown || hasV2) candidates.push({ path, score });
+    if (depth >= 4) return;
+    for (const entry of entries) {
+      if (entry.isDirectory() && entry.name !== "images" && !entry.name.startsWith(".")) {
+        visit(join(path, entry.name), depth + 1);
+      }
+    }
+  };
+  visit(root, 0);
+  candidates.sort((left, right) => right.score - left.score || left.path.localeCompare(right.path));
+  return candidates[0]?.path ?? null;
+}
+
+function chooseLargestFile(directory: string, names: string[], preferredName?: string): string | null {
+  const preferred = preferredName ? names.find((name) => name.toLowerCase() === preferredName.toLowerCase()) : undefined;
+  if (preferred) return join(directory, preferred);
+  const sorted = names
+    .map((name) => ({ name, size: statSync(join(directory, name)).size }))
+    .sort((left, right) => right.size - left.size || left.name.localeCompare(right.name));
+  return sorted[0] ? join(directory, sorted[0].name) : null;
+}
+
+function renderContentListV2Markdown(path: string): string {
+  const pages = JSON.parse(readFileSync(path, "utf8")) as unknown[][];
+  const lines: string[] = [];
+  pages.forEach((page, pageIndex) => {
+    lines.push(`<!-- page:${pageIndex + 1} -->`);
+    for (const value of page) {
+      if (!isRecord(value)) continue;
+      const type = String(value.type ?? "");
+      const content = isRecord(value.content) ? value.content : {};
+      if (type === "title") {
+        const level = Math.max(1, Math.min(6, Number(content.level) || 2));
+        lines.push(`${"#".repeat(level)} ${inlineContent(content.title_content)}`);
+      } else if (type === "equation_interline") {
+        lines.push("$$", String(content.math_content ?? "").trim(), "$$");
+      } else if (type === "image" || type === "chart") {
+        const imageSource = isRecord(content.image_source) ? String(content.image_source.path ?? "") : "";
+        const caption = inlineContent(content.image_caption) || String(content.content ?? "").trim() || type;
+        const imageParts = [
+          imageSource ? `![${caption.replace(/[\[\]]/g, "")}](${imageSource})` : "",
+          inlineContent(content.image_footnote),
+        ].filter(Boolean);
+        if (imageParts.length > 0) lines.push(imageParts.join("\n\n"));
+      } else if (type === "list" && Array.isArray(content.list_items)) {
+        for (const item of content.list_items) {
+          if (isRecord(item)) lines.push(`- ${inlineContent(item.item_content)}`);
+        }
+      } else if (type === "table") {
+        const tableParts = [
+          inlineContent(content.table_caption),
+          typeof content.html === "string" ? content.html.trim() : "",
+          inlineContent(content.table_footnote),
+        ].filter(Boolean);
+        if (tableParts.length > 0) lines.push(tableParts.join("\n\n"));
+      } else if (!type.startsWith("page_")) {
+        const text = inlineContent(
+          content.paragraph_content
+          ?? content.page_footnote_content
+          ?? content,
+        );
+        if (text) lines.push(text);
+      }
+    }
+    lines.push("");
+  });
+  return `${lines.join("\n").trim()}\n`;
+}
+
+function inlineContent(value: unknown): string {
+  if (typeof value === "string") return value.trim();
+  if (Array.isArray(value)) return value.map(inlineContent).filter(Boolean).join("");
+  if (!isRecord(value)) return "";
+  if (value.type === "equation_inline") return `$${String(value.content ?? "").trim()}$`;
+  if (typeof value.content === "string") return value.content.trim();
+  return Object.values(value).map(inlineContent).filter(Boolean).join("");
 }
 
 function resolveRequiredPath(path: string): string {

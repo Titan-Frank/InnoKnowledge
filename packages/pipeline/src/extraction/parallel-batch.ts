@@ -63,6 +63,7 @@ export type TsModelExtractionCommandOptions = {
   vlmConcurrency?: number;
   vlmModel?: string;
   enrichContext?: boolean;
+  enrichBookPath?: string;
   enrichContextLimit?: number;
 };
 
@@ -202,6 +203,7 @@ function buildTsModelExtractionCommand(item: ParallelLessonRun, options: TsModel
   pushOptional(command, "--vlm-model", options.vlmModel);
   if (options.enrichContext) {
     command.push("--enrich-context");
+    pushOptional(command, "--enrich-book-path", options.enrichBookPath);
     if (options.enrichContextLimit !== undefined) command.push("--enrich-context-limit", String(options.enrichContextLimit));
   }
   return command;

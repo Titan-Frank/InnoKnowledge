@@ -23,6 +23,7 @@ export type {
   PipelineQualityLessonRow, PipelineQualityDashboardResponse,
   PipelineQualityReviewAction, PipelineQualityReviewUpdateRequest, PipelineQualityReviewUpdateResponse,
   PipelineLessonBackendKind, PipelineExtractionTemplateId, PipelineStartStage, PipelineStartRequest, PipelineStartResponse, PipelinePdfUploadResponse,
+  PipelineOcrImportQuality, PipelineOcrPreferredInput, PipelineOcrInspectRequest, PipelineOcrInspectResponse,
   PipelineFolderScanRequest, PipelineFolderPdf, PipelineFolderScanResponse, PipelineBookNode, PipelineBookNodesResponse,
   PipelineJobSummary, PipelineJobListResponse, PipelineJobStage, PipelineWorkerState, PipelineJobEvent, PipelineJobStatusResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
