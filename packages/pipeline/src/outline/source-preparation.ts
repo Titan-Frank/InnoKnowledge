@@ -2,7 +2,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 import { parseHeadings, planChunkOutline, type ChunkOutlineItem } from "./chunk-outline.js";
-import { safePathToken } from "../shared/pathing.js";
+import { iterOutlineItems, safePathToken, type OutlineItem } from "../shared/pathing.js";
 
 type RawRecord = Record<string, unknown>;
 
@@ -237,7 +237,8 @@ export function alignOutlineToMarkdown(input: { outlinePath: string; markdownPat
   const outline = loadOutlineRecord(input.outlinePath);
   const itemKey = Array.isArray(outline.items) ? "items" : Array.isArray(outline.structure) ? "structure" : null;
   if (!itemKey) throw new Error(`Outline has no items list: ${input.outlinePath}`);
-  const items = (outline[itemKey] as unknown[]).filter(isRecord) as RawRecord[];
+  const rootItems = (outline[itemKey] as unknown[]).filter(isRecord) as OutlineItem[];
+  const items = iterOutlineItems(rootItems) as RawRecord[];
   const lines = readPlainLines(markdownPath);
   const markerLines = new Map<string, number>();
   const headings: Array<{ line: number; title: string; norm: string; raw: string }> = [];
@@ -299,7 +300,7 @@ export function alignOutlineToMarkdown(input: { outlinePath: string; markdownPat
   });
 
   const sourcePath = toRepoRelativePath(markdownPath, input.repoRoot);
-  writeOutlineRecord(input.outlinePath, { ...outline, source_path: sourcePath, [itemKey]: items });
+  writeOutlineRecord(input.outlinePath, { ...outline, source_path: sourcePath, [itemKey]: rootItems });
   return {
     updated: true,
     matched_items: matchedSorted.length,

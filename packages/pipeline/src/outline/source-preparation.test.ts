@@ -211,6 +211,78 @@ test("resets stale spans and chunks before aligning replacement OCR", () => {
   }
 });
 
+test("realigns nested lesson spans without flattening the outline hierarchy", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-nested-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const markdownPath = join(repoRoot, "data", "mineru", "book-a", "full.md");
+    mkdirSync(join(repoRoot, "data", "outlines"), { recursive: true });
+    mkdirSync(join(repoRoot, "data", "mineru", "book-a"), { recursive: true });
+    writeFileSync(outlinePath, `${JSON.stringify({
+      book_id: "book-a",
+      items: [{
+        id: "struct:book-a:theme:1",
+        kind: "theme",
+        title: "第一章",
+        order_path: "1",
+        md_start: 1,
+        md_end: 4,
+        children: [{
+          id: "struct:book-a:lesson:1-1",
+          kind: "lesson",
+          title: "第一课",
+          order_path: "1.1",
+          md_start: 1,
+          md_end: 2,
+          children: [{
+            id: "struct:book-a:chunk:1-1-a",
+            kind: "chunk",
+            order_path: "1.1-a",
+            md_start: 1,
+            md_end: 2,
+          }],
+        }, {
+          id: "struct:book-a:lesson:1-2",
+          kind: "lesson",
+          title: "第二课",
+          order_path: "1.2",
+          md_start: 3,
+          md_end: 4,
+        }],
+      }],
+    }, null, 2)}\n`, "utf8");
+    writeFileSync(markdownPath, [
+      "preface",
+      "# 第一章",
+      "chapter intro",
+      "## 第一课",
+      "lesson one",
+      "## 第二课",
+      "lesson two",
+    ].join("\n"), "utf8");
+
+    const reset = resetOutlineForSourceReplacement({ outlinePath });
+    const alignment = alignOutlineToMarkdown({ outlinePath, markdownPath, repoRoot });
+
+    assert.equal(reset.removed_chunks, 1);
+    assert.equal(alignment.matched_items, 3);
+    assert.equal(alignment.total_items, 3);
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as {
+      items: Array<{ children?: Array<Record<string, unknown>> }>;
+    };
+    assert.equal(outline.items.length, 1);
+    const children = outline.items[0]?.children ?? [];
+    assert.equal(children.length, 2);
+    assert.equal(children[0]?.md_start, 4);
+    assert.equal(children[0]?.md_end, 5);
+    assert.equal(children[1]?.md_start, 6);
+    assert.equal(children[1]?.md_end, 7);
+    assert.equal(Array.isArray(children[0]?.children) ? children[0].children.length : 0, 0);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test("generates chunk items for an existing outline once", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-"));
   try {

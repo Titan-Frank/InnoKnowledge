@@ -108,6 +108,25 @@ test("replaces stale OCR assets instead of merging a corrected bundle", () => {
   }
 });
 
+test("rejects legacy-only and images-only OCR folders", () => {
+  const root = mkdtempSync(join(tmpdir(), "okm-ocr-invalid-"));
+  try {
+    const legacy = join(root, "legacy");
+    const imagesOnly = join(root, "images-only", "images");
+    mkdirSync(legacy, { recursive: true });
+    mkdirSync(imagesOnly, { recursive: true });
+    writeFileSync(join(legacy, "book_content_list.json"), "[]", "utf8");
+    writeFileSync(join(imagesOnly, "old.jpg"), "stale image", "utf8");
+
+    assert.throws(
+      () => inspectOcrBundle(root),
+      /Expected a Markdown file or \*_content_list_v2\.json/,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("rejects unsafe ZIP member paths on every platform", () => {
   const target = join(tmpdir(), "okm-safe-zip");
   assert.equal(assertSafeZipMember("nested/full.md", target), join(target, "nested", "full.md"));

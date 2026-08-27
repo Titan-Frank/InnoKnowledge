@@ -486,7 +486,7 @@ function findOcrBundleDirectory(root: string): string | null {
     const hasContentList = names.some((name) => /_content_list\.json$/i.test(name));
     const hasImages = entries.some((entry) => entry.isDirectory() && entry.name === "images");
     const score = (hasV2 ? 100 : 0) + (hasMarkdown ? 80 : 0) + (hasContentList ? 20 : 0) + (hasImages ? 10 : 0);
-    if (score > 0) candidates.push({ path, score });
+    if (hasMarkdown || hasV2) candidates.push({ path, score });
     if (depth >= 4) return;
     for (const entry of entries) {
       if (entry.isDirectory() && entry.name !== "images" && !entry.name.startsWith(".")) {
