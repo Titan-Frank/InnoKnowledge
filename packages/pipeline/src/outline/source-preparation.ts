@@ -10,6 +10,7 @@ type MarkdownAlignmentResult = {
   updated: boolean;
   matched_items: number;
   total_items: number;
+  unmatched_item_ids: string[];
   source_path: string;
 };
 
@@ -156,6 +157,13 @@ export function ensureOutlineFromMarkdown(input: {
       markdownPath: input.markdownPath,
       repoRoot: input.repoRoot,
     });
+    if (alignment.unmatched_item_ids.length > 0) {
+      return {
+        status: "blocked",
+        outline_path: input.outlinePath,
+        error: `Could not align extraction items to Markdown headings: ${alignment.unmatched_item_ids.slice(0, 10).join(", ")}`,
+      };
+    }
     return {
       status: "completed",
       created: false,
@@ -301,10 +309,14 @@ export function alignOutlineToMarkdown(input: { outlinePath: string; markdownPat
 
   const sourcePath = toRepoRelativePath(markdownPath, input.repoRoot);
   writeOutlineRecord(input.outlinePath, { ...outline, source_path: sourcePath, [itemKey]: rootItems });
+  const unmatchedItemIds = items
+    .filter((item) => (item.kind === "lesson" || item.kind === "activity") && (!hasNumber(item.md_start) || !hasNumber(item.md_end)))
+    .map((item) => typeof item.id === "string" && item.id ? item.id : String(item.title ?? item.label ?? "unknown-item"));
   return {
     updated: true,
     matched_items: matchedSorted.length,
     total_items: items.length,
+    unmatched_item_ids: unmatchedItemIds,
     source_path: sourcePath,
   };
 }
@@ -320,7 +332,8 @@ export function ensureChunkedOutline(input: {
   const outline = loadOutlineRecord(input.outlinePath);
   const itemKey = Array.isArray(outline.items) ? "items" : Array.isArray(outline.structure) ? "structure" : null;
   if (!itemKey) return { status: "blocked", outline_path: input.outlinePath, error: `Outline is missing items/structure: ${input.outlinePath}` };
-  const items = (outline[itemKey] as unknown[]).filter(isRecord) as ChunkOutlineItem[];
+  const rootItems = (outline[itemKey] as unknown[]).filter(isRecord) as OutlineItem[];
+  const items = iterOutlineItems(rootItems) as ChunkOutlineItem[];
   if (items.some((item) => item.kind === "chunk")) {
     return { status: "skipped", outline_path: input.outlinePath, reason: "Outline already contains chunk items." };
   }
@@ -341,7 +354,7 @@ export function ensureChunkedOutline(input: {
 
   writeOutlineRecord(input.outlinePath, {
     ...outline,
-    [itemKey]: [...items, ...plan.chunks],
+    [itemKey]: [...rootItems, ...plan.chunks],
   });
   return {
     status: "completed",

@@ -278,6 +278,56 @@ test("realigns nested lesson spans without flattening the outline hierarchy", ()
     assert.equal(children[1]?.md_start, 6);
     assert.equal(children[1]?.md_end, 7);
     assert.equal(Array.isArray(children[0]?.children) ? children[0].children.length : 0, 0);
+
+    const chunkResult = ensureChunkedOutline({
+      outlinePath,
+      repoRoot,
+      minLines: 1,
+      maxLines: 2,
+      targetLines: 1,
+    });
+    assert.equal(chunkResult.status, "completed");
+    const chunkedOutline = JSON.parse(readFileSync(outlinePath, "utf8")) as {
+      items: Array<Record<string, unknown>>;
+    };
+    const chunks = chunkedOutline.items.filter((item) => item.kind === "chunk");
+    assert.equal(chunks.length, 2);
+    assert.deepEqual(chunks.map((item) => [item.md_start, item.md_end]), [[4, 5], [6, 7]]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("blocks source preparation when a reset lesson cannot be realigned", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-unmatched-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const markdownPath = join(repoRoot, "data", "mineru", "book-a", "full.md");
+    mkdirSync(join(repoRoot, "data", "outlines"), { recursive: true });
+    mkdirSync(join(repoRoot, "data", "mineru", "book-a"), { recursive: true });
+    writeFileSync(outlinePath, `${JSON.stringify({
+      book_id: "book-a",
+      items: [{
+        id: "struct:book-a:lesson:missing",
+        kind: "lesson",
+        title: "Missing lesson",
+        order_path: "1",
+        md_start: 1,
+        md_end: 2,
+      }],
+    }, null, 2)}\n`, "utf8");
+    writeFileSync(markdownPath, "# Different lesson\nbody\n", "utf8");
+
+    resetOutlineForSourceReplacement({ outlinePath });
+    const result = ensureOutlineFromMarkdown({
+      bookId: "book-a",
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "blocked");
+    assert.match(result.status === "blocked" ? result.error : "", /struct:book-a:lesson:missing/);
   } finally {
     rmSync(repoRoot, { recursive: true, force: true });
   }
