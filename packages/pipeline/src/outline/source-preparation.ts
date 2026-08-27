@@ -6,6 +6,8 @@ import { iterOutlineItems, safePathToken, type OutlineItem } from "../shared/pat
 
 type RawRecord = Record<string, unknown>;
 
+type MarkdownHeading = { line: number; title: string; norm: string; raw: string };
+
 type MarkdownAlignmentResult = {
   updated: boolean;
   matched_items: number;
@@ -289,6 +291,15 @@ export function ensureOutlineFromEnrich(input: {
     };
   }
 
+  const headingSelection = selectEnrichHeadingSequence(items, readPlainLines(markdownPath));
+  if (headingSelection.ambiguous) {
+    return {
+      status: "skipped",
+      outline_path: input.outlinePath,
+      reason: headingSelection.reason,
+    };
+  }
+
   const previousOutline = existsSync(input.outlinePath) ? readFileSync(input.outlinePath, "utf8") : null;
   const sourcePath = toRepoRelativePath(markdownPath, input.repoRoot);
   mkdirSync(dirname(input.outlinePath), { recursive: true });
@@ -308,6 +319,7 @@ export function ensureOutlineFromEnrich(input: {
       outlinePath: input.outlinePath,
       markdownPath,
       repoRoot: input.repoRoot,
+      headingStartAfter: headingSelection.startAfter,
     });
     if (alignment.unmatched_item_ids.length > 0) {
       restoreOutline(input.outlinePath, previousOutline);
@@ -348,7 +360,12 @@ export function ensureOutlineFromEnrich(input: {
   }
 }
 
-export function alignOutlineToMarkdown(input: { outlinePath: string; markdownPath: string; repoRoot: string }): MarkdownAlignmentResult {
+export function alignOutlineToMarkdown(input: {
+  outlinePath: string;
+  markdownPath: string;
+  repoRoot: string;
+  headingStartAfter?: number;
+}): MarkdownAlignmentResult {
   const markdownPath = resolveInputPath(input.markdownPath, input.repoRoot);
   if (!existsSync(markdownPath)) throw new Error(`Markdown not found: ${markdownPath}`);
   const outline = loadOutlineRecord(input.outlinePath);
@@ -358,7 +375,7 @@ export function alignOutlineToMarkdown(input: { outlinePath: string; markdownPat
   const items = iterOutlineItems(rootItems) as RawRecord[];
   const lines = readPlainLines(markdownPath);
   const markerLines = new Map<string, number>();
-  const headings: Array<{ line: number; title: string; norm: string; raw: string }> = [];
+  const headings: MarkdownHeading[] = [];
   lines.forEach((line, index) => {
     const lineNumber = index + 1;
     const marker = /LESSON_START\s+id="([^"]+)"/.exec(line);
@@ -370,7 +387,7 @@ export function alignOutlineToMarkdown(input: { outlinePath: string; markdownPat
 
   const usedLines = new Set<number>();
   const matched: Array<{ item: RawRecord; line: number }> = [];
-  let lastLine = 0;
+  let lastLine = input.headingStartAfter ?? 0;
   for (const item of [...items].sort(compareHierarchyOrder)) {
     const itemId = typeof item.id === "string" ? item.id : "";
     if (hasNumber(item.md_start) && hasNumber(item.md_end)) {
@@ -381,6 +398,7 @@ export function alignOutlineToMarkdown(input: { outlinePath: string; markdownPat
     }
     if (itemId && markerLines.has(itemId)) {
       const line = markerLines.get(itemId)!;
+      if (line <= lastLine) continue;
       item.md_start = line;
       usedLines.add(line);
       lastLine = Math.max(lastLine, line);
@@ -511,6 +529,65 @@ function flattenEnrichOutline(bookId: string, roots: RawRecord[]): RawRecord[] {
   };
   visit(roots.filter(isRecord), undefined, []);
   return items;
+}
+
+function selectEnrichHeadingSequence(items: RawRecord[], lines: string[]):
+  | { ambiguous: false; startAfter: number }
+  | { ambiguous: true; reason: string } {
+  const lessons = items
+    .filter((item) => item.kind === "lesson" || item.kind === "activity")
+    .sort(compareHierarchyOrder);
+  const headings = lines.flatMap((line, index): MarkdownHeading[] => {
+    if (!/^#{1,6}\s+\S/.test(line)) return [];
+    const title = line.replace(/^#{1,6}\s+/, "").trim();
+    return [{ line: index + 1, title, norm: normalizeHeadingText(title), raw: line.trim() }];
+  });
+  const sequences: number[][] = [];
+  let startAfter = 0;
+  while (sequences.length < 3) {
+    const sequence = findHeadingSequence(lessons, headings, startAfter);
+    if (!sequence) break;
+    sequences.push(sequence);
+    startAfter = sequence[sequence.length - 1]!;
+  }
+  const topOccurrenceCounts = lessons.map((item) => countTopHeadingMatches(item, headings));
+  const hasUnpairedDuplicates = sequences.length <= 1 && topOccurrenceCounts.some((count) => count > 1);
+  const hasExtraDuplicates = sequences.length === 2 && topOccurrenceCounts.some((count) => count > 2);
+  if (sequences.length <= 1 && !hasUnpairedDuplicates) return { ambiguous: false, startAfter: 0 };
+  if (lessons.length === 1 || sequences.length >= 3 || hasUnpairedDuplicates || hasExtraDuplicates) {
+    return {
+      ambiguous: true,
+      reason: `Enrich outline heading sequence is ambiguous in Markdown (${sequences.length}${sequences.length >= 3 ? "+" : ""} complete occurrence(s), duplicate lesson headings remain).`,
+    };
+  }
+  return { ambiguous: false, startAfter: sequences[0]![sequences[0]!.length - 1]! };
+}
+
+function countTopHeadingMatches(item: RawRecord, headings: MarkdownHeading[]): number {
+  const titleNorm = normalizeHeadingText(item.title);
+  const labelNorm = normalizeHeadingText(item.label);
+  const scores = headings.map((heading) => headingScore(heading.norm, titleNorm, labelNorm));
+  const topScore = Math.max(0, ...scores);
+  return topScore > 0 ? scores.filter((score) => score === topScore).length : 0;
+}
+
+function findHeadingSequence(items: RawRecord[], headings: MarkdownHeading[], startAfter: number): number[] | null {
+  const sequence: number[] = [];
+  let lastLine = startAfter;
+  for (const item of items) {
+    const titleNorm = normalizeHeadingText(item.title);
+    const labelNorm = normalizeHeadingText(item.label);
+    const candidates = headings
+      .filter((heading) => heading.line > lastLine)
+      .map((heading) => ({ score: headingScore(heading.norm, titleNorm, labelNorm), heading }))
+      .filter((candidate) => candidate.score > 0)
+      .sort((left, right) => right.score - left.score || left.heading.line - right.heading.line);
+    const chosen = candidates[0]?.heading;
+    if (!chosen) return null;
+    sequence.push(chosen.line);
+    lastLine = chosen.line;
+  }
+  return sequence;
 }
 
 function restoreOutline(path: string, previousOutline: string | null): void {
