@@ -775,6 +775,12 @@ function buildPipelineSteps(input: {
   const currentJobStatus = startResult && jobStatus?.job_id === startResult.job_id ? jobStatus : null;
   const currentStage = currentJobStatus?.current_stage ?? null;
   const currentStageText = currentStage ? `正在${stageLabel(currentStage.id)}` : '';
+  const ensureOutlineStage = findJobStage(currentJobStatus, ['ensure_outline']);
+  const outlineCompletedDetail = ensureOutlineStage?.progress.source_kind === 'enrich'
+    ? `已用 Enrich 目录生成 ${Number(ensureOutlineStage.progress.lesson_count) || 0} 个课时`
+    : ensureOutlineStage?.progress.enrich_fallback
+      ? 'Enrich 目录未完全对齐，已回退到教材正文目录'
+      : '课时任务已经生成';
   const lessonStage = findJobStage(currentJobStatus, lessonStageIds);
   const lessonRuntimeDetail = lessonStage ? lessonProgressText(lessonStage, currentJobStatus) : '';
   const statuses = buildPipelineStepStatuses({
@@ -803,7 +809,7 @@ function buildPipelineSteps(input: {
       detail: statuses.outline === 'active' && stageIn(currentStage, outlineStageIds)
         ? currentStageText
         : statuses.outline === 'complete'
-          ? '课时任务已经生成'
+          ? outlineCompletedDetail
           : statuses.outline === 'blocked'
             ? '当前任务的目录或切分被阻断'
             : '等待当前任务进入目录与切分',
@@ -1996,7 +2002,7 @@ export function PipelineDebugPage() {
                       <div className="mb-2 flex items-center justify-between gap-3">
                         <div>
                           <label htmlFor="pipeline-ocr-folder" className="block text-[11px] font-medium text-text-muted">已完成 OCR 文件夹</label>
-                          <div className="mt-0.5 text-[10px] text-text-muted">支持 MinerU hybrid_ocr 目录或包含它的上级目录</div>
+                          <div className="mt-0.5 text-[10px] text-text-muted">支持含 content_list_v2.json 的 MinerU hybrid_ocr 目录或其上级目录</div>
                         </div>
                         <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5 text-[10px] text-text-secondary">跳过 MinerU</span>
                       </div>
@@ -2029,7 +2035,7 @@ export function PipelineDebugPage() {
                             <span>{ocrInspection.page_count ?? '未知'} 页</span>
                             <span>{ocrInspection.block_count ?? '未知'} 块</span>
                             <span>{ocrInspection.image_count} 张图片</span>
-                            <span>{ocrInspection.quality === 'complete' ? '完整组合输入' : ocrInspection.quality === 'structured' ? '结构化输入' : '仅 Markdown'}</span>
+                            <span>{ocrInspection.quality === 'complete' ? '完整组合输入' : '结构化输入'}</span>
                           </div>
                           <div className="mt-1 truncate" title={ocrInspection.folder_path}>{ocrInspection.folder_path}</div>
                           {ocrInspection.warnings.map((warning) => <div key={warning} className="text-node-event">{warning}</div>)}

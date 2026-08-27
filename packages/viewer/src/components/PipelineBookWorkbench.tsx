@@ -307,7 +307,7 @@ function EnrichOutlineDialog({
     void loadEnrichBook(sourceKey, activePath).then((payload) => {
       if (!cancelled) setOutline(payload);
     }).catch((loadError) => {
-      if (!cancelled) setOutlineError((loadError as Error).message || '读取 Enrich 大纲失败');
+      if (!cancelled) setOutlineError((loadError as Error).message || '读取 Enrich 目录失败');
     }).finally(() => {
       if (!cancelled) setOutlineLoading(false);
     });
@@ -327,10 +327,10 @@ function EnrichOutlineDialog({
       <section className="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-t-xl border border-border-default bg-elevated shadow-panel sm:h-[82vh] sm:rounded-xl">
         <header className="flex items-start justify-between gap-4 border-b border-border-subtle px-4 py-3 sm:px-5">
           <div className="min-w-0">
-            <div id="enrich-dialog-title" className="flex items-center gap-2 text-sm font-semibold text-text-primary"><BookOpen className="h-4 w-4 text-accent" />为教材确认 Enrich 大纲</div>
-            <div className="mt-1 truncate text-[11px] text-text-muted" title={item.title}>{item.title} · 选择后本次抽取只检索这一本 Enrich 教材</div>
+            <div id="enrich-dialog-title" className="flex items-center gap-2 text-sm font-semibold text-text-primary"><BookOpen className="h-4 w-4 text-accent" />为教材确认 Enrich 目录</div>
+            <div className="mt-1 truncate text-[11px] text-text-muted" title={item.title}>{item.title} · 选择后优先用该目录生成抽取大纲，并只从这一本 Enrich 教材检索辅助提示</div>
           </div>
-          <button type="button" onClick={onClose} className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-border-subtle text-text-muted transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" aria-label="关闭 Enrich 大纲选择"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={onClose} className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-border-subtle text-text-muted transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" aria-label="关闭 Enrich 目录选择"><X className="h-4 w-4" /></button>
         </header>
 
         <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(300px,0.9fr)_minmax(0,1.4fr)]">
@@ -361,7 +361,7 @@ function EnrichOutlineDialog({
             )}
           </section>
 
-          <section className="flex min-h-0 flex-col" aria-label="Enrich 大纲预览">
+          <section className="flex min-h-0 flex-col" aria-label="Enrich 目录预览">
             <div className="border-b border-border-subtle px-4 py-3">
               <div className="text-xs font-semibold text-text-primary">大纲预览</div>
               <div className="mt-1 truncate text-[10px] text-text-muted" title={selectedBook?.path}>{selectedBook?.title || '请从左侧选择一本 Enrich 教材'}</div>
@@ -389,7 +389,7 @@ function EnrichOutlineDialog({
           <button type="button" onClick={() => onConfirm({ enrichContext: false })} className="cursor-pointer rounded-md border border-border-default bg-surface px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">确认本书不使用 Enrich</button>
           <div className="flex items-center gap-2">
             <button type="button" onClick={onClose} className="cursor-pointer rounded-md border border-border-default px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary">取消</button>
-            <button type="button" disabled={!selectedBook || outlineLoading || Boolean(outlineError)} onClick={() => selectedBook && onConfirm({ enrichContext: true, enrichBookPath: selectedBook.path, enrichBookTitle: selectedBook.title })} className="cursor-pointer rounded-md bg-accent px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">确认使用此大纲</button>
+            <button type="button" disabled={!selectedBook || outlineLoading || Boolean(outlineError)} onClick={() => selectedBook && onConfirm({ enrichContext: true, enrichBookPath: selectedBook.path, enrichBookTitle: selectedBook.title })} className="cursor-pointer rounded-md bg-accent px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">确认使用此目录</button>
           </div>
         </footer>
       </section>
@@ -596,7 +596,7 @@ export function PipelineBookWorkbench({
       setQueue((current) => [...current, item]);
       setOcrFolderPath(inspection.folder_path);
       await inferQueueBook(item);
-      const qualityLabel = inspection.quality === 'complete' ? '完整组合输入' : inspection.quality === 'structured' ? '结构化输入' : '仅 Markdown';
+      const qualityLabel = inspection.quality === 'complete' ? '完整组合输入' : '结构化输入';
       setNotice(`OCR 校验通过：${inspection.page_count ?? '未知'} 页、${inspection.block_count ?? '未知'} 块、${inspection.image_count} 张图片 · ${qualityLabel}。`);
     } catch (inspectError) {
       setNotice('');
@@ -669,7 +669,7 @@ export function PipelineBookWorkbench({
       error: '',
     });
     setNotice(selection.enrichContext
-      ? `已为《${enrichItem.title}》锁定 Enrich 大纲：${selection.enrichBookTitle}。`
+      ? `已为《${enrichItem.title}》锁定 Enrich 目录：${selection.enrichBookTitle}。`
       : `已确认《${enrichItem.title}》本次不使用 Enrich。`);
     setEnrichItem(null);
   };
@@ -679,7 +679,7 @@ export function PipelineBookWorkbench({
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border-subtle px-4 py-4 sm:px-5">
         <div>
           <div className="flex items-center gap-2 text-sm font-semibold text-text-primary"><ListChecks className="h-4 w-4 text-accent" />教材抽取工作台</div>
-          <div className="mt-1 text-xs text-text-muted">教材加入队列后，需逐本确认唯一 Enrich 大纲，再统一启动抽取。</div>
+          <div className="mt-1 text-xs text-text-muted">教材加入队列后，需逐本确认唯一 Enrich 目录；系统会先将其与 MinerU 正文对齐，再统一启动抽取。</div>
         </div>
         <button type="button" onClick={() => void startSelected()} disabled={batchStarting || selectedReady.length === 0} className="flex h-9 cursor-pointer items-center gap-2 rounded-md bg-accent px-3 text-xs font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">
           {batchStarting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
@@ -688,7 +688,7 @@ export function PipelineBookWorkbench({
       </div>
 
       <div className="grid grid-cols-4 border-b border-border-subtle bg-surface/40 px-4 py-2.5 text-[11px] sm:px-5">
-        {['1  添加教材来源', '2  确认 Enrich 大纲', '3  检查任务队列', '4  启动并查看结果'].map((label, index) => (
+        {['1  添加教材来源', '2  确认 Enrich 目录', '3  检查任务队列', '4  启动并查看结果'].map((label, index) => (
           <div key={label} className={`flex items-center gap-2 ${index === 0 ? 'font-medium text-accent' : 'text-text-muted'}`}>
             <span className={`h-1.5 w-1.5 rounded-full ${index === 0 ? 'bg-accent' : 'bg-border-strong'}`} />{label}
           </div>
@@ -727,7 +727,7 @@ export function PipelineBookWorkbench({
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-2.5">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><FolderOpen className="h-4 w-4" /></span>
-              <div><div id="ocr-source-title" className="text-xs font-semibold text-text-primary">已完成 OCR</div><div className="mt-0.5 text-[10px] leading-4 text-text-muted">导入 MinerU hybrid_ocr 或其上级目录，直接进入结构与知识抽取。</div></div>
+              <div><div id="ocr-source-title" className="text-xs font-semibold text-text-primary">已完成 OCR</div><div className="mt-0.5 text-[10px] leading-4 text-text-muted">导入含 content_list_v2.json 的 MinerU hybrid_ocr 或其上级目录，直接进入结构与知识抽取。</div></div>
             </div>
             <span className="rounded-full border border-node-process/40 bg-node-process/10 px-2 py-0.5 text-[10px] text-node-process">跳过 PDF / MinerU</span>
           </div>
@@ -770,7 +770,7 @@ export function PipelineBookWorkbench({
               <th className="px-3 py-2 font-medium">来源</th>
               <th className="px-3 py-2 font-medium">教材</th>
               <th className="px-3 py-2 font-medium">来源路径与质量</th>
-              <th className="px-3 py-2 font-medium">Enrich 大纲</th>
+              <th className="px-3 py-2 font-medium">Enrich 目录</th>
               <th className="px-3 py-2 font-medium">抽取状态</th>
               <th className="px-3 py-2 font-medium">节点结果</th>
               <th className="px-3 py-2 font-medium">操作</th>
@@ -803,7 +803,7 @@ export function PipelineBookWorkbench({
                     <div className="truncate text-text-secondary" title={sourcePath}>{sourcePath || '数据库已有记录'}</div>
                     <div className="mt-1 text-[10px] text-text-muted">
                       {row.sourceKind === 'ocr' && queueItem?.ocrInspection
-                        ? `${queueItem.ocrInspection.page_count ?? '未知'} 页 · ${queueItem.ocrInspection.block_count ?? '未知'} 块 · ${queueItem.ocrInspection.image_count} 图 · ${queueItem.ocrInspection.quality === 'complete' ? '完整组合' : queueItem.ocrInspection.quality === 'structured' ? '结构化' : '仅 Markdown'}`
+                        ? `${queueItem.ocrInspection.page_count ?? '未知'} 页 · ${queueItem.ocrInspection.block_count ?? '未知'} 块 · ${queueItem.ocrInspection.image_count} 图 · ${queueItem.ocrInspection.quality === 'complete' ? '完整组合' : '结构化'}`
                         : fileSizeText(row.sizeBytes)}
                     </div>
                   </td>

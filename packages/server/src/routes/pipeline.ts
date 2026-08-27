@@ -55,7 +55,7 @@ export async function inspectOcrFolder(folderPath: string): Promise<PipelineOcrI
     const hasContentList = names.some((name) => /_content_list\.json$/i.test(name));
     const hasImages = entries.some((entry) => entry.isDirectory() && entry.name === 'images');
     const score = (hasV2 ? 100 : 0) + (hasMarkdown ? 80 : 0) + (hasContentList ? 20 : 0) + (hasImages ? 10 : 0);
-    if (score > 0) candidates.push({ path: current.path, names, score });
+    if (hasV2) candidates.push({ path: current.path, names, score });
     if (current.depth >= 4) continue;
     for (const entry of entries) {
       if (entry.isDirectory() && !entry.isSymbolicLink() && entry.name !== 'images' && !entry.name.startsWith('.')) {
@@ -64,7 +64,7 @@ export async function inspectOcrFolder(folderPath: string): Promise<PipelineOcrI
     }
   }
   const selected = candidates.sort((left, right) => right.score - left.score || left.path.localeCompare(right.path))[0];
-  if (!selected) throw new Error('No MinerU OCR bundle found. Expected Markdown or *_content_list_v2.json.');
+  if (!selected) throw new Error('No MinerU OCR bundle found. Expected *_content_list_v2.json.');
 
   const chooseFile = async (pattern: RegExp, preferred?: string): Promise<string | null> => {
     const names = selected.names.filter((name) => pattern.test(name));
@@ -78,22 +78,13 @@ export async function inspectOcrFolder(folderPath: string): Promise<PipelineOcrI
   const contentListV2Path = await chooseFile(/_content_list_v2\.json$/i);
   const contentListPath = await chooseFile(/_content_list(?!_v2)\.json$/i);
   const imagesPath = selected.names.includes('images') ? join(selected.path, 'images') : null;
+  if (!contentListV2Path) throw new Error('OCR bundle is missing required content_list_v2.json.');
   let pageCount: number | null = null;
   let blockCount: number | null = null;
-  if (contentListV2Path) {
-    const parsed = JSON.parse(await readFile(contentListV2Path, 'utf8')) as unknown;
-    if (!Array.isArray(parsed) || !parsed.every(Array.isArray)) throw new Error('content_list_v2.json must contain an array of pages.');
-    pageCount = parsed.length;
-    blockCount = parsed.reduce((sum, page) => sum + page.length, 0);
-  } else if (contentListPath) {
-    const parsed = JSON.parse(await readFile(contentListPath, 'utf8')) as unknown;
-    if (!Array.isArray(parsed)) throw new Error('content_list.json must contain an array of blocks.');
-    blockCount = parsed.length;
-    const indexes = parsed.map((item) => item && typeof item === 'object' && !Array.isArray(item)
-      ? Number((item as Record<string, unknown>).page_idx)
-      : Number.NaN).filter(Number.isFinite);
-    pageCount = indexes.length > 0 ? Math.max(...indexes) + 1 : null;
-  }
+  const parsed = JSON.parse(await readFile(contentListV2Path, 'utf8')) as unknown;
+  if (!Array.isArray(parsed) || !parsed.every(Array.isArray)) throw new Error('content_list_v2.json must contain an array of pages.');
+  pageCount = parsed.length;
+  blockCount = parsed.reduce((sum, page) => sum + page.length, 0);
   let imageCount = 0;
   if (imagesPath) {
     const imageEntries = await readdir(imagesPath, { withFileTypes: true });
@@ -101,9 +92,7 @@ export async function inspectOcrFolder(folderPath: string): Promise<PipelineOcrI
   }
   const warnings: string[] = [];
   if (!markdownPath) warnings.push('未找到 Markdown；将从 content_list_v2.json 生成兼容 Markdown。');
-  if (!contentListV2Path) warnings.push('未找到 content_list_v2.json；页结构、块类型和 bbox 无法完整校验。');
   if (!imagesPath) warnings.push('未找到 images 目录；图片证据与 VLM 复核不可用。');
-  if (!markdownPath && !contentListV2Path) throw new Error('OCR bundle must contain Markdown or content_list_v2.json.');
 
   return {
     folder_path: selected.path,
@@ -114,8 +103,8 @@ export async function inspectOcrFolder(folderPath: string): Promise<PipelineOcrI
     page_count: pageCount,
     block_count: blockCount,
     image_count: imageCount,
-    preferred_input: markdownPath && contentListV2Path ? 'markdown_with_v2' : markdownPath ? 'markdown' : 'content_list_v2',
-    quality: markdownPath && contentListV2Path && imagesPath ? 'complete' : contentListV2Path ? 'structured' : 'markdown_only',
+    preferred_input: markdownPath ? 'markdown_with_v2' : 'content_list_v2',
+    quality: markdownPath && imagesPath ? 'complete' : 'structured',
     warnings,
   };
 }
@@ -1119,11 +1108,11 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
       const enrichBookPath = asString(effectiveBody.enrich_book_path);
       if (enrichBookPath && shouldValidateEnrichBook(effectiveBody)) {
         if (!datasetRow) {
-          throw new Error(`Cannot select an Enrich outline because dataset '${datasetKey}' does not exist.`);
+          throw new Error(`Cannot select an Enrich directory because dataset '${datasetKey}' does not exist.`);
         }
         const enrichBook = await loadEnrichBookPayload(sql, datasetRow.dataset_id, enrichBookPath);
         if (!enrichBook) {
-          throw new Error(`Selected Enrich outline '${enrichBookPath}' does not exist in dataset '${datasetKey}'.`);
+          throw new Error(`Selected Enrich directory '${enrichBookPath}' does not exist in dataset '${datasetKey}'.`);
         }
       }
       const outline = datasetRow ? await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId) : null;
