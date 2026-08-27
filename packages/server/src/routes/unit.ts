@@ -3,7 +3,7 @@ import type { Sql } from '../db/connection.js';
 import { resolveDatasetRow, loadUnit } from '../db/queries.js';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
-import { REPO_ROOT } from '../utils/paths.js';
+import { DATA_DIR, REPO_ROOT } from '../utils/paths.js';
 import { resolveExistingMineruAssetPath } from '../utils/markdown-image-paths.js';
 
 const MIME_TYPES: Record<string, string> = {
@@ -18,11 +18,14 @@ const MIME_TYPES: Record<string, string> = {
 
 function resolveAssetPath(encodedPath: string): string | null {
   const decoded = decodeURIComponent(encodedPath);
+  const normalized = decoded.replace(/\\/g, '/');
   const resolved = path.isAbsolute(decoded)
     ? path.resolve(decoded)
-    : path.resolve(REPO_ROOT, decoded);
+    : normalized.startsWith('data/')
+      ? path.resolve(DATA_DIR, normalized.slice('data/'.length))
+      : path.resolve(REPO_ROOT, decoded);
   const allowedRoots = [
-    path.resolve(REPO_ROOT, 'data'),
+    path.resolve(DATA_DIR),
     path.resolve(REPO_ROOT, 'ocr'),
   ];
   if (!allowedRoots.some((root) => resolved === root || resolved.startsWith(`${root}${path.sep}`))) {
