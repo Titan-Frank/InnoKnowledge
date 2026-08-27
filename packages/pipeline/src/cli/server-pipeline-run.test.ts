@@ -295,6 +295,93 @@ test("explicit OCR input replaces the stored source when an outline already exis
   assert.equal(storedItems.some((item) => item.kind === "chunk" && item.md_start === 1 && item.md_end === 2), false);
 });
 
+test("explicit OCR input resets a file-only outline missing from the dataset store", async (context) => {
+  const existingBookId = "file-only-outline-ocr-replacement";
+  const ocrRoot = mkdtempSync(join(tmpdir(), "okm-file-only-ocr-replacement-"));
+  const ocrBundle = join(ocrRoot, "hybrid_ocr");
+  const outlinePath = outlinePathForBook(existingBookId);
+  const importedSourceDir = resolve(REPO_ROOT, "data", "mineru", safePathToken(existingBookId));
+  let storedOutline: Record<string, unknown> | null = null;
+  context.after(() => {
+    rmSync(ocrRoot, { recursive: true, force: true });
+    rmSync(importedSourceDir, { recursive: true, force: true });
+    rmSync(outlinePath, { force: true });
+  });
+  mkdirSync(ocrBundle, { recursive: true });
+  mkdirSync(resolve(outlinePath, ".."), { recursive: true });
+  writeFileSync(join(ocrBundle, "book.md"), "preface\n# Updated source\nNew OCR body\n", "utf8");
+  writeFileSync(outlinePath, `${JSON.stringify({
+    book_id: existingBookId,
+    title: "File-only outline",
+    source_path: `data/mineru/${existingBookId}/stale.md`,
+    items: [{
+      id: `struct:${existingBookId}:lesson:1`,
+      kind: "lesson",
+      title: "Updated source",
+      order_path: "1",
+      md_start: 1,
+      md_end: 1,
+    }, {
+      id: `struct:${existingBookId}:chunk:1-a`,
+      kind: "chunk",
+      parent_id: `struct:${existingBookId}:lesson:1`,
+      order_path: "1-a",
+      md_start: 1,
+      md_end: 1,
+    }],
+  }, null, 2)}\n`, "utf8");
+
+  const result = await runServerPipeline({
+    bookId: existingBookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-b",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 1,
+    noChunks: false,
+    pdfPath: "",
+    ocrFolderPath: ocrRoot,
+    subject: "mathematics",
+    schoolStage: "junior",
+    gradeBand: "grade7",
+    textbookId: existingBookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: {
+      async loadOutline() {
+        return null;
+      },
+      async upsertOutline(input) {
+        storedOutline = input.record.outline;
+      },
+      async upsertMineruSource() {},
+      async close() {},
+    },
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async () => ({ exitCode: 0, stdout: "{}", stderr: "" }),
+  });
+
+  assert.equal(result.status, "completed");
+  const sourceStageOutput = result.stages.find((stage) => stage.id === "mineru_source_markdown")?.output as {
+    outline_reset?: { removed_chunks?: number };
+  } | undefined;
+  assert.equal(sourceStageOutput?.outline_reset?.removed_chunks, 1);
+  const finalOutline = storedOutline as Record<string, unknown> | null;
+  assert.ok(finalOutline);
+  const storedItems = finalOutline.items as Array<Record<string, unknown>>;
+  assert.equal(storedItems.find((item) => item.kind === "lesson")?.md_start, 2);
+  assert.equal(storedItems.find((item) => item.kind === "chunk")?.md_start, 2);
+  assert.equal(storedItems.some((item) => item.kind === "chunk" && item.md_end === 1), false);
+});
+
 test("server pipeline runner plans TypeScript lesson extraction commands", async () => {
   const executed: string[][] = [];
   const result = await runServerPipeline({

@@ -87,6 +87,27 @@ test("renders compatible Markdown when an OCR bundle only contains content_list_
   }
 });
 
+test("replaces stale OCR assets instead of merging a corrected bundle", () => {
+  const root = mkdtempSync(join(tmpdir(), "okm-ocr-replace-"));
+  const bundle = join(root, "replacement", "hybrid_ocr");
+  const output = join(root, "imported");
+  try {
+    mkdirSync(bundle, { recursive: true });
+    mkdirSync(join(output, "images"), { recursive: true });
+    writeFileSync(join(bundle, "book.md"), "# Corrected source\n![](images/old.jpg)\n", "utf8");
+    writeFileSync(join(output, "images", "old.jpg"), "stale image", "utf8");
+    writeFileSync(join(output, "old_content_list.json"), "[]", "utf8");
+
+    const result = importOcrBundle({ bookId: "math-grade7", folderPath: bundle, outputDir: output });
+
+    assert.equal(readFileSync(result.source_markdown_path, "utf8"), "# Corrected source\n![](images/old.jpg)\n");
+    assert.equal(existsSync(join(output, "images", "old.jpg")), false);
+    assert.equal(existsSync(join(output, "old_content_list.json")), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("rejects unsafe ZIP member paths on every platform", () => {
   const target = join(tmpdir(), "okm-safe-zip");
   assert.equal(assertSafeZipMember("nested/full.md", target), join(target, "nested", "full.md"));

@@ -1,4 +1,16 @@
-import { cpSync, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { pipeline } from "node:stream/promises";
 import yauzl from "yauzl";
@@ -252,29 +264,48 @@ export function inspectOcrBundle(folderPath: string): OcrBundleInspection {
 export function importOcrBundle(input: { bookId: string; folderPath: string; outputDir: string }): ImportedOcrSourceResult {
   const inspection = inspectOcrBundle(input.folderPath);
   const outputDir = resolve(input.outputDir);
-  mkdirSync(outputDir, { recursive: true });
-
-  for (const name of readdirSync(inspection.folder_path)) {
-    const sourcePath = join(inspection.folder_path, name);
-    const targetPath = join(outputDir, name);
-    if (resolve(sourcePath) === outputDir) continue;
-    if (resolve(sourcePath) === resolve(targetPath)) continue;
-    if (statSync(sourcePath).isDirectory()) {
-      cpSync(sourcePath, targetPath, { recursive: true, force: true });
-    } else if (name.toLowerCase().endsWith(".json")) {
-      cpSync(sourcePath, targetPath, { force: true });
+  const sourceNames = readdirSync(inspection.folder_path);
+  mkdirSync(dirname(outputDir), { recursive: true });
+  const stagingDir = mkdtempSync(join(dirname(outputDir), `.${basename(outputDir)}-ocr-import-`));
+  const backupDir = `${stagingDir}.previous`;
+  let installed = false;
+  try {
+    for (const name of sourceNames) {
+      const sourcePath = join(inspection.folder_path, name);
+      const targetPath = join(stagingDir, name);
+      if (resolve(sourcePath) === outputDir) continue;
+      if (statSync(sourcePath).isDirectory()) {
+        cpSync(sourcePath, targetPath, { recursive: true, force: true });
+      } else if (name.toLowerCase().endsWith(".json")) {
+        cpSync(sourcePath, targetPath, { force: true });
+      }
     }
+
+    const stagedMarkdown = join(stagingDir, "full.md");
+    if (inspection.markdown_path) {
+      cpSync(inspection.markdown_path, stagedMarkdown, { force: true });
+      const stagedRawMarkdown = join(stagingDir, basename(inspection.markdown_path));
+      if (resolve(stagedRawMarkdown) !== resolve(stagedMarkdown)) {
+        cpSync(inspection.markdown_path, stagedRawMarkdown, { force: true });
+      }
+    } else if (inspection.content_list_v2_path) {
+      writeFileSync(stagedMarkdown, renderContentListV2Markdown(inspection.content_list_v2_path), "utf8");
+    }
+
+    if (existsSync(outputDir)) renameSync(outputDir, backupDir);
+    try {
+      renameSync(stagingDir, outputDir);
+      installed = true;
+    } catch (error) {
+      if (existsSync(backupDir) && !existsSync(outputDir)) renameSync(backupDir, outputDir);
+      throw error;
+    }
+    rmSync(backupDir, { recursive: true, force: true });
+  } finally {
+    if (!installed) rmSync(stagingDir, { recursive: true, force: true });
   }
 
   const finalMarkdown = join(outputDir, "full.md");
-  if (inspection.markdown_path) {
-    if (resolve(inspection.markdown_path) !== resolve(finalMarkdown)) {
-      cpSync(inspection.markdown_path, finalMarkdown, { force: true });
-    }
-  } else if (inspection.content_list_v2_path) {
-    writeFileSync(finalMarkdown, renderContentListV2Markdown(inspection.content_list_v2_path), "utf8");
-  }
-
   return {
     status: "success",
     created: false,

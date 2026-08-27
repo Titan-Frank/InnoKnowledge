@@ -244,7 +244,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       if (mineruStage.status === "blocked") {
         return await blockRun(result, progressStore, "mineru_source_markdown", mineruStage.error);
       }
-      const outlineReset = shouldImportOcr && outlineRecord && existsSync(outlinePath)
+      const outlineReset = shouldImportOcr && existsSync(outlinePath)
         ? resetOutlineForSourceReplacement({ outlinePath })
         : null;
       sourceMarkdownPath = mineruStage.source_markdown_path;
