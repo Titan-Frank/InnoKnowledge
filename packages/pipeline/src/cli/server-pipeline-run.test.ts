@@ -613,6 +613,80 @@ test("server pipeline uses the confirmed Enrich directory as its aligned outline
   assert.equal(extractionCommands.every((command) => command.includes(enrichPath)), true);
 });
 
+test("preserves a stored Markdown outline when a selected Enrich book cannot align", async (context) => {
+  const scenarioBookId = "preserve-markdown-outline-after-enrich-fallback";
+  const enrichPath = "data/enrich/mismatched.json";
+  const sourceMarkdown = [
+    "# 第一章",
+    "## 第一课",
+    "第一课正文",
+    "## 第二课",
+    "第二课正文",
+    "# 第二章",
+  ].join("\n");
+  const storedOutline = {
+    book_id: scenarioBookId,
+    source_kind: "markdown",
+    source_path: `data/mineru/${scenarioBookId}/full.md`,
+    items: [
+      { id: `struct:${scenarioBookId}:lesson:1`, kind: "lesson", title: "第一课", order_path: "1", md_start: 2, md_end: 3 },
+      { id: `struct:${scenarioBookId}:lesson:2`, kind: "lesson", title: "第二课", order_path: "2", md_start: 4, md_end: 5 },
+    ],
+  };
+  const scenario = await runStoredOutlineScenario(context, {
+    bookId: scenarioBookId,
+    sourceMarkdown,
+    storedOutline,
+    enrichBookPath: enrichPath,
+    enrichBook: { path: enrichPath, title: "错误版本", tree: [{ title: "完全不同的课程" }] },
+  });
+
+  assert.equal(scenario.result.status, "completed");
+  assert.equal(scenario.finalOutline?.source_kind, "markdown");
+  assert.deepEqual(
+    (scenario.finalOutline?.items as Array<Record<string, unknown>>).map((item) => item.title),
+    ["第一课", "第二课"],
+  );
+  assert.equal(scenario.result.stages.find((stage) => stage.id === "ensure_outline")?.output?.enrich_fallback != null, true);
+});
+
+test("replaces a stored Enrich outline when Enrich is no longer selected", async (context) => {
+  const scenarioBookId = "replace-disabled-enrich-outline";
+  const sourceMarkdown = [
+    "# 新第一章",
+    "第一章正文",
+    "# 新第二章",
+    "第二章正文",
+  ].join("\n");
+  const storedOutline = {
+    book_id: scenarioBookId,
+    source_kind: "enrich",
+    source_ref: "data/enrich/old-selection.json",
+    source_path: `data/mineru/${scenarioBookId}/full.md`,
+    items: [{
+      id: `struct:${scenarioBookId}:lesson:old`,
+      kind: "lesson",
+      title: "旧课时",
+      order_path: "1",
+      md_start: 1,
+      md_end: 4,
+    }],
+  };
+  const scenario = await runStoredOutlineScenario(context, {
+    bookId: scenarioBookId,
+    sourceMarkdown,
+    storedOutline,
+  });
+
+  assert.equal(scenario.result.status, "completed");
+  assert.equal(scenario.finalOutline?.source_kind, "markdown");
+  assert.equal("source_ref" in (scenario.finalOutline ?? {}), false);
+  assert.deepEqual(
+    (scenario.finalOutline?.items as Array<Record<string, unknown>>).map((item) => item.title),
+    ["新第一章", "新第二章"],
+  );
+});
+
 test("server pipeline runner plans TypeScript lesson extraction commands", async () => {
   const executed: string[][] = [];
   const result = await runServerPipeline({
@@ -1099,6 +1173,69 @@ test("server pipeline blocks when unit embedding backfill cannot update pending 
   assert.match(unitEmbeddingsStage?.error ?? "", /updated 1\/3 pending/);
   assert.equal(commands.some((command) => command.some((part) => part.endsWith("strict-qa.js"))), false);
 });
+
+async function runStoredOutlineScenario(
+  context: { after(callback: () => void): void },
+  input: {
+    bookId: string;
+    sourceMarkdown: string;
+    storedOutline: Record<string, unknown>;
+    enrichBookPath?: string;
+    enrichBook?: { path: string; title: string; tree: Array<Record<string, unknown>> };
+  },
+) {
+  const sourceDir = resolve(REPO_ROOT, "data", "mineru", safePathToken(input.bookId));
+  const outlinePath = outlinePathForBook(input.bookId);
+  let finalOutline: Record<string, unknown> | null = null;
+  context.after(() => {
+    rmSync(sourceDir, { recursive: true, force: true });
+    rmSync(outlinePath, { force: true });
+  });
+  mkdirSync(sourceDir, { recursive: true });
+  writeFileSync(join(sourceDir, "full.md"), input.sourceMarkdown, "utf8");
+
+  const result = await runServerPipeline({
+    bookId: input.bookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-source-kind",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 1,
+    noChunks: true,
+    pdfPath: "",
+    subject: "mathematics",
+    schoolStage: "junior",
+    gradeBand: "grade7",
+    textbookId: input.bookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    enrichBookPath: input.enrichBookPath,
+    qualityRetryCount: 1,
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: {
+      async loadOutline() {
+        return input.storedOutline;
+      },
+      async loadEnrichBook() {
+        return input.enrichBook ?? null;
+      },
+      async upsertOutline(value) {
+        finalOutline = value.record.outline;
+      },
+      async upsertMineruSource() {},
+      async close() {},
+    },
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async () => ({ exitCode: 0, stdout: "{}", stderr: "" }),
+  });
+  return { result, finalOutline: finalOutline as Record<string, unknown> | null };
+}
 
 async function fakePostgresChecker() {
   return {

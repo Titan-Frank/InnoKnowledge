@@ -381,6 +381,8 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
 
     if (shouldRunStage(options, "ensure_outline")) {
       await recordStage(result, progressStore, { id: "ensure_outline", status: "running" });
+      const storedOutline = outlineRecord ?? (existsSync(outlinePath) ? readJsonRecord(outlinePath) : null);
+      const storedOutlineSourceKind = stringValue(storedOutline?.source_kind);
       const enrichBookPath = options.enrichBookPath?.trim() ?? "";
       const enrichBook = enrichBookPath
         ? await assetStore.loadEnrichBook({ datasetId: options.datasetId, path: enrichBookPath })
@@ -405,6 +407,8 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
             markdownPath: preparedMarkdownPath,
           })
         : null;
+      const replaceStoredEnrichOutline = enrichOutlineStage?.status !== "completed"
+        && storedOutlineSourceKind === "enrich";
       const outlineStage = enrichOutlineStage?.status === "completed"
         ? {
             status: "completed" as const,
@@ -418,7 +422,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
             outlinePath,
             repoRoot: REPO_ROOT,
             markdownPath: preparedMarkdownPath,
-            replaceExisting: Boolean(enrichOutlineStage),
+            replaceExisting: replaceStoredEnrichOutline,
             title: options.bookTitle || options.bookId,
           });
       if (outlineStage.status === "blocked") {

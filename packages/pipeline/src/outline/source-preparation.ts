@@ -1,7 +1,8 @@
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 import { parseHeadings, planChunkOutline, type ChunkOutlineItem } from "./chunk-outline.js";
+import { findSiblingContentListV2 } from "./mineru-source.js";
 import { iterOutlineItems, safePathToken, type OutlineItem } from "../shared/pathing.js";
 
 type RawRecord = Record<string, unknown>;
@@ -11,9 +12,7 @@ type MarkdownHeading = { line: number; level: number; title: string; norm: strin
 type MineruV2Heading = {
   pageIndex: number;
   blockIndex: number;
-  title: string;
   norm: string;
-  level: number;
 };
 
 type StructuredHeadingConstraint = {
@@ -291,7 +290,6 @@ export function ensureOutlineFromEnrich(input: {
   outlinePath: string;
   repoRoot: string;
   markdownPath: string;
-  contentListV2Path?: string;
   generatedAt?: string;
 }): EnrichOutlinePreparationResult {
   const markdownPath = resolveInputPath(input.markdownPath, input.repoRoot);
@@ -310,7 +308,7 @@ export function ensureOutlineFromEnrich(input: {
   }
 
   const markdownLines = readPlainLines(markdownPath);
-  const contentListV2Path = resolveContentListV2Path(input.contentListV2Path, markdownPath, input.repoRoot);
+  const contentListV2Path = findSiblingContentListV2(markdownPath);
   const headingSelection = selectEnrichHeadingSequence(items, markdownLines, contentListV2Path);
   if (headingSelection.ambiguous) {
     return {
@@ -399,18 +397,13 @@ export function alignOutlineToMarkdown(input: {
   const items = iterOutlineItems(rootItems) as RawRecord[];
   const lines = readPlainLines(markdownPath);
   const markerLines = new Map<string, number>();
-  const headings: MarkdownHeading[] = [];
   const allowedHeadingLines = input.headingLines ? new Set(input.headingLines) : null;
+  const headings = parseMarkdownHeadings(lines)
+    .filter((heading) => !allowedHeadingLines || allowedHeadingLines.has(heading.line));
   lines.forEach((line, index) => {
     const lineNumber = index + 1;
     const marker = /LESSON_START\s+id="([^"]+)"/.exec(line);
     if (marker) markerLines.set(marker[1]!, lineNumber);
-    if (!/^#{1,6}\s+\S/.test(line)) return;
-    const title = line.replace(/^#{1,6}\s+/, "").trim();
-    const level = /^#{1,6}/.exec(line)?.[0].length ?? 1;
-    if (!allowedHeadingLines || allowedHeadingLines.has(lineNumber)) {
-      headings.push({ line: lineNumber, level, title, norm: normalizeHeadingText(title), raw: line.trim() });
-    }
   });
 
   const usedLines = new Set<number>();
@@ -630,9 +623,7 @@ function selectStructuredEnrichHeadingSequence(
     return [{
       pageIndex,
       blockIndex,
-      title,
       norm,
-      level: Math.max(1, Math.min(6, Number(content.level) || 2)),
     }];
   }));
   if (mineruHeadings.length === 0) {
@@ -643,9 +634,10 @@ function selectStructuredEnrichHeadingSequence(
   const tocStartPage = mineruHeadings.find((heading) => isTocHeadingTitle(heading.norm))?.pageIndex ?? -1;
   const tocEndPage = tocStartPage >= 0 ? findTocEndPage(pages, tocStartPage) : -1;
   const bodyStartPage = tocEndPage + 1;
-  const appendixStartPage = mineruHeadings
+  const appendixHeading = mineruHeadings
     .filter((heading) => heading.pageIndex >= bodyStartPage && isAppendixHeadingTitle(heading.norm))
-    .sort(compareMineruHeadingPosition)[0]?.pageIndex;
+    .sort(compareMineruHeadingPosition)[0];
+  const appendixStartPage = appendixHeading?.pageIndex;
   const bodyMappings = mappedHeadings.filter(({ mineru }) => (
     mineru.pageIndex >= bodyStartPage
     && (appendixStartPage === undefined || mineru.pageIndex < appendixStartPage)
@@ -675,12 +667,15 @@ function selectStructuredEnrichHeadingSequence(
     };
   }
 
-  const appendixLine = appendixStartPage === undefined
+  const appendixLine = appendixHeading === undefined
     ? undefined
-    : mappedHeadings
-        .filter(({ mineru }) => mineru.pageIndex >= appendixStartPage)
-        .map(({ markdown }) => markdown.line)
-        .sort((left, right) => left - right)[0];
+    : mappedHeadings.find(({ mineru }) => mineru === appendixHeading)?.markdown.line;
+  if (appendixStartPage !== undefined && appendixLine === undefined) {
+    return {
+      ambiguous: true,
+      reason: "MinerU identified an appendix page, but its boundary did not map uniquely to Markdown.",
+    };
+  }
   return {
     ambiguous: false,
     startAfter: 0,
@@ -879,18 +874,6 @@ function outOfOrderLessonIds(items: RawRecord[]): string[] {
     previousStart = currentStart;
   }
   return outOfOrder;
-}
-
-function resolveContentListV2Path(explicitPath: string | undefined, markdownPath: string, repoRoot: string): string | null {
-  if (explicitPath?.trim()) return resolveInputPath(explicitPath, repoRoot);
-  const directory = dirname(markdownPath);
-  if (!existsSync(directory)) return null;
-  const candidates = readdirSync(directory)
-    .filter((name) => /_content_list_v2\.json$/i.test(name))
-    .map((name) => join(directory, name))
-    .filter((path) => statSync(path).isFile())
-    .sort((left, right) => statSync(right).size - statSync(left).size || left.localeCompare(right));
-  return candidates[0] ?? null;
 }
 
 function resolveInputPath(path: string, repoRoot: string): string {

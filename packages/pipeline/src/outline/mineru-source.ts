@@ -20,6 +20,7 @@ type RawRecord = Record<string, unknown>;
 export const MINERU_DONE_STATES = new Set(["done"]);
 export const MINERU_FAILED_STATES = new Set(["failed"]);
 export const MINERU_PENDING_STATES = new Set(["waiting-file", "pending", "running", "converting"]);
+const MINERU_CONTENT_LIST_FILE_PATTERN = /_content_list(?:_v2)?\.json$/i;
 
 export type MineruSourceOptions = {
   bookId: string;
@@ -326,14 +327,30 @@ export function findFullMarkdown(targetDir: string): string {
   return chosen;
 }
 
+export function findSiblingContentListV2(markdownPath: string): string | null {
+  const sourceDir = dirname(resolve(markdownPath));
+  if (!existsSync(sourceDir) || !statSync(sourceDir).isDirectory()) return null;
+  const names = readdirSync(sourceDir)
+    .filter((name) => /_content_list_v2\.json$/i.test(name))
+    .filter((name) => statSync(join(sourceDir, name)).isFile());
+  return chooseLargestFile(sourceDir, names);
+}
+
 export function copyMarkdownForPipeline(markdownPath: string, outputDir: string): string {
   mkdirSync(outputDir, { recursive: true });
   const target = join(outputDir, "full.md");
   if (resolve(markdownPath) !== resolve(target)) cpSync(markdownPath, target);
   const sourceDir = dirname(markdownPath);
-  for (const child of readdirSync(sourceDir)) {
+  const sourceChildren = readdirSync(sourceDir);
+  const currentContentLists = new Set(sourceChildren.filter((name) => MINERU_CONTENT_LIST_FILE_PATTERN.test(name)));
+  for (const child of readdirSync(outputDir)) {
+    if (MINERU_CONTENT_LIST_FILE_PATTERN.test(child) && !currentContentLists.has(child)) {
+      rmSync(join(outputDir, child), { force: true });
+    }
+  }
+  for (const child of sourceChildren) {
     const sourceChild = join(sourceDir, child);
-    if (statSync(sourceChild).isFile() && /_content_list(?:_v2)?\.json$/i.test(child)) {
+    if (statSync(sourceChild).isFile() && MINERU_CONTENT_LIST_FILE_PATTERN.test(child)) {
       const targetChild = join(outputDir, child);
       if (resolve(sourceChild) !== resolve(targetChild)) cpSync(sourceChild, targetChild, { force: true });
       continue;

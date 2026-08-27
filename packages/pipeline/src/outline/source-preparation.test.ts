@@ -568,6 +568,43 @@ test("uses a structured appendix boundary to keep the final Enrich lesson out of
   }
 });
 
+test("rejects structured alignment when an appendix page does not map uniquely to Markdown", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-v2-appendix-ambiguous-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    const markdownPath = join(sourceDir, "full.md");
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 第一章 正文",
+      "## 第一课",
+      "第一课正文",
+      "# 参考答案",
+      "# 参考答案",
+      "答案正文",
+    ].join("\n"), "utf8");
+    writeFileSync(join(sourceDir, "book_content_list_v2.json"), JSON.stringify([
+      [mineruTitle("第一章 正文", 1), mineruTitle("第一课"), mineruParagraph("第一课正文")],
+      [mineruTitle("参考答案", 1), mineruParagraph("答案正文")],
+    ]), "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/answer-key.json",
+      enrichTree: [{ title: "第一章 正文", child_nodes: [{ title: "第一课" }] }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "skipped");
+    assert.match(result.status === "skipped" ? result.reason : "", /appendix page, but its boundary did not map uniquely/);
+    assert.equal(existsSync(outlinePath), false);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test("restores the prior outline before replacing an unaligned Enrich skeleton with the Markdown fallback", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-fallback-"));
   try {
