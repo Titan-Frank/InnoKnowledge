@@ -64,7 +64,7 @@ export type OutlineSourceResetResult = {
   removed_chunks: number;
 };
 
-export function resetOutlineForSourceReplacement(input: { outlinePath: string }): OutlineSourceResetResult {
+export function resetOutlineForSourceReplacement(input: { outlinePath: string; sourcePath?: string }): OutlineSourceResetResult {
   const outline = loadOutlineRecord(input.outlinePath);
   const itemKey = Array.isArray(outline.items) ? "items" : Array.isArray(outline.structure) ? "structure" : null;
   if (!itemKey) throw new Error(`Outline is missing items/structure: ${input.outlinePath}`);
@@ -88,6 +88,7 @@ export function resetOutlineForSourceReplacement(input: { outlinePath: string })
 
   writeOutlineRecord(input.outlinePath, {
     ...outline,
+    source_path: input.sourcePath ?? outline.source_path,
     [itemKey]: resetValues(outline[itemKey] as unknown[]),
   });
   return {

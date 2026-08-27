@@ -254,7 +254,10 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       }
       let outlineReset = null;
       if (shouldImportOcr && existsSync(outlinePath)) {
-        outlineReset = resetOutlineForSourceReplacement({ outlinePath });
+        outlineReset = resetOutlineForSourceReplacement({
+          outlinePath,
+          sourcePath: relativeRepoPath(mineruStage.source_markdown_path),
+        });
         outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
       }
       sourceMarkdownPath = mineruStage.source_markdown_path;

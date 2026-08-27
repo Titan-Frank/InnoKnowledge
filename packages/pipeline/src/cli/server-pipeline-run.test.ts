@@ -284,6 +284,7 @@ test("explicit OCR input replaces the stored source when an outline already exis
   assert.equal(sourceStageOutput?.source_kind, "ocr_import");
   assert.equal(sourceStageOutput?.outline_reset?.removed_chunks, 1);
   const resetItems = persistedOutlines[0]?.items as Array<Record<string, unknown>>;
+  assert.equal(persistedOutlines[0]?.source_path, `data/mineru/${existingBookId}/full.md`);
   const resetLesson = resetItems.find((item) => item.kind === "lesson");
   assert.ok(resetLesson);
   assert.equal("md_start" in resetLesson, false);
