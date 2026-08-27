@@ -333,6 +333,11 @@ export function copyMarkdownForPipeline(markdownPath: string, outputDir: string)
   const sourceDir = dirname(markdownPath);
   for (const child of readdirSync(sourceDir)) {
     const sourceChild = join(sourceDir, child);
+    if (statSync(sourceChild).isFile() && /_content_list(?:_v2)?\.json$/i.test(child)) {
+      const targetChild = join(outputDir, child);
+      if (resolve(sourceChild) !== resolve(targetChild)) cpSync(sourceChild, targetChild, { force: true });
+      continue;
+    }
     if (!statSync(sourceChild).isDirectory()) continue;
     const targetChild = join(outputDir, child);
     if (existsSync(targetChild)) continue;

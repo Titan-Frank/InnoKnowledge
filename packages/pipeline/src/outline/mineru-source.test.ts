@@ -310,17 +310,19 @@ test("uploads local PDFs through the upload-url MinerU path", async () => {
   }
 });
 
-test("copies the chosen Markdown and sibling asset directories", () => {
+test("copies the chosen Markdown, structured OCR JSON, and sibling asset directories", () => {
   const dir = mkdtempSync(join(tmpdir(), "okm-mineru-copy-"));
   try {
     mkdirSync(join(dir, "raw", "assets"), { recursive: true });
     writeFileSync(join(dir, "raw", "lesson.md"), "# Lesson\n", "utf8");
+    writeFileSync(join(dir, "raw", "lesson_content_list_v2.json"), "[[{\"type\":\"title\"}]]", "utf8");
     writeFileSync(join(dir, "raw", "assets", "image.txt"), "asset", "utf8");
 
     const target = copyMarkdownForPipeline(join(dir, "raw", "lesson.md"), join(dir, "out"));
 
     assert.equal(target, join(dir, "out", "full.md"));
     assert.equal(readFileSync(target, "utf8"), "# Lesson\n");
+    assert.equal(readFileSync(join(dir, "out", "lesson_content_list_v2.json"), "utf8"), "[[{\"type\":\"title\"}]]");
     assert.equal(readFileSync(join(dir, "out", "assets", "image.txt"), "utf8"), "asset");
   } finally {
     rmSync(dir, { recursive: true, force: true });

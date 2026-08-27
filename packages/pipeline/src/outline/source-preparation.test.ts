@@ -390,6 +390,184 @@ test("rejects Enrich alignment instead of mixing partial TOC matches with body h
   }
 });
 
+test("uses MinerU v2 pages to reject a lesson sequence fabricated across TOC and body", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-v2-cross-region-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    const markdownPath = join(sourceDir, "full.md");
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 目录",
+      "## 第一课",
+      ...Array.from({ length: 24 }, (_, index) => `目录说明 ${index + 1}`),
+      "# 正文",
+      "## 第二课",
+      "第二课正文",
+    ].join("\n"), "utf8");
+    writeFileSync(join(sourceDir, "book_content_list_v2.json"), JSON.stringify([
+      [mineruTitle("目录", 1), mineruTitle("第一课")],
+      [mineruTitle("正文", 1), mineruTitle("第二课"), mineruParagraph("第二课正文")],
+    ]), "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/cross-region.json",
+      enrichTree: [{ title: "第一课" }, { title: "第二课" }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "skipped");
+    assert.match(result.status === "skipped" ? result.reason : "", /content_list_v2\.json did not identify one unique complete Enrich sequence/);
+    assert.equal(existsSync(outlinePath), false);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("uses MinerU v2 pages to prefer a lower-scoring body title over an exact TOC title", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-v2-score-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    const markdownPath = join(sourceDir, "full.md");
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 目录",
+      "## 第一课原子模型",
+      ...Array.from({ length: 24 }, (_, index) => `目录说明 ${index + 1}`),
+      "# 正文",
+      "## 一课原子模型",
+      "第一课正文",
+      "## 第二课电子结构",
+      "第二课正文",
+    ].join("\n"), "utf8");
+    writeFileSync(join(sourceDir, "book_content_list_v2.json"), JSON.stringify([
+      [mineruTitle("目录", 1), mineruTitle("第一课原子模型")],
+      [mineruTitle("正文", 1), mineruTitle("一课原子模型"), mineruParagraph("第一课正文"), mineruTitle("第二课电子结构"), mineruParagraph("第二课正文")],
+    ]), "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/lower-score-body.json",
+      enrichTree: [{
+        title: "第一单元",
+        child_nodes: [{ title: "第一课原子模型" }, { title: "第二课电子结构" }],
+      }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    assert.deepEqual(outline.items.map((item) => [item.id, item.md_start, item.md_end]), [
+      ["struct:book-a:theme:1", undefined, undefined],
+      ["struct:book-a:lesson:1-1", 28, 29],
+      ["struct:book-a:lesson:1-2", 30, 31],
+    ]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("uses MinerU v2 pages to align Enrich lessons only to the textbook body", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-v2-body-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    const markdownPath = join(sourceDir, "full.md");
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 目录",
+      "## 第一课 10",
+      "## 第二课 20",
+      "# 第一章 正文",
+      "## 第一课",
+      "第一课正文",
+      "## 第二课",
+      "第二课正文",
+    ].join("\n"), "utf8");
+    writeFileSync(join(sourceDir, "book_content_list_v2.json"), JSON.stringify([
+      [mineruTitle("目录", 1)],
+      [mineruTitle("第一课 10"), mineruTitle("第二课 20")],
+      [mineruTitle("第一章 正文", 1), mineruTitle("第一课"), mineruParagraph("第一课正文"), mineruTitle("第二课"), mineruParagraph("第二课正文")],
+    ]), "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/body.json",
+      enrichTree: [{
+        title: "第一章 正文",
+        child_nodes: [{ title: "第一课" }, { title: "第二课" }],
+      }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    assert.deepEqual(outline.items.map((item) => [item.id, item.md_start, item.md_end]), [
+      ["struct:book-a:theme:1", 4, 4],
+      ["struct:book-a:lesson:1-1", 5, 6],
+      ["struct:book-a:lesson:1-2", 7, 8],
+    ]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("uses a structured appendix boundary to keep the final Enrich lesson out of an answer key", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-v2-appendix-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    const markdownPath = join(sourceDir, "full.md");
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 第一章 正文",
+      "## 第一课",
+      "第一课正文",
+      "## 第二课",
+      "第二课正文",
+      "# 参考答案",
+      "## 第一课",
+      "第一课答案",
+      "## 第二课",
+      "第二课答案",
+    ].join("\n"), "utf8");
+    writeFileSync(join(sourceDir, "book_content_list_v2.json"), JSON.stringify([
+      [mineruTitle("第一章 正文", 1), mineruTitle("第一课"), mineruParagraph("第一课正文"), mineruTitle("第二课"), mineruParagraph("第二课正文")],
+      [mineruTitle("参考答案", 1), mineruTitle("第一课"), mineruParagraph("第一课答案"), mineruTitle("第二课"), mineruParagraph("第二课答案")],
+    ]), "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/answer-key.json",
+      enrichTree: [{
+        title: "第一章 正文",
+        child_nodes: [{ title: "第一课" }, { title: "第二课" }],
+      }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    assert.deepEqual(outline.items.map((item) => [item.id, item.md_start, item.md_end]), [
+      ["struct:book-a:theme:1", 1, 1],
+      ["struct:book-a:lesson:1-1", 2, 3],
+      ["struct:book-a:lesson:1-2", 4, 5],
+    ]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test("restores the prior outline before replacing an unaligned Enrich skeleton with the Markdown fallback", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-fallback-"));
   try {
@@ -725,6 +903,22 @@ test("generates chunk items for an existing outline once", () => {
     rmSync(repoRoot, { recursive: true, force: true });
   }
 });
+
+function mineruTitle(title: string, level = 2): Record<string, unknown> {
+  return {
+    type: "title",
+    content: { title_content: [{ type: "text", content: title }], level },
+    bbox: [0, 0, 100, 20],
+  };
+}
+
+function mineruParagraph(text: string): Record<string, unknown> {
+  return {
+    type: "paragraph",
+    content: { paragraph_content: [{ type: "text", content: text }] },
+    bbox: [0, 30, 100, 80],
+  };
+}
 
 function makeOutline(repoRoot: string): string {
   const outlineDir = join(repoRoot, "data", "outlines");
