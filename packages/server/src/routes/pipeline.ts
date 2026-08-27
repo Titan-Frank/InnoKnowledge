@@ -3,7 +3,7 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { createWriteStream, mkdirSync } from 'node:fs';
 import { mkdir, readFile, readdir, realpath, rm, stat } from 'node:fs/promises';
-import { basename, dirname, extname, isAbsolute, join, relative } from 'node:path';
+import { basename, dirname, extname, isAbsolute, join, relative, resolve } from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { pipeline as streamPipeline } from 'node:stream/promises';
 import type {
@@ -349,6 +349,7 @@ export async function reservePipelineJobStart(
     logPath: string;
     enrichContext?: boolean;
     enrichBookPath?: string;
+    ocrFolderPath?: string;
   },
 ): Promise<boolean> {
   const now = new Date().toISOString();
@@ -378,6 +379,7 @@ export async function reservePipelineJobStart(
           book_title: input.bookTitle,
           enrich_context: input.enrichContext ?? true,
           enrich_book_path: input.enrichBookPath || null,
+          ocr_folder_path: input.ocrFolderPath || null,
         })},
         ${now}, ${now}, NULL, NULL
       WHERE NOT EXISTS (
@@ -419,6 +421,20 @@ export function restoreResumeEnrichSettings(
     ...body,
     enrich_context: context.enrich_context !== false,
     enrich_book_path: asString(context.enrich_book_path) || undefined,
+  };
+}
+
+export function restoreResumeSourceSettings(
+  body: PipelineStartRequest,
+  context: Record<string, unknown>,
+): PipelineStartRequest {
+  const ocrFolderPath = asString(context.ocr_folder_path);
+  if (!ocrFolderPath) return body;
+  return {
+    ...body,
+    pdf_path: undefined,
+    mineru_file_url: undefined,
+    ocr_folder_path: ocrFolderPath,
   };
 }
 
@@ -1079,7 +1095,10 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         jobId = existingJob.job_id;
         logPath = existingJob.log_path || logPath;
         resumeDatasetId = datasetRow.dataset_id;
-        effectiveBody = restoreResumeEnrichSettings(body, existingJob.context);
+        effectiveBody = restoreResumeSourceSettings(
+          restoreResumeEnrichSettings(body, existingJob.context),
+          existingJob.context,
+        );
       }
       const enrichBookPath = asString(effectiveBody.enrich_book_path);
       if (enrichBookPath) {
@@ -1113,6 +1132,9 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         logPath,
         enrichContext: effectiveBody.enrich_context,
         enrichBookPath: asString(effectiveBody.enrich_book_path),
+        ocrFolderPath: asString(effectiveBody.ocr_folder_path)
+          ? resolve(REPO_ROOT, asString(effectiveBody.ocr_folder_path))
+          : undefined,
       });
       if (!reserved) {
         return c.json({

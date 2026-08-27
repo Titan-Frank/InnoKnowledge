@@ -352,6 +352,7 @@ test("OCR import failures block the persisted pipeline job", async (context) => 
   const sourceStage = result.stages.find((stage) => stage.id === "mineru_source_markdown");
   assert.equal(sourceStage?.status, "blocked");
   assert.match(sourceStage?.error ?? "", /OCR import failed: OCR folder not found/);
+  assert.equal(result.context.ocr_folder_path, missingBundle);
   assert.deepEqual(jobUpdates.at(-1), {
     datasetId: "dataset-a",
     jobId: result.job_id,

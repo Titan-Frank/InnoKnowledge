@@ -21,6 +21,7 @@ import {
   registerPipelineRoutes,
   reservePipelineJobStart,
   restoreResumeEnrichSettings,
+  restoreResumeSourceSettings,
   resolveNpmInvocation,
   scanPdfFolder,
   safePdfUploadName,
@@ -303,6 +304,28 @@ test('restoreResumeEnrichSettings reuses the blocked job decision', () => {
   assert.equal(restoreResumeEnrichSettings(legacy, {}), legacy);
 });
 
+test('restoreResumeSourceSettings reuses the blocked OCR folder', () => {
+  const restored = restoreResumeSourceSettings(
+    {
+      book_id: 'physics',
+      resume_job_id: 'physics.123',
+      start_stage: 'mineru_source_markdown',
+      pdf_path: '/data/request-change.pdf',
+      mineru_file_url: 'https://example.com/request-change.pdf',
+    },
+    {
+      source_kind: 'ocr_import',
+      ocr_folder_path: '/data/original/hybrid_ocr',
+    },
+  );
+  assert.equal(restored.ocr_folder_path, '/data/original/hybrid_ocr');
+  assert.equal(restored.pdf_path, undefined);
+  assert.equal(restored.mineru_file_url, undefined);
+
+  const legacy = { book_id: 'physics', pdf_path: '/data/physics.pdf' };
+  assert.equal(restoreResumeSourceSettings(legacy, { source_kind: 'ocr_import' }), legacy);
+});
+
 test('buildPipelineCommand forwards the requested resume stage', () => {
   const command = buildPipelineCommand(
     {
@@ -408,6 +431,7 @@ test('reservePipelineJobStart records a running job under the shared dataset loc
     logPath: '/tmp/chemistry.123.log',
     enrichContext: true,
     enrichBookPath: 'data/enrich/chemistry.json',
+    ocrFolderPath: '/data/chemistry/hybrid_ocr',
   }), true);
   assert.deepEqual(unsafeCalls, [{ query: DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
   assert.equal(statements.length, 2);
@@ -423,6 +447,7 @@ test('reservePipelineJobStart records a running job under the shared dataset loc
     book_title: '八年级化学',
     enrich_context: true,
     enrich_book_path: 'data/enrich/chemistry.json',
+    ocr_folder_path: '/data/chemistry/hybrid_ocr',
   });
 });
 
