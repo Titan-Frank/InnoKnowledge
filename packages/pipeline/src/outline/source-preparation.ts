@@ -7,7 +7,7 @@ import { iterOutlineItems, safePathToken, type OutlineItem } from "../shared/pat
 
 type RawRecord = Record<string, unknown>;
 
-type MarkdownHeading = { line: number; level: number; title: string; norm: string; raw: string };
+type MarkdownHeading = { line: number; norm: string; raw: string };
 
 type MineruV2Heading = {
   pageIndex: number;
@@ -17,11 +17,13 @@ type MineruV2Heading = {
 
 type StructuredHeadingConstraint = {
   headingLines: number[];
+  headingPages: Array<{ line: number; page: number }>;
   markdownEndLine?: number;
+  pageEnd: number;
 };
 
 type EnrichHeadingSelection =
-  | { ambiguous: false; startAfter: number; constraint?: StructuredHeadingConstraint }
+  | { ambiguous: false; constraint: StructuredHeadingConstraint }
   | { ambiguous: true; reason: string };
 
 type MarkdownAlignmentResult = {
@@ -337,9 +339,10 @@ export function ensureOutlineFromEnrich(input: {
       outlinePath: input.outlinePath,
       markdownPath,
       repoRoot: input.repoRoot,
-      headingStartAfter: headingSelection.startAfter,
-      headingLines: headingSelection.constraint?.headingLines,
-      markdownEndLine: headingSelection.constraint?.markdownEndLine,
+      headingLines: headingSelection.constraint.headingLines,
+      headingPages: headingSelection.constraint.headingPages,
+      markdownEndLine: headingSelection.constraint.markdownEndLine,
+      pageEnd: headingSelection.constraint.pageEnd,
     });
     if (alignment.unmatched_item_ids.length > 0) {
       restoreOutline(input.outlinePath, previousOutline);
@@ -384,9 +387,10 @@ export function alignOutlineToMarkdown(input: {
   outlinePath: string;
   markdownPath: string;
   repoRoot: string;
-  headingStartAfter?: number;
   headingLines?: number[];
+  headingPages?: Array<{ line: number; page: number }>;
   markdownEndLine?: number;
+  pageEnd?: number;
 }): MarkdownAlignmentResult {
   const markdownPath = resolveInputPath(input.markdownPath, input.repoRoot);
   if (!existsSync(markdownPath)) throw new Error(`Markdown not found: ${markdownPath}`);
@@ -398,6 +402,7 @@ export function alignOutlineToMarkdown(input: {
   const lines = readPlainLines(markdownPath);
   const markerLines = new Map<string, number>();
   const allowedHeadingLines = input.headingLines ? new Set(input.headingLines) : null;
+  const pageByHeadingLine = new Map((input.headingPages ?? []).map((entry) => [entry.line, entry.page]));
   const headings = parseMarkdownHeadings(lines)
     .filter((heading) => !allowedHeadingLines || allowedHeadingLines.has(heading.line));
   lines.forEach((line, index) => {
@@ -408,7 +413,7 @@ export function alignOutlineToMarkdown(input: {
 
   const usedLines = new Set<number>();
   const matched: Array<{ item: RawRecord; line: number }> = [];
-  let lastLine = input.headingStartAfter ?? 0;
+  let lastLine = 0;
   for (const item of [...items].sort(compareHierarchyOrder)) {
     const itemId = typeof item.id === "string" ? item.id : "";
     if (hasNumber(item.md_start) && hasNumber(item.md_end)) {
@@ -437,6 +442,8 @@ export function alignOutlineToMarkdown(input: {
     const chosen = [...candidates].sort((left, right) => right.score - left.score || left.heading.line - right.heading.line)[0]!.heading;
     item.md_start = chosen.line;
     item.raw_line = item.raw_line || chosen.raw;
+    const headingPage = pageByHeadingLine.get(chosen.line);
+    if (headingPage !== undefined) item.page_start = headingPage;
     usedLines.add(chosen.line);
     lastLine = Math.max(lastLine, chosen.line);
     matched.push({ item, line: chosen.line });
@@ -450,11 +457,22 @@ export function alignOutlineToMarkdown(input: {
       : Math.max(row.line, finalMarkdownLine);
   });
 
+  matchedSorted.forEach((row, index) => {
+    if (!hasNumber(row.item.page_start) || !pageByHeadingLine.has(row.line)) return;
+    const currentPage = Number(row.item.page_start);
+    const later = matchedSorted.slice(index + 1).find((candidate) => hasNumber(candidate.item.page_start));
+    row.item.page_end = later
+      ? Math.max(currentPage, Number(later.item.page_start) - 1)
+      : Math.max(currentPage, input.pageEnd ?? currentPage);
+  });
+
+  fillParentPageRanges(items);
+
   const orderedItems = [...items].sort(compareOrderPath);
   orderedItems.forEach((item, index) => {
-    if (hasNumber(item.page_end)) return;
+    if (hasNumber(item.page_end) || !hasNumber(item.page_start)) return;
     const later = orderedItems.slice(index + 1).find((candidate) => hasNumber(candidate.page_start));
-    if (later) item.page_end = Math.max(Number(item.page_start ?? 1), Number(later.page_start) - 1);
+    if (later) item.page_end = Math.max(Number(item.page_start), Number(later.page_start) - 1);
   });
 
   const sourcePath = toRepoRelativePath(markdownPath, input.repoRoot);
@@ -541,8 +559,6 @@ function flattenEnrichOutline(bookId: string, roots: RawRecord[]): RawRecord[] {
         kind,
         label: title,
         title,
-        page_start: 1,
-        page_end: 1,
         level: Math.min(4, order.length),
         order_path: orderPath,
         raw_line: title,
@@ -560,48 +576,20 @@ function selectEnrichHeadingSequence(items: RawRecord[], lines: string[], conten
     .filter((item) => item.kind === "lesson" || item.kind === "activity")
     .sort(compareHierarchyOrder);
   const headings = parseMarkdownHeadings(lines);
-  if (contentListV2Path) {
-    try {
-      return selectStructuredEnrichHeadingSequence(lessons, headings, contentListV2Path);
-    } catch (error) {
-      return {
-        ambiguous: true,
-        reason: `Could not verify Enrich alignment against MinerU content_list_v2.json: ${(error as Error).message}`,
-      };
-    }
-  }
-  const sequences: number[][] = [];
-  let startAfter = 0;
-  while (sequences.length < 3) {
-    const sequence = findHeadingSequence(lessons, headings, startAfter);
-    if (!sequence) break;
-    sequences.push(sequence);
-    startAfter = sequence[sequence.length - 1]!;
-  }
-  const topOccurrenceCounts = lessons.map((item) => countTopHeadingMatches(item, headings));
-  const hasUnpairedDuplicates = sequences.length <= 1 && topOccurrenceCounts.some((count) => count > 1);
-  const hasExtraDuplicates = sequences.length === 2 && topOccurrenceCounts.some((count) => count > 2);
-  const onlySequenceIsExplicitToc = sequences.length === 1 && isExplicitTocSequence(sequences[0]!, headings);
-  if (sequences.length <= 1 && !hasUnpairedDuplicates && !onlySequenceIsExplicitToc) {
-    return { ambiguous: false, startAfter: 0 };
-  }
-  if (onlySequenceIsExplicitToc) {
+  if (!contentListV2Path) {
     return {
       ambiguous: true,
-      reason: "Enrich outline only complete heading sequence is inside an explicit TOC; no textbook body sequence was established.",
+      reason: "Enrich alignment requires MinerU content_list_v2.json; Markdown-only OCR sources are not supported.",
     };
   }
-  const verifiedTocBodyPair = sequences.length === 2
-    && lessons.length > 1
-    && !hasExtraDuplicates
-    && isExplicitTocSequence(sequences[0]!, headings);
-  if (verifiedTocBodyPair) {
-    return { ambiguous: false, startAfter: sequences[0]![sequences[0]!.length - 1]! };
+  try {
+    return selectStructuredEnrichHeadingSequence(lessons, headings, contentListV2Path);
+  } catch (error) {
+    return {
+      ambiguous: true,
+      reason: `Could not verify Enrich alignment against MinerU content_list_v2.json: ${(error as Error).message}`,
+    };
   }
-  return {
-    ambiguous: true,
-    reason: `Enrich outline heading sequence is ambiguous in Markdown (${sequences.length}${sequences.length >= 3 ? "+" : ""} complete occurrence(s) without one verified TOC/body pair).`,
-  };
 }
 
 function selectStructuredEnrichHeadingSequence(
@@ -678,10 +666,14 @@ function selectStructuredEnrichHeadingSequence(
   }
   return {
     ambiguous: false,
-    startAfter: 0,
     constraint: {
       headingLines: [...new Set(bodyHeadings.map((heading) => heading.line))].sort((left, right) => left - right),
+      headingPages: bodyMappings.map(({ mineru, markdown }) => ({
+        line: markdown.line,
+        page: mineru.pageIndex + 1,
+      })),
       ...(appendixLine === undefined ? {} : { markdownEndLine: Math.max(1, appendixLine - 1) }),
+      pageEnd: appendixStartPage ?? pages.length,
     },
   };
 }
@@ -690,8 +682,7 @@ function parseMarkdownHeadings(lines: string[]): MarkdownHeading[] {
   return lines.flatMap((line, index): MarkdownHeading[] => {
     if (!/^#{1,6}\s+\S/.test(line)) return [];
     const title = line.replace(/^#{1,6}\s+/, "").trim();
-    const level = /^#{1,6}/.exec(line)?.[0].length ?? 1;
-    return [{ line: index + 1, level, title, norm: normalizeHeadingText(title), raw: line.trim() }];
+    return [{ line: index + 1, norm: normalizeHeadingText(title), raw: line.trim() }];
   });
 }
 
@@ -802,24 +793,6 @@ function isAppendixHeadingTitle(normalizedTitle: string): boolean {
   return exactMarkers.has(normalizedTitle) || prefixMarkers.some((marker) => normalizedTitle.startsWith(marker));
 }
 
-function isExplicitTocSequence(sequence: number[], headings: MarkdownHeading[]): boolean {
-  const firstLine = sequence[0];
-  const lastLine = sequence[sequence.length - 1];
-  if (!firstLine || !lastLine) return false;
-  const tocHeading = [...headings]
-    .filter((heading) => heading.line < firstLine && isTocHeadingTitle(heading.norm))
-    .sort((left, right) => right.line - left.line)[0];
-  if (!tocHeading) return false;
-  const crossesSectionBoundary = headings.some((heading) => (
-    heading.line > tocHeading.line
-    && heading.line < firstLine
-    && heading.level <= tocHeading.level
-  ));
-  const compactSequence = firstLine - tocHeading.line <= 20
-    && lastLine - firstLine <= Math.max(8, sequence.length * 3);
-  return !crossesSectionBoundary && compactSequence;
-}
-
 function isTocHeadingTitle(normalizedTitle: string): boolean {
   return ["目录", "目次", "contents", "tableofcontents", "目录contents"].includes(normalizedTitle);
 }
@@ -874,6 +847,25 @@ function outOfOrderLessonIds(items: RawRecord[]): string[] {
     previousStart = currentStart;
   }
   return outOfOrder;
+}
+
+function fillParentPageRanges(items: RawRecord[]): void {
+  const childrenByParent = new Map<string, RawRecord[]>();
+  for (const item of items) {
+    const parentId = typeof item.parent_id === "string" ? item.parent_id : "";
+    if (!parentId) continue;
+    const children = childrenByParent.get(parentId) ?? [];
+    children.push(item);
+    childrenByParent.set(parentId, children);
+  }
+  for (const item of [...items].sort(compareHierarchyOrder).reverse()) {
+    const itemId = typeof item.id === "string" ? item.id : "";
+    const children = itemId ? childrenByParent.get(itemId) ?? [] : [];
+    const childStarts = children.flatMap((child): number[] => hasNumber(child.page_start) ? [Number(child.page_start)] : []);
+    const childEnds = children.flatMap((child): number[] => hasNumber(child.page_end) ? [Number(child.page_end)] : []);
+    if (!hasNumber(item.page_start) && childStarts.length > 0) item.page_start = Math.min(...childStarts);
+    if (!hasNumber(item.page_end) && childEnds.length > 0) item.page_end = Math.max(...childEnds);
+  }
 }
 
 function resolveInputPath(path: string, repoRoot: string): string {

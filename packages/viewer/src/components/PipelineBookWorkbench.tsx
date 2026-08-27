@@ -596,7 +596,7 @@ export function PipelineBookWorkbench({
       setQueue((current) => [...current, item]);
       setOcrFolderPath(inspection.folder_path);
       await inferQueueBook(item);
-      const qualityLabel = inspection.quality === 'complete' ? '完整组合输入' : inspection.quality === 'structured' ? '结构化输入' : '仅 Markdown';
+      const qualityLabel = inspection.quality === 'complete' ? '完整组合输入' : '结构化输入';
       setNotice(`OCR 校验通过：${inspection.page_count ?? '未知'} 页、${inspection.block_count ?? '未知'} 块、${inspection.image_count} 张图片 · ${qualityLabel}。`);
     } catch (inspectError) {
       setNotice('');
@@ -727,7 +727,7 @@ export function PipelineBookWorkbench({
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-2.5">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><FolderOpen className="h-4 w-4" /></span>
-              <div><div id="ocr-source-title" className="text-xs font-semibold text-text-primary">已完成 OCR</div><div className="mt-0.5 text-[10px] leading-4 text-text-muted">导入 MinerU hybrid_ocr 或其上级目录，直接进入结构与知识抽取。</div></div>
+              <div><div id="ocr-source-title" className="text-xs font-semibold text-text-primary">已完成 OCR</div><div className="mt-0.5 text-[10px] leading-4 text-text-muted">导入含 content_list_v2.json 的 MinerU hybrid_ocr 或其上级目录，直接进入结构与知识抽取。</div></div>
             </div>
             <span className="rounded-full border border-node-process/40 bg-node-process/10 px-2 py-0.5 text-[10px] text-node-process">跳过 PDF / MinerU</span>
           </div>
@@ -803,7 +803,7 @@ export function PipelineBookWorkbench({
                     <div className="truncate text-text-secondary" title={sourcePath}>{sourcePath || '数据库已有记录'}</div>
                     <div className="mt-1 text-[10px] text-text-muted">
                       {row.sourceKind === 'ocr' && queueItem?.ocrInspection
-                        ? `${queueItem.ocrInspection.page_count ?? '未知'} 页 · ${queueItem.ocrInspection.block_count ?? '未知'} 块 · ${queueItem.ocrInspection.image_count} 图 · ${queueItem.ocrInspection.quality === 'complete' ? '完整组合' : queueItem.ocrInspection.quality === 'structured' ? '结构化' : '仅 Markdown'}`
+                        ? `${queueItem.ocrInspection.page_count ?? '未知'} 页 · ${queueItem.ocrInspection.block_count ?? '未知'} 块 · ${queueItem.ocrInspection.image_count} 图 · ${queueItem.ocrInspection.quality === 'complete' ? '完整组合' : '结构化'}`
                         : fileSizeText(row.sizeBytes)}
                     </div>
                   </td>

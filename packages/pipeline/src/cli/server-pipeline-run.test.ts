@@ -216,6 +216,9 @@ test("explicit OCR input replaces the stored source when an outline already exis
   });
   mkdirSync(ocrBundle, { recursive: true });
   writeFileSync(join(ocrBundle, "book.md"), expectedMarkdown, "utf8");
+  writeFileSync(join(ocrBundle, "book_content_list_v2.json"), JSON.stringify([[
+    { type: "title", content: { title_content: [{ type: "text", content: "Updated source" }] } },
+  ]]), "utf8");
 
   const result = await runServerPipeline({
     bookId: existingBookId,
@@ -387,6 +390,9 @@ test("OCR outline reset failures block the persisted pipeline job", async (conte
   mkdirSync(ocrBundle, { recursive: true });
   mkdirSync(resolve(outlinePath, ".."), { recursive: true });
   writeFileSync(join(ocrBundle, "book.md"), "# Replacement source\nbody\n", "utf8");
+  writeFileSync(join(ocrBundle, "book_content_list_v2.json"), JSON.stringify([[
+    { type: "title", content: { title_content: [{ type: "text", content: "Replacement source" }] } },
+  ]]), "utf8");
   writeFileSync(outlinePath, JSON.stringify({ book_id: failedBookId, source_path: "stale.md" }), "utf8");
 
   const result = await runServerPipeline({
@@ -446,6 +452,9 @@ test("explicit OCR input resets a file-only outline missing from the dataset sto
   mkdirSync(ocrBundle, { recursive: true });
   mkdirSync(resolve(outlinePath, ".."), { recursive: true });
   writeFileSync(join(ocrBundle, "book.md"), "preface\n# Updated source\nNew OCR body\n", "utf8");
+  writeFileSync(join(ocrBundle, "book_content_list_v2.json"), JSON.stringify([[
+    { type: "title", content: { title_content: [{ type: "text", content: "Updated source" }] } },
+  ]]), "utf8");
   writeFileSync(outlinePath, `${JSON.stringify({
     book_id: existingBookId,
     title: "File-only outline",
@@ -544,6 +553,20 @@ test("server pipeline uses the confirmed Enrich directory as its aligned outline
     "## 2. 核外电子",
     "第二课正文",
   ].join("\n"), "utf8");
+  writeFileSync(join(ocrBundle, "book_content_list_v2.json"), JSON.stringify([
+    [
+      { type: "title", content: { title_content: [{ type: "text", content: "第一单元 物质结构" }] } },
+      { type: "paragraph", content: { paragraph_content: [{ type: "text", content: "单元导语" }] } },
+    ],
+    [
+      { type: "title", content: { title_content: [{ type: "text", content: "1. 原子模型" }] } },
+      { type: "paragraph", content: { paragraph_content: [{ type: "text", content: "第一课正文" }] } },
+    ],
+    [
+      { type: "title", content: { title_content: [{ type: "text", content: "2. 核外电子" }] } },
+      { type: "paragraph", content: { paragraph_content: [{ type: "text", content: "第二课正文" }] } },
+    ],
+  ]), "utf8");
 
   const result = await runServerPipeline({
     bookId: enrichBookId,

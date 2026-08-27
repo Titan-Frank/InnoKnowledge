@@ -101,6 +101,9 @@ test("replaces stale OCR assets instead of merging a corrected bundle", () => {
     mkdirSync(bundle, { recursive: true });
     mkdirSync(join(output, "images"), { recursive: true });
     writeFileSync(join(bundle, "book.md"), "# Corrected source\n![](images/old.jpg)\n", "utf8");
+    writeFileSync(join(bundle, "book_content_list_v2.json"), JSON.stringify([[
+      { type: "title", content: { title_content: [{ type: "text", content: "Corrected source" }] } },
+    ]]), "utf8");
     writeFileSync(join(output, "images", "old.jpg"), "stale image", "utf8");
     writeFileSync(join(output, "old_content_list.json"), "[]", "utf8");
 
@@ -114,19 +117,22 @@ test("replaces stale OCR assets instead of merging a corrected bundle", () => {
   }
 });
 
-test("rejects legacy-only and images-only OCR folders", () => {
+test("rejects Markdown-only, legacy-only, and images-only OCR folders", () => {
   const root = mkdtempSync(join(tmpdir(), "okm-ocr-invalid-"));
   try {
     const legacy = join(root, "legacy");
+    const markdownOnly = join(root, "markdown-only");
     const imagesOnly = join(root, "images-only", "images");
     mkdirSync(legacy, { recursive: true });
+    mkdirSync(markdownOnly, { recursive: true });
     mkdirSync(imagesOnly, { recursive: true });
     writeFileSync(join(legacy, "book_content_list.json"), "[]", "utf8");
+    writeFileSync(join(markdownOnly, "book.md"), "# Unsupported\n", "utf8");
     writeFileSync(join(imagesOnly, "old.jpg"), "stale image", "utf8");
 
     assert.throws(
       () => inspectOcrBundle(root),
-      /Expected a Markdown file or \*_content_list_v2\.json/,
+      /Expected \*_content_list_v2\.json/,
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -240,6 +246,7 @@ test("runs a remote MinerU URL flow through injectable dependencies", async () =
         extractZip: async (_zipPath, targetDir) => {
           mkdirSync(join(targetDir, "nested", "images"), { recursive: true });
           writeFileSync(join(targetDir, "nested", "full.md"), "# MinerU\n", "utf8");
+          writeFileSync(join(targetDir, "nested", "book_content_list_v2.json"), "[[]]", "utf8");
           writeFileSync(join(targetDir, "nested", "images", "a.txt"), "asset", "utf8");
         },
         putFile: async () => {
@@ -296,6 +303,7 @@ test("uploads local PDFs through the upload-url MinerU path", async () => {
         extractZip: async (_zipPath, targetDir) => {
           mkdirSync(targetDir, { recursive: true });
           writeFileSync(join(targetDir, "full.md"), "# Local\n", "utf8");
+          writeFileSync(join(targetDir, "book_content_list_v2.json"), "[[]]", "utf8");
         },
         sleep: async () => {},
         now: () => 0,

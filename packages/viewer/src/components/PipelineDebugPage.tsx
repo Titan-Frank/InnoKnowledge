@@ -2002,7 +2002,7 @@ export function PipelineDebugPage() {
                       <div className="mb-2 flex items-center justify-between gap-3">
                         <div>
                           <label htmlFor="pipeline-ocr-folder" className="block text-[11px] font-medium text-text-muted">已完成 OCR 文件夹</label>
-                          <div className="mt-0.5 text-[10px] text-text-muted">支持 MinerU hybrid_ocr 目录或包含它的上级目录</div>
+                          <div className="mt-0.5 text-[10px] text-text-muted">支持含 content_list_v2.json 的 MinerU hybrid_ocr 目录或其上级目录</div>
                         </div>
                         <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5 text-[10px] text-text-secondary">跳过 MinerU</span>
                       </div>
@@ -2035,7 +2035,7 @@ export function PipelineDebugPage() {
                             <span>{ocrInspection.page_count ?? '未知'} 页</span>
                             <span>{ocrInspection.block_count ?? '未知'} 块</span>
                             <span>{ocrInspection.image_count} 张图片</span>
-                            <span>{ocrInspection.quality === 'complete' ? '完整组合输入' : ocrInspection.quality === 'structured' ? '结构化输入' : '仅 Markdown'}</span>
+                            <span>{ocrInspection.quality === 'complete' ? '完整组合输入' : '结构化输入'}</span>
                           </div>
                           <div className="mt-1 truncate" title={ocrInspection.folder_path}>{ocrInspection.folder_path}</div>
                           {ocrInspection.warnings.map((warning) => <div key={warning} className="text-node-event">{warning}</div>)}

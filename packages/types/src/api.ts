@@ -390,8 +390,8 @@ export interface PipelinePdfUploadResponse {
   size_bytes: number;
 }
 
-export type PipelineOcrImportQuality = 'complete' | 'structured' | 'markdown_only';
-export type PipelineOcrPreferredInput = 'markdown_with_v2' | 'markdown' | 'content_list_v2';
+export type PipelineOcrImportQuality = 'complete' | 'structured';
+export type PipelineOcrPreferredInput = 'markdown_with_v2' | 'content_list_v2';
 
 export interface PipelineOcrInspectRequest {
   folder_path: string;
@@ -401,7 +401,7 @@ export interface PipelineOcrInspectResponse {
   folder_path: string;
   markdown_path: string | null;
   content_list_path: string | null;
-  content_list_v2_path: string | null;
+  content_list_v2_path: string;
   images_path: string | null;
   page_count: number | null;
   block_count: number | null;

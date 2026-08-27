@@ -117,6 +117,19 @@ test('OCR folder inspection prefers the Markdown plus content_list_v2 combinatio
   }
 });
 
+test('OCR folder inspection rejects Markdown-only bundles', async () => {
+  const folder = await mkdtemp(join(tmpdir(), 'okm-ocr-markdown-only-'));
+  await writeFile(join(folder, 'book.md'), '# 第一章\n正文\n');
+  try {
+    await assert.rejects(
+      inspectOcrFolder(folder),
+      /Expected \*_content_list_v2\.json/,
+    );
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
+});
+
 test('book node detail limits preserve the 200-row default and cap large requests', () => {
   assert.equal(pipelineBookNodeLimit(undefined), 200);
   assert.equal(pipelineBookNodeLimit('350'), 350);
