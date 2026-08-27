@@ -408,6 +408,20 @@ function asString(value: unknown, fallback = ''): string {
   return typeof value === 'string' && value.trim() ? value.trim() : fallback;
 }
 
+export function restoreResumeEnrichSettings(
+  body: PipelineStartRequest,
+  context: Record<string, unknown>,
+): PipelineStartRequest {
+  const hasStoredDecision = typeof context.enrich_context === 'boolean'
+    || typeof context.enrich_book_path === 'string';
+  if (!hasStoredDecision) return body;
+  return {
+    ...body,
+    enrich_context: context.enrich_context !== false,
+    enrich_book_path: asString(context.enrich_book_path) || undefined,
+  };
+}
+
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
@@ -1037,21 +1051,12 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     let datasetKey: string;
     let statusDatasetId: string;
     let resumeDatasetId: string | null = null;
+    let effectiveBody = body;
     try {
       const outputRoot = asString(body.output_root, 'data/main');
       datasetKey = asString(body.dataset_id, outputRoot.split('/').filter(Boolean).at(-1) || key || 'main');
       const datasetRow = await resolveDatasetRow(sql, datasetKey);
       statusDatasetId = datasetRow?.dataset_id ?? datasetKey;
-      const enrichBookPath = asString(body.enrich_book_path);
-      if (enrichBookPath) {
-        if (!datasetRow) {
-          throw new Error(`Cannot select an Enrich outline because dataset '${datasetKey}' does not exist.`);
-        }
-        const enrichBook = await loadEnrichBookPayload(sql, datasetRow.dataset_id, enrichBookPath);
-        if (!enrichBook) {
-          throw new Error(`Selected Enrich outline '${enrichBookPath}' does not exist in dataset '${datasetKey}'.`);
-        }
-      }
       if (requestedResumeJobId) {
         if (!body.start_stage) {
           throw new Error('Resuming an existing job requires start_stage.');
@@ -1074,9 +1079,20 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         jobId = existingJob.job_id;
         logPath = existingJob.log_path || logPath;
         resumeDatasetId = datasetRow.dataset_id;
+        effectiveBody = restoreResumeEnrichSettings(body, existingJob.context);
+      }
+      const enrichBookPath = asString(effectiveBody.enrich_book_path);
+      if (enrichBookPath) {
+        if (!datasetRow) {
+          throw new Error(`Cannot select an Enrich outline because dataset '${datasetKey}' does not exist.`);
+        }
+        const enrichBook = await loadEnrichBookPayload(sql, datasetRow.dataset_id, enrichBookPath);
+        if (!enrichBook) {
+          throw new Error(`Selected Enrich outline '${enrichBookPath}' does not exist in dataset '${datasetKey}'.`);
+        }
       }
       const outline = datasetRow ? await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId) : null;
-      command = buildPipelineCommand(body, jobId, logPath, dbUrl, outline);
+      command = buildPipelineCommand(effectiveBody, jobId, logPath, dbUrl, outline);
     } catch (error) {
       return c.json({ error: (error as Error).message }, 400);
     }
@@ -1095,8 +1111,8 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         bookId,
         bookTitle: asString(body.book_title, bookId),
         logPath,
-        enrichContext: body.enrich_context,
-        enrichBookPath: asString(body.enrich_book_path),
+        enrichContext: effectiveBody.enrich_context,
+        enrichBookPath: asString(effectiveBody.enrich_book_path),
       });
       if (!reserved) {
         return c.json({

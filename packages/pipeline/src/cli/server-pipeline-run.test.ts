@@ -205,6 +205,7 @@ test("explicit OCR input replaces the stored source when an outline already exis
   const expectedMarkdown = "OCR preface\nmetadata\n# Updated source\nNew OCR body\n";
   let storedSourcePath = "";
   let storedOutline: Record<string, unknown> | null = null;
+  const persistedOutlines: Record<string, unknown>[] = [];
   context.after(() => {
     rmSync(ocrRoot, { recursive: true, force: true });
     rmSync(importedSourceDir, { recursive: true, force: true });
@@ -261,6 +262,7 @@ test("explicit OCR input replaces the stored source when an outline already exis
       },
       async upsertOutline(input) {
         storedOutline = input.record.outline;
+        persistedOutlines.push(input.record.outline);
       },
       async upsertMineruSource(input) {
         storedSourcePath = input.record.sourceMarkdownPath ?? "";
@@ -281,6 +283,12 @@ test("explicit OCR input replaces the stored source when an outline already exis
   assert.equal(sourceStage?.status, "completed");
   assert.equal(sourceStageOutput?.source_kind, "ocr_import");
   assert.equal(sourceStageOutput?.outline_reset?.removed_chunks, 1);
+  const resetItems = persistedOutlines[0]?.items as Array<Record<string, unknown>>;
+  const resetLesson = resetItems.find((item) => item.kind === "lesson");
+  assert.ok(resetLesson);
+  assert.equal("md_start" in resetLesson, false);
+  assert.equal("md_end" in resetLesson, false);
+  assert.equal(resetItems.some((item) => item.kind === "chunk"), false);
   assert.equal(readFileSync(join(importedSourceDir, "full.md"), "utf8"), expectedMarkdown);
   assert.equal(storedSourcePath, `data/mineru/${existingBookId}/full.md`);
   const finalOutline = storedOutline as Record<string, unknown> | null;

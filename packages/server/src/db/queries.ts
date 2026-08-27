@@ -904,6 +904,7 @@ interface PipelineJobRow {
   status: string;
   current_stage_id: string | null;
   progress_json: unknown;
+  context_json: unknown;
   log_path: string | null;
   updated_at: string | null;
   completed_at: string | null;
@@ -1015,7 +1016,7 @@ export async function loadPipelineJobStatusPayload(
   jobId: string,
 ): Promise<PipelineJobStatusResponse> {
   const jobRows = await sql<PipelineJobRow[]>`
-    SELECT job_id, book_id, status, current_stage_id, progress_json, log_path, updated_at, completed_at, error
+    SELECT job_id, book_id, status, current_stage_id, progress_json, context_json, log_path, updated_at, completed_at, error
     FROM world_pipeline_jobs
     WHERE dataset_id = ${datasetId} AND job_id = ${jobId}
     LIMIT 1
@@ -1027,6 +1028,7 @@ export async function loadPipelineJobStatusPayload(
       book_id: '',
       status: 'unknown',
       log_path: '',
+      context: {},
       progress: {},
       stages: [],
       current_stage: null,
@@ -1086,6 +1088,7 @@ export async function loadPipelineJobStatusPayload(
     book_id: job.book_id,
     status,
     log_path: job.log_path ?? '',
+    context: asRecord(job.context_json),
     progress: asRecord(job.progress_json),
     stages,
     current_stage: currentStage,

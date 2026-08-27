@@ -511,6 +511,7 @@ export interface PipelineJobStatusResponse {
   book_id: string;
   status: 'unknown' | 'running' | 'completed' | 'blocked';
   log_path: string;
+  context: Record<string, unknown>;
   progress: Record<string, unknown>;
   stages: PipelineJobStage[];
   current_stage: PipelineJobStage | null;

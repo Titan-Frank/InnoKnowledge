@@ -20,6 +20,7 @@ import {
   redactCommand,
   registerPipelineRoutes,
   reservePipelineJobStart,
+  restoreResumeEnrichSettings,
   resolveNpmInvocation,
   scanPdfFolder,
   safePdfUploadName,
@@ -272,6 +273,34 @@ test('buildPipelineCommand forwards the manual enrich decision', () => {
     '/tmp/physics.125.log',
     'postgresql://okm:okm@127.0.0.1:5432/knowledge',
   ), /cannot be set/);
+});
+
+test('restoreResumeEnrichSettings reuses the blocked job decision', () => {
+  const selected = restoreResumeEnrichSettings(
+    {
+      book_id: 'physics',
+      resume_job_id: 'physics.123',
+      start_stage: 'lesson_plan',
+      enrich_context: false,
+      enrich_book_path: 'data/enrich/request-change.json',
+    },
+    {
+      enrich_context: true,
+      enrich_book_path: 'data/enrich/locked-book.json',
+    },
+  );
+  assert.equal(selected.enrich_context, true);
+  assert.equal(selected.enrich_book_path, 'data/enrich/locked-book.json');
+
+  const disabled = restoreResumeEnrichSettings(
+    { book_id: 'physics', enrich_context: true, enrich_book_path: 'data/enrich/new-book.json' },
+    { enrich_context: false, enrich_book_path: null },
+  );
+  assert.equal(disabled.enrich_context, false);
+  assert.equal(disabled.enrich_book_path, undefined);
+
+  const legacy = { book_id: 'physics', enrich_context: true };
+  assert.equal(restoreResumeEnrichSettings(legacy, {}), legacy);
 });
 
 test('buildPipelineCommand forwards the requested resume stage', () => {

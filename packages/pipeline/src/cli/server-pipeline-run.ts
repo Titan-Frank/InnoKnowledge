@@ -244,9 +244,11 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       if (mineruStage.status === "blocked") {
         return await blockRun(result, progressStore, "mineru_source_markdown", mineruStage.error);
       }
-      const outlineReset = shouldImportOcr && existsSync(outlinePath)
-        ? resetOutlineForSourceReplacement({ outlinePath })
-        : null;
+      let outlineReset = null;
+      if (shouldImportOcr && existsSync(outlinePath)) {
+        outlineReset = resetOutlineForSourceReplacement({ outlinePath });
+        outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
+      }
       sourceMarkdownPath = mineruStage.source_markdown_path;
       await assetStore.upsertMineruSource({
         datasetId: options.datasetId,
@@ -370,6 +372,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
         title: options.bookId,
       });
       if (outlineStage.status === "blocked") {
+        outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
         return await blockRun(result, progressStore, "ensure_outline", outlineStage.error);
       }
       outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
