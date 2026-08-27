@@ -371,7 +371,7 @@ export function alignOutlineToMarkdown(input: { outlinePath: string; markdownPat
   const usedLines = new Set<number>();
   const matched: Array<{ item: RawRecord; line: number }> = [];
   let lastLine = 0;
-  for (const item of [...items].sort(compareOrderPath)) {
+  for (const item of [...items].sort(compareHierarchyOrder)) {
     const itemId = typeof item.id === "string" ? item.id : "";
     if (hasNumber(item.md_start) && hasNumber(item.md_end)) {
       const line = Number(item.md_start);
@@ -391,12 +391,11 @@ export function alignOutlineToMarkdown(input: { outlinePath: string; markdownPat
     const labelNorm = normalizeHeadingText(item.label);
     if (!titleNorm && !labelNorm) continue;
     const candidates = headings
-      .filter((heading) => !usedLines.has(heading.line))
+      .filter((heading) => !usedLines.has(heading.line) && heading.line > lastLine)
       .map((heading) => ({ score: headingScore(heading.norm, titleNorm, labelNorm), heading }))
       .filter((candidate) => candidate.score > 0);
     if (candidates.length === 0) continue;
-    const afterPrevious = candidates.filter((candidate) => candidate.heading.line > lastLine);
-    const chosen = [...(afterPrevious.length > 0 ? afterPrevious : candidates)].sort((left, right) => right.score - left.score || left.heading.line - right.heading.line)[0]!.heading;
+    const chosen = [...candidates].sort((left, right) => right.score - left.score || left.heading.line - right.heading.line)[0]!.heading;
     item.md_start = chosen.line;
     item.raw_line = item.raw_line || chosen.raw;
     usedLines.add(chosen.line);
@@ -579,6 +578,17 @@ function compareOrderPath(left: RawRecord, right: RawRecord): number {
     if (delta !== 0) return delta;
   }
   return 0;
+}
+
+function compareHierarchyOrder(left: RawRecord, right: RawRecord): number {
+  const leftKey = orderKey(left);
+  const rightKey = orderKey(right);
+  const sharedSize = Math.min(leftKey.length, rightKey.length);
+  for (let index = 0; index < sharedSize; index += 1) {
+    const delta = leftKey[index]! - rightKey[index]!;
+    if (delta !== 0) return delta;
+  }
+  return leftKey.length - rightKey.length;
 }
 
 function compareDocumentOrder(left: RawRecord, right: RawRecord): number {

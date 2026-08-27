@@ -181,6 +181,34 @@ test("uses a confirmed Enrich tree as the outline skeleton and aligns it to Mark
   }
 });
 
+test("rejects an Enrich lesson that can only match its ancestor chapter heading", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-ancestor-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const markdownPath = join(repoRoot, "data", "mineru", "book-a", "full.md");
+    mkdirSync(join(repoRoot, "data", "mineru", "book-a"), { recursive: true });
+    writeFileSync(markdownPath, "# 第一章 原子结构\n章正文\n", "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/chemistry/book-a.json",
+      enrichTree: [{
+        title: "第一章 原子结构",
+        child_nodes: [{ title: "原子结构" }],
+      }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "skipped");
+    assert.deepEqual(result.status === "skipped" ? result.unmatched_item_ids : [], ["struct:book-a:lesson:1-1"]);
+    assert.equal(existsSync(outlinePath), false);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test("restores the prior outline before replacing an unaligned Enrich skeleton with the Markdown fallback", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-fallback-"));
   try {
