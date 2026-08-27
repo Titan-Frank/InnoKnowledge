@@ -555,7 +555,16 @@ function selectEnrichHeadingSequence(items: RawRecord[], lines: string[]):
   const topOccurrenceCounts = lessons.map((item) => countTopHeadingMatches(item, headings));
   const hasUnpairedDuplicates = sequences.length <= 1 && topOccurrenceCounts.some((count) => count > 1);
   const hasExtraDuplicates = sequences.length === 2 && topOccurrenceCounts.some((count) => count > 2);
-  if (sequences.length <= 1 && !hasUnpairedDuplicates) return { ambiguous: false, startAfter: 0 };
+  const onlySequenceIsExplicitToc = sequences.length === 1 && isExplicitTocSequence(sequences[0]!, headings);
+  if (sequences.length <= 1 && !hasUnpairedDuplicates && !onlySequenceIsExplicitToc) {
+    return { ambiguous: false, startAfter: 0 };
+  }
+  if (onlySequenceIsExplicitToc) {
+    return {
+      ambiguous: true,
+      reason: "Enrich outline only complete heading sequence is inside an explicit TOC; no textbook body sequence was established.",
+    };
+  }
   const verifiedTocBodyPair = sequences.length === 2
     && lessons.length > 1
     && !hasExtraDuplicates

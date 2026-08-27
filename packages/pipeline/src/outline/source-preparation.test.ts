@@ -252,6 +252,43 @@ test("prefers the textbook body when TOC headings repeat the complete Enrich les
   }
 });
 
+test("rejects a lone complete Enrich sequence inside an explicit TOC when body titles omit numbers", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-toc-only-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const markdownPath = join(repoRoot, "data", "mineru", "book-a", "full.md");
+    mkdirSync(join(repoRoot, "data", "mineru", "book-a"), { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 目录",
+      "## 1.1 原子模型",
+      "## 1.2 核外电子",
+      "# 第一章 原子结构",
+      "## 原子模型",
+      "课时一正文",
+      "## 核外电子",
+      "课时二正文",
+    ].join("\n"), "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/chemistry/book-a.json",
+      enrichTree: [{
+        title: "第一章 原子结构",
+        child_nodes: [{ title: "1.1 原子模型" }, { title: "1.2 核外电子" }],
+      }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "skipped");
+    assert.match(result.status === "skipped" ? result.reason : "", /only complete heading sequence is inside an explicit TOC/);
+    assert.equal(existsSync(outlinePath), false);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test("rejects Enrich alignment when repeated heading sequences do not identify one body occurrence", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-ambiguous-"));
   try {
