@@ -62,6 +62,11 @@ test("renders compatible Markdown when an OCR bundle only contains content_list_
         { type: "equation_inline", content: "7.8\\%" },
       ] } },
       { type: "equation_interline", content: { math_content: "a+b=c", math_type: "latex" } },
+      { type: "image", content: {
+        image_caption: [{ type: "text", content: "图 1 温度变化" }],
+        image_footnote: [{ type: "text", content: "注：数据来自实验记录" }],
+        image_source: { path: "images/temperature.png" },
+      } },
       { type: "table", content: {
         table_caption: [],
         table_footnote: [],
@@ -80,6 +85,7 @@ test("renders compatible Markdown when an OCR bundle only contains content_list_
     assert.match(markdown, /## 1\.1 正数和负数/);
     assert.match(markdown, /增长\$7\.8\\%\$/);
     assert.match(markdown, /\$\$\na\+b=c\n\$\$/);
+    assert.match(markdown, /!\[图 1 温度变化\]\(images\/temperature\.png\)\n\n注：数据来自实验记录/);
     assert.match(markdown, /<table><tr><td>北京<\/td><td>-4\.6°C<\/td><\/tr><\/table>/);
     assert.match(markdown, /表 1 季度利润\n\n<table><tr><td>第一季度<\/td><td>-6\.8<\/td><\/tr><\/table>\n\n注：单位为万元/);
   } finally {

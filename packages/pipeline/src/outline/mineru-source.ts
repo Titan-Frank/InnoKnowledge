@@ -525,7 +525,11 @@ function renderContentListV2Markdown(path: string): string {
       } else if (type === "image" || type === "chart") {
         const imageSource = isRecord(content.image_source) ? String(content.image_source.path ?? "") : "";
         const caption = inlineContent(content.image_caption) || String(content.content ?? "").trim() || type;
-        if (imageSource) lines.push(`![${caption.replace(/[\[\]]/g, "")}](${imageSource})`);
+        const imageParts = [
+          imageSource ? `![${caption.replace(/[\[\]]/g, "")}](${imageSource})` : "",
+          inlineContent(content.image_footnote),
+        ].filter(Boolean);
+        if (imageParts.length > 0) lines.push(imageParts.join("\n\n"));
       } else if (type === "list" && Array.isArray(content.list_items)) {
         for (const item of content.list_items) {
           if (isRecord(item)) lines.push(`- ${inlineContent(item.item_content)}`);
