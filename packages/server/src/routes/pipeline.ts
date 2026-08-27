@@ -186,6 +186,7 @@ const ENRICH_REQUIRED_START_STAGES = new Set<PipelineStartStage>([
   'prepare_outline_chunks',
   'lesson_plan',
   'lesson_staging',
+  'staging_quality',
 ]);
 
 export function redactCommand(command: string[]): string {

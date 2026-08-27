@@ -338,7 +338,7 @@ test('shouldValidateEnrichBook skips reducer-only resumes', () => {
     book_id: 'physics',
     resume_job_id: 'physics.123',
     start_stage: 'staging_quality',
-  }), false);
+  }), true);
   assert.equal(shouldValidateEnrichBook({
     book_id: 'physics',
     resume_job_id: 'physics.123',

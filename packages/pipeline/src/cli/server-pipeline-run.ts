@@ -254,11 +254,16 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       }
       let outlineReset = null;
       if (shouldImportOcr && existsSync(outlinePath)) {
-        outlineReset = resetOutlineForSourceReplacement({
-          outlinePath,
-          sourcePath: relativeRepoPath(mineruStage.source_markdown_path),
-        });
-        outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
+        try {
+          outlineReset = resetOutlineForSourceReplacement({
+            outlinePath,
+            sourcePath: relativeRepoPath(mineruStage.source_markdown_path),
+          });
+          outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return await blockRun(result, progressStore, "mineru_source_markdown", `OCR outline reset failed: ${message}`);
+        }
       }
       sourceMarkdownPath = mineruStage.source_markdown_path;
       await assetStore.upsertMineruSource({
