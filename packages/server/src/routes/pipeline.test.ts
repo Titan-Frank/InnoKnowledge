@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
@@ -13,6 +13,7 @@ import {
   claimPipelineJobResume,
   generatedBookId,
   inferBookId,
+  inspectOcrFolder,
   MAX_ACTIVE_PIPELINE_JOBS,
   pipelineBookNodeLimit,
   qualityReviewPatch,
@@ -82,6 +83,35 @@ test('textbook IDs are stable internal keys derived from the displayed name', ()
     inferBookId({ pdf_path: '/tmp/upload-b/八年级化学.pdf' }),
   );
   assert.equal(generatedBookId('Chemistry Grade 8'), 'chemistry-grade-8');
+  assert.equal(
+    inferBookId({ ocr_folder_path: '/data/初中_七年级_数学_人教版_上册/hybrid_ocr' }),
+    generatedBookId('初中_七年级_数学_人教版_上册'),
+  );
+});
+
+test('OCR folder inspection prefers the Markdown plus content_list_v2 combination', async () => {
+  const folder = await mkdtemp(join(tmpdir(), 'okm-ocr-folder-'));
+  const bundle = join(folder, 'book', 'hybrid_ocr');
+  await mkdir(join(bundle, 'images'), { recursive: true });
+  await writeFile(join(bundle, 'book.md'), '# 第一章\n正文\n');
+  await writeFile(join(bundle, 'book_content_list.json'), JSON.stringify([{ type: 'text', page_idx: 0, text: '正文' }]));
+  await writeFile(join(bundle, 'book_content_list_v2.json'), JSON.stringify([
+    [{ type: 'title', content: { level: 1, title_content: [{ type: 'text', content: '第一章' }] } }],
+    [{ type: 'paragraph', content: { paragraph_content: [{ type: 'text', content: '正文' }] } }],
+  ]));
+  await writeFile(join(bundle, 'images', 'a.jpg'), 'image');
+  try {
+    const result = await inspectOcrFolder(folder);
+    assert.equal(result.folder_path, await realpath(bundle));
+    assert.equal(result.preferred_input, 'markdown_with_v2');
+    assert.equal(result.quality, 'complete');
+    assert.equal(result.page_count, 2);
+    assert.equal(result.block_count, 2);
+    assert.equal(result.image_count, 1);
+    assert.deepEqual(result.warnings, []);
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
 });
 
 test('book node detail limits preserve the 200-row default and cap large requests', () => {
@@ -203,6 +233,47 @@ test('buildPipelineCommand uses the Viewer database URL', () => {
   assert.equal(command[dbIndex + 1], dbUrl);
 });
 
+test('buildPipelineCommand forwards an imported OCR folder without requiring a PDF', () => {
+  const command = buildPipelineCommand(
+    { ocr_folder_path: '/data/初中_七年级_数学_人教版_上册/hybrid_ocr' },
+    'math.123',
+    '/tmp/math.123.log',
+    'postgresql://okm:okm@127.0.0.1:5432/knowledge',
+  );
+  const index = command.indexOf('--ocr-folder-path');
+  assert.notEqual(index, -1);
+  assert.equal(command[index + 1], '/data/初中_七年级_数学_人教版_上册/hybrid_ocr');
+  assert.equal(command.includes('--pdf-path'), false);
+});
+
+test('buildPipelineCommand forwards the manual enrich decision', () => {
+  const selected = buildPipelineCommand(
+    {
+      book_id: 'physics',
+      enrich_context: true,
+      enrich_book_path: 'data/enrich/物理/高中物理必修三.json',
+    },
+    'physics.123',
+    '/tmp/physics.123.log',
+    'postgresql://okm:okm@127.0.0.1:5432/knowledge',
+  );
+  assert.equal(selected[selected.indexOf('--enrich-book-path') + 1], 'data/enrich/物理/高中物理必修三.json');
+
+  const disabled = buildPipelineCommand(
+    { book_id: 'physics', enrich_context: false },
+    'physics.124',
+    '/tmp/physics.124.log',
+    'postgresql://okm:okm@127.0.0.1:5432/knowledge',
+  );
+  assert.equal(disabled[disabled.indexOf('--enrich-context') + 1], 'false');
+  assert.throws(() => buildPipelineCommand(
+    { book_id: 'physics', enrich_context: false, enrich_book_path: 'data/enrich/physics.json' },
+    'physics.125',
+    '/tmp/physics.125.log',
+    'postgresql://okm:okm@127.0.0.1:5432/knowledge',
+  ), /cannot be set/);
+});
+
 test('buildPipelineCommand forwards the requested resume stage', () => {
   const command = buildPipelineCommand(
     {
@@ -306,6 +377,8 @@ test('reservePipelineJobStart records a running job under the shared dataset loc
     bookId: 'chemistry',
     bookTitle: '八年级化学',
     logPath: '/tmp/chemistry.123.log',
+    enrichContext: true,
+    enrichBookPath: 'data/enrich/chemistry.json',
   }), true);
   assert.deepEqual(unsafeCalls, [{ query: DATASET_ADVISORY_LOCK_SQL, values: ['main'] }]);
   assert.equal(statements.length, 2);
@@ -316,7 +389,12 @@ test('reservePipelineJobStart records a running job under the shared dataset loc
   assert.ok(parameterSets[1]?.includes(MAX_ACTIVE_PIPELINE_JOBS));
   assert.deepEqual(parameterSets[1]?.find((value) => (
     value != null && typeof value === 'object' && 'reserved_by' in value
-  )), { reserved_by: 'server', book_title: '八年级化学' });
+  )), {
+    reserved_by: 'server',
+    book_title: '八年级化学',
+    enrich_context: true,
+    enrich_book_path: 'data/enrich/chemistry.json',
+  });
 });
 
 test('redactCommand removes passwords from database URLs', () => {

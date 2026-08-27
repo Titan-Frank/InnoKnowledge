@@ -2,13 +2,13 @@ import type { Hono } from 'hono';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { createWriteStream, mkdirSync } from 'node:fs';
-import { mkdir, readdir, realpath, rm, stat } from 'node:fs/promises';
-import { basename, extname, isAbsolute, join, relative } from 'node:path';
+import { mkdir, readFile, readdir, realpath, rm, stat } from 'node:fs/promises';
+import { basename, dirname, extname, isAbsolute, join, relative } from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { pipeline as streamPipeline } from 'node:stream/promises';
 import type {
   PipelineBookNodesResponse, PipelineFolderPdf, PipelineFolderScanRequest, PipelineFolderScanResponse,
-  PipelinePdfUploadResponse, PipelineStartRequest, PipelineStartResponse, PipelineStartStage,
+  PipelineOcrInspectRequest, PipelineOcrInspectResponse, PipelinePdfUploadResponse, PipelineStartRequest, PipelineStartResponse, PipelineStartStage,
   PipelineQualityReviewAction, PipelineQualityReviewUpdateRequest, PipelineQualityReviewUpdateResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
 } from '@okm/types';
@@ -20,6 +20,7 @@ import {
   loadPipelineJobListPayload,
   loadPipelineJobStatusPayload,
   loadTextbookOutlinePayload,
+  loadEnrichBookPayload,
 } from '../db/queries.js';
 import { loadPipelineQualityPayload } from '../db/quality-dashboard.js';
 import { REPO_ROOT } from '../utils/paths.js';
@@ -35,6 +36,89 @@ type JsonValue = Parameters<Sql['json']>[0];
 
 const MAX_PDF_UPLOAD_BYTES = 512 * 1024 * 1024;
 const MAX_FOLDER_PDFS = 1000;
+
+export async function inspectOcrFolder(folderPath: string): Promise<PipelineOcrInspectResponse> {
+  const trimmed = folderPath.trim();
+  if (!trimmed || !isAbsolute(trimmed)) throw new Error('OCR folder path must be an absolute path.');
+  const root = await realpath(trimmed).catch(() => null);
+  if (!root) throw new Error('OCR folder path does not exist or cannot be read.');
+  if (!(await stat(root)).isDirectory()) throw new Error('OCR folder path must point to a directory.');
+
+  const candidates: Array<{ path: string; names: string[]; score: number }> = [];
+  const pending: Array<{ path: string; depth: number }> = [{ path: root, depth: 0 }];
+  while (pending.length > 0) {
+    const current = pending.shift()!;
+    const entries = await readdir(current.path, { withFileTypes: true });
+    const names = entries.map((entry) => entry.name);
+    const hasMarkdown = names.some((name) => name.toLowerCase().endsWith('.md'));
+    const hasV2 = names.some((name) => /_content_list_v2\.json$/i.test(name));
+    const hasContentList = names.some((name) => /_content_list\.json$/i.test(name));
+    const hasImages = entries.some((entry) => entry.isDirectory() && entry.name === 'images');
+    const score = (hasV2 ? 100 : 0) + (hasMarkdown ? 80 : 0) + (hasContentList ? 20 : 0) + (hasImages ? 10 : 0);
+    if (score > 0) candidates.push({ path: current.path, names, score });
+    if (current.depth >= 4) continue;
+    for (const entry of entries) {
+      if (entry.isDirectory() && !entry.isSymbolicLink() && entry.name !== 'images' && !entry.name.startsWith('.')) {
+        pending.push({ path: join(current.path, entry.name), depth: current.depth + 1 });
+      }
+    }
+  }
+  const selected = candidates.sort((left, right) => right.score - left.score || left.path.localeCompare(right.path))[0];
+  if (!selected) throw new Error('No MinerU OCR bundle found. Expected Markdown or *_content_list_v2.json.');
+
+  const chooseFile = async (pattern: RegExp, preferred?: string): Promise<string | null> => {
+    const names = selected.names.filter((name) => pattern.test(name));
+    const preferredName = preferred ? names.find((name) => name.toLowerCase() === preferred) : undefined;
+    if (preferredName) return join(selected.path, preferredName);
+    const sized = await Promise.all(names.map(async (name) => ({ name, size: (await stat(join(selected.path, name))).size })));
+    sized.sort((left, right) => right.size - left.size || left.name.localeCompare(right.name));
+    return sized[0] ? join(selected.path, sized[0].name) : null;
+  };
+  const markdownPath = await chooseFile(/\.md$/i, 'full.md');
+  const contentListV2Path = await chooseFile(/_content_list_v2\.json$/i);
+  const contentListPath = await chooseFile(/_content_list(?!_v2)\.json$/i);
+  const imagesPath = selected.names.includes('images') ? join(selected.path, 'images') : null;
+  let pageCount: number | null = null;
+  let blockCount: number | null = null;
+  if (contentListV2Path) {
+    const parsed = JSON.parse(await readFile(contentListV2Path, 'utf8')) as unknown;
+    if (!Array.isArray(parsed) || !parsed.every(Array.isArray)) throw new Error('content_list_v2.json must contain an array of pages.');
+    pageCount = parsed.length;
+    blockCount = parsed.reduce((sum, page) => sum + page.length, 0);
+  } else if (contentListPath) {
+    const parsed = JSON.parse(await readFile(contentListPath, 'utf8')) as unknown;
+    if (!Array.isArray(parsed)) throw new Error('content_list.json must contain an array of blocks.');
+    blockCount = parsed.length;
+    const indexes = parsed.map((item) => item && typeof item === 'object' && !Array.isArray(item)
+      ? Number((item as Record<string, unknown>).page_idx)
+      : Number.NaN).filter(Number.isFinite);
+    pageCount = indexes.length > 0 ? Math.max(...indexes) + 1 : null;
+  }
+  let imageCount = 0;
+  if (imagesPath) {
+    const imageEntries = await readdir(imagesPath, { withFileTypes: true });
+    imageCount = imageEntries.filter((entry) => entry.isFile()).length;
+  }
+  const warnings: string[] = [];
+  if (!markdownPath) warnings.push('未找到 Markdown；将从 content_list_v2.json 生成兼容 Markdown。');
+  if (!contentListV2Path) warnings.push('未找到 content_list_v2.json；页结构、块类型和 bbox 无法完整校验。');
+  if (!imagesPath) warnings.push('未找到 images 目录；图片证据与 VLM 复核不可用。');
+  if (!markdownPath && !contentListV2Path) throw new Error('OCR bundle must contain Markdown or content_list_v2.json.');
+
+  return {
+    folder_path: selected.path,
+    markdown_path: markdownPath,
+    content_list_path: contentListPath,
+    content_list_v2_path: contentListV2Path,
+    images_path: imagesPath,
+    page_count: pageCount,
+    block_count: blockCount,
+    image_count: imageCount,
+    preferred_input: markdownPath && contentListV2Path ? 'markdown_with_v2' : markdownPath ? 'markdown' : 'content_list_v2',
+    quality: markdownPath && contentListV2Path && imagesPath ? 'complete' : contentListV2Path ? 'structured' : 'markdown_only',
+    warnings,
+  };
+}
 
 export async function scanPdfFolder(folderPath: string, recursive = true): Promise<PipelineFolderScanResponse> {
   const trimmed = folderPath.trim();
@@ -257,7 +341,15 @@ export async function claimPipelineJobResume(
 
 export async function reservePipelineJobStart(
   sql: Sql,
-  input: { datasetId: string; jobId: string; bookId: string; bookTitle: string; logPath: string },
+  input: {
+    datasetId: string;
+    jobId: string;
+    bookId: string;
+    bookTitle: string;
+    logPath: string;
+    enrichContext?: boolean;
+    enrichBookPath?: string;
+  },
 ): Promise<boolean> {
   const now = new Date().toISOString();
   return sql.begin(async (tx) => {
@@ -281,7 +373,12 @@ export async function reservePipelineJobStart(
       )
       SELECT
         ${input.datasetId}, ${input.jobId}, ${input.bookId}, 'running', NULL,
-        ${tx.json({})}, ${input.logPath}, ${tx.json([])}, ${tx.json({ reserved_by: 'server', book_title: input.bookTitle })},
+        ${tx.json({})}, ${input.logPath}, ${tx.json([])}, ${tx.json({
+          reserved_by: 'server',
+          book_title: input.bookTitle,
+          enrich_context: input.enrichContext ?? true,
+          enrich_book_path: input.enrichBookPath || null,
+        })},
         ${now}, ${now}, NULL, NULL
       WHERE NOT EXISTS (
         SELECT 1
@@ -397,6 +494,13 @@ function sourceStem(value: string): string {
   return sourceName(value).replace(/\.[^.]+$/, '');
 }
 
+function ocrFolderStem(value: string): string {
+  const folderName = sourceStem(value);
+  return /^(?:hybrid_ocr|auto|ocr|output|result)$/i.test(folderName)
+    ? basename(dirname(value)) || folderName
+    : folderName;
+}
+
 export function safePdfUploadName(value: string): string {
   let decoded = value;
   try {
@@ -449,13 +553,14 @@ export function generatedBookId(value: string): string {
   return `textbook-${digest}`;
 }
 
-export function inferBookId(input: { book_id?: unknown; book_title?: unknown; pdf_path?: unknown; mineru_file_url?: unknown }): string {
+export function inferBookId(input: { book_id?: unknown; book_title?: unknown; pdf_path?: unknown; ocr_folder_path?: unknown; mineru_file_url?: unknown }): string {
   const explicit = asString(input.book_id);
   if (explicit) return explicit;
   const title = asString(input.book_title);
   if (title) return generatedBookId(title);
-  const source = asString(input.pdf_path) || asString(input.mineru_file_url);
-  return source ? generatedBookId(sourceStem(source)) : '';
+  const ocrFolderPath = asString(input.ocr_folder_path);
+  const source = asString(input.pdf_path) || ocrFolderPath || asString(input.mineru_file_url);
+  return source ? generatedBookId(ocrFolderPath ? ocrFolderStem(ocrFolderPath) : sourceStem(source)) : '';
 }
 
 function inferMineruLanguage(text: string): string {
@@ -483,10 +588,11 @@ function inferTextbookMetadata(
   outline: Record<string, unknown> | null = null,
 ): TextbookMetadataResponse {
   const bookId = inferBookId(input);
-  if (!bookId) throw new Error('Textbook name, PDF path, MinerU file URL, or book_id is required.');
+  if (!bookId) throw new Error('Textbook name, PDF path, OCR folder, MinerU file URL, or book_id is required.');
   const requestedTitle = asString(input.book_title);
-  const sourcePath = asString(input.pdf_path) || asString(input.mineru_file_url);
-  const pdfName = sourcePath ? sourceName(sourcePath) : '';
+  const ocrFolderPath = asString(input.ocr_folder_path);
+  const sourcePath = asString(input.pdf_path) || ocrFolderPath || asString(input.mineru_file_url);
+  const pdfName = sourcePath ? (ocrFolderPath ? ocrFolderStem(ocrFolderPath) : sourceName(sourcePath)) : '';
   let outlineText = '';
   if (outline) {
     outlineText = JSON.stringify({
@@ -589,11 +695,12 @@ export function buildPipelineCommand(
   outline: Record<string, unknown> | null = null,
 ): string[] {
   const bookId = inferBookId(body);
-  if (!bookId) throw new Error('Textbook name, PDF path, MinerU file URL, or book_id is required.');
+  if (!bookId) throw new Error('Textbook name, PDF path, OCR folder, MinerU file URL, or book_id is required.');
   const inferred = inferTextbookMetadata({
     book_id: bookId,
     book_title: body.book_title,
     pdf_path: body.pdf_path,
+    ocr_folder_path: body.ocr_folder_path,
     mineru_file_url: body.mineru_file_url,
   }, outline);
 
@@ -654,6 +761,8 @@ export function buildPipelineCommand(
   }
   const pdfPath = asString(body.pdf_path);
   if (pdfPath) command.push('--pdf-path', pdfPath);
+  const ocrFolderPath = asString(body.ocr_folder_path);
+  if (ocrFolderPath) command.push('--ocr-folder-path', ocrFolderPath);
   command.push('--book-title', asString(body.book_title, inferred.title));
   if (body.outline_start_page) command.push('--outline-start-page', String(asPositiveInt(body.outline_start_page, 1)));
   if (body.outline_end_page) command.push('--outline-end-page', String(asPositiveInt(body.outline_end_page, 20)));
@@ -668,6 +777,12 @@ export function buildPipelineCommand(
   const mineruPageRanges = asString(body.mineru_page_ranges);
   if (mineruPageRanges) command.push('--mineru-page-ranges', mineruPageRanges);
   if (body.mineru_force === true) command.push('--mineru-force');
+  const enrichBookPath = asString(body.enrich_book_path);
+  if (body.enrich_context === false && enrichBookPath) {
+    throw new Error('enrich_book_path cannot be set when enrich_context is false.');
+  }
+  if (body.enrich_context === false) command.push('--enrich-context', 'false');
+  if (enrichBookPath) command.push('--enrich-book-path', enrichBookPath);
   const startStage = asString(body.start_stage);
   const resumeJobId = asString(body.resume_job_id);
   if (resumeJobId && !startStage) {
@@ -781,6 +896,16 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
       await rm(uploadDir, { recursive: true, force: true }).catch(() => undefined);
       const message = (error as Error).message || 'PDF upload failed.';
       return c.json({ error: message }, message.includes('512 MB') ? 413 : 400);
+    }
+  });
+
+  app.post('/api/source/:key/pipeline/inspect-ocr', async (c) => {
+    const body = await c.req.json<PipelineOcrInspectRequest>().catch(() => null);
+    if (!body) return c.json({ error: 'Invalid JSON body.' }, 400);
+    try {
+      return c.json(await inspectOcrFolder(asString(body.folder_path)));
+    } catch (error) {
+      return c.json({ error: (error as Error).message || 'OCR folder inspection failed.' }, 400);
     }
   });
 
@@ -900,7 +1025,7 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     if (!body) return c.json({ error: 'Invalid JSON body.' }, 400);
 
     const bookId = inferBookId(body);
-    if (!bookId) return c.json({ error: 'Textbook name, PDF path, MinerU file URL, or book_id is required.' }, 400);
+    if (!bookId) return c.json({ error: 'Textbook name, PDF path, OCR folder, MinerU file URL, or book_id is required.' }, 400);
 
     const requestedResumeJobId = asString(body.resume_job_id);
     let jobId = requestedResumeJobId || `${safeToken(bookId)}.${Date.now()}`;
@@ -917,6 +1042,16 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
       datasetKey = asString(body.dataset_id, outputRoot.split('/').filter(Boolean).at(-1) || key || 'main');
       const datasetRow = await resolveDatasetRow(sql, datasetKey);
       statusDatasetId = datasetRow?.dataset_id ?? datasetKey;
+      const enrichBookPath = asString(body.enrich_book_path);
+      if (enrichBookPath) {
+        if (!datasetRow) {
+          throw new Error(`Cannot select an Enrich outline because dataset '${datasetKey}' does not exist.`);
+        }
+        const enrichBook = await loadEnrichBookPayload(sql, datasetRow.dataset_id, enrichBookPath);
+        if (!enrichBook) {
+          throw new Error(`Selected Enrich outline '${enrichBookPath}' does not exist in dataset '${datasetKey}'.`);
+        }
+      }
       if (requestedResumeJobId) {
         if (!body.start_stage) {
           throw new Error('Resuming an existing job requires start_stage.');
@@ -960,6 +1095,8 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         bookId,
         bookTitle: asString(body.book_title, bookId),
         logPath,
+        enrichContext: body.enrich_context,
+        enrichBookPath: asString(body.enrich_book_path),
       });
       if (!reserved) {
         return c.json({

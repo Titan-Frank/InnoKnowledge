@@ -6,6 +6,7 @@ import type {
   PipelineJobListResponse,
   PipelineJobSummary,
   PipelineJobStatusResponse,
+  PipelineOcrInspectResponse,
   PipelinePdfUploadResponse,
   PipelineExtractionTemplateId,
   PipelineLessonBackendKind,
@@ -21,6 +22,7 @@ import type {
 } from '@okm/types';
 import {
   inferTextbookMetadata,
+  inspectPipelineOcrFolder,
   loadPipelineJobs,
   loadPipelineJobStatus,
   loadImageReviews,
@@ -61,6 +63,7 @@ import {
   RotateCcw,
   Search,
   Upload,
+  FolderOpen,
 } from '@/lib/lucide-icons';
 import { PipelineBookWorkbench } from './PipelineBookWorkbench';
 import { buildPipelineBatchStartRequest, resolvePipelineStartBookId } from '@/lib/pipeline-start';
@@ -69,6 +72,7 @@ type PipelineForm = {
   book_id: string;
   book_title: string;
   pdf_path: string;
+  ocr_folder_path: string;
   mineru_file_url: string;
   mineru_base_url: string;
   mineru_model_version: string;
@@ -104,6 +108,7 @@ const initialForm: PipelineForm = {
   book_id: '',
   book_title: '',
   pdf_path: '',
+  ocr_folder_path: '',
   mineru_file_url: '',
   mineru_base_url: 'https://mineru.net',
   mineru_model_version: 'vlm',
@@ -671,8 +676,9 @@ function ImageReviewPanel({
 
 function sourceReadyLabel(form: PipelineForm): string {
   if (form.pdf_path.trim()) return 'PDF 已填写，其他参数自动处理';
+  if (form.ocr_folder_path.trim()) return '已完成 OCR 文件夹已填写，将跳过 PDF 与 MinerU';
   if (form.mineru_file_url.trim()) return 'MinerU 文件 URL 已填写，其他参数自动处理';
-  return '需要 PDF 绝对路径或 MinerU 文件 URL';
+  return '需要 PDF、已完成 OCR 文件夹或 MinerU 文件 URL';
 }
 
 function fileSizeText(sizeBytes: number): string {
@@ -681,7 +687,7 @@ function fileSizeText(sizeBytes: number): string {
 }
 
 function sourceReady(form: PipelineForm): boolean {
-  return Boolean(form.pdf_path.trim() || form.mineru_file_url.trim());
+  return Boolean(form.pdf_path.trim() || form.ocr_folder_path.trim() || form.mineru_file_url.trim());
 }
 
 function pipelineComplete(payload: PipelineResponse | null): boolean {
@@ -696,7 +702,7 @@ function reviewCount(payload: PipelineResponse | null, imageReviews: ImageReview
 
 const stageLabels: Record<string, string> = {
   check_postgres: '检查数据库',
-  mineru_source_markdown: 'MinerU 解析 PDF',
+  mineru_source_markdown: '准备 OCR / MinerU 来源',
   extract_pdf_outline: '读取 PDF 目录',
   prepare_source_markdown: '准备解析文本',
   ensure_outline: '生成教材目录',
@@ -1483,6 +1489,8 @@ export function PipelineDebugPage() {
   const [uploadingPdf, setUploadingPdf] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedPdf, setUploadedPdf] = useState<PipelinePdfUploadResponse | null>(null);
+  const [ocrInspection, setOcrInspection] = useState<PipelineOcrInspectResponse | null>(null);
+  const [inspectingOcr, setInspectingOcr] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [form, setForm] = useState<PipelineForm>(initialForm);
   const [imageReviews, setImageReviews] = useState<ImageReviewResponse | null>(null);
@@ -1570,8 +1578,8 @@ export function PipelineDebugPage() {
     setForm((current) => ({ ...current, [key]: value }));
   };
 
-  const canInfer = Boolean(form.book_title.trim() || form.pdf_path.trim() || form.mineru_file_url.trim());
-  const canStart = sourceReady(form) && !starting && !uploadingPdf;
+  const canInfer = Boolean(form.book_title.trim() || form.pdf_path.trim() || form.ocr_folder_path.trim() || form.mineru_file_url.trim());
+  const canStart = sourceReady(form) && !starting && !uploadingPdf && !inspectingOcr;
 
   const selectLocalPdf = () => {
     pdfInputRef.current?.click();
@@ -1598,11 +1606,39 @@ export function PipelineDebugPage() {
       const result = await uploadPipelinePdf(activeSourceKey, file, setUploadProgress);
       setUploadedPdf(result);
       setUploadProgress(100);
-      setForm((current) => ({ ...current, pdf_path: result.pdf_path, mineru_file_url: '' }));
+      setOcrInspection(null);
+      setForm((current) => ({ ...current, pdf_path: result.pdf_path, ocr_folder_path: '', mineru_file_url: '' }));
     } catch (err) {
       setStartError((err as Error).message || 'PDF 上传失败');
     } finally {
       setUploadingPdf(false);
+    }
+  };
+
+  const inspectOcr = async () => {
+    const folderPath = form.ocr_folder_path.trim();
+    if (!folderPath) {
+      setStartError('请先填写已完成 OCR 文件夹的绝对路径。');
+      return;
+    }
+    setInspectingOcr(true);
+    setOcrInspection(null);
+    setStartError('');
+    try {
+      const result = await inspectPipelineOcrFolder(activeSourceKey, { folder_path: folderPath });
+      setOcrInspection(result);
+      setUploadedPdf(null);
+      setForm((current) => ({
+        ...current,
+        pdf_path: '',
+        ocr_folder_path: result.folder_path,
+        mineru_file_url: '',
+        mineru_force: false,
+      }));
+    } catch (err) {
+      setStartError((err as Error).message || 'OCR 文件夹校验失败');
+    } finally {
+      setInspectingOcr(false);
     }
   };
 
@@ -1626,6 +1662,7 @@ export function PipelineDebugPage() {
     book_id: resolvePipelineStartBookId(form.book_id, activeJobStatus?.book_id, Boolean(startStage)),
     book_title: form.book_title.trim() || undefined,
     pdf_path: form.pdf_path.trim() || undefined,
+    ocr_folder_path: form.ocr_folder_path.trim() || undefined,
     mineru_file_url: form.mineru_file_url.trim() || undefined,
     mineru_base_url: form.mineru_base_url.trim() || undefined,
     mineru_model_version: form.mineru_model_version.trim() || undefined,
@@ -1675,7 +1712,14 @@ export function PipelineDebugPage() {
     }
   };
 
-  const launchBatchBook = async (book: { bookId: string; title: string; pdfPath: string }): Promise<PipelineStartResponse> => {
+  const launchBatchBook = async (book: {
+    bookId: string;
+    title: string;
+    pdfPath?: string;
+    ocrFolderPath?: string;
+    enrichContext: boolean;
+    enrichBookPath?: string;
+  }): Promise<PipelineStartResponse> => {
     const result = await startPipeline(activeSourceKey, buildPipelineBatchStartRequest(startRequest(), book));
     rememberPipelineJob(window.localStorage, activeSourceKey, result);
     setStartResult(result);
@@ -1699,6 +1743,7 @@ export function PipelineDebugPage() {
       const result = await inferTextbookMetadata(activeSourceKey, {
         book_title: form.book_title.trim() || undefined,
         pdf_path: form.pdf_path.trim() || undefined,
+        ocr_folder_path: form.ocr_folder_path.trim() || undefined,
         mineru_file_url: form.mineru_file_url.trim() || undefined,
       });
       applyInferredMetadata(result);
@@ -1715,7 +1760,7 @@ export function PipelineDebugPage() {
       void submitInfer({ silent: true });
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [activeSourceKey, form.book_title, form.pdf_path, form.mineru_file_url]);
+  }, [activeSourceKey, form.book_title, form.pdf_path, form.ocr_folder_path, form.mineru_file_url]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1841,7 +1886,7 @@ export function PipelineDebugPage() {
               <span className="text-xs text-text-muted">数据源：{activeSourceKey}</span>
             </div>
             <h1 className="text-xl font-semibold tracking-tight text-text-primary">教材知识抽取与合并运行台</h1>
-            <p className="mt-1 text-sm text-text-secondary">从 PDF 入口启动 MinerU 解析和课时抽取，并实时跟踪合并、质检和人工确认状态。</p>
+            <p className="mt-1 text-sm text-text-secondary">从 PDF 或已完成 OCR 的教材来源启动课时抽取，并实时跟踪合并、质检和人工确认状态。</p>
           </div>
           <button
             type="button"
@@ -1884,8 +1929,8 @@ export function PipelineDebugPage() {
             <div className="border-b border-border-subtle p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-sm font-semibold text-text-primary">启动抽取</div>
-                  <div className="mt-1 text-xs text-text-muted">后端会创建后台任务并返回日志路径。</div>
+                  <div className="text-sm font-semibold text-text-primary">单本高级启动</div>
+                  <div className="mt-1 text-xs text-text-muted">用于精细调参或断点续跑；常规任务从上方队列启动。</div>
                 </div>
                 <StatusPill status={starting ? 'running' : startResult?.status || 'ready'} />
               </div>
@@ -1898,7 +1943,7 @@ export function PipelineDebugPage() {
                     <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
                     <div>
                       <div className="text-xs font-semibold text-text-primary">统一抽取入口</div>
-                      <div className="mt-1 text-[11px] leading-5 text-text-secondary">PDF 与 MinerU 统一处理，教材信息、语言和目录页默认自动设置。</div>
+                      <div className="mt-1 text-[11px] leading-5 text-text-secondary">可输入 PDF，也可导入 MinerU 已完成 OCR 的文件夹；后者会跳过 PDF 上传与在线 OCR。</div>
                     </div>
                   </div>
                   <div className="grid gap-3">
@@ -1942,11 +1987,65 @@ export function PipelineDebugPage() {
                       value={form.pdf_path}
                       onChange={(value) => {
                         setUploadedPdf(null);
-                        updateForm('pdf_path', value);
+                        setOcrInspection(null);
+                        setForm((current) => ({ ...current, pdf_path: value, ocr_folder_path: '', mineru_file_url: '' }));
                       }}
                       placeholder="/Users/.../book.pdf"
                     />
-                    <Field label="MinerU 文件 URL" value={form.mineru_file_url} onChange={(value) => updateForm('mineru_file_url', value)} placeholder="已有公网文件地址时填写，可不填" />
+                    <div className="rounded-md border border-border-subtle bg-elevated p-3">
+                      <div className="mb-2 flex items-center justify-between gap-3">
+                        <div>
+                          <label htmlFor="pipeline-ocr-folder" className="block text-[11px] font-medium text-text-muted">已完成 OCR 文件夹</label>
+                          <div className="mt-0.5 text-[10px] text-text-muted">支持 MinerU hybrid_ocr 目录或包含它的上级目录</div>
+                        </div>
+                        <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5 text-[10px] text-text-secondary">跳过 MinerU</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          id="pipeline-ocr-folder"
+                          value={form.ocr_folder_path}
+                          onChange={(event) => {
+                            setUploadedPdf(null);
+                            setOcrInspection(null);
+                            setForm((current) => ({ ...current, pdf_path: '', ocr_folder_path: event.target.value, mineru_file_url: '' }));
+                          }}
+                          placeholder="/Users/.../hybrid_ocr"
+                          className="min-w-0 flex-1 rounded-md border border-border-subtle bg-surface px-2.5 py-2 text-xs text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void inspectOcr()}
+                          disabled={inspectingOcr || starting || !form.ocr_folder_path.trim()}
+                          className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2.5 text-[11px] font-medium text-accent transition-colors hover:bg-accent/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {inspectingOcr ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FolderOpen className="h-3.5 w-3.5" />}
+                          校验并使用
+                        </button>
+                      </div>
+                      {ocrInspection && (
+                        <div className="mt-2 rounded-md border border-node-process/30 bg-node-process/10 p-2 text-[10px] leading-5 text-text-secondary">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <span className="font-medium text-node-process">OCR 结构校验通过</span>
+                            <span>{ocrInspection.page_count ?? '未知'} 页</span>
+                            <span>{ocrInspection.block_count ?? '未知'} 块</span>
+                            <span>{ocrInspection.image_count} 张图片</span>
+                            <span>{ocrInspection.quality === 'complete' ? '完整组合输入' : ocrInspection.quality === 'structured' ? '结构化输入' : '仅 Markdown'}</span>
+                          </div>
+                          <div className="mt-1 truncate" title={ocrInspection.folder_path}>{ocrInspection.folder_path}</div>
+                          {ocrInspection.warnings.map((warning) => <div key={warning} className="text-node-event">{warning}</div>)}
+                        </div>
+                      )}
+                    </div>
+                    <Field
+                      label="MinerU 文件 URL"
+                      value={form.mineru_file_url}
+                      onChange={(value) => {
+                        setUploadedPdf(null);
+                        setOcrInspection(null);
+                        setForm((current) => ({ ...current, pdf_path: '', ocr_folder_path: '', mineru_file_url: value }));
+                      }}
+                      placeholder="已有公网文件地址时填写，可不填"
+                    />
                   </div>
                 </div>
               </div>
@@ -1965,7 +2064,7 @@ export function PipelineDebugPage() {
                   </button>
                 </div>
                 <div className="mb-3">
-                  <Field label="教材名称" value={form.book_title} onChange={(value) => updateForm('book_title', value)} placeholder="可从 PDF 自动识别，也可以直接修改" />
+                  <Field label="教材名称" value={form.book_title} onChange={(value) => updateForm('book_title', value)} placeholder="可从教材来源自动识别，也可以直接修改" />
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <Field label="学科" value={form.lesson_subject} onChange={(value) => updateForm('lesson_subject', value)} placeholder="chemistry" />
@@ -2058,15 +2157,17 @@ export function PipelineDebugPage() {
                     <Field label="目录起始页" value={form.outline_start_page} onChange={(value) => updateForm('outline_start_page', value)} placeholder="自动" inputMode="numeric" />
                     <Field label="目录结束页" value={form.outline_end_page} onChange={(value) => updateForm('outline_end_page', value)} placeholder="自动" inputMode="numeric" />
                   </div>
-                  <label className="flex items-center gap-2 text-xs text-text-secondary">
-                    <input
-                      type="checkbox"
-                      checked={form.mineru_force}
-                      onChange={(event) => updateForm('mineru_force', event.target.checked)}
-                      className="h-4 w-4 accent-[var(--color-accent)]"
-                    />
-                    强制重新解析 PDF
-                  </label>
+                  {!form.ocr_folder_path.trim() && (
+                    <label className="flex items-center gap-2 text-xs text-text-secondary">
+                      <input
+                        type="checkbox"
+                        checked={form.mineru_force}
+                        onChange={(event) => updateForm('mineru_force', event.target.checked)}
+                        className="h-4 w-4 accent-[var(--color-accent)]"
+                      />
+                      强制重新解析 PDF
+                    </label>
+                  )}
                 </div>
               )}
 

@@ -3,7 +3,7 @@ import type {
   GroundedGenerationRequest, GroundedGenerationResponse, GroundedGenerationStreamEvent,
   UnitRetrievalMode, UnitRetrievalResponse,
   PipelineBookNodesResponse, PipelineFolderScanRequest, PipelineFolderScanResponse,
-  PipelineJobListResponse, PipelineJobStatusResponse, PipelinePdfUploadResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
+  PipelineJobListResponse, PipelineJobStatusResponse, PipelineOcrInspectRequest, PipelineOcrInspectResponse, PipelinePdfUploadResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
   PipelineQualityReviewUpdateRequest, PipelineQualityReviewUpdateResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
@@ -505,6 +505,16 @@ export async function uploadPipelinePdf(
     request.addEventListener('abort', () => reject(new BackendError('PDF 上传已取消。', 0, 'abort')));
     request.send(file);
   });
+}
+
+export async function inspectPipelineOcrFolder(
+  sourceKey: string,
+  payload: PipelineOcrInspectRequest,
+): Promise<PipelineOcrInspectResponse> {
+  return postJson<PipelineOcrInspectResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/inspect-ocr`,
+    payload,
+  );
 }
 
 export async function scanPipelineFolder(

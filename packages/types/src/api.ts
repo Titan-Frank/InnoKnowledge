@@ -347,6 +347,7 @@ export interface PipelineStartRequest {
   resume_job_id?: string;
   book_id?: string;
   pdf_path?: string;
+  ocr_folder_path?: string;
   book_title?: string;
   outline_start_page?: number;
   outline_end_page?: number;
@@ -366,6 +367,8 @@ export interface PipelineStartRequest {
   lesson_subject?: string;
   lesson_school_stage?: string;
   lesson_grade_band?: string;
+  enrich_context?: boolean;
+  enrich_book_path?: string;
   openai_base_url?: string;
   openai_model?: string;
   vlm_api_url?: string;
@@ -385,6 +388,27 @@ export interface PipelinePdfUploadResponse {
   pdf_path: string;
   file_name: string;
   size_bytes: number;
+}
+
+export type PipelineOcrImportQuality = 'complete' | 'structured' | 'markdown_only';
+export type PipelineOcrPreferredInput = 'markdown_with_v2' | 'markdown' | 'content_list_v2';
+
+export interface PipelineOcrInspectRequest {
+  folder_path: string;
+}
+
+export interface PipelineOcrInspectResponse {
+  folder_path: string;
+  markdown_path: string | null;
+  content_list_path: string | null;
+  content_list_v2_path: string | null;
+  images_path: string | null;
+  page_count: number | null;
+  block_count: number | null;
+  image_count: number;
+  preferred_input: PipelineOcrPreferredInput;
+  quality: PipelineOcrImportQuality;
+  warnings: string[];
 }
 
 export interface PipelineFolderScanRequest {
@@ -501,6 +525,7 @@ export interface TextbookMetadataRequest {
   book_id?: string;
   book_title?: string;
   pdf_path?: string;
+  ocr_folder_path?: string;
   mineru_file_url?: string;
 }
 

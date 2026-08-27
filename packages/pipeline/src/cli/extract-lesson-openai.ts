@@ -221,6 +221,7 @@ const EXTRACT_LESSON_OPENAI_FLAGS = new Set([
   "embedding-model",
   "embedding-url",
   "enrich-context",
+  "enrich-book-path",
   "enrich-context-limit",
   "extraction-template",
   "grade-band",
@@ -362,6 +363,7 @@ async function resolveEnrichHints(
     return await loadEnrichHintsForLesson({
       datasetId: requestBase.datasetId,
       executor,
+      bookPath: flags.get("enrich-book-path"),
       bookId: requestBase.bookId,
       textbookId: requestBase.textbookId,
       bookTitle: requestBase.bookTitle,
