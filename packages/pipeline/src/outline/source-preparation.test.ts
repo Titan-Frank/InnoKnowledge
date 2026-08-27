@@ -284,6 +284,42 @@ test("rejects Enrich alignment when repeated heading sequences do not identify o
   }
 });
 
+test("rejects two lesson sequences when the first is body content rather than an explicit TOC", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-answer-key-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const markdownPath = join(repoRoot, "data", "mineru", "book-a", "full.md");
+    mkdirSync(join(repoRoot, "data", "mineru", "book-a"), { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 第一章 正文",
+      "## 第一课",
+      "第一课教材正文",
+      "## 第二课",
+      "第二课教材正文",
+      "# 参考答案",
+      "## 第一课",
+      "第一课答案",
+      "## 第二课",
+      "第二课答案",
+    ].join("\n"), "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/answer-key.json",
+      enrichTree: [{ title: "第一课" }, { title: "第二课" }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "skipped");
+    assert.match(result.status === "skipped" ? result.reason : "", /verified TOC\/body pair/);
+    assert.equal(existsSync(outlinePath), false);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test("rejects Enrich alignment instead of mixing partial TOC matches with body headings", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-partial-toc-"));
   try {

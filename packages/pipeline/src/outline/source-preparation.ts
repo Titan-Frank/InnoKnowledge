@@ -6,7 +6,7 @@ import { iterOutlineItems, safePathToken, type OutlineItem } from "../shared/pat
 
 type RawRecord = Record<string, unknown>;
 
-type MarkdownHeading = { line: number; title: string; norm: string; raw: string };
+type MarkdownHeading = { line: number; level: number; title: string; norm: string; raw: string };
 
 type MarkdownAlignmentResult = {
   updated: boolean;
@@ -382,7 +382,8 @@ export function alignOutlineToMarkdown(input: {
     if (marker) markerLines.set(marker[1]!, lineNumber);
     if (!/^#{1,6}\s+\S/.test(line)) return;
     const title = line.replace(/^#{1,6}\s+/, "").trim();
-    headings.push({ line: lineNumber, title, norm: normalizeHeadingText(title), raw: line.trim() });
+    const level = /^#{1,6}/.exec(line)?.[0].length ?? 1;
+    headings.push({ line: lineNumber, level, title, norm: normalizeHeadingText(title), raw: line.trim() });
   });
 
   const usedLines = new Set<number>();
@@ -540,7 +541,8 @@ function selectEnrichHeadingSequence(items: RawRecord[], lines: string[]):
   const headings = lines.flatMap((line, index): MarkdownHeading[] => {
     if (!/^#{1,6}\s+\S/.test(line)) return [];
     const title = line.replace(/^#{1,6}\s+/, "").trim();
-    return [{ line: index + 1, title, norm: normalizeHeadingText(title), raw: line.trim() }];
+    const level = /^#{1,6}/.exec(line)?.[0].length ?? 1;
+    return [{ line: index + 1, level, title, norm: normalizeHeadingText(title), raw: line.trim() }];
   });
   const sequences: number[][] = [];
   let startAfter = 0;
@@ -554,13 +556,39 @@ function selectEnrichHeadingSequence(items: RawRecord[], lines: string[]):
   const hasUnpairedDuplicates = sequences.length <= 1 && topOccurrenceCounts.some((count) => count > 1);
   const hasExtraDuplicates = sequences.length === 2 && topOccurrenceCounts.some((count) => count > 2);
   if (sequences.length <= 1 && !hasUnpairedDuplicates) return { ambiguous: false, startAfter: 0 };
-  if (lessons.length === 1 || sequences.length >= 3 || hasUnpairedDuplicates || hasExtraDuplicates) {
-    return {
-      ambiguous: true,
-      reason: `Enrich outline heading sequence is ambiguous in Markdown (${sequences.length}${sequences.length >= 3 ? "+" : ""} complete occurrence(s), duplicate lesson headings remain).`,
-    };
+  const verifiedTocBodyPair = sequences.length === 2
+    && lessons.length > 1
+    && !hasExtraDuplicates
+    && isExplicitTocSequence(sequences[0]!, headings);
+  if (verifiedTocBodyPair) {
+    return { ambiguous: false, startAfter: sequences[0]![sequences[0]!.length - 1]! };
   }
-  return { ambiguous: false, startAfter: sequences[0]![sequences[0]!.length - 1]! };
+  return {
+    ambiguous: true,
+    reason: `Enrich outline heading sequence is ambiguous in Markdown (${sequences.length}${sequences.length >= 3 ? "+" : ""} complete occurrence(s) without one verified TOC/body pair).`,
+  };
+}
+
+function isExplicitTocSequence(sequence: number[], headings: MarkdownHeading[]): boolean {
+  const firstLine = sequence[0];
+  const lastLine = sequence[sequence.length - 1];
+  if (!firstLine || !lastLine) return false;
+  const tocHeading = [...headings]
+    .filter((heading) => heading.line < firstLine && isTocHeadingTitle(heading.norm))
+    .sort((left, right) => right.line - left.line)[0];
+  if (!tocHeading) return false;
+  const crossesSectionBoundary = headings.some((heading) => (
+    heading.line > tocHeading.line
+    && heading.line < firstLine
+    && heading.level <= tocHeading.level
+  ));
+  const compactSequence = firstLine - tocHeading.line <= 20
+    && lastLine - firstLine <= Math.max(8, sequence.length * 3);
+  return !crossesSectionBoundary && compactSequence;
+}
+
+function isTocHeadingTitle(normalizedTitle: string): boolean {
+  return ["目录", "目次", "contents", "tableofcontents", "目录contents"].includes(normalizedTitle);
 }
 
 function countTopHeadingMatches(item: RawRecord, headings: MarkdownHeading[]): number {
