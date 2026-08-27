@@ -202,8 +202,9 @@ test("explicit OCR input replaces the stored source when an outline already exis
   const ocrRoot = mkdtempSync(join(tmpdir(), "okm-ocr-replacement-"));
   const ocrBundle = join(ocrRoot, "hybrid_ocr");
   const importedSourceDir = resolve(REPO_ROOT, "data", "mineru", safePathToken(existingBookId));
-  const expectedMarkdown = "# Updated source\nNew OCR body\n";
+  const expectedMarkdown = "OCR preface\nmetadata\n# Updated source\nNew OCR body\n";
   let storedSourcePath = "";
+  let storedOutline: Record<string, unknown> | null = null;
   context.after(() => {
     rmSync(ocrRoot, { recursive: true, force: true });
     rmSync(importedSourceDir, { recursive: true, force: true });
@@ -218,7 +219,7 @@ test("explicit OCR input replaces the stored source when an outline already exis
     datasetId: "dataset-a",
     dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
     parallelism: 1,
-    noChunks: true,
+    noChunks: false,
     pdfPath: "",
     ocrFolderPath: ocrRoot,
     subject: "mathematics",
@@ -248,10 +249,19 @@ test("explicit OCR input replaces the stored source when an outline already exis
             order_path: "1",
             md_start: 1,
             md_end: 2,
+          }, {
+            id: `struct:${existingBookId}:chunk:1-a`,
+            kind: "chunk",
+            parent_id: `struct:${existingBookId}:lesson:1`,
+            order_path: "1-a",
+            md_start: 1,
+            md_end: 2,
           }],
         };
       },
-      async upsertOutline() {},
+      async upsertOutline(input) {
+        storedOutline = input.record.outline;
+      },
       async upsertMineruSource(input) {
         storedSourcePath = input.record.sourceMarkdownPath ?? "";
       },
@@ -263,10 +273,26 @@ test("explicit OCR input replaces the stored source when an outline already exis
   });
 
   assert.equal(result.status, "completed");
-  assert.equal(result.stages.find((stage) => stage.id === "mineru_source_markdown")?.status, "completed");
-  assert.equal(result.stages.find((stage) => stage.id === "mineru_source_markdown")?.output?.source_kind, "ocr_import");
+  const sourceStage = result.stages.find((stage) => stage.id === "mineru_source_markdown");
+  const sourceStageOutput = sourceStage?.output as {
+    source_kind?: string;
+    outline_reset?: { removed_chunks?: number };
+  } | undefined;
+  assert.equal(sourceStage?.status, "completed");
+  assert.equal(sourceStageOutput?.source_kind, "ocr_import");
+  assert.equal(sourceStageOutput?.outline_reset?.removed_chunks, 1);
   assert.equal(readFileSync(join(importedSourceDir, "full.md"), "utf8"), expectedMarkdown);
   assert.equal(storedSourcePath, `data/mineru/${existingBookId}/full.md`);
+  const finalOutline = storedOutline as Record<string, unknown> | null;
+  assert.ok(finalOutline);
+  const storedItems = finalOutline.items as Array<Record<string, unknown>>;
+  const lesson = storedItems.find((item) => item.kind === "lesson");
+  assert.equal(lesson?.md_start, 3);
+  assert.equal(lesson?.md_end, 4);
+  const rebuiltChunk = storedItems.find((item) => item.id === `struct:${existingBookId}:chunk:1-a`);
+  assert.equal(rebuiltChunk?.md_start, 3);
+  assert.equal(rebuiltChunk?.md_end, 4);
+  assert.equal(storedItems.some((item) => item.kind === "chunk" && item.md_start === 1 && item.md_end === 2), false);
 });
 
 test("server pipeline runner plans TypeScript lesson extraction commands", async () => {

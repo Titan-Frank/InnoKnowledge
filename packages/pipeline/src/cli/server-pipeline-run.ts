@@ -12,7 +12,12 @@ import postgres from "postgres";
 import { planParallelBatches, planTsModelExtractionCommands, type ParallelExtractionCommand } from "../extraction/parallel-batch.js";
 import { extractPdfOutline } from "../outline/pdf-outline.js";
 import { importOcrBundle, runMineruSourceMarkdown } from "../outline/mineru-source.js";
-import { ensureChunkedOutline, ensureOutlineFromMarkdown, prepareSourceMarkdown } from "../outline/source-preparation.js";
+import {
+  ensureChunkedOutline,
+  ensureOutlineFromMarkdown,
+  prepareSourceMarkdown,
+  resetOutlineForSourceReplacement,
+} from "../outline/source-preparation.js";
 import {
   createPostgresPipelineAssetStore,
   outlineItemsFromRecord,
@@ -239,6 +244,9 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       if (mineruStage.status === "blocked") {
         return await blockRun(result, progressStore, "mineru_source_markdown", mineruStage.error);
       }
+      const outlineReset = shouldImportOcr && outlineRecord && existsSync(outlinePath)
+        ? resetOutlineForSourceReplacement({ outlinePath })
+        : null;
       sourceMarkdownPath = mineruStage.source_markdown_path;
       await assetStore.upsertMineruSource({
         datasetId: options.datasetId,
@@ -254,7 +262,11 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
           createdByMineru: mineruStage.created,
         },
       });
-      await recordStage(result, progressStore, { id: "mineru_source_markdown", status: "completed", output: mineruStage });
+      await recordStage(result, progressStore, {
+        id: "mineru_source_markdown",
+        status: "completed",
+        output: outlineReset ? { ...mineruStage, outline_reset: outlineReset } : mineruStage,
+      });
     }
 
     if (!existsSync(outlinePath) && !sourceMarkdownPath.trim()) {

@@ -57,6 +57,45 @@ export type MarkdownOutlinePreparationResult =
       outline_path: string;
     };
 
+export type OutlineSourceResetResult = {
+  outline_path: string;
+  reset_items: number;
+  removed_chunks: number;
+};
+
+export function resetOutlineForSourceReplacement(input: { outlinePath: string }): OutlineSourceResetResult {
+  const outline = loadOutlineRecord(input.outlinePath);
+  const itemKey = Array.isArray(outline.items) ? "items" : Array.isArray(outline.structure) ? "structure" : null;
+  if (!itemKey) throw new Error(`Outline is missing items/structure: ${input.outlinePath}`);
+
+  let resetItems = 0;
+  let removedChunks = 0;
+  const resetValues = (values: unknown[]): RawRecord[] => values.flatMap((value) => {
+    if (!isRecord(value)) return [];
+    if (value.kind === "chunk") {
+      removedChunks += 1;
+      return [];
+    }
+    const item = { ...value };
+    if ("md_start" in item || "md_end" in item || "raw_line" in item) resetItems += 1;
+    delete item.md_start;
+    delete item.md_end;
+    delete item.raw_line;
+    if (Array.isArray(item.children)) item.children = resetValues(item.children);
+    return [item];
+  });
+
+  writeOutlineRecord(input.outlinePath, {
+    ...outline,
+    [itemKey]: resetValues(outline[itemKey] as unknown[]),
+  });
+  return {
+    outline_path: input.outlinePath,
+    reset_items: resetItems,
+    removed_chunks: removedChunks,
+  };
+}
+
 export function prepareSourceMarkdown(input: {
   bookId: string;
   outlinePath: string;

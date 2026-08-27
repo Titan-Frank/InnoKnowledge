@@ -4,7 +4,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { alignOutlineToMarkdown, ensureChunkedOutline, ensureOutlineFromMarkdown, prepareSourceMarkdown } from "./source-preparation.js";
+import {
+  alignOutlineToMarkdown,
+  ensureChunkedOutline,
+  ensureOutlineFromMarkdown,
+  prepareSourceMarkdown,
+  resetOutlineForSourceReplacement,
+} from "./source-preparation.js";
 
 test("imports an existing Markdown file and updates outline source_path", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-"));
@@ -168,6 +174,38 @@ test("aligns an existing outline to Markdown headings", () => {
         ["struct:book-a:lesson:1-1", 3, 5],
       ],
     );
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("resets stale spans and chunks before aligning replacement OCR", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-"));
+  try {
+    const outlinePath = makeOutline(repoRoot);
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    outline.items.push({
+      id: "struct:book-a:chunk:1-1-a",
+      kind: "chunk",
+      parent_id: "struct:book-a:lesson:1-1",
+      md_start: 1,
+      md_end: 4,
+      order_path: "1.1-a",
+    });
+    writeFileSync(outlinePath, `${JSON.stringify(outline, null, 2)}\n`, "utf8");
+
+    const reset = resetOutlineForSourceReplacement({ outlinePath });
+
+    assert.equal(reset.reset_items, 1);
+    assert.equal(reset.removed_chunks, 1);
+    const resetOutline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    assert.equal(resetOutline.items.some((item) => item.kind === "chunk"), false);
+    const lesson = resetOutline.items.find((item) => item.kind === "lesson");
+    assert.equal("md_start" in (lesson ?? {}), false);
+    assert.equal("md_end" in (lesson ?? {}), false);
+    assert.equal("raw_line" in (lesson ?? {}), false);
+    assert.equal(lesson?.page_start, 1);
+    assert.equal(lesson?.page_end, 1);
   } finally {
     rmSync(repoRoot, { recursive: true, force: true });
   }
