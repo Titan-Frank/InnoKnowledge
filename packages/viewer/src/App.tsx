@@ -11,10 +11,11 @@ import { GraphSearchPanel } from './components/GraphSearchPanel';
 import { PgAdminPage } from './components/PgAdminPage';
 import { useAppState } from './hooks/useAppState';
 import { PUBLIC_ARTIFACT_MODE } from './lib/runtime';
+import { TextbookReader } from './components/TextbookReader';
 
 function AppContent() {
   useBootData();
-  const { workspace, selectedSourceKey } = useAppState();
+  const { workspace, selectedSourceKey, textbookReaderTarget, closeTextbookReader } = useAppState();
 
   return (
     <div className="okm-app-shell flex h-screen flex-col overflow-hidden text-text-primary">
@@ -36,6 +37,13 @@ function AppContent() {
         </main>
       )}
       <StatusBar />
+      {selectedSourceKey && textbookReaderTarget && (
+        <TextbookReader
+          sourceKey={selectedSourceKey}
+          target={textbookReaderTarget}
+          onClose={closeTextbookReader}
+        />
+      )}
     </div>
   );
 }

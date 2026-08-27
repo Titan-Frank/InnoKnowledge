@@ -411,6 +411,83 @@ export interface PipelineOcrInspectResponse {
   warnings: string[];
 }
 
+export type TextbookReaderBlockType =
+  | 'title'
+  | 'paragraph'
+  | 'list'
+  | 'equation_interline'
+  | 'image'
+  | 'chart'
+  | 'table'
+  | 'page_header'
+  | 'page_footer'
+  | 'page_number'
+  | 'page_footnote'
+  | string;
+
+export interface TextbookReaderInlineSegment {
+  kind: 'text' | 'math';
+  value: string;
+}
+
+export interface TextbookReaderBlock {
+  id: string;
+  page_index: number;
+  order_index: number;
+  type: TextbookReaderBlockType;
+  sub_type: string | null;
+  bbox: [number, number, number, number] | null;
+  text: string;
+  title_level: number | null;
+  math: string | null;
+  html: string | null;
+  image_path: string | null;
+  caption: string;
+  footnote: string;
+  list_items: string[];
+  segments: TextbookReaderInlineSegment[];
+  list_item_segments: TextbookReaderInlineSegment[][];
+}
+
+export type TextbookReaderEvidenceMatchKind = 'asset' | 'text' | 'page' | 'none';
+
+export interface TextbookReaderEvidenceMatch {
+  evidence_id: string;
+  page_index: number | null;
+  block_ids: string[];
+  kind: TextbookReaderEvidenceMatchKind;
+  confidence: number;
+  excerpt: string;
+}
+
+export interface TextbookReaderPageResponse {
+  dataset_id: string;
+  book_id: string;
+  page_count: number;
+  page_index: number;
+  page_number: number;
+  block_count: number;
+  image_count: number;
+  coordinate_space: 1000;
+  source_format: 'content_list_v2' | 'content_list';
+  pdf_available: boolean;
+  blocks: TextbookReaderBlock[];
+  evidence_match: TextbookReaderEvidenceMatch | null;
+}
+
+export interface TextbookReaderBookSummary {
+  book_id: string;
+  title: string;
+  page_count: number;
+  source_format: 'content_list_v2' | 'content_list';
+  pdf_available: boolean;
+}
+
+export interface TextbookReaderBookListResponse {
+  dataset_id: string;
+  books: TextbookReaderBookSummary[];
+}
+
 export interface PipelineFolderScanRequest {
   folder_path: string;
   recursive?: boolean;

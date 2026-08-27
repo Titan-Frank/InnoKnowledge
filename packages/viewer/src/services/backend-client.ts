@@ -9,6 +9,7 @@ import type {
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
   PgAdminBookDeleteResponse, PgAdminBooksResponse, PgAdminCatalogResponse,
   PgAdminDeleteRequest, PgAdminExportRequest, PgAdminMutationResponse, PgAdminRowsResponse, PgAdminUpdateRequest,
+  TextbookReaderBookListResponse, TextbookReaderPageResponse,
 } from '@okm/types';
 import { PUBLIC_ARTIFACT_MODE, publicArtifactPath } from '@/lib/runtime';
 import {
@@ -267,6 +268,26 @@ export async function loadUnit(
   if (PUBLIC_ARTIFACT_MODE) return loadArtifactUnit(nodeId);
   return fetchOptionalJson<ApiUnit>(
     `/api/source/${encodeURIComponent(sourceKey)}/unit/${encodeURIComponent(nodeId)}`,
+  );
+}
+
+export async function loadTextbookReaderPage(
+  sourceKey: string,
+  bookId: string,
+  options: { page?: number; evidenceId?: string } = {},
+): Promise<TextbookReaderPageResponse> {
+  const params = new URLSearchParams();
+  if (options.page != null) params.set('page', String(options.page));
+  if (options.evidenceId) params.set('evidence_id', options.evidenceId);
+  const query = params.size ? `?${params}` : '';
+  return fetchJson<TextbookReaderPageResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/textbooks/${encodeURIComponent(bookId)}/reader${query}`,
+  );
+}
+
+export function loadTextbookReaderBooks(sourceKey: string): Promise<TextbookReaderBookListResponse> {
+  return fetchJson<TextbookReaderBookListResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/textbooks/readers`,
   );
 }
 

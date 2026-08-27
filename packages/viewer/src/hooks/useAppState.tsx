@@ -7,6 +7,12 @@ import { loadBundle } from '@/services/backend-client';
 
 type Workspace = 'graph' | 'textbook' | 'pipeline' | 'pg';
 
+export type TextbookReaderTarget = {
+  bookId: string;
+  evidenceId?: string;
+  pageNumber?: number;
+};
+
 interface AppState {
   // Source management
   manifest: Record<string, unknown> | null;
@@ -14,6 +20,7 @@ interface AppState {
   selectedSourceKey: string | null;
   sourceLoading: boolean;
   workspace: Workspace;
+  textbookReaderTarget: TextbookReaderTarget | null;
 
   // Search
   searchTerm: string;
@@ -40,6 +47,8 @@ interface AppActions {
   setSourceLoading: (loading: boolean) => void;
   setSelectedSourceKey: (key: string | null) => void;
   setWorkspace: (workspace: Workspace) => void;
+  openTextbookReader: (target: TextbookReaderTarget) => void;
+  closeTextbookReader: () => void;
 }
 
 type AppContextValue = AppState & AppActions & ReturnType<typeof useGraphState>;
@@ -62,6 +71,7 @@ function AppStateInner({ children }: { children: ReactNode }) {
   const [selectedSourceKey, setSelectedSourceKey] = useState<string | null>(null);
   const [sourceLoading, setSourceLoading] = useState(false);
   const [workspace, setWorkspace] = useState<Workspace>('graph');
+  const [textbookReaderTarget, setTextbookReaderTarget] = useState<TextbookReaderTarget | null>(null);
 
   const [searchTerm, setSearchTermState] = useState('');
   const [serverSearchHits, setServerSearchHitsState] = useState<Map<string, SearchHitMeta>>(new Map());
@@ -123,6 +133,14 @@ function AppStateInner({ children }: { children: ReactNode }) {
     setServerSearchErrorState(false);
   }, []);
 
+  const openTextbookReader = useCallback((target: TextbookReaderTarget) => {
+    setTextbookReaderTarget(target);
+  }, []);
+
+  const closeTextbookReader = useCallback(() => {
+    setTextbookReaderTarget(null);
+  }, []);
+
   const value: AppContextValue = useMemo(() => ({
     // Graph state (spread)
     ...graphState,
@@ -132,6 +150,7 @@ function AppStateInner({ children }: { children: ReactNode }) {
     selectedSourceKey,
     sourceLoading,
     workspace,
+    textbookReaderTarget,
     searchTerm,
     serverSearchHits,
     serverSearchLoading,
@@ -150,9 +169,12 @@ function AppStateInner({ children }: { children: ReactNode }) {
     setSourceLoading,
     setSelectedSourceKey,
     setWorkspace,
+    openTextbookReader,
+    closeTextbookReader,
   }), [graphState, manifest, sourceConfigs, selectedSourceKey, sourceLoading,
     searchTerm, serverSearchHits, serverSearchLoading, serverSearchError,
-    cardCache, isLayoutRunning, workspace, setSourceConfigs, switchSource, setSearchTerm]);
+    cardCache, isLayoutRunning, workspace, textbookReaderTarget, setSourceConfigs, switchSource, setSearchTerm,
+    openTextbookReader, closeTextbookReader]);
 
   return (
     <AppStateContext.Provider value={value}>

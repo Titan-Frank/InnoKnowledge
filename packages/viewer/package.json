@@ -13,7 +13,9 @@
   "dependencies": {
     "@antv/g6": "^5.1.1",
     "@okm/types": "*",
+    "katex": "^0.18.4",
     "lucide-react": "^0.475.0",
+    "pdfjs-dist": "^6.2.108",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-force-graph-3d": "^1.29.1",

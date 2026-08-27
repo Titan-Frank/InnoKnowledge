@@ -6,6 +6,7 @@ import { DetailProperties } from './sections/DetailProperties';
 import { DetailSupportNodes } from './sections/DetailSupportNodes';
 import { DetailUnit } from './sections/DetailUnit';
 import { DetailMentions } from './sections/DetailMentions';
+import { DetailEvidence } from './sections/DetailEvidence';
 import { Maximize2, X } from '@/lib/lucide-icons';
 import type { OKMNode } from '@/core/graph/types';
 
@@ -27,12 +28,14 @@ function readPanelWidth(): number {
 }
 
 const NodeDetailBody = memo(function NodeDetailBody({ node, selectedBook }: { node: OKMNode; selectedBook: string }) {
+  const { knowledgeGraph } = useAppState();
   return (
     <>
       <DetailObjectOverview node={node} />
       <DetailUnit node={node} />
       <DetailSupportNodes node={node} />
       <DetailMentions node={node} selectedBook={selectedBook} />
+      {knowledgeGraph && <DetailEvidence node={node} selectedBook={selectedBook} knowledgeGraph={knowledgeGraph} />}
       <DetailProperties node={node} />
     </>
   );

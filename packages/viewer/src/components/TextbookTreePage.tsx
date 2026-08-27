@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppState } from '@/hooks/useAppState';
-import { loadEnrichBook, loadEnrichBooks, loadUnit, type EnrichBookSummary, type EnrichIndexResponse, type EnrichNode } from '@/services/backend-client';
+import { loadEnrichBook, loadEnrichBooks, loadTextbookReaderBooks, loadUnit, type EnrichBookSummary, type EnrichIndexResponse, type EnrichNode } from '@/services/backend-client';
 import { MarkdownView } from '@/components/MarkdownView';
 import { BookOpen, ChevronDown, ChevronRight, Layers, Network, Search } from '@/lib/lucide-icons';
-import type { ApiEvidence, ApiMention, ApiUnit } from '@okm/types';
+import type { ApiEvidence, ApiMention, ApiUnit, TextbookReaderBookSummary } from '@okm/types';
 import type { OKMBook, OKMNode } from '@/core/graph/types';
 
 type SourceMode = 'dataset' | 'enrich';
@@ -355,6 +355,7 @@ export function TextbookTreePage() {
     setSelectedBook,
     setSelectedNodeId,
     setWorkspace,
+    openTextbookReader,
   } = useAppState();
 
   const [sourceMode, setSourceMode] = useState<SourceMode>('dataset');
@@ -372,6 +373,7 @@ export function TextbookTreePage() {
   const [enrichLoading, setEnrichLoading] = useState(false);
   const [enrichError, setEnrichError] = useState('');
   const [relatedUnitCache, setRelatedUnitCache] = useState<Map<string, RelatedUnitState>>(new Map());
+  const [readerBooks, setReaderBooks] = useState<TextbookReaderBookSummary[]>([]);
   const [expandedRelatedNodeIds, setExpandedRelatedNodeIds] = useState<Set<string>>(new Set());
   const [detailPanelWidth, setDetailPanelWidth] = useState(readTextbookDetailWidth);
   const [isDetailResizing, setIsDetailResizing] = useState(false);
@@ -436,6 +438,11 @@ export function TextbookTreePage() {
     return datasetBooks.filter((book) => !query || normalize(book.bookId).includes(query));
   }, [bookQuery, datasetBooks]);
 
+  const filteredReaderBooks = useMemo(() => {
+    const query = normalize(bookQuery);
+    return readerBooks.filter((book) => !query || normalize(`${book.title} ${book.book_id}`).includes(query));
+  }, [bookQuery, readerBooks]);
+
   const activeTree = sourceMode === 'enrich' ? enrichTree : datasetTree;
   const visibleTree = useMemo(() => filterTree(activeTree, normalize(treeQuery)), [activeTree, treeQuery]);
   const visibleFlat = useMemo(() => flattenTree(visibleTree), [visibleTree]);
@@ -444,6 +451,7 @@ export function TextbookTreePage() {
     () => activeFlat.find((item) => item.id === selectedTreeId) || activeFlat[0] || null,
     [activeFlat, selectedTreeId],
   );
+  const readerBookIds = useMemo(() => new Set(readerBooks.map((book) => book.book_id)), [readerBooks]);
 
   useEffect(() => {
     if (!selectedSourceKey) return;
@@ -457,6 +465,22 @@ export function TextbookTreePage() {
       .catch((error) => {
         if (cancelled) return;
         setEnrichIndexError((error as Error).message || '富化教材索引加载失败');
+      });
+    return () => { cancelled = true; };
+  }, [selectedSourceKey]);
+
+  useEffect(() => {
+    if (!selectedSourceKey) {
+      setReaderBooks([]);
+      return;
+    }
+    let cancelled = false;
+    loadTextbookReaderBooks(selectedSourceKey)
+      .then((payload) => {
+        if (!cancelled) setReaderBooks(payload.books);
+      })
+      .catch(() => {
+        if (!cancelled) setReaderBooks([]);
       });
     return () => { cancelled = true; };
   }, [selectedSourceKey]);
@@ -610,7 +634,7 @@ export function TextbookTreePage() {
       active: activeEnrichBook?.node_count || countNodes(enrichTree),
     }
     : {
-      books: datasetBooks.length,
+      books: new Set([...datasetBooks.map((book) => book.bookId), ...readerBooks.map((book) => book.book_id)]).size,
       nodes: countNodes(datasetTree),
       subjects: new Set(datasetBooks.map((book) => book.bookId.split(':')[0])).size,
       active: activeDatasetBook ? activeDatasetBook.mentions.length + activeDatasetBook.evidence.length : 0,
@@ -669,12 +693,30 @@ export function TextbookTreePage() {
 
   const renderBookList = () => {
     if (sourceMode === 'dataset') {
-      if (!knowledgeGraph || !filteredDatasetBooks.length) {
+      if ((!knowledgeGraph || !filteredDatasetBooks.length) && !filteredReaderBooks.length) {
         return <div className="p-4 text-sm text-text-muted">当前数据源没有匹配的教材目录。</div>;
       }
-      return filteredDatasetBooks.map((book) => {
-        const active = activeDatasetBook?.bookId === book.bookId;
-        return (
+      return (
+        <>
+          {filteredReaderBooks.length > 0 && (
+            <div className="border-b border-border-subtle bg-accent/5 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-accent">
+              OCR 电子教材
+            </div>
+          )}
+          {filteredReaderBooks.map((book) => (
+            <button
+              key={`reader:${book.book_id}`}
+              type="button"
+              onClick={() => openTextbookReader({ bookId: book.book_id })}
+              className="w-full cursor-pointer border-b border-border-subtle bg-accent/5 px-3 py-2 text-left text-text-secondary transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+            >
+              <span className="flex items-center gap-1.5 truncate text-xs font-medium text-text-primary"><BookOpen className="h-3.5 w-3.5 text-accent" />{book.title}</span>
+              <span className="mt-1 block text-[10px] text-text-muted">{book.page_count} 页 · {book.pdf_available ? '原 PDF 对照' : 'OCR 坐标预览'}</span>
+            </button>
+          ))}
+          {filteredDatasetBooks.map((book) => {
+            const active = activeDatasetBook?.bookId === book.bookId;
+            return (
           <button
             key={book.bookId}
             type="button"
@@ -691,8 +733,10 @@ export function TextbookTreePage() {
               {book.mentions.length} 提及 · {book.evidence.length} 证据
             </span>
           </button>
-        );
-      });
+            );
+          })}
+        </>
+      );
     }
 
     if (enrichIndexError) return <div className="p-4 text-sm text-text-muted">{enrichIndexError}</div>;
@@ -997,11 +1041,27 @@ export function TextbookTreePage() {
             <div className="space-y-2">
               {selectedEvidence.slice(0, 80).map((item) => (
                 <div key={item.id} className="rounded-md border border-border-subtle bg-surface p-3">
-                  <div className="mb-1 flex flex-wrap gap-2 text-[10px] text-text-muted">
-                    <span>{item.id}</span>
-                    <span>{modalityLabel(item.modality)}</span>
-                    {item.page_start != null && <span>p.{text(item.page_start)}</span>}
-                    {text(item.locator) && <span>{text(item.locator)}</span>}
+                  <div className="mb-1 flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 flex-wrap gap-2 text-[10px] text-text-muted">
+                      <span>{item.id}</span>
+                      <span>{modalityLabel(item.modality)}</span>
+                      {item.page_start != null && <span>p.{text(item.page_start)}</span>}
+                      {text(item.locator) && <span>{text(item.locator)}</span>}
+                    </div>
+                    {activeDatasetBook && readerBookIds.has(activeDatasetBook.bookId) && (
+                      <button
+                        type="button"
+                        onClick={() => openTextbookReader({
+                          bookId: activeDatasetBook.bookId,
+                          evidenceId: item.id,
+                          pageNumber: item.page_start == null ? undefined : Number(item.page_start),
+                        })}
+                        className="flex shrink-0 cursor-pointer items-center gap-1 rounded-md border border-accent/30 bg-accent/10 px-2 py-1 text-[10px] font-medium text-accent transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        <BookOpen className="h-3 w-3" />
+                        原文定位
+                      </button>
+                    )}
                   </div>
                   <MarkdownView
                     content={evidenceImageContent(item)}
@@ -1106,22 +1166,37 @@ export function TextbookTreePage() {
               <h1 className="truncate text-base font-semibold text-text-primary">{activeTitle}</h1>
               <div className="mt-1 truncate text-xs text-text-muted">{activeMeta}</div>
             </div>
-            <div className="flex shrink-0 rounded-lg border border-border-subtle bg-elevated p-0.5">
-              <button
-                type="button"
-                onClick={() => setTreeMode('graph')}
-                className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs transition-colors ${treeMode === 'graph' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
-              >
-                <Layers className="h-3.5 w-3.5" />
-                图形
-              </button>
-              <button
-                type="button"
-                onClick={() => setTreeMode('list')}
-                className={`rounded-md px-2.5 py-1 text-xs transition-colors ${treeMode === 'list' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
-              >
-                列表
-              </button>
+            <div className="flex shrink-0 items-center gap-2">
+              {sourceMode === 'dataset' && activeDatasetBook && readerBookIds.has(activeDatasetBook.bookId) && (
+                <button
+                  type="button"
+                  onClick={() => openTextbookReader({
+                    bookId: activeDatasetBook.bookId,
+                    pageNumber: selectedNode?.outline?.page_start == null ? undefined : Number(selectedNode.outline.page_start),
+                  })}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-accent/30 bg-accent/10 px-2.5 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  <BookOpen className="h-3.5 w-3.5" />
+                  电子教材
+                </button>
+              )}
+              <div className="flex rounded-lg border border-border-subtle bg-elevated p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setTreeMode('graph')}
+                  className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs transition-colors ${treeMode === 'graph' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
+                >
+                  <Layers className="h-3.5 w-3.5" />
+                  图形
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTreeMode('list')}
+                  className={`rounded-md px-2.5 py-1 text-xs transition-colors ${treeMode === 'list' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
+                >
+                  列表
+                </button>
+              </div>
             </div>
           </div>
           <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2 max-sm:grid-cols-2">
