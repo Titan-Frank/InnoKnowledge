@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
-import { rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import test from "node:test";
 
 import { createNoopPipelineAssetStore } from "../shared/pg-assets.js";
-import { makeLessonRunId, outlinePathForBook } from "../shared/pathing.js";
+import { makeLessonRunId, outlinePathForBook, REPO_ROOT, safePathToken } from "../shared/pathing.js";
 import { createNoopPipelineProgressStore } from "../shared/pipeline-progress.js";
 import {
   commandForPipelineOutputAttempt,
@@ -193,6 +195,78 @@ test("server pipeline resumes from a durable stage without rerunning extraction 
   assert.equal(executed.some((command) => command.some((part) => part.endsWith("merge-staged-lessons.js"))), false);
   assert.equal(executed.some((command) => command.some((part) => part.endsWith("normalize.js"))), false);
   assert.equal(executed[0]?.some((part) => part.endsWith("generate-node-bodies.js")), true);
+});
+
+test("explicit OCR input replaces the stored source when an outline already exists", async (context) => {
+  const existingBookId = "existing-outline-ocr-replacement";
+  const ocrRoot = mkdtempSync(join(tmpdir(), "okm-ocr-replacement-"));
+  const ocrBundle = join(ocrRoot, "hybrid_ocr");
+  const importedSourceDir = resolve(REPO_ROOT, "data", "mineru", safePathToken(existingBookId));
+  const expectedMarkdown = "# Updated source\nNew OCR body\n";
+  let storedSourcePath = "";
+  context.after(() => {
+    rmSync(ocrRoot, { recursive: true, force: true });
+    rmSync(importedSourceDir, { recursive: true, force: true });
+    rmSync(outlinePathForBook(existingBookId), { force: true });
+  });
+  mkdirSync(ocrBundle, { recursive: true });
+  writeFileSync(join(ocrBundle, "book.md"), expectedMarkdown, "utf8");
+
+  const result = await runServerPipeline({
+    bookId: existingBookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-a",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 1,
+    noChunks: true,
+    pdfPath: "",
+    ocrFolderPath: ocrRoot,
+    subject: "mathematics",
+    schoolStage: "junior",
+    gradeBand: "grade7",
+    textbookId: existingBookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: {
+      async loadOutline() {
+        return {
+          book_id: existingBookId,
+          title: "Stored outline",
+          source_path: `data/mineru/${existingBookId}/stale.md`,
+          items: [{
+            id: `struct:${existingBookId}:lesson:1`,
+            kind: "lesson",
+            title: "Updated source",
+            order_path: "1",
+            md_start: 1,
+            md_end: 2,
+          }],
+        };
+      },
+      async upsertOutline() {},
+      async upsertMineruSource(input) {
+        storedSourcePath = input.record.sourceMarkdownPath ?? "";
+      },
+      async close() {},
+    },
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async () => ({ exitCode: 0, stdout: "{}", stderr: "" }),
+  });
+
+  assert.equal(result.status, "completed");
+  assert.equal(result.stages.find((stage) => stage.id === "mineru_source_markdown")?.status, "completed");
+  assert.equal(result.stages.find((stage) => stage.id === "mineru_source_markdown")?.output?.source_kind, "ocr_import");
+  assert.equal(readFileSync(join(importedSourceDir, "full.md"), "utf8"), expectedMarkdown);
+  assert.equal(storedSourcePath, `data/mineru/${existingBookId}/full.md`);
 });
 
 test("server pipeline runner plans TypeScript lesson extraction commands", async () => {

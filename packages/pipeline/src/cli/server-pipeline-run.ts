@@ -214,8 +214,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       && (options.startStage === "mineru_source_markdown" || options.mineruForce || !outlineRecord)
       && Boolean(options.pdfPath || mineruFileUrl);
     const shouldImportOcr = shouldRunStage(options, "mineru_source_markdown")
-      && Boolean(ocrFolderPath.trim())
-      && (options.startStage === "mineru_source_markdown" || !outlineRecord);
+      && Boolean(ocrFolderPath.trim());
     if (shouldImportOcr || shouldRunMineru) {
       await recordStage(result, progressStore, { id: "mineru_source_markdown", status: "running" });
       const mineruStage = shouldImportOcr
