@@ -774,12 +774,9 @@ function compareMineruHeadingPosition(left: MineruV2Heading, right: MineruV2Head
 function isAppendixHeadingTitle(normalizedTitle: string): boolean {
   const exactMarkers = new Set([
     "答案",
-    "answers",
     "index",
   ]);
   const prefixMarkers = [
-    "参考答案",
-    "答案与提示",
     "附录",
     "词汇表",
     "术语表",
@@ -787,10 +784,17 @@ function isAppendixHeadingTitle(normalizedTitle: string): boolean {
     "索引",
     "后记",
     "answerkey",
+    "answers",
     "appendix",
     "glossary",
   ];
-  return exactMarkers.has(normalizedTitle) || prefixMarkers.some((marker) => normalizedTitle.startsWith(marker));
+  const containedMarkers = [
+    "参考答案",
+    "答案与提示",
+  ];
+  return exactMarkers.has(normalizedTitle)
+    || prefixMarkers.some((marker) => normalizedTitle.startsWith(marker))
+    || containedMarkers.some((marker) => normalizedTitle.includes(marker));
 }
 
 function isTocHeadingTitle(normalizedTitle: string): boolean {

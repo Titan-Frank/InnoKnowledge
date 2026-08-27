@@ -420,6 +420,69 @@ test("uses a structured appendix boundary to keep the final Enrich lesson out of
   }
 });
 
+test("treats extended Chinese and English answer headings as structured appendix boundaries", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-v2-extended-answers-"));
+  try {
+    for (const [index, appendixTitle] of ["习题参考答案", "Answers to Exercises"].entries()) {
+      const bookId = `book-${index + 1}`;
+      const outlinePath = join(repoRoot, "data", "outlines", `${bookId}.outline.json`);
+      const sourceDir = join(repoRoot, "data", "mineru", bookId);
+      const markdownPath = join(sourceDir, "full.md");
+      mkdirSync(sourceDir, { recursive: true });
+      writeFileSync(markdownPath, [
+        "# 第一章 正文",
+        "## 一课原子模型",
+        "第一课正文",
+        "## 二课电子结构",
+        "第二课正文",
+        `# ${appendixTitle}`,
+        "## 第一课原子模型",
+        "第一课答案",
+        "## 第二课电子结构",
+        "第二课答案",
+      ].join("\n"), "utf8");
+      writeFileSync(join(sourceDir, "book_content_list_v2.json"), JSON.stringify([
+        [
+          mineruTitle("第一章 正文", 1),
+          mineruTitle("一课原子模型"),
+          mineruParagraph("第一课正文"),
+          mineruTitle("二课电子结构"),
+          mineruParagraph("第二课正文"),
+        ],
+        [
+          mineruTitle(appendixTitle, 1),
+          mineruTitle("第一课原子模型"),
+          mineruParagraph("第一课答案"),
+          mineruTitle("第二课电子结构"),
+          mineruParagraph("第二课答案"),
+        ],
+      ]), "utf8");
+
+      const result = ensureOutlineFromEnrich({
+        bookId,
+        enrichBookPath: `data/enrich/${bookId}.json`,
+        enrichTree: [{
+          title: "第一章 正文",
+          child_nodes: [{ title: "第一课原子模型" }, { title: "第二课电子结构" }],
+        }],
+        outlinePath,
+        repoRoot,
+        markdownPath,
+      });
+
+      assert.equal(result.status, "completed", appendixTitle);
+      const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+      const lessons = outline.items.filter((item) => item.kind === "lesson");
+      assert.deepEqual(lessons.map((item) => [item.md_start, item.md_end, item.page_start, item.page_end]), [
+        [2, 3, 1, 1],
+        [4, 5, 1, 1],
+      ], appendixTitle);
+    }
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test("rejects structured alignment when an appendix page does not map uniquely to Markdown", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-v2-appendix-ambiguous-"));
   try {
