@@ -92,6 +92,9 @@ export async function loadEnrichHintsForLesson(input: LoadEnrichHintsForLessonIn
     selectedPaths = selectedBooks.map((row) => row.path);
   }
   const rawRows = await input.executor(buildEnrichBookTreesQuery(input.datasetId, selectedPaths));
+  if (input.bookPath?.trim() && rawRows.length === 0) {
+    throw new Error(`Selected Enrich book '${input.bookPath.trim()}' does not exist in dataset '${input.datasetId}'.`);
+  }
   const rows = rawRows.map(normalizeBookRow);
   const query = buildLessonQuery(input);
   const hints: Array<EnrichHint & { raw_score: number }> = [];

@@ -191,6 +191,23 @@ test("uses the manually selected enrich book path without candidate fallback", a
   assert.equal(hints[0]?.definition, "人工确认版本。");
 });
 
+test("blocks when the manually selected enrich book is absent", async () => {
+  const selectedPath = "data/enrich/物理/missing.json";
+  await assert.rejects(
+    loadEnrichHintsForLesson({
+      datasetId: "main",
+      bookPath: selectedPath,
+      lessonTitle: "机械波",
+      executor: (statement) => {
+        assert.equal(statement.name, "select-enrich-context-book-trees");
+        assert.deepEqual(statement.params[1], [selectedPath]);
+        return [];
+      },
+    }),
+    /Selected Enrich book .*missing\.json.* does not exist in dataset 'main'/,
+  );
+});
+
 test("resolves an outline title path for the current anchor", () => {
   const path = outlineTitlePathFromRecord(
     {

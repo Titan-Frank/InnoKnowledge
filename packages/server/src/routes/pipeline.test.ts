@@ -25,6 +25,7 @@ import {
   resolveNpmInvocation,
   scanPdfFolder,
   safePdfUploadName,
+  shouldValidateEnrichBook,
   updatePendingQualityReview,
 } from './pipeline.js';
 
@@ -324,6 +325,25 @@ test('restoreResumeSourceSettings reuses the blocked OCR folder', () => {
 
   const legacy = { book_id: 'physics', pdf_path: '/data/physics.pdf' };
   assert.equal(restoreResumeSourceSettings(legacy, { source_kind: 'ocr_import' }), legacy);
+});
+
+test('shouldValidateEnrichBook skips reducer-only resumes', () => {
+  assert.equal(shouldValidateEnrichBook({ book_id: 'physics', enrich_book_path: 'data/enrich/physics.json' }), true);
+  assert.equal(shouldValidateEnrichBook({
+    book_id: 'physics',
+    resume_job_id: 'physics.123',
+    start_stage: 'lesson_staging',
+  }), true);
+  assert.equal(shouldValidateEnrichBook({
+    book_id: 'physics',
+    resume_job_id: 'physics.123',
+    start_stage: 'staging_quality',
+  }), false);
+  assert.equal(shouldValidateEnrichBook({
+    book_id: 'physics',
+    resume_job_id: 'physics.123',
+    start_stage: 'canonical_commit',
+  }), false);
 });
 
 test('buildPipelineCommand forwards the requested resume stage', () => {

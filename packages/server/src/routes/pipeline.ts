@@ -178,6 +178,16 @@ const PIPELINE_START_STAGES = new Set<PipelineStartStage>([
   'quality_dashboard',
 ]);
 
+const ENRICH_REQUIRED_START_STAGES = new Set<PipelineStartStage>([
+  'mineru_source_markdown',
+  'extract_pdf_outline',
+  'prepare_source_markdown',
+  'ensure_outline',
+  'prepare_outline_chunks',
+  'lesson_plan',
+  'lesson_staging',
+]);
+
 export function redactCommand(command: string[]): string {
   return command.map((part) => part.replace(/(\/\/[^:/\s]+:)[^@/\s]+@/g, '$1****@')).join(' ');
 }
@@ -436,6 +446,11 @@ export function restoreResumeSourceSettings(
     mineru_file_url: undefined,
     ocr_folder_path: ocrFolderPath,
   };
+}
+
+export function shouldValidateEnrichBook(body: PipelineStartRequest): boolean {
+  if (!asString(body.resume_job_id)) return true;
+  return ENRICH_REQUIRED_START_STAGES.has(body.start_stage as PipelineStartStage);
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -1101,7 +1116,7 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         );
       }
       const enrichBookPath = asString(effectiveBody.enrich_book_path);
-      if (enrichBookPath) {
+      if (enrichBookPath && shouldValidateEnrichBook(effectiveBody)) {
         if (!datasetRow) {
           throw new Error(`Cannot select an Enrich outline because dataset '${datasetKey}' does not exist.`);
         }
