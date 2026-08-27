@@ -499,11 +499,17 @@ function renderContentListV2Markdown(path: string): string {
         for (const item of content.list_items) {
           if (isRecord(item)) lines.push(`- ${inlineContent(item.item_content)}`);
         }
+      } else if (type === "table") {
+        const tableParts = [
+          inlineContent(content.table_caption),
+          typeof content.html === "string" ? content.html.trim() : "",
+          inlineContent(content.table_footnote),
+        ].filter(Boolean);
+        if (tableParts.length > 0) lines.push(tableParts.join("\n\n"));
       } else if (!type.startsWith("page_")) {
         const text = inlineContent(
           content.paragraph_content
           ?? content.page_footnote_content
-          ?? content.table_caption
           ?? content,
         );
         if (text) lines.push(text);
