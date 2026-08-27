@@ -7,6 +7,7 @@ import test from "node:test";
 import {
   alignOutlineToMarkdown,
   ensureChunkedOutline,
+  ensureOutlineFromEnrich,
   ensureOutlineFromMarkdown,
   prepareSourceMarkdown,
   resetOutlineForSourceReplacement,
@@ -119,6 +120,100 @@ test("derives a basic outline from Markdown headings when outline is missing", (
         ["struct:book-a:lesson:2", "lesson", "第2章", "分子结构", 5, 6],
       ],
     );
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("uses a confirmed Enrich tree as the outline skeleton and aligns it to Markdown", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const markdownPath = join(repoRoot, "data", "mineru", "book-a", "full.md");
+    mkdirSync(join(repoRoot, "data", "mineru", "book-a"), { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 第一章 原子结构",
+      "章导语",
+      "## 1.1 原子模型",
+      "课时一正文",
+      "## 1.2 核外电子",
+      "课时二正文",
+    ].join("\n"), "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      bookTitle: "测试教材",
+      enrichBookTitle: "Enrich 测试教材",
+      enrichBookPath: "data/enrich/chemistry/book-a.json",
+      enrichTree: [{
+        title: "第一章 原子结构",
+        child_nodes: [
+          { title: "1.1 原子模型", enrichment: { definition: "不进入教材大纲" } },
+          { title: "1.2 核外电子", enrichment: { definition: "不进入教材大纲" } },
+        ],
+      }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+      generatedAt: "2026-08-27T00:00:00Z",
+    });
+
+    assert.equal(result.status, "completed");
+    assert.equal(result.status === "completed" ? result.lesson_count : 0, 2);
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as {
+      source_kind: string;
+      source_ref: string;
+      items: Array<Record<string, unknown>>;
+    };
+    assert.equal(outline.source_kind, "enrich");
+    assert.equal(outline.source_ref, "data/enrich/chemistry/book-a.json");
+    assert.deepEqual(
+      outline.items.map((item) => [item.id, item.kind, item.parent_id ?? null, item.md_start, item.md_end]),
+      [
+        ["struct:book-a:theme:1", "theme", null, 1, 2],
+        ["struct:book-a:lesson:1-1", "lesson", "struct:book-a:theme:1", 3, 4],
+        ["struct:book-a:lesson:1-2", "lesson", "struct:book-a:theme:1", 5, 6],
+      ],
+    );
+    assert.equal(JSON.stringify(outline).includes("不进入教材大纲"), false);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("restores the prior outline before replacing an unaligned Enrich skeleton with the Markdown fallback", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-fallback-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const markdownPath = join(repoRoot, "data", "mineru", "book-a", "full.md");
+    mkdirSync(join(repoRoot, "data", "outlines"), { recursive: true });
+    mkdirSync(join(repoRoot, "data", "mineru", "book-a"), { recursive: true });
+    writeFileSync(markdownPath, "# 实际第一课\n正文\n# 实际第二课\n正文\n", "utf8");
+    const previousOutline = `${JSON.stringify({
+      book_id: "book-a",
+      source_path: "old.md",
+      source_kind: "enrich",
+      source_ref: "data/enrich/old-edition.json",
+      items: [{ id: "struct:book-a:lesson:old", kind: "lesson", title: "旧课时", order_path: "1", md_start: 1, md_end: 2 }],
+    }, null, 2)}\n`;
+    writeFileSync(outlinePath, previousOutline, "utf8");
+
+    const enrichResult = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/wrong-edition.json",
+      enrichTree: [{ title: "完全不同的课时" }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(enrichResult.status, "skipped");
+    assert.equal(readFileSync(outlinePath, "utf8"), previousOutline);
+    const fallback = ensureOutlineFromMarkdown({ bookId: "book-a", outlinePath, repoRoot, markdownPath, replaceExisting: true });
+    assert.equal(fallback.status, "completed");
+    assert.equal(fallback.status === "completed" ? fallback.created : false, true);
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<{ title: string }> };
+    assert.deepEqual(outline.items.map((item) => item.title), ["实际第一课", "实际第二课"]);
   } finally {
     rmSync(repoRoot, { recursive: true, force: true });
   }

@@ -163,6 +163,9 @@ test("server pipeline resumes from a durable stage without rerunning extraction 
           }],
         };
       },
+      async loadEnrichBook() {
+        return null;
+      },
       async upsertOutline() {},
       async upsertMineruSource() {},
       async close() {},
@@ -259,6 +262,9 @@ test("explicit OCR input replaces the stored source when an outline already exis
             md_end: 2,
           }],
         };
+      },
+      async loadEnrichBook() {
+        return null;
       },
       async upsertOutline(input) {
         storedOutline = input.record.outline;
@@ -488,6 +494,9 @@ test("explicit OCR input resets a file-only outline missing from the dataset sto
       async loadOutline() {
         return null;
       },
+      async loadEnrichBook() {
+        return null;
+      },
       async upsertOutline(input) {
         storedOutline = input.record.outline;
       },
@@ -510,6 +519,98 @@ test("explicit OCR input resets a file-only outline missing from the dataset sto
   assert.equal(storedItems.find((item) => item.kind === "lesson")?.md_start, 2);
   assert.equal(storedItems.find((item) => item.kind === "chunk")?.md_start, 2);
   assert.equal(storedItems.some((item) => item.kind === "chunk" && item.md_end === 1), false);
+});
+
+test("server pipeline uses the confirmed Enrich directory as its aligned outline", async (context) => {
+  const enrichBookId = "enrich-outline-runner";
+  const enrichPath = "data/enrich/chemistry/enrich-outline-runner.json";
+  const ocrRoot = mkdtempSync(join(tmpdir(), "okm-enrich-outline-runner-"));
+  const ocrBundle = join(ocrRoot, "hybrid_ocr");
+  const importedSourceDir = resolve(REPO_ROOT, "data", "mineru", enrichBookId);
+  const outlinePath = outlinePathForBook(enrichBookId);
+  const executed: string[][] = [];
+  let storedOutline: Record<string, unknown> | null = null;
+  context.after(() => {
+    rmSync(ocrRoot, { recursive: true, force: true });
+    rmSync(importedSourceDir, { recursive: true, force: true });
+    rmSync(outlinePath, { force: true });
+  });
+  mkdirSync(ocrBundle, { recursive: true });
+  writeFileSync(join(ocrBundle, "book.md"), [
+    "# 第一单元 物质结构",
+    "单元导语",
+    "## 1. 原子模型",
+    "第一课正文",
+    "## 2. 核外电子",
+    "第二课正文",
+  ].join("\n"), "utf8");
+
+  const result = await runServerPipeline({
+    bookId: enrichBookId,
+    bookTitle: "测试化学教材",
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-a",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 2,
+    noChunks: true,
+    pdfPath: "",
+    ocrFolderPath: ocrRoot,
+    subject: "chemistry",
+    schoolStage: "senior-secondary",
+    gradeBand: "grade10",
+    textbookId: enrichBookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    enrichContext: true,
+    enrichBookPath: enrichPath,
+    qualityRetryCount: 1,
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: {
+      async loadOutline() {
+        return null;
+      },
+      async loadEnrichBook(input) {
+        assert.equal(input.path, enrichPath);
+        return {
+          path: enrichPath,
+          title: "Enrich 测试化学教材",
+          tree: [{
+            title: "第一单元 物质结构",
+            child_nodes: [{ title: "1. 原子模型" }, { title: "2. 核外电子" }],
+          }],
+        };
+      },
+      async upsertOutline(input) {
+        storedOutline = input.record.outline;
+      },
+      async upsertMineruSource() {},
+      async close() {},
+    },
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async (command) => {
+      executed.push(command);
+      return { exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  });
+
+  assert.equal(result.status, "completed");
+  const outlineStage = result.stages.find((stage) => stage.id === "ensure_outline");
+  assert.equal(outlineStage?.output?.source_kind, "enrich");
+  assert.equal(outlineStage?.output?.source_ref, enrichPath);
+  const finalOutline = storedOutline as Record<string, unknown> | null;
+  assert.ok(finalOutline);
+  assert.equal(finalOutline.source_kind, "enrich");
+  assert.equal(finalOutline.source_ref, enrichPath);
+  const extractionCommands = executed.filter((command) => command.some((part) => part.endsWith("extract-lesson-openai.js")));
+  assert.equal(extractionCommands.length, 2);
+  assert.equal(extractionCommands.every((command) => command.includes(enrichPath)), true);
 });
 
 test("server pipeline runner plans TypeScript lesson extraction commands", async () => {

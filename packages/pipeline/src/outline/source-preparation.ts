@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 import { parseHeadings, planChunkOutline, type ChunkOutlineItem } from "./chunk-outline.js";
@@ -56,6 +56,27 @@ export type MarkdownOutlinePreparationResult =
       status: "blocked";
       error: string;
       outline_path: string;
+    };
+
+export type EnrichOutlinePreparationResult =
+  | {
+      status: "completed";
+      outline_path: string;
+      item_count: number;
+      lesson_count: number;
+      source_path: string;
+      source_ref: string;
+    }
+  | {
+      status: "skipped";
+      outline_path: string;
+      reason: string;
+      unmatched_item_ids?: string[];
+    }
+  | {
+      status: "blocked";
+      outline_path: string;
+      error: string;
     };
 
 export type OutlineSourceResetResult = {
@@ -147,12 +168,13 @@ export function ensureOutlineFromMarkdown(input: {
   outlinePath: string;
   repoRoot: string;
   markdownPath: string;
+  replaceExisting?: boolean;
   title?: string;
   tocStart?: number;
   tocEnd?: number;
   generatedAt?: string;
 }): MarkdownOutlinePreparationResult {
-  if (existsSync(input.outlinePath)) {
+  if (existsSync(input.outlinePath) && !input.replaceExisting) {
     const alignment = alignOutlineToMarkdown({
       outlinePath: input.outlinePath,
       markdownPath: input.markdownPath,
@@ -225,6 +247,7 @@ export function ensureOutlineFromMarkdown(input: {
     book_id: input.bookId,
     title: input.title?.trim() || input.bookId,
     source_path: sourcePath,
+    source_kind: "markdown",
     generated_at: input.generatedAt ?? new Date().toISOString(),
     toc_pages: { start: input.tocStart ?? 1, end: input.tocEnd ?? 1 },
     items,
@@ -238,6 +261,91 @@ export function ensureOutlineFromMarkdown(input: {
     item_count: items.length,
     source_path: sourcePath,
   };
+}
+
+export function ensureOutlineFromEnrich(input: {
+  bookId: string;
+  bookTitle?: string;
+  enrichBookTitle?: string;
+  enrichBookPath: string;
+  enrichTree: RawRecord[];
+  outlinePath: string;
+  repoRoot: string;
+  markdownPath: string;
+  generatedAt?: string;
+}): EnrichOutlinePreparationResult {
+  const markdownPath = resolveInputPath(input.markdownPath, input.repoRoot);
+  if (!existsSync(markdownPath)) {
+    return { status: "blocked", outline_path: input.outlinePath, error: `Markdown not found: ${markdownPath}` };
+  }
+
+  const items = flattenEnrichOutline(input.bookId, input.enrichTree);
+  const lessonCount = items.filter((item) => item.kind === "lesson").length;
+  if (lessonCount === 0) {
+    return {
+      status: "skipped",
+      outline_path: input.outlinePath,
+      reason: `Selected Enrich book '${input.enrichBookPath}' has no lesson leaves.`,
+    };
+  }
+
+  const previousOutline = existsSync(input.outlinePath) ? readFileSync(input.outlinePath, "utf8") : null;
+  const sourcePath = toRepoRelativePath(markdownPath, input.repoRoot);
+  mkdirSync(dirname(input.outlinePath), { recursive: true });
+  writeOutlineRecord(input.outlinePath, {
+    book_id: input.bookId,
+    title: input.bookTitle?.trim() || input.enrichBookTitle?.trim() || input.bookId,
+    source_path: sourcePath,
+    source_kind: "enrich",
+    source_ref: input.enrichBookPath,
+    generated_at: input.generatedAt ?? new Date().toISOString(),
+    toc_pages: { start: 1, end: 1 },
+    items,
+  });
+
+  try {
+    const alignment = alignOutlineToMarkdown({
+      outlinePath: input.outlinePath,
+      markdownPath,
+      repoRoot: input.repoRoot,
+    });
+    if (alignment.unmatched_item_ids.length > 0) {
+      restoreOutline(input.outlinePath, previousOutline);
+      return {
+        status: "skipped",
+        outline_path: input.outlinePath,
+        reason: `Enrich outline did not align completely to Markdown (${alignment.unmatched_item_ids.length} unmatched lesson item(s)).`,
+        unmatched_item_ids: alignment.unmatched_item_ids,
+      };
+    }
+    const alignedOutline = loadOutlineRecord(input.outlinePath);
+    const alignedItems = Array.isArray(alignedOutline.items) ? alignedOutline.items.filter(isRecord) : [];
+    const outOfOrderItemIds = outOfOrderLessonIds(alignedItems);
+    if (outOfOrderItemIds.length > 0) {
+      restoreOutline(input.outlinePath, previousOutline);
+      return {
+        status: "skipped",
+        outline_path: input.outlinePath,
+        reason: `Enrich outline did not align monotonically to Markdown (${outOfOrderItemIds.length} out-of-order lesson item(s)).`,
+        unmatched_item_ids: outOfOrderItemIds,
+      };
+    }
+    return {
+      status: "completed",
+      outline_path: input.outlinePath,
+      item_count: items.length,
+      lesson_count: lessonCount,
+      source_path: alignment.source_path,
+      source_ref: input.enrichBookPath,
+    };
+  } catch (error) {
+    restoreOutline(input.outlinePath, previousOutline);
+    return {
+      status: "skipped",
+      outline_path: input.outlinePath,
+      reason: `Could not use the selected Enrich outline: ${(error as Error).message}`,
+    };
+  }
 }
 
 export function alignOutlineToMarkdown(input: { outlinePath: string; markdownPath: string; repoRoot: string }): MarkdownAlignmentResult {
@@ -374,6 +482,61 @@ function loadOutlineRecord(path: string): RawRecord {
 
 function writeOutlineRecord(path: string, outline: RawRecord): void {
   writeFileSync(path, `${JSON.stringify(outline, null, 2)}\n`, "utf8");
+}
+
+function flattenEnrichOutline(bookId: string, roots: RawRecord[]): RawRecord[] {
+  const items: RawRecord[] = [];
+  const visit = (nodes: RawRecord[], parentId: string | undefined, parentOrder: number[]) => {
+    nodes.forEach((node, index) => {
+      const title = String(node.title ?? "").trim();
+      if (!title) return;
+      const order = [...parentOrder, index + 1];
+      const orderPath = order.join(".");
+      const children = Array.isArray(node.child_nodes) ? node.child_nodes.filter(isRecord) : [];
+      const kind = children.length > 0 ? (order.length === 1 ? "theme" : "topic") : "lesson";
+      const id = `struct:${bookId}:${kind}:${order.join("-")}`;
+      items.push({
+        id,
+        kind,
+        label: title,
+        title,
+        page_start: 1,
+        page_end: 1,
+        level: Math.min(4, order.length),
+        order_path: orderPath,
+        raw_line: title,
+        ...(parentId ? { parent_id: parentId } : {}),
+      });
+      visit(children, id, order);
+    });
+  };
+  visit(roots.filter(isRecord), undefined, []);
+  return items;
+}
+
+function restoreOutline(path: string, previousOutline: string | null): void {
+  if (previousOutline === null) {
+    rmSync(path, { force: true });
+    return;
+  }
+  writeFileSync(path, previousOutline, "utf8");
+}
+
+function outOfOrderLessonIds(items: RawRecord[]): string[] {
+  const lessons = items
+    .filter((item) => item.kind === "lesson")
+    .sort(compareOrderPath);
+  const outOfOrder: string[] = [];
+  let previousStart = 0;
+  for (const lesson of lessons) {
+    const currentStart = Number(lesson.md_start);
+    if (!Number.isFinite(currentStart)) continue;
+    if (currentStart <= previousStart) {
+      outOfOrder.push(String(lesson.id ?? lesson.title ?? "unknown-item"));
+    }
+    previousStart = currentStart;
+  }
+  return outOfOrder;
 }
 
 function resolveInputPath(path: string, repoRoot: string): string {

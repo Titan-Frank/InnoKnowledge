@@ -14,6 +14,7 @@ import { extractPdfOutline } from "../outline/pdf-outline.js";
 import { importOcrBundle, runMineruSourceMarkdown, type MineruSourceResult } from "../outline/mineru-source.js";
 import {
   ensureChunkedOutline,
+  ensureOutlineFromEnrich,
   ensureOutlineFromMarkdown,
   prepareSourceMarkdown,
   resetOutlineForSourceReplacement,
@@ -380,19 +381,58 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
 
     if (shouldRunStage(options, "ensure_outline")) {
       await recordStage(result, progressStore, { id: "ensure_outline", status: "running" });
-      const outlineStage = ensureOutlineFromMarkdown({
-        bookId: options.bookId,
-        outlinePath,
-        repoRoot: REPO_ROOT,
-        markdownPath: preparedMarkdownPath,
-        title: options.bookId,
-      });
+      const enrichBookPath = options.enrichBookPath?.trim() ?? "";
+      const enrichBook = enrichBookPath
+        ? await assetStore.loadEnrichBook({ datasetId: options.datasetId, path: enrichBookPath })
+        : null;
+      if (enrichBookPath && !enrichBook) {
+        return await blockRun(
+          result,
+          progressStore,
+          "ensure_outline",
+          `Selected Enrich directory '${enrichBookPath}' is no longer available in dataset '${options.datasetId}'.`,
+        );
+      }
+      const enrichOutlineStage = enrichBook
+        ? ensureOutlineFromEnrich({
+            bookId: options.bookId,
+            bookTitle: options.bookTitle,
+            enrichBookTitle: enrichBook.title,
+            enrichBookPath: enrichBook.path,
+            enrichTree: enrichBook.tree,
+            outlinePath,
+            repoRoot: REPO_ROOT,
+            markdownPath: preparedMarkdownPath,
+          })
+        : null;
+      const outlineStage = enrichOutlineStage?.status === "completed"
+        ? {
+            status: "completed" as const,
+            created: true,
+            outline_path: enrichOutlineStage.outline_path,
+            item_count: enrichOutlineStage.item_count,
+            source_path: enrichOutlineStage.source_path,
+          }
+        : ensureOutlineFromMarkdown({
+            bookId: options.bookId,
+            outlinePath,
+            repoRoot: REPO_ROOT,
+            markdownPath: preparedMarkdownPath,
+            replaceExisting: Boolean(enrichOutlineStage),
+            title: options.bookTitle || options.bookId,
+          });
       if (outlineStage.status === "blocked") {
         outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
         return await blockRun(result, progressStore, "ensure_outline", outlineStage.error);
       }
       outlineRecord = await syncOutlineFromFile(assetStore, options, outlinePath);
-      await recordStage(result, progressStore, { id: "ensure_outline", status: "completed", output: outlineStage });
+      await recordStage(result, progressStore, {
+        id: "ensure_outline",
+        status: "completed",
+        output: enrichOutlineStage?.status === "completed"
+          ? { ...outlineStage, source_kind: "enrich", source_ref: enrichOutlineStage.source_ref, lesson_count: enrichOutlineStage.lesson_count }
+          : { ...outlineStage, ...(enrichOutlineStage ? { enrich_fallback: enrichOutlineStage } : {}) },
+      });
     }
 
     if (shouldRunStage(options, "prepare_outline_chunks")) {

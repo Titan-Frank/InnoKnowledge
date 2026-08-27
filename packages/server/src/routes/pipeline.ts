@@ -1119,11 +1119,11 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
       const enrichBookPath = asString(effectiveBody.enrich_book_path);
       if (enrichBookPath && shouldValidateEnrichBook(effectiveBody)) {
         if (!datasetRow) {
-          throw new Error(`Cannot select an Enrich outline because dataset '${datasetKey}' does not exist.`);
+          throw new Error(`Cannot select an Enrich directory because dataset '${datasetKey}' does not exist.`);
         }
         const enrichBook = await loadEnrichBookPayload(sql, datasetRow.dataset_id, enrichBookPath);
         if (!enrichBook) {
-          throw new Error(`Selected Enrich outline '${enrichBookPath}' does not exist in dataset '${datasetKey}'.`);
+          throw new Error(`Selected Enrich directory '${enrichBookPath}' does not exist in dataset '${datasetKey}'.`);
         }
       }
       const outline = datasetRow ? await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId) : null;

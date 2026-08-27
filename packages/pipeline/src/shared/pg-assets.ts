@@ -24,8 +24,15 @@ export type MineruSourceRecord = {
   createdByMineru?: boolean;
 };
 
+export type EnrichBookRecord = {
+  path: string;
+  title: string;
+  tree: RawRecord[];
+};
+
 export type PipelineAssetStore = {
   loadOutline(input: { datasetId: string; bookId: string }): Promise<RawRecord | null>;
+  loadEnrichBook(input: { datasetId: string; path: string }): Promise<EnrichBookRecord | null>;
   upsertOutline(input: { datasetId: string; record: TextbookOutlineRecord }): Promise<void>;
   upsertMineruSource(input: { datasetId: string; record: MineruSourceRecord }): Promise<void>;
   close(): Promise<void>;
@@ -34,6 +41,9 @@ export type PipelineAssetStore = {
 export function createNoopPipelineAssetStore(): PipelineAssetStore {
   return {
     async loadOutline() {
+      return null;
+    },
+    async loadEnrichBook() {
       return null;
     },
     async upsertOutline() {},
@@ -55,6 +65,22 @@ export function createPostgresPipelineAssetStore(databaseUrl: string): PipelineA
       `;
       const outline = rows[0]?.outline_json;
       return isRecord(outline) ? outline : null;
+    },
+    async loadEnrichBook(input) {
+      const rows = await sql<{ path: string; title: string; tree_json: unknown }[]>`
+        SELECT path, title, tree_json
+        FROM world_enrich_books
+        WHERE dataset_id = ${input.datasetId}
+          AND path = ${input.path}
+        LIMIT 1
+      `;
+      const row = rows[0];
+      if (!row || !Array.isArray(row.tree_json)) return null;
+      return {
+        path: row.path,
+        title: row.title,
+        tree: row.tree_json.filter(isRecord),
+      };
     },
     async upsertOutline(input) {
       const now = nowIso();

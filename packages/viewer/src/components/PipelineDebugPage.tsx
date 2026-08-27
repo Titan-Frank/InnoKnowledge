@@ -775,6 +775,12 @@ function buildPipelineSteps(input: {
   const currentJobStatus = startResult && jobStatus?.job_id === startResult.job_id ? jobStatus : null;
   const currentStage = currentJobStatus?.current_stage ?? null;
   const currentStageText = currentStage ? `正在${stageLabel(currentStage.id)}` : '';
+  const ensureOutlineStage = findJobStage(currentJobStatus, ['ensure_outline']);
+  const outlineCompletedDetail = ensureOutlineStage?.progress.source_kind === 'enrich'
+    ? `已用 Enrich 目录生成 ${Number(ensureOutlineStage.progress.lesson_count) || 0} 个课时`
+    : ensureOutlineStage?.progress.enrich_fallback
+      ? 'Enrich 目录未完全对齐，已回退到教材正文目录'
+      : '课时任务已经生成';
   const lessonStage = findJobStage(currentJobStatus, lessonStageIds);
   const lessonRuntimeDetail = lessonStage ? lessonProgressText(lessonStage, currentJobStatus) : '';
   const statuses = buildPipelineStepStatuses({
@@ -803,7 +809,7 @@ function buildPipelineSteps(input: {
       detail: statuses.outline === 'active' && stageIn(currentStage, outlineStageIds)
         ? currentStageText
         : statuses.outline === 'complete'
-          ? '课时任务已经生成'
+          ? outlineCompletedDetail
           : statuses.outline === 'blocked'
             ? '当前任务的目录或切分被阻断'
             : '等待当前任务进入目录与切分',
