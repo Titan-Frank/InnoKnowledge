@@ -1315,17 +1315,38 @@ function sliceMarkdownForModelLesson(input: BuildModelLessonPayloadInput): {
   const anchorRef = resolveOutlineAnchorFromItems(input.bookId, input.batchAnchor, items, { strict: true });
   const resolved = resolveChunkOrLessonFromItems(input.bookId, input.batchAnchor, items);
   if (resolved === null) throw new Error(`Anchor not found: ${input.batchAnchor}`);
-  const item = Array.isArray(resolved) ? resolved[0] : resolved;
+  const anchorItem = items.find((candidate) => candidate.id === anchorRef);
+  const item = anchorItem?.kind === "lesson" ? anchorItem : Array.isArray(resolved) ? resolved[0] : resolved;
   if (!item) throw new Error(`Anchor not found: ${input.batchAnchor}`);
   const allLines = input.markdownLines ?? loadMarkdownLines(stringValue(outline.source_path), repoRoot);
-  const start = numberOrDefault(item.md_start, 1);
-  const end = numberOrDefault(item.md_end, allLines.length);
+  const spanItems = anchorItem?.kind === "lesson"
+    ? outlineSubtree(anchorItem, items)
+    : Array.isArray(resolved) ? resolved : [resolved];
+  const start = Math.min(...spanItems.map((candidate) => numberOrDefault(candidate.md_start, allLines.length + 1)));
+  const end = Math.max(...spanItems.map((candidate) => numberOrDefault(candidate.md_end, 0)));
   return {
     item,
-    markdownLines: allLines.slice(Math.max(0, start - 1), end),
+    markdownLines: allLines.slice(Math.max(0, (start <= allLines.length ? start : 1) - 1), end > 0 ? end : allLines.length),
     outline,
     anchorRef,
   };
+}
+
+function outlineSubtree(root: OutlineItem, items: OutlineItem[]): OutlineItem[] {
+  const result: OutlineItem[] = [];
+  const pending = [root];
+  const seen = new Set<OutlineItem>();
+  while (pending.length > 0) {
+    const item = pending.shift();
+    if (!item || seen.has(item)) continue;
+    seen.add(item);
+    result.push(item);
+    if (Array.isArray(item.children)) pending.push(...item.children);
+    if (typeof item.id === "string") {
+      pending.push(...items.filter((candidate) => candidate.parent_id === item.id));
+    }
+  }
+  return result;
 }
 
 function resolveChunkOrLessonFromItems(bookId: string, anchor: string, items: OutlineItem[]): OutlineItem | OutlineItem[] | null {
