@@ -303,6 +303,66 @@ test("explicit OCR input replaces the stored source when an outline already exis
   assert.equal(storedItems.some((item) => item.kind === "chunk" && item.md_start === 1 && item.md_end === 2), false);
 });
 
+test("OCR import failures block the persisted pipeline job", async (context) => {
+  const failedBookId = "failed-ocr-import";
+  const ocrRoot = mkdtempSync(join(tmpdir(), "okm-failed-ocr-import-"));
+  const missingBundle = join(ocrRoot, "removed-after-selection");
+  const jobUpdates: Array<{ status: string; completed?: boolean; error?: string | null }> = [];
+  const progressStore = createNoopPipelineProgressStore();
+  context.after(() => {
+    rmSync(ocrRoot, { recursive: true, force: true });
+    rmSync(outlinePathForBook(failedBookId), { force: true });
+  });
+
+  const result = await runServerPipeline({
+    bookId: failedBookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-a",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 1,
+    noChunks: false,
+    pdfPath: "",
+    ocrFolderPath: missingBundle,
+    subject: "mathematics",
+    schoolStage: "junior",
+    gradeBand: "grade7",
+    textbookId: failedBookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    progressStore: {
+      ...progressStore,
+      async updateJob(input) {
+        jobUpdates.push(input);
+      },
+    },
+    assetStore: createNoopPipelineAssetStore(),
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async () => ({ exitCode: 0, stdout: "{}", stderr: "" }),
+  });
+
+  assert.equal(result.status, "blocked");
+  const sourceStage = result.stages.find((stage) => stage.id === "mineru_source_markdown");
+  assert.equal(sourceStage?.status, "blocked");
+  assert.match(sourceStage?.error ?? "", /OCR import failed: OCR folder not found/);
+  assert.deepEqual(jobUpdates.at(-1), {
+    datasetId: "dataset-a",
+    jobId: result.job_id,
+    status: "blocked",
+    currentStageId: "mineru_source_markdown",
+    progress: {},
+    error: sourceStage?.error,
+    completed: true,
+  });
+});
+
 test("explicit OCR input resets a file-only outline missing from the dataset store", async (context) => {
   const existingBookId = "file-only-outline-ocr-replacement";
   const ocrRoot = mkdtempSync(join(tmpdir(), "okm-file-only-ocr-replacement-"));

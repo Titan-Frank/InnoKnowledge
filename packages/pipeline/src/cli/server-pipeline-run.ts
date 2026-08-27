@@ -11,7 +11,7 @@ import postgres from "postgres";
 
 import { planParallelBatches, planTsModelExtractionCommands, type ParallelExtractionCommand } from "../extraction/parallel-batch.js";
 import { extractPdfOutline } from "../outline/pdf-outline.js";
-import { importOcrBundle, runMineruSourceMarkdown } from "../outline/mineru-source.js";
+import { importOcrBundle, runMineruSourceMarkdown, type MineruSourceResult } from "../outline/mineru-source.js";
 import {
   ensureChunkedOutline,
   ensureOutlineFromMarkdown,
@@ -222,25 +222,33 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       && Boolean(ocrFolderPath.trim());
     if (shouldImportOcr || shouldRunMineru) {
       await recordStage(result, progressStore, { id: "mineru_source_markdown", status: "running" });
-      const mineruStage = shouldImportOcr
-        ? importOcrBundle({
+      let mineruStage: MineruSourceResult;
+      if (shouldImportOcr) {
+        try {
+          mineruStage = importOcrBundle({
             bookId: options.bookId,
             folderPath: ocrFolderPath,
             outputDir: resolve(REPO_ROOT, "data", "mineru", safePathToken(options.bookId)),
-          })
-        : await runMineruSourceMarkdown({
-            bookId: options.bookId,
-            outputDir: resolve(REPO_ROOT, "data", "mineru", safePathToken(options.bookId)),
-            apiKey: process.env[options.mineruApiKeyEnv ?? "MINERU_API_KEY"] ?? "",
-            pdfPath: options.pdfPath || undefined,
-            fileUrl: mineruFileUrl || undefined,
-            baseUrl: options.mineruBaseUrl || "https://mineru.net",
-            modelVersion: options.mineruModelVersion || "vlm",
-            language: options.mineruLanguage || "ch",
-            pageRanges: options.mineruPageRanges || undefined,
-            timeoutMs: (options.mineruTimeoutSeconds ?? 1800) * 1000,
-            force: options.mineruForce ?? false,
           });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return await blockRun(result, progressStore, "mineru_source_markdown", `OCR import failed: ${message}`);
+        }
+      } else {
+        mineruStage = await runMineruSourceMarkdown({
+          bookId: options.bookId,
+          outputDir: resolve(REPO_ROOT, "data", "mineru", safePathToken(options.bookId)),
+          apiKey: process.env[options.mineruApiKeyEnv ?? "MINERU_API_KEY"] ?? "",
+          pdfPath: options.pdfPath || undefined,
+          fileUrl: mineruFileUrl || undefined,
+          baseUrl: options.mineruBaseUrl || "https://mineru.net",
+          modelVersion: options.mineruModelVersion || "vlm",
+          language: options.mineruLanguage || "ch",
+          pageRanges: options.mineruPageRanges || undefined,
+          timeoutMs: (options.mineruTimeoutSeconds ?? 1800) * 1000,
+          force: options.mineruForce ?? false,
+        });
+      }
       if (mineruStage.status === "blocked") {
         return await blockRun(result, progressStore, "mineru_source_markdown", mineruStage.error);
       }
