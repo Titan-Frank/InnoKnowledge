@@ -333,7 +333,7 @@ export function ensureChunkedOutline(input: {
   const itemKey = Array.isArray(outline.items) ? "items" : Array.isArray(outline.structure) ? "structure" : null;
   if (!itemKey) return { status: "blocked", outline_path: input.outlinePath, error: `Outline is missing items/structure: ${input.outlinePath}` };
   const rootItems = (outline[itemKey] as unknown[]).filter(isRecord) as OutlineItem[];
-  const items = iterOutlineItems(rootItems) as ChunkOutlineItem[];
+  const items = (iterOutlineItems(rootItems) as ChunkOutlineItem[]).sort(compareDocumentOrder);
   if (items.some((item) => item.kind === "chunk")) {
     return { status: "skipped", outline_path: input.outlinePath, reason: "Outline already contains chunk items." };
   }
@@ -415,6 +415,13 @@ function compareOrderPath(left: RawRecord, right: RawRecord): number {
     if (delta !== 0) return delta;
   }
   return 0;
+}
+
+function compareDocumentOrder(left: RawRecord, right: RawRecord): number {
+  const leftStart = hasNumber(left.md_start) ? Number(left.md_start) : Number.POSITIVE_INFINITY;
+  const rightStart = hasNumber(right.md_start) ? Number(right.md_start) : Number.POSITIVE_INFINITY;
+  if (leftStart !== rightStart) return leftStart - rightStart;
+  return compareOrderPath(left, right);
 }
 
 function orderKey(item: RawRecord): number[] {

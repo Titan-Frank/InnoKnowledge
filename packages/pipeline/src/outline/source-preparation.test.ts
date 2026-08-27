@@ -298,6 +298,75 @@ test("realigns nested lesson spans without flattening the outline hierarchy", ()
   }
 });
 
+test("chunks nested outline leaves in Markdown document order", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-nested-order-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    mkdirSync(join(repoRoot, "data", "outlines"), { recursive: true });
+    writeFileSync(outlinePath, `${JSON.stringify({
+      book_id: "book-a",
+      items: [{
+        id: "struct:book-a:theme:1",
+        kind: "theme",
+        title: "第一章",
+        order_path: "1",
+        md_start: 1,
+        md_end: 6,
+        children: [{
+          id: "struct:book-a:lesson:1",
+          kind: "lesson",
+          title: "第一课",
+          order_path: "1.1",
+          parent_id: "struct:book-a:theme:1",
+          md_start: 1,
+          md_end: 2,
+          children: [{
+            id: "struct:book-a:activity:1-1-1",
+            kind: "activity",
+            title: "活动",
+            order_path: "1.1.1",
+            parent_id: "struct:book-a:lesson:1",
+            md_start: 3,
+            md_end: 4,
+          }],
+        }, {
+          id: "struct:book-a:lesson:2",
+          kind: "lesson",
+          title: "第二课",
+          order_path: "1.2",
+          parent_id: "struct:book-a:theme:1",
+          md_start: 5,
+          md_end: 6,
+        }],
+      }],
+    }, null, 2)}\n`, "utf8");
+
+    const result = ensureChunkedOutline({
+      outlinePath,
+      repoRoot,
+      minLines: 10,
+      maxLines: 20,
+      targetLines: 10,
+    });
+
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as {
+      items: Array<Record<string, unknown>>;
+    };
+    const chunk = outline.items.find((item) => item.kind === "chunk");
+    assert.ok(chunk);
+    assert.equal(chunk.md_start, 1);
+    assert.equal(chunk.md_end, 6);
+    assert.deepEqual(chunk.source_ids, [
+      "struct:book-a:lesson:1",
+      "struct:book-a:activity:1-1-1",
+      "struct:book-a:lesson:2",
+    ]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test("blocks source preparation when a reset lesson cannot be realigned", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-unmatched-"));
   try {
