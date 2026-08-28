@@ -186,6 +186,117 @@ test("uses a confirmed Enrich tree as the outline skeleton and aligns it to Mark
   }
 });
 
+test("uses Enrich hierarchy and document order to disambiguate repeated lesson headings", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-repeated-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    const markdownPath = join(sourceDir, "full.md");
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 第一章 有理数",
+      "## 1.1 正数和负数",
+      "第一章正文",
+      "## 小结",
+      "第一章小结",
+      "# 第二章 整式",
+      "## 2.1 单项式",
+      "第二章正文",
+      "## 小结",
+      "第二章小结",
+    ].join("\n"), "utf8");
+    writeFileSync(join(sourceDir, "book_content_list_v2.json"), JSON.stringify([[
+      mineruTitle("第一章 有理数", 1),
+      mineruTitle("1.1 正数和负数"),
+      mineruTitle("小结"),
+      mineruTitle("第二章 整式", 1),
+      mineruTitle("2.1 单项式"),
+      mineruTitle("小结"),
+    ]]), "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/mathematics/book-a.json",
+      enrichTree: [
+        {
+          title: "第一章 有理数",
+          child_nodes: [{ title: "1.1 正数和负数" }, { title: "小结" }],
+        },
+        {
+          title: "第二章 整式",
+          child_nodes: [{ title: "2.1 单项式" }, { title: "小结" }],
+        },
+      ],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    assert.deepEqual(outline.items.map((item) => [item.title, item.md_start, item.md_end]), [
+      ["第一章 有理数", 1, 1],
+      ["1.1 正数和负数", 2, 3],
+      ["小结", 4, 5],
+      ["第二章 整式", 6, 6],
+      ["2.1 单项式", 7, 8],
+      ["小结", 9, 10],
+    ]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("lets one Enrich lesson cover consecutive OCR sections with distinct section numbers", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-composite-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    const markdownPath = join(sourceDir, "full.md");
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 第二章 有理数的运算",
+      "## 2.3.2 科学记数法",
+      "科学记数法正文",
+      "## 2.3.3 近似数",
+      "近似数正文",
+      "## 小结",
+      "本章小结",
+    ].join("\n"), "utf8");
+    writeFileSync(join(sourceDir, "book_content_list_v2.json"), JSON.stringify([[
+      mineruTitle("第二章 有理数的运算", 1),
+      mineruTitle("2.3.2 科学记数法"),
+      mineruTitle("2.3.3 近似数"),
+      mineruTitle("小结"),
+    ]]), "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/mathematics/book-a.json",
+      enrichTree: [{
+        title: "第二章 有理数的运算",
+        child_nodes: [
+          { title: "2.3.2 科学记数法 2.3.3 近似数" },
+          { title: "小结" },
+        ],
+      }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    assert.deepEqual(outline.items.map((item) => [item.title, item.md_start, item.md_end]), [
+      ["第二章 有理数的运算", 1, 1],
+      ["2.3.2 科学记数法 2.3.3 近似数", 2, 5],
+      ["小结", 6, 7],
+    ]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test("rejects an Enrich lesson that can only match its ancestor chapter heading", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-ancestor-"));
   try {
@@ -272,7 +383,7 @@ test("uses MinerU v2 pages to reject a lesson sequence fabricated across TOC and
     });
 
     assert.equal(result.status, "skipped");
-    assert.match(result.status === "skipped" ? result.reason : "", /content_list_v2\.json did not identify one unique complete Enrich sequence/);
+    assert.match(result.status === "skipped" ? result.reason : "", /did not align completely to Markdown/);
     assert.equal(existsSync(outlinePath), false);
   } finally {
     rmSync(repoRoot, { recursive: true, force: true });
@@ -361,7 +472,11 @@ test("uses MinerU v2 pages to align Enrich lessons only to the textbook body", (
     });
 
     assert.equal(result.status, "completed");
-    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as {
+      toc_pages: { start: number; end: number };
+      items: Array<Record<string, unknown>>;
+    };
+    assert.deepEqual(outline.toc_pages, { start: 1, end: 2 });
     assert.deepEqual(outline.items.map((item) => [item.id, item.md_start, item.md_end]), [
       ["struct:book-a:theme:1", 4, 4],
       ["struct:book-a:lesson:1-1", 5, 6],
@@ -813,6 +928,142 @@ test("generates chunk items for an existing outline once", () => {
 
     const second = ensureChunkedOutline({ outlinePath, repoRoot, maxLines: 2, targetLines: 1, minLines: 1 });
     assert.equal(second.status, "skipped");
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("keeps each Enrich lesson as a hard chunk boundary", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-chunks-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    mkdirSync(join(repoRoot, "data", "outlines"), { recursive: true });
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(join(sourceDir, "full.md"), ["# 第一课", "正文一", "# 第二课", "正文二"].join("\n"), "utf8");
+    writeFileSync(outlinePath, JSON.stringify({
+      book_id: "book-a",
+      source_kind: "enrich",
+      source_path: "data/mineru/book-a/full.md",
+      items: [
+        { id: "struct:book-a:topic:1", kind: "topic", title: "第一单元", order_path: "1" },
+        {
+          id: "struct:book-a:lesson:1-1",
+          kind: "lesson",
+          parent_id: "struct:book-a:topic:1",
+          title: "第一课",
+          label: "第一课",
+          order_path: "1.1",
+          md_start: 1,
+          md_end: 2,
+        },
+        {
+          id: "struct:book-a:lesson:1-2",
+          kind: "lesson",
+          parent_id: "struct:book-a:topic:1",
+          title: "第二课",
+          label: "第二课",
+          order_path: "1.2",
+          md_start: 3,
+          md_end: 4,
+        },
+      ],
+    }), "utf8");
+
+    const result = ensureChunkedOutline({ outlinePath, repoRoot, minLines: 10, maxLines: 100 });
+
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    const chunks = outline.items.filter((item) => item.kind === "chunk");
+    assert.deepEqual(chunks.map((item) => [item.md_start, item.md_end, item.source_ids]), [
+      [1, 2, ["struct:book-a:lesson:1-1"]],
+      [3, 4, ["struct:book-a:lesson:1-2"]],
+    ]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("migrates legacy chunks and restores summary and assessment coverage", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-role-migration-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    mkdirSync(join(repoRoot, "data", "outlines"), { recursive: true });
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(join(sourceDir, "full.md"), ["# 核心知识", "正文", "# 本章小结", "总结", "# 课后练习", "题目"].join("\n"), "utf8");
+    writeFileSync(outlinePath, JSON.stringify({
+      book_id: "book-a",
+      source_path: "data/mineru/book-a/full.md",
+      items: [
+        { id: "topic", kind: "topic", title: "第一单元", order_path: "1" },
+        { id: "struct:book-a:lesson:1", kind: "lesson", parent_id: "topic", title: "核心知识", order_path: "1.1", md_start: 1, md_end: 2 },
+        { id: "struct:book-a:lesson:2", kind: "lesson", parent_id: "topic", title: "本章小结", order_path: "1.2", md_start: 3, md_end: 4 },
+        { id: "struct:book-a:lesson:3", kind: "lesson", parent_id: "topic", title: "课后练习", order_path: "1.3", md_start: 5, md_end: 6 },
+        {
+          id: "struct:book-a:chunk:1-a",
+          kind: "chunk",
+          parent_id: "struct:book-a:lesson:1",
+          source_ids: ["struct:book-a:lesson:1"],
+          title: "核心知识",
+          order_path: "1.1-a",
+          md_start: 1,
+          md_end: 2,
+        },
+      ],
+    }), "utf8");
+
+    const result = ensureChunkedOutline({ outlinePath, repoRoot, minLines: 10, maxLines: 100 });
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    assert.deepEqual(
+      outline.items.filter((item) => item.kind === "chunk").map((item) => [item.parent_id, item.content_role]),
+      [
+        ["struct:book-a:lesson:1", "knowledge"],
+        ["struct:book-a:lesson:2", "summary"],
+        ["struct:book-a:lesson:3", "assessment"],
+      ],
+    );
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("reclassifies a legacy exercise chunk that was previously marked as knowledge", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-role-correction-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    mkdirSync(join(repoRoot, "data", "outlines"), { recursive: true });
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(join(sourceDir, "full.md"), ["# 课后练习", "比较两个有理数的大小。"].join("\n"), "utf8");
+    writeFileSync(outlinePath, JSON.stringify({
+      book_id: "book-a",
+      source_path: "data/mineru/book-a/full.md",
+      items: [
+        { id: "topic", kind: "topic", title: "第一单元", order_path: "1" },
+        { id: "struct:book-a:lesson:1", kind: "lesson", parent_id: "topic", title: "课后练习", order_path: "1.1", md_start: 1, md_end: 2 },
+        {
+          id: "struct:book-a:chunk:1-a",
+          kind: "chunk",
+          parent_id: "struct:book-a:lesson:1",
+          source_ids: ["struct:book-a:lesson:1"],
+          title: "课后练习",
+          content_role: "knowledge",
+          order_path: "1.1-a",
+          md_start: 1,
+          md_end: 2,
+        },
+      ],
+    }), "utf8");
+
+    const result = ensureChunkedOutline({ outlinePath, repoRoot, minLines: 10, maxLines: 100 });
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    assert.deepEqual(
+      outline.items.filter((item) => item.kind === "chunk").map((item) => item.content_role),
+      ["assessment"],
+    );
   } finally {
     rmSync(repoRoot, { recursive: true, force: true });
   }

@@ -2,6 +2,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSyn
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 import { parseHeadings, planChunkOutline, type ChunkOutlineItem } from "./chunk-outline.js";
+import { classifyOutlineContent } from "./content-role.js";
 import { findSiblingContentListV2 } from "./mineru-source.js";
 import { iterOutlineItems, safePathToken, type OutlineItem } from "../shared/pathing.js";
 
@@ -20,6 +21,7 @@ type StructuredHeadingConstraint = {
   headingPages: Array<{ line: number; page: number }>;
   markdownEndLine?: number;
   pageEnd: number;
+  tocPages?: { start: number; end: number };
 };
 
 type EnrichHeadingSelection =
@@ -152,7 +154,11 @@ export function prepareSourceMarkdown(input: {
     // MinerU writes Markdown and its sibling image directories under the safe
     // book token. Reuse that same directory so relative image references stay
     // attached to the source instead of copying only full.md elsewhere.
-    const targetPath = resolve(input.repoRoot, "data", "mineru", safePathToken(input.bookId), "full.md");
+    const mineruRoot = resolve(input.repoRoot, "data", "mineru");
+    const sourceIsManaged = sourcePath === mineruRoot || sourcePath.startsWith(`${mineruRoot}${sep}`);
+    const targetPath = sourceIsManaged
+      ? sourcePath
+      : resolve(mineruRoot, safePathToken(input.bookId), "full.md");
     mkdirSync(dirname(targetPath), { recursive: true });
     const imported = sourcePath !== targetPath;
     if (imported) copyFileSync(sourcePath, targetPath);
@@ -311,7 +317,7 @@ export function ensureOutlineFromEnrich(input: {
 
   const markdownLines = readPlainLines(markdownPath);
   const contentListV2Path = findSiblingContentListV2(markdownPath);
-  const headingSelection = selectEnrichHeadingSequence(items, markdownLines, contentListV2Path);
+  const headingSelection = selectEnrichHeadingSequence(markdownLines, contentListV2Path);
   if (headingSelection.ambiguous) {
     return {
       status: "skipped",
@@ -330,7 +336,7 @@ export function ensureOutlineFromEnrich(input: {
     source_kind: "enrich",
     source_ref: input.enrichBookPath,
     generated_at: input.generatedAt ?? new Date().toISOString(),
-    toc_pages: { start: 1, end: 1 },
+    toc_pages: headingSelection.constraint.tocPages ?? { start: 1, end: 1 },
     items,
   });
 
@@ -436,7 +442,17 @@ export function alignOutlineToMarkdown(input: {
     if (!titleNorm && !labelNorm) continue;
     const candidates = headings
       .filter((heading) => !usedLines.has(heading.line) && heading.line > lastLine)
-      .map((heading) => ({ score: headingScore(heading.norm, titleNorm, labelNorm), heading }))
+      .map((heading) => ({
+        score: headingScore(
+          heading.norm,
+          titleNorm,
+          labelNorm,
+          heading.raw,
+          String(item.title ?? ""),
+          String(item.label ?? ""),
+        ),
+        heading,
+      }))
       .filter((candidate) => candidate.score > 0);
     if (candidates.length === 0) continue;
     const chosen = [...candidates].sort((left, right) => right.score - left.score || left.heading.line - right.heading.line)[0]!.heading;
@@ -502,19 +518,36 @@ export function ensureChunkedOutline(input: {
   if (!itemKey) return { status: "blocked", outline_path: input.outlinePath, error: `Outline is missing items/structure: ${input.outlinePath}` };
   const rootItems = (outline[itemKey] as unknown[]).filter(isRecord) as OutlineItem[];
   const items = (iterOutlineItems(rootItems) as ChunkOutlineItem[]).sort(compareDocumentOrder);
-  if (items.some((item) => item.kind === "chunk")) {
-    return { status: "skipped", outline_path: input.outlinePath, reason: "Outline already contains chunk items." };
-  }
   if (input.noChunks) {
     return { status: "skipped", outline_path: input.outlinePath, reason: "--no-chunks requested lesson-level extraction." };
   }
 
+  const existingChunks = items.filter((item) => item.kind === "chunk");
+  const coveredLeafIds = new Set(existingChunks.flatMap((chunk) => [
+    typeof chunk.parent_id === "string" ? chunk.parent_id : "",
+    ...(Array.isArray(chunk.source_ids) ? chunk.source_ids.map(String) : []),
+  ]).filter(Boolean));
+  const extractableLeaves = items.filter((item) =>
+    (item.kind === "lesson" || item.kind === "activity") && classifyOutlineContent(item) !== "excluded",
+  );
+  const needsRoleMigration = existingChunks.some((chunk) =>
+    (chunk.content_role !== "knowledge" && chunk.content_role !== "summary" && chunk.content_role !== "assessment")
+      || chunkRoleConflictsWithTitle(chunk),
+  );
+  const hasUncoveredLeaves = extractableLeaves.some((item) => typeof item.id === "string" && !coveredLeafIds.has(item.id));
+  if (existingChunks.length > 0 && !needsRoleMigration && !hasUncoveredLeaves) {
+    return { status: "skipped", outline_path: input.outlinePath, reason: "Outline already contains classified chunk items." };
+  }
+
   const sourcePath = typeof outline.source_path === "string" ? resolveInputPath(outline.source_path, input.repoRoot) : "";
   const headings = sourcePath && existsSync(sourcePath) ? parseHeadings(readTextLines(sourcePath)) : [];
-  const plan = planChunkOutline(items, headings, {
+  const rootsWithoutChunks = stripChunkItems(rootItems);
+  const itemsWithoutChunks = (iterOutlineItems(rootsWithoutChunks) as ChunkOutlineItem[]).sort(compareDocumentOrder);
+  const plan = planChunkOutline(itemsWithoutChunks, headings, {
     minLines: input.minLines,
     maxLines: input.maxLines,
     targetLines: input.targetLines,
+    preserveLeafBoundaries: outline.source_kind === "enrich",
   });
   if (plan.chunks.length === 0) {
     return { status: "skipped", outline_path: input.outlinePath, reason: "No chunks generated from outline items." };
@@ -522,7 +555,7 @@ export function ensureChunkedOutline(input: {
 
   writeOutlineRecord(input.outlinePath, {
     ...outline,
-    [itemKey]: [...rootItems, ...plan.chunks],
+    [itemKey]: [...rootsWithoutChunks, ...plan.chunks],
   });
   return {
     status: "completed",
@@ -530,6 +563,20 @@ export function ensureChunkedOutline(input: {
     generated_chunks: plan.chunks.length,
     unit_kind: "chunk",
   };
+}
+
+function stripChunkItems(items: OutlineItem[]): OutlineItem[] {
+  return items
+    .filter((item) => item.kind !== "chunk")
+    .map((item) => ({
+      ...item,
+      ...(Array.isArray(item.children) ? { children: stripChunkItems(item.children) } : {}),
+    }));
+}
+
+function chunkRoleConflictsWithTitle(chunk: ChunkOutlineItem): boolean {
+  const inferred = classifyOutlineContent({ kind: chunk.kind, title: chunk.title, label: chunk.label });
+  return (inferred === "summary" || inferred === "assessment") && chunk.content_role !== inferred;
 }
 
 function loadOutlineRecord(path: string): RawRecord {
@@ -571,10 +618,7 @@ function flattenEnrichOutline(bookId: string, roots: RawRecord[]): RawRecord[] {
   return items;
 }
 
-function selectEnrichHeadingSequence(items: RawRecord[], lines: string[], contentListV2Path: string | null): EnrichHeadingSelection {
-  const lessons = items
-    .filter((item) => item.kind === "lesson" || item.kind === "activity")
-    .sort(compareHierarchyOrder);
+function selectEnrichHeadingSequence(lines: string[], contentListV2Path: string | null): EnrichHeadingSelection {
   const headings = parseMarkdownHeadings(lines);
   if (!contentListV2Path) {
     return {
@@ -583,7 +627,7 @@ function selectEnrichHeadingSequence(items: RawRecord[], lines: string[], conten
     };
   }
   try {
-    return selectStructuredEnrichHeadingSequence(lessons, headings, contentListV2Path);
+    return selectStructuredEnrichHeadingSequence(headings, contentListV2Path);
   } catch (error) {
     return {
       ambiguous: true,
@@ -593,7 +637,6 @@ function selectEnrichHeadingSequence(items: RawRecord[], lines: string[], conten
 }
 
 function selectStructuredEnrichHeadingSequence(
-  lessons: RawRecord[],
   markdownHeadings: MarkdownHeading[],
   contentListV2Path: string,
 ): EnrichHeadingSelection {
@@ -638,23 +681,6 @@ function selectStructuredEnrichHeadingSequence(
     };
   }
 
-  const sequences: number[][] = [];
-  let startAfter = 0;
-  while (sequences.length < 2) {
-    const sequence = findHeadingSequence(lessons, bodyHeadings, startAfter);
-    if (!sequence) break;
-    sequences.push(sequence);
-    startAfter = sequence[sequence.length - 1]!;
-  }
-  const topOccurrenceCounts = lessons.map((item) => countTopHeadingMatches(item, bodyHeadings));
-  const hasDuplicateBodyMatches = topOccurrenceCounts.some((count) => count > 1);
-  if (sequences.length !== 1 || hasDuplicateBodyMatches) {
-    return {
-      ambiguous: true,
-      reason: `MinerU content_list_v2.json did not identify one unique complete Enrich sequence in the textbook body (${sequences.length}${sequences.length >= 2 ? "+" : ""} occurrence(s)).`,
-    };
-  }
-
   const appendixLine = appendixHeading === undefined
     ? undefined
     : mappedHeadings.find(({ mineru }) => mineru === appendixHeading)?.markdown.line;
@@ -674,6 +700,12 @@ function selectStructuredEnrichHeadingSequence(
       })),
       ...(appendixLine === undefined ? {} : { markdownEndLine: Math.max(1, appendixLine - 1) }),
       pageEnd: appendixStartPage ?? pages.length,
+      ...(tocStartPage < 0 ? {} : {
+        tocPages: {
+          start: tocStartPage + 1,
+          end: Math.max(tocStartPage, tocEndPage) + 1,
+        },
+      }),
     },
   };
 }
@@ -801,33 +833,6 @@ function isTocHeadingTitle(normalizedTitle: string): boolean {
   return ["目录", "目次", "contents", "tableofcontents", "目录contents"].includes(normalizedTitle);
 }
 
-function countTopHeadingMatches(item: RawRecord, headings: MarkdownHeading[]): number {
-  const titleNorm = normalizeHeadingText(item.title);
-  const labelNorm = normalizeHeadingText(item.label);
-  const scores = headings.map((heading) => headingScore(heading.norm, titleNorm, labelNorm));
-  const topScore = Math.max(0, ...scores);
-  return topScore > 0 ? scores.filter((score) => score === topScore).length : 0;
-}
-
-function findHeadingSequence(items: RawRecord[], headings: MarkdownHeading[], startAfter: number): number[] | null {
-  const sequence: number[] = [];
-  let lastLine = startAfter;
-  for (const item of items) {
-    const titleNorm = normalizeHeadingText(item.title);
-    const labelNorm = normalizeHeadingText(item.label);
-    const candidates = headings
-      .filter((heading) => heading.line > lastLine)
-      .map((heading) => ({ score: headingScore(heading.norm, titleNorm, labelNorm), heading }))
-      .filter((candidate) => candidate.score > 0)
-      .sort((left, right) => right.score - left.score || left.heading.line - right.heading.line);
-    const chosen = candidates[0]?.heading;
-    if (!chosen) return null;
-    sequence.push(chosen.line);
-    lastLine = chosen.line;
-  }
-  return sequence;
-}
-
 function restoreOutline(path: string, previousOutline: string | null): void {
   if (previousOutline === null) {
     rmSync(path, { force: true });
@@ -894,13 +899,36 @@ function readPlainLines(path: string): string[] {
   return normalized.endsWith("\n") ? normalized.slice(0, -1).split("\n") : normalized.split("\n");
 }
 
-function headingScore(headingNorm: string, titleNorm: string, labelNorm: string): number {
+function headingScore(
+  headingNorm: string,
+  titleNorm: string,
+  labelNorm: string,
+  headingRaw = "",
+  titleRaw = "",
+  labelRaw = "",
+): number {
   if (titleNorm && labelNorm && headingNorm.includes(titleNorm) && headingNorm.includes(labelNorm)) return 110;
   if (titleNorm && titleNorm === headingNorm) return 100;
   if (titleNorm && headingNorm.includes(titleNorm)) return 90;
+  if (sharesSectionPath(headingRaw, titleRaw, labelRaw)) return 85;
   if (titleNorm && titleNorm.includes(headingNorm) && headingNorm.length / Math.max(1, titleNorm.length) >= 0.75) return 70;
   if (labelNorm && headingNorm.includes(labelNorm)) return 50;
   return 0;
+}
+
+function sharesSectionPath(heading: string, ...outlineValues: string[]): boolean {
+  const headingPaths = extractSectionPaths(heading);
+  if (headingPaths.size === 0) return false;
+  return outlineValues.some((value) => [...extractSectionPaths(value)].some((path) => headingPaths.has(path)));
+}
+
+function extractSectionPaths(value: string): Set<string> {
+  const normalized = value.replace(/[．。]/g, ".");
+  return new Set(
+    [...normalized.matchAll(/(?:^|[^\d.])(\d+(?:\.\d+)+)(?=$|[^\d.])/g)]
+      .map((match) => match[1]!)
+      .filter(Boolean),
+  );
 }
 
 function compareOrderPath(left: RawRecord, right: RawRecord): number {

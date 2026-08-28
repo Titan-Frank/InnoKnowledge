@@ -4,30 +4,163 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { Hono } from 'hono';
-import type { PipelinePdfUploadResponse } from '@okm/types';
+import type { PipelinePdfUploadResponse, PipelineStopResponse } from '@okm/types';
 import type { Sql } from '../db/connection.js';
 import { DATASET_ADVISORY_LOCK_SQL } from '../db/dataset-lock.js';
 import {
   applyQualityReviewAction,
+  assertOutlineConfirmed,
+  attachOutlineChunkPreviews,
+  buildOutlineChunkContent,
+  buildOutlinePreview,
   buildPipelineCommand,
   claimPipelineJobResume,
+  createPipelineJobId,
+  failedBatchAnchorsForResume,
   generatedBookId,
   inferBookId,
   inspectOcrFolder,
+  latestPipelineProcessPid,
+  markPipelineJobStopped,
   MAX_ACTIVE_PIPELINE_JOBS,
   pipelineBookNodeLimit,
+  outlineFingerprint,
   qualityReviewPatch,
   redactCommand,
   registerPipelineRoutes,
   reservePipelineJobStart,
+  resolveAutomaticEnrichBookPath,
+  resolvePipelineBookId,
   restoreResumeEnrichSettings,
   restoreResumeSourceSettings,
   resolveNpmInvocation,
   scanPdfFolder,
   safePdfUploadName,
+  safeToken,
   shouldValidateEnrichBook,
   updatePendingQualityReview,
 } from './pipeline.js';
+
+test('automatic Enrich matching requires one exact normalized textbook identity', () => {
+  const index = {
+    books: [
+      {
+        path: 'data/enrich/数学/初中_七年级_数学_人教版_上册_enriched.json',
+        filename: '初中_七年级_数学_人教版_上册_enriched.json',
+        title: '初中 · 七年级 · 数学 · 人教版 · 上册',
+      },
+      {
+        path: 'data/enrich/数学/初中_七年级_数学_人教版_下册_enriched.json',
+        filename: '初中_七年级_数学_人教版_下册_enriched.json',
+        title: '初中 · 七年级 · 数学 · 人教版 · 下册',
+      },
+    ],
+  };
+
+  assert.equal(
+    resolveAutomaticEnrichBookPath(index, ['初中_七年级_数学_人教版_上册']),
+    'data/enrich/数学/初中_七年级_数学_人教版_上册_enriched.json',
+  );
+  assert.equal(resolveAutomaticEnrichBookPath(index, ['初中_七年级_数学_人教版']), null);
+  assert.equal(resolveAutomaticEnrichBookPath({ books: [index.books[0], index.books[0]] }, ['初中_七年级_数学_人教版_上册']), null);
+});
+
+test('outline preview exposes hierarchy, ranges, fingerprint, and confirmation state', () => {
+  const outline = {
+    title: '七年级数学',
+    source_kind: 'enrich',
+    source_ref: 'data/enrich/math.json',
+    source_path: 'data/mineru/math/full.md',
+    toc_pages: { start: 5, end: 7 },
+    items: [
+      { id: 'theme-1', kind: 'theme', title: '第一章', order_path: '1', page_start: 8, page_end: 20, md_start: 10, md_end: 100 },
+      { id: 'lesson-1', kind: 'lesson', parent_id: 'theme-1', title: '1.1 正数', order_path: '1.1', page_start: 9, page_end: 12, md_start: 20, md_end: 60 },
+      { id: 'chunk-1', kind: 'chunk', parent_id: 'lesson-1', title: '1.1 正数', content_role: 'summary', order_path: '1.1-a', page_start: 9, page_end: 12, md_start: 20, md_end: 60, source_ids: ['lesson-1'] },
+    ],
+  };
+  const fingerprint = outlineFingerprint(outline);
+  const pending = buildOutlinePreview('main', 'math-7', outline);
+
+  assert.equal(fingerprint.length, 64);
+  assert.equal(pending.review_status, 'pending');
+  assert.deepEqual(pending.toc_pages, { start: 5, end: 7 });
+  assert.deepEqual(pending.summary, {
+    themes: 1,
+    topics: 0,
+    lessons: 1,
+    chunks: 1,
+    knowledge_chunks: 0,
+    summary_chunks: 1,
+    assessment_chunks: 0,
+    pages: 13,
+  });
+  assert.equal(pending.items[2]?.content_role, 'summary');
+  assert.deepEqual(pending.items.map((item) => [item.id, item.depth]), [
+    ['theme-1', 0],
+    ['lesson-1', 1],
+    ['chunk-1', 2],
+  ]);
+
+  const confirmedOutline = {
+    ...outline,
+    outline_review: { status: 'confirmed', fingerprint, confirmed_at: '2026-08-27T12:00:00.000Z' },
+  };
+  assert.equal(buildOutlinePreview('main', 'math-7', confirmedOutline).review_status, 'confirmed');
+  assert.doesNotThrow(() => assertOutlineConfirmed(confirmedOutline, fingerprint));
+  assert.throws(() => assertOutlineConfirmed(outline, fingerprint), /尚未人工确认/);
+  assert.throws(() => assertOutlineConfirmed(confirmedOutline, 'stale'), /已经变化/);
+  assert.notEqual(outlineFingerprint({ ...outline, items: outline.items.map((item, index) => index === 2 ? { ...item, md_end: 61 } : item) }), fingerprint);
+  assert.notEqual(outlineFingerprint({ ...outline, items: outline.items.map((item, index) => index === 2 ? { ...item, content_role: 'assessment' } : item) }), fingerprint);
+});
+
+test('outline chunk preview exposes a compact hover excerpt and full on-demand content', () => {
+  const outline = {
+    title: '七年级数学',
+    source_path: 'data/mineru/math/full.md',
+    items: [
+      { id: 'lesson-1', kind: 'lesson', title: '1.1 正数', md_start: 1, md_end: 4 },
+      { id: 'chunk-1', kind: 'chunk', parent_id: 'lesson-1', title: '正数 — 引入', order_path: '1.1-a', md_start: 2, md_end: 4, source_ids: ['lesson-1'] },
+    ],
+  };
+  const sourceLines = ['# 1.1 正数', '## 引入', '正数大于零。', '![数轴](images/axis.png)', '不属于本块'];
+  const preview = attachOutlineChunkPreviews(buildOutlinePreview('main', 'math-7', outline), sourceLines);
+  const chunk = preview.items.find((item) => item.id === 'chunk-1');
+
+  assert.equal(chunk?.preview_text, '## 引入 正数大于零。 [图片]');
+  assert.equal(chunk?.line_count, 3);
+  assert.deepEqual(buildOutlineChunkContent(preview, 'chunk-1', sourceLines, 'data/mineru/math'), {
+    id: 'chunk-1',
+    title: '正数 — 引入',
+    content_role: null,
+    page_start: null,
+    page_end: null,
+    md_start: 2,
+    md_end: 4,
+    line_count: 3,
+    character_count: 35,
+    source_ids: ['lesson-1'],
+    asset_base_path: 'data/mineru/math',
+    content: '## 引入\n正数大于零。\n![数轴](images/axis.png)',
+    truncated: false,
+  });
+  assert.equal(buildOutlineChunkContent(preview, 'lesson-1', sourceLines), null);
+});
+
+test('prepare-only command stops before model extraction', () => {
+  const command = buildPipelineCommand({
+    book_id: 'math-7',
+    book_title: '七年级数学',
+    dataset_id: 'main',
+    output_root: 'data/main',
+    prepare_only: true,
+  }, 'job-1', '/tmp/job-1.log', 'postgresql://okm:okm@localhost:5432/knowledge');
+  assert.equal(command.includes('--prepare-only'), true);
+  assert.throws(() => buildPipelineCommand({
+    book_id: 'math-7',
+    prepare_only: true,
+    start_stage: 'lesson_plan',
+  }, 'job-2', '/tmp/job-2.log', 'postgresql://okm:okm@localhost:5432/knowledge'), /prepare_only cannot start/);
+});
 
 test('quality review action closes the pending flag and preserves review evidence', () => {
   const next = applyQualityReviewAction({
@@ -76,7 +209,7 @@ test('quality review update merges review metadata into the current JSONB value'
   )), qualityReviewPatch('accept', '确认接受', '2026-08-26T04:10:00.000Z'));
 });
 
-test('textbook IDs are stable internal keys derived from the displayed name', () => {
+test('textbook IDs combine a readable name with a stable collision-resistant suffix', () => {
   assert.equal(
     inferBookId({ book_title: '高中物理 必修 第一册', pdf_path: '/tmp/random-a/book.pdf' }),
     inferBookId({ book_title: '高中物理 必修 第一册', pdf_path: '/tmp/random-b/renamed.pdf' }),
@@ -85,10 +218,37 @@ test('textbook IDs are stable internal keys derived from the displayed name', ()
     inferBookId({ pdf_path: '/tmp/upload-a/八年级化学.pdf' }),
     inferBookId({ pdf_path: '/tmp/upload-b/八年级化学.pdf' }),
   );
-  assert.equal(generatedBookId('Chemistry Grade 8'), 'chemistry-grade-8');
+  assert.equal(generatedBookId('Chemistry Grade 8'), 'chemistry-grade-8-170e5d4725c0');
+  assert.equal(generatedBookId('数学'), '数学-872c1fa141b5');
+  assert.equal(generatedBookId('高中物理 必修 第一册'), '高中物理-必修-第一册-8467fadd00f3');
+  assert.equal(generatedBookId('初中_七年级_数学_人教版_上册'), '初中-七年级-数学-人教版-上册-82c1289c80ac');
+  assert.notEqual(
+    generatedBookId('高中物理：必修第一册'),
+    generatedBookId('高中物理/必修第一册'),
+  );
+  assert.equal(
+    generatedBookId('同名教材', 'same-content'),
+    generatedBookId('同名教材', 'same-content'),
+  );
+  assert.notEqual(
+    generatedBookId('同名教材', 'content-a'),
+    generatedBookId('同名教材', 'content-b'),
+  );
+  assert.equal(
+    inferBookId({ book_id: '_-_-_-_', book_title: '初中_七年级_数学_人教版_上册' }),
+    '初中-七年级-数学-人教版-上册-82c1289c80ac',
+  );
   assert.equal(
     inferBookId({ ocr_folder_path: '/data/初中_七年级_数学_人教版_上册/hybrid_ocr' }),
     generatedBookId('初中_七年级_数学_人教版_上册'),
+  );
+});
+
+test('pipeline job IDs keep readable Chinese book IDs and use a sortable timestamp', () => {
+  assert.equal(safeToken(' 初中_七年级/数学：上册 '), '初中_七年级-数学-上册');
+  assert.equal(
+    createPipelineJobId('初中_七年级_数学_人教版_上册', new Date('2026-08-28T06:07:08.123Z')),
+    '初中_七年级_数学_人教版_上册.20260828T060708123Z',
   );
 });
 
@@ -161,6 +321,7 @@ test('pipeline PDF upload stores a validated file and returns its server path', 
   const payload = await response.json() as PipelinePdfUploadResponse;
   assert.equal(payload.file_name, '八年级化学.pdf');
   assert.equal(payload.size_bytes, 26);
+  assert.equal(payload.source_fingerprint, '5fd0d1e720aa65ad8ec2ecc27b10ac4c051b4f8c3d14ec95d28d83b8503fc808');
   assert.match(payload.pdf_path, /storage\/pipeline-uploads\/.+\/八年级化学\.pdf$/);
   await rm(dirname(payload.pdf_path), { recursive: true, force: true });
 
@@ -395,6 +556,59 @@ test('buildPipelineCommand forwards the requested resume stage', () => {
   );
 });
 
+test('resume requests preserve persisted legacy book IDs', () => {
+  const legacyBookId = '_-_-_-_';
+  const request = {
+    book_id: legacyBookId,
+    resume_job_id: `${legacyBookId}.123`,
+    start_stage: 'lesson_staging' as const,
+  };
+  assert.equal(resolvePipelineBookId(request), legacyBookId);
+  const command = buildPipelineCommand(
+    request,
+    request.resume_job_id,
+    '/tmp/legacy-resume.log',
+    'postgresql://okm:okm@127.0.0.1:5432/knowledge',
+  );
+  assert.equal(command[command.indexOf('--book-id') + 1], legacyBookId);
+  assert.equal(command.includes('--resume-existing-job'), true);
+});
+
+test('selective model resume forwards only persisted failed batch anchors', () => {
+  const failedAnchors = failedBatchAnchorsForResume({
+    id: 'lesson_staging',
+    status: 'blocked',
+    label: '模型抽取课时',
+    progress: {
+      results: [
+        { batch_anchor: 'struct:math:chunk:1-a', exit_code: 0 },
+        { batch_anchor: 'struct:math:chunk:1-b', exit_code: 2 },
+        { batch_anchor: 'struct:math:chunk:1-c', exit_code: 2 },
+        { batch_anchor: 'struct:math:chunk:1-c', exit_code: 2 },
+      ],
+    },
+    started_at: null,
+    completed_at: null,
+    updated_at: null,
+  });
+  assert.deepEqual(failedAnchors, ['struct:math:chunk:1-b', 'struct:math:chunk:1-c']);
+
+  const command = buildPipelineCommand(
+    {
+      book_id: 'math',
+      start_stage: 'lesson_staging',
+      resume_job_id: 'math.123',
+      resume_batch_anchors: failedAnchors,
+    },
+    'math.123',
+    '/tmp/math.123.log',
+    'postgresql://okm:okm@127.0.0.1:5432/knowledge',
+  );
+  const anchorsIndex = command.indexOf('--resume-batch-anchors');
+  assert.notEqual(anchorsIndex, -1);
+  assert.deepEqual(JSON.parse(command[anchorsIndex + 1] ?? '[]'), failedAnchors);
+});
+
 test('claimPipelineJobResume reuses one blocked job and resets its runtime state', async () => {
   const statements: string[] = [];
   const parameterSets: unknown[][] = [];
@@ -439,6 +653,79 @@ test('claimPipelineJobResume rejects a job that is no longer blocked', async () 
   assert.equal(calls, 1);
 });
 
+test('latestPipelineProcessPid selects the newest spawned process', () => {
+  assert.equal(latestPipelineProcessPid([
+    '[pipeline] spawned pid=120',
+    '[pipeline] failed exitCode=2',
+    '[pipeline] spawned pid=345',
+  ].join('\n')), 345);
+  assert.equal(latestPipelineProcessPid('[pipeline] spawned pid=unknown'), null);
+});
+
+test('markPipelineJobStopped blocks the running stage and workers for resume', async () => {
+  const statements: string[] = [];
+  const parameters: unknown[][] = [];
+  const sql = ((strings: TemplateStringsArray, ...values: unknown[]) => {
+    statements.push(strings.join(' '));
+    parameters.push(values);
+    return Promise.resolve([]);
+  }) as unknown as Sql;
+
+  await markPipelineJobStopped(sql, 'main', 'chemistry.123', '用户停止');
+
+  assert.equal(statements.length, 3);
+  assert.match(statements[0]!, /UPDATE world_pipeline_worker_states[\s\S]*status = 'failed'/);
+  assert.match(statements[1]!, /UPDATE world_pipeline_job_stages[\s\S]*status = 'blocked'/);
+  assert.match(statements[2]!, /UPDATE world_pipeline_jobs[\s\S]*status = 'blocked'/);
+  assert.ok(parameters.every((values) => values.includes('用户停止')));
+});
+
+test('pipeline stop endpoint terminates the recorded process before blocking the job', async () => {
+  let stoppedPid = 0;
+  const sql = ((strings: TemplateStringsArray) => {
+    const statement = strings.join(' ').replace(/\s+/g, ' ').trim();
+    if (statement.includes('FROM world_datasets')) return Promise.resolve([{
+      dataset_id: 'main',
+      version_key: 'main',
+      schema_version: 'world-v1.2',
+      root_path: '',
+      is_active: 1,
+    }]);
+    if (statement.includes('FROM world_pipeline_jobs') && statement.includes('job_id =')) return Promise.resolve([{
+      job_id: 'chemistry.123',
+      book_id: 'chemistry',
+      status: 'running',
+      current_stage_id: 'lesson_staging',
+      progress_json: {},
+      context_json: { process_pid: 4567 },
+      log_path: '/tmp/chemistry.123.log',
+      updated_at: null,
+      completed_at: null,
+      error: null,
+    }]);
+    if (statement.includes('FROM world_pipeline_job_stages')) return Promise.resolve([]);
+    if (statement.includes('FROM world_pipeline_worker_states')) return Promise.resolve([]);
+    if (statement.includes('FROM world_pipeline_job_events')) return Promise.resolve([]);
+    if (statement.includes('FROM world_textbook_outlines')) return Promise.resolve([]);
+    return Promise.resolve([]);
+  }) as unknown as Sql;
+  const app = new Hono();
+  registerPipelineRoutes(app, sql, 'postgresql://okm:okm@localhost:5432/knowledge', {
+    stopProcessTree: async (pid) => {
+      stoppedPid = pid;
+      return true;
+    },
+  });
+
+  const response = await app.request('/api/source/main/pipeline/jobs/chemistry.123/stop', { method: 'POST' });
+  const payload = await response.json() as PipelineStopResponse;
+
+  assert.equal(response.status, 200);
+  assert.equal(stoppedPid, 4567);
+  assert.equal(payload.status, 'stopped');
+  assert.equal(payload.job_id, 'chemistry.123');
+});
+
 test('reservePipelineJobStart records a running job under the shared dataset lock', async () => {
   const statements: string[] = [];
   const parameterSets: unknown[][] = [];
@@ -481,6 +768,7 @@ test('reservePipelineJobStart records a running job under the shared dataset loc
     enrich_context: true,
     enrich_book_path: 'data/enrich/chemistry.json',
     ocr_folder_path: '/data/chemistry/hybrid_ocr',
+    prepare_only: false,
   });
 });
 

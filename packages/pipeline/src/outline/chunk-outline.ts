@@ -1,9 +1,9 @@
+import { classifyOutlineContent, type OutlineContentRole } from "./content-role.js";
+
 export const DEFAULT_MAX_LINES = 300;
 export const DEFAULT_MIN_LINES = 150;
 export const DEFAULT_TARGET_LINES = 250;
 export const CHUNK_SUFFIXES = "abcdefghijklmnopqrstuvwxyz";
-
-const REVIEW_PATTERN = /小结|习题|复习|练习巩固|归纳小结|总结|参考文献|编程作业|人物专访|Wireshark/;
 
 export type ChunkOutlineItem = {
   id?: string;
@@ -14,6 +14,8 @@ export type ChunkOutlineItem = {
   page_start?: unknown;
   page_end?: unknown;
   title?: unknown;
+  label?: unknown;
+  content_role?: OutlineContentRole;
   [key: string]: unknown;
 };
 
@@ -32,13 +34,14 @@ export type ChunkItem = ChunkOutlineItem & {
   parent_id: string;
   source_ids: string[];
   raw_line: "";
+  content_role: Exclude<OutlineContentRole, "excluded">;
 };
 
 export type ChunkOutlineStats = {
   split: number;
   merged: number;
   normal: number;
-  review_skipped: number;
+  excluded: number;
 };
 
 export type ChunkOutlinePlan = {
@@ -59,6 +62,7 @@ type LogicalSection = {
   start: number;
   end: number;
   title: string;
+  contentRole: Exclude<OutlineContentRole, "excluded">;
 };
 
 export function mdSpan(item: ChunkOutlineItem): number {
@@ -104,8 +108,8 @@ export function parseHeadings(lines: string[]): MarkdownHeading[] {
   return result;
 }
 
-export function isReviewItem(item: ChunkOutlineItem): boolean {
-  return REVIEW_PATTERN.test(String(item.title ?? ""));
+export function isExcludedItem(item: ChunkOutlineItem): boolean {
+  return classifyOutlineContent(item) === "excluded";
 }
 
 export function mergeUndersized(itemsInTopic: ChunkOutlineItem[], minLines: number, maxLines: number): ChunkOutlineItem[][] {
@@ -121,7 +125,7 @@ export function mergeUndersized(itemsInTopic: ChunkOutlineItem[], minLines: numb
         const previous = groups[groups.length - 1]![0]!;
         const previousSpan = mdSpan(previous);
         const combined = previousSpan + span;
-        if (previousSpan <= maxLines && combined <= maxLines) {
+        if (classifyOutlineContent(previous) === classifyOutlineContent(item) && previousSpan <= maxLines && combined <= maxLines) {
           groups[groups.length - 1]!.push(item);
           index += 1;
           continue;
@@ -139,7 +143,9 @@ export function mergeUndersized(itemsInTopic: ChunkOutlineItem[], minLines: numb
         const nextItem = itemsInTopic[nextIndex]!;
         const nextSpan = mdSpan(nextItem);
         const combined = group.reduce((sum, groupItem) => sum + mdSpan(groupItem), 0) + nextSpan;
-        const mergeable = (nextItem.kind === "activity" || mdSpan(nextItem) < minLines) && combined <= maxLines;
+        const mergeable = classifyOutlineContent(nextItem) === classifyOutlineContent(item)
+          && (nextItem.kind === "activity" || mdSpan(nextItem) < minLines)
+          && combined <= maxLines;
         if (!mergeable) break;
         group.push(nextItem);
         nextIndex += 1;
@@ -160,19 +166,24 @@ export function splitOversized(item: ChunkOutlineItem, headings: MarkdownHeading
   const start = Number(item.md_start ?? 0);
   const end = Number(item.md_end ?? 0);
   const span = end - start + 1;
-
-  if (span <= maxLines) return [makeSingleChunk(item)];
-
   const inner = headings.filter((heading) => start <= heading.line && heading.line <= end);
+  const parentRole = extractableContentRole(item);
+  const hasContentRoleBoundary = inner.some((heading) => contentRoleForSection(item, heading.text) !== parentRole);
+  if (span <= maxLines && !hasContentRoleBoundary) return [makeSingleChunk(item)];
   if (inner.length === 0) return [makeSingleChunk(item)];
 
-  const boundaries = [start, ...inner.map((heading) => heading.line), end + 1];
+  const boundaries = uniqueNumbers([start, ...inner.map((heading) => heading.line), end + 1]);
   const rawSections: LogicalSection[] = [];
   for (let index = 0; index < boundaries.length - 1; index += 1) {
     const sectionStart = boundaries[index]!;
     const sectionEnd = boundaries[index + 1]! - 1;
     const heading = inner.find((candidate) => sectionStart <= candidate.line && candidate.line <= sectionEnd);
-    rawSections.push({ start: sectionStart, end: sectionEnd, title: heading?.text ?? "" });
+    rawSections.push({
+      start: sectionStart,
+      end: sectionEnd,
+      title: heading?.text ?? "",
+      contentRole: contentRoleForSection(item, heading?.text ?? ""),
+    });
   }
 
   const minSection = Math.max(Math.trunc(target / 4), 30);
@@ -180,15 +191,17 @@ export function splitOversized(item: ChunkOutlineItem, headings: MarkdownHeading
   let chunkStart = logicalSections[0]!.start;
   let titleParts: string[] = [];
   let accumulated = 0;
+  let chunkRole = logicalSections[0]!.contentRole;
   let chunks: ChunkItem[] = [];
 
   for (const section of logicalSections) {
     const sectionLength = section.end - section.start + 1;
-    if (accumulated > 0 && accumulated + sectionLength > target * 1.3) {
+    if (accumulated > 0 && (section.contentRole !== chunkRole || accumulated + sectionLength > target * 1.3)) {
       chunks.push(makeChunk(item, chunkStart, section.start - 1, CHUNK_SUFFIXES[chunks.length]!, titleParts));
       chunkStart = section.start;
       titleParts = section.title ? [section.title] : [];
       accumulated = sectionLength;
+      chunkRole = section.contentRole;
     } else {
       if (section.title && titleParts.length === 0) titleParts.push(section.title);
       accumulated += sectionLength;
@@ -202,7 +215,7 @@ export function splitOversized(item: ChunkOutlineItem, headings: MarkdownHeading
   if (chunks.length > 1) {
     const merged: ChunkItem[] = [chunks[0]!];
     for (const chunk of chunks.slice(1)) {
-      if (mdSpan(chunk) < minSection && merged.length > 0) {
+      if (mdSpan(chunk) < minSection && merged.length > 0 && merged[merged.length - 1]!.content_role === chunk.content_role) {
         const previous = merged[merged.length - 1]!;
         previous.md_end = chunk.md_end;
         previous.source_ids = uniqueStrings([...previous.source_ids, ...chunk.source_ids]);
@@ -220,7 +233,7 @@ export function splitOversized(item: ChunkOutlineItem, headings: MarkdownHeading
 export function planChunkOutline(
   items: ChunkOutlineItem[],
   headings: MarkdownHeading[],
-  options: { minLines?: number; maxLines?: number; targetLines?: number } = {},
+  options: { minLines?: number; maxLines?: number; targetLines?: number; preserveLeafBoundaries?: boolean } = {},
 ): ChunkOutlinePlan {
   const minLines = options.minLines ?? DEFAULT_MIN_LINES;
   const maxLines = options.maxLines ?? DEFAULT_MAX_LINES;
@@ -235,14 +248,14 @@ export function planChunkOutline(
   }
 
   const chunks: ChunkItem[] = [];
-  const stats: ChunkOutlineStats = { split: 0, merged: 0, normal: 0, review_skipped: 0 };
+  const stats: ChunkOutlineStats = { split: 0, merged: 0, normal: 0, excluded: 0 };
   const byId = new Map(items.filter((item) => item.id).map((item) => [item.id as string, item]));
 
   for (const topicLeaves of topicGroups.values()) {
     const contentLeaves: ChunkOutlineItem[] = [];
     for (const item of topicLeaves) {
-      if (isReviewItem(item)) {
-        stats.review_skipped += 1;
+      if (isExcludedItem(item)) {
+        stats.excluded += 1;
       } else {
         contentLeaves.push(item);
       }
@@ -259,7 +272,9 @@ export function planChunkOutline(
 
     const mergeGroups: ChunkOutlineItem[][] = [];
     for (const chapterLeaves of byChapter.values()) {
-      mergeGroups.push(...mergeUndersized(chapterLeaves, minLines, maxLines));
+      mergeGroups.push(...(options.preserveLeafBoundaries
+        ? chapterLeaves.map((item) => [item])
+        : mergeUndersized(chapterLeaves, minLines, maxLines)));
     }
 
     for (const group of mergeGroups) {
@@ -269,7 +284,7 @@ export function planChunkOutline(
         continue;
       }
       const item = group[0]!;
-      if (mdSpan(item) > maxLines) {
+      if (mdSpan(item) > maxLines || hasSpecialContentHeading(item, headings)) {
         chunks.push(...splitOversized(item, headings, targetLines, maxLines));
         stats.split += 1;
       } else {
@@ -279,10 +294,14 @@ export function planChunkOutline(
     }
   }
 
+  const orderedChunks = [...chunks].sort((left, right) => {
+    const startDelta = Number(left.md_start ?? Number.POSITIVE_INFINITY) - Number(right.md_start ?? Number.POSITIVE_INFINITY);
+    return startDelta || left.order_path.localeCompare(right.order_path);
+  });
   return {
-    chunks,
+    chunks: orderedChunks,
     stats,
-    size_summary: summarizeChunkSizes(chunks),
+    size_summary: summarizeChunkSizes(orderedChunks),
   };
 }
 
@@ -333,6 +352,7 @@ export function makeChunk(
     parent_id: parentId,
     source_ids: [parentId],
     raw_line: "",
+    content_role: contentRoleForGeneratedChunk(parent, title, label),
   };
 }
 
@@ -359,7 +379,47 @@ export function makeMergedChunk(mergedItems: ChunkOutlineItem[], suffix: string)
     parent_id: firstId,
     source_ids: mergedItems.map(requiredId),
     raw_line: "",
+    content_role: extractableContentRole(first),
   };
+}
+
+function extractableContentRole(item: ChunkOutlineItem): Exclude<OutlineContentRole, "excluded"> {
+  const role = classifyOutlineContent(item);
+  return role === "excluded" ? "knowledge" : role;
+}
+
+function contentRoleForGeneratedChunk(
+  parent: ChunkOutlineItem,
+  title: string,
+  label: string,
+): Exclude<OutlineContentRole, "excluded"> {
+  const inferred = classifyOutlineContent({ kind: "chunk", title, label });
+  if (inferred === "summary" || inferred === "assessment") return inferred;
+  return extractableContentRole(parent);
+}
+
+function contentRoleForSection(
+  parent: ChunkOutlineItem,
+  title: string,
+): Exclude<OutlineContentRole, "excluded"> {
+  const inferred = classifyOutlineContent({ kind: "chunk", title });
+  if (inferred === "summary" || inferred === "assessment") return inferred;
+  return extractableContentRole(parent);
+}
+
+function hasSpecialContentHeading(item: ChunkOutlineItem, headings: MarkdownHeading[]): boolean {
+  const start = Number(item.md_start ?? 0);
+  const end = Number(item.md_end ?? 0);
+  const parentRole = extractableContentRole(item);
+  return headings.some(
+    (heading) => start <= heading.line
+      && heading.line <= end
+      && contentRoleForSection(item, heading.text) !== parentRole,
+  );
+}
+
+function uniqueNumbers(values: number[]): number[] {
+  return [...new Set(values)].sort((left, right) => left - right);
 }
 
 function interpolateChunkPages(parent: ChunkOutlineItem, mdStart: unknown, mdEnd: unknown): [unknown, unknown] {
@@ -398,7 +458,7 @@ function mergeTinySections(rawSections: LogicalSection[], minSection: number): L
   let current = { ...rawSections[0]! };
   for (const section of rawSections.slice(1)) {
     const currentLength = current.end - current.start + 1;
-    if (currentLength < minSection) {
+    if (currentLength < minSection && current.contentRole === section.contentRole) {
       current.end = section.end;
       if (!current.title) current.title = section.title;
     } else {

@@ -3,7 +3,8 @@ import type {
   GroundedGenerationRequest, GroundedGenerationResponse, GroundedGenerationStreamEvent,
   UnitRetrievalMode, UnitRetrievalResponse,
   PipelineBookNodesResponse, PipelineFolderScanRequest, PipelineFolderScanResponse,
-  PipelineJobListResponse, PipelineJobStatusResponse, PipelineOcrInspectRequest, PipelineOcrInspectResponse, PipelinePdfUploadResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse,
+  PipelineJobListResponse, PipelineJobStatusResponse, PipelineOcrInspectRequest, PipelineOcrInspectResponse, PipelinePdfUploadResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse, PipelineStopResponse,
+  PipelineOutlineChunkContentResponse, PipelineOutlineConfirmRequest, PipelineOutlineConfirmResponse, PipelineOutlinePreviewResponse,
   PipelineQualityReviewUpdateRequest, PipelineQualityReviewUpdateResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
@@ -488,6 +489,43 @@ export async function startPipeline(
   return postJson<PipelineStartResponse>(
     `/api/source/${encodeURIComponent(sourceKey)}/pipeline/start`,
     payload,
+  );
+}
+
+export async function loadPipelineOutlinePreview(
+  sourceKey: string,
+  bookId: string,
+): Promise<PipelineOutlinePreviewResponse> {
+  return fetchJson<PipelineOutlinePreviewResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/books/${encodeURIComponent(bookId)}/outline-preview`,
+  );
+}
+
+export async function loadPipelineOutlineChunkContent(
+  sourceKey: string,
+  bookId: string,
+  itemId: string,
+): Promise<PipelineOutlineChunkContentResponse> {
+  return fetchJson<PipelineOutlineChunkContentResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/books/${encodeURIComponent(bookId)}/outline-preview/items/${encodeURIComponent(itemId)}/content`,
+  );
+}
+
+export async function confirmPipelineOutline(
+  sourceKey: string,
+  bookId: string,
+  payload: PipelineOutlineConfirmRequest,
+): Promise<PipelineOutlineConfirmResponse> {
+  return postJson<PipelineOutlineConfirmResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/books/${encodeURIComponent(bookId)}/outline-confirmation`,
+    payload,
+  );
+}
+
+export async function stopPipeline(sourceKey: string, jobId: string): Promise<PipelineStopResponse> {
+  return postJson<PipelineStopResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/jobs/${encodeURIComponent(jobId)}/stop`,
+    {},
   );
 }
 

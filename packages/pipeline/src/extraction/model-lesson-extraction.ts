@@ -30,6 +30,11 @@ import {
 } from "../shared/pathing.js";
 import { resolveOutlineAnchorFromItems } from "./parallel-batch.js";
 import type { EnrichHint } from "./enrich-context.js";
+import {
+  classifyOutlineContent,
+  extractionPolicyForContentRole,
+  type OutlineContentRole,
+} from "../outline/content-role.js";
 
 type RawRecord = Record<string, unknown>;
 
@@ -63,6 +68,8 @@ export type ModelLessonContext = {
   retrieval_candidates: RawRecord[];
   enrich_hints: EnrichHint[];
   markdown_evidence_hints: MarkdownEvidenceHint[];
+  content_role: Exclude<OutlineContentRole, "excluded">;
+  extraction_policy: "canonical_knowledge" | "existing_nodes_only";
 };
 
 export type ModelLessonPayload = {
@@ -125,6 +132,8 @@ export type ExtractionPayload = {
   lesson_run_id: string;
   book_id: string;
   batch_anchor: string;
+  content_role: Exclude<OutlineContentRole, "excluded">;
+  extraction_policy: "canonical_knowledge" | "existing_nodes_only";
   nodes: RawRecord[];
   edges: RawRecord[];
   domain_profiles: RawRecord[];
@@ -144,6 +153,8 @@ export type ExtractionPayload = {
 
 export function buildModelLessonPayload(input: BuildModelLessonPayloadInput): ModelLessonPayload {
   const { item, markdownLines, outline, anchorRef } = sliceMarkdownForModelLesson(input);
+  const contentRole = extractableContentRole(item);
+  const extractionPolicy = extractionPolicyForContentRole(contentRole);
   return {
     lesson_context: {
       book_id: input.bookId,
@@ -161,6 +172,8 @@ export function buildModelLessonPayload(input: BuildModelLessonPayloadInput): Mo
       retrieval_candidates: input.retrievalCandidates ?? [],
       enrich_hints: input.enrichHints ?? [],
       markdown_evidence_hints: extractMarkdownEvidenceHints(markdownLines),
+      content_role: contentRole,
+      extraction_policy: extractionPolicy === "existing_nodes_only" ? extractionPolicy : "canonical_knowledge",
     },
     ...(input.extractionTemplate ? { extraction_template: templateModelPayload(input.extractionTemplate) } : {}),
     markdown_lines: markdownLines,
@@ -168,9 +181,13 @@ export function buildModelLessonPayload(input: BuildModelLessonPayloadInput): Mo
 }
 
 export function buildHybridNodeEvidenceExtractionRequest(input: BuildModelExtractionRequestInput): ModelExtractionRequest {
+  const lessonPayload = buildModelLessonPayload(input);
+  const assessmentOnly = lessonPayload.lesson_context.extraction_policy === "existing_nodes_only";
   return buildSchemaBackedExtractionRequest(input, {
-    instructions: buildHybridNodeEvidenceInstructions({ prompt: input.prompt, extractionTemplate: input.extractionTemplate }),
-    userPayload: JSON.stringify(buildModelLessonPayload(input), null, 2),
+    instructions: assessmentOnly
+      ? buildAssessmentLinkingInstructions({ prompt: input.prompt, extractionTemplate: input.extractionTemplate })
+      : buildHybridNodeEvidenceInstructions({ prompt: input.prompt, extractionTemplate: input.extractionTemplate }),
+    userPayload: JSON.stringify(lessonPayload, null, 2),
     schema: buildHybridNodeEvidenceResponseSchema(input.extractionTemplate),
   });
 }
@@ -232,6 +249,121 @@ export function buildHybridExtractionPayloadFromModelBundles(
   return buildExtractionPayloadFromModelBundle(input, bundle);
 }
 
+export function buildAssessmentExtractionPayloadFromModelBundle(
+  input: BuildModelLessonPayloadInput,
+  nodeEvidenceBundle: HybridNodeEvidenceBundle,
+): ExtractionPayload {
+  const candidates = new Map(
+    (input.retrievalCandidates ?? [])
+      .map((candidate) => [stringValue(candidate.node_id).trim(), candidate] as const)
+      .filter(([nodeId]) => Boolean(nodeId)),
+  );
+  const acceptedNodes: RawRecord[] = [];
+  const acceptedNodeIds = new Set<string>();
+  let droppedNodes = 0;
+
+  for (const raw of asRecords(nodeEvidenceBundle.nodes)) {
+    const nodeId = stringValue(raw.id || raw.node_id).trim();
+    const candidate = candidates.get(nodeId);
+    if (!candidate || acceptedNodeIds.has(nodeId)) {
+      droppedNodes += 1;
+      continue;
+    }
+    acceptedNodeIds.add(nodeId);
+    const assessment = recordValue(recordValue(raw.properties).assessment);
+    acceptedNodes.push({
+      ...raw,
+      id: nodeId,
+      name: stringValue(candidate.name).trim(),
+      kind: stringValue(candidate.kind).trim(),
+      definition: stringValue(raw.definition).trim() || stringValue(candidate.name).trim(),
+      properties: {
+        ...recordValue(raw.properties),
+        extraction_policy: "existing_only",
+        existing_canonical_node_id: nodeId,
+        assessment: {
+          ability_points: trimmedStrings(assessment.ability_points),
+          task_types: trimmedStrings(assessment.task_types),
+          confidence: clampConfidence(assessment.confidence),
+        },
+      },
+    });
+  }
+
+  const evidenceUnits = asRecords(nodeEvidenceBundle.evidence_units)
+    .map((raw) => ({
+      ...raw,
+      node_ids: trimmedStrings(raw.node_ids).filter((nodeId) => acceptedNodeIds.has(nodeId)),
+    }))
+    .filter((raw) => trimmedStrings(raw.node_ids).length > 0);
+  const hasMatches = acceptedNodes.length > 0 && evidenceUnits.length > 0;
+  const payload = buildHybridExtractionPayloadFromModelBundles(
+    input,
+    {
+      lesson_disposition: hasMatches ? "extracted" : "no_knowledge",
+      no_knowledge_reason: hasMatches
+        ? ""
+        : stringValue(nodeEvidenceBundle.no_knowledge_reason).trim() || "当前练习未能可靠关联到已有规范知识节点。",
+      nodes: hasMatches ? acceptedNodes : [],
+      evidence_units: hasMatches ? evidenceUnits : [],
+      issues: trimmedStrings(nodeEvidenceBundle.issues),
+    },
+    { edges: [], issues: [] },
+  );
+
+  const assessmentByNodeId = new Map(
+    acceptedNodes.map((node) => [stringValue(node.id), recordValue(recordValue(node.properties).assessment)]),
+  );
+  payload.nodes = payload.nodes.map((node) => ({
+    ...node,
+    properties: {
+      ...recordValue(node.properties),
+      extraction_policy: "existing_only",
+      existing_canonical_node_id: stringValue(node.id),
+    },
+  }));
+  payload.edges = [];
+  payload.node_cards = [];
+  payload.mentions = payload.mentions.map((mention) => ({
+    ...mention,
+    role: "assesses",
+    properties: { ...recordValue(mention.properties), content_role: "assessment" },
+  }));
+  payload.evidence = payload.evidence.map((evidence) => ({
+    ...evidence,
+    extraction_method: "openai_assessment_linking",
+    properties: { ...recordValue(evidence.properties), content_role: "assessment", extraction_policy: "existing_nodes_only" },
+  }));
+  payload.domain_profiles = payload.domain_profiles.map((profile) => {
+    const assessment = assessmentByNodeId.get(stringValue(profile.node_id)) ?? {};
+    return {
+      ...profile,
+      curriculum_roles: uniqueStrings(["assessment", "practice", ...trimmedStrings(profile.curriculum_roles)]),
+      properties: {
+        ...recordValue(profile.properties),
+        assessment_evidence: {
+          ability_points: trimmedStrings(assessment.ability_points),
+          task_types: trimmedStrings(assessment.task_types),
+          confidence: clampConfidence(assessment.confidence),
+          content_role: "assessment",
+        },
+      },
+    };
+  });
+  payload.counts = {
+    nodes: payload.nodes.length,
+    edges: 0,
+    domain_profiles: payload.domain_profiles.length,
+    mentions: payload.mentions.length,
+    evidence: payload.evidence.length,
+    node_cards: 0,
+  };
+  if (droppedNodes > 0) {
+    payload.issues.push(`Assessment validator dropped ${droppedNodes} node reference(s) that were not existing retrieval candidates.`);
+  }
+  return payload;
+}
+
 function buildSchemaBackedExtractionRequest(
   input: BuildModelExtractionRequestInput,
   options: { instructions: string; userPayload: string; schema: RawRecord },
@@ -275,6 +407,26 @@ function buildHybridNodeEvidenceInstructions(input: { prompt?: string; extractio
 13. 只有当前课时确实没有任何可抽取知识对象时，lesson_disposition 才能为 no_knowledge；此时 nodes 和 evidence_units 必须都为空，并在 no_knowledge_reason 中写明原因。
 14. 不要为了避免空结果而把目录、栏目、题型、活动标题或证据不足的词语提升为节点。
 15. 输出必须严格符合 JSON schema。
+  `.trim();
+  return appendPromptBlocks(base, input.prompt, input.extractionTemplate, "node_evidence");
+}
+
+function buildAssessmentLinkingInstructions(input: { prompt?: string; extractionTemplate?: ExtractionTemplate | null } = {}): string {
+  const base = `
+你是 Open Knowledge Map 项目的题目与能力点关联器。
+任务是分析当前习题、练习或作业内容，只把它关联到 lesson_context.retrieval_candidates 中已经存在的规范知识节点。
+
+硬约束：
+1. 只输出 lesson_disposition、no_knowledge_reason、nodes、evidence_units、issues 五个字段。
+2. nodes 在这里表示“已有节点引用”，绝不是新节点候选；node.id 必须逐字等于 retrieval_candidates.node_id 中的一个值。
+3. node.name 和 node.kind 必须复制对应 retrieval candidate；不得创造、改名或改类。
+4. 不要输出关系；练习内容不能创建或改写规范知识关系。
+5. 每个引用节点必须由当前题目原文 evidence_units 支撑，evidence_units.node_ids 只能引用已选的 node.id。
+6. 在 node.properties.assessment 中填写 ability_points（可测量能力点字符串数组）、task_types（题型字符串数组）、confidence（0 到 1）。能力点只是教学评价描述，不是新知识节点。
+7. 如果题目涉及的能力点无法可靠对应任何 retrieval candidate，不要把它塞给相似但不准确的节点；在 issues 中记录“未匹配能力点：...”。
+8. 如果没有任何可靠匹配，lesson_disposition 必须为 no_knowledge，nodes 和 evidence_units 必须为空，并说明原因。
+9. 当前教材原文是题目证据；enrich_hints 不能作为关联证据。
+10. 输出必须严格符合 JSON schema。
   `.trim();
   return appendPromptBlocks(base, input.prompt, input.extractionTemplate, "node_evidence");
 }
@@ -814,6 +966,10 @@ function normalizeHybridNodeEvidenceBundle(bundle: HybridNodeEvidenceBundle): {
 
 export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPayloadInput, bundle: ModelBundle): ExtractionPayload {
   const { item, markdownLines, outline, anchorRef } = sliceMarkdownForModelLesson(input);
+  const contentRole = extractableContentRole(item);
+  const extractionPolicy = extractionPolicyForContentRole(contentRole) === "existing_nodes_only"
+    ? "existing_nodes_only" as const
+    : "canonical_knowledge" as const;
   const sourceId = input.textbookId || input.bookId;
   const sourcePath = stringValue(outline.source_path);
   const lessonRunId = makeLessonRunId(input.bookId, anchorRef);
@@ -887,7 +1043,7 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       modality: stringValue(raw.modality || "text"),
       extraction_method: modelExtractionMethod,
       normalized_claims: [excerpt.slice(0, 120)],
-      properties: applyEvidenceTemplateProperties({}, extractionTemplate),
+      properties: applyEvidenceTemplateProperties({ content_role: contentRole, extraction_policy: extractionPolicy }, extractionTemplate),
     });
   }
 
@@ -911,7 +1067,11 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
         extraction_method: "markdown_hint",
         normalized_claims: [excerpt.slice(0, 120)],
         properties: applyEvidenceTemplateProperties(
-          Object.fromEntries(Object.entries(hint).filter(([key]) => !["excerpt", "locator", "modality"].includes(key))),
+          {
+            ...Object.fromEntries(Object.entries(hint).filter(([key]) => !["excerpt", "locator", "modality"].includes(key))),
+            content_role: contentRole,
+            extraction_policy: extractionPolicy,
+          },
           extractionTemplate,
         ),
       });
@@ -939,6 +1099,8 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
           synthetic: true,
           quality_excluded: true,
           review_status: "pending",
+          content_role: contentRole,
+          extraction_policy: extractionPolicy,
         },
         extractionTemplate,
       ),
@@ -1121,6 +1283,8 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
     lesson_run_id: lessonRunId,
     book_id: input.bookId,
     batch_anchor: anchorRef,
+    content_role: contentRole,
+    extraction_policy: extractionPolicy,
     nodes,
     edges,
     domain_profiles: domainProfiles,
@@ -1287,6 +1451,9 @@ export function extractMarkdownEvidenceHints(lines: string[]): MarkdownEvidenceH
 }
 
 export function buildRetrievalQueries(item: OutlineItem, lines: string[], limit = 6): string[] {
+  if (classifyOutlineContent(item) === "assessment") {
+    return buildAssessmentRetrievalQueries(item, lines, limit);
+  }
   const queries: string[] = [];
   const title = stringValue(item.title).trim();
   if (title) queries.push(title);
@@ -1301,6 +1468,34 @@ export function buildRetrievalQueries(item: OutlineItem, lines: string[], limit 
     if (queries.length >= limit) break;
   }
   return uniqueStrings(queries).slice(0, limit);
+}
+
+export function buildAssessmentRetrievalQueries(item: OutlineItem, lines: string[], limit = 6): string[] {
+  const queries: string[] = [];
+  const title = stringValue(item.title).trim();
+  for (const rawLine of lines) {
+    const line = normalizeAssessmentQueryLine(rawLine);
+    if (!line || isGenericAssessmentHeading(line) || line === title) continue;
+    queries.push(line);
+    if (queries.length >= limit) break;
+  }
+  if (queries.length < limit && title && !isGenericAssessmentHeading(title)) queries.push(title);
+  return uniqueStrings(queries).slice(0, limit);
+}
+
+function normalizeAssessmentQueryLine(rawLine: string): string {
+  const line = rawLine
+    .trim()
+    .replace(/^#{1,6}\s*/, "")
+    .replace(/^[-*+]\s+/, "")
+    .replace(/^(?:\d+[.、]|[（(]?\d+[）)]|[一二三四五六七八九十]+[、.])\s*/, "")
+    .trim();
+  if (!line || line.startsWith("!") || line.startsWith("|") || line.length < 4) return "";
+  return line.slice(0, 160);
+}
+
+function isGenericAssessmentHeading(value: string): boolean {
+  return /^(?:课后|章节|本章|单元|综合)?(?:复习题|习题|练习|作业|测试|检测|自测|巩固题|思考题|训练题|测评)$/.test(value.trim());
 }
 
 function sliceMarkdownForModelLesson(input: BuildModelLessonPayloadInput): {
@@ -1488,6 +1683,17 @@ function validListOrDefault(value: unknown, allowed: Set<string>, fallback: stri
 function numberOrDefault(value: unknown, defaultValue: number): number {
   const numberValue = Number(value);
   return Number.isFinite(numberValue) && numberValue !== 0 ? numberValue : defaultValue;
+}
+
+function clampConfidence(value: unknown): number {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0.8;
+  return Math.min(1, Math.max(0, numeric));
+}
+
+function extractableContentRole(item: OutlineItem): Exclude<OutlineContentRole, "excluded"> {
+  const role = classifyOutlineContent(item);
+  return role === "excluded" ? "knowledge" : role;
 }
 
 function stringValue(value: unknown): string {

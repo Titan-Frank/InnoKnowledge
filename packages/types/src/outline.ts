@@ -18,5 +18,6 @@ export interface OutlineItem {
   order_path: string;
   parent_id?: string;
   source_ids?: string[];
+  content_role?: 'knowledge' | 'summary' | 'assessment' | 'excluded';
   children?: OutlineItem[];
 }

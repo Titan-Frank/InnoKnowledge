@@ -17,6 +17,9 @@ export type StagingWriteContext = {
   now: string;
   lessonDisposition?: "extracted" | "no_knowledge";
   noKnowledgeReason?: string;
+  contentRole?: "knowledge" | "summary" | "assessment";
+  extractionPolicy?: "canonical_knowledge" | "existing_nodes_only";
+  extractionIssues?: string[];
 };
 
 export type LessonRunRow = {
@@ -178,6 +181,9 @@ export function buildLessonRunRow(context: StagingWriteContext, counts: Normaliz
     properties_json: {
       ...(context.lessonDisposition ? { lesson_disposition: context.lessonDisposition } : {}),
       ...(context.noKnowledgeReason ? { no_knowledge_reason: context.noKnowledgeReason } : {}),
+      ...(context.contentRole ? { content_role: context.contentRole } : {}),
+      ...(context.extractionPolicy ? { extraction_policy: context.extractionPolicy } : {}),
+      ...(context.extractionIssues && context.extractionIssues.length > 0 ? { extraction_issues: context.extractionIssues } : {}),
     },
     created_at: context.now,
     updated_at: context.now,

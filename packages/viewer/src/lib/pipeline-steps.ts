@@ -15,6 +15,9 @@ export const lessonStageIds = ['lesson_staging'] as const;
 export const mergeStageIds = [
   'staging_quality',
   'canonical_commit',
+  'assessment_staging',
+  'assessment_quality',
+  'assessment_commit',
   'normalize',
   'node_bodies',
   'pedagogical_profiles',
@@ -43,7 +46,8 @@ const pendingStatuses = (): PipelineStepStatuses => ({
 export function matchesPipelineStageId(stageId: string | undefined, ids: readonly string[]): boolean {
   if (!stageId) return false;
   return ids.includes(stageId)
-    || (ids.includes('lesson_staging') && stageId.startsWith('lesson_staging_retry_'));
+    || (ids.includes('lesson_staging') && stageId.startsWith('lesson_staging_retry_'))
+    || (ids.includes('assessment_staging') && stageId.startsWith('assessment_staging_retry_'));
 }
 
 function hasStageStatus(

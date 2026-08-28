@@ -29,9 +29,10 @@ test("stable identifiers match the Python okm_pathing format", () => {
   assert.equal(makeNodeCardId("node:a"), "node-card:auto-16e68543d927");
 });
 
-test("text normalization and path token handling mirror Python helpers", () => {
+test("text normalization and path tokens preserve readable Unicode safely", () => {
   assert.equal(normalizeTerm("  Water   Cycle\n "), "water cycle");
-  assert.equal(safePathToken("  ../第 1 课: water cycle  "), "1__water__cycle");
+  assert.equal(safePathToken("  ../第 1 课: water cycle  "), "第-1-课-water-cycle");
+  assert.equal(safePathToken("初中_七年级_数学_人教版_上册"), "初中_七年级_数学_人教版_上册");
   assert.equal(safePathToken("..."), "item");
 });
 

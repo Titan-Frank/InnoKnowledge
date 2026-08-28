@@ -93,3 +93,23 @@ test("builds staging table rows using PostgreSQL column names and Python-compati
   assert.deepEqual(rows.evidence[0]?.normalized_claims_json, ["claim", "claim"]);
   assert.equal(rows.node_cards[0]?.sections_json[0]?.id, "section");
 });
+
+test("records content role and merge policy on the lesson run", () => {
+  const rows = buildStagingTableRows(
+    {
+      ...context,
+      lessonDisposition: "extracted",
+      contentRole: "assessment",
+      extractionPolicy: "existing_nodes_only",
+      extractionIssues: ["未匹配能力点：说明比较结果的理由"],
+    },
+    normalizeLessonArtifacts({ nodes: [], edges: [], domainProfiles: [], mentions: [], evidence: [], nodeCards: [] }, context.bookId, context.batchAnchor),
+  );
+
+  assert.deepEqual(rows.lesson_run.properties_json, {
+    lesson_disposition: "extracted",
+    content_role: "assessment",
+    extraction_policy: "existing_nodes_only",
+    extraction_issues: ["未匹配能力点：说明比较结果的理由"],
+  });
+});

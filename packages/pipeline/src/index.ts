@@ -1,4 +1,5 @@
 export * from "./outline/chunk-outline.js";
+export * from "./outline/content-role.js";
 export * from "./outline/chunk-outline-files.js";
 export * from "./outline/chunk-outline-runner.js";
 export * from "./outline/mineru-source.js";

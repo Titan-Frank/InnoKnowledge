@@ -5,6 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 
 import {
+  buildAssessmentExtractionPayloadFromModelBundle,
   buildExtractionPayloadFromModelBundle,
   buildHybridEdgeExtractionRequest,
   buildHybridEdgeResponseSchema,
@@ -12,6 +13,7 @@ import {
   buildHybridNodeEvidenceExtractionRequest,
   buildHybridNodeEvidenceResponseSchema,
   buildModelLessonPayload,
+  buildAssessmentRetrievalQueries,
   buildRetrievalQueries,
   buildResponseSchema,
   extractMarkdownEvidenceHints,
@@ -163,6 +165,78 @@ test("builds two-stage model requests with chat completions as the default API",
   }
 });
 
+test("uses the existing-node-only prompt for assessment chunks", () => {
+  const repo = makeFixtureRepo();
+  try {
+    const request = buildHybridNodeEvidenceExtractionRequest({
+      bookId,
+      batchAnchor: canonicalAnchor,
+      repoRoot: repo.root,
+      outline: assessmentOutline(),
+      markdownLines: ["# 课后练习", "比较两个有理数的大小。"],
+      retrievalCandidates: [{ node_id: "node:rational-order", name: "有理数的大小比较", kind: "method", score: 100 }],
+    });
+    const payload = JSON.parse(request.user_payload) as { lesson_context: Record<string, unknown> };
+    assert.equal(payload.lesson_context.content_role, "assessment");
+    assert.equal(payload.lesson_context.extraction_policy, "existing_nodes_only");
+    assert.match(request.instructions, /题目与能力点关联器/);
+    assert.match(request.instructions, /绝不是新节点候选/);
+    assert.doesNotMatch(request.instructions, /第二阶段单独判断/);
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("keeps only retrieved canonical node references in assessment output", () => {
+  const repo = makeFixtureRepo();
+  try {
+    const payload = buildAssessmentExtractionPayloadFromModelBundle(
+      {
+        bookId,
+        batchAnchor: canonicalAnchor,
+        repoRoot: repo.root,
+        outline: assessmentOutline(),
+        markdownLines: ["# 课后练习", "比较两个有理数的大小。"],
+        subject: "mathematics",
+        schoolStage: "junior-secondary",
+        retrievalCandidates: [{ node_id: "node:rational-order", name: "有理数的大小比较", kind: "method", score: 100 }],
+      },
+      {
+        lesson_disposition: "extracted",
+        no_knowledge_reason: "",
+        nodes: [
+          {
+            id: "node:rational-order",
+            name: "模型不得改名",
+            kind: "concept",
+            definition: "模型不得改写规范定义。",
+            properties: { assessment: { ability_points: ["比较两个有理数"], task_types: ["比较题"], confidence: 0.93 } },
+          },
+          { id: "node:invented", name: "模型臆造节点", kind: "concept", definition: "不得进入合并。" },
+        ],
+        evidence_units: [
+          { anchor: "ev1", excerpt: "比较两个有理数的大小。", locator: "line:2", modality: "text", node_ids: ["node:rational-order", "node:invented"] },
+        ],
+        issues: [],
+      },
+    );
+
+    assert.equal(payload.content_role, "assessment");
+    assert.equal(payload.extraction_policy, "existing_nodes_only");
+    assert.deepEqual(payload.nodes.map((node) => node.id), ["node:rational-order"]);
+    assert.equal(payload.nodes[0]?.name, "有理数的大小比较");
+    assert.equal((payload.nodes[0]?.properties as Record<string, unknown>).existing_canonical_node_id, "node:rational-order");
+    assert.deepEqual(payload.edges, []);
+    assert.deepEqual(payload.node_cards, []);
+    assert.equal(payload.mentions[0]?.role, "assesses");
+    assert.ok((payload.domain_profiles[0]?.curriculum_roles as string[]).includes("assessment"));
+    assert.equal(payload.evidence[0]?.extraction_method, "openai_assessment_linking");
+    assert.ok(payload.issues.some((issue) => issue.includes("dropped 1 node reference")));
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
 test("builds the hybrid edge request from first-stage nodes and evidence only", () => {
   const repo = makeFixtureRepo();
   try {
@@ -295,6 +369,8 @@ test("marks fallback evidence as quality-excluded without inventing a mention", 
       synthetic: true,
       quality_excluded: true,
       review_status: "pending",
+      content_role: "knowledge",
+      extraction_policy: "canonical_knowledge",
     });
     assert.deepEqual(payload.mentions, []);
     assert.deepEqual(payload.domain_profiles[0]?.source_refs, []);
@@ -415,6 +491,8 @@ test("converts a model bundle into Python-compatible staging artifacts", () => {
     );
 
     assert.equal(payload.status, "success");
+    assert.equal(payload.content_role, "knowledge");
+    assert.equal(payload.extraction_policy, "canonical_knowledge");
     assert.equal(payload.batch_anchor, canonicalAnchor);
     assert.deepEqual(payload.counts, {
       nodes: 2,
@@ -601,6 +679,22 @@ test("backfills missing model node names and empty definitions", () => {
 test("builds retrieval queries and markdown evidence hints without extracting locally", () => {
   assert.deepEqual(buildRetrievalQueries({ title: "主标题" }, ["# 主标题", "短语", "完整句子。", "| a |"], 4), ["主标题", "短语"]);
   assert.deepEqual(
+    buildAssessmentRetrievalQueries(
+      { title: "课后练习", content_role: "assessment" },
+      ["# 课后练习", "1. 比较两个有理数的大小。", "（2）在数轴上表示 −2 与 3。", "| 题号 | 答案 |"],
+      4,
+    ),
+    ["比较两个有理数的大小。", "在数轴上表示 −2 与 3。"],
+  );
+  assert.deepEqual(
+    buildRetrievalQueries(
+      { title: "课后练习", content_role: "assessment" },
+      ["# 课后练习", "1. 比较两个有理数的大小。"],
+      4,
+    ),
+    ["比较两个有理数的大小。"],
+  );
+  assert.deepEqual(
     extractMarkdownEvidenceHints(["$$", "E=mc^2", "$$", "| a |", "| b |"]).map((hint) => hint.modality),
     ["equation", "table"],
   );
@@ -645,4 +739,20 @@ function makeFixtureRepo(): { root: string } {
     ].join("\n"),
   );
   return { root };
+}
+
+function assessmentOutline(): Record<string, unknown> {
+  return {
+    source_path: "data/mineru/model-book/full.md",
+    structure: [{
+      id: canonicalAnchor,
+      kind: "chunk",
+      title: "课后练习",
+      content_role: "assessment",
+      md_start: 1,
+      md_end: 2,
+      page_start: 5,
+      page_end: 5,
+    }],
+  };
 }

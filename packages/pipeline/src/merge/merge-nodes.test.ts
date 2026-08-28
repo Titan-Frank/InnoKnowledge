@@ -261,6 +261,79 @@ test("plans staged node merge when an existing canonical node matches", () => {
   });
 });
 
+test("assessment references match an exact existing node without mutating or creating it", () => {
+  const candidate = makeCanonicalCandidate({
+    id: "method:rational-order",
+    name: "有理数的大小比较",
+    kind: "method",
+    definition: "比较两个有理数大小的方法。",
+    aliases_json: [],
+    domains_json: ["mathematics"],
+    knowledge_form_json: ["practical"],
+    learning_mode_json: ["procedural"],
+    scope: "domain-specific",
+    properties_json: { canonical: true },
+    external_ids_json: {},
+    tags_json: [],
+    embedding: [],
+    status: "active",
+    created_at: "existing-created",
+    updated_at: "existing-updated",
+    notes: "existing note",
+  });
+  const plan = planStagedNodeMerge({
+    datasetId: "main",
+    mergeRunId: "merge:assessment",
+    lessonRunId: "lesson-run:assessment",
+    staged: {
+      raw_node_id: "method:rational-order",
+      name: "模型不得改名",
+      kind: "method",
+      definition: "模型不得改写定义。",
+      properties_json: {
+        extraction_policy: "existing_only",
+        existing_canonical_node_id: "method:rational-order",
+        assessment: { ability_points: ["比较两个有理数"] },
+      },
+      created_at: "staged-created",
+    },
+    canonicalNodes: [candidate],
+    now: "now",
+  });
+
+  assert.equal(plan.resolution, "matched");
+  assert.equal(plan.canonical_node_id, "method:rational-order");
+  assert.equal(plan.node_payload.name, "有理数的大小比较");
+  assert.equal(plan.node_payload.definition, "比较两个有理数大小的方法。");
+  assert.deepEqual(plan.node_payload.properties, { canonical: true });
+  assert.deepEqual(plan.stats_delta, { nodes_created: 0, nodes_matched: 1, nodes_review: 0 });
+  assert.equal(plan.score.rationale.reason, "existing_only_reference");
+});
+
+test("assessment references fail closed when the existing target is missing", () => {
+  assert.throws(
+    () => planStagedNodeMerge({
+      datasetId: "main",
+      mergeRunId: "merge:assessment",
+      lessonRunId: "lesson-run:assessment",
+      staged: {
+        raw_node_id: "node:missing",
+        name: "陌生能力点",
+        kind: "concept",
+        definition: "不得创建。",
+        properties_json: {
+          extraction_policy: "existing_only",
+          existing_canonical_node_id: "node:missing",
+        },
+        created_at: "staged-created",
+      },
+      canonicalNodes: [],
+      now: "now",
+    }),
+    /cannot be merged because canonical node 'node:missing' does not exist/,
+  );
+});
+
 test("plans staged node creation when no canonical node matches", () => {
   const plan = planStagedNodeMerge({
     datasetId: "main",

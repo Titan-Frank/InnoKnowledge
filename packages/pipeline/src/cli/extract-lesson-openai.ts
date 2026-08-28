@@ -11,6 +11,7 @@ import {
   DEFAULT_OPENAI_MODEL,
   DEFAULT_OPENAI_TIMEOUT_MS,
   buildHybridEdgeExtractionRequest,
+  buildAssessmentExtractionPayloadFromModelBundle,
   buildHybridExtractionPayloadFromModelBundles,
   buildHybridNodeEvidenceExtractionRequest,
   buildModelLessonPayload,
@@ -136,23 +137,27 @@ export async function runExtractLessonOpenAiCli(argv: string[], deps: ExtractLes
 
     try {
       const nodeEvidenceRequest = buildHybridNodeEvidenceExtractionRequest(requestInput);
-      const nodeEvidenceBody = await callModelExtractionRequestWithRetries(nodeEvidenceRequest, apiKey, deps.fetchImpl ?? fetch, modelRetryCount);
-      const nodeEvidenceBundle = parseHybridNodeEvidenceBundleFromResponse(nodeEvidenceBody);
-      const edgeBundle = nodeEvidenceBundle.lesson_disposition === "no_knowledge"
-        ? { edges: [], issues: [] }
-        : parseHybridEdgeBundleFromResponse(
-          await callModelExtractionRequestWithRetries(
-            buildHybridEdgeExtractionRequest(requestInput, nodeEvidenceBundle),
-            apiKey,
-            deps.fetchImpl ?? fetch,
-            modelRetryCount,
-          ),
-        );
-      let payload: RawRecord = buildHybridExtractionPayloadFromModelBundles(
-        requestInput,
-        nodeEvidenceBundle,
-        edgeBundle,
+      const nodeEvidenceBundle = await callModelExtractionRequestWithRetries(
+        nodeEvidenceRequest,
+        apiKey,
+        deps.fetchImpl ?? fetch,
+        modelRetryCount,
+        parseHybridNodeEvidenceBundleFromResponse,
       );
+      const lessonPayload = buildModelLessonPayload(requestInput);
+      const assessmentOnly = lessonPayload.lesson_context.extraction_policy === "existing_nodes_only";
+      const edgeBundle = assessmentOnly || nodeEvidenceBundle.lesson_disposition === "no_knowledge"
+        ? { edges: [], issues: [] }
+        : await callModelExtractionRequestWithRetries(
+          buildHybridEdgeExtractionRequest(requestInput, nodeEvidenceBundle),
+          apiKey,
+          deps.fetchImpl ?? fetch,
+          modelRetryCount,
+          parseHybridEdgeBundleFromResponse,
+        );
+      let payload: RawRecord = assessmentOnly
+        ? buildAssessmentExtractionPayloadFromModelBundle(requestInput, nodeEvidenceBundle)
+        : buildHybridExtractionPayloadFromModelBundles(requestInput, nodeEvidenceBundle, edgeBundle);
       if (!flags.has("no-image-filter")) {
         const vlmConcurrency = parsePositiveInteger(flags.get("vlm-concurrency") ?? env.VLM_CONCURRENCY, "vlm-concurrency") ?? 3;
         const imageFilterResult = await filterImageEvidencePayload(payload, {
@@ -471,6 +476,9 @@ async function writeStagingPayload(input: {
         now: utcNow(),
         lessonDisposition: parseLessonDisposition(input.payload.lesson_disposition),
         noKnowledgeReason: stringValue(input.payload.no_knowledge_reason).trim(),
+        contentRole: parseContentRole(input.payload.content_role),
+        extractionPolicy: parseExtractionPolicy(input.payload.extraction_policy),
+        extractionIssues: stringArray(input.payload.issues),
       },
       artifacts,
     );
@@ -495,6 +503,15 @@ async function writeStagingPayload(input: {
 
 function parseLessonDisposition(value: unknown): "extracted" | "no_knowledge" {
   return value === "no_knowledge" ? "no_knowledge" : "extracted";
+}
+
+function parseContentRole(value: unknown): "knowledge" | "summary" | "assessment" {
+  if (value === "summary" || value === "assessment") return value;
+  return "knowledge";
+}
+
+function parseExtractionPolicy(value: unknown): "canonical_knowledge" | "existing_nodes_only" {
+  return value === "existing_nodes_only" ? value : "canonical_knowledge";
 }
 
 async function createExplicitPostgresStagingExecutor(dbUrl: string | undefined): Promise<
@@ -580,16 +597,17 @@ function parseNonNegativeInteger(value: string | undefined, name: string): numbe
   return parsed;
 }
 
-async function callModelExtractionRequestWithRetries(
+async function callModelExtractionRequestWithRetries<T>(
   request: Parameters<typeof callModelExtractionRequest>[0],
   apiKey: string,
   fetchImpl: typeof fetch,
   retryCount: number,
-): Promise<RawRecord> {
+  parseResponse: (body: RawRecord) => T,
+): Promise<T> {
   let lastError: Error | null = null;
   for (let attempt = 0; attempt <= retryCount; attempt += 1) {
     try {
-      return await callModelExtractionRequest(request, apiKey, fetchImpl);
+      return parseResponse(await callModelExtractionRequest(request, apiKey, fetchImpl));
     } catch (error) {
       lastError = error as Error;
       if (attempt >= retryCount || !isRetryableModelError(lastError)) break;
@@ -600,7 +618,7 @@ async function callModelExtractionRequestWithRetries(
 }
 
 function isRetryableModelError(error: Error): boolean {
-  return /fetch failed|network|socket|timeout|aborted|429|500|502|503|504/i.test(error.message);
+  return /fetch failed|network|socket|timeout|aborted|429|500|502|503|504|no output_text payload/i.test(error.message);
 }
 
 function sleep(ms: number): Promise<void> {

@@ -334,6 +334,9 @@ export type PipelineStartStage =
   | 'lesson_staging'
   | 'staging_quality'
   | 'canonical_commit'
+  | 'assessment_staging'
+  | 'assessment_quality'
+  | 'assessment_commit'
   | 'normalize'
   | 'node_bodies'
   | 'pedagogical_profiles'
@@ -345,9 +348,12 @@ export type PipelineStartStage =
 
 export interface PipelineStartRequest {
   resume_job_id?: string;
+  /** Server-derived failed units for a selective model-stage resume. */
+  resume_batch_anchors?: string[];
   book_id?: string;
   pdf_path?: string;
   ocr_folder_path?: string;
+  ocr_import_mode?: 'in_place' | 'copy';
   book_title?: string;
   outline_start_page?: number;
   outline_end_page?: number;
@@ -375,6 +381,8 @@ export interface PipelineStartRequest {
   vlm_api_key?: string;
   vlm_model?: string;
   start_stage?: PipelineStartStage;
+  prepare_only?: boolean;
+  outline_confirmation?: string;
 }
 
 export interface PipelineStartResponse {
@@ -384,10 +392,88 @@ export interface PipelineStartResponse {
   log_path: string;
 }
 
+export type PipelineOutlineReviewStatus = 'pending' | 'confirmed';
+
+export interface PipelineOutlinePreviewItem {
+  id: string;
+  kind: string;
+  title: string;
+  label: string;
+  parent_id: string | null;
+  order_path: string;
+  depth: number;
+  page_start: number | null;
+  page_end: number | null;
+  md_start: number | null;
+  md_end: number | null;
+  source_ids: string[];
+  content_role: 'knowledge' | 'summary' | 'assessment' | 'excluded' | null;
+  preview_text: string | null;
+  line_count: number | null;
+}
+
+export interface PipelineOutlinePreviewResponse {
+  dataset_id: string;
+  book_id: string;
+  title: string;
+  source_kind: string;
+  source_ref: string | null;
+  source_path: string | null;
+  toc_pages: { start: number; end: number } | null;
+  fingerprint: string;
+  review_status: PipelineOutlineReviewStatus;
+  confirmed_at: string | null;
+  summary: {
+    themes: number;
+    topics: number;
+    lessons: number;
+    chunks: number;
+    knowledge_chunks: number;
+    summary_chunks: number;
+    assessment_chunks: number;
+    pages: number;
+  };
+  items: PipelineOutlinePreviewItem[];
+}
+
+export interface PipelineOutlineChunkContentResponse {
+  id: string;
+  title: string;
+  content_role: PipelineOutlinePreviewItem['content_role'];
+  page_start: number | null;
+  page_end: number | null;
+  md_start: number;
+  md_end: number;
+  line_count: number;
+  character_count: number;
+  source_ids: string[];
+  asset_base_path: string | null;
+  content: string;
+  truncated: boolean;
+}
+
+export interface PipelineOutlineConfirmRequest {
+  fingerprint: string;
+}
+
+export interface PipelineOutlineConfirmResponse {
+  status: 'confirmed';
+  book_id: string;
+  fingerprint: string;
+  confirmed_at: string;
+}
+
+export interface PipelineStopResponse {
+  job_id: string;
+  status: 'stopped';
+  message: string;
+}
+
 export interface PipelinePdfUploadResponse {
   pdf_path: string;
   file_name: string;
   size_bytes: number;
+  source_fingerprint: string;
 }
 
 export type PipelineOcrImportQuality = 'complete' | 'structured';
@@ -398,7 +484,9 @@ export interface PipelineOcrInspectRequest {
 }
 
 export interface PipelineOcrInspectResponse {
+  source_root_path: string;
   folder_path: string;
+  pdf_path: string | null;
   markdown_path: string | null;
   content_list_path: string | null;
   content_list_v2_path: string;
@@ -408,6 +496,7 @@ export interface PipelineOcrInspectResponse {
   image_count: number;
   preferred_input: PipelineOcrPreferredInput;
   quality: PipelineOcrImportQuality;
+  source_fingerprint: string;
   warnings: string[];
 }
 
@@ -460,6 +549,16 @@ export interface TextbookReaderEvidenceMatch {
   excerpt: string;
 }
 
+export interface TextbookReaderRelatedUnit {
+  node_id: string;
+  name: string;
+  kind: string;
+  definition: string;
+  summary: string;
+  evidence_ids: string[];
+  block_ids: string[];
+}
+
 export interface TextbookReaderPageResponse {
   dataset_id: string;
   book_id: string;
@@ -473,6 +572,7 @@ export interface TextbookReaderPageResponse {
   pdf_available: boolean;
   blocks: TextbookReaderBlock[];
   evidence_match: TextbookReaderEvidenceMatch | null;
+  related_units: TextbookReaderRelatedUnit[];
 }
 
 export interface TextbookReaderBookSummary {
@@ -563,6 +663,7 @@ export interface PipelineWorkerState {
   status: string;
   lesson_run_id: string | null;
   batch_anchor: string | null;
+  batch_label?: string | null;
   error: string | null;
   data: Record<string, unknown>;
   started_at: string | null;
@@ -578,6 +679,7 @@ export interface PipelineJobEvent {
   worker_slot: number | null;
   lesson_run_id: string | null;
   batch_anchor: string | null;
+  batch_label?: string | null;
   detail: string | null;
   data: Record<string, unknown>;
   created_at: string | null;
@@ -586,6 +688,7 @@ export interface PipelineJobEvent {
 export interface PipelineJobStatusResponse {
   job_id: string;
   book_id: string;
+  book_title?: string;
   status: 'unknown' | 'running' | 'completed' | 'blocked';
   log_path: string;
   context: Record<string, unknown>;
@@ -605,11 +708,14 @@ export interface TextbookMetadataRequest {
   pdf_path?: string;
   ocr_folder_path?: string;
   mineru_file_url?: string;
+  source_fingerprint?: string;
 }
 
 export interface TextbookMetadataResponse {
   book_id: string;
   title: string;
+  enrich_book_path?: string;
+  enrich_book_title?: string;
   lesson_subject: string;
   lesson_school_stage: string;
   lesson_grade_band: string;

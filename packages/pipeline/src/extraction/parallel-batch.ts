@@ -1,4 +1,5 @@
 import { makeLessonRunId, type OutlineItem } from "../shared/pathing.js";
+import { classifyOutlineContent, type OutlineContentRole } from "../outline/content-role.js";
 
 export type ParallelLessonRun = {
   book_id: string;
@@ -7,6 +8,7 @@ export type ParallelLessonRun = {
   title: unknown;
   label: unknown;
   unit_kind: "chunk" | "lesson";
+  content_role: Exclude<OutlineContentRole, "excluded">;
 };
 
 export type ParallelWorker = {
@@ -20,6 +22,7 @@ export type ParallelExtractionCommand = {
   batch_anchor: string;
   lesson_run_id: string;
   command: string[];
+  content_role: Exclude<OutlineContentRole, "excluded">;
 };
 
 export type ParallelBatchPlan = {
@@ -96,6 +99,7 @@ export function planParallelBatches(items: OutlineItem[], options: ParallelBatch
       title: item.title,
       label: item.label,
       unit_kind: unitKind,
+      content_role: extractableContentRole(item),
     };
   });
 
@@ -133,9 +137,15 @@ export function planTsModelExtractionCommands(workers: ParallelWorker[], options
       book_id: item.book_id,
       batch_anchor: item.batch_anchor,
       lesson_run_id: item.lesson_run_id,
+      content_role: item.content_role,
       command: buildTsModelExtractionCommand(item, options),
     })),
   );
+}
+
+function extractableContentRole(item: OutlineItem): Exclude<OutlineContentRole, "excluded"> {
+  const role = classifyOutlineContent(item);
+  return role === "excluded" ? "knowledge" : role;
 }
 
 export function resolveOutlineAnchorFromItems(

@@ -10,6 +10,7 @@ import { createNoopPipelineProgressStore } from "../shared/pipeline-progress.js"
 import {
   commandForPipelineOutputAttempt,
   compactPipelineCommandOutput,
+  createServerPipelineJobId,
   isRetryablePipelineOutputFailure,
   parsePipelineStartStage,
   redactCommandForOutput,
@@ -20,6 +21,13 @@ import {
 } from "./server-pipeline-run.js";
 
 const bookId = "chem-hukj-xb2-structure";
+
+test("default pipeline job IDs keep readable Chinese book IDs", () => {
+  assert.equal(
+    createServerPipelineJobId("初中_七年级_数学_人教版_上册", new Date("2026-08-28T06:07:08.123Z")),
+    "初中_七年级_数学_人教版_上册.20260828T060708123Z",
+  );
+});
 
 test("keeps model failures in compact command output while counting verbose statement lists", () => {
   const modelFailures = [{
@@ -190,6 +198,9 @@ test("server pipeline resumes from a durable stage without rerunning extraction 
     "lesson_staging",
     "staging_quality",
     "canonical_commit",
+    "assessment_staging",
+    "assessment_quality",
+    "assessment_commit",
     "normalize",
   ]);
   assert.equal(reusedStages.every((stage) => stage.output?.reused === true), true);
@@ -198,6 +209,72 @@ test("server pipeline resumes from a durable stage without rerunning extraction 
   assert.equal(executed.some((command) => command.some((part) => part.endsWith("merge-staged-lessons.js"))), false);
   assert.equal(executed.some((command) => command.some((part) => part.endsWith("normalize.js"))), false);
   assert.equal(executed[0]?.some((part) => part.endsWith("generate-node-bodies.js")), true);
+});
+
+test("prepare-only pipeline stops after outline chunks without planning or running model extraction", async (context) => {
+  const prepareBookId = "prepare-outline-review-book";
+  context.after(() => rmSync(outlinePathForBook(prepareBookId), { force: true }));
+  const executed: string[][] = [];
+  const result = await runServerPipeline({
+    bookId: prepareBookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-a",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 2,
+    noChunks: false,
+    pdfPath: "",
+    subject: "mathematics",
+    schoolStage: "junior-secondary",
+    gradeBand: "grade7",
+    textbookId: prepareBookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    startStage: "prepare_outline_chunks",
+    prepareOnly: true,
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: {
+      async loadOutline() {
+        return {
+          book_id: prepareBookId,
+          title: "七年级数学",
+          source_kind: "enrich",
+          source_path: `data/mineru/${prepareBookId}/full.md`,
+          items: [{
+            id: `struct:${prepareBookId}:chunk:1-a`,
+            kind: "chunk",
+            title: "第一课",
+            order_path: "1-a",
+            md_start: 1,
+            md_end: 20,
+          }],
+        };
+      },
+      async loadEnrichBook() {
+        return null;
+      },
+      async upsertOutline() {},
+      async upsertMineruSource() {},
+      async close() {},
+    },
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async (command) => {
+      executed.push(command);
+      return { exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  });
+
+  assert.equal(result.status, "completed");
+  assert.equal(result.context.prepare_only, true);
+  assert.equal(result.stages.at(-1)?.id, "prepare_outline_chunks");
+  assert.deepEqual(executed, []);
 });
 
 test("explicit OCR input replaces the stored source when an outline already exists", async (context) => {
@@ -814,6 +891,81 @@ test("server pipeline retries only lessons with transient extraction failures", 
   assert.equal(lessonStage?.output?.recovered_transient_failures, 1);
 });
 
+test("resuming model extraction executes only the previously failed lesson units", async (context) => {
+  const resumeBookId = "selective-lesson-resume-book";
+  const failedAnchor = `struct:${resumeBookId}:chunk:1-b`;
+  context.after(() => rmSync(outlinePathForBook(resumeBookId), { force: true }));
+  const extractedAnchors: string[] = [];
+  const result = await runServerPipeline({
+    bookId: resumeBookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-selective-resume",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 2,
+    noChunks: false,
+    pdfPath: "",
+    subject: "mathematics",
+    schoolStage: "junior-secondary",
+    gradeBand: "grade7",
+    textbookId: resumeBookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    startStage: "lesson_staging",
+    resumeExistingJob: true,
+    resumeBatchAnchors: [failedAnchor],
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: {
+      async loadOutline() {
+        return {
+          book_id: resumeBookId,
+          source_path: `data/mineru/${resumeBookId}/full.md`,
+          items: ["a", "b", "c"].map((suffix, index) => ({
+            id: `struct:${resumeBookId}:chunk:1-${suffix}`,
+            kind: "chunk",
+            title: `课时 ${suffix}`,
+            content_role: "knowledge",
+            order_path: `1-${suffix}`,
+            md_start: index * 10 + 1,
+            md_end: index * 10 + 10,
+          })),
+        };
+      },
+      async loadEnrichBook() {
+        return null;
+      },
+      async upsertOutline() {},
+      async upsertMineruSource() {},
+      async close() {},
+    },
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async (command) => {
+      if (isExtractionCommand(command)) {
+        const anchorIndex = command.indexOf("--batch-anchor");
+        extractedAnchors.push(command[anchorIndex + 1] ?? "");
+      }
+      return { exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  });
+
+  assert.equal(result.status, "completed");
+  assert.deepEqual(extractedAnchors, [failedAnchor]);
+  const lessonStage = result.stages.find((stage) => stage.id === "lesson_staging");
+  assert.equal(lessonStage?.status, "completed");
+  assert.equal(lessonStage?.output?.total_units, 3);
+  assert.equal(lessonStage?.output?.completed, 3);
+  assert.equal(lessonStage?.output?.failed, 0);
+  assert.equal(lessonStage?.output?.reused_completed, 2);
+  assert.equal(lessonStage?.output?.resumed_failed_only, true);
+});
+
 test("server pipeline runner executes TypeScript quality gate and canonical reducer after staging", async () => {
   const commands: string[][] = [];
   const result = await runServerPipeline({
@@ -923,6 +1075,106 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.ok(commands.at(-2)?.some((part) => part.endsWith("graph-integrity.js")));
   assert.ok(commands.at(-1)?.some((part) => part.endsWith("quality-dashboard.js")));
   assert.ok(commands.slice(0, -10).every((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))));
+});
+
+test("commits knowledge and summary chunks before linking assessment chunks", async (context) => {
+  const sequenceBookId = "assessment-sequence-book";
+  context.after(() => rmSync(outlinePathForBook(sequenceBookId), { force: true }));
+  const commands: string[][] = [];
+  const result = await runServerPipeline({
+    bookId: sequenceBookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-assessment-sequence",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 2,
+    noChunks: false,
+    pdfPath: "",
+    subject: "mathematics",
+    schoolStage: "junior-secondary",
+    gradeBand: "grade7",
+    textbookId: sequenceBookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    startStage: "lesson_plan",
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: {
+      async loadOutline() {
+        return {
+          book_id: sequenceBookId,
+          source_path: `data/mineru/${sequenceBookId}/full.md`,
+          items: [
+            {
+              id: `struct:${sequenceBookId}:chunk:1-a`,
+              kind: "chunk",
+              title: "有理数的大小比较",
+              content_role: "knowledge",
+              md_start: 1,
+              md_end: 20,
+            },
+            {
+              id: `struct:${sequenceBookId}:chunk:1-b`,
+              kind: "chunk",
+              title: "本章小结",
+              content_role: "summary",
+              md_start: 21,
+              md_end: 30,
+            },
+            {
+              id: `struct:${sequenceBookId}:chunk:1-c`,
+              kind: "chunk",
+              title: "课后练习",
+              content_role: "assessment",
+              md_start: 31,
+              md_end: 40,
+            },
+          ],
+        };
+      },
+      async loadEnrichBook() {
+        return null;
+      },
+      async upsertOutline() {},
+      async upsertMineruSource() {},
+      async close() {},
+    },
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async (command) => {
+      commands.push(command);
+      return { exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  });
+
+  assert.equal(result.status, "completed");
+  const extractionIndexes = commands
+    .map((command, index) => ({ command, index }))
+    .filter(({ command }) => isExtractionCommand(command));
+  const mergeIndexes = commands
+    .map((command, index) => ({ command, index }))
+    .filter(({ command }) => command.some((part) => part.endsWith("merge-staged-lessons.js")))
+    .map(({ index }) => index);
+  const assessmentExtraction = extractionIndexes.find(({ command }) => command.includes(`struct:${sequenceBookId}:chunk:1-c`));
+
+  assert.equal(extractionIndexes.length, 3);
+  assert.equal(mergeIndexes.length, 2);
+  assert.ok(extractionIndexes.filter(({ command }) => !command.includes(`struct:${sequenceBookId}:chunk:1-c`)).every(({ index }) => index < mergeIndexes[0]!));
+  assert.ok(assessmentExtraction && assessmentExtraction.index > mergeIndexes[0]!);
+  assert.ok(assessmentExtraction && assessmentExtraction.index < mergeIndexes[1]!);
+  assert.equal(result.stages.find((stage) => stage.id === "assessment_staging")?.status, "completed");
+  assert.equal(result.stages.find((stage) => stage.id === "assessment_quality")?.status, "completed");
+  assert.equal(result.stages.find((stage) => stage.id === "assessment_commit")?.status, "completed");
+  assert.deepEqual(result.stages.find((stage) => stage.id === "lesson_plan")?.output?.content_roles, {
+    knowledge: 1,
+    summary: 1,
+    assessment: 1,
+  });
 });
 
 test("server pipeline retries chunks that fail staging quality", async () => {

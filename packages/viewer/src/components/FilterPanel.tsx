@@ -1,6 +1,7 @@
 import { useAppState } from '@/hooks/useAppState';
 import { TYPE_META, LAYER_MODE_OPTIONS } from '@/lib/constants';
 import { BookOpen, Layers, Eye, EyeOff, ChevronDown, ChevronRight, Search, X, Filter } from '@/lib/lucide-icons';
+import { textbookDisplayTitle } from '@/lib/textbook-display';
 import { useMemo, useState, useCallback } from 'react';
 
 type TypeFilterGroup = {
@@ -111,8 +112,19 @@ export function FilterPanel() {
 
   const books = useMemo(() => {
     if (!knowledgeGraph) return [];
-    return Array.from(knowledgeGraph.booksById.keys());
+    return Array.from(knowledgeGraph.booksById.values())
+      .map((book) => ({
+        id: book.bookId,
+        title: textbookDisplayTitle(book.outline),
+      }))
+      .sort((a, b) => a.title.localeCompare(b.title, 'zh-CN', { numeric: true }));
   }, [knowledgeGraph]);
+
+  const selectedBookTitle = useMemo(() => (
+    selectedBook === 'all'
+      ? '全部'
+      : books.find((book) => book.id === selectedBook)?.title || selectedBook
+  ), [books, selectedBook]);
 
   const typeGroups = useMemo(() => {
     if (!knowledgeGraph) return [];
@@ -182,7 +194,7 @@ export function FilterPanel() {
 
       <div className="grid grid-cols-3 gap-2 border-b border-border-subtle bg-elevated/45 px-3 py-2">
         <FilterStat label="类型" value={String(visibleTypeCount)} />
-        <FilterStat label="教材" value={selectedBook === 'all' ? '全部' : selectedBook} />
+        <FilterStat label="教材" value={selectedBookTitle} />
         <FilterStat label="模式" value={selectedModeLabel} />
       </div>
 
@@ -200,22 +212,22 @@ export function FilterPanel() {
               <button
                 onClick={() => setSelectedBook('all')}
                 aria-pressed={selectedBook === 'all'}
-                className={`rounded-md px-2 py-1 text-xs transition-colors ${
+                className={`cursor-pointer rounded-md px-2 py-1 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                   selectedBook === 'all' ? 'bg-accent text-white' : 'border border-border-subtle bg-surface text-text-secondary hover:bg-hover hover:text-text-primary'
                 }`}
               >
                 全部
               </button>
-              {books.map((bookId) => (
+              {books.map((book) => (
                 <button
-                  key={bookId}
-                  onClick={() => setSelectedBook(bookId)}
-                  aria-pressed={selectedBook === bookId}
-                  className={`rounded-md px-2 py-1 text-xs transition-colors ${
-                    selectedBook === bookId ? 'bg-accent text-white' : 'border border-border-subtle bg-surface text-text-secondary hover:bg-hover hover:text-text-primary'
+                  key={book.id}
+                  onClick={() => setSelectedBook(book.id)}
+                  aria-pressed={selectedBook === book.id}
+                  className={`cursor-pointer rounded-md px-2 py-1 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                    selectedBook === book.id ? 'bg-accent text-white' : 'border border-border-subtle bg-surface text-text-secondary hover:bg-hover hover:text-text-primary'
                   }`}
                 >
-                  {bookId}
+                  {book.title}
                 </button>
               ))}
               </div>

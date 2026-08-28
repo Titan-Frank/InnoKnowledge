@@ -9,8 +9,10 @@ export interface PipelineBatchQueueItem {
   id: string;
   bookId: string;
   title: string;
+  sourceFingerprint?: string;
   pdfPath: string;
   ocrFolderPath?: string;
+  ocrImportMode?: 'in_place' | 'copy';
   sourceKind?: PipelineSourceKind;
   enrichContext?: boolean;
   enrichBookPath?: string;
@@ -28,6 +30,7 @@ export interface PipelineBookWorkbenchRow {
   title: string;
   pdfPath: string;
   ocrFolderPath: string;
+  ocrImportMode: 'in_place' | 'copy';
   sourceKind: PipelineSourceKind | null;
   enrichContext: boolean | null;
   enrichBookPath: string;
@@ -62,6 +65,7 @@ export function buildPipelineBookWorkbenchRows(
     title: item.title,
     pdfPath: item.pdfPath,
     ocrFolderPath: item.ocrFolderPath ?? '',
+    ocrImportMode: item.ocrImportMode ?? 'in_place',
     sourceKind: item.sourceKind ?? (item.ocrFolderPath ? 'ocr' : 'pdf'),
     enrichContext: item.enrichContext ?? null,
     enrichBookPath: item.enrichBookPath ?? '',
@@ -82,6 +86,7 @@ export function buildPipelineBookWorkbenchRows(
       title: book.title,
       pdfPath: '',
       ocrFolderPath: '',
+      ocrImportMode: 'copy',
       sourceKind: null,
       enrichContext: null,
       enrichBookPath: '',
@@ -147,13 +152,14 @@ export function buildPipelineBatchStartRequest(
     title: string;
     pdfPath?: string;
     ocrFolderPath?: string;
+    ocrImportMode?: 'in_place' | 'copy';
     enrichContext: boolean;
     enrichBookPath?: string;
   },
 ): PipelineStartRequest {
   const request = { ...base };
   const bookSpecificKeys: Array<keyof PipelineStartRequest> = [
-    'resume_job_id', 'start_stage', 'book_id', 'book_title', 'pdf_path', 'ocr_folder_path', 'mineru_file_url',
+    'resume_job_id', 'start_stage', 'prepare_only', 'outline_confirmation', 'book_id', 'book_title', 'pdf_path', 'ocr_folder_path', 'ocr_import_mode', 'mineru_file_url',
     'mineru_language', 'mineru_page_ranges', 'outline_start_page', 'outline_end_page',
     'extraction_template', 'lesson_subject', 'lesson_school_stage', 'lesson_grade_band',
     'enrich_context', 'enrich_book_path',
@@ -167,8 +173,28 @@ export function buildPipelineBatchStartRequest(
     book_title: book.title,
     ...(pdfPath ? { pdf_path: pdfPath } : {}),
     ...(ocrFolderPath ? { ocr_folder_path: ocrFolderPath } : {}),
+    ...(ocrFolderPath ? { ocr_import_mode: book.ocrImportMode ?? 'in_place' } : {}),
+    prepare_only: true,
     enrich_context: book.enrichContext,
     ...(book.enrichContext && book.enrichBookPath?.trim() ? { enrich_book_path: book.enrichBookPath.trim() } : {}),
+  };
+}
+
+export function buildConfirmedExtractionRequest(
+  base: PipelineStartRequest,
+  input: { bookId: string; fingerprint: string },
+): PipelineStartRequest {
+  return {
+    ...base,
+    resume_job_id: undefined,
+    book_id: input.bookId,
+    pdf_path: undefined,
+    ocr_folder_path: undefined,
+    mineru_file_url: undefined,
+    mineru_force: false,
+    prepare_only: false,
+    outline_confirmation: input.fingerprint,
+    start_stage: 'lesson_plan',
   };
 }
 

@@ -22,7 +22,7 @@ test("plans chunk outline with Python-compatible output shape", () => {
   });
 
   assert.equal(output.status, "success");
-  assert.deepEqual(output.stats, { split: 0, merged: 0, normal: 1, review_skipped: 0 });
+  assert.deepEqual(output.stats, { split: 0, merged: 0, normal: 1, excluded: 0 });
   assert.deepEqual(output.size_summary, { min: 80, max: 80, avg: 80 });
   assert.equal(output.chunks[0]?.id, "struct:chem-grade8:chunk:1-1-a");
 });

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { OKMNode } from '@/core/graph/types';
 import { useAppState } from '@/hooks/useAppState';
 import { useUnitLoader } from '@/hooks/useUnitLoader';
-import { ChevronDown, ChevronRight, Loader2, Maximize2, X } from '@/lib/lucide-icons';
+import { BookOpen, ChevronDown, ChevronRight, FileText, Loader2, X } from '@/lib/lucide-icons';
 import { resolveEdgeVisual } from '@/lib/edge-styles';
 import {
   CURRICULUM_ROLE_LABELS,
@@ -358,7 +358,7 @@ const expandedFragmentMarkdownClass = [
 
 export function DetailUnit({ node }: { node: OKMNode }) {
   const { unit, loading } = useUnitLoader(node);
-  const { knowledgeGraph, setSelectedNodeId } = useAppState();
+  const { knowledgeGraph, openTextbookReader, setSelectedNodeId } = useAppState();
   const [expandedFragment, setExpandedFragment] = useState<ExpandedFragment | null>(null);
   const [expandedEvidenceKeys, setExpandedEvidenceKeys] = useState<Set<string>>(() => new Set());
 
@@ -525,6 +525,33 @@ export function DetailUnit({ node }: { node: OKMNode }) {
     });
   };
 
+  const openFragmentReader = (
+    fragment: Row,
+    mode: 'reading' | 'source',
+    evidenceId?: string,
+  ) => {
+    const evidenceRow = evidenceId ? evidenceById.get(evidenceId) : undefined;
+    const bookId = text(evidenceRow?.book_id || evidenceRow?.source_id || fragment.source_id).trim();
+    if (!bookId) {
+      const index = sourceFragments.indexOf(fragment);
+      setExpandedFragment({
+        title: fragmentTitle(fragment, Math.max(0, index)),
+        modalities: sourceRefs(fragment.modalities),
+        markdown: sourceFragmentMarkdown(asRows(fragment.excerpts)),
+      });
+      return;
+    }
+    const page = evidenceRow?.page_start ?? fragment.page_start;
+    openTextbookReader({
+      bookId,
+      evidenceId,
+      pageNumber: page == null ? undefined : Number(page),
+      mode,
+      markdown: sourceFragmentMarkdown(asRows(fragment.excerpts)),
+      title: fragmentTitle(fragment, Math.max(0, sourceFragments.indexOf(fragment))),
+    });
+  };
+
   return (
     <section aria-label="完整知识单元" className="space-y-4">
       <div className="flex items-center justify-between gap-3 px-1">
@@ -615,15 +642,26 @@ export function DetailUnit({ node }: { node: OKMNode }) {
                           </button>
                         )}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setExpandedFragment({ title, modalities, markdown })}
-                        className="flex h-7 shrink-0 items-center gap-1 rounded-md border border-border-subtle bg-elevated px-2 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
-                        aria-label={`全屏查看${title}`}
-                      >
-                        <Maximize2 className="h-3.5 w-3.5" />
-                        全屏
-                      </button>
+                      <div className="flex shrink-0 items-center rounded-md border border-border-subtle bg-elevated p-0.5" role="group" aria-label={`${title}阅读方式`}>
+                        <button
+                          type="button"
+                          onClick={() => openFragmentReader(fragment, 'reading', fragmentEvidenceIds[0])}
+                          className="flex h-7 cursor-pointer items-center gap-1 rounded px-2 text-xs font-medium text-text-secondary transition-colors duration-200 hover:bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                          aria-label={`使用 Markdown 渲染查看${title}`}
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                          MD 渲染
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openFragmentReader(fragment, 'source', fragmentEvidenceIds[0])}
+                          className="flex h-7 cursor-pointer items-center gap-1 rounded px-2 text-xs font-medium text-text-secondary transition-colors duration-200 hover:bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                          aria-label={`查看${title}的 PDF 原文`}
+                        >
+                          <BookOpen className="h-3.5 w-3.5" />
+                          PDF 原文
+                        </button>
+                      </div>
                     </div>
                     {evidenceExpanded && fragmentEvidenceIds.length > 0 && (
                       <div id={`fragment-evidence-${index}`} className="mt-2 grid gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
@@ -635,7 +673,7 @@ export function DetailUnit({ node }: { node: OKMNode }) {
                             <button
                               type="button"
                               key={evidenceId}
-                              onClick={() => setExpandedFragment({ title, modalities, markdown })}
+                              onClick={() => openFragmentReader(fragment, 'source', evidenceId)}
                               className="scroll-mt-24 cursor-pointer rounded-md border border-accent/20 bg-accent/10 px-2.5 py-1.5 text-left transition-colors hover:border-accent/45 hover:bg-accent/15 focus-visible:border-accent focus-visible:outline-none"
                               title={summary.title}
                               aria-label={`查看${summary.meta}: ${summary.preview}`}

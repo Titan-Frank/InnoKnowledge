@@ -36,7 +36,6 @@ import {
 } from '@/lib/lucide-icons';
 import {
   buildPipelineBookWorkbenchRows,
-  MAX_ACTIVE_PIPELINE_JOBS,
   reconcileTerminalBatchQueue,
   selectBatchLaunchCandidates,
   type PipelineBatchQueueItem,
@@ -67,6 +66,7 @@ function restoreQueue(sourceKey: string): QueueBook[] {
         id: String(item.id || pdfPath || ocrFolderPath),
         pdfPath,
         ocrFolderPath,
+        ocrImportMode: item.ocrImportMode === 'copy' ? 'copy' : 'in_place',
         sourceKind: item.sourceKind === 'ocr' || ocrFolderPath ? 'ocr' : 'pdf',
         enrichContext: typeof item.enrichContext === 'boolean' ? item.enrichContext : undefined,
         enrichBookPath: String(item.enrichBookPath || ''),
@@ -75,6 +75,7 @@ function restoreQueue(sourceKey: string): QueueBook[] {
         sizeBytes: Number(item.sizeBytes || 0),
         bookId: String(item.bookId),
         title: String(item.title || item.bookId),
+        sourceFingerprint: String(item.sourceFingerprint || ''),
         selected: item.selected !== false,
         status: 'ready' as const,
         progress: 100,
@@ -98,14 +99,18 @@ function rowStatus(row: WorkbenchRow): { label: string; tone: string; detail: st
   if (row.queueStatus === 'uploading') return { label: `上传 ${row.progress}%`, tone: 'active', detail: '正在传到工作台存储' };
   if (row.queueStatus === 'starting') return { label: '启动中', tone: 'active', detail: '正在创建后台任务' };
   if (row.queueStatus === 'error') return { label: '待处理', tone: 'warn', detail: row.queueError };
+  if (row.job?.status === 'completed' && row.job.current_stage_id === 'prepare_outline_chunks') {
+    return { label: '切分待确认', tone: 'warn', detail: '选择该任务并检查目录切分预览' };
+  }
   if (row.job?.status === 'completed') return { label: '已完成抽取', tone: 'ok', detail: row.job.completed_at || row.job.updated_at || '' };
   if (row.job?.status === 'blocked') return { label: '抽取阻断', tone: 'warn', detail: row.job.error || row.job.current_stage_label || '需要检查任务详情' };
   if (row.job?.status === 'running' || row.queueStatus === 'started') {
-    return { label: '抽取中', tone: 'active', detail: row.job?.current_stage_label || '后台任务已启动' };
+    const preparing = !row.job?.current_stage_id || ['check_postgres', 'mineru_source_markdown', 'extract_pdf_outline', 'prepare_source_markdown', 'ensure_outline', 'prepare_outline_chunks'].includes(row.job.current_stage_id);
+    return { label: preparing ? '生成切分中' : '抽取中', tone: 'active', detail: row.job?.current_stage_label || '后台任务已启动' };
   }
   if ((row.database?.canonical_nodes ?? 0) > 0) return { label: '已有抽取结果', tone: 'ok', detail: '数据库中已有教材节点' };
   if ((row.pdfPath || row.ocrFolderPath) && row.enrichContext === null) return { label: '待确认 Enrich', tone: 'warn', detail: '选择对应大纲或明确不使用' };
-  if (row.pdfPath || row.ocrFolderPath) return { label: '等待抽取', tone: 'neutral', detail: row.selected ? '已加入本次批量任务' : '本次不抽取' };
+  if (row.pdfPath || row.ocrFolderPath) return { label: '等待切分', tone: 'neutral', detail: row.selected ? '已加入本次批量准备' : '本次不处理' };
   return { label: '已有教材记录', tone: 'neutral', detail: '未关联可启动的 PDF 路径' };
 }
 
@@ -120,8 +125,8 @@ function StatusBadge({ row }: { row: WorkbenchRow }) {
         : 'border-border-default bg-surface text-text-secondary';
   return (
     <div className="min-w-[124px]">
-      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${className}`}>{status.label}</span>
-      <div className="mt-1 max-w-[210px] truncate text-[10px] text-text-muted" title={status.detail}>{status.detail || '—'}</div>
+      <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${className}`}>{status.label}</span>
+      <div className="mt-1.5 max-w-[210px] truncate text-xs text-text-muted" title={status.detail}>{status.detail || '—'}</div>
     </div>
   );
 }
@@ -410,6 +415,7 @@ export function PipelineBookWorkbench({
     title: string;
     pdfPath?: string;
     ocrFolderPath?: string;
+    ocrImportMode?: 'in_place' | 'copy';
     enrichContext: boolean;
     enrichBookPath?: string;
   }) => Promise<PipelineStartResponse>;
@@ -417,6 +423,7 @@ export function PipelineBookWorkbench({
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
+  const reinferredSourceKeyRef = useRef('');
   const [queue, setQueue] = useState<QueueBook[]>(() => restoreQueue(sourceKey));
   const [databaseBooks, setDatabaseBooks] = useState<PgAdminBookSummary[]>([]);
   const [folderPath, setFolderPath] = useState('');
@@ -461,13 +468,34 @@ export function PipelineBookWorkbench({
   const inferQueueBook = async (item: QueueBook) => {
     try {
       const metadata = await inferTextbookMetadata(sourceKey, item.sourceKind === 'ocr'
-        ? { ocr_folder_path: item.ocrFolderPath }
-        : { pdf_path: item.pdfPath });
-      updateQueue(item.id, { bookId: metadata.book_id, title: metadata.title });
+        ? { ocr_folder_path: item.ocrFolderPath, source_fingerprint: item.sourceFingerprint }
+        : { pdf_path: item.pdfPath, source_fingerprint: item.sourceFingerprint });
+      updateQueue(item.id, {
+        bookId: metadata.book_id,
+        title: metadata.title,
+        ...(metadata.enrich_book_path ? {
+          enrichContext: true,
+          enrichBookPath: metadata.enrich_book_path,
+          enrichBookTitle: metadata.enrich_book_title || metadata.enrich_book_path,
+        } : {}),
+      });
     } catch {
       // Filename-derived identifiers remain usable when metadata inference is unavailable.
     }
   };
+
+  const inferQueueBooks = async (items: QueueBook[]) => {
+    for (let index = 0; index < items.length; index += 4) {
+      await Promise.all(items.slice(index, index + 4).map(inferQueueBook));
+    }
+  };
+
+  useEffect(() => {
+    if (reinferredSourceKeyRef.current === sourceKey) return;
+    reinferredSourceKeyRef.current = sourceKey;
+    const restoredItems = queue.filter((item) => item.pdfPath || item.ocrFolderPath);
+    if (restoredItems.length > 0) void inferQueueBooks(restoredItems);
+  }, [sourceKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addServerFiles = async (files: PipelinePdfUploadResponse[]) => {
     const existingPaths = new Set(queue.map((item) => item.pdfPath));
@@ -478,6 +506,7 @@ export function PipelineBookWorkbench({
       sourceKind: 'pdf',
       fileName: file.file_name,
       sizeBytes: file.size_bytes,
+      sourceFingerprint: file.source_fingerprint,
       bookId: file.file_name.replace(/\.pdf$/i, ''),
       title: file.file_name.replace(/\.pdf$/i, ''),
       selected: true,
@@ -487,7 +516,7 @@ export function PipelineBookWorkbench({
     }));
     if (next.length === 0) return;
     setQueue((current) => [...current, ...next]);
-    await Promise.all(next.map(inferQueueBook));
+    await inferQueueBooks(next);
   };
 
   const uploadFiles = async (selectedFiles: File[]) => {
@@ -523,7 +552,12 @@ export function PipelineBookWorkbench({
       }
       try {
         const uploaded = await uploadPipelinePdf(sourceKey, file, (progress) => updateQueue(item.id, { progress }));
-        const ready = { status: 'ready' as const, progress: 100, pdfPath: uploaded.pdf_path };
+        const ready = {
+          status: 'ready' as const,
+          progress: 100,
+          pdfPath: uploaded.pdf_path,
+          sourceFingerprint: uploaded.source_fingerprint,
+        };
         updateQueue(item.id, ready);
         successCount += 1;
         await inferQueueBook({ ...item, ...ready });
@@ -547,7 +581,12 @@ export function PipelineBookWorkbench({
     setNotice('');
     try {
       const result = await scanPipelineFolder(sourceKey, { folder_path: folderPath.trim(), recursive: true });
-      await addServerFiles(result.files.map((file) => ({ pdf_path: file.pdf_path, file_name: file.file_name, size_bytes: file.size_bytes })));
+      await addServerFiles(result.files.map((file) => ({
+        pdf_path: file.pdf_path,
+        file_name: file.file_name,
+        size_bytes: file.size_bytes,
+        source_fingerprint: '',
+      })));
       setFolderPath(result.folder_path);
       setNotice(`目录中找到 ${result.files.length} 个 PDF，已加入批量列表。`);
     } catch (scanError) {
@@ -565,21 +604,22 @@ export function PipelineBookWorkbench({
     setNotice('正在校验 OCR 目录结构…');
     try {
       const inspection = await inspectPipelineOcrFolder(sourceKey, { folder_path: requestedPath });
-      if (queue.some((item) => item.ocrFolderPath === inspection.folder_path)) {
-        setOcrFolderPath(inspection.folder_path);
+      if (queue.some((item) => item.ocrFolderPath === inspection.source_root_path)) {
+        setOcrFolderPath(inspection.source_root_path);
         setNotice('该 OCR 教材已经在任务队列中。');
         return;
       }
-      const fallbackName = inspection.folder_path.split(/[\\/]+/).filter(Boolean).at(-2)
-        || inspection.folder_path.split(/[\\/]+/).filter(Boolean).at(-1)
+      const fallbackName = inspection.source_root_path.split(/[\\/]+/).filter(Boolean).at(-1)
         || '已完成 OCR 教材';
       const item: QueueBook = {
-        id: `ocr:${inspection.folder_path}`,
+        id: `ocr:${inspection.source_root_path}`,
         pdfPath: '',
-        ocrFolderPath: inspection.folder_path,
+        ocrFolderPath: inspection.source_root_path,
+        ocrImportMode: 'in_place',
         sourceKind: 'ocr',
         fileName: fallbackName,
         sizeBytes: 0,
+        sourceFingerprint: inspection.source_fingerprint,
         bookId: fallbackName,
         title: fallbackName,
         selected: true,
@@ -594,7 +634,7 @@ export function PipelineBookWorkbench({
         },
       };
       setQueue((current) => [...current, item]);
-      setOcrFolderPath(inspection.folder_path);
+      setOcrFolderPath(inspection.source_root_path);
       await inferQueueBook(item);
       const qualityLabel = inspection.quality === 'complete' ? '完整组合输入' : '结构化输入';
       setNotice(`OCR 校验通过：${inspection.page_count ?? '未知'} 页、${inspection.block_count ?? '未知'} 块、${inspection.image_count} 张图片 · ${qualityLabel}。`);
@@ -617,7 +657,7 @@ export function PipelineBookWorkbench({
     if (selectedReady.length === 0) return;
     setBatchStarting(true);
     setError('');
-    setNotice(`正在启动 ${selectedReady.length} 本教材…`);
+    setNotice(`正在为 ${selectedReady.length} 本教材生成目录切分…`);
     let started = 0;
     for (const item of selectedReady) {
       updateQueue(item.id, { status: 'starting', error: '' });
@@ -627,6 +667,7 @@ export function PipelineBookWorkbench({
           title: item.title,
           pdfPath: item.pdfPath || undefined,
           ocrFolderPath: item.ocrFolderPath || undefined,
+          ocrImportMode: item.ocrImportMode,
           enrichContext: item.enrichContext!,
           enrichBookPath: item.enrichBookPath || undefined,
         });
@@ -637,7 +678,7 @@ export function PipelineBookWorkbench({
       }
     }
     setBatchStarting(false);
-    setNotice(`已启动 ${started}/${selectedReady.length} 本教材。`);
+    setNotice(`已启动 ${started}/${selectedReady.length} 本教材的切分准备任务。`);
     onRefreshJobs();
   };
 
@@ -677,18 +718,15 @@ export function PipelineBookWorkbench({
   return (
     <section className="mb-5 overflow-hidden rounded-xl border border-border-default bg-elevated shadow-panel">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border-subtle px-4 py-4 sm:px-5">
-        <div>
-          <div className="flex items-center gap-2 text-sm font-semibold text-text-primary"><ListChecks className="h-4 w-4 text-accent" />教材抽取工作台</div>
-          <div className="mt-1 text-xs text-text-muted">教材加入队列后，需逐本确认唯一 Enrich 目录；系统会先将其与 MinerU 正文对齐，再统一启动抽取。</div>
-        </div>
-        <button type="button" onClick={() => void startSelected()} disabled={batchStarting || selectedReady.length === 0} className="flex h-9 cursor-pointer items-center gap-2 rounded-md bg-accent px-3 text-xs font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">
-          {batchStarting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
-          抽取已选 {selectedReady.length} 本
+        <h2 className="flex items-center gap-2 text-base font-semibold text-text-primary"><ListChecks className="h-5 w-5 text-accent" />教材抽取工作台</h2>
+        <button type="button" onClick={() => void startSelected()} disabled={batchStarting || selectedReady.length === 0} className="flex h-10 cursor-pointer items-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">
+          {batchStarting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+          生成已选 {selectedReady.length} 本切分
         </button>
       </div>
 
-      <div className="grid grid-cols-4 border-b border-border-subtle bg-surface/40 px-4 py-2.5 text-[11px] sm:px-5">
-        {['1  添加教材来源', '2  确认 Enrich 目录', '3  检查任务队列', '4  启动并查看结果'].map((label, index) => (
+      <div className="grid grid-cols-2 gap-y-2 border-b border-border-subtle bg-surface/40 px-4 py-3 text-xs sm:grid-cols-5 sm:px-5 sm:text-sm">
+        {['1  添加教材来源', '2  自动匹配 Enrich', '3  自动生成切分', '4  人工确认边界', '5  启动模型抽取'].map((label, index) => (
           <div key={label} className={`flex items-center gap-2 ${index === 0 ? 'font-medium text-accent' : 'text-text-muted'}`}>
             <span className={`h-1.5 w-1.5 rounded-full ${index === 0 ? 'bg-accent' : 'bg-border-strong'}`} />{label}
           </div>
@@ -696,54 +734,48 @@ export function PipelineBookWorkbench({
       </div>
 
       <div className="grid gap-3 border-b border-border-subtle p-4 xl:grid-cols-2 sm:p-5">
-        <section className="rounded-lg border border-border-default bg-surface p-3.5" aria-labelledby="pdf-source-title">
+        <section className="rounded-lg border border-border-default bg-surface p-4" aria-labelledby="pdf-source-title">
           <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-2.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent"><FileText className="h-4 w-4" /></span>
-              <div><div id="pdf-source-title" className="text-xs font-semibold text-text-primary">原始 PDF</div><div className="mt-0.5 text-[10px] leading-4 text-text-muted">上传文件或扫描服务端目录，后续自动调用 MinerU OCR。</div></div>
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent"><FileText className="h-5 w-5" /></span>
+              <h3 id="pdf-source-title" className="text-base font-semibold text-text-primary">原始 PDF</h3>
             </div>
-            <span className="rounded-full border border-border-default bg-elevated px-2 py-0.5 text-[10px] text-text-secondary">需要 OCR</span>
+            <span className="rounded-full border border-border-default bg-elevated px-2.5 py-1 text-xs text-text-secondary">需要 OCR</span>
           </div>
           <input ref={fileInputRef} type="file" accept=".pdf,application/pdf" multiple onChange={handleFiles} className="sr-only" aria-label="批量选择 PDF 文件" />
           <input ref={folderInputRef} type="file" accept=".pdf,application/pdf" multiple onChange={handleFiles} className="sr-only" aria-label="选择本地 PDF 文件夹" />
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-md border border-dashed border-accent/50 bg-accent/5 px-3 text-left transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
-              <Upload className="h-4 w-4 shrink-0 text-accent" /><span><span className="block text-[11px] font-medium text-text-primary">批量选择 PDF</span><span className="block text-[10px] text-text-muted">上传一本或多本</span></span>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <button type="button" onClick={() => fileInputRef.current?.click()} className="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-md border border-dashed border-accent/50 bg-accent/5 px-3 text-left text-sm font-semibold text-text-primary transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+              <Upload className="h-5 w-5 shrink-0 text-accent" />批量选择 PDF
             </button>
-            <button type="button" onClick={() => { folderInputRef.current?.setAttribute('webkitdirectory', ''); folderInputRef.current?.click(); }} className="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-md border border-dashed border-border-default bg-elevated px-3 text-left transition-colors hover:border-accent hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
-              <FolderOpen className="h-4 w-4 shrink-0 text-accent" /><span><span className="block text-[11px] font-medium text-text-primary">选择 PDF 文件夹</span><span className="block text-[10px] text-text-muted">上传目录内全部 PDF</span></span>
+            <button type="button" onClick={() => { folderInputRef.current?.setAttribute('webkitdirectory', ''); folderInputRef.current?.click(); }} className="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-md border border-dashed border-border-default bg-elevated px-3 text-left text-sm font-semibold text-text-primary transition-colors hover:border-accent hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+              <FolderOpen className="h-5 w-5 shrink-0 text-accent" />选择 PDF 文件夹
             </button>
           </div>
-          <label htmlFor="pipeline-folder-path" className="mt-3 block text-[10px] font-medium text-text-secondary">或扫描服务端 PDF 目录</label>
+          <label htmlFor="pipeline-folder-path" className="mt-4 block text-sm font-medium text-text-secondary">扫描服务端 PDF 目录</label>
           <div className="mt-1.5 flex flex-col gap-2 sm:flex-row">
-            <input id="pipeline-folder-path" value={folderPath} onChange={(event) => setFolderPath(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void scanFolder(); }} placeholder="/Users/.../textbooks" className="h-9 min-w-0 flex-1 rounded-md border border-border-default bg-elevated px-3 font-mono text-xs text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent" />
-            <button type="button" onClick={() => void scanFolder()} disabled={scanning || !folderPath.trim()} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-default bg-elevated px-3 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50">
-              {scanning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}扫描 PDF
+            <input id="pipeline-folder-path" value={folderPath} onChange={(event) => setFolderPath(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void scanFolder(); }} placeholder="/Users/.../textbooks" className="h-10 min-w-0 flex-1 rounded-md border border-border-default bg-elevated px-3 font-mono text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent" />
+            <button type="button" onClick={() => void scanFolder()} disabled={scanning || !folderPath.trim()} className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-border-default bg-elevated px-3.5 text-sm font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50">
+              {scanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}扫描 PDF
             </button>
           </div>
         </section>
 
-        <section className="order-first rounded-lg border border-accent/40 bg-accent/5 p-3.5 xl:order-none" aria-labelledby="ocr-source-title">
+        <section className="order-first rounded-lg border border-accent/40 bg-accent/5 p-4 xl:order-none" aria-labelledby="ocr-source-title">
           <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-2.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><FolderOpen className="h-4 w-4" /></span>
-              <div><div id="ocr-source-title" className="text-xs font-semibold text-text-primary">已完成 OCR</div><div className="mt-0.5 text-[10px] leading-4 text-text-muted">导入含 content_list_v2.json 的 MinerU hybrid_ocr 或其上级目录，直接进入结构与知识抽取。</div></div>
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><FolderOpen className="h-5 w-5" /></span>
+              <h3 id="ocr-source-title" className="text-base font-semibold text-text-primary">已完成 OCR</h3>
             </div>
-            <span className="rounded-full border border-node-process/40 bg-node-process/10 px-2 py-0.5 text-[10px] text-node-process">跳过 PDF / MinerU</span>
+            <span className="rounded-full border border-node-process/40 bg-node-process/10 px-2.5 py-1 text-xs text-node-process">无需再次 OCR</span>
           </div>
-          <div className="mt-3 flex flex-wrap gap-1.5 text-[10px] text-text-secondary">
-            <span className="rounded-full border border-border-default bg-elevated px-2 py-0.5">Markdown 正文</span>
-            <span className="rounded-full border border-border-default bg-elevated px-2 py-0.5">content_list_v2 结构</span>
-            <span className="rounded-full border border-border-default bg-elevated px-2 py-0.5">images 视觉证据</span>
-          </div>
-          <label htmlFor="pipeline-ocr-folder-path" className="mt-3 block text-[10px] font-medium text-text-secondary">服务端 OCR 文件夹绝对路径</label>
+          <label htmlFor="pipeline-ocr-folder-path" className="mt-4 block text-sm font-medium text-text-secondary">服务端 OCR 文件夹路径</label>
           <div className="mt-1.5 flex flex-col gap-2 sm:flex-row">
-            <input id="pipeline-ocr-folder-path" value={ocrFolderPath} onChange={(event) => setOcrFolderPath(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void addOcrFolder(); }} placeholder="/Users/.../初中_七年级_数学_人教版_上册" className="h-9 min-w-0 flex-1 rounded-md border border-accent/40 bg-elevated px-3 font-mono text-xs text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent" />
-            <button type="button" onClick={() => void addOcrFolder()} disabled={inspectingOcr || !ocrFolderPath.trim()} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-xs font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">
-              {inspectingOcr ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}校验并加入
+            <input id="pipeline-ocr-folder-path" value={ocrFolderPath} onChange={(event) => setOcrFolderPath(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void addOcrFolder(); }} placeholder="/Users/.../初中_七年级_数学_人教版_上册" className="h-10 min-w-0 flex-1 rounded-md border border-accent/40 bg-elevated px-3 font-mono text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent" />
+            <button type="button" onClick={() => void addOcrFolder()} disabled={inspectingOcr || !ocrFolderPath.trim()} className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md bg-accent px-3.5 text-sm font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">
+              {inspectingOcr ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}校验并加入
             </button>
           </div>
-          <div className="mt-2 text-[10px] leading-4 text-text-muted">自动选择 Markdown + v2 JSON 组合；只有 v2 JSON 时会生成兼容 Markdown。不会再次执行 OCR。</div>
         </section>
       </div>
 
@@ -753,27 +785,27 @@ export function PipelineBookWorkbench({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
-        <div><div className="text-xs font-medium text-text-primary">任务队列</div><div className="mt-0.5 text-[10px] text-text-muted">共 {rows.length} 本 · {queue.filter((item) => item.selected).length} 本已勾选 · {queue.filter((item) => item.enrichContext === undefined).length} 本待确认 Enrich · 最多同时抽取 {MAX_ACTIVE_PIPELINE_JOBS} 本</div></div>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-5">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1"><h3 className="text-base font-semibold text-text-primary">任务队列</h3><span className="text-sm text-text-secondary">{rows.length} 本任务 · {queue.filter((item) => item.selected).length} 本已选 · {queue.filter((item) => item.enrichContext === undefined).length} 本待确认</span></div>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setQueue((current) => current.map((item) => ({ ...item, selected: true })))} className="cursor-pointer text-[11px] font-medium text-accent transition-colors hover:text-accent-dim">全选待处理</button>
+          <button type="button" onClick={() => setQueue((current) => current.map((item) => ({ ...item, selected: true })))} className="cursor-pointer text-sm font-medium text-accent transition-colors hover:text-accent-dim">全选待处理</button>
           <span className="text-border-strong">/</span>
-          <button type="button" onClick={() => setQueue((current) => current.map((item) => ({ ...item, selected: false })))} className="cursor-pointer text-[11px] font-medium text-text-muted transition-colors hover:text-text-primary">全部取消</button>
+          <button type="button" onClick={() => setQueue((current) => current.map((item) => ({ ...item, selected: false })))} className="cursor-pointer text-sm font-medium text-text-secondary transition-colors hover:text-text-primary">全部取消</button>
         </div>
       </div>
 
       <div className="max-h-[480px] overflow-auto border-t border-border-subtle scrollbar-thin">
-        <table className="w-full min-w-[1380px] text-left text-xs">
+        <table className="w-full min-w-[1380px] text-left text-sm">
           <thead className="sticky top-0 z-10 bg-elevated text-text-muted">
             <tr>
-              <th className="w-20 px-4 py-2 font-medium">是否抽取</th>
-              <th className="px-3 py-2 font-medium">来源</th>
-              <th className="px-3 py-2 font-medium">教材</th>
-              <th className="px-3 py-2 font-medium">来源路径与质量</th>
-              <th className="px-3 py-2 font-medium">Enrich 目录</th>
-              <th className="px-3 py-2 font-medium">抽取状态</th>
-              <th className="px-3 py-2 font-medium">节点结果</th>
-              <th className="px-3 py-2 font-medium">操作</th>
+              <th className="w-20 px-4 py-2.5 font-semibold">是否抽取</th>
+              <th className="px-3 py-2.5 font-semibold">来源</th>
+              <th className="px-3 py-2.5 font-semibold">教材</th>
+              <th className="px-3 py-2.5 font-semibold">来源路径与质量</th>
+              <th className="px-3 py-2.5 font-semibold">Enrich 目录</th>
+              <th className="px-3 py-2.5 font-semibold">抽取状态</th>
+              <th className="px-3 py-2.5 font-semibold">节点结果</th>
+              <th className="px-3 py-2.5 font-semibold">操作</th>
             </tr>
           </thead>
           <tbody>
@@ -786,22 +818,25 @@ export function PipelineBookWorkbench({
                   <td className="px-4 py-3">
                     <label className={`inline-flex items-center gap-2 ${canSelect ? 'cursor-pointer' : 'cursor-not-allowed opacity-55'}`}>
                       <input type="checkbox" checked={row.selected} disabled={!canSelect} onChange={(event) => updateSelected(row, event.target.checked)} className="h-4 w-4 accent-[var(--color-accent)]" aria-label={`${row.title} 是否参与抽取`} />
-                      <span className="text-[10px] text-text-muted">{row.selected ? '是' : '否'}</span>
+                      <span className="text-sm text-text-secondary">{row.selected ? '是' : '否'}</span>
                     </label>
                   </td>
                   <td className="px-3 py-3">
                     {row.sourceKind ? (
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${row.sourceKind === 'ocr' ? 'border-node-process/40 bg-node-process/10 text-node-process' : 'border-accent/40 bg-accent/10 text-accent'}`}>
+                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${row.sourceKind === 'ocr' ? 'border-node-process/40 bg-node-process/10 text-node-process' : 'border-accent/40 bg-accent/10 text-accent'}`}>
                         {row.sourceKind === 'ocr' ? <FolderOpen className="h-3 w-3" /> : <FileText className="h-3 w-3" />}{row.sourceKind === 'ocr' ? '已 OCR' : 'PDF'}
                       </span>
-                    ) : <span className="text-[10px] text-text-muted">数据库</span>}
+                    ) : <span className="text-xs text-text-muted">数据库</span>}
                   </td>
                   <td className="max-w-[260px] px-3 py-3">
                     <div className="truncate font-medium text-text-primary" title={row.title}>{row.title}</div>
                   </td>
                   <td className="max-w-[390px] px-3 py-3">
                     <div className="truncate text-text-secondary" title={sourcePath}>{sourcePath || '数据库已有记录'}</div>
-                    <div className="mt-1 text-[10px] text-text-muted">
+                    {row.sourceKind === 'ocr' && row.ocrImportMode === 'in_place' && (
+                      <div className="mt-1 text-[10px] font-medium text-node-process">使用原目录 · 不复制教材文件</div>
+                    )}
+                    <div className="mt-1.5 text-xs text-text-muted">
                       {row.sourceKind === 'ocr' && queueItem?.ocrInspection
                         ? `${queueItem.ocrInspection.page_count ?? '未知'} 页 · ${queueItem.ocrInspection.block_count ?? '未知'} 块 · ${queueItem.ocrInspection.image_count} 图 · ${queueItem.ocrInspection.quality === 'complete' ? '完整组合' : '结构化'}`
                         : fileSizeText(row.sizeBytes)}
@@ -810,22 +845,22 @@ export function PipelineBookWorkbench({
                   <td className="max-w-[300px] px-3 py-3">
                     {queueItem ? (
                       <div>
-                        <div className={`truncate text-[11px] font-medium ${queueItem.enrichContext === undefined ? 'text-node-event' : queueItem.enrichContext ? 'text-text-primary' : 'text-text-secondary'}`} title={queueItem.enrichBookTitle}>
+                        <div className={`truncate text-sm font-medium ${queueItem.enrichContext === undefined ? 'text-node-event' : queueItem.enrichContext ? 'text-text-primary' : 'text-text-secondary'}`} title={queueItem.enrichBookTitle}>
                           {queueItem.enrichContext === undefined ? '待人工确认' : queueItem.enrichContext ? queueItem.enrichBookTitle : '已确认不使用 Enrich'}
                         </div>
-                        <button type="button" onClick={() => setEnrichItem(queueItem)} disabled={row.queueStatus === 'starting' || row.job?.status === 'running'} className="mt-1.5 cursor-pointer rounded-md border border-border-default bg-surface px-2 py-1 text-[10px] font-medium text-accent transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50">
+                        <button type="button" onClick={() => setEnrichItem(queueItem)} disabled={row.queueStatus === 'starting' || row.job?.status === 'running'} className="mt-1.5 cursor-pointer rounded-md border border-border-default bg-surface px-2.5 py-1.5 text-xs font-medium text-accent transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50">
                           {queueItem.enrichContext === undefined ? '检索并选择' : '重新确认'}
                         </button>
                       </div>
-                    ) : <span className="text-[10px] text-text-muted">仅查看数据库记录</span>}
+                    ) : <span className="text-xs text-text-muted">仅查看</span>}
                   </td>
                   <td className="px-3 py-3"><StatusBadge row={row} /></td>
                   <td className="px-3 py-3">
                     <div className="font-semibold tabular-nums text-text-primary">{row.database?.canonical_nodes ?? 0} 个</div>
-                    <div className="mt-1 text-[10px] text-text-muted">{row.database?.shared_nodes ? `${row.database.shared_nodes} 个复用/匹配` : 'canonical 节点'}</div>
+                    {(row.database?.shared_nodes ?? 0) > 0 && <div className="mt-1 text-xs text-text-muted">{row.database!.shared_nodes} 个复用/匹配</div>}
                   </td>
                   <td className="px-3 py-3">
-                    <button type="button" onClick={() => void showNodes(row.bookId, row.title)} disabled={!row.bookId} className="flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-border-default bg-surface px-2.5 text-[11px] font-medium text-text-secondary transition-colors hover:border-accent hover:bg-accent/10 hover:text-accent disabled:cursor-not-allowed disabled:opacity-50">
+                    <button type="button" onClick={() => void showNodes(row.bookId, row.title)} disabled={!row.bookId} className="flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-border-default bg-surface px-3 text-sm font-medium text-text-secondary transition-colors hover:border-accent hover:bg-accent/10 hover:text-accent disabled:cursor-not-allowed disabled:opacity-50">
                       <ExternalLink className="h-3.5 w-3.5" />查看节点
                     </button>
                   </td>
