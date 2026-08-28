@@ -209,6 +209,53 @@ export function planStagedNodeMerge(input: {
   const embeddingThreshold = input.embeddingThreshold ?? 0.92;
   const reviewThreshold = input.reviewThreshold ?? 0.74;
   const stagedPayload = makeStagedNodePayload(input.staged, input.now);
+  const rawNodeId = requiredString(input.staged.raw_node_id, "raw_node_id");
+  const stagedProperties = asRecord(input.staged.properties_json);
+  if (stagedProperties.extraction_policy === "existing_only") {
+    const requestedCanonicalNodeId = requiredString(stagedProperties.existing_canonical_node_id, "existing_canonical_node_id");
+    const existing = input.canonicalNodes.find((candidate) => candidate.payload.id === requestedCanonicalNodeId);
+    if (!existing) {
+      throw new Error(
+        `Existing-only assessment node '${rawNodeId}' cannot be merged because canonical node '${requestedCanonicalNodeId}' does not exist.`,
+      );
+    }
+    const nodePayload = {
+      ...makeExistingNodePayload(existing.payload, input.now),
+      status: existing.payload.status ?? "active",
+      updated_at: input.now,
+    };
+    const score: NodeMatchScore = {
+      score: 1,
+      lexical: 1,
+      semantic: 1,
+      embedding: 0,
+      rationale: {
+        reason: "existing_only_reference",
+        candidate_id: requestedCanonicalNodeId,
+      },
+    };
+    return {
+      raw_node_id: rawNodeId,
+      canonical_node_id: requestedCanonicalNodeId,
+      resolution: "matched",
+      score,
+      node_payload: nodePayload,
+      node_map_entry: { [rawNodeId]: requestedCanonicalNodeId },
+      canonical_node_map_payload: {
+        dataset_id: input.datasetId,
+        merge_run_id: input.mergeRunId,
+        lesson_run_id: input.lessonRunId,
+        raw_node_id: rawNodeId,
+        canonical_node_id: requestedCanonicalNodeId,
+        resolution: "matched",
+        similarity: 1,
+        rationale_json: score.rationale,
+        created_at: input.now,
+      },
+      canonical_candidate_to_append: null,
+      stats_delta: { nodes_created: 0, nodes_matched: 1, nodes_review: 0 },
+    };
+  }
 
   let bestMatch: CanonicalNodeCandidate | null = null;
   let bestScore: NodeMatchScore = { score: 0, lexical: 0, semantic: 0, embedding: 0, rationale: {} };
@@ -231,7 +278,6 @@ export function planStagedNodeMerge(input: {
     }
   }
 
-  const rawNodeId = requiredString(input.staged.raw_node_id, "raw_node_id");
   let canonicalNodeId: string;
   let resolution: StagedNodeResolution;
   let nodePayload: Record<string, unknown>;

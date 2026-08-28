@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { listTextbookReaderBooks, loadTextbookReaderPage } from './textbook-reader.js';
+import { listTextbookReaderBooks, loadTextbookReaderPage, resolveTextbookReaderPdf } from './textbook-reader.js';
 
 test('loads semantic OCR pages and resolves image evidence to a stable block', async () => {
   const repoRoot = await mkdtemp(path.join(tmpdir(), 'okm-reader-'));
@@ -100,6 +100,44 @@ test('matches text evidence and honors an explicit page request', async () => {
     assert.equal(explicit.page_index, 1);
     assert.equal(explicit.pdf_available, false);
     assert.equal(explicit.blocks[0]?.text, '第二页正文。');
+  } finally {
+    await rm(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test('resolves the original PDF through an in-place OCR source path when book_id differs from the folder name', async () => {
+  const repoRoot = await mkdtemp(path.join(tmpdir(), 'okm-reader-source-path-'));
+  const bookRoot = path.join(repoRoot, 'data', 'mineru', '初中_七年级_数学_人教版_上册');
+  const bundle = path.join(bookRoot, '初中_七年级_数学_人教版_上册', 'hybrid_ocr');
+  const pdf = path.join(bookRoot, '初中_七年级_数学_人教版_上册.pdf');
+  try {
+    await mkdir(bundle, { recursive: true });
+    await writeFile(path.join(bundle, 'full.md'), '# 第一章');
+    await writeFile(pdf, '%PDF-1.4 original');
+    assert.equal(await resolveTextbookReaderPdf({
+      repoRoot,
+      datasetId: 'main',
+      bookId: '初中-七年级-数学-人教版-上册-hash',
+      sourcePaths: [path.join(bundle, 'full.md')],
+    }), pdf);
+    await writeFile(path.join(bundle, 'math_content_list_v2.json'), JSON.stringify([[{
+      type: 'paragraph',
+      bbox: [100, 100, 900, 200],
+      content: { paragraph_content: [{ type: 'text', content: '第一课' }] },
+    }]]));
+    const catalog = await listTextbookReaderBooks(path.join(repoRoot, 'data'), [{
+      book_id: 'math-book-canonical',
+      source_markdown_path: path.join(repoRoot, 'data', 'mineru', 'legacy-copy', 'full.md'),
+      raw_markdown_path: path.join(bundle, 'full.md'),
+      extract_dir: bundle,
+    }]);
+    assert.deepEqual(catalog, [{
+      book_id: 'math-book-canonical',
+      title: '初中_七年级_数学_人教版_上册',
+      page_count: 1,
+      source_format: 'content_list_v2',
+      pdf_available: true,
+    }]);
   } finally {
     await rm(repoRoot, { recursive: true, force: true });
   }

@@ -9,6 +9,7 @@ export type OutlineItem = {
   parent_id?: string;
   order_path?: string;
   children?: OutlineItem[];
+  content_role?: "knowledge" | "summary" | "assessment" | "excluded";
   [key: string]: unknown;
 };
 
@@ -65,7 +66,12 @@ export function makeNodeCardId(nodeId: string): string {
 }
 
 export function safePathToken(value: string): string {
-  const token = value.trim().replace(/[^a-zA-Z0-9._-]+/g, "__").replace(/^[._]+|[._]+$/g, "");
+  const token = value
+    .normalize("NFKC")
+    .trim()
+    .replace(/[^\p{L}\p{N}._-]+/gu, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/^[._-]+|[._-]+$/g, "");
   return token || "item";
 }
 

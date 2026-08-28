@@ -69,7 +69,7 @@ test("plans chunk outline from book id, outline file, and markdown source_path",
     assert.equal(output.outline_path, outlinePath);
     assert.equal(output.markdown_path, markdownPath);
     assert.deepEqual(output.warnings, []);
-    assert.deepEqual(output.stats, { split: 0, merged: 0, normal: 1, review_skipped: 0 });
+    assert.deepEqual(output.stats, { split: 0, merged: 0, normal: 1, excluded: 0 });
     assert.equal(output.chunks[0]?.title, "水");
     assert.deepEqual(output.outline?.items.map((item) => item.id), ["topic-1", "struct:chem:lesson:1-1", "struct:chem:chunk:1-1-a"]);
   } finally {

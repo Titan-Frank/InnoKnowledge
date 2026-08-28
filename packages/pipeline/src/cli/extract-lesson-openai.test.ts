@@ -350,6 +350,55 @@ test("retries transient model request failures before blocking", async () => {
   }
 });
 
+test("retries a successful model response that contains no output text", async () => {
+  const repo = makeFixtureRepo();
+  const stdout: string[] = [];
+  let calls = 0;
+  try {
+    const code = await runExtractLessonOpenAiCli(
+      [
+        "--book-id",
+        bookId,
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+        "--no-image-filter",
+      ],
+      {
+        stdout: (text) => stdout.push(text),
+        stderr: () => undefined,
+        env: { OPENAI_API_KEY: "test-key", MODEL_RETRY_COUNT: "1" },
+        fetchImpl: async () => {
+          calls += 1;
+          if (calls === 1) {
+            return new Response(JSON.stringify({ choices: [{ message: { content: null } }] }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          const text = calls === 2
+            ? JSON.stringify({ nodes: [], evidence_units: [], issues: [] })
+            : JSON.stringify({ edges: [], issues: [] });
+          return new Response(JSON.stringify({ choices: [{ message: { content: text } }] }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      },
+    );
+
+    assert.equal(code, 0);
+    assert.equal(calls, 3);
+    const payload = JSON.parse(stdout.join("")) as { status: string };
+    assert.equal(payload.status, "success");
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
 test("runs the two-stage extraction flow", async () => {
   const repo = makeFixtureRepo();
   const stdout: string[] = [];
@@ -425,6 +474,60 @@ test("runs the two-stage extraction flow", async () => {
     assert.equal(payload.counts.nodes, 2);
     assert.equal(payload.counts.edges, 1);
     assert.ok(payload.issues.some((issue) => issue.includes("bare JSON array")));
+  } finally {
+    rmSync(repo.root, { recursive: true, force: true });
+  }
+});
+
+test("assessment chunks use one existing-node-only model stage", async () => {
+  const repo = makeAssessmentFixtureRepo();
+  const stdout: string[] = [];
+  let calls = 0;
+  try {
+    const code = await runExtractLessonOpenAiCli(
+      [
+        "--book-id",
+        bookId,
+        "--batch-anchor",
+        canonicalAnchor,
+        "--output-root",
+        "/tmp/output",
+        "--repo-root",
+        repo.root,
+        "--retrieval-candidates-json",
+        JSON.stringify([{ node_id: "node:known", name: "模型抽取", kind: "concept", score: 100 }]),
+        "--no-image-filter",
+      ],
+      {
+        stdout: (text) => stdout.push(text),
+        stderr: () => undefined,
+        env: { OPENAI_API_KEY: "test-key" },
+        fetchImpl: async () => {
+          calls += 1;
+          return new Response(JSON.stringify({
+            choices: [{ message: { content: JSON.stringify({
+              lesson_disposition: "extracted",
+              no_knowledge_reason: "",
+              nodes: [
+                { id: "node:known", name: "模型抽取", kind: "concept", definition: "已有节点", properties: { assessment: { ability_points: ["识别模型抽取"], task_types: ["练习题"], confidence: 0.9 } } },
+                { id: "node:new", name: "不得创建", kind: "concept", definition: "陌生节点" },
+              ],
+              evidence_units: [{ anchor: "ev1", excerpt: "完成模型抽取练习。", locator: "line:2", modality: "text", node_ids: ["node:known", "node:new"] }],
+              issues: [],
+            }) } }],
+          }), { status: 200, headers: { "Content-Type": "application/json" } });
+        },
+      },
+    );
+
+    assert.equal(code, 0);
+    assert.equal(calls, 1);
+    const payload = JSON.parse(stdout.join("")) as Record<string, unknown>;
+    assert.equal(payload.content_role, "assessment");
+    assert.equal(payload.extraction_policy, "existing_nodes_only");
+    assert.deepEqual((payload.nodes as Array<Record<string, unknown>>).map((node) => node.id), ["node:known"]);
+    assert.deepEqual(payload.edges, []);
+    assert.deepEqual(payload.node_cards, []);
   } finally {
     rmSync(repo.root, { recursive: true, force: true });
   }
@@ -617,4 +720,25 @@ function makeFixtureRepo(): { root: string } {
   );
   writeFileSync(join(root, "data", "mineru", "cli-model-book", "full.md"), ["# 模型抽取", "模型根据证据抽取节点。"].join("\n"));
   return { root };
+}
+
+function makeAssessmentFixtureRepo(): { root: string } {
+  const fixture = makeFixtureRepo();
+  writeFileSync(
+    join(fixture.root, "data", "outlines", `${bookId}.outline.json`),
+    JSON.stringify({
+      source_path: "data/mineru/cli-model-book/full.md",
+      structure: [{
+        id: canonicalAnchor,
+        kind: "chunk",
+        title: "课后练习",
+        content_role: "assessment",
+        md_start: 1,
+        md_end: 2,
+        page_start: 1,
+        page_end: 1,
+      }],
+    }),
+  );
+  return fixture;
 }

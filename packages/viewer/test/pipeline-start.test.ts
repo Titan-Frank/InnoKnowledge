@@ -3,6 +3,7 @@ import test from 'node:test';
 import type { PipelineJobSummary } from '@okm/types';
 import {
   buildPipelineBatchStartRequest,
+  buildConfirmedExtractionRequest,
   buildPipelineBookWorkbenchRows,
   MAX_ACTIVE_PIPELINE_JOBS,
   reconcileTerminalBatchQueue,
@@ -162,6 +163,7 @@ test('batch requests keep shared runtime settings but infer metadata for each bo
     pdf_path: '/tmp/physics.pdf',
     enrich_context: true,
     enrich_book_path: 'data/enrich/物理/高中物理必修一.json',
+    prepare_only: true,
     parallelism: 6,
     openai_model: 'shared-model',
   });
@@ -185,8 +187,36 @@ test('batch OCR requests clear stale PDF fields and forward the OCR folder', () 
     book_title: '七年级数学上册',
     ocr_folder_path: '/data/math/hybrid_ocr',
     enrich_context: false,
+    prepare_only: true,
     parallelism: 4,
     openai_model: 'shared-model',
+  });
+});
+
+test('confirmed extraction starts from the stored lesson plan and carries the reviewed fingerprint', () => {
+  assert.deepEqual(buildConfirmedExtractionRequest({
+    book_id: 'stale',
+    pdf_path: '/tmp/stale.pdf',
+    ocr_folder_path: '/tmp/stale-ocr',
+    mineru_force: true,
+    parallelism: 6,
+    openai_model: 'shared-model',
+    prepare_only: true,
+  }, {
+    bookId: 'math-grade7',
+    fingerprint: 'fingerprint-1',
+  }), {
+    book_id: 'math-grade7',
+    pdf_path: undefined,
+    ocr_folder_path: undefined,
+    mineru_force: false,
+    parallelism: 6,
+    openai_model: 'shared-model',
+    prepare_only: false,
+    resume_job_id: undefined,
+    mineru_file_url: undefined,
+    outline_confirmation: 'fingerprint-1',
+    start_stage: 'lesson_plan',
   });
 });
 

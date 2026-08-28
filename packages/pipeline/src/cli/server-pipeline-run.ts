@@ -69,6 +69,9 @@ export const PIPELINE_START_STAGES = [
   "lesson_staging",
   "staging_quality",
   "canonical_commit",
+  "assessment_staging",
+  "assessment_quality",
+  "assessment_commit",
   "normalize",
   "node_bodies",
   "pedagogical_profiles",
@@ -92,6 +95,7 @@ type RunnerOptions = {
   noChunks: boolean;
   pdfPath: string;
   ocrFolderPath?: string;
+  ocrImportMode?: "copy" | "in_place";
   bookTitle?: string;
   outlineStartPage?: number;
   outlineEndPage?: number;
@@ -140,6 +144,8 @@ type RunnerOptions = {
   unitEmbeddingBatchSize?: number;
   startStage?: PipelineStartStage;
   resumeExistingJob?: boolean;
+  resumeBatchAnchors?: string[];
+  prepareOnly?: boolean;
   progressStore?: PipelineProgressStore;
   assetStore?: PipelineAssetStore;
   commandRunner?: CommandRunner;
@@ -230,6 +236,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
             bookId: options.bookId,
             folderPath: ocrFolderPath,
             outputDir: resolve(REPO_ROOT, "data", "mineru", safePathToken(options.bookId)),
+            mode: options.ocrImportMode ?? "copy",
           });
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
@@ -457,6 +464,23 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       });
     }
 
+    if (options.prepareOnly) {
+      result.status = "completed";
+      await progressStore.updateJob({
+        datasetId: options.datasetId,
+        jobId: result.job_id,
+        status: "completed",
+        currentStageId: "prepare_outline_chunks",
+        progress: {
+          completed_stages: result.stages.length,
+          preparation_complete: true,
+          outline_review_required: true,
+        },
+        completed: true,
+      });
+      return result;
+    }
+
     const outlineItems = outlineItemsFromRecord(outlineRecord);
     if (outlineItems.length === 0) {
       return await blockRun(result, progressStore, "lesson_plan", `Outline has no extractable items for book '${options.bookId}'.`);
@@ -495,6 +519,10 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       ...item,
       command: addExtractionExecutionFlags(item.command, options),
     }));
+    const knowledgeCommands = commands.filter((command) => command.content_role !== "assessment");
+    const assessmentCommands = commands.filter((command) => command.content_role === "assessment");
+    const lessonSelection = selectModelStageCommands(knowledgeCommands, options, "lesson_staging");
+    const assessmentSelection = selectModelStageCommands(assessmentCommands, options, "assessment_staging");
     if (shouldRunStage(options, "lesson_plan")) {
       await recordStage(result, progressStore, {
         id: "lesson_plan",
@@ -503,22 +531,41 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
           total_units: plan.total_units,
           unit_kind: plan.unit_kind,
           parallel: plan.parallel,
+          canonical_units: knowledgeCommands.length,
+          knowledge_units: commands.filter((command) => command.content_role === "knowledge").length,
+          summary_units: commands.filter((command) => command.content_role === "summary").length,
+          assessment_units: assessmentCommands.length,
+          content_roles: {
+            knowledge: commands.filter((command) => command.content_role === "knowledge").length,
+            summary: commands.filter((command) => command.content_role === "summary").length,
+            assessment: assessmentCommands.length,
+          },
           commands: commands.map((item) => redactCommandForOutput(item.command)),
         },
       });
     }
 
     if (shouldRunStage(options, "lesson_staging")) {
-      const lessonStage: ServerPipelineStage = { id: "lesson_staging", status: "running", output: lessonProgress(commands.length, 0, 0, [], []) };
+      const lessonStage: ServerPipelineStage = {
+        id: "lesson_staging",
+        status: "running",
+        output: {
+          ...lessonProgress(knowledgeCommands.length, lessonSelection.reusedCompleted, 0, [], []),
+          resumed_failed_only: lessonSelection.selective,
+          reused_completed: lessonSelection.reusedCompleted,
+        },
+      };
       await recordStage(result, progressStore, lessonStage);
-      const initialLessonResults = await runExtractionCommands(commands, options.parallelism, {
+      const initialLessonResults = await runExtractionCommands(lessonSelection.commands, options.parallelism, {
         commandRunner: options.commandRunner,
         progressStore,
         result,
         stage: lessonStage,
+        totalUnits: knowledgeCommands.length,
+        initialCompleted: lessonSelection.reusedCompleted,
       });
       const initialFailed = initialLessonResults.filter((lessonResult) => lessonResult.exit_code !== 0);
-      const transientRetryCommands = commands.filter((command) => {
+      const transientRetryCommands = lessonSelection.commands.filter((command) => {
         const failedResult = initialFailed.find((lessonResult) => lessonResult.lesson_run_id === command.lesson_run_id);
         return failedResult ? isRetryableExtractionFailure(failedResult) : false;
       });
@@ -560,10 +607,18 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       const failed = lessonResults.filter((lessonResult) => lessonResult.exit_code !== 0);
       lessonStage.status = failed.length > 0 ? "blocked" : "completed";
       lessonStage.output = {
-        ...lessonProgress(commands.length, lessonResults.length - failed.length, failed.length, [], compactLessonResults(lessonResults).slice(-12)),
+        ...lessonProgress(
+          knowledgeCommands.length,
+          lessonSelection.reusedCompleted + lessonResults.length - failed.length,
+          failed.length,
+          [],
+          compactLessonResults(lessonResults).slice(-12),
+        ),
         results: compactLessonResults(lessonResults),
         initial_failed: compactLessonResults(initialFailed),
         recovered_transient_failures: initialFailed.length - failed.length,
+        resumed_failed_only: lessonSelection.selective,
+        reused_completed: lessonSelection.reusedCompleted,
       };
       if (failed.length > 0) {
         lessonStage.error = extractionFailureSummary(failed, "lesson extraction");
@@ -584,7 +639,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
     }
 
     if (shouldRunStage(options, "staging_quality")) {
-      const stagingQualityOk = await runStagingQualityWithRetries(result, progressStore, options, commands);
+      const stagingQualityOk = await runStagingQualityWithRetries(result, progressStore, options, knowledgeCommands);
       if (!stagingQualityOk) return result;
     }
 
@@ -620,6 +675,89 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
         return result;
       }
       await recordStage(result, progressStore, canonicalStage);
+    }
+
+    if (shouldRunStage(options, "assessment_staging")) {
+      if (assessmentCommands.length === 0) {
+        await recordStage(result, progressStore, {
+          id: "assessment_staging",
+          status: "skipped",
+          output: { total: 0, reason: "No assessment chunks were planned." },
+        });
+      } else {
+        const assessmentStage: ServerPipelineStage = {
+          id: "assessment_staging",
+          status: "running",
+          output: {
+            ...lessonProgress(assessmentCommands.length, assessmentSelection.reusedCompleted, 0, [], []),
+            resumed_failed_only: assessmentSelection.selective,
+            reused_completed: assessmentSelection.reusedCompleted,
+          },
+        };
+        await recordStage(result, progressStore, assessmentStage);
+        const assessmentResults = await runExtractionCommands(assessmentSelection.commands, options.parallelism, {
+          commandRunner: options.commandRunner,
+          progressStore,
+          result,
+          stage: assessmentStage,
+          totalUnits: assessmentCommands.length,
+          initialCompleted: assessmentSelection.reusedCompleted,
+        });
+        const failed = assessmentResults.filter((assessmentResult) => assessmentResult.exit_code !== 0);
+        assessmentStage.status = failed.length > 0 ? "blocked" : "completed";
+        assessmentStage.output = {
+          ...lessonProgress(
+            assessmentCommands.length,
+            assessmentSelection.reusedCompleted + assessmentResults.length - failed.length,
+            failed.length,
+            [],
+            compactLessonResults(assessmentResults).slice(-12),
+          ),
+          results: compactLessonResults(assessmentResults),
+          extraction_policy: "existing_nodes_only",
+          resumed_failed_only: assessmentSelection.selective,
+          reused_completed: assessmentSelection.reusedCompleted,
+        };
+        if (failed.length > 0) {
+          assessmentStage.error = extractionFailureSummary(failed, "assessment linking");
+          await recordStage(result, progressStore, assessmentStage);
+          await progressStore.updateJob({
+            datasetId: options.datasetId,
+            jobId: result.job_id,
+            status: "blocked",
+            currentStageId: assessmentStage.id,
+            progress: sanitizeStageOutput(assessmentStage),
+            error: assessmentStage.error,
+            completed: true,
+          });
+          result.status = "blocked";
+          return result;
+        }
+        await recordStage(result, progressStore, assessmentStage);
+      }
+    }
+
+    if (assessmentCommands.length > 0 && shouldRunStage(options, "assessment_quality")) {
+      const assessmentQualityOk = await runStagingQualityWithRetries(
+        result,
+        progressStore,
+        options,
+        assessmentCommands,
+        { stageId: "assessment_quality", retryStagePrefix: "assessment_staging_retry" },
+      );
+      if (!assessmentQualityOk) return result;
+    }
+
+    if (assessmentCommands.length > 0 && shouldRunStage(options, "assessment_commit")) {
+      const assessmentCommitOk = await runPipelineCommandStage(
+        result,
+        progressStore,
+        options,
+        "assessment_commit",
+        buildCanonicalMergeCommand(options),
+        "Assessment association reducer command failed.",
+      );
+      if (!assessmentCommitOk) return result;
     }
 
     if (shouldRunStage(options, "normalize")) {
@@ -709,6 +847,31 @@ export function shouldRunStage(
   return !options.startStage || stageIndex(stageId) >= stageIndex(options.startStage);
 }
 
+export function selectModelStageCommands(
+  commands: ParallelExtractionCommand[],
+  options: Pick<RunnerOptions, "startStage" | "resumeExistingJob" | "resumeBatchAnchors">,
+  stageId: "lesson_staging" | "assessment_staging",
+): { commands: ParallelExtractionCommand[]; reusedCompleted: number; selective: boolean } {
+  if (!options.resumeExistingJob || options.startStage !== stageId) {
+    return { commands, reusedCompleted: 0, selective: false };
+  }
+  const requested = new Set((options.resumeBatchAnchors ?? []).map((anchor) => anchor.trim()).filter(Boolean));
+  if (requested.size === 0) {
+    throw new Error(`Selective resume at '${stageId}' requires at least one failed batch anchor.`);
+  }
+  const selected = commands.filter((command) => requested.has(command.batch_anchor));
+  const selectedAnchors = new Set(selected.map((command) => command.batch_anchor));
+  const missing = [...requested].filter((anchor) => !selectedAnchors.has(anchor));
+  if (missing.length > 0) {
+    throw new Error(`Selective resume could not find ${missing.length} failed unit(s) in the current lesson plan: ${missing.join(", ")}`);
+  }
+  return {
+    commands: selected,
+    reusedCompleted: commands.length - selected.length,
+    selective: true,
+  };
+}
+
 async function recordReusedResumeStages(
   result: ServerPipelineResult,
   progressStore: PipelineProgressStore,
@@ -784,10 +947,13 @@ async function runStagingQualityWithRetries(
   progressStore: PipelineProgressStore,
   options: RunnerOptions,
   commands: ParallelExtractionCommand[],
+  stageOptions: { stageId?: string; retryStagePrefix?: string } = {},
 ): Promise<boolean> {
+  const stageId = stageOptions.stageId ?? "staging_quality";
+  const retryStagePrefix = stageOptions.retryStagePrefix ?? "lesson_staging_retry";
   const attempts: Record<string, unknown>[] = [];
   for (let retryIndex = 0; retryIndex <= options.qualityRetryCount; retryIndex += 1) {
-    const attempt = await runStagingQualityAttempt(result, progressStore, options, attempts);
+    const attempt = await runStagingQualityAttempt(result, progressStore, options, attempts, stageId);
     if (attempt.ok) return true;
 
     const retryCommands = retryCommandsForBlockedLessons(commands, attempt.parsed, retryIndex + 1, options);
@@ -795,7 +961,7 @@ async function runStagingQualityWithRetries(
     if (!canRetry) {
       const error = "Staging quality command failed.";
       const stage: ServerPipelineStage = {
-        id: "staging_quality",
+        id: stageId,
         status: "blocked",
         error,
         output: { ...attempt.stageOutput, attempts },
@@ -820,13 +986,13 @@ async function runStagingQualityWithRetries(
       blocked_batch_anchors: retryCommands.map((command) => command.batch_anchor),
     });
     await recordStage(result, progressStore, {
-      id: "staging_quality",
+      id: stageId,
       status: "completed",
       output: { ...attempt.stageOutput, retrying: true, attempts },
     });
 
     const retryStage: ServerPipelineStage = {
-      id: `lesson_staging_retry_${retryIndex + 1}`,
+      id: `${retryStagePrefix}_${retryIndex + 1}`,
       status: "running",
       output: lessonProgress(retryCommands.length, 0, 0, [], []),
     };
@@ -868,6 +1034,7 @@ async function runStagingQualityAttempt(
   progressStore: PipelineProgressStore,
   options: RunnerOptions,
   previousAttempts: Record<string, unknown>[],
+  stageId = "staging_quality",
 ): Promise<{
   ok: boolean;
   parsed: StagingQualityOutput | null;
@@ -875,7 +1042,7 @@ async function runStagingQualityAttempt(
 }> {
   const command = buildStagingQualityCommand(options);
   const runningStage: ServerPipelineStage = {
-    id: "staging_quality",
+    id: stageId,
     status: "running",
     output: { command: redactCommandForOutput(command), attempts: previousAttempts },
   };
@@ -894,7 +1061,7 @@ async function runStagingQualityAttempt(
   };
   if (commandResult.exitCode === 0) {
     await recordStage(result, progressStore, {
-      id: "staging_quality",
+      id: stageId,
       status: "completed",
       output: { ...stageOutput, attempts: previousAttempts },
     });
@@ -918,7 +1085,7 @@ function retryCommandsForBlockedLessons(
       return {
         ...command,
         worker_slot: index,
-        command: appendRetryPrompt(command.command, buildStagingQualityRetryPrompt(qualityResult, retryNumber, options)),
+        command: appendRetryPrompt(command.command, buildStagingQualityRetryPrompt(qualityResult, retryNumber, options, command.content_role)),
       };
     })
     .filter((command): command is ParallelExtractionCommand => command !== null);
@@ -928,10 +1095,25 @@ function appendRetryPrompt(command: string[], prompt: string): string[] {
   return [...command, "--prompt", prompt];
 }
 
-function buildStagingQualityRetryPrompt(result: RawRecord, retryNumber: number, options: RunnerOptions): string {
+function buildStagingQualityRetryPrompt(
+  result: RawRecord,
+  retryNumber: number,
+  options: RunnerOptions,
+  contentRole: ParallelExtractionCommand["content_role"] = "knowledge",
+): string {
   const errors = Array.isArray(result.errors) ? result.errors.map(stringValue).filter(Boolean) : [];
   const issueText = errors.length > 0 ? errors.slice(0, 8).join("；") : "质量检查未通过。";
   const subjectContext = buildRetrySubjectContext(options);
+  if (contentRole === "assessment") {
+    return [
+      `这是第 ${retryNumber} 次题目关联质量失败后的自动重抽。`,
+      `上一轮问题：${issueText}`,
+      `请重新核对当前练习与${subjectContext}已有规范知识节点的对应关系。`,
+      "nodes 只能引用 retrieval_candidates.node_id；不得创建节点、关系或改写规范节点。",
+      "每个引用必须绑定当前题目原文证据，并在 properties.assessment.ability_points 中给出可测量能力点。",
+      "无法可靠匹配时返回 no_knowledge，并把未匹配能力点写入 issues。",
+    ].join("\n");
+  }
   return [
     `这是第 ${retryNumber} 次质量失败后的自动重抽。`,
     `上一轮问题：${issueText}`,
@@ -1280,13 +1462,15 @@ async function runExtractionCommands(
     progressStore: PipelineProgressStore;
     result: ServerPipelineResult;
     stage: ServerPipelineStage;
+    totalUnits?: number;
+    initialCompleted?: number;
   },
 ): Promise<Array<Record<string, unknown>>> {
   const results: Array<Record<string, unknown>> = [];
   const running = new Map<number, Record<string, unknown>>();
   const recentCompleted: Record<string, unknown>[] = [];
   let nextIndex = 0;
-  let completed = 0;
+  let completed = input.initialCompleted ?? 0;
   let failed = 0;
   let writeQueue = Promise.resolve();
   const workerCount = Math.max(1, Math.min(Math.floor(parallelism), commands.length || 1));
@@ -1296,7 +1480,10 @@ async function runExtractionCommands(
     writeQueue = writeQueue
       .then(async () => {
         if (event) await event();
-        input.stage.output = lessonProgress(commands.length, completed, failed, [...running.values()], recentCompleted.slice(-12));
+        input.stage.output = {
+          ...input.stage.output,
+          ...lessonProgress(input.totalUnits ?? commands.length, completed, failed, [...running.values()], recentCompleted.slice(-12)),
+        };
         await recordStage(input.result, input.progressStore, input.stage);
       })
       .catch(() => undefined);
@@ -1517,9 +1704,14 @@ function tail(text: string, limit = 4000): string {
   return text.length <= limit ? text : text.slice(text.length - limit);
 }
 
+export function createServerPipelineJobId(bookId: string, now = new Date()): string {
+  const compactTimestamp = now.toISOString().replace(/[-:.]/g, "");
+  return `${safePathToken(bookId)}.${compactTimestamp}`;
+}
+
 function createRunResult(options: RunnerOptions): ServerPipelineResult {
   return {
-    job_id: options.jobId ?? `${safePathToken(options.bookId)}.${Date.now()}`,
+    job_id: options.jobId ?? createServerPipelineJobId(options.bookId),
     status: "blocked",
     context: {
       book_id: options.bookId,
@@ -1539,7 +1731,10 @@ function createRunResult(options: RunnerOptions): ServerPipelineResult {
       enrich_book_path: options.enrichBookPath || undefined,
       source_kind: options.ocrFolderPath?.trim() ? "ocr_import" : "pdf_or_url",
       ocr_folder_path: options.ocrFolderPath?.trim() ? resolve(options.ocrFolderPath) : undefined,
+      ocr_import_mode: options.ocrImportMode,
       start_stage: options.startStage,
+      prepare_only: options.prepareOnly ?? false,
+      outline_review_required: options.prepareOnly ?? false,
     },
     stages: [],
   };
@@ -1598,31 +1793,18 @@ function toProgressStageStatus(status: StageStatus): PipelineStageStatus {
 }
 
 function stageSortOrder(stageId: string, fallback: number): number {
-  if (stageId.startsWith("lesson_staging_retry_")) return 9;
-  const index = [
-    "check_postgres",
-    "mineru_source_markdown",
-    "extract_pdf_outline",
-    "prepare_source_markdown",
-    "ensure_outline",
-    "prepare_outline_chunks",
-    "lesson_plan",
-    "lesson_staging",
-    "staging_quality",
-    "canonical_commit",
-    "normalize",
-    "node_bodies",
-    "pedagogical_profiles",
-    "node_embeddings",
-    "unit_embeddings",
-    "strict_qa",
-    "graph_integrity",
-    "quality_dashboard",
-  ].indexOf(stageId);
+  const orderedStages = ["check_postgres", ...PIPELINE_START_STAGES];
+  if (stageId.startsWith("lesson_staging_retry_")) return orderedStages.indexOf("staging_quality") + 1;
+  if (stageId.startsWith("assessment_staging_retry_")) return orderedStages.indexOf("assessment_quality") + 1;
+  const index = orderedStages.indexOf(stageId);
   return index >= 0 ? index + 1 : fallback;
 }
 
 function stageLabel(stageId: string): string {
+  if (stageId.startsWith("assessment_staging_retry_")) {
+    const retry = stageId.replace("assessment_staging_retry_", "");
+    return `重试题目能力点关联 ${retry}`;
+  }
   if (stageId.startsWith("lesson_staging_retry_")) {
     const retry = stageId.replace("lesson_staging_retry_", "");
     return `重抽失败课时 ${retry}`;
@@ -1637,7 +1819,10 @@ function stageLabel(stageId: string): string {
     lesson_plan: "生成抽取任务",
     lesson_staging: "模型抽取课时",
     staging_quality: "检查暂存质量",
-    canonical_commit: "合并入正式图谱",
+    canonical_commit: "合并知识与总结证据",
+    assessment_staging: "关联题目与已有能力点",
+    assessment_quality: "检查题目关联质量",
+    assessment_commit: "写入题目能力点关联",
     normalize: "归一化知识对象",
     node_bodies: "生成知识正文",
     pedagogical_profiles: "生成教学画像",
@@ -1708,7 +1893,7 @@ function compactLessonResult(result: Record<string, unknown>): Record<string, un
 
 function isRetryableExtractionFailure(result: Record<string, unknown>): boolean {
   const output = `${String(result.stderr_tail ?? "")}\n${String(result.stdout_tail ?? "")}`;
-  return /fetch failed|network|socket|timeout|timed out|aborted|429|500|502|503|504/i.test(output);
+  return /fetch failed|network|socket|timeout|timed out|aborted|429|500|502|503|504|no output_text payload/i.test(output);
 }
 
 function extractionFailureSummary(results: Array<Record<string, unknown>>, label: string): string {
@@ -1740,6 +1925,7 @@ function parseOptions(argv: string[]): RunnerOptions {
     noChunks: flags.has("no-chunks"),
     pdfPath: flags.get("pdf-path") ?? "",
     ocrFolderPath: flags.get("ocr-folder-path") ?? "",
+    ocrImportMode: flags.get("ocr-import-mode") === "in_place" ? "in_place" : "copy",
     bookTitle: flags.get("book-title") ?? "",
     outlineStartPage: parseInteger(flags.get("outline-start-page"), 1),
     outlineEndPage: parseInteger(flags.get("outline-end-page"), 20),
@@ -1788,7 +1974,23 @@ function parseOptions(argv: string[]): RunnerOptions {
     unitEmbeddingBatchSize: parseInteger(flags.get("unit-embedding-batch-size") ?? flags.get("embedding-batch-size"), 8),
     startStage: parsePipelineStartStage(flags.get("start-stage")),
     resumeExistingJob: flags.has("resume-existing-job"),
+    resumeBatchAnchors: parseStringArrayFlag(flags.get("resume-batch-anchors"), "resume-batch-anchors"),
+    prepareOnly: flags.has("prepare-only"),
   };
+}
+
+function parseStringArrayFlag(value: string | undefined, name: string): string[] {
+  if (!value) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    throw new Error(`--${name} must be a JSON array of strings.`);
+  }
+  if (!Array.isArray(parsed) || parsed.some((item) => typeof item !== "string" || !item.trim())) {
+    throw new Error(`--${name} must be a JSON array of non-empty strings.`);
+  }
+  return [...new Set(parsed.map((item) => item.trim()))];
 }
 
 function parseFlags(argv: string[]): Map<string, string> {

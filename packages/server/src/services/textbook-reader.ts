@@ -19,6 +19,13 @@ export type ReaderEvidence = {
   properties: RawRecord;
 };
 
+export type TextbookReaderSourceMapping = {
+  book_id: string;
+  source_markdown_path?: string | null;
+  raw_markdown_path?: string | null;
+  extract_dir?: string | null;
+};
+
 export type LoadTextbookReaderInput = {
   repoRoot: string;
   dataRoot?: string;
@@ -221,10 +228,31 @@ export async function resolveTextbookReaderPdf(input: LoadTextbookReaderInput): 
   const dataRoot = path.resolve(input.dataRoot ?? path.resolve(input.repoRoot, 'data'));
   const mineruRoot = path.resolve(dataRoot, 'mineru');
   const bookRoot = path.resolve(mineruRoot, input.bookId);
-  if (!bookRoot.startsWith(`${mineruRoot}${path.sep}`)) return null;
-  const info = await stat(bookRoot).catch(() => null);
-  if (!info?.isDirectory()) return null;
-  return findReaderPdf(bookRoot, input.bookId);
+  const allowedRoots = [mineruRoot, path.resolve(input.repoRoot, 'ocr')];
+  const candidates = [bookRoot, ...(input.sourcePaths ?? [])];
+  const searchRoots: string[] = [];
+  for (const candidate of candidates) {
+    if (!candidate || /^https?:/i.test(candidate)) continue;
+    const resolved = path.isAbsolute(candidate)
+      ? path.resolve(candidate)
+      : candidate.replace(/\\/g, '/').startsWith('data/')
+        ? path.resolve(dataRoot, candidate.replace(/\\/g, '/').slice('data/'.length))
+        : path.resolve(input.repoRoot, candidate);
+    const allowedRoot = allowedRoots.find((root) => resolved === root || resolved.startsWith(`${root}${path.sep}`));
+    if (!allowedRoot) continue;
+    const info = await stat(resolved).catch(() => null);
+    let directory = info?.isDirectory() ? resolved : info?.isFile() ? path.dirname(resolved) : null;
+    while (directory && (directory === allowedRoot || directory.startsWith(`${allowedRoot}${path.sep}`))) {
+      if (!searchRoots.includes(directory)) searchRoots.push(directory);
+      if (directory === allowedRoot) break;
+      directory = path.dirname(directory);
+    }
+  }
+  for (const root of searchRoots) {
+    const found = await findReaderPdf(root, input.bookId, 0);
+    if (found) return found;
+  }
+  return null;
 }
 
 async function sourceDirectory(input: LoadTextbookReaderInput): Promise<string> {
@@ -250,7 +278,24 @@ async function sourceDirectory(input: LoadTextbookReaderInput): Promise<string> 
   throw new Error(`OCR content-list JSON was not found for textbook '${input.bookId}'.`);
 }
 
-export async function listTextbookReaderBooks(dataRoot: string): Promise<TextbookReaderBookSummary[]> {
+function mineruCatalogRootName(dataRoot: string, value: string | null | undefined): string | null {
+  const sourcePath = String(value ?? '').trim();
+  if (!sourcePath || /^https?:/i.test(sourcePath)) return null;
+  const mineruRoot = path.resolve(dataRoot, 'mineru');
+  const resolved = path.isAbsolute(sourcePath)
+    ? path.resolve(sourcePath)
+    : sourcePath.replace(/\\/g, '/').startsWith('data/')
+      ? path.resolve(dataRoot, sourcePath.replace(/\\/g, '/').slice('data/'.length))
+      : path.resolve(path.dirname(dataRoot), sourcePath);
+  const relative = path.relative(mineruRoot, resolved);
+  if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) return null;
+  return relative.split(path.sep)[0] || null;
+}
+
+export async function listTextbookReaderBooks(
+  dataRoot: string,
+  sourceMappings: TextbookReaderSourceMapping[] = [],
+): Promise<TextbookReaderBookSummary[]> {
   const mineruRoot = path.resolve(dataRoot, 'mineru');
   const roots = await readdir(mineruRoot, { withFileTypes: true }).catch(() => []);
   const books: TextbookReaderBookSummary[] = [];
@@ -279,7 +324,24 @@ export async function listTextbookReaderBooks(dataRoot: string): Promise<Textboo
       // Invalid bundles stay out of the reader catalog; the pipeline inspection surface reports details.
     }
   }
-  return books.sort((left, right) => left.title.localeCompare(right.title, 'zh-CN', { numeric: true }));
+  const catalogNames = new Set(books.map((book) => book.book_id));
+  const canonicalByRoot = new Map<string, string>();
+  const legacyRoots = new Set<string>();
+  for (const source of sourceMappings) {
+    const roots = [source.raw_markdown_path, source.extract_dir, source.source_markdown_path]
+      .map((value) => mineruCatalogRootName(dataRoot, value))
+      .filter((value): value is string => typeof value === 'string' && catalogNames.has(value));
+    const preferredRoot = roots[0];
+    if (!preferredRoot || !source.book_id) continue;
+    canonicalByRoot.set(preferredRoot, source.book_id);
+    for (const root of roots.slice(1)) {
+      if (root !== preferredRoot) legacyRoots.add(root);
+    }
+  }
+  return books
+    .filter((book) => !legacyRoots.has(book.book_id) || canonicalByRoot.has(book.book_id))
+    .map((book) => ({ ...book, book_id: canonicalByRoot.get(book.book_id) ?? book.book_id }))
+    .sort((left, right) => left.title.localeCompare(right.title, 'zh-CN', { numeric: true }));
 }
 
 async function parseBook(input: LoadTextbookReaderInput): Promise<ParsedBook> {
@@ -379,6 +441,13 @@ function matchEvidence(pages: TextbookReaderBlock[][], evidence: ReaderEvidence)
   return { evidence_id: evidence.id, page_index: null, block_ids: [], kind: 'none', confidence: 0, excerpt: evidence.excerpt };
 }
 
+export function matchReaderEvidenceBlocks(
+  blocks: TextbookReaderBlock[],
+  evidence: ReaderEvidence,
+): string[] {
+  return matchEvidence([blocks], { ...evidence, page_start: null, page_end: null }).block_ids;
+}
+
 export async function loadTextbookReaderPage(input: LoadTextbookReaderInput): Promise<TextbookReaderPageResponse> {
   const book = await parseBook(input);
   const pdfAvailable = Boolean(await resolveTextbookReaderPdf(input));
@@ -402,5 +471,6 @@ export async function loadTextbookReaderPage(input: LoadTextbookReaderInput): Pr
     pdf_available: pdfAvailable,
     blocks,
     evidence_match: evidenceMatch,
+    related_units: [],
   };
 }

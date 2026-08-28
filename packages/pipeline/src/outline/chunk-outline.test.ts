@@ -3,7 +3,7 @@ import test from "node:test";
 
 import {
   appendChunkItems,
-  isReviewItem,
+  isExcludedItem,
   makeChunk,
   makeMergedChunk,
   makeSingleChunk,
@@ -46,10 +46,11 @@ test("parses markdown headings like Python parse_headings", () => {
   ]);
 });
 
-test("detects review and supplement outline items", () => {
-  assert.equal(isReviewItem({ title: "本章小结" }), true);
-  assert.equal(isReviewItem({ title: "Wireshark 实验" }), true);
-  assert.equal(isReviewItem({ title: "物质的变化" }), false);
+test("only excludes non-content outline items", () => {
+  assert.equal(isExcludedItem({ title: "本章小结" }), false);
+  assert.equal(isExcludedItem({ title: "Wireshark 实验" }), false);
+  assert.equal(isExcludedItem({ title: "参考文献" }), true);
+  assert.equal(isExcludedItem({ title: "物质的变化" }), false);
 });
 
 test("merges undersized items like Python merge_undersized", () => {
@@ -105,6 +106,7 @@ test("makes single chunk like Python _make_single_chunk", () => {
       parent_id: "struct:chem-grade8:lesson:1-1",
       source_ids: ["struct:chem-grade8:lesson:1-1"],
       raw_line: "",
+      content_role: "knowledge",
     },
   );
 });
@@ -186,7 +188,36 @@ test("makes split chunk with title parts and interpolated pages", () => {
       parent_id: "struct:chem-grade8:lesson:1-1",
       source_ids: ["struct:chem-grade8:lesson:1-1"],
       raw_line: "",
+      content_role: "knowledge",
     },
+  );
+});
+
+test("classifies an exercise subsection as assessment even when its parent lesson is knowledge", () => {
+  const chunks = splitOversized(
+    {
+      id: "struct:math-grade7:lesson:1-1",
+      kind: "lesson",
+      label: "第1节",
+      title: "有理数",
+      md_start: 1,
+      md_end: 240,
+      order_path: "1.1",
+    },
+    [
+      { line: 1, text: "有理数" },
+      { line: 181, text: "练习" },
+    ],
+    250,
+    300,
+  );
+
+  assert.deepEqual(
+    chunks.map((chunk) => [chunk.title, chunk.md_start, chunk.md_end, chunk.content_role]),
+    [
+      ["有理数", 1, 180, "knowledge"],
+      ["有理数 — 练习", 181, 240, "assessment"],
+    ],
   );
 });
 
@@ -213,6 +244,7 @@ test("makes merged chunk like Python _make_merged_chunk", () => {
       parent_id: "struct:chem-grade8:lesson:1-1",
       source_ids: ["struct:chem-grade8:lesson:1-1", "struct:chem-grade8:activity:1-2"],
       raw_line: "",
+      content_role: "knowledge",
     },
   );
 });
@@ -306,7 +338,7 @@ test("plans chunk outline generation like Python main flow", () => {
     { minLines: 150, maxLines: 300, targetLines: 200 },
   );
 
-  assert.deepEqual(plan.stats, { split: 1, merged: 1, normal: 0, review_skipped: 1 });
+  assert.deepEqual(plan.stats, { split: 1, merged: 1, normal: 1, excluded: 0 });
   assert.deepEqual(
     plan.chunks.map((chunk) => ({ id: chunk.id, source_ids: chunk.source_ids, md_start: chunk.md_start, md_end: chunk.md_end })),
     [
@@ -328,7 +360,32 @@ test("plans chunk outline generation like Python main flow", () => {
         md_start: 280,
         md_end: 520,
       },
+      {
+        id: "struct:chem-grade8:chunk:review-a",
+        source_ids: ["struct:chem-grade8:lesson:review"],
+        md_start: 521,
+        md_end: 560,
+      },
     ],
   );
-  assert.deepEqual(plan.size_summary, { min: 120, max: 241, avg: 173 });
+  assert.deepEqual(plan.size_summary, { min: 40, max: 241, avg: 140 });
+  assert.deepEqual(plan.chunks.map((chunk) => chunk.content_role), ["knowledge", "knowledge", "knowledge", "summary"]);
+});
+
+test("keeps assessment chunks separate from adjacent knowledge and summary content", () => {
+  const plan = planChunkOutline([
+    { id: "topic", kind: "topic" },
+    { id: "struct:book:lesson:1", kind: "lesson", parent_id: "topic", title: "核心知识", md_start: 1, md_end: 80, order_path: "1" },
+    { id: "struct:book:lesson:2", kind: "lesson", parent_id: "topic", title: "课后练习", md_start: 81, md_end: 140, order_path: "2" },
+    { id: "struct:book:lesson:3", kind: "lesson", parent_id: "topic", title: "本章小结", md_start: 141, md_end: 200, order_path: "3" },
+  ], [], { minLines: 150, maxLines: 300 });
+
+  assert.deepEqual(
+    plan.chunks.map((chunk) => [chunk.source_ids, chunk.content_role]),
+    [
+      [["struct:book:lesson:1"], "knowledge"],
+      [["struct:book:lesson:2"], "assessment"],
+      [["struct:book:lesson:3"], "summary"],
+    ],
+  );
 });

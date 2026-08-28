@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type {
   ImageReviewAction,
   ImageReviewItem,
@@ -6,10 +6,8 @@ import type {
   PipelineJobListResponse,
   PipelineJobSummary,
   PipelineJobStatusResponse,
-  PipelineOcrInspectResponse,
-  PipelinePdfUploadResponse,
-  PipelineExtractionTemplateId,
-  PipelineLessonBackendKind,
+  PipelineOutlineChunkContentResponse,
+  PipelineOutlinePreviewResponse,
   PipelineQualityDashboardResponse,
   PipelineQualityLessonRow,
   PipelineQualityReviewAction,
@@ -18,19 +16,19 @@ import type {
   PipelineStartRequest,
   PipelineStartResponse,
   PipelineStartStage,
-  TextbookMetadataResponse,
 } from '@okm/types';
 import {
-  inferTextbookMetadata,
-  inspectPipelineOcrFolder,
+  confirmPipelineOutline,
   loadPipelineJobs,
+  loadPipelineOutlineChunkContent,
+  loadPipelineOutlinePreview,
   loadPipelineJobStatus,
   loadImageReviews,
   loadPipeline,
   loadPipelineQuality,
   updatePipelineQualityReview,
   startPipeline,
-  uploadPipelinePdf,
+  stopPipeline,
   updateImageReview,
 } from '@/services/backend-client';
 import { useAppState } from '@/hooks/useAppState';
@@ -53,49 +51,25 @@ import {
   AlertCircle,
   BarChart3,
   Check,
+  ChevronLeft,
   ChevronRight,
   ClipboardList,
   GitBranch,
   Info,
+  Eye,
+  FileText,
   Loader2,
   Network,
   Play,
   RotateCcw,
-  Search,
-  Upload,
-  FolderOpen,
+  Square,
+  X,
+  BookOpen,
 } from '@/lib/lucide-icons';
 import { PipelineBookWorkbench } from './PipelineBookWorkbench';
-import { buildPipelineBatchStartRequest, resolvePipelineStartBookId } from '@/lib/pipeline-start';
-
-type PipelineForm = {
-  book_id: string;
-  book_title: string;
-  pdf_path: string;
-  ocr_folder_path: string;
-  mineru_file_url: string;
-  mineru_base_url: string;
-  mineru_model_version: string;
-  mineru_language: string;
-  mineru_page_ranges: string;
-  mineru_force: boolean;
-  outline_start_page: string;
-  outline_end_page: string;
-  output_root: string;
-  parallelism: string;
-  extraction_template: PipelineExtractionTemplateId;
-  quality_retry_count: string;
-  model_retry_count: string;
-  lesson_subject: string;
-  lesson_school_stage: string;
-  lesson_grade_band: string;
-  lesson_backend_kind: PipelineLessonBackendKind;
-  openai_base_url: string;
-  openai_model: string;
-  vlm_api_url: string;
-  vlm_api_key: string;
-  vlm_model: string;
-};
+import { MarkdownView } from './MarkdownView';
+import { buildConfirmedExtractionRequest, buildPipelineBatchStartRequest } from '@/lib/pipeline-start';
+import { pipelineTaskDetail, pipelineTaskLabel } from '@/lib/pipeline-task-label';
 
 type PipelineStep = {
   id: string;
@@ -104,43 +78,18 @@ type PipelineStep = {
   status: PipelineStepStatus;
 };
 
-const initialForm: PipelineForm = {
-  book_id: '',
-  book_title: '',
-  pdf_path: '',
-  ocr_folder_path: '',
-  mineru_file_url: '',
+const baseStartRequest = (datasetId: string): PipelineStartRequest => ({
   mineru_base_url: 'https://mineru.net',
   mineru_model_version: 'vlm',
-  mineru_language: 'auto',
-  mineru_page_ranges: '',
   mineru_force: false,
-  outline_start_page: '',
-  outline_end_page: '',
+  dataset_id: datasetId,
   output_root: 'data/main',
-  parallelism: '8',
+  parallelism: 8,
   extraction_template: 'auto',
-  quality_retry_count: '1',
-  model_retry_count: '2',
-  lesson_subject: '',
-  lesson_school_stage: '',
-  lesson_grade_band: '',
+  quality_retry_count: 1,
+  model_retry_count: 2,
   lesson_backend_kind: 'openai_chat_completions',
-  openai_base_url: '',
-  openai_model: '',
-  vlm_api_url: '',
-  vlm_api_key: '',
-  vlm_model: '',
-};
-
-const EXTRACTION_TEMPLATE_OPTIONS = [
-  { value: 'auto', label: '自动选择' },
-  { value: 'textbook/mathematics', label: '数学教材' },
-  { value: 'textbook/physics', label: '物理教材' },
-  { value: 'textbook/chemistry', label: '化学教材' },
-  { value: 'textbook/biology', label: '生物教材' },
-  { value: 'textbook/general', label: '通用教材' },
-];
+});
 
 function numberValue(value: unknown): number {
   return typeof value === 'number' ? value : Number(value ?? 0) || 0;
@@ -157,27 +106,6 @@ function percentValue(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
-function optionalNumber(value: string): number | undefined {
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  const parsed = Number(trimmed);
-  if (!Number.isFinite(parsed) || parsed <= 0) return undefined;
-  return Math.floor(parsed);
-}
-
-function optionalAutoString(value: string): string | undefined {
-  const trimmed = value.trim();
-  return trimmed && trimmed !== 'auto' ? trimmed : undefined;
-}
-
-function shouldUseInferredValue(currentValue: string, previousValue: string | undefined): boolean {
-  return !currentValue.trim() || Boolean(previousValue && currentValue === previousValue);
-}
-
-function templateLabel(value: string | undefined): string {
-  if (!value || value === 'auto') return '自动选择';
-  return EXTRACTION_TEMPLATE_OPTIONS.find((option) => option.value === value)?.label ?? value;
-}
 
 function statusLabel(status: string): string {
   const labels: Record<string, string> = {
@@ -229,64 +157,7 @@ function StatusPill({ status }: { status: string }) {
         : tone === 'active'
           ? 'border-accent/40 bg-accent/10 text-accent'
           : 'border-border-default bg-surface text-text-secondary';
-  return <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${style}`}>{statusLabel(status)}</span>;
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-  type = 'text',
-  inputMode,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  type?: string;
-  inputMode?: 'numeric' | 'text';
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-[11px] font-medium text-text-muted">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        inputMode={inputMode}
-        placeholder={placeholder}
-        className="h-9 w-full rounded-md border border-border-subtle bg-surface px-3 text-xs text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent"
-      />
-    </label>
-  );
-}
-
-function SelectField<T extends string>({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: T;
-  onChange: (value: T) => void;
-  options: Array<{ value: T; label: string }>;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-[11px] font-medium text-text-muted">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value as T)}
-        className="h-9 w-full rounded-md border border-border-subtle bg-surface px-3 text-xs text-text-primary outline-none transition-colors focus:border-accent"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>{option.label}</option>
-        ))}
-      </select>
-    </label>
-  );
+  return <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${style}`}>{statusLabel(status)}</span>;
 }
 
 function MetricCard({
@@ -308,8 +179,8 @@ function MetricCard({
   const content = (
     <>
       <div className={`text-xl font-semibold tabular-nums ${color}`}>{value}</div>
-      <div className="mt-1 text-[11px] font-medium text-text-secondary">{label}</div>
-      {detail && <div className="mt-1 truncate text-[10px] text-text-muted">{detail}</div>}
+      <div className="mt-1 text-xs font-medium text-text-secondary">{label}</div>
+      {detail && <div className="mt-1 truncate text-xs text-text-muted">{detail}</div>}
     </>
   );
   if (onClick) {
@@ -674,22 +545,6 @@ function ImageReviewPanel({
   );
 }
 
-function sourceReadyLabel(form: PipelineForm): string {
-  if (form.pdf_path.trim()) return 'PDF 已填写，其他参数自动处理';
-  if (form.ocr_folder_path.trim()) return '已完成 OCR 文件夹已填写，将跳过 PDF 与 MinerU';
-  if (form.mineru_file_url.trim()) return 'MinerU 文件 URL 已填写，其他参数自动处理';
-  return '需要 PDF、已完成 OCR 文件夹或 MinerU 文件 URL';
-}
-
-function fileSizeText(sizeBytes: number): string {
-  if (sizeBytes < 1024 * 1024) return `${Math.max(1, Math.round(sizeBytes / 1024))} KB`;
-  return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function sourceReady(form: PipelineForm): boolean {
-  return Boolean(form.pdf_path.trim() || form.ocr_folder_path.trim() || form.mineru_file_url.trim());
-}
-
 function pipelineComplete(payload: PipelineResponse | null): boolean {
   if (!payload || payload.summary.lesson_runs === 0) return false;
   const latestMerge = payload.merge_runs[0] ?? null;
@@ -710,7 +565,10 @@ const stageLabels: Record<string, string> = {
   lesson_plan: '生成抽取任务',
   lesson_staging: '模型抽取课时',
   staging_quality: '检查暂存质量',
-  canonical_commit: '合并入正式图谱',
+  canonical_commit: '合并知识与总结证据',
+  assessment_staging: '关联题目与已有能力点',
+  assessment_quality: '检查题目关联质量',
+  assessment_commit: '写入题目能力点关联',
   normalize: '归一化知识对象',
   node_bodies: '生成知识正文',
   pedagogical_profiles: '生成教学画像',
@@ -724,6 +582,7 @@ const stageLabels: Record<string, string> = {
 function stageLabel(stageId: string | undefined): string {
   if (!stageId) return '';
   if (stageId.startsWith('lesson_staging_retry_transport_')) return '重试传输失败课时';
+  if (stageId.startsWith('assessment_staging_retry_')) return '重试题目能力点关联';
   if (stageId.startsWith('lesson_staging_retry_')) {
     return `重抽未通过课时 ${stageId.replace('lesson_staging_retry_', '')}`;
   }
@@ -740,6 +599,9 @@ const RESUMABLE_STAGE_IDS = new Set<PipelineStartStage>([
   'lesson_staging',
   'staging_quality',
   'canonical_commit',
+  'assessment_staging',
+  'assessment_quality',
+  'assessment_commit',
   'normalize',
   'node_bodies',
   'pedagogical_profiles',
@@ -753,6 +615,7 @@ const RESUMABLE_STAGE_IDS = new Set<PipelineStartStage>([
 function resumeStageFor(stageId?: string | null): PipelineStartStage | null {
   if (!stageId || stageId === 'check_postgres') return 'mineru_source_markdown';
   if (stageId.startsWith('lesson_staging_retry_transport_')) return 'lesson_staging';
+  if (stageId.startsWith('assessment_staging_retry_')) return 'assessment_quality';
   if (stageId.startsWith('lesson_staging_retry_')) return 'staging_quality';
   return RESUMABLE_STAGE_IDS.has(stageId as PipelineStartStage)
     ? stageId as PipelineStartStage
@@ -889,7 +752,9 @@ function lessonProgressText(
   const failed = progressNumber(stage, 'failed');
   const percent = Math.round(progressPercent(stage) * 100);
   const running = runningLessonWorkers(jobStatus);
-  const current = running.map((worker) => worker.batch_anchor).filter(Boolean).slice(0, 2).join('、');
+  const current = running.length > 0
+    ? `${pipelineTaskLabel(running[0]!, jobStatus?.book_title)}（${running.length} 个并行任务）`
+    : '';
   const base = total > 0 ? `${completed + failed}/${total}，${percent}%` : stageLabel(stage.id);
   if (current) return `${base}，正在处理：${current}`;
   if (failed > 0) return `${base}，${failed} 个失败`;
@@ -938,30 +803,69 @@ function jobProgressText(job: PipelineJobSummary): string {
 function PipelineJobListPanel({
   jobs,
   selectedJobId,
+  activeJobStatus,
   loading,
+  starting,
+  stopping,
+  resumeStage,
   error,
   onSelect,
   onRefresh,
+  onStop,
+  onResume,
 }: {
   jobs: PipelineJobSummary[];
   selectedJobId: string | null;
+  activeJobStatus: PipelineJobStatusResponse | null;
   loading: boolean;
+  starting: boolean;
+  stopping: boolean;
+  resumeStage: PipelineStartStage | null;
   error: string;
   onSelect: (job: PipelineJobSummary) => void;
   onRefresh: () => void;
+  onStop: () => void;
+  onResume: (stage: PipelineStartStage) => void;
 }) {
+  const failedResumeCount = progressNumber(activeJobStatus?.current_stage, 'failed');
+  const resumeLabel = failedResumeCount > 0 && resumeStage === 'lesson_staging'
+    ? `重试 ${failedResumeCount} 个失败课时`
+    : failedResumeCount > 0 && resumeStage === 'assessment_staging'
+      ? `重试 ${failedResumeCount} 个失败题目关联`
+      : resumeStage
+        ? `从“${stageLabel(resumeStage)}”继续`
+        : '';
   return (
     <section className="overflow-hidden rounded-lg border border-border-subtle bg-elevated">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
         <div className="flex items-center gap-2">
           <ClipboardList className="h-4 w-4 text-accent" />
-          <div>
-            <div className="text-sm font-semibold text-text-primary">Pipeline 作业</div>
-            <div className="text-[11px] text-text-muted">选择作业可查看阶段、Worker、事件和续跑操作。</div>
-          </div>
+          <div className="text-base font-semibold text-text-primary">Pipeline 作业</div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-text-muted">{jobs.length} 个作业</span>
+          {activeJobStatus?.status === 'running' && (
+            <button
+              type="button"
+              onClick={onStop}
+              disabled={stopping || starting}
+              className="flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-node-event/40 bg-node-event/10 px-2.5 text-xs font-medium text-node-event transition-colors hover:bg-node-event/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {stopping ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Square className="h-3.5 w-3.5" />}
+              停止
+            </button>
+          )}
+          {activeJobStatus?.status === 'blocked' && resumeStage && (
+            <button
+              type="button"
+              onClick={() => onResume(resumeStage)}
+              disabled={starting}
+              className="flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2.5 text-xs font-medium text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {starting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+              {resumeLabel}
+            </button>
+          )}
           <button
             type="button"
             onClick={onRefresh}
@@ -980,7 +884,7 @@ function PipelineJobListPanel({
         </div>
       )}
       <div className="max-h-[360px] overflow-auto scrollbar-thin">
-        <table className="w-full min-w-[860px] text-left text-xs">
+        <table className="w-full min-w-[860px] text-left text-sm">
           <thead className="sticky top-0 z-10 bg-elevated text-text-muted">
             <tr>
               <th className="px-3 py-2 font-medium">状态</th>
@@ -1006,7 +910,7 @@ function PipelineJobListPanel({
                   <td className="max-w-[220px] px-3 py-2">
                     <div className="truncate font-medium text-text-primary" title={job.book_title}>{job.book_title}</div>
                     {job.error && (
-                      <div className="mt-1 truncate text-[10px] text-node-event" title={job.error}>{job.error}</div>
+                      <div className="mt-1 truncate text-xs text-node-event" title={job.error}>{job.error}</div>
                     )}
                   </td>
                   <td className="max-w-[220px] px-3 py-2">
@@ -1017,7 +921,7 @@ function PipelineJobListPanel({
                   <td className="px-3 py-2 tabular-nums text-text-secondary">{jobProgressText(job)}</td>
                   <td className="px-3 py-2 text-text-muted">{timeText(job.updated_at)}</td>
                   <td className="max-w-[240px] px-3 py-2">
-                    <div className="truncate font-mono text-[10px] text-text-muted" title={job.job_id}>{job.job_id}</div>
+                    <div className="truncate font-mono text-xs text-text-muted" title={job.job_id}>{job.job_id}</div>
                   </td>
                 </tr>
               );
@@ -1059,7 +963,7 @@ function PipelineProgressPanel({
     <section className="rounded-lg border border-border-subtle bg-elevated p-4" aria-live="polite">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-semibold text-text-primary">抽取步骤</div>
+          <div className="text-base font-semibold text-text-primary">抽取步骤</div>
           <div className="mt-1 text-xs text-text-muted">{currentStepText(steps)}</div>
         </div>
         <div className="flex items-center gap-2 rounded-full border border-border-subtle bg-surface px-2.5 py-1 text-[11px] text-text-muted">
@@ -1122,8 +1026,8 @@ function PipelineProgressPanel({
                   {runningWorkers.length > 0 ? runningWorkers.slice(0, 6).map((worker) => (
                     <div key={worker.worker_slot} className="flex min-w-0 items-center gap-2 rounded-md border border-accent/30 bg-accent/10 px-2 py-1.5 text-[11px] text-text-secondary">
                       <Loader2 className="h-3 w-3 shrink-0 animate-spin text-accent" />
-                      <span className="shrink-0 tabular-nums text-accent">任务 {worker.worker_slot}</span>
-                      <span className="min-w-0 truncate text-text-primary" title={worker.batch_anchor ?? ''}>{worker.batch_anchor || '课时未知'}</span>
+                      <span className="shrink-0 tabular-nums text-accent">Worker {worker.worker_slot + 1}</span>
+                      <span className="min-w-0 truncate text-text-primary" title={pipelineTaskDetail(worker)}>{pipelineTaskLabel(worker, jobStatus?.book_title)}</span>
                     </div>
                   )) : (
                     <div className="rounded-md border border-border-subtle bg-elevated px-2 py-1.5 text-[11px] text-text-muted">暂无正在处理的课时。</div>
@@ -1136,7 +1040,7 @@ function PipelineProgressPanel({
                   {recentLessonEvents.length > 0 ? recentLessonEvents.map((event) => (
                     <div key={event.event_id} className="grid grid-cols-[56px_minmax(0,1fr)] gap-2 rounded-md border border-border-subtle bg-elevated px-2 py-1.5 text-[11px]">
                       <span className="text-text-muted">{lessonEventLabel(event.event_type)}</span>
-                      <span className="min-w-0 truncate text-text-primary" title={event.batch_anchor ?? ''}>{event.batch_anchor || event.lesson_run_id || '课时未知'}</span>
+                      <span className="min-w-0 truncate text-text-primary" title={pipelineTaskDetail(event)}>{pipelineTaskLabel(event, jobStatus?.book_title)}</span>
                     </div>
                   )) : (
                     <div className="rounded-md border border-border-subtle bg-elevated px-2 py-1.5 text-[11px] text-text-muted">暂无课时事件。</div>
@@ -1167,10 +1071,7 @@ function ManualReviewSummary({
     <section className="rounded-lg border border-border-subtle bg-elevated p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="text-sm font-semibold text-text-primary">人工确认</div>
-          <div className="mt-1 text-xs text-text-muted">
-            {total > 0 ? '抽取后需要人工处理的内容如下。' : pipelineDone ? '抽取结果暂时不需要人工确认。' : '抽取完成后这里会汇总待确认内容。'}
-          </div>
+          <div className="text-base font-semibold text-text-primary">人工确认</div>
         </div>
         <StatusPill status={total > 0 ? 'running' : pipelineDone ? 'completed' : 'ready'} />
       </div>
@@ -1245,8 +1146,8 @@ function QualityDashboardPanel({
         <div className="flex items-center gap-2">
           <Network className="h-4 w-4 text-accent" />
           <div>
-            <div className="text-sm font-semibold text-text-primary">质量仪表盘</div>
-            <div className="text-[11px] text-text-muted">
+            <div className="text-base font-semibold text-text-primary">质量仪表盘</div>
+            <div className="text-xs text-text-muted">
               {quality ? `生成时间：${timeText(quality.generated_at)}` : '读取课时质量、证据覆盖和图连通性。'}
             </div>
           </div>
@@ -1301,13 +1202,13 @@ function QualityDashboardPanel({
 
         <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-3 py-2">
-            <div className="text-xs font-semibold text-text-primary">课时质量表</div>
-            <div className="text-[11px] text-text-muted">
+            <div className="text-sm font-semibold text-text-primary">课时质量表</div>
+            <div className="text-xs text-text-muted">
               {summary ? `${summary.lesson_count} 个课时，${summary.node_count} 个正式节点，${summary.relation_count} 条正式关系` : '暂无统计'}
             </div>
           </div>
           <div className="max-h-[420px] overflow-auto scrollbar-thin">
-            <table className="w-full min-w-[900px] text-left text-xs">
+            <table className="w-full min-w-[900px] text-left text-sm">
               <thead className="sticky top-0 z-10 bg-surface text-text-muted">
                 <tr>
                   <th className="px-3 py-2 font-medium">状态</th>
@@ -1473,6 +1374,339 @@ function QualityDashboardPanel({
   );
 }
 
+function outlineItemKindLabel(kind: string): string {
+  if (kind === 'theme') return '章';
+  if (kind === 'topic') return '节组';
+  if (kind === 'lesson') return '课节';
+  if (kind === 'activity') return '活动';
+  if (kind === 'chunk') return '切分块';
+  return kind || '条目';
+}
+
+function outlineChunkRole(item: PipelineOutlinePreviewResponse['items'][number]): {
+  label: string;
+  className: string;
+  dotClassName: string;
+} | null {
+  if (item.kind !== 'chunk') return null;
+  if (item.content_role === 'summary') {
+    return {
+      label: '总结抽取块',
+      className: 'border-node-process/40 bg-node-process/10 text-node-process',
+      dotClassName: 'bg-node-process',
+    };
+  }
+  if (item.content_role === 'assessment') {
+    return {
+      label: '题目分析块 · 只关联已有节点',
+      className: 'border-node-event/40 bg-node-event/10 text-node-event',
+      dotClassName: 'bg-node-event',
+    };
+  }
+  return {
+    label: '知识抽取块',
+    className: 'border-accent/40 bg-accent/10 text-accent',
+    dotClassName: 'bg-accent',
+  };
+}
+
+function outlineRange(start: number | null, end: number | null, prefix: string): string | null {
+  if (start == null || end == null) return null;
+  return `${prefix} ${start}${end === start ? '' : `–${end}`}`;
+}
+
+function chunkAssetUrl(sourceKey: string, assetBasePath: string | null, source: string): string | undefined {
+  const value = source.trim().replace(/^<|>$/g, '');
+  if (!value) return undefined;
+  if (/^(?:https?:|data:|blob:)/i.test(value) || value.startsWith('/api/')) return value;
+
+  const sourcePath = value.split(/[?#]/, 1)[0].replace(/\\/g, '/').replace(/^\/+/, '');
+  const candidate = /^(?:data|ocr)\//.test(sourcePath)
+    ? sourcePath
+    : `${assetBasePath || ''}/${sourcePath}`;
+  const segments: string[] = [];
+  for (const segment of candidate.split('/')) {
+    if (!segment || segment === '.') continue;
+    if (segment === '..') {
+      if (segments.length === 0) return undefined;
+      segments.pop();
+      continue;
+    }
+    segments.push(segment);
+  }
+  const assetPath = segments.join('/');
+  return assetPath
+    ? `/api/source/${encodeURIComponent(sourceKey)}/assets/${encodeURIComponent(assetPath)}`
+    : undefined;
+}
+
+function textbookReadingMarkdown(content: string): string {
+  return content
+    .replace(/<details\b[^>]*>\s*<summary\b[^>]*>\s*(?:natural_image|text_image)\s*<\/summary>[\s\S]*?<\/details>/gi, '')
+    .trim();
+}
+
+function OutlineReviewPanel({
+  sourceKey,
+  preview,
+  loading,
+  error,
+  confirming,
+  starting,
+  onRefresh,
+  onConfirm,
+  onStart,
+}: {
+  sourceKey: string;
+  preview: PipelineOutlinePreviewResponse | null;
+  loading: boolean;
+  error: string;
+  confirming: boolean;
+  starting: boolean;
+  onRefresh: () => void;
+  onConfirm: () => void;
+  onStart: () => void;
+}) {
+  const confirmed = preview?.review_status === 'confirmed';
+  const [selectedChunkId, setSelectedChunkId] = useState<string | null>(null);
+  const [selectedChunk, setSelectedChunk] = useState<PipelineOutlineChunkContentResponse | null>(null);
+  const [chunkLoading, setChunkLoading] = useState(false);
+  const [chunkError, setChunkError] = useState('');
+  const [chunkViewMode, setChunkViewMode] = useState<'reading' | 'source'>('reading');
+  const chunks = useMemo(() => preview?.items.filter((item) => item.kind === 'chunk') ?? [], [preview]);
+  const selectedChunkIndex = chunks.findIndex((item) => item.id === selectedChunkId);
+
+  useEffect(() => {
+    setSelectedChunkId(null);
+    setSelectedChunk(null);
+    setChunkError('');
+    setChunkViewMode('reading');
+  }, [preview?.fingerprint]);
+
+  useEffect(() => {
+    if (!preview || !selectedChunkId) return;
+    let cancelled = false;
+    setChunkLoading(true);
+    setChunkError('');
+    setSelectedChunk(null);
+    void loadPipelineOutlineChunkContent(sourceKey, preview.book_id, selectedChunkId)
+      .then((content) => {
+        if (!cancelled) setSelectedChunk(content);
+      })
+      .catch((err) => {
+        if (!cancelled) setChunkError((err as Error).message || '读取切分块内容失败');
+      })
+      .finally(() => {
+        if (!cancelled) setChunkLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [preview, selectedChunkId, sourceKey]);
+
+  const selectRelativeChunk = (offset: number) => {
+    if (selectedChunkIndex < 0) return;
+    const next = chunks[selectedChunkIndex + offset];
+    if (next) setSelectedChunkId(next.id);
+  };
+
+  return (
+    <section className={`overflow-hidden rounded-lg border bg-elevated ${confirmed ? 'border-node-process/40' : 'border-accent/35'}`} aria-labelledby="outline-review-title">
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border-subtle px-4 py-3">
+        <div className="flex min-w-0 items-start gap-2.5">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent"><BookOpen className="h-4 w-4" /></span>
+          <div id="outline-review-title" className="min-w-0 text-base font-semibold text-text-primary">目录切分审核</div>
+        </div>
+        <button type="button" onClick={onRefresh} disabled={loading || !preview} className="flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-border-subtle bg-surface px-2.5 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50">
+          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}刷新预览
+        </button>
+      </header>
+
+      {error ? (
+        <div className="m-4 flex items-start gap-2 rounded-md border border-node-event/40 bg-node-event/10 p-3 text-xs text-node-event" role="alert"><AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{error}</div>
+      ) : loading && !preview ? (
+        <div className="flex min-h-40 items-center justify-center gap-2 text-xs text-text-muted"><Loader2 className="h-4 w-4 animate-spin text-accent" />正在读取切分结果…</div>
+      ) : !preview ? (
+        <div className="px-4 py-10 text-center">
+          <ClipboardList className="mx-auto h-7 w-7 text-text-muted" />
+          <div className="mt-3 text-xs font-medium text-text-secondary">尚无可审核的切分结果</div>
+          <div className="mt-1 text-[11px] text-text-muted">从左侧导入教材并点击“生成目录切分预览”。</div>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-px border-b border-border-subtle bg-border-subtle sm:grid-cols-5">
+            {[
+              ['章', preview.summary.themes],
+              ['节组', preview.summary.topics],
+              ['课节', preview.summary.lessons],
+              ['切分块', preview.summary.chunks],
+              ['正文页', preview.summary.pages],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="bg-surface px-3 py-2.5 text-center">
+                <div className="text-sm font-semibold tabular-nums text-text-primary">{value}</div>
+                <div className="mt-0.5 text-[10px] text-text-muted">{label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5 border-b border-border-subtle px-4 py-2 text-[10px] text-text-muted">
+            <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5">来源 {preview.source_kind === 'enrich' ? 'Enrich + MinerU v2' : preview.source_kind}</span>
+            {preview.toc_pages && <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5">TOC 第 {preview.toc_pages.start}–{preview.toc_pages.end} 页</span>}
+            <span className={`rounded-full border px-2 py-0.5 ${confirmed ? 'border-node-process/40 bg-node-process/10 text-node-process' : 'border-node-event/40 bg-node-event/10 text-node-event'}`}>
+              {confirmed ? '已人工确认' : '等待人工确认'}
+            </span>
+            <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-accent">知识 {preview.summary.knowledge_chunks}</span>
+            <span className="rounded-full border border-node-process/30 bg-node-process/10 px-2 py-0.5 text-node-process">总结 {preview.summary.summary_chunks}</span>
+            <span className="rounded-full border border-node-event/30 bg-node-event/10 px-2 py-0.5 text-node-event">题目 {preview.summary.assessment_chunks}</span>
+            <span className="ml-auto truncate font-mono" title={preview.fingerprint}>版本 {preview.fingerprint.slice(0, 10)}</span>
+          </div>
+
+          {preview.source_kind !== 'enrich' && (
+            <div className="mx-4 mt-3 flex items-start gap-2 rounded-md border border-node-event/40 bg-node-event/10 p-2.5 text-[11px] text-node-event">
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />当前没有使用 Enrich 骨架，请重点检查章节层级和课节边界。
+            </div>
+          )}
+
+          <div className={selectedChunkId ? 'grid border-b border-border-subtle lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]' : 'border-b border-border-subtle'}>
+            <div className="max-h-[520px] overflow-auto scrollbar-thin" role="tree" aria-label="教材目录与切分块">
+              {preview.items.map((item) => {
+                const pageRange = outlineRange(item.page_start, item.page_end, '页');
+                const mdRange = outlineRange(item.md_start, item.md_end, '行');
+                const isChunk = item.kind === 'chunk';
+                const isSelected = item.id === selectedChunkId;
+                const chunkRole = outlineChunkRole(item);
+                const row = (
+                  <div className="flex min-w-0 items-start gap-2" style={{ paddingLeft: `${Math.min(item.depth, 5) * 16}px` }}>
+                    <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${chunkRole?.dotClassName ?? (item.kind === 'lesson' || item.kind === 'activity' ? 'bg-node-process' : 'bg-border-strong')}`} />
+                    <div className="min-w-0 flex-1 text-left">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className={`text-xs ${isChunk ? 'font-medium text-text-secondary' : 'font-semibold text-text-primary'}`}>{item.title}</span>
+                        <span className={`rounded border px-1.5 py-0.5 text-[9px] ${chunkRole?.className ?? 'border-border-subtle bg-surface text-text-muted'}`}>
+                          {chunkRole?.label ?? outlineItemKindLabel(item.kind)}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-text-muted">
+                        {pageRange && <span>{pageRange}</span>}
+                        {mdRange && <span>{mdRange}</span>}
+                        {item.line_count != null && isChunk && <span>{item.line_count} 行正文</span>}
+                        {item.source_ids.length > 0 && <span>来源课节 {item.source_ids.length}</span>}
+                      </div>
+                    </div>
+                    {isChunk && <Eye className={`mt-0.5 h-3.5 w-3.5 shrink-0 transition-colors ${isSelected ? 'text-accent' : 'text-text-muted group-hover:text-accent'}`} />}
+                  </div>
+                );
+                return (
+                  <div key={item.id} role="treeitem" aria-level={item.depth + 1} className="relative border-b border-border-subtle last:border-b-0">
+                    {isChunk ? (
+                      <button
+                        type="button"
+                        aria-label={`查看切分块：${item.title}`}
+                        aria-pressed={isSelected}
+                        onClick={() => {
+                          setSelectedChunkId(item.id);
+                          setChunkViewMode('reading');
+                        }}
+                        title={item.preview_text || `查看 ${item.title} 的具体切分内容`}
+                        className={`group relative block w-full cursor-pointer px-3 py-2 text-left transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/60 ${isSelected ? 'bg-accent/10' : 'bg-accent/[0.035] hover:bg-hover'}`}
+                      >
+                        {row}
+                        {item.preview_text && !isSelected && (
+                          <span className="pointer-events-none absolute right-8 top-1/2 z-30 hidden w-[min(420px,48%)] -translate-y-1/2 rounded-md border border-border-strong bg-elevated px-3 py-2 text-left text-[10px] leading-4 text-text-secondary shadow-lg motion-safe:transition-opacity md:group-hover:block md:group-focus-visible:block">
+                            <span className="mb-1 block font-semibold text-text-primary">内容速览</span>
+                            <span className="line-clamp-4">{item.preview_text}</span>
+                            <span className="mt-1 block text-accent">点击固定查看完整块</span>
+                          </span>
+                        )}
+                      </button>
+                    ) : (
+                      <div className="px-3 py-2 transition-colors hover:bg-hover/60">{row}</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {selectedChunkId && (
+              <aside className="order-first flex min-h-64 max-h-[520px] flex-col border-b border-border-subtle bg-surface lg:order-none lg:border-b-0 lg:border-l" aria-label="切分块详情" aria-live="polite">
+                <div className="flex items-start gap-2 border-b border-border-subtle bg-elevated px-3 py-2.5">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent"><FileText className="h-3.5 w-3.5" /></span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-accent">切分块详情</div>
+                    <div className="mt-0.5 truncate text-xs font-semibold text-text-primary">{selectedChunk?.title || chunks[selectedChunkIndex]?.title || '正在读取…'}</div>
+                  </div>
+                  <button type="button" onClick={() => setSelectedChunkId(null)} aria-label="关闭切分块详情" className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-text-muted transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"><X className="h-3.5 w-3.5" /></button>
+                </div>
+
+                <div className="min-h-0 flex-1 overflow-auto p-3 scrollbar-thin">
+                  {chunkLoading ? (
+                    <div className="flex min-h-40 items-center justify-center gap-2 text-xs text-text-muted"><Loader2 className="h-4 w-4 animate-spin text-accent" />正在读取完整切分内容…</div>
+                  ) : chunkError ? (
+                    <div className="flex items-start gap-2 rounded-md border border-node-event/40 bg-node-event/10 p-3 text-[11px] leading-5 text-node-event"><AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{chunkError}</div>
+                  ) : selectedChunk ? (
+                    <>
+                      <div className="mb-3 flex flex-wrap items-center gap-1.5 text-[9px] text-text-muted">
+                        {outlineRange(selectedChunk.page_start, selectedChunk.page_end, '页') && <span className="rounded-full border border-border-subtle bg-elevated px-2 py-0.5">{outlineRange(selectedChunk.page_start, selectedChunk.page_end, '页')}</span>}
+                        <span className="rounded-full border border-border-subtle bg-elevated px-2 py-0.5">行 {selectedChunk.md_start}–{selectedChunk.md_end}</span>
+                        <span className="rounded-full border border-border-subtle bg-elevated px-2 py-0.5">{selectedChunk.line_count} 行</span>
+                        <span className="rounded-full border border-border-subtle bg-elevated px-2 py-0.5">{selectedChunk.character_count.toLocaleString('zh-CN')} 字符</span>
+                        <div className="ml-auto flex rounded-md border border-border-subtle bg-elevated p-0.5" aria-label="切分块显示方式">
+                          <button type="button" onClick={() => setChunkViewMode('reading')} aria-pressed={chunkViewMode === 'reading'} className={`flex h-6 cursor-pointer items-center gap-1 rounded px-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${chunkViewMode === 'reading' ? 'bg-accent text-white shadow-sm' : 'text-text-muted hover:bg-hover hover:text-text-primary'}`}><BookOpen className="h-3 w-3" />阅读</button>
+                          <button type="button" onClick={() => setChunkViewMode('source')} aria-pressed={chunkViewMode === 'source'} className={`flex h-6 cursor-pointer items-center gap-1 rounded px-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${chunkViewMode === 'source' ? 'bg-accent text-white shadow-sm' : 'text-text-muted hover:bg-hover hover:text-text-primary'}`}><FileText className="h-3 w-3" />源码</button>
+                        </div>
+                      </div>
+                      {chunkViewMode === 'reading' ? (
+                        <section aria-label="电子教材阅读预览" className="rounded-lg bg-[#f8f6f0] p-3 text-slate-900 dark:bg-surface dark:text-text-primary">
+                          <article className="mx-auto rounded-xl border border-black/10 bg-white px-5 py-6 shadow-panel dark:border-border-subtle dark:bg-elevated">
+                            <div className="mb-5 flex items-center justify-between border-b border-slate-200 pb-3 text-[10px] text-slate-500 dark:border-border-subtle dark:text-text-muted">
+                              <span>{selectedChunk.page_start == null || selectedChunk.page_end == null ? '页码未标注' : `第 ${selectedChunk.page_start}${selectedChunk.page_end === selectedChunk.page_start ? '' : `–${selectedChunk.page_end}`} 页`}</span>
+                              <span>{selectedChunk.line_count} 行切分内容</span>
+                            </div>
+                            <MarkdownView
+                              content={textbookReadingMarkdown(selectedChunk.content) || '这个切分块没有可显示的正文。'}
+                              className="text-sm leading-7 text-slate-800 dark:text-text-secondary"
+                              imageLayout="reader"
+                              hideDecorativeImages={false}
+                              resolveImageUrl={(imageSource) => chunkAssetUrl(sourceKey, selectedChunk.asset_base_path, imageSource)}
+                            />
+                          </article>
+                        </section>
+                      ) : (
+                        <pre className="whitespace-pre-wrap break-words rounded-md border border-border-subtle bg-elevated p-3 font-mono text-[11px] leading-5 text-text-secondary">{selectedChunk.content || '这个切分块没有可显示的正文。'}</pre>
+                      )}
+                    </>
+                  ) : null}
+                </div>
+
+                <div className="flex items-center justify-between border-t border-border-subtle bg-elevated px-3 py-2 text-[10px] text-text-muted">
+                  <span>第 {selectedChunkIndex + 1} / {chunks.length} 块</span>
+                  <div className="flex gap-1">
+                    <button type="button" onClick={() => selectRelativeChunk(-1)} disabled={selectedChunkIndex <= 0} className="flex h-7 cursor-pointer items-center gap-1 rounded-md border border-border-subtle px-2 transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:cursor-not-allowed disabled:opacity-40"><ChevronLeft className="h-3 w-3" />上一块</button>
+                    <button type="button" onClick={() => selectRelativeChunk(1)} disabled={selectedChunkIndex < 0 || selectedChunkIndex >= chunks.length - 1} className="flex h-7 cursor-pointer items-center gap-1 rounded-md border border-border-subtle px-2 transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:cursor-not-allowed disabled:opacity-40">下一块<ChevronRight className="h-3 w-3" /></button>
+                  </div>
+                </div>
+              </aside>
+            )}
+          </div>
+
+          <footer className="grid gap-3 border-t border-border-subtle bg-surface/50 p-4 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
+            <div className="text-[11px] leading-5 text-text-muted">
+              {confirmed
+                ? `已于 ${timeText(preview.confirmed_at)} 确认；若重新生成切分，确认会自动失效。`
+                : '请检查章节归属、页码范围以及是否存在跨课节 chunk，确认后才可开始抽取。'}
+            </div>
+            <button type="button" onClick={onConfirm} disabled={confirming || confirmed} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-accent/50 bg-accent/10 px-3 text-xs font-semibold text-accent transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-surface disabled:text-text-muted">
+              {confirming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}{confirmed ? '切分已确认' : '确认切分结果'}
+            </button>
+            <button type="button" onClick={onStart} disabled={!confirmed || starting} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-xs font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">
+              {starting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}开始模型抽取
+            </button>
+          </footer>
+        </>
+      )}
+    </section>
+  );
+}
+
 export function PipelineDebugPage() {
   const { selectedSourceKey, switchSource } = useAppState();
   const activeSourceKey =
@@ -1484,21 +1718,13 @@ export function PipelineDebugPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(false);
+  const [stopping, setStopping] = useState(false);
   const [startError, setStartError] = useState('');
   const [startResult, setStartResult] = useState<PipelineStartResponse | null>(null);
   const [jobStatus, setJobStatus] = useState<PipelineJobStatusResponse | null>(null);
   const [jobList, setJobList] = useState<PipelineJobListResponse | null>(null);
   const [jobListLoading, setJobListLoading] = useState(false);
   const [jobListError, setJobListError] = useState('');
-  const [metadata, setMetadata] = useState<TextbookMetadataResponse | null>(null);
-  const [inferring, setInferring] = useState(false);
-  const [uploadingPdf, setUploadingPdf] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadedPdf, setUploadedPdf] = useState<PipelinePdfUploadResponse | null>(null);
-  const [ocrInspection, setOcrInspection] = useState<PipelineOcrInspectResponse | null>(null);
-  const [inspectingOcr, setInspectingOcr] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [form, setForm] = useState<PipelineForm>(initialForm);
   const [imageReviews, setImageReviews] = useState<ImageReviewResponse | null>(null);
   const [imageReviewLoading, setImageReviewLoading] = useState(false);
   const [imageReviewError, setImageReviewError] = useState('');
@@ -1507,7 +1733,10 @@ export function PipelineDebugPage() {
   const [qualityLoading, setQualityLoading] = useState(false);
   const [qualityError, setQualityError] = useState('');
   const [qualityReviewUpdating, setQualityReviewUpdating] = useState('');
-  const pdfInputRef = useRef<HTMLInputElement>(null);
+  const [outlinePreview, setOutlinePreview] = useState<PipelineOutlinePreviewResponse | null>(null);
+  const [outlinePreviewLoading, setOutlinePreviewLoading] = useState(false);
+  const [outlinePreviewError, setOutlinePreviewError] = useState('');
+  const [outlineConfirming, setOutlineConfirming] = useState(false);
 
   const refresh = async (options: { silent?: boolean } = {}) => {
     if (!options.silent) setLoading(true);
@@ -1580,128 +1809,31 @@ export function PipelineDebugPage() {
     }
   };
 
-  const updateForm = <K extends keyof PipelineForm>(key: K, value: PipelineForm[K]) => {
-    setForm((current) => ({ ...current, [key]: value }));
-  };
-
-  const canInfer = Boolean(form.book_title.trim() || form.pdf_path.trim() || form.ocr_folder_path.trim() || form.mineru_file_url.trim());
-  const canStart = sourceReady(form) && !starting && !uploadingPdf && !inspectingOcr;
-
-  const selectLocalPdf = () => {
-    pdfInputRef.current?.click();
-  };
-
-  const handleLocalPdf = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-    if (!file.name.toLowerCase().endsWith('.pdf') || (file.type && file.type !== 'application/pdf')) {
-      setStartError('请选择 PDF 文件。');
-      return;
-    }
-    if (file.size > 512 * 1024 * 1024) {
-      setStartError('PDF 不能超过 512 MB。');
-      return;
-    }
-
-    setUploadingPdf(true);
-    setUploadProgress(0);
-    setUploadedPdf(null);
-    setStartError('');
+  const refreshOutlinePreview = async (bookId?: string, options: { silent?: boolean } = {}) => {
+    const resolvedBookId = bookId?.trim() || outlinePreview?.book_id || jobStatus?.book_id;
+    if (!resolvedBookId) return;
+    if (!options.silent) setOutlinePreviewLoading(true);
+    setOutlinePreviewError('');
     try {
-      const result = await uploadPipelinePdf(activeSourceKey, file, setUploadProgress);
-      setUploadedPdf(result);
-      setUploadProgress(100);
-      setOcrInspection(null);
-      setForm((current) => ({ ...current, pdf_path: result.pdf_path, ocr_folder_path: '', mineru_file_url: '' }));
+      setOutlinePreview(await loadPipelineOutlinePreview(activeSourceKey, resolvedBookId));
     } catch (err) {
-      setStartError((err as Error).message || 'PDF 上传失败');
+      setOutlinePreviewError((err as Error).message || '读取目录切分预览失败');
     } finally {
-      setUploadingPdf(false);
+      if (!options.silent) setOutlinePreviewLoading(false);
     }
   };
 
-  const inspectOcr = async () => {
-    const folderPath = form.ocr_folder_path.trim();
-    if (!folderPath) {
-      setStartError('请先填写已完成 OCR 文件夹的绝对路径。');
-      return;
-    }
-    setInspectingOcr(true);
-    setOcrInspection(null);
-    setStartError('');
-    try {
-      const result = await inspectPipelineOcrFolder(activeSourceKey, { folder_path: folderPath });
-      setOcrInspection(result);
-      setUploadedPdf(null);
-      setForm((current) => ({
-        ...current,
-        pdf_path: '',
-        ocr_folder_path: result.folder_path,
-        mineru_file_url: '',
-        mineru_force: false,
-      }));
-    } catch (err) {
-      setStartError((err as Error).message || 'OCR 文件夹校验失败');
-    } finally {
-      setInspectingOcr(false);
-    }
-  };
-
-  const applyInferredMetadata = (result: TextbookMetadataResponse) => {
-    const previous = metadata;
-    setMetadata(result);
-    setForm((current) => ({
-      ...current,
-      book_id: shouldUseInferredValue(current.book_id, previous?.book_id) ? result.book_id : current.book_id,
-      book_title: shouldUseInferredValue(current.book_title, previous?.title) ? result.title : current.book_title,
-      lesson_subject: shouldUseInferredValue(current.lesson_subject, previous?.lesson_subject) ? result.lesson_subject : current.lesson_subject,
-      lesson_school_stage: shouldUseInferredValue(current.lesson_school_stage, previous?.lesson_school_stage)
-        ? result.lesson_school_stage
-        : current.lesson_school_stage,
-      lesson_grade_band: shouldUseInferredValue(current.lesson_grade_band, previous?.lesson_grade_band) ? result.lesson_grade_band : current.lesson_grade_band,
-    }));
-  };
-
-  const startRequest = (startStage?: PipelineStartStage): PipelineStartRequest => ({
-    resume_job_id: startStage ? activeJobStatus?.job_id : undefined,
-    book_id: resolvePipelineStartBookId(form.book_id, activeJobStatus?.book_id, Boolean(startStage)),
-    book_title: form.book_title.trim() || undefined,
-    pdf_path: form.pdf_path.trim() || undefined,
-    ocr_folder_path: form.ocr_folder_path.trim() || undefined,
-    mineru_file_url: form.mineru_file_url.trim() || undefined,
-    mineru_base_url: form.mineru_base_url.trim() || undefined,
-    mineru_model_version: form.mineru_model_version.trim() || undefined,
-    mineru_language: optionalAutoString(form.mineru_language),
-    mineru_page_ranges: form.mineru_page_ranges.trim() || undefined,
-    mineru_force: startStage ? false : form.mineru_force,
-    outline_start_page: optionalNumber(form.outline_start_page),
-    outline_end_page: optionalNumber(form.outline_end_page),
-    dataset_id: activeSourceKey,
-    output_root: form.output_root.trim() || 'data/main',
-    parallelism: Number(form.parallelism) || 8,
-    extraction_template: form.extraction_template,
-    quality_retry_count: Number(form.quality_retry_count) || 1,
-    model_retry_count: Number(form.model_retry_count) || 2,
-    lesson_backend_kind: form.lesson_backend_kind,
-    lesson_subject: form.lesson_subject.trim() || undefined,
-    lesson_school_stage: form.lesson_school_stage.trim() || undefined,
-    lesson_grade_band: form.lesson_grade_band.trim() || undefined,
-    openai_base_url: form.openai_base_url.trim() || undefined,
-    openai_model: form.openai_model.trim() || undefined,
-    vlm_api_url: form.vlm_api_url.trim() || undefined,
-    vlm_api_key: form.vlm_api_key.trim() || undefined,
-    vlm_model: form.vlm_model.trim() || undefined,
-    start_stage: startStage,
-  });
-
-  const launchPipeline = async (startStage?: PipelineStartStage) => {
+  const launchPipeline = async (request: PipelineStartRequest) => {
     setStarting(true);
     setStartError('');
     setStartResult(null);
     setJobStatus(null);
     try {
-      const result = await startPipeline(activeSourceKey, startRequest(startStage));
+      if (request.prepare_only) {
+        setOutlinePreview(null);
+        setOutlinePreviewError('');
+      }
+      const result = await startPipeline(activeSourceKey, request);
       rememberPipelineJob(window.localStorage, activeSourceKey, result);
       setStartResult(result);
       window.setTimeout(() => {
@@ -1718,55 +1850,41 @@ export function PipelineDebugPage() {
     }
   };
 
+  const stopActivePipeline = async () => {
+    if (!activeJobStatus || activeJobStatus.status !== 'running' || stopping) return;
+    const confirmed = window.confirm('确定停止当前作业吗？已写入的结果会保留。');
+    if (!confirmed) return;
+    setStopping(true);
+    setStartError('');
+    try {
+      await stopPipeline(activeSourceKey, activeJobStatus.job_id);
+      await Promise.all([
+        refreshJobStatus(activeJobStatus.job_id),
+        refreshJobs({ silent: true }),
+        refresh({ silent: true }),
+      ]);
+    } catch (err) {
+      setStartError((err as Error).message || '停止作业失败');
+    } finally {
+      setStopping(false);
+    }
+  };
+
   const launchBatchBook = async (book: {
     bookId: string;
     title: string;
     pdfPath?: string;
     ocrFolderPath?: string;
+    ocrImportMode?: 'in_place' | 'copy';
     enrichContext: boolean;
     enrichBookPath?: string;
   }): Promise<PipelineStartResponse> => {
-    const result = await startPipeline(activeSourceKey, buildPipelineBatchStartRequest(startRequest(), book));
+    const result = await startPipeline(activeSourceKey, buildPipelineBatchStartRequest(baseStartRequest(activeSourceKey), book));
     rememberPipelineJob(window.localStorage, activeSourceKey, result);
     setStartResult(result);
     setJobStatus(null);
     return result;
   };
-
-  const submitStart = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!canStart) return;
-    await launchPipeline();
-  };
-
-  const submitInfer = async (options: { silent?: boolean } = {}) => {
-    if (!canInfer) return;
-    if (!options.silent) {
-      setInferring(true);
-      setStartError('');
-    }
-    try {
-      const result = await inferTextbookMetadata(activeSourceKey, {
-        book_title: form.book_title.trim() || undefined,
-        pdf_path: form.pdf_path.trim() || undefined,
-        ocr_folder_path: form.ocr_folder_path.trim() || undefined,
-        mineru_file_url: form.mineru_file_url.trim() || undefined,
-      });
-      applyInferredMetadata(result);
-    } catch (err) {
-      if (!options.silent) setStartError((err as Error).message || '识别教材信息失败');
-    } finally {
-      if (!options.silent) setInferring(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!canInfer) return undefined;
-    const timer = window.setTimeout(() => {
-      void submitInfer({ silent: true });
-    }, 700);
-    return () => window.clearTimeout(timer);
-  }, [activeSourceKey, form.book_title, form.pdf_path, form.ocr_folder_path, form.mineru_file_url]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1809,11 +1927,8 @@ export function PipelineDebugPage() {
     setStartResult(selected);
     setJobStatus(null);
     setStartError('');
-    setForm((current) => ({
-      ...current,
-      book_id: job.book_id,
-      book_title: job.book_title,
-    }));
+    setOutlinePreview(null);
+    setOutlinePreviewError('');
     try {
       setJobStatus(await loadPipelineJobStatus(activeSourceKey, job.job_id));
     } catch (err) {
@@ -1860,15 +1975,60 @@ export function PipelineDebugPage() {
   const resumeStage = activeJobStatus?.status === 'blocked'
     ? resumeStageFor(activeJobStatus.current_stage?.id)
     : null;
-  const canResume = Boolean(resumeStage && activeJobStatus?.book_id) && !starting;
   const autoRefreshing = starting || Boolean(startResult && !jobDone);
   const lastUpdatedAt = activeJobStatus?.updated_at ?? null;
+
+  const resumeActivePipeline = async (stage: PipelineStartStage) => {
+    if (!activeJobStatus?.book_id || starting) return;
+    await launchPipeline({
+      ...baseStartRequest(activeSourceKey),
+      resume_job_id: activeJobStatus.job_id,
+      book_id: activeJobStatus.book_id,
+      mineru_force: false,
+      start_stage: stage,
+    });
+  };
+
+  const confirmOutline = async () => {
+    if (!outlinePreview || outlineConfirming || outlinePreview.review_status === 'confirmed') return;
+    setOutlineConfirming(true);
+    setOutlinePreviewError('');
+    try {
+      const result = await confirmPipelineOutline(activeSourceKey, outlinePreview.book_id, {
+        fingerprint: outlinePreview.fingerprint,
+      });
+      setOutlinePreview((current) => current && current.fingerprint === result.fingerprint
+        ? { ...current, review_status: 'confirmed', confirmed_at: result.confirmed_at }
+        : current);
+    } catch (err) {
+      setOutlinePreviewError((err as Error).message || '确认切分结果失败');
+      await refreshOutlinePreview(outlinePreview.book_id, { silent: true });
+    } finally {
+      setOutlineConfirming(false);
+    }
+  };
+
+  const launchConfirmedExtraction = async () => {
+    if (!outlinePreview || outlinePreview.review_status !== 'confirmed' || starting) return;
+    await launchPipeline(buildConfirmedExtractionRequest(baseStartRequest(activeSourceKey), {
+      bookId: outlinePreview.book_id,
+      fingerprint: outlinePreview.fingerprint,
+    }));
+  };
 
   useEffect(() => {
     if (!startResult || activeJobStatus?.status !== 'completed') return;
     invalidateUnitCache(activeSourceKey);
     void switchSource(activeSourceKey);
   }, [activeSourceKey, activeJobStatus?.status, startResult?.job_id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!activeJobStatus?.book_id) return;
+    const preparationComplete = activeJobStatus.status === 'completed'
+      && (activeJobStatus.current_stage?.id === 'prepare_outline_chunks' || activeJobStatus.context.prepare_only === true);
+    if (!preparationComplete) return;
+    void refreshOutlinePreview(activeJobStatus.book_id);
+  }, [activeSourceKey, activeJobStatus?.book_id, activeJobStatus?.job_id, activeJobStatus?.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!autoRefreshing) return undefined;
@@ -1887,12 +2047,7 @@ export function PipelineDebugPage() {
       <div className="border-b border-border-subtle bg-surface px-4 py-4 sm:px-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent">抽取控制台</span>
-              <span className="text-xs text-text-muted">数据源：{activeSourceKey}</span>
-            </div>
-            <h1 className="text-xl font-semibold tracking-tight text-text-primary">教材知识抽取与合并运行台</h1>
-            <p className="mt-1 text-sm text-text-secondary">从 PDF 或已完成 OCR 的教材来源启动课时抽取，并实时跟踪合并、质检和人工确认状态。</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-text-primary">教材知识抽取与合并运行台</h1>
           </div>
           <button
             type="button"
@@ -1903,7 +2058,7 @@ export function PipelineDebugPage() {
               void refreshImageReviews();
               void refreshQuality();
             }}
-            className="flex h-9 items-center gap-2 rounded-md border border-border-subtle bg-elevated px-3 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
+            className="flex h-10 cursor-pointer items-center gap-2 rounded-md border border-border-subtle bg-elevated px-3.5 text-sm font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
             刷新状态
@@ -1930,307 +2085,23 @@ export function PipelineDebugPage() {
           }}
         />
 
-        <div className="grid gap-5 xl:grid-cols-[420px_minmax(0,1fr)_340px]">
-          <section className="min-w-0 overflow-hidden rounded-lg border border-border-subtle bg-elevated">
-            <div className="border-b border-border-subtle p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-text-primary">单本高级启动</div>
-                  <div className="mt-1 text-xs text-text-muted">用于精细调参或断点续跑；常规任务从上方队列启动。</div>
-                </div>
-                <StatusPill status={starting ? 'running' : startResult?.status || 'ready'} />
-              </div>
-            </div>
+        {startError && (
+          <div className="mb-5 flex items-start gap-2 rounded-lg border border-node-event/40 bg-node-event/10 p-3 text-sm text-node-event" role="alert">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{startError}</span>
+          </div>
+        )}
 
-            <form onSubmit={submitStart} className="space-y-4 p-4">
-              <div className="grid gap-3">
-                <div className="rounded-lg border border-accent/30 bg-accent/10 p-3">
-                  <div className="mb-3 flex items-start gap-2">
-                    <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
-                    <div>
-                      <div className="text-xs font-semibold text-text-primary">统一抽取入口</div>
-                      <div className="mt-1 text-[11px] leading-5 text-text-secondary">可输入 PDF，也可导入 MinerU 已完成 OCR 的文件夹；后者会跳过 PDF 上传与在线 OCR。</div>
-                    </div>
-                  </div>
-                  <div className="grid gap-3">
-                    <div>
-                      <span className="mb-1.5 block text-[11px] font-medium text-text-muted">本地 PDF</span>
-                      <input
-                        ref={pdfInputRef}
-                        type="file"
-                        accept=".pdf,application/pdf"
-                        onChange={(event) => void handleLocalPdf(event)}
-                        className="sr-only"
-                        aria-label="选择本地 PDF 文件"
-                      />
-                      <button
-                        type="button"
-                        onClick={selectLocalPdf}
-                        disabled={uploadingPdf || starting}
-                        className="flex min-h-12 w-full cursor-pointer items-center gap-3 rounded-md border border-dashed border-accent/50 bg-surface px-3 py-2 text-left transition-colors hover:border-accent hover:bg-accent/5 focus-visible:border-accent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
-                          {uploadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-xs font-medium text-text-primary">
-                            {uploadingPdf ? `正在上传 ${uploadProgress}%` : uploadedPdf ? uploadedPdf.file_name : '选择本地 PDF'}
-                          </span>
-                          <span className="mt-0.5 block truncate text-[10px] text-text-muted">
-                            {uploadedPdf ? `${fileSizeText(uploadedPdf.size_bytes)} · 已上传，可直接开始抽取` : '点击打开文件选择窗口，最大 512 MB'}
-                          </span>
-                        </span>
-                        {!uploadingPdf && <span className="shrink-0 text-[10px] font-medium text-accent">浏览文件</span>}
-                      </button>
-                      {uploadingPdf && (
-                        <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-border-subtle" aria-label={`上传进度 ${uploadProgress}%`}>
-                          <div className="h-full rounded-full bg-accent transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} />
-                        </div>
-                      )}
-                    </div>
-                    <Field
-                      label="或输入服务端 PDF 绝对路径"
-                      value={form.pdf_path}
-                      onChange={(value) => {
-                        setUploadedPdf(null);
-                        setOcrInspection(null);
-                        setForm((current) => ({ ...current, pdf_path: value, ocr_folder_path: '', mineru_file_url: '' }));
-                      }}
-                      placeholder="/Users/.../book.pdf"
-                    />
-                    <div className="rounded-md border border-border-subtle bg-elevated p-3">
-                      <div className="mb-2 flex items-center justify-between gap-3">
-                        <div>
-                          <label htmlFor="pipeline-ocr-folder" className="block text-[11px] font-medium text-text-muted">已完成 OCR 文件夹</label>
-                          <div className="mt-0.5 text-[10px] text-text-muted">支持含 content_list_v2.json 的 MinerU hybrid_ocr 目录或其上级目录</div>
-                        </div>
-                        <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5 text-[10px] text-text-secondary">跳过 MinerU</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <input
-                          id="pipeline-ocr-folder"
-                          value={form.ocr_folder_path}
-                          onChange={(event) => {
-                            setUploadedPdf(null);
-                            setOcrInspection(null);
-                            setForm((current) => ({ ...current, pdf_path: '', ocr_folder_path: event.target.value, mineru_file_url: '' }));
-                          }}
-                          placeholder="/Users/.../hybrid_ocr"
-                          className="min-w-0 flex-1 rounded-md border border-border-subtle bg-surface px-2.5 py-2 text-xs text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => void inspectOcr()}
-                          disabled={inspectingOcr || starting || !form.ocr_folder_path.trim()}
-                          className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2.5 text-[11px] font-medium text-accent transition-colors hover:bg-accent/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {inspectingOcr ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FolderOpen className="h-3.5 w-3.5" />}
-                          校验并使用
-                        </button>
-                      </div>
-                      {ocrInspection && (
-                        <div className="mt-2 rounded-md border border-node-process/30 bg-node-process/10 p-2 text-[10px] leading-5 text-text-secondary">
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                            <span className="font-medium text-node-process">OCR 结构校验通过</span>
-                            <span>{ocrInspection.page_count ?? '未知'} 页</span>
-                            <span>{ocrInspection.block_count ?? '未知'} 块</span>
-                            <span>{ocrInspection.image_count} 张图片</span>
-                            <span>{ocrInspection.quality === 'complete' ? '完整组合输入' : '结构化输入'}</span>
-                          </div>
-                          <div className="mt-1 truncate" title={ocrInspection.folder_path}>{ocrInspection.folder_path}</div>
-                          {ocrInspection.warnings.map((warning) => <div key={warning} className="text-node-event">{warning}</div>)}
-                        </div>
-                      )}
-                    </div>
-                    <Field
-                      label="MinerU 文件 URL"
-                      value={form.mineru_file_url}
-                      onChange={(value) => {
-                        setUploadedPdf(null);
-                        setOcrInspection(null);
-                        setForm((current) => ({ ...current, pdf_path: '', ocr_folder_path: '', mineru_file_url: value }));
-                      }}
-                      placeholder="已有公网文件地址时填写，可不填"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-border-subtle bg-surface p-3">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div className="text-xs font-medium text-text-primary">教材信息</div>
-                  <button
-                    type="button"
-                    onClick={() => void submitInfer()}
-                    disabled={inferring || !canInfer}
-                    className="flex h-7 items-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-2 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {inferring ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
-                    重新识别
-                  </button>
-                </div>
-                <div className="mb-3">
-                  <Field label="教材名称" value={form.book_title} onChange={(value) => updateForm('book_title', value)} placeholder="可从教材来源自动识别，也可以直接修改" />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <Field label="学科" value={form.lesson_subject} onChange={(value) => updateForm('lesson_subject', value)} placeholder="chemistry" />
-                  <SelectField
-                    label="学段"
-                    value={form.lesson_school_stage}
-                    onChange={(value) => updateForm('lesson_school_stage', value)}
-                    options={[
-                      { value: '', label: '自动' },
-                      { value: 'primary', label: '小学' },
-                      { value: 'junior-secondary', label: '初中' },
-                      { value: 'senior-secondary', label: '高中' },
-                      { value: 'higher', label: '高等教育' },
-                    ]}
-                  />
-                  <Field label="年级" value={form.lesson_grade_band} onChange={(value) => updateForm('lesson_grade_band', value)} placeholder="grade11" />
-                </div>
-                <div className="mt-3">
-                  <SelectField<PipelineExtractionTemplateId>
-                    label="抽取模板"
-                    value={form.extraction_template}
-                    onChange={(value) => updateForm('extraction_template', value)}
-                    options={EXTRACTION_TEMPLATE_OPTIONS}
-                  />
-                </div>
-                {metadata && (
-                  <div className="mt-3 flex flex-wrap gap-1.5 text-[10px] text-text-muted">
-                    <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">置信度 {percentValue(metadata.confidence)}</span>
-                    <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">语言 {metadata.mineru_language === 'en' ? '英文' : '中文'}</span>
-                    <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">页码 {metadata.mineru_page_ranges || '整本'}</span>
-                    <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">目录 {metadata.outline_start_page}-{metadata.outline_end_page}</span>
-                    <span className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{templateLabel(metadata.extraction_template)}</span>
-                    {metadata.signals.slice(0, 5).map((signal) => (
-                      <span key={signal} className="rounded-full border border-border-subtle bg-elevated px-1.5 py-0.5">{signal}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowAdvanced((value) => !value)}
-                className="flex w-full items-center justify-between rounded-md border border-border-subtle bg-surface px-3 py-2 text-left text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary"
-                aria-expanded={showAdvanced}
-              >
-                高级参数
-                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
-              </button>
-
-              {showAdvanced && (
-                <div className="grid gap-3 rounded-lg border border-border-subtle bg-surface p-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field label="输出目录" value={form.output_root} onChange={(value) => updateForm('output_root', value)} />
-                    <Field label="并行数" value={form.parallelism} onChange={(value) => updateForm('parallelism', value)} inputMode="numeric" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field label="质量重抽次数" value={form.quality_retry_count} onChange={(value) => updateForm('quality_retry_count', value)} inputMode="numeric" />
-                    <Field label="模型重试次数" value={form.model_retry_count} onChange={(value) => updateForm('model_retry_count', value)} inputMode="numeric" />
-                  </div>
-                  <SelectField<PipelineLessonBackendKind>
-                    label="文本模型接口"
-                    value={form.lesson_backend_kind}
-                    onChange={(value) => updateForm('lesson_backend_kind', value)}
-                    options={[
-                      { value: 'openai_chat_completions', label: '聊天补全接口' },
-                      { value: 'openai_responses', label: 'Responses 接口' },
-                    ]}
-                  />
-                  <Field label="文本模型接口地址" value={form.openai_base_url} onChange={(value) => updateForm('openai_base_url', value)} placeholder="默认使用环境配置" />
-                  <Field label="文本模型名称" value={form.openai_model} onChange={(value) => updateForm('openai_model', value)} placeholder="默认由后端决定" />
-                  <Field label="视觉模型接口地址" value={form.vlm_api_url} onChange={(value) => updateForm('vlm_api_url', value)} placeholder="例如 http://localhost:8000/v1/chat/completions" />
-                  <Field label="视觉模型密钥" value={form.vlm_api_key} onChange={(value) => updateForm('vlm_api_key', value)} placeholder="留空则使用后端环境变量" type="password" />
-                  <Field label="视觉模型名称" value={form.vlm_model} onChange={(value) => updateForm('vlm_model', value)} placeholder="例如 gpt-4.1-mini 或 qwen-vl-max" />
-                  <Field label="MinerU 接口地址" value={form.mineru_base_url} onChange={(value) => updateForm('mineru_base_url', value)} />
-                  <Field label="MinerU 模型版本" value={form.mineru_model_version} onChange={(value) => updateForm('mineru_model_version', value)} />
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field label="解析页码范围" value={form.mineru_page_ranges} onChange={(value) => updateForm('mineru_page_ranges', value)} placeholder="留空解析整本" />
-                    <SelectField
-                      label="解析语言"
-                      value={form.mineru_language}
-                      onChange={(value) => updateForm('mineru_language', value)}
-                      options={[
-                        { value: 'auto', label: '自动' },
-                        { value: 'ch', label: '中文' },
-                        { value: 'en', label: '英文' },
-                      ]}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field label="目录起始页" value={form.outline_start_page} onChange={(value) => updateForm('outline_start_page', value)} placeholder="自动" inputMode="numeric" />
-                    <Field label="目录结束页" value={form.outline_end_page} onChange={(value) => updateForm('outline_end_page', value)} placeholder="自动" inputMode="numeric" />
-                  </div>
-                  {!form.ocr_folder_path.trim() && (
-                    <label className="flex items-center gap-2 text-xs text-text-secondary">
-                      <input
-                        type="checkbox"
-                        checked={form.mineru_force}
-                        onChange={(event) => updateForm('mineru_force', event.target.checked)}
-                        className="h-4 w-4 accent-[var(--color-accent)]"
-                      />
-                      强制重新解析 PDF
-                    </label>
-                  )}
-                </div>
-              )}
-
-              <div className="grid gap-3 rounded-lg border border-border-subtle bg-surface p-3 text-xs text-text-secondary">
-                <div className="flex items-center justify-between gap-3">
-                  <span>入口状态</span>
-                  <span className={sourceReady(form) ? 'text-node-process' : 'text-node-event'}>{sourceReadyLabel(form)}</span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span>目标数据集</span>
-                  <span className="truncate text-text-primary">{activeSourceKey}</span>
-                </div>
-              </div>
-
-              {startError && (
-                <div className="flex items-start gap-2 rounded-lg border border-node-event/40 bg-node-event/10 p-3 text-xs text-node-event">
-                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  <span>{startError}</span>
-                </div>
-              )}
-
-              {startResult && (
-                <div className="rounded-lg border border-node-process/40 bg-node-process/10 p-3 text-xs text-text-secondary">
-                  <div className="font-medium text-node-process">当前作业：{startResult.job_id}</div>
-                  <div className="mt-1 truncate">日志：{startResult.log_path}</div>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={!canStart}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-dim disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted"
-              >
-                {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                一键生成最终结果
-              </button>
-              {resumeStage && (
-                <button
-                  type="button"
-                  disabled={!canResume}
-                  onClick={() => {
-                    void launchPipeline(resumeStage);
-                  }}
-                  className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-accent/50 bg-accent/10 px-4 text-sm font-semibold text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-surface disabled:text-text-muted"
-                >
-                  {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
-                  从“{stageLabel(resumeStage)}”继续运行
-                </button>
-              )}
-            </form>
-          </section>
-
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
           <section className="min-w-0 space-y-5">
             <PipelineJobListPanel
               jobs={jobList?.jobs ?? []}
               selectedJobId={startResult?.job_id ?? null}
+              activeJobStatus={activeJobStatus}
               loading={jobListLoading}
+              starting={starting}
+              stopping={stopping}
+              resumeStage={resumeStage}
               error={jobListError}
               onSelect={(job) => {
                 void selectJob(job);
@@ -2238,6 +2109,24 @@ export function PipelineDebugPage() {
               onRefresh={() => {
                 void refreshJobs();
               }}
+              onStop={() => {
+                void stopActivePipeline();
+              }}
+              onResume={(stage) => {
+                void resumeActivePipeline(stage);
+              }}
+            />
+
+            <OutlineReviewPanel
+              sourceKey={activeSourceKey}
+              preview={outlinePreview}
+              loading={outlinePreviewLoading}
+              error={outlinePreviewError}
+              confirming={outlineConfirming}
+              starting={starting}
+              onRefresh={() => void refreshOutlinePreview()}
+              onConfirm={() => void confirmOutline()}
+              onStart={() => void launchConfirmedExtraction()}
             />
 
             <PipelineProgressPanel steps={steps} jobStatus={activeJobStatus} autoRefreshing={autoRefreshing} lastUpdatedAt={lastUpdatedAt} />

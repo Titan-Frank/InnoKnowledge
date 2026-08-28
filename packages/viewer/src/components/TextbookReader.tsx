@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { TextbookReaderBlock, TextbookReaderInlineSegment, TextbookReaderPageResponse } from '@okm/types';
 import { loadTextbookReaderPage } from '@/services/backend-client';
-import type { TextbookReaderTarget } from '@/hooks/useAppState';
-import { BookOpen, ChevronLeft, ChevronRight, Eye, EyeOff, FileText, Info, Layers, X, ZoomIn, ZoomOut } from '@/lib/lucide-icons';
+import { useAppState, type TextbookReaderTarget } from '@/hooks/useAppState';
+import { BookOpen, ChevronLeft, ChevronRight, Eye, EyeOff, FileText, Info, Layers, Network, X, ZoomIn, ZoomOut } from '@/lib/lucide-icons';
+import { continuousReaderPageWindow, nearestReaderPage } from '@/lib/continuous-reader';
+import { largestFittingFontSize } from '@/lib/ocr-coordinate-text';
 import { PdfPageCanvas } from './PdfPageCanvas';
+import { MarkdownView } from './MarkdownView';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
@@ -17,7 +20,7 @@ type TextbookReaderProps = {
 
 function assetUrl(sourceKey: string, value: string | null): string | undefined {
   if (!value) return undefined;
-  if (/^(https?:|data:|blob:)/i.test(value)) return value;
+  if (/^(https?:|data:|blob:)/i.test(value) || value.startsWith('/api/')) return value;
   return `/api/source/${encodeURIComponent(sourceKey)}/assets/${encodeURIComponent(value)}`;
 }
 
@@ -104,7 +107,7 @@ function ReaderBlockContent({ block, sourceKey, compact = false }: { block: Text
     );
   }
   if (block.type === 'title') {
-    return <h2 className={compact ? 'font-semibold leading-tight' : 'mt-7 text-xl font-semibold leading-8 text-text-primary'}><InlineContent segments={block.segments} fallback={block.text} /></h2>;
+    return <h2 className={compact ? 'font-semibold leading-[1.08]' : 'mt-7 text-xl font-semibold leading-8 text-text-primary'}><InlineContent segments={block.segments} fallback={block.text} /></h2>;
   }
   if (block.type === 'equation_interline') {
     return <div className="font-serif italic"><MathExpression value={block.math || block.text} /></div>;
@@ -124,7 +127,59 @@ function ReaderBlockContent({ block, sourceKey, compact = false }: { block: Text
       />
     );
   }
-  return <p className={compact ? 'leading-tight' : 'my-3 whitespace-pre-wrap text-[15px] leading-8 text-text-secondary'}><InlineContent segments={block.segments} fallback={block.text} /></p>;
+  return <p className={compact ? 'whitespace-pre-wrap break-words leading-[1.08]' : 'my-3 whitespace-pre-wrap text-[15px] leading-8 text-text-secondary'}><InlineContent segments={block.segments} fallback={block.text} /></p>;
+}
+
+function OcrCoordinateBlock({
+  block,
+  sourceKey,
+  zoom,
+}: {
+  block: TextbookReaderBlock;
+  sourceKey: string;
+  zoom: number;
+}) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const fitText = useCallback(() => {
+    const box = boxRef.current;
+    const content = contentRef.current;
+    if (!box || !content || box.clientWidth <= 0 || box.clientHeight <= 0) return;
+
+    const minFontSize = Math.max(4, 6 * zoom);
+    const maxFontSize = Math.max(minFontSize, 24 * zoom);
+    const fits = (fontSize: number) => {
+      content.style.fontSize = `${fontSize}px`;
+      return content.scrollWidth <= box.clientWidth + 0.5
+        && content.scrollHeight <= box.clientHeight + 0.5;
+    };
+    const fontSize = largestFittingFontSize({ min: minFontSize, max: maxFontSize, fits });
+    content.style.fontSize = `${fontSize}px`;
+  }, [zoom]);
+
+  useLayoutEffect(() => {
+    fitText();
+    const box = boxRef.current;
+    if (!box || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(fitText);
+    observer.observe(box);
+    void document.fonts?.ready.then(fitText);
+    return () => observer.disconnect();
+  }, [block, fitText]);
+
+  return (
+    <div ref={boxRef} className="absolute overflow-hidden" style={{
+      left: `${block.bbox![0] / 10}%`,
+      top: `${block.bbox![1] / 10}%`,
+      width: `${(block.bbox![2] - block.bbox![0]) / 10}%`,
+      height: `${(block.bbox![3] - block.bbox![1]) / 10}%`,
+    }}>
+      <div ref={contentRef} className="h-full w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+        <ReaderBlockContent block={block} sourceKey={sourceKey} compact />
+      </div>
+    </div>
+  );
 }
 
 function ReadingPane({
@@ -150,7 +205,7 @@ function ReadingPane({
 
   const contentBlocks = response.blocks.filter((block) => !['page_header', 'page_footer', 'page_number'].includes(block.type));
   return (
-    <section aria-label="舒适阅读" className="min-h-0 overflow-y-auto bg-[#f8f6f0] p-4 text-slate-900 scrollbar-thin sm:p-8 dark:bg-surface dark:text-text-primary">
+    <section aria-label="舒适阅读" className="h-full min-h-0 overflow-y-auto overscroll-contain bg-[#f8f6f0] p-4 text-slate-900 scrollbar-thin [scrollbar-gutter:stable] sm:p-8 dark:bg-surface dark:text-text-primary">
       <article className="mx-auto max-w-3xl rounded-xl border border-black/10 bg-white px-6 py-8 shadow-panel sm:px-10 dark:border-border-subtle dark:bg-elevated">
         <div className="mb-8 flex items-center justify-between border-b border-slate-200 pb-4 text-xs text-slate-500 dark:border-border-subtle dark:text-text-muted">
           <span>第 {response.page_number} 页</span>
@@ -190,114 +245,296 @@ function ReadingPane({
   );
 }
 
-function SourcePane({
+function MarkdownReadingPane({ content, sourceKey }: { content: string; sourceKey: string }) {
+  return (
+    <section aria-label="Markdown 原文阅读" className="h-full min-h-0 overflow-y-auto overscroll-contain bg-[#f8f6f0] p-4 text-slate-900 scrollbar-thin [scrollbar-gutter:stable] sm:p-8 dark:bg-surface dark:text-text-primary">
+      <article className="mx-auto min-w-0 max-w-4xl rounded-xl border border-black/10 bg-white px-6 py-8 shadow-panel sm:px-10 dark:border-border-subtle dark:bg-elevated">
+        <MarkdownView
+          content={content}
+          className="text-base leading-8 text-text-secondary"
+          resolveImageUrl={(src) => assetUrl(sourceKey, src)}
+          imageLayout="reader"
+        />
+      </article>
+    </section>
+  );
+}
+
+type PageNavigationRequest = {
+  pageIndex: number;
+  sequence: number;
+  behavior: ScrollBehavior;
+};
+
+function blockAtPagePoint(
+  element: HTMLDivElement,
+  response: TextbookReaderPageResponse,
+  clientX: number,
+  clientY: number,
+): TextbookReaderBlock | null {
+  const rect = element.getBoundingClientRect();
+  const x = ((clientX - rect.left) / rect.width) * 1000;
+  const y = ((clientY - rect.top) / rect.height) * 1000;
+  return response.blocks
+    .filter((block) => block.bbox && x >= block.bbox[0] && x <= block.bbox[2] && y >= block.bbox[1] && y <= block.bbox[3])
+    .sort((first, second) => {
+      const firstArea = first.bbox ? (first.bbox[2] - first.bbox[0]) * (first.bbox[3] - first.bbox[1]) : Number.MAX_SAFE_INTEGER;
+      const secondArea = second.bbox ? (second.bbox[2] - second.bbox[0]) * (second.bbox[3] - second.bbox[1]) : Number.MAX_SAFE_INTEGER;
+      return firstArea - secondArea;
+    })[0] ?? null;
+}
+
+function ContinuousSourcePage({
+  pageIndex,
   response,
   sourceKey,
-  highlighted,
+  selectedBlockId,
+  hoveredBlockId,
+  showRegions,
+  zoom,
+  pdf,
+  active,
+  renderPage,
+  onPageRef,
+  onHover,
+  onSelect,
+}: {
+  pageIndex: number;
+  response: TextbookReaderPageResponse | null;
+  sourceKey: string;
+  selectedBlockId: string | null;
+  hoveredBlockId: string | null;
+  showRegions: boolean;
+  zoom: number;
+  pdf: string | null;
+  active: boolean;
+  renderPage: boolean;
+  onPageRef: (pageIndex: number, element: HTMLDivElement | null) => void;
+  onHover: (blockId: string | null) => void;
+  onSelect: (pageIndex: number, blockId: string) => void;
+}) {
+  const pageRef = useRef<HTMLDivElement>(null);
+  const width = Math.round(680 * zoom);
+  const evidenceBlocks = response?.evidence_match?.page_index === pageIndex
+    ? new Set(response.evidence_match.block_ids)
+    : new Set<string>();
+  const handlePageRef = (element: HTMLDivElement | null) => {
+    pageRef.current = element;
+    onPageRef(pageIndex, element);
+  };
+
+  return (
+    <article
+      ref={handlePageRef}
+      data-page-index={pageIndex}
+      aria-label={`原教材第 ${pageIndex + 1} 页`}
+      aria-current={active ? 'page' : undefined}
+      className="scroll-mt-4"
+    >
+      <div className={`mx-auto mb-2 w-fit rounded-full border px-2.5 py-1 text-[10px] font-medium transition-colors ${active ? 'border-indigo-400/50 bg-indigo-500 text-white' : 'border-border-subtle bg-surface/90 text-text-muted'}`}>
+        第 {pageIndex + 1} 页
+      </div>
+      <div
+        className={`relative mx-auto overflow-hidden bg-white text-slate-900 shadow-2xl transition-[width,box-shadow] duration-200 ${active ? 'ring-2 ring-indigo-500/60' : ''}`}
+        style={{ width, aspectRatio: pdf ? '521.575 / 737.008' : '0.76 / 1' }}
+        onPointerMove={(event) => {
+          if (!response || !pageRef.current) return;
+          onHover(blockAtPagePoint(event.currentTarget, response, event.clientX, event.clientY)?.id ?? null);
+        }}
+        onPointerLeave={() => onHover(null)}
+        onClick={(event) => {
+          if (!response) return;
+          const selection = window.getSelection();
+          if (selection && !selection.isCollapsed) return;
+          const block = blockAtPagePoint(event.currentTarget, response, event.clientX, event.clientY);
+          if (block) onSelect(pageIndex, block.id);
+        }}
+      >
+        {pdf && renderPage && <PdfPageCanvas url={pdf} pageNumber={pageIndex + 1} zoom={zoom} />}
+        {pdf && !renderPage && (
+          <div className="absolute inset-0 grid place-items-center bg-white text-xs text-slate-400">第 {pageIndex + 1} 页</div>
+        )}
+        {!pdf && response && response.blocks.map((block) => {
+          if (!block.bbox) return null;
+          return (
+            <OcrCoordinateBlock
+              key={`fallback-${block.id}`}
+              block={block}
+              sourceKey={sourceKey}
+              zoom={zoom}
+            />
+          );
+        })}
+        {!pdf && !response && (
+          <div className="absolute inset-0 grid place-items-center bg-white text-xs text-slate-400">正在载入第 {pageIndex + 1} 页…</div>
+        )}
+        {response?.blocks.map((block) => {
+          if (!block.bbox) return null;
+          const [x0, y0, x1, y1] = block.bbox;
+          const evidenceActive = evidenceBlocks.has(block.id);
+          const selected = active && selectedBlockId === block.id;
+          const hovered = active && hoveredBlockId === block.id;
+          const visible = showRegions || evidenceActive || selected || hovered;
+          return (
+            <div
+              key={block.id}
+              aria-hidden="true"
+              className={`pointer-events-none absolute z-20 rounded-[2px] transition-colors duration-150 ${
+                evidenceActive
+                  ? 'bg-amber-300/25 ring-2 ring-inset ring-amber-500'
+                  : selected
+                    ? 'bg-indigo-300/20 ring-2 ring-inset ring-indigo-600'
+                    : hovered
+                      ? 'bg-sky-300/15 ring-1 ring-inset ring-sky-500'
+                      : visible
+                        ? 'bg-indigo-300/5 ring-1 ring-inset ring-indigo-400/30'
+                        : ''
+              }`}
+              style={{
+                left: `${x0 / 10}%`,
+                top: `${y0 / 10}%`,
+                width: `${Math.max(0.4, (x1 - x0) / 10)}%`,
+                height: `${Math.max(0.3, (y1 - y0) / 10)}%`,
+              }}
+            >
+              {(selected || hovered) && (
+                <span className="absolute left-0 top-0 -translate-y-full whitespace-nowrap rounded-t bg-slate-900 px-1.5 py-0.5 text-[9px] font-medium text-white">
+                  {blockLabel(block)}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </article>
+  );
+}
+
+function SourcePane({
+  response,
+  pageResponses,
+  sourceKey,
   selectedBlockId,
   zoom,
   pdf,
+  navigationRequest,
+  onPageEnter,
+  onEnsurePage,
   onSelect,
+  onOpenUnit,
 }: {
   response: TextbookReaderPageResponse;
+  pageResponses: ReadonlyMap<number, TextbookReaderPageResponse>;
   sourceKey: string;
-  highlighted: Set<string>;
   selectedBlockId: string | null;
   zoom: number;
   pdf: string | null;
+  navigationRequest: PageNavigationRequest | null;
+  onPageEnter: (pageIndex: number) => void;
+  onEnsurePage: (pageIndex: number) => void;
   onSelect: (blockId: string) => void;
+  onOpenUnit: (nodeId: string) => void;
 }) {
   const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
   const [showRegions, setShowRegions] = useState(false);
-  const pageRef = useRef<HTMLDivElement>(null);
-  const width = Math.round(680 * zoom);
+  const [visiblePageIndex, setVisiblePageIndex] = useState(response.page_index);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const pageRefs = useRef(new Map<number, HTMLDivElement>());
+  const animationFrameRef = useRef<number | null>(null);
   const selectedBlock = response.blocks.find((block) => block.id === selectedBlockId) ?? null;
-  const evidenceBlocks = response.evidence_match?.page_index === response.page_index
-    ? new Set(response.evidence_match.block_ids)
-    : new Set<string>();
+  const relatedUnits = (response.related_units ?? []).filter((unit) => (
+    !selectedBlockId || unit.block_ids.length === 0 || unit.block_ids.includes(selectedBlockId)
+  ));
+  const renderPages = useMemo(
+    () => new Set(continuousReaderPageWindow(visiblePageIndex, response.page_count)),
+    [response.page_count, visiblePageIndex],
+  );
 
-  const blockAtPoint = (clientX: number, clientY: number): TextbookReaderBlock | null => {
-    const element = pageRef.current;
-    if (!element) return null;
-    const rect = element.getBoundingClientRect();
-    const x = ((clientX - rect.left) / rect.width) * 1000;
-    const y = ((clientY - rect.top) / rect.height) * 1000;
-    return response.blocks
-      .filter((block) => block.bbox && x >= block.bbox[0] && x <= block.bbox[2] && y >= block.bbox[1] && y <= block.bbox[3])
-      .sort((first, second) => {
-        const firstArea = first.bbox ? (first.bbox[2] - first.bbox[0]) * (first.bbox[3] - first.bbox[1]) : Number.MAX_SAFE_INTEGER;
-        const secondArea = second.bbox ? (second.bbox[2] - second.bbox[0]) * (second.bbox[3] - second.bbox[1]) : Number.MAX_SAFE_INTEGER;
-        return firstArea - secondArea;
-      })[0] ?? null;
+  const updateVisiblePage = useCallback(() => {
+    const root = scrollRef.current;
+    if (!root) return;
+    const rootRect = root.getBoundingClientRect();
+    const pages = Array.from(pageRefs.current, ([pageIndex, element]) => {
+      const rect = element.getBoundingClientRect();
+      return { pageIndex, top: rect.top, bottom: rect.bottom };
+    });
+    const nearest = nearestReaderPage(pages, rootRect.top + rootRect.height / 2);
+    if (nearest == null) return;
+    setVisiblePageIndex((current) => current === nearest ? current : nearest);
+    onPageEnter(nearest);
+  }, [onPageEnter]);
+
+  const scheduleVisiblePageUpdate = useCallback(() => {
+    if (animationFrameRef.current != null) return;
+    animationFrameRef.current = window.requestAnimationFrame(() => {
+      animationFrameRef.current = null;
+      updateVisiblePage();
+    });
+  }, [updateVisiblePage]);
+
+  useEffect(() => {
+    for (const pageIndex of continuousReaderPageWindow(visiblePageIndex, response.page_count)) onEnsurePage(pageIndex);
+  }, [onEnsurePage, response.page_count, visiblePageIndex]);
+
+  useEffect(() => {
+    if (!navigationRequest) return;
+    const root = scrollRef.current;
+    const page = pageRefs.current.get(navigationRequest.pageIndex);
+    if (!root || !page) return;
+    const rootRect = root.getBoundingClientRect();
+    const pageRect = page.getBoundingClientRect();
+    const top = root.scrollTop + pageRect.top - rootRect.top - 16;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setVisiblePageIndex(navigationRequest.pageIndex);
+    root.scrollTo({ top, behavior: reducedMotion ? 'auto' : navigationRequest.behavior });
+    onEnsurePage(navigationRequest.pageIndex);
+  }, [navigationRequest, onEnsurePage]);
+
+  useEffect(() => {
+    const root = scrollRef.current;
+    if (!root || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(scheduleVisiblePageUpdate);
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, [scheduleVisiblePageUpdate]);
+
+  useEffect(() => () => {
+    if (animationFrameRef.current != null) window.cancelAnimationFrame(animationFrameRef.current);
+  }, []);
+
+  const setPageRef = useCallback((pageIndex: number, element: HTMLDivElement | null) => {
+    if (element) pageRefs.current.set(pageIndex, element);
+    else pageRefs.current.delete(pageIndex);
+  }, []);
+
+  const selectBlock = (pageIndex: number, blockId: string) => {
+    setVisiblePageIndex(pageIndex);
+    onPageEnter(pageIndex);
+    onSelect(blockId);
   };
 
   return (
     <section aria-label={pdf ? '增强 PDF 版式阅读' : 'OCR 坐标预览'} className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] bg-deep lg:grid-cols-[minmax(0,1fr)_19rem] lg:grid-rows-1">
-      <div className="min-h-0 min-w-0 overflow-auto p-4 scrollbar-thin sm:p-8">
-        <div
-          ref={pageRef}
-          className="relative mx-auto overflow-hidden bg-white text-slate-900 shadow-2xl transition-[width] duration-200"
-          style={{ width, aspectRatio: pdf ? '521.575 / 737.008' : '0.76 / 1' }}
-          onPointerMove={(event) => setHoveredBlockId(blockAtPoint(event.clientX, event.clientY)?.id ?? null)}
-          onPointerLeave={() => setHoveredBlockId(null)}
-          onClick={(event) => {
-            const selection = window.getSelection();
-            if (selection && !selection.isCollapsed) return;
-            const block = blockAtPoint(event.clientX, event.clientY);
-            if (block) onSelect(block.id);
-          }}
-        >
-          {pdf && <PdfPageCanvas url={pdf} pageNumber={response.page_number} zoom={zoom} />}
-          {!pdf && response.blocks.map((block) => {
-            if (!block.bbox) return null;
-            const [x0, y0, x1, y1] = block.bbox;
-            return (
-              <div
-                key={`fallback-${block.id}`}
-                className="absolute overflow-hidden"
-                style={{ left: `${x0 / 10}%`, top: `${y0 / 10}%`, width: `${(x1 - x0) / 10}%`, height: `${(y1 - y0) / 10}%` }}
-              >
-                <ReaderBlockContent block={block} sourceKey={sourceKey} compact />
-              </div>
-            );
-          })}
-          {response.blocks.map((block) => {
-            if (!block.bbox) return null;
-            const [x0, y0, x1, y1] = block.bbox;
-            const evidenceActive = evidenceBlocks.has(block.id) || highlighted.has(block.id);
-            const selected = selectedBlockId === block.id;
-            const hovered = hoveredBlockId === block.id;
-            const visible = showRegions || evidenceActive || selected || hovered;
-            return (
-              <div
-                key={block.id}
-                aria-hidden="true"
-                className={`pointer-events-none absolute z-20 rounded-[2px] transition-colors duration-150 ${
-                  evidenceActive
-                    ? 'bg-amber-300/25 ring-2 ring-inset ring-amber-500'
-                    : selected
-                      ? 'bg-indigo-300/20 ring-2 ring-inset ring-indigo-600'
-                      : hovered
-                        ? 'bg-sky-300/15 ring-1 ring-inset ring-sky-500'
-                        : visible
-                          ? 'bg-indigo-300/5 ring-1 ring-inset ring-indigo-400/30'
-                          : ''
-                }`}
-                style={{
-                  left: `${x0 / 10}%`,
-                  top: `${y0 / 10}%`,
-                  width: `${Math.max(0.4, (x1 - x0) / 10)}%`,
-                  height: `${Math.max(0.3, (y1 - y0) / 10)}%`,
-                }}
-              >
-                {(selected || hovered) && (
-                  <span className="absolute left-0 top-0 -translate-y-full whitespace-nowrap rounded-t bg-slate-900 px-1.5 py-0.5 text-[9px] font-medium text-white">
-                    {blockLabel(block)}
-                  </span>
-                )}
-              </div>
-            );
-          })}
+      <div ref={scrollRef} onScroll={scheduleVisiblePageUpdate} className="min-h-0 min-w-0 overflow-auto overscroll-contain p-4 scrollbar-thin sm:p-8">
+        <div className="mx-auto flex w-fit flex-col gap-8 pb-6">
+          {Array.from({ length: response.page_count }, (_, pageIndex) => (
+            <ContinuousSourcePage
+              key={pageIndex}
+              pageIndex={pageIndex}
+              response={pageResponses.get(pageIndex) ?? null}
+              sourceKey={sourceKey}
+              selectedBlockId={selectedBlockId}
+              hoveredBlockId={hoveredBlockId}
+              showRegions={showRegions}
+              zoom={zoom}
+              pdf={pdf}
+              active={visiblePageIndex === pageIndex}
+              renderPage={renderPages.has(pageIndex)}
+              onPageRef={setPageRef}
+              onHover={setHoveredBlockId}
+              onSelect={selectBlock}
+            />
+          ))}
         </div>
       </div>
 
@@ -320,7 +557,7 @@ function SourcePane({
 
           <div className="min-h-0 flex-1 overflow-y-auto p-4 scrollbar-thin">
             <div className="rounded-lg border border-indigo-400/20 bg-indigo-400/10 p-3 text-xs leading-5 text-text-secondary">
-              原 PDF 决定视觉版式。可直接拖选文字；单击页面内容可查看对应的 OCR 与知识证据。
+              向下滚动可连续阅读整本教材。原 PDF 决定视觉版式；页码与本栏内容会跟随当前页面更新。
             </div>
 
             {response.evidence_match && response.evidence_match.kind !== 'none' && (
@@ -361,6 +598,45 @@ function SourcePane({
               )}
             </section>
 
+            <section className="mt-5" aria-label="原文关联知识">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">
+                  <Network className="h-3.5 w-3.5" />关联知识
+                </div>
+                <span className="text-[10px] text-text-muted">{relatedUnits.length} 个</span>
+              </div>
+              {relatedUnits.length > 0 ? (
+                <div className="space-y-2">
+                  {relatedUnits.map((unit) => (
+                    <button
+                      key={unit.node_id}
+                      type="button"
+                      onClick={() => onOpenUnit(unit.node_id)}
+                      className="block w-full cursor-pointer rounded-lg border border-border-subtle bg-elevated p-3 text-left transition-colors duration-200 hover:border-indigo-400/45 hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      aria-label={`在图谱中查看知识单元：${unit.name}`}
+                    >
+                      <span className="flex items-start justify-between gap-2">
+                        <span className="min-w-0">
+                          <span className="block truncate text-xs font-semibold text-text-primary">{unit.name}</span>
+                          <span className="mt-1 block text-[10px] text-text-muted">{unit.kind || '知识点'} · {unit.evidence_ids.length} 条原文证据</span>
+                        </span>
+                        <Network className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-400" />
+                      </span>
+                      {(unit.summary || unit.definition) && (
+                        <span className="mt-2 line-clamp-3 block text-[11px] leading-5 text-text-secondary">
+                          {unit.summary || unit.definition}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-border-default px-3 py-4 text-center text-xs leading-5 text-text-muted">
+                  {selectedBlockId ? '当前原文块还没有关联知识单元' : '本页还没有关联知识单元'}
+                </div>
+              )}
+            </section>
+
             <section className="mt-5" aria-label="本页 OCR 内容">
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted"><FileText className="h-3.5 w-3.5" />本页内容</div>
@@ -393,40 +669,109 @@ function SourcePane({
 }
 
 export function TextbookReader({ sourceKey, target, onClose }: TextbookReaderProps) {
+  const { setSelectedNodeId, setWorkspace } = useAppState();
   const [response, setResponse] = useState<TextbookReaderPageResponse | null>(null);
+  const [pageResponses, setPageResponses] = useState<ReadonlyMap<number, TextbookReaderPageResponse>>(() => new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [mode, setMode] = useState<ReaderMode>('source');
+  const [mode, setMode] = useState<ReaderMode>(target.mode ?? 'source');
   const [zoom, setZoom] = useState(1);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [pageInput, setPageInput] = useState('1');
+  const [navigationRequest, setNavigationRequest] = useState<PageNavigationRequest | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const requestSequence = useRef(0);
+  const pageResponsesRef = useRef(new Map<number, TextbookReaderPageResponse>());
+  const inFlightPageRequests = useRef(new Map<number, Promise<TextbookReaderPageResponse>>());
+  const responseRef = useRef<TextbookReaderPageResponse | null>(null);
+  const activePageRef = useRef(0);
+  const navigationSequence = useRef(0);
+  const cacheGeneration = useRef(0);
 
-  const loadPage = useCallback(async (page?: number, evidenceId = target.evidenceId) => {
-    const requestId = ++requestSequence.current;
-    setLoading(true);
-    setError('');
-    try {
-      const payload = await loadTextbookReaderPage(sourceKey, target.bookId, {
-        page,
-        evidenceId,
+  const storePageResponse = useCallback((payload: TextbookReaderPageResponse) => {
+    const next = new Map(pageResponsesRef.current);
+    next.set(payload.page_index, payload);
+    pageResponsesRef.current = next;
+    setPageResponses(next);
+  }, []);
+
+  const ensurePage = useCallback((pageIndex: number): Promise<TextbookReaderPageResponse> => {
+    const cached = pageResponsesRef.current.get(pageIndex);
+    if (cached) return Promise.resolve(cached);
+    const existing = inFlightPageRequests.current.get(pageIndex);
+    if (existing) return existing;
+    const generation = cacheGeneration.current;
+    const request = loadTextbookReaderPage(sourceKey, target.bookId, { page: pageIndex })
+      .then((payload) => {
+        if (generation === cacheGeneration.current) storePageResponse(payload);
+        return payload;
+      })
+      .finally(() => {
+        if (inFlightPageRequests.current.get(pageIndex) === request) inFlightPageRequests.current.delete(pageIndex);
       });
-      if (requestId !== requestSequence.current) return;
+    inFlightPageRequests.current.set(pageIndex, request);
+    return request;
+  }, [sourceKey, storePageResponse, target.bookId]);
+
+  const activatePage = useCallback((pageIndex: number) => {
+    activePageRef.current = pageIndex;
+    const applyActiveResponse = (payload: TextbookReaderPageResponse) => {
+      if (activePageRef.current !== pageIndex || responseRef.current?.page_index === pageIndex) return;
+      responseRef.current = payload;
       setResponse(payload);
       setSelectedBlockId(payload.evidence_match?.block_ids[0] ?? null);
-    } catch (loadError) {
-      if (requestId !== requestSequence.current) return;
-      setError((loadError as Error).message || '电子教材加载失败');
-    } finally {
-      if (requestId === requestSequence.current) setLoading(false);
+    };
+    const cached = pageResponsesRef.current.get(pageIndex);
+    if (cached) {
+      applyActiveResponse(cached);
+      return;
     }
-  }, [sourceKey, target.bookId, target.evidenceId]);
+    void ensurePage(pageIndex).then(applyActiveResponse).catch(() => undefined);
+  }, [ensurePage]);
+
+  const requestPage = useCallback((pageIndex: number) => {
+    void ensurePage(pageIndex).catch(() => undefined);
+  }, [ensurePage]);
+
+  const navigateToPage = useCallback((pageIndex: number, behavior: ScrollBehavior = 'smooth') => {
+    const pageCount = responseRef.current?.page_count;
+    if (!pageCount) return;
+    const nextPage = Math.min(pageCount - 1, Math.max(0, pageIndex));
+    activePageRef.current = nextPage;
+    setNavigationRequest({ pageIndex: nextPage, sequence: ++navigationSequence.current, behavior });
+    activatePage(nextPage);
+  }, [activatePage]);
 
   useEffect(() => {
+    const generation = ++cacheGeneration.current;
+    pageResponsesRef.current = new Map();
+    inFlightPageRequests.current = new Map();
+    responseRef.current = null;
+    activePageRef.current = 0;
+    setPageResponses(new Map());
+    setResponse(null);
+    setSelectedBlockId(null);
+    setNavigationRequest(null);
+    setMode(target.mode ?? 'source');
+    setLoading(true);
+    setError('');
     const initialPage = target.evidenceId ? undefined : target.pageNumber != null ? Math.max(0, target.pageNumber - 1) : undefined;
-    void loadPage(initialPage);
-  }, [loadPage, target.evidenceId, target.pageNumber]);
+    void loadTextbookReaderPage(sourceKey, target.bookId, { page: initialPage, evidenceId: target.evidenceId })
+      .then((payload) => {
+        if (generation !== cacheGeneration.current) return;
+        storePageResponse(payload);
+        responseRef.current = payload;
+        activePageRef.current = payload.page_index;
+        setResponse(payload);
+        setSelectedBlockId(payload.evidence_match?.block_ids[0] ?? null);
+        setNavigationRequest({ pageIndex: payload.page_index, sequence: ++navigationSequence.current, behavior: 'auto' });
+      })
+      .catch((loadError) => {
+        if (generation === cacheGeneration.current) setError((loadError as Error).message || '电子教材加载失败');
+      })
+      .finally(() => {
+        if (generation === cacheGeneration.current) setLoading(false);
+      });
+  }, [sourceKey, storePageResponse, target.bookId, target.evidenceId, target.mode, target.pageNumber]);
 
   useEffect(() => {
     closeButtonRef.current?.focus();
@@ -440,12 +785,12 @@ export function TextbookReader({ sourceKey, target, onClose }: TextbookReaderPro
     const handleKeyDown = (event: KeyboardEvent) => {
       const inputActive = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement;
       if (event.key === 'Escape') onClose();
-      if (!inputActive && event.key === 'ArrowLeft' && response && response.page_index > 0) void loadPage(response.page_index - 1);
-      if (!inputActive && event.key === 'ArrowRight' && response && response.page_index < response.page_count - 1) void loadPage(response.page_index + 1);
+      if (!inputActive && event.key === 'ArrowLeft' && response && response.page_index > 0) navigateToPage(response.page_index - 1);
+      if (!inputActive && event.key === 'ArrowRight' && response && response.page_index < response.page_count - 1) navigateToPage(response.page_index + 1);
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [loadPage, onClose, response]);
+  }, [navigateToPage, onClose, response]);
 
   const highlighted = useMemo(() => new Set(
     response && response.evidence_match?.page_index === response.page_index
@@ -467,10 +812,15 @@ export function TextbookReader({ sourceKey, target, onClose }: TextbookReaderPro
     if (!response) return;
     const page = Number(pageInput);
     if (Number.isInteger(page) && page >= 1 && page <= response.page_count) {
-      if (page !== response.page_number) void loadPage(page - 1);
+      if (page !== response.page_number) navigateToPage(page - 1);
     } else {
       setPageInput(String(response.page_number));
     }
+  };
+  const openRelatedUnit = (nodeId: string) => {
+    setSelectedNodeId(nodeId);
+    setWorkspace('graph');
+    onClose();
   };
 
   return (
@@ -484,16 +834,16 @@ export function TextbookReader({ sourceKey, target, onClose }: TextbookReaderPro
             <BookOpen className="h-5 w-5" />
           </span>
           <div className="min-w-0">
-            <h1 id="textbook-reader-title" className="truncate text-sm font-semibold">{target.bookId}</h1>
-            <p className="mt-0.5 truncate text-[11px] text-text-muted">{mode === 'source' && response?.pdf_available ? '原 PDF 版式 · OCR / 知识交互层' : 'OCR 语义舒适阅读'}</p>
+            <h1 id="textbook-reader-title" className="truncate text-sm font-semibold">{target.title || target.bookId}</h1>
+            <p className="mt-0.5 truncate text-[11px] text-text-muted">{mode === 'source' && response?.pdf_available ? 'PDF 原文 · OCR / 知识交互层' : target.markdown ? 'Markdown 原文渲染' : 'OCR 语义阅读'}</p>
           </div>
         </div>
 
         <div className="order-3 flex w-full items-center justify-between gap-2 sm:order-none sm:w-auto sm:justify-start">
           <div className="flex rounded-lg border border-border-subtle bg-elevated p-0.5" role="group" aria-label="阅读模式">
             {([
-              ['reading', '舒适阅读'],
-              ['source', response?.pdf_available ? '版式阅读' : 'OCR 坐标'],
+              ['reading', 'MD 渲染'],
+              ['source', response?.pdf_available ? 'PDF 原文' : 'OCR 坐标'],
             ] as const).map(([value, label]) => (
               <button
                 key={value}
@@ -539,13 +889,15 @@ export function TextbookReader({ sourceKey, target, onClose }: TextbookReaderPro
           </div>
         ) : response ? (
           mode === 'reading'
-            ? <ReadingPane response={response} sourceKey={sourceKey} highlighted={highlighted} selectedBlockId={selectedBlockId} onSelect={setSelectedBlockId} />
-            : <SourcePane response={response} sourceKey={sourceKey} highlighted={highlighted} selectedBlockId={selectedBlockId} zoom={zoom} pdf={originalPdf} onSelect={setSelectedBlockId} />
+            ? target.markdown
+              ? <MarkdownReadingPane content={target.markdown} sourceKey={sourceKey} />
+              : <ReadingPane response={response} sourceKey={sourceKey} highlighted={highlighted} selectedBlockId={selectedBlockId} onSelect={setSelectedBlockId} />
+            : <SourcePane response={response} pageResponses={pageResponses} sourceKey={sourceKey} selectedBlockId={selectedBlockId} zoom={zoom} pdf={originalPdf} navigationRequest={navigationRequest} onPageEnter={activatePage} onEnsurePage={requestPage} onSelect={setSelectedBlockId} onOpenUnit={openRelatedUnit} />
         ) : null}
       </main>
 
       <footer className="flex items-center justify-between gap-3 border-t border-border-subtle bg-surface px-3 py-2 sm:px-5">
-        <button type="button" disabled={!response || response.page_index <= 0 || loading} onClick={() => response && void loadPage(response.page_index - 1)} className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-3 py-1.5 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
+        <button type="button" disabled={!response || response.page_index <= 0 || loading} onClick={() => response && navigateToPage(response.page_index - 1)} className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-3 py-1.5 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
           <ChevronLeft className="h-3.5 w-3.5" />上一页
         </button>
         <div className="flex items-center gap-2 text-xs text-text-muted">
@@ -568,7 +920,7 @@ export function TextbookReader({ sourceKey, target, onClose }: TextbookReaderPro
           />
           <span>/ {response?.page_count || '—'} 页</span>
         </div>
-        <button type="button" disabled={!response || response.page_index >= response.page_count - 1 || loading} onClick={() => response && void loadPage(response.page_index + 1)} className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-3 py-1.5 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
+        <button type="button" disabled={!response || response.page_index >= response.page_count - 1 || loading} onClick={() => response && navigateToPage(response.page_index + 1)} className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border-subtle bg-elevated px-3 py-1.5 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
           下一页<ChevronRight className="h-3.5 w-3.5" />
         </button>
       </footer>

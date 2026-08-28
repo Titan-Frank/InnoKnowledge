@@ -51,6 +51,34 @@ test("inspects and imports a nested MinerU OCR bundle without a PDF or API call"
   }
 });
 
+test("normalizes an OCR bundle in place without replacing its PDF or nested assets", () => {
+  const root = mkdtempSync(join(tmpdir(), "okm-ocr-in-place-"));
+  const bundle = join(root, "book", "hybrid_ocr");
+  const pdf = join(root, "book.pdf");
+  try {
+    mkdirSync(join(bundle, "images"), { recursive: true });
+    writeFileSync(join(bundle, "book.md"), "# 原目录教材\n![](images/a.jpg)\n", "utf8");
+    writeFileSync(join(bundle, "book_content_list_v2.json"), JSON.stringify([[{ type: "title" }]]), "utf8");
+    writeFileSync(join(bundle, "images", "a.jpg"), "image", "utf8");
+    writeFileSync(pdf, "%PDF-1.4 original", "utf8");
+
+    const result = importOcrBundle({
+      bookId: "book-id-with-hash",
+      folderPath: root,
+      outputDir: join(root, "must-not-be-created"),
+      mode: "in_place",
+    });
+
+    assert.equal(result.source_markdown_path, join(bundle, "full.md"));
+    assert.equal(readFileSync(result.source_markdown_path, "utf8"), "# 原目录教材\n![](images/a.jpg)\n");
+    assert.equal(readFileSync(pdf, "utf8"), "%PDF-1.4 original");
+    assert.equal(existsSync(join(bundle, "images", "a.jpg")), true);
+    assert.equal(existsSync(join(root, "must-not-be-created")), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("renders compatible Markdown when an OCR bundle only contains content_list_v2 JSON", () => {
   const root = mkdtempSync(join(tmpdir(), "okm-ocr-json-"));
   const output = join(root, "imported");

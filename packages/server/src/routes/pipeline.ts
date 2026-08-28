@@ -1,14 +1,15 @@
 import type { Hono } from 'hono';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
-import { createWriteStream, mkdirSync } from 'node:fs';
+import { createReadStream, createWriteStream, mkdirSync } from 'node:fs';
 import { mkdir, readFile, readdir, realpath, rm, stat } from 'node:fs/promises';
-import { basename, dirname, extname, isAbsolute, join, relative, resolve } from 'node:path';
+import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { pipeline as streamPipeline } from 'node:stream/promises';
 import type {
   PipelineBookNodesResponse, PipelineFolderPdf, PipelineFolderScanRequest, PipelineFolderScanResponse,
-  PipelineOcrInspectRequest, PipelineOcrInspectResponse, PipelinePdfUploadResponse, PipelineStartRequest, PipelineStartResponse, PipelineStartStage,
+  PipelineJobStage, PipelineOcrInspectRequest, PipelineOcrInspectResponse, PipelinePdfUploadResponse, PipelineStartRequest, PipelineStartResponse, PipelineStartStage, PipelineStopResponse,
+  PipelineOutlineChunkContentResponse, PipelineOutlineConfirmRequest, PipelineOutlineConfirmResponse, PipelineOutlinePreviewItem, PipelineOutlinePreviewResponse,
   PipelineQualityReviewAction, PipelineQualityReviewUpdateRequest, PipelineQualityReviewUpdateResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
 } from '@okm/types';
@@ -21,9 +22,10 @@ import {
   loadPipelineJobStatusPayload,
   loadTextbookOutlinePayload,
   loadEnrichBookPayload,
+  loadEnrichIndexPayload,
 } from '../db/queries.js';
 import { loadPipelineQualityPayload } from '../db/quality-dashboard.js';
-import { REPO_ROOT } from '../utils/paths.js';
+import { DATA_DIR, REPO_ROOT } from '../utils/paths.js';
 
 export const MAX_ACTIVE_PIPELINE_JOBS = 4;
 
@@ -36,6 +38,8 @@ type JsonValue = Parameters<Sql['json']>[0];
 
 const MAX_PDF_UPLOAD_BYTES = 512 * 1024 * 1024;
 const MAX_FOLDER_PDFS = 1000;
+const MAX_OUTLINE_SOURCE_BYTES = 100 * 1024 * 1024;
+const MAX_CHUNK_CONTENT_CHARACTERS = 120_000;
 
 export async function inspectOcrFolder(folderPath: string): Promise<PipelineOcrInspectResponse> {
   const trimmed = folderPath.trim();
@@ -81,7 +85,8 @@ export async function inspectOcrFolder(folderPath: string): Promise<PipelineOcrI
   if (!contentListV2Path) throw new Error('OCR bundle is missing required content_list_v2.json.');
   let pageCount: number | null = null;
   let blockCount: number | null = null;
-  const parsed = JSON.parse(await readFile(contentListV2Path, 'utf8')) as unknown;
+  const contentListV2 = await readFile(contentListV2Path);
+  const parsed = JSON.parse(contentListV2.toString('utf8')) as unknown;
   if (!Array.isArray(parsed) || !parsed.every(Array.isArray)) throw new Error('content_list_v2.json must contain an array of pages.');
   pageCount = parsed.length;
   blockCount = parsed.reduce((sum, page) => sum + page.length, 0);
@@ -94,8 +99,18 @@ export async function inspectOcrFolder(folderPath: string): Promise<PipelineOcrI
   if (!markdownPath) warnings.push('未找到 Markdown；将从 content_list_v2.json 生成兼容 Markdown。');
   if (!imagesPath) warnings.push('未找到 images 目录；图片证据与 VLM 复核不可用。');
 
+  const rootEntries = await readdir(root, { withFileTypes: true });
+  const rootPdfNames = rootEntries
+    .filter((entry) => entry.isFile() && /\.pdf$/i.test(entry.name))
+    .map((entry) => entry.name)
+    .sort((left, right) => left.localeCompare(right, 'zh-CN', { numeric: true }));
+  const exactPdfName = rootPdfNames.find((name) => name.toLocaleLowerCase() === `${basename(root)}.pdf`.toLocaleLowerCase());
+  const pdfPath = exactPdfName || rootPdfNames[0] ? join(root, exactPdfName || rootPdfNames[0]!) : null;
+
   return {
+    source_root_path: root,
     folder_path: selected.path,
+    pdf_path: pdfPath,
     markdown_path: markdownPath,
     content_list_path: contentListPath,
     content_list_v2_path: contentListV2Path,
@@ -105,6 +120,7 @@ export async function inspectOcrFolder(folderPath: string): Promise<PipelineOcrI
     image_count: imageCount,
     preferred_input: markdownPath ? 'markdown_with_v2' : 'content_list_v2',
     quality: markdownPath && imagesPath ? 'complete' : 'structured',
+    source_fingerprint: createHash('sha256').update(contentListV2).digest('hex'),
     warnings,
   };
 }
@@ -157,6 +173,9 @@ const PIPELINE_START_STAGES = new Set<PipelineStartStage>([
   'lesson_staging',
   'staging_quality',
   'canonical_commit',
+  'assessment_staging',
+  'assessment_quality',
+  'assessment_commit',
   'normalize',
   'node_bodies',
   'pedagogical_profiles',
@@ -277,6 +296,86 @@ async function markPipelineProcessFailed(
   `;
 }
 
+export async function markPipelineJobStopped(
+  sql: Sql,
+  datasetId: string,
+  jobId: string,
+  reason = 'Pipeline job stopped by user.',
+): Promise<void> {
+  const now = new Date().toISOString();
+  await sql`
+    UPDATE world_pipeline_worker_states
+    SET status = 'failed', error = ${reason}, completed_at = ${now}, updated_at = ${now}
+    WHERE dataset_id = ${datasetId} AND job_id = ${jobId} AND status = 'running'
+  `;
+  await sql`
+    UPDATE world_pipeline_job_stages
+    SET status = 'blocked', error = ${reason}, completed_at = ${now}, updated_at = ${now}
+    WHERE dataset_id = ${datasetId} AND job_id = ${jobId} AND status = 'running'
+  `;
+  await sql`
+    UPDATE world_pipeline_jobs
+    SET status = 'blocked', error = ${reason}, completed_at = ${now}, updated_at = ${now}
+    WHERE dataset_id = ${datasetId} AND job_id = ${jobId} AND status = 'running'
+  `;
+}
+
+export function latestPipelineProcessPid(logText: string): number | null {
+  const matches = [...logText.matchAll(/\[pipeline\] spawned pid=(\d+)/g)];
+  const pid = Number(matches.at(-1)?.[1]);
+  return Number.isSafeInteger(pid) && pid > 1 ? pid : null;
+}
+
+async function stopPipelineProcessTree(pid: number): Promise<boolean> {
+  if (!Number.isSafeInteger(pid) || pid <= 1) return false;
+  if (process.platform === 'win32') {
+    return new Promise((resolveStop) => {
+      const killer = spawn('taskkill', ['/pid', String(pid), '/t', '/f'], { windowsHide: true });
+      killer.once('error', () => resolveStop(false));
+      killer.once('close', (code) => resolveStop(code === 0));
+    });
+  }
+  let target = -pid;
+  try {
+    process.kill(target, 'SIGTERM');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error;
+    target = pid;
+    try {
+      process.kill(target, 'SIGTERM');
+    } catch (fallbackError) {
+      if ((fallbackError as NodeJS.ErrnoException).code === 'ESRCH') return false;
+      throw fallbackError;
+    }
+  }
+
+  const isRunning = () => {
+    try {
+      process.kill(target, 0);
+      return true;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ESRCH') return false;
+      throw error;
+    }
+  };
+  for (let attempt = 0; attempt < 15; attempt += 1) {
+    if (!isRunning()) return true;
+    await new Promise((resolveWait) => setTimeout(resolveWait, 100));
+  }
+  try {
+    process.kill(target, 'SIGKILL');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ESRCH') return true;
+    throw error;
+  }
+  await new Promise((resolveWait) => setTimeout(resolveWait, 100));
+  return true;
+}
+
+type PipelineRouteOptions = {
+  stopProcessTree?: (pid: number) => Promise<boolean>;
+};
+
 export async function claimPipelineJobResume(
   sql: Sql,
   datasetId: string,
@@ -350,6 +449,7 @@ export async function reservePipelineJobStart(
     enrichContext?: boolean;
     enrichBookPath?: string;
     ocrFolderPath?: string;
+    prepareOnly?: boolean;
   },
 ): Promise<boolean> {
   const now = new Date().toISOString();
@@ -380,6 +480,7 @@ export async function reservePipelineJobStart(
           enrich_context: input.enrichContext ?? true,
           enrich_book_path: input.enrichBookPath || null,
           ocr_folder_path: input.ocrFolderPath || null,
+          prepare_only: input.prepareOnly ?? false,
         })},
         ${now}, ${now}, NULL, NULL
       WHERE NOT EXISTS (
@@ -402,12 +503,52 @@ export async function reservePipelineJobStart(
   }) as Promise<boolean>;
 }
 
-function safeToken(value: string): string {
-  return value.replace(/[^a-zA-Z0-9._-]+/g, '__').replace(/^_+|_+$/g, '') || 'job';
+export function safeToken(value: string): string {
+  return value
+    .normalize('NFKC')
+    .trim()
+    .replace(/[^\p{L}\p{N}._-]+/gu, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^[._-]+|[._-]+$/g, '') || 'job';
+}
+
+export function createPipelineJobId(bookId: string, now = new Date()): string {
+  const compactTimestamp = now.toISOString().replace(/[-:.]/g, '');
+  return `${safeToken(bookId)}.${compactTimestamp}`;
 }
 
 function asString(value: unknown, fallback = ''): string {
   return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+}
+
+function uniqueStrings(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map((item) => asString(item)).filter(Boolean))];
+}
+
+function normalizeTextbookIdentity(value: string): string {
+  return value
+    .normalize('NFKC')
+    .replace(/(?:_?enriched)?\.json$/i, '')
+    .replace(/_?enriched$/i, '')
+    .toLocaleLowerCase('zh-CN')
+    .replace(/[^\p{L}\p{N}]+/gu, '');
+}
+
+export function resolveAutomaticEnrichBookPath(
+  indexPayload: Record<string, unknown> | null,
+  textbookNames: string[],
+): string | null {
+  const identities = new Set(textbookNames.map(normalizeTextbookIdentity).filter(Boolean));
+  if (identities.size === 0) return null;
+  const books = Array.isArray(indexPayload?.books) ? indexPayload.books : [];
+  const matches = books.filter((value) => {
+    const book = asRecord(value);
+    return [asString(book.filename), asString(book.title), basename(asString(book.path))]
+      .map(normalizeTextbookIdentity)
+      .some((identity) => identities.has(identity));
+  }).map((value) => asString(asRecord(value).path)).filter(Boolean);
+  return matches.length === 1 ? matches[0]! : null;
 }
 
 export function restoreResumeEnrichSettings(
@@ -445,6 +586,256 @@ export function shouldValidateEnrichBook(body: PipelineStartRequest): boolean {
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function finiteNumber(value: unknown): number | null {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function outlineRecords(outline: Record<string, unknown>): Record<string, unknown>[] {
+  const roots = Array.isArray(outline.items)
+    ? outline.items
+    : Array.isArray(outline.structure)
+      ? outline.structure
+      : [];
+  const records: Record<string, unknown>[] = [];
+  const visit = (values: unknown[]) => {
+    values.forEach((value) => {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) return;
+      const record = value as Record<string, unknown>;
+      records.push(record);
+      if (Array.isArray(record.children)) visit(record.children);
+    });
+  };
+  visit(roots);
+  return records;
+}
+
+function outlineItemDepth(item: Record<string, unknown>, byId: Map<string, Record<string, unknown>>): number {
+  let depth = 0;
+  let parentId = asString(item.parent_id);
+  const visited = new Set<string>();
+  while (parentId && byId.has(parentId) && !visited.has(parentId) && depth < 12) {
+    visited.add(parentId);
+    depth += 1;
+    parentId = asString(byId.get(parentId)?.parent_id);
+  }
+  return depth;
+}
+
+function compareOutlineRecords(left: Record<string, unknown>, right: Record<string, unknown>): number {
+  const leftStart = finiteNumber(left.md_start) ?? Number.POSITIVE_INFINITY;
+  const rightStart = finiteNumber(right.md_start) ?? Number.POSITIVE_INFINITY;
+  if (leftStart !== rightStart) return leftStart - rightStart;
+  return asString(left.order_path).localeCompare(asString(right.order_path), 'zh-CN', { numeric: true });
+}
+
+export function outlineFingerprint(outline: Record<string, unknown>): string {
+  const items = outlineRecords(outline)
+    .map((item) => ({
+      id: asString(item.id),
+      kind: asString(item.kind),
+      parent_id: asString(item.parent_id) || null,
+      order_path: asString(item.order_path),
+      title: asString(item.title),
+      label: asString(item.label),
+      md_start: finiteNumber(item.md_start),
+      md_end: finiteNumber(item.md_end),
+      page_start: finiteNumber(item.page_start),
+      page_end: finiteNumber(item.page_end),
+      source_ids: Array.isArray(item.source_ids) ? item.source_ids.map(String).sort() : [],
+      content_role: asString(item.content_role) || null,
+    }))
+    .sort((left, right) => left.id.localeCompare(right.id));
+  return createHash('sha256').update(JSON.stringify({
+    source_kind: asString(outline.source_kind),
+    source_ref: asString(outline.source_ref),
+    source_path: asString(outline.source_path),
+    items,
+  })).digest('hex');
+}
+
+export function buildOutlinePreview(
+  datasetId: string,
+  bookId: string,
+  outline: Record<string, unknown>,
+): PipelineOutlinePreviewResponse {
+  const records = outlineRecords(outline);
+  const byId = new Map<string, Record<string, unknown>>(records.flatMap((item): Array<[string, Record<string, unknown>]> => {
+    const id = asString(item.id);
+    return id ? [[id, item]] : [];
+  }));
+  const children = new Map<string, Record<string, unknown>[]>();
+  const roots: Record<string, unknown>[] = [];
+  records.forEach((item) => {
+    const parentId = asString(item.parent_id);
+    if (!parentId || !byId.has(parentId)) {
+      roots.push(item);
+      return;
+    }
+    const values = children.get(parentId) ?? [];
+    values.push(item);
+    children.set(parentId, values);
+  });
+  const ordered: Record<string, unknown>[] = [];
+  const visited = new Set<Record<string, unknown>>();
+  const visit = (item: Record<string, unknown>) => {
+    if (visited.has(item)) return;
+    visited.add(item);
+    ordered.push(item);
+    (children.get(asString(item.id)) ?? []).sort(compareOutlineRecords).forEach(visit);
+  };
+  roots.sort(compareOutlineRecords).forEach(visit);
+  records.filter((item) => !visited.has(item)).sort(compareOutlineRecords).forEach(visit);
+
+  const items: PipelineOutlinePreviewItem[] = ordered.map((item) => ({
+    id: asString(item.id),
+    kind: asString(item.kind, 'unknown'),
+    title: asString(item.title, asString(item.label, '未命名条目')),
+    label: asString(item.label, asString(item.title, '未命名条目')),
+    parent_id: asString(item.parent_id) || null,
+    order_path: asString(item.order_path),
+    depth: outlineItemDepth(item, byId),
+    page_start: finiteNumber(item.page_start),
+    page_end: finiteNumber(item.page_end),
+    md_start: finiteNumber(item.md_start),
+    md_end: finiteNumber(item.md_end),
+    source_ids: Array.isArray(item.source_ids) ? item.source_ids.map(String) : [],
+    content_role: (['knowledge', 'summary', 'assessment', 'excluded'] as const).includes(asString(item.content_role) as never)
+      ? asString(item.content_role) as PipelineOutlinePreviewItem['content_role']
+      : null,
+    preview_text: null,
+    line_count: finiteNumber(item.md_start) != null && finiteNumber(item.md_end) != null
+      ? Math.max(0, (finiteNumber(item.md_end) ?? 0) - (finiteNumber(item.md_start) ?? 0) + 1)
+      : null,
+  }));
+  const fingerprint = outlineFingerprint(outline);
+  const review = asRecord(outline.outline_review);
+  const confirmed = review.status === 'confirmed' && asString(review.fingerprint) === fingerprint;
+  const pageStarts = items.flatMap((item) => item.page_start == null ? [] : [item.page_start]);
+  const pageEnds = items.flatMap((item) => item.page_end == null ? [] : [item.page_end]);
+  const toc = asRecord(outline.toc_pages);
+  const tocStart = finiteNumber(toc.start);
+  const tocEnd = finiteNumber(toc.end);
+  return {
+    dataset_id: datasetId,
+    book_id: bookId,
+    title: asString(outline.title, bookId),
+    source_kind: asString(outline.source_kind, 'unknown'),
+    source_ref: asString(outline.source_ref) || null,
+    source_path: asString(outline.source_path) || null,
+    toc_pages: tocStart == null || tocEnd == null ? null : { start: tocStart, end: tocEnd },
+    fingerprint,
+    review_status: confirmed ? 'confirmed' : 'pending',
+    confirmed_at: confirmed ? asString(review.confirmed_at) || null : null,
+    summary: {
+      themes: items.filter((item) => item.kind === 'theme').length,
+      topics: items.filter((item) => item.kind === 'topic').length,
+      lessons: items.filter((item) => item.kind === 'lesson' || item.kind === 'activity').length,
+      chunks: items.filter((item) => item.kind === 'chunk').length,
+      knowledge_chunks: items.filter((item) => item.kind === 'chunk' && (item.content_role === 'knowledge' || item.content_role == null)).length,
+      summary_chunks: items.filter((item) => item.kind === 'chunk' && item.content_role === 'summary').length,
+      assessment_chunks: items.filter((item) => item.kind === 'chunk' && item.content_role === 'assessment').length,
+      pages: pageStarts.length > 0 && pageEnds.length > 0 ? Math.max(...pageEnds) - Math.min(...pageStarts) + 1 : 0,
+    },
+    items,
+  };
+}
+
+function outlineChunkLines(item: PipelineOutlinePreviewItem, sourceLines: string[]): string[] | null {
+  if (item.kind !== 'chunk' || item.md_start == null || item.md_end == null) return null;
+  const start = Math.max(1, Math.trunc(item.md_start));
+  const end = Math.min(sourceLines.length, Math.max(start, Math.trunc(item.md_end)));
+  return sourceLines.slice(start - 1, end);
+}
+
+export function attachOutlineChunkPreviews(
+  preview: PipelineOutlinePreviewResponse,
+  sourceLines: string[],
+): PipelineOutlinePreviewResponse {
+  return {
+    ...preview,
+    items: preview.items.map((item) => {
+      const lines = outlineChunkLines(item, sourceLines);
+      if (!lines) return item;
+      const previewText = lines
+        .join('\n')
+        .replace(/!\[[^\]]*\]\([^)]*\)/g, '[图片]')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return {
+        ...item,
+        preview_text: previewText ? previewText.slice(0, 360) : null,
+        line_count: lines.length,
+      };
+    }),
+  };
+}
+
+export function buildOutlineChunkContent(
+  preview: PipelineOutlinePreviewResponse,
+  itemId: string,
+  sourceLines: string[],
+  assetBasePath: string | null = null,
+): PipelineOutlineChunkContentResponse | null {
+  const item = preview.items.find((candidate) => candidate.id === itemId && candidate.kind === 'chunk');
+  if (!item || item.md_start == null || item.md_end == null) return null;
+  const lines = outlineChunkLines(item, sourceLines);
+  if (!lines) return null;
+  const fullContent = lines.join('\n').trim();
+  const truncated = fullContent.length > MAX_CHUNK_CONTENT_CHARACTERS;
+  const content = truncated ? `${fullContent.slice(0, MAX_CHUNK_CONTENT_CHARACTERS)}\n\n[内容过长，已截断]` : fullContent;
+  return {
+    id: item.id,
+    title: item.title,
+    content_role: item.content_role,
+    page_start: item.page_start,
+    page_end: item.page_end,
+    md_start: item.md_start,
+    md_end: item.md_end,
+    line_count: lines.length,
+    character_count: fullContent.length,
+    source_ids: item.source_ids,
+    asset_base_path: assetBasePath,
+    content,
+    truncated,
+  };
+}
+
+type OutlineSource = {
+  lines: string[];
+  assetBasePath: string | null;
+};
+
+async function loadOutlineSource(outline: Record<string, unknown>): Promise<OutlineSource | null> {
+  const sourcePath = asString(outline.source_path);
+  if (!sourcePath) return null;
+  const resolvedPath = isAbsolute(sourcePath) ? resolve(sourcePath) : resolve(REPO_ROOT, sourcePath);
+  const resolvedRoot = await realpath(REPO_ROOT).catch(() => resolve(REPO_ROOT));
+  const realSourcePath = await realpath(resolvedPath).catch(() => null);
+  if (!realSourcePath || (realSourcePath !== resolvedRoot && !realSourcePath.startsWith(`${resolvedRoot}${sep}`))) return null;
+  const sourceStat = await stat(realSourcePath).catch(() => null);
+  if (!sourceStat?.isFile() || sourceStat.size > MAX_OUTLINE_SOURCE_BYTES) return null;
+  const sourceText = await readFile(realSourcePath, 'utf8').catch(() => null);
+  if (sourceText == null) return null;
+  const relativeAssetBase = relative(resolvedRoot, dirname(realSourcePath)).split(sep).join('/');
+  return {
+    lines: sourceText.split(/\r?\n/),
+    assetBasePath: relativeAssetBase && relativeAssetBase !== '.' ? relativeAssetBase : null,
+  };
+}
+
+export function assertOutlineConfirmed(outline: Record<string, unknown> | null, fingerprint: string): void {
+  if (!outline) throw new Error('尚未生成切分预览，请先导入教材并完成目录切分。');
+  const currentFingerprint = outlineFingerprint(outline);
+  const review = asRecord(outline.outline_review);
+  if (review.status !== 'confirmed' || asString(review.fingerprint) !== currentFingerprint) {
+    throw new Error('切分结果尚未人工确认，不能开始模型抽取。');
+  }
+  if (!fingerprint || fingerprint !== currentFingerprint) {
+    throw new Error('切分结果已经变化，请重新检查并确认最新预览。');
+  }
 }
 
 export function applyQualityReviewAction(
@@ -550,12 +941,23 @@ export function safePdfUploadName(value: string): string {
   return name;
 }
 
-async function savePdfUpload(body: ReadableStream<Uint8Array>, destination: string): Promise<number> {
+async function fileFingerprint(filePath: string): Promise<string> {
+  const digest = createHash('sha256');
+  for await (const chunk of createReadStream(filePath)) digest.update(chunk as Buffer);
+  return digest.digest('hex');
+}
+
+async function savePdfUpload(
+  body: ReadableStream<Uint8Array>,
+  destination: string,
+): Promise<{ sizeBytes: number; sourceFingerprint: string }> {
   let sizeBytes = 0;
   let signature = Buffer.alloc(0);
+  const digest = createHash('sha256');
   const limiter = new Transform({
     transform(chunk: Buffer, _encoding, callback) {
       sizeBytes += chunk.length;
+      digest.update(chunk);
       if (signature.length < 5) {
         signature = Buffer.concat([signature, chunk.subarray(0, 5 - signature.length)]);
       }
@@ -574,28 +976,56 @@ async function savePdfUpload(body: ReadableStream<Uint8Array>, destination: stri
   );
   if (sizeBytes === 0) throw new Error('The uploaded PDF is empty.');
   if (signature.toString('ascii') !== '%PDF-') throw new Error('The selected file is not a valid PDF.');
-  return sizeBytes;
+  return { sizeBytes, sourceFingerprint: digest.digest('hex') };
 }
 
-export function generatedBookId(value: string): string {
-  const seed = value.normalize('NFKC').trim().toLowerCase();
-  const ascii = seed
-    .replace(/[^a-z0-9._-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/-{2,}/g, '-');
-  if (ascii.length >= 3) return ascii;
-  const digest = createHash('sha1').update(seed).digest('hex').slice(0, 8);
-  return `textbook-${digest}`;
+export function generatedBookId(value: string, sourceFingerprint = ''): string {
+  const seed = value
+    .normalize('NFKC')
+    .trim()
+    .toLocaleLowerCase('zh-CN')
+    .replace(/\s+/g, ' ');
+  const readable = seed
+    .replace(/[^\p{L}\p{N}]+/gu, '-')
+    .replace(/^-+|-+$/g, '');
+  const prefix = [...readable].slice(0, 48).join('').replace(/-+$/g, '') || 'textbook';
+  const identitySeed = sourceFingerprint.trim().toLowerCase()
+    ? `${seed}\u0000${sourceFingerprint.trim().toLowerCase()}`
+    : seed;
+  const digest = createHash('sha256').update(identitySeed).digest('hex').slice(0, 12);
+  return `${prefix}-${digest}`;
 }
 
-export function inferBookId(input: { book_id?: unknown; book_title?: unknown; pdf_path?: unknown; ocr_folder_path?: unknown; mineru_file_url?: unknown }): string {
+export function inferBookId(input: { book_id?: unknown; book_title?: unknown; pdf_path?: unknown; ocr_folder_path?: unknown; mineru_file_url?: unknown; source_fingerprint?: unknown }): string {
   const explicit = asString(input.book_id);
-  if (explicit) return explicit;
+  if (explicit && /[\p{L}\p{N}]/u.test(explicit)) return explicit;
+  const sourceFingerprint = asString(input.source_fingerprint);
   const title = asString(input.book_title);
-  if (title) return generatedBookId(title);
+  if (title) return generatedBookId(title, sourceFingerprint);
   const ocrFolderPath = asString(input.ocr_folder_path);
   const source = asString(input.pdf_path) || ocrFolderPath || asString(input.mineru_file_url);
-  return source ? generatedBookId(ocrFolderPath ? ocrFolderStem(ocrFolderPath) : sourceStem(source)) : '';
+  return source ? generatedBookId(ocrFolderPath ? ocrFolderStem(ocrFolderPath) : sourceStem(source), sourceFingerprint) : '';
+}
+
+async function resolveSourceFingerprint(input: TextbookMetadataRequest): Promise<string> {
+  const supplied = asString(input.source_fingerprint);
+  if (supplied) return supplied;
+  const pdfPath = asString(input.pdf_path);
+  if (pdfPath && isAbsolute(pdfPath)) {
+    return fileFingerprint(pdfPath).catch(() => '');
+  }
+  const ocrFolderPath = asString(input.ocr_folder_path);
+  if (ocrFolderPath) {
+    return inspectOcrFolder(ocrFolderPath)
+      .then((inspection) => inspection.source_fingerprint)
+      .catch(() => '');
+  }
+  return '';
+}
+
+export function resolvePipelineBookId(input: PipelineStartRequest): string {
+  const persistedResumeBookId = asString(input.resume_job_id) ? asString(input.book_id) : '';
+  return persistedResumeBookId || inferBookId(input);
 }
 
 function inferMineruLanguage(text: string): string {
@@ -621,8 +1051,9 @@ function toPipelineApiMode(kind: 'openai_responses' | 'openai_chat_completions')
 function inferTextbookMetadata(
   input: TextbookMetadataRequest,
   outline: Record<string, unknown> | null = null,
+  resolvedBookId = '',
 ): TextbookMetadataResponse {
-  const bookId = inferBookId(input);
+  const bookId = resolvedBookId || inferBookId(input);
   if (!bookId) throw new Error('Textbook name, PDF path, OCR folder, MinerU file URL, or book_id is required.');
   const requestedTitle = asString(input.book_title);
   const ocrFolderPath = asString(input.ocr_folder_path);
@@ -729,7 +1160,7 @@ export function buildPipelineCommand(
   dbUrl: string,
   outline: Record<string, unknown> | null = null,
 ): string[] {
-  const bookId = inferBookId(body);
+  const bookId = resolvePipelineBookId(body);
   if (!bookId) throw new Error('Textbook name, PDF path, OCR folder, MinerU file URL, or book_id is required.');
   const inferred = inferTextbookMetadata({
     book_id: bookId,
@@ -737,7 +1168,7 @@ export function buildPipelineCommand(
     pdf_path: body.pdf_path,
     ocr_folder_path: body.ocr_folder_path,
     mineru_file_url: body.mineru_file_url,
-  }, outline);
+  }, outline, bookId);
 
   const outputRoot = asString(body.output_root, 'data/main');
   const datasetId = asString(body.dataset_id, outputRoot.split('/').filter(Boolean).at(-1) || 'main');
@@ -798,6 +1229,7 @@ export function buildPipelineCommand(
   if (pdfPath) command.push('--pdf-path', pdfPath);
   const ocrFolderPath = asString(body.ocr_folder_path);
   if (ocrFolderPath) command.push('--ocr-folder-path', ocrFolderPath);
+  if (ocrFolderPath && body.ocr_import_mode === 'in_place') command.push('--ocr-import-mode', 'in_place');
   command.push('--book-title', asString(body.book_title, inferred.title));
   if (body.outline_start_page) command.push('--outline-start-page', String(asPositiveInt(body.outline_start_page, 1)));
   if (body.outline_end_page) command.push('--outline-end-page', String(asPositiveInt(body.outline_end_page, 20)));
@@ -820,6 +1252,9 @@ export function buildPipelineCommand(
   if (enrichBookPath) command.push('--enrich-book-path', enrichBookPath);
   const startStage = asString(body.start_stage);
   const resumeJobId = asString(body.resume_job_id);
+  if (body.prepare_only && startStage && !['mineru_source_markdown', 'extract_pdf_outline', 'prepare_source_markdown', 'ensure_outline', 'prepare_outline_chunks'].includes(startStage)) {
+    throw new Error(`prepare_only cannot start at '${startStage}' because that stage is after outline preparation.`);
+  }
   if (resumeJobId && !startStage) {
     throw new Error('resume_job_id requires start_stage.');
   }
@@ -829,11 +1264,33 @@ export function buildPipelineCommand(
     }
     command.push('--start-stage', startStage);
   }
+  const resumeBatchAnchors = uniqueStrings(body.resume_batch_anchors);
+  if (resumeBatchAnchors.length > 0) {
+    if (!resumeJobId || (startStage !== 'lesson_staging' && startStage !== 'assessment_staging')) {
+      throw new Error('resume_batch_anchors requires a model-stage job resume.');
+    }
+    command.push('--resume-batch-anchors', JSON.stringify(resumeBatchAnchors));
+  }
   if (resumeJobId) command.push('--resume-existing-job');
+  if (body.prepare_only) command.push('--prepare-only');
   return command;
 }
 
-export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
+export function failedBatchAnchorsForResume(stage: PipelineJobStage | null): string[] {
+  const results = Array.isArray(stage?.progress.results) ? stage.progress.results : [];
+  return uniqueStrings(results.flatMap((result) => {
+    const record = asRecord(result);
+    const exitCode = Number(record.exit_code);
+    if (!Number.isFinite(exitCode) || exitCode === 0) return [];
+    const anchor = asString(record.batch_anchor);
+    return anchor ? [anchor] : [];
+  }));
+}
+
+export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string, options: PipelineRouteOptions = {}) {
+  const runningProcesses = new Map<string, ChildProcess>();
+  const processKey = (datasetId: string, jobId: string) => `${datasetId}\u0000${jobId}`;
+  const stopProcess = options.stopProcessTree ?? stopPipelineProcessTree;
   app.get('/api/source/:key/pipeline', async (c) => {
     const key = c.req.param('key');
     const datasetRow = await resolveDatasetRow(sql, key);
@@ -920,11 +1377,12 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     const pdfPath = join(uploadDir, fileName);
     try {
       await mkdir(uploadDir, { recursive: true });
-      const sizeBytes = await savePdfUpload(body, pdfPath);
+      const { sizeBytes, sourceFingerprint } = await savePdfUpload(body, pdfPath);
       const response: PipelinePdfUploadResponse = {
         pdf_path: pdfPath,
         file_name: fileName,
         size_bytes: sizeBytes,
+        source_fingerprint: sourceFingerprint,
       };
       return c.json(response, 201);
     } catch (error) {
@@ -1016,17 +1474,112 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     return c.json(response);
   });
 
+  app.get('/api/source/:key/pipeline/books/:book_id/outline-preview', async (c) => {
+    const key = c.req.param('key');
+    const bookId = c.req.param('book_id');
+    const datasetRow = await resolveDatasetRow(sql, key);
+    if (!datasetRow) return c.json({ error: `Unknown source '${key}'` }, 404);
+    const outline = await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId);
+    if (!outline) return c.json({ error: `尚未生成教材 '${bookId}' 的切分预览。` }, 404);
+    const preview = buildOutlinePreview(datasetRow.dataset_id, bookId, outline);
+    const source = await loadOutlineSource(outline);
+    return c.json(source ? attachOutlineChunkPreviews(preview, source.lines) : preview);
+  });
+
+  app.get('/api/source/:key/pipeline/books/:book_id/outline-preview/items/:item_id/content', async (c) => {
+    const key = c.req.param('key');
+    const bookId = c.req.param('book_id');
+    const itemId = c.req.param('item_id');
+    const datasetRow = await resolveDatasetRow(sql, key);
+    if (!datasetRow) return c.json({ error: `Unknown source '${key}'` }, 404);
+    const outline = await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId);
+    if (!outline) return c.json({ error: `尚未生成教材 '${bookId}' 的切分预览。` }, 404);
+    const source = await loadOutlineSource(outline);
+    if (!source) return c.json({ error: '切分源 Markdown 不可读取，暂时无法显示块内容。' }, 404);
+    const content = buildOutlineChunkContent(
+      buildOutlinePreview(datasetRow.dataset_id, bookId, outline),
+      itemId,
+      source.lines,
+      source.assetBasePath,
+    );
+    if (!content) return c.json({ error: `未找到切分块 '${itemId}'。` }, 404);
+    return c.json(content);
+  });
+
+  app.post('/api/source/:key/pipeline/books/:book_id/outline-confirmation', async (c) => {
+    const key = c.req.param('key');
+    const bookId = c.req.param('book_id');
+    const body = await c.req.json<PipelineOutlineConfirmRequest>().catch(() => null);
+    if (!body || !asString(body.fingerprint)) return c.json({ error: 'fingerprint is required.' }, 400);
+    const datasetRow = await resolveDatasetRow(sql, key);
+    if (!datasetRow) return c.json({ error: `Unknown source '${key}'` }, 404);
+    const outline = await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId);
+    if (!outline) return c.json({ error: `尚未生成教材 '${bookId}' 的切分预览。` }, 404);
+    const fingerprint = outlineFingerprint(outline);
+    if (fingerprint !== asString(body.fingerprint)) {
+      return c.json({ error: '切分结果已经变化，请刷新后重新确认。' }, 409);
+    }
+    const confirmedAt = new Date().toISOString();
+    const patch = {
+      outline_review: {
+        status: 'confirmed',
+        fingerprint,
+        confirmed_at: confirmedAt,
+        confirmed_via: 'viewer',
+      },
+    };
+    const rows = await sql<{ book_id: string }[]>`
+      UPDATE world_textbook_outlines
+      SET outline_json = COALESCE(outline_json, '{}'::jsonb) || ${sql.json(patch)}::jsonb,
+          updated_at = ${confirmedAt}
+      WHERE dataset_id = ${datasetRow.dataset_id}
+        AND book_id = ${bookId}
+        AND outline_json = ${sql.json(outline as JsonValue)}::jsonb
+      RETURNING book_id
+    `;
+    if (rows.length !== 1) return c.json({ error: '切分结果在确认时发生变化，请刷新后重试。' }, 409);
+    const response: PipelineOutlineConfirmResponse = {
+      status: 'confirmed',
+      book_id: bookId,
+      fingerprint,
+      confirmed_at: confirmedAt,
+    };
+    return c.json(response);
+  });
+
   app.post('/api/source/:key/pipeline/infer-textbook', async (c) => {
     const key = c.req.param('key');
     const body = await c.req.json<TextbookMetadataRequest>().catch(() => null);
     if (!body) return c.json({ error: 'Invalid JSON body.' }, 400);
     try {
+      const sourceFingerprint = await resolveSourceFingerprint(body);
+      const fingerprintedBody = sourceFingerprint
+        ? { ...body, source_fingerprint: sourceFingerprint }
+        : body;
       const datasetRow = await resolveDatasetRow(sql, key);
-      const bookId = inferBookId(body);
+      const bookId = inferBookId(fingerprintedBody);
       const outline = datasetRow && bookId
         ? await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId)
         : null;
-      return c.json(inferTextbookMetadata(body, outline));
+      const inferred = inferTextbookMetadata(fingerprintedBody, outline);
+      if (!datasetRow) return c.json(inferred);
+      const enrichIndex = await loadEnrichIndexPayload(sql, datasetRow.dataset_id);
+      const enrichBookPath = resolveAutomaticEnrichBookPath(enrichIndex, [
+        inferred.title,
+        asString(body.book_title),
+        basename(dirname(asString(body.ocr_folder_path))),
+        basename(asString(body.ocr_folder_path)),
+        basename(asString(body.pdf_path), extname(asString(body.pdf_path))),
+      ]);
+      if (!enrichBookPath) return c.json(inferred);
+      const enrichBook = (Array.isArray(enrichIndex?.books) ? enrichIndex.books : [])
+        .map(asRecord)
+        .find((book) => asString(book.path) === enrichBookPath);
+      return c.json({
+        ...inferred,
+        enrich_book_path: enrichBookPath,
+        enrich_book_title: asString(enrichBook?.title, basename(enrichBookPath)),
+      });
     } catch (error) {
       return c.json({ error: (error as Error).message }, 400);
     }
@@ -1054,16 +1607,61 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
     return c.json(await loadPipelineJobStatusPayload(sql, datasetRow.dataset_id, c.req.param('job_id')));
   });
 
+  app.post('/api/source/:key/pipeline/jobs/:job_id/stop', async (c) => {
+    const key = c.req.param('key');
+    const jobId = c.req.param('job_id');
+    const datasetRow = await resolveDatasetRow(sql, key);
+    if (!datasetRow) return c.json({ error: `Unknown source '${key}'` }, 404);
+
+    const jobStatus = await loadPipelineJobStatusPayload(sql, datasetRow.dataset_id, jobId);
+    if (jobStatus.status === 'unknown') return c.json({ error: `Pipeline job '${jobId}' does not exist.` }, 404);
+    if (jobStatus.status !== 'running') {
+      return c.json({ error: `Pipeline job '${jobId}' is '${jobStatus.status}', not running.` }, 409);
+    }
+
+    const tracked = runningProcesses.get(processKey(datasetRow.dataset_id, jobId));
+    let pid = tracked?.pid ?? Number(jobStatus.context.process_pid);
+    if (!Number.isSafeInteger(pid) || pid <= 1) {
+      const jobRoot = resolve(REPO_ROOT, 'runs', 'server-jobs');
+      const logPath = resolve(jobStatus.log_path || '');
+      if (logPath.startsWith(`${jobRoot}${sep}`)) {
+        const logText = await readFile(logPath, 'utf8').catch(() => '');
+        pid = latestPipelineProcessPid(logText) ?? 0;
+      }
+    }
+    if (!Number.isSafeInteger(pid) || pid <= 1) {
+      return c.json({ error: `Cannot stop '${jobId}' because its process ID is unavailable.` }, 409);
+    }
+
+    const stopped = await stopProcess(pid).catch(() => false);
+    if (!stopped) {
+      return c.json({ error: `Cannot stop '${jobId}' because its process is no longer available.` }, 409);
+    }
+    const reason = '用户停止了 Pipeline 作业，可从当前阶段继续运行。';
+    await markPipelineJobStopped(sql, datasetRow.dataset_id, jobId, reason);
+    runningProcesses.delete(processKey(datasetRow.dataset_id, jobId));
+    const response: PipelineStopResponse = { job_id: jobId, status: 'stopped', message: reason };
+    return c.json(response);
+  });
+
   app.post('/api/source/:key/pipeline/start', async (c) => {
     const key = c.req.param('key');
     const body = await c.req.json<PipelineStartRequest>().catch(() => null);
     if (!body) return c.json({ error: 'Invalid JSON body.' }, 400);
 
-    const bookId = inferBookId(body);
-    if (!bookId) return c.json({ error: 'Textbook name, PDF path, OCR folder, MinerU file URL, or book_id is required.' }, 400);
-
     const requestedResumeJobId = asString(body.resume_job_id);
-    let jobId = requestedResumeJobId || `${safeToken(bookId)}.${Date.now()}`;
+    if (body.ocr_import_mode === 'in_place' && asString(body.ocr_folder_path)) {
+      const requestedRoot = resolve(REPO_ROOT, asString(body.ocr_folder_path));
+      const mineruRoot = resolve(DATA_DIR, 'mineru');
+      if (requestedRoot !== mineruRoot && !requestedRoot.startsWith(`${mineruRoot}${sep}`)) {
+        return c.json({ error: `原目录模式仅允许使用项目 data/mineru 下的教材目录：${mineruRoot}` }, 400);
+      }
+    }
+    let bookId = resolvePipelineBookId(body);
+    if (!bookId && !requestedResumeJobId) {
+      return c.json({ error: 'Textbook name, PDF path, OCR folder, MinerU file URL, or book_id is required.' }, 400);
+    }
+    let jobId = requestedResumeJobId || createPipelineJobId(bookId);
     const jobDir = join(REPO_ROOT, 'runs', 'server-jobs');
     mkdirSync(jobDir, { recursive: true });
     let logPath = join(jobDir, `${safeToken(jobId)}.log`);
@@ -1079,6 +1677,9 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
       const datasetRow = await resolveDatasetRow(sql, datasetKey);
       statusDatasetId = datasetRow?.dataset_id ?? datasetKey;
       if (requestedResumeJobId) {
+        if (body.prepare_only) {
+          throw new Error('prepare_only cannot resume an extraction job; start a new preparation job instead.');
+        }
         if (!body.start_stage) {
           throw new Error('Resuming an existing job requires start_stage.');
         }
@@ -1092,11 +1693,13 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         if (existingJob.status !== 'blocked') {
           throw new Error(`Pipeline job '${requestedResumeJobId}' is '${existingJob.status}', not blocked.`);
         }
-        if (existingJob.book_id !== bookId) {
+        const requestedBookId = asString(body.book_id);
+        if (requestedBookId && existingJob.book_id !== requestedBookId) {
           throw new Error(
-            `Pipeline job '${requestedResumeJobId}' belongs to book '${existingJob.book_id}', not '${bookId}'.`,
+            `Pipeline job '${requestedResumeJobId}' belongs to book '${existingJob.book_id}', not '${requestedBookId}'.`,
           );
         }
+        bookId = existingJob.book_id;
         jobId = existingJob.job_id;
         logPath = existingJob.log_path || logPath;
         resumeDatasetId = datasetRow.dataset_id;
@@ -1104,6 +1707,32 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
           restoreResumeEnrichSettings(body, existingJob.context),
           existingJob.context,
         );
+        effectiveBody = { ...effectiveBody, book_id: existingJob.book_id };
+        if (body.start_stage === 'lesson_staging' || body.start_stage === 'assessment_staging') {
+          const failedBatchAnchors = failedBatchAnchorsForResume(existingJob.current_stage);
+          if (failedBatchAnchors.length === 0) {
+            throw new Error(`Cannot resume '${requestedResumeJobId}' at '${body.start_stage}': no failed units were recorded for selective retry.`);
+          }
+          effectiveBody = { ...effectiveBody, resume_batch_anchors: failedBatchAnchors };
+        } else {
+          effectiveBody = { ...effectiveBody, resume_batch_anchors: undefined };
+        }
+      }
+      if (!requestedResumeJobId && effectiveBody.enrich_context !== false && !asString(effectiveBody.enrich_book_path) && datasetRow) {
+        const enrichIndex = await loadEnrichIndexPayload(sql, datasetRow.dataset_id);
+        const automaticEnrichBookPath = resolveAutomaticEnrichBookPath(enrichIndex, [
+          asString(effectiveBody.book_title),
+          basename(dirname(asString(effectiveBody.ocr_folder_path))),
+          basename(asString(effectiveBody.ocr_folder_path)),
+          basename(asString(effectiveBody.pdf_path), extname(asString(effectiveBody.pdf_path))),
+        ]);
+        if (automaticEnrichBookPath) {
+          effectiveBody = {
+            ...effectiveBody,
+            enrich_context: true,
+            enrich_book_path: automaticEnrichBookPath,
+          };
+        }
       }
       const enrichBookPath = asString(effectiveBody.enrich_book_path);
       if (enrichBookPath && shouldValidateEnrichBook(effectiveBody)) {
@@ -1116,6 +1745,10 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         }
       }
       const outline = datasetRow ? await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId) : null;
+      if (!effectiveBody.prepare_only && !requestedResumeJobId) {
+        assertOutlineConfirmed(outline, asString(effectiveBody.outline_confirmation));
+        effectiveBody = { ...effectiveBody, start_stage: effectiveBody.start_stage ?? 'lesson_plan' };
+      }
       command = buildPipelineCommand(effectiveBody, jobId, logPath, dbUrl, outline);
     } catch (error) {
       return c.json({ error: (error as Error).message }, 400);
@@ -1140,6 +1773,7 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
         ocrFolderPath: asString(effectiveBody.ocr_folder_path)
           ? resolve(REPO_ROOT, asString(effectiveBody.ocr_folder_path))
           : undefined,
+        prepareOnly: effectiveBody.prepare_only,
       });
       if (!reserved) {
         return c.json({
@@ -1208,7 +1842,26 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string) {
       database: targetDatabase,
     });
     logStream.write(`[${timestamp()}] [pipeline] spawned pid=${child.pid ?? 'unknown'}\n\n`);
+    runningProcesses.set(processKey(statusDatasetId, jobId), child);
+    if (child.pid) {
+      await sql`
+        UPDATE world_pipeline_jobs
+        SET context_json = COALESCE(context_json, '{}'::jsonb) || ${sql.json({
+          process_pid: child.pid,
+          process_started_at: new Date(startedAt).toISOString(),
+        })}::jsonb
+        WHERE dataset_id = ${statusDatasetId} AND job_id = ${jobId} AND status = 'running'
+      `.catch((error) => {
+        logPipelineEvent('error', 'process-pid-status-update-error', {
+          jobId,
+          message: (error as Error).message,
+        });
+      });
+    }
     child.on('close', (code, signal) => {
+      if (runningProcesses.get(processKey(statusDatasetId, jobId)) === child) {
+        runningProcesses.delete(processKey(statusDatasetId, jobId));
+      }
       const durationMs = Date.now() - startedAt;
       const event = code === 0 ? 'completed' : 'failed';
       const details = {

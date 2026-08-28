@@ -245,8 +245,33 @@ export function inspectOcrBundle(folderPath: string): OcrBundleInspection {
   };
 }
 
-export function importOcrBundle(input: { bookId: string; folderPath: string; outputDir: string }): ImportedOcrSourceResult {
+export function importOcrBundle(input: {
+  bookId: string;
+  folderPath: string;
+  outputDir: string;
+  mode?: "copy" | "in_place";
+}): ImportedOcrSourceResult {
   const inspection = inspectOcrBundle(input.folderPath);
+  if (input.mode === "in_place") {
+    const finalMarkdown = join(inspection.folder_path, "full.md");
+    if (inspection.markdown_path) {
+      if (resolve(inspection.markdown_path) !== resolve(finalMarkdown)) {
+        cpSync(inspection.markdown_path, finalMarkdown, { force: true });
+      }
+    } else {
+      writeFileSync(finalMarkdown, renderContentListV2Markdown(inspection.content_list_v2_path), "utf8");
+    }
+    return {
+      status: "success",
+      created: false,
+      source_kind: "ocr_import",
+      book_id: input.bookId,
+      source_markdown_path: finalMarkdown,
+      raw_markdown_path: inspection.markdown_path ?? undefined,
+      extract_dir: inspection.folder_path,
+      inspection,
+    };
+  }
   const outputDir = resolve(input.outputDir);
   const sourceNames = readdirSync(inspection.folder_path);
   mkdirSync(dirname(outputDir), { recursive: true });

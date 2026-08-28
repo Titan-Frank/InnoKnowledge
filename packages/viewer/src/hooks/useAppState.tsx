@@ -11,6 +11,9 @@ export type TextbookReaderTarget = {
   bookId: string;
   evidenceId?: string;
   pageNumber?: number;
+  mode?: 'reading' | 'source';
+  markdown?: string;
+  title?: string;
 };
 
 interface AppState {

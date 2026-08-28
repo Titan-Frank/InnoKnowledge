@@ -1010,6 +1010,26 @@ interface PipelineEventRow {
   created_at: string | null;
 }
 
+function pipelineBatchLabels(outlineJson: unknown): Map<string, string> {
+  if (!isRecord(outlineJson)) return new Map();
+  const rootItems = Array.isArray(outlineJson.items)
+    ? outlineJson.items
+    : Array.isArray(outlineJson.structure)
+      ? outlineJson.structure
+      : [];
+  const labels = new Map<string, string>();
+  const pending = [...rootItems];
+  while (pending.length > 0) {
+    const item = pending.shift();
+    if (!isRecord(item)) continue;
+    const id = textValue(item.id);
+    const label = textValue(item.title) || textValue(item.label);
+    if (id && label) labels.set(id, label);
+    if (Array.isArray(item.children)) pending.push(...item.children);
+  }
+  return labels;
+}
+
 export async function loadPipelineJobStatusPayload(
   sql: Sql,
   datasetId: string,
@@ -1040,7 +1060,8 @@ export async function loadPipelineJobStatusPayload(
     };
   }
 
-  const [stageRows, workerRows, eventRows] = await Promise.all([
+  const job = jobRows[0]!;
+  const [stageRows, workerRows, eventRows, outlineRows] = await Promise.all([
     sql<PipelineStageRow[]>`
       SELECT stage_id, status, label, progress_json, error, started_at, completed_at, updated_at
       FROM world_pipeline_job_stages
@@ -1060,9 +1081,20 @@ export async function loadPipelineJobStatusPayload(
       ORDER BY created_at DESC
       LIMIT 80
     `,
+    sql<{ title: string | null; outline_json: unknown }[]>`
+      SELECT title, outline_json
+      FROM world_textbook_outlines
+      WHERE dataset_id = ${datasetId} AND book_id = ${job.book_id}
+      LIMIT 1
+    `.catch(() => []),
   ]);
 
-  const job = jobRows[0]!;
+  const batchLabels = pipelineBatchLabels(outlineRows[0]?.outline_json);
+  const jobContext = asRecord(job.context_json);
+  const bookTitle = textValue(outlineRows[0]?.title)
+    || textValue(jobContext.book_title)
+    || (isRecord(outlineRows[0]?.outline_json) ? textValue(outlineRows[0]?.outline_json.title) : '')
+    || job.book_id;
   const stages: PipelineJobStage[] = stageRows.map((row) => ({
     id: row.stage_id,
     status: row.status,
@@ -1086,9 +1118,10 @@ export async function loadPipelineJobStatusPayload(
   return {
     job_id: job.job_id,
     book_id: job.book_id,
+    book_title: bookTitle,
     status,
     log_path: job.log_path ?? '',
-    context: asRecord(job.context_json),
+    context: jobContext,
     progress: asRecord(job.progress_json),
     stages,
     current_stage: currentStage,
@@ -1098,6 +1131,7 @@ export async function loadPipelineJobStatusPayload(
       status: row.status,
       lesson_run_id: row.lesson_run_id ?? null,
       batch_anchor: row.batch_anchor ?? null,
+      batch_label: row.batch_anchor ? batchLabels.get(row.batch_anchor) ?? null : null,
       error: row.error ?? null,
       data: asRecord(row.data_json),
       started_at: row.started_at ?? null,
@@ -1112,6 +1146,7 @@ export async function loadPipelineJobStatusPayload(
       worker_slot: row.worker_slot == null ? null : Number(row.worker_slot),
       lesson_run_id: row.lesson_run_id ?? null,
       batch_anchor: row.batch_anchor ?? null,
+      batch_label: row.batch_anchor ? batchLabels.get(row.batch_anchor) ?? null : null,
       detail: row.detail ?? null,
       data: asRecord(row.data_json),
       created_at: row.created_at ?? null,

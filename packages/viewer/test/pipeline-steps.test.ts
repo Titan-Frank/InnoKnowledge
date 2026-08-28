@@ -188,6 +188,24 @@ test('keeps model extraction active while failed lessons are being retried', () 
   }).lesson, 'active');
 });
 
+test('keeps merge active while assessment associations are being retried', () => {
+  const currentJob = jobStatus({
+    stages: [
+      stage('lesson_staging', 'completed'),
+      stage('canonical_commit', 'completed'),
+      stage('assessment_staging_retry_1', 'running'),
+    ],
+    currentStageId: 'assessment_staging_retry_1',
+  });
+
+  assert.equal(buildPipelineStepStatuses({
+    jobStatus: currentJob,
+    currentJobId: currentJob.job_id,
+    starting: false,
+    reviewCount: 0,
+  }).merge, 'active');
+});
+
 test('finishes the current run before exposing its review state', () => {
   const currentJob = jobStatus({
     status: 'completed',

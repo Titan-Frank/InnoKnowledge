@@ -7,6 +7,7 @@ export {
   RefreshCw,
   Play,
   Pause,
+  Square,
   Sun,
   Moon,
   Filter,

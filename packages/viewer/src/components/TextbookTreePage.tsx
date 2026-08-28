@@ -7,6 +7,7 @@ import type { ApiEvidence, ApiMention, ApiUnit, TextbookReaderBookSummary } from
 import type { OKMBook, OKMNode } from '@/core/graph/types';
 
 type SourceMode = 'dataset' | 'enrich';
+type DatasetSection = 'textbooks' | 'outlines';
 type TreeMode = 'graph' | 'list';
 
 type OutlineItem = {
@@ -359,6 +360,7 @@ export function TextbookTreePage() {
   } = useAppState();
 
   const [sourceMode, setSourceMode] = useState<SourceMode>('dataset');
+  const [datasetSection, setDatasetSection] = useState<DatasetSection>('textbooks');
   const [treeMode, setTreeMode] = useState<TreeMode>('graph');
   const [bookQuery, setBookQuery] = useState('');
   const [treeQuery, setTreeQuery] = useState('');
@@ -627,18 +629,25 @@ export function TextbookTreePage() {
   }, [expandedKnowledgeNodeKey, relatedUnitCache, selectedSourceKey, sourceMode]);
 
   const sourceStats = sourceMode === 'enrich'
-    ? {
-      books: enrichIndex?.book_count || 0,
-      nodes: enrichIndex?.node_count || 0,
-      subjects: enrichIndex?.subject_count || 0,
-      active: activeEnrichBook?.node_count || countNodes(enrichTree),
-    }
-    : {
-      books: new Set([...datasetBooks.map((book) => book.bookId), ...readerBooks.map((book) => book.book_id)]).size,
-      nodes: countNodes(datasetTree),
-      subjects: new Set(datasetBooks.map((book) => book.bookId.split(':')[0])).size,
-      active: activeDatasetBook ? activeDatasetBook.mentions.length + activeDatasetBook.evidence.length : 0,
-    };
+    ? [
+      { label: '教材', value: enrichIndex?.book_count || 0 },
+      { label: '节点', value: enrichIndex?.node_count || 0 },
+      { label: '学科', value: enrichIndex?.subject_count || 0 },
+      { label: '当前', value: activeEnrichBook?.node_count || countNodes(enrichTree) },
+    ]
+    : datasetSection === 'textbooks'
+      ? [
+        { label: '教材', value: readerBooks.length },
+        { label: '总页数', value: readerBooks.reduce((sum, book) => sum + book.page_count, 0) },
+        { label: '原 PDF', value: readerBooks.filter((book) => book.pdf_available).length },
+        { label: '仅 OCR', value: readerBooks.filter((book) => !book.pdf_available).length },
+      ]
+      : [
+        { label: '大纲', value: datasetBooks.length },
+        { label: '目录节点', value: countNodes(datasetTree) },
+        { label: '提及', value: activeDatasetBook?.mentions.length || 0 },
+        { label: '证据', value: activeDatasetBook?.evidence.length || 0 },
+      ];
 
   const expandAll = () => setExpandedIds(new Set(activeFlat.map((item) => item.id)));
   const collapseAll = () => setExpandedIds(new Set(activeTree.map((item) => item.id)));
@@ -693,30 +702,29 @@ export function TextbookTreePage() {
 
   const renderBookList = () => {
     if (sourceMode === 'dataset') {
-      if ((!knowledgeGraph || !filteredDatasetBooks.length) && !filteredReaderBooks.length) {
-        return <div className="p-4 text-sm text-text-muted">当前数据源没有匹配的教材目录。</div>;
+      if (datasetSection === 'textbooks') {
+        if (!filteredReaderBooks.length) {
+          return <div className="p-4 text-sm text-text-muted">当前数据源没有匹配的电子教材。</div>;
+        }
+        return filteredReaderBooks.map((book) => (
+          <button
+            key={`reader:${book.book_id}`}
+            type="button"
+            onClick={() => openTextbookReader({ bookId: book.book_id, title: book.title })}
+            className="w-full cursor-pointer border-b border-border-subtle px-3 py-2 text-left text-text-secondary transition-colors hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+          >
+            <span className="flex items-center gap-1.5 truncate text-xs font-medium text-text-primary"><BookOpen className="h-3.5 w-3.5 text-accent" />{book.title}</span>
+            <span className="mt-1 block text-[10px] text-text-muted">{book.page_count} 页 · {book.pdf_available ? '原 PDF 对照' : 'OCR 坐标预览'}</span>
+          </button>
+        ));
       }
-      return (
-        <>
-          {filteredReaderBooks.length > 0 && (
-            <div className="border-b border-border-subtle bg-accent/5 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-accent">
-              OCR 电子教材
-            </div>
-          )}
-          {filteredReaderBooks.map((book) => (
-            <button
-              key={`reader:${book.book_id}`}
-              type="button"
-              onClick={() => openTextbookReader({ bookId: book.book_id })}
-              className="w-full cursor-pointer border-b border-border-subtle bg-accent/5 px-3 py-2 text-left text-text-secondary transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
-            >
-              <span className="flex items-center gap-1.5 truncate text-xs font-medium text-text-primary"><BookOpen className="h-3.5 w-3.5 text-accent" />{book.title}</span>
-              <span className="mt-1 block text-[10px] text-text-muted">{book.page_count} 页 · {book.pdf_available ? '原 PDF 对照' : 'OCR 坐标预览'}</span>
-            </button>
-          ))}
-          {filteredDatasetBooks.map((book) => {
-            const active = activeDatasetBook?.bookId === book.bookId;
-            return (
+
+      if (!knowledgeGraph || !filteredDatasetBooks.length) {
+        return <div className="p-4 text-sm text-text-muted">当前数据源没有匹配的教材大纲。</div>;
+      }
+      return filteredDatasetBooks.map((book) => {
+        const active = activeDatasetBook?.bookId === book.bookId;
+        return (
           <button
             key={book.bookId}
             type="button"
@@ -733,10 +741,8 @@ export function TextbookTreePage() {
               {book.mentions.length} 提及 · {book.evidence.length} 证据
             </span>
           </button>
-            );
-          })}
-        </>
-      );
+        );
+      });
     }
 
     if (enrichIndexError) return <div className="p-4 text-sm text-text-muted">{enrichIndexError}</div>;
@@ -1053,6 +1059,7 @@ export function TextbookTreePage() {
                         type="button"
                         onClick={() => openTextbookReader({
                           bookId: activeDatasetBook.bookId,
+                          title: datasetBookTitle(activeDatasetBook),
                           evidenceId: item.id,
                           pageNumber: item.page_start == null ? undefined : Number(item.page_start),
                         })}
@@ -1086,6 +1093,7 @@ export function TextbookTreePage() {
   const activeMeta = sourceMode === 'enrich'
     ? activeEnrichBook ? describeBook(activeEnrichBook) : '从富化教材记录读取'
     : activeDatasetBook ? `${activeDatasetBook.mentions.length} 提及 · ${activeDatasetBook.evidence.length} 证据` : '从当前知识图数据源读取';
+  const isTextbookLibraryView = sourceMode === 'dataset' && datasetSection === 'textbooks';
 
   return (
     <main
@@ -1100,31 +1108,64 @@ export function TextbookTreePage() {
               <div className="text-sm font-semibold text-text-primary">教材工作台</div>
             </div>
           </div>
-          <div className="grid grid-cols-2 rounded-lg border border-border-subtle bg-elevated p-0.5">
+          <div role="tablist" aria-label="教材工作台数据来源" className="grid grid-cols-2 rounded-lg border border-border-subtle bg-elevated p-0.5">
             <button
               type="button"
+              role="tab"
+              aria-selected={sourceMode === 'dataset'}
               onClick={() => {
                 setSourceMode('dataset');
                 setSelectedTreeId(null);
                 setTreeQuery('');
               }}
-              className={`rounded-md px-2 py-1.5 text-xs transition-colors ${sourceMode === 'dataset' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
+              className={`cursor-pointer rounded-md px-2 py-1.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${sourceMode === 'dataset' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
             >
               当前数据源
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={sourceMode === 'enrich'}
               onClick={() => {
                 setSourceMode('enrich');
                 setSelectedTreeId(null);
                 setTreeQuery('');
               }}
-              className={`rounded-md px-2 py-1.5 text-xs transition-colors ${sourceMode === 'enrich' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
+              className={`cursor-pointer rounded-md px-2 py-1.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${sourceMode === 'enrich' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
             >
               富化库
             </button>
           </div>
           <div className="mt-3 grid gap-2">
+            {sourceMode === 'dataset' && (
+              <div role="tablist" aria-label="当前数据源资源类型" className="grid grid-cols-2 rounded-md bg-elevated p-0.5 ring-1 ring-inset ring-border-subtle">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={datasetSection === 'textbooks'}
+                  onClick={() => {
+                    setDatasetSection('textbooks');
+                    setBookQuery('');
+                  }}
+                  className={`cursor-pointer rounded px-2 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${datasetSection === 'textbooks' ? 'bg-surface text-accent shadow-sm ring-1 ring-inset ring-border-subtle' : 'text-text-muted hover:bg-hover hover:text-text-primary'}`}
+                >
+                  教材
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={datasetSection === 'outlines'}
+                  onClick={() => {
+                    setDatasetSection('outlines');
+                    setBookQuery('');
+                    setSelectedTreeId(null);
+                  }}
+                  className={`cursor-pointer rounded px-2 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${datasetSection === 'outlines' ? 'bg-surface text-accent shadow-sm ring-1 ring-inset ring-border-subtle' : 'text-text-muted hover:bg-hover hover:text-text-primary'}`}
+                >
+                  大纲
+                </button>
+              </div>
+            )}
             {sourceMode === 'enrich' && (
               <select
                 value={subjectFilter}
@@ -1142,23 +1183,33 @@ export function TextbookTreePage() {
               <input
                 value={bookQuery}
                 onChange={(event) => setBookQuery(event.target.value)}
-                placeholder={sourceMode === 'enrich' ? '搜索教材，例如：化学 人教 上册' : '搜索当前数据源教材'}
+                aria-label={sourceMode === 'enrich' ? '搜索富化教材' : datasetSection === 'textbooks' ? '搜索电子教材' : '搜索教材大纲'}
+                placeholder={sourceMode === 'enrich' ? '搜索教材，例如：化学 人教 上册' : datasetSection === 'textbooks' ? '搜索电子教材' : '搜索教材大纲'}
                 className="min-w-0 flex-1 bg-transparent text-xs text-text-primary outline-none placeholder:text-text-muted"
               />
             </label>
           </div>
         </div>
         <div className="grid grid-cols-4 border-b border-border-subtle bg-elevated text-center">
-          <StatCell label="教材" value={sourceStats.books} />
-          <StatCell label="节点" value={sourceStats.nodes} />
-          <StatCell label="学科" value={sourceStats.subjects} />
-          <StatCell label="当前" value={sourceStats.active} />
+          {sourceStats.map((stat) => <StatCell key={stat.label} label={stat.label} value={stat.value} />)}
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
           {renderBookList()}
         </div>
       </aside>
 
+      {isTextbookLibraryView ? (
+        <section className="col-span-2 flex min-h-0 min-w-0 items-center justify-center bg-deep p-6 max-xl:col-span-1 max-lg:min-h-[420px]">
+          <div className="max-w-sm rounded-xl border border-border-subtle bg-surface/95 p-6 text-center shadow-panel">
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-accent">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <h1 className="mt-4 text-base font-semibold text-text-primary">电子教材</h1>
+            <p className="mt-2 text-xs leading-5 text-text-muted">从左侧选择教材，打开原 PDF 或 OCR 坐标阅读器。教材大纲、知识提及和证据已移到“大纲”。</p>
+          </div>
+        </section>
+      ) : (
+      <>
       <section className="flex min-h-0 min-w-0 flex-col bg-deep max-lg:min-h-[420px]">
         <div className="border-b border-border-subtle bg-surface/95 p-3 shadow-panel">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1172,6 +1223,7 @@ export function TextbookTreePage() {
                   type="button"
                   onClick={() => openTextbookReader({
                     bookId: activeDatasetBook.bookId,
+                    title: datasetBookTitle(activeDatasetBook),
                     pageNumber: selectedNode?.outline?.page_start == null ? undefined : Number(selectedNode.outline.page_start),
                   })}
                   className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-accent/30 bg-accent/10 px-2.5 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -1271,6 +1323,8 @@ export function TextbookTreePage() {
           {renderDetails()}
         </div>
       </aside>
+      </>
+      )}
     </main>
   );
 }
