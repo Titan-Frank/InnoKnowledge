@@ -1057,8 +1057,8 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.ok(unitEmbeddingsCommand.includes("--dataset-id"));
   assert.ok(unitEmbeddingsCommand.includes("dataset-a"));
   assert.equal(qaStage?.status, "completed");
-  assert.ok(commands.at(-3)?.includes("--book-id"));
-  assert.ok(commands.at(-3)?.includes(bookId));
+  assert.ok(commands.at(-5)?.includes("--book-id"));
+  assert.ok(commands.at(-5)?.includes(bookId));
   assert.equal(integrityStage?.status, "completed");
   assert.ok(integrityCommand.some((part) => part.endsWith("graph-integrity.js")));
   assert.ok(integrityCommand.includes("--mark-qa-passed"));
@@ -1069,12 +1069,67 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.ok(commands.at(-8)?.some((part) => part.endsWith("normalize.js")));
   assert.ok(commands.at(-7)?.some((part) => part.endsWith("generate-node-bodies.js")));
   assert.ok(commands.at(-6)?.some((part) => part.endsWith("generate-pedagogical-profiles.js")));
-  assert.ok(commands.at(-5)?.some((part) => part.endsWith("backfill-embeddings.js")));
-  assert.ok(commands.at(-4)?.some((part) => part.endsWith("backfill-unit-embeddings.js")));
-  assert.ok(commands.at(-3)?.some((part) => part.endsWith("strict-qa.js")));
+  assert.ok(commands.at(-5)?.some((part) => part.endsWith("strict-qa.js")));
+  assert.ok(commands.at(-4)?.some((part) => part.endsWith("backfill-embeddings.js")));
+  assert.ok(commands.at(-3)?.some((part) => part.endsWith("backfill-unit-embeddings.js")));
   assert.ok(commands.at(-2)?.some((part) => part.endsWith("graph-integrity.js")));
   assert.ok(commands.at(-1)?.some((part) => part.endsWith("quality-dashboard.js")));
   assert.ok(commands.slice(0, -10).every((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))));
+});
+
+test("server pipeline surfaces structured Strict QA errors before embeddings", async () => {
+  const commands: string[][] = [];
+  const result = await runServerPipeline({
+    bookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-a",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 8,
+    noChunks: false,
+    pdfPath: "",
+    subject: "computer-science",
+    schoolStage: "higher",
+    gradeBand: "university",
+    textbookId: bookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    startStage: "strict_qa",
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: createNoopPipelineAssetStore(),
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async (command) => {
+      commands.push(command);
+      if (command.some((part) => part.endsWith("strict-qa.js"))) {
+        return {
+          exitCode: 2,
+          stdout: JSON.stringify({
+            status: "blocked",
+            errors: [{ category: "node_body", id: "node-1", message: "Missing media ref for image images/a.jpg" }],
+            warnings: [],
+          }),
+          stderr: "",
+        };
+      }
+      return { exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  });
+
+  assert.equal(result.status, "blocked");
+  const qaStage = result.stages.find((stage) => stage.id === "strict_qa");
+  assert.equal(qaStage?.status, "blocked");
+  assert.equal(
+    qaStage?.error,
+    "Strict QA blocked with 1 error(s): [node_body] node-1: Missing media ref for image images/a.jpg",
+  );
+  assert.equal(commands.some((command) => command.some((part) => part.endsWith("backfill-embeddings.js"))), false);
 });
 
 test("commits knowledge and summary chunks before linking assessment chunks", async (context) => {
@@ -1406,6 +1461,56 @@ test("server pipeline blocks when pedagogical profile generation reports model f
   assert.equal(commands.some((command) => command.some((part) => part.endsWith("strict-qa.js"))), false);
 });
 
+test("server pipeline does not block on inapplicable pedagogical profile stages", async () => {
+  const result = await runServerPipeline({
+    bookId,
+    outputRoot: "/tmp/okm",
+    datasetId: "dataset-a",
+    dbUrl: "postgresql://okm:okm@localhost:5432/knowledge",
+    parallelism: 8,
+    noChunks: false,
+    pdfPath: "",
+    subject: "computer-science",
+    schoolStage: "higher",
+    gradeBand: "university",
+    textbookId: bookId,
+    apiMode: "responses",
+    modelRetryCount: 2,
+    model: "gpt-test",
+    baseUrl: "",
+    timeoutSeconds: 30,
+    reasoningEffort: "medium",
+    retrievalContext: true,
+    retrievalLimit: 8,
+    qualityRetryCount: 1,
+    startStage: "pedagogical_profiles",
+    skipEmbeddings: true,
+    progressStore: createNoopPipelineProgressStore(),
+    assetStore: createNoopPipelineAssetStore(),
+    postgresChecker: fakePostgresChecker,
+    datasetInitializer: fakeDatasetInitializer,
+    commandRunner: async (command) => {
+      if (isPedagogicalProfilesCommand(command)) {
+        return {
+          exitCode: 0,
+          stdout: JSON.stringify({
+            status: "success",
+            skipped_missing_stage: 2,
+            skipped_missing_context: 0,
+            skipped_missing_evidence: 0,
+            failed_model_generation: 0,
+          }),
+          stderr: "",
+        };
+      }
+      return { exitCode: 0, stdout: "{}", stderr: "" };
+    },
+  });
+
+  assert.equal(result.status, "completed");
+  assert.equal(result.stages.find((stage) => stage.id === "pedagogical_profiles")?.status, "completed");
+});
+
 test("server pipeline blocks when unit embedding backfill cannot update pending units", async () => {
   const commands: string[][] = [];
   const result = await runServerPipeline({
@@ -1446,7 +1551,9 @@ test("server pipeline blocks when unit embedding backfill cannot update pending 
   const unitEmbeddingsStage = result.stages.find((stage) => stage.id === "unit_embeddings");
   assert.equal(unitEmbeddingsStage?.status, "blocked");
   assert.match(unitEmbeddingsStage?.error ?? "", /updated 1\/3 pending/);
-  assert.equal(commands.some((command) => command.some((part) => part.endsWith("strict-qa.js"))), false);
+  const strictQaIndex = commands.findIndex((command) => command.some((part) => part.endsWith("strict-qa.js")));
+  const unitEmbeddingsIndex = commands.findIndex(isUnitEmbeddingsCommand);
+  assert.ok(strictQaIndex >= 0 && strictQaIndex < unitEmbeddingsIndex);
 });
 
 async function runStoredOutlineScenario(

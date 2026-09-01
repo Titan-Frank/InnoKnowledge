@@ -75,9 +75,9 @@ export const PIPELINE_START_STAGES = [
   "normalize",
   "node_bodies",
   "pedagogical_profiles",
+  "strict_qa",
   "node_embeddings",
   "unit_embeddings",
-  "strict_qa",
   "graph_integrity",
   "quality_dashboard",
 ] as const;
@@ -285,6 +285,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
           zipPath: relativeRepoPath(mineruStage.zip_path),
           extractDir: relativeRepoPath(mineruStage.extract_dir),
           rawMarkdownPath: relativeRepoPath(mineruStage.raw_markdown_path),
+          sourcePdfPath: relativeRepoPath(options.pdfPath || undefined),
           createdByMineru: mineruStage.created,
         },
       });
@@ -378,6 +379,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
         outlinePath,
         repoRoot: REPO_ROOT,
         sourceMarkdownPath,
+        reuseSourceInPlace: Boolean(ocrFolderPath.trim()) && options.ocrImportMode === "in_place",
       });
       if (sourceStage.status === "blocked") {
         return await blockRun(result, progressStore, "prepare_source_markdown", sourceStage.error);
@@ -788,6 +790,10 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       );
       if (!pedagogicalProfilesOk) return result;
     }
+    if (shouldRunStage(options, "strict_qa")) {
+      const qaOk = await runPipelineCommandStage(result, progressStore, options, "strict_qa", buildStrictQaCommand(options), "Strict QA command failed.");
+      if (!qaOk) return result;
+    }
     if (!options.skipEmbeddings && shouldRunStage(options, "node_embeddings")) {
       const nodeEmbeddingsOk = await runPipelineCommandStage(
         result,
@@ -802,10 +808,6 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
     if (!options.skipEmbeddings && shouldRunStage(options, "unit_embeddings")) {
       const unitEmbeddingsOk = await runPipelineCommandStage(result, progressStore, options, "unit_embeddings", buildUnitEmbeddingsCommand(options), "Unit embedding backfill command failed.");
       if (!unitEmbeddingsOk) return result;
-    }
-    if (shouldRunStage(options, "strict_qa")) {
-      const qaOk = await runPipelineCommandStage(result, progressStore, options, "strict_qa", buildStrictQaCommand(options), "Strict QA command failed.");
-      if (!qaOk) return result;
     }
     if (shouldRunStage(options, "graph_integrity")) {
       const integrityOk = await runPipelineCommandStage(result, progressStore, options, "graph_integrity", buildGraphIntegrityCommand(options), "Graph integrity command failed.");
@@ -1313,8 +1315,8 @@ async function runPipelineCommandStage(
   for (let attempt = 0; attempt <= outputRetryCount; attempt += 1) {
     executedCommand = commandForPipelineOutputAttempt(id, command, attempt);
     commandResult = await runCommand(executedCommand, options.commandRunner);
-    const parsedOutput = commandResult.exitCode === 0 ? parseJsonObjectFromOutput(commandResult.stdout) : null;
-    outputFailure = commandResult.exitCode === 0 ? stageFailureFromOutput(id, parsedOutput) : null;
+    const parsedOutput = parseJsonObjectFromOutput(commandResult.stdout);
+    outputFailure = stageFailureFromOutput(id, parsedOutput);
     outputSummary = compactPipelineCommandOutput(parsedOutput);
     attempts.push({
       attempt: attempt + 1,
@@ -1365,6 +1367,16 @@ async function runPipelineCommandStage(
 
 function stageFailureFromOutput(stageId: string, output: RawRecord | null): string | null {
   if (!output) return null;
+  if (stageId === "strict_qa" && stringValue(output.status) === "blocked") {
+    const errors = Array.isArray(output.errors) ? output.errors.filter(isRecord) : [];
+    const first = errors[0];
+    if (!first) return "Strict QA reported blocked status without error details.";
+    const category = stringValue(first.category);
+    const id = stringValue(first.id);
+    const message = stringValue(first.message) || "Unknown strict QA error.";
+    const subject = [category ? `[${category}]` : "", id].filter(Boolean).join(" ");
+    return `Strict QA blocked with ${errors.length} error(s): ${subject ? `${subject}: ` : ""}${message}`;
+  }
   if (stageId === "node_bodies") {
     const failed = numberValue(output.failed_model_generation) ?? 0;
     if (failed > 0) return `${failed} node body generation request(s) failed.`;
@@ -1372,10 +1384,10 @@ function stageFailureFromOutput(stageId: string, output: RawRecord | null): stri
   if (stageId === "pedagogical_profiles") {
     const failed = numberValue(output.failed_model_generation) ?? 0;
     if (failed > 0) return `${failed} pedagogical profile generation request(s) failed.`;
-    const missing = (numberValue(output.skipped_missing_stage) ?? 0)
-      + (numberValue(output.skipped_missing_context) ?? 0)
-      + (numberValue(output.skipped_missing_evidence) ?? 0);
-    if (missing > 0) return `${missing} pedagogical profile context(s) were missing stage, node, or evidence data.`;
+    const missingContext = numberValue(output.skipped_missing_context) ?? 0;
+    const missingEvidence = numberValue(output.skipped_missing_evidence) ?? 0;
+    const missing = missingContext + missingEvidence;
+    if (missing > 0) return `${missing} pedagogical profile context(s) were missing node or evidence data.`;
   }
   if (stageId === "node_embeddings") {
     const selected = numberValue(output.selected) ?? 0;
@@ -1730,6 +1742,7 @@ function createRunResult(options: RunnerOptions): ServerPipelineResult {
       enrich_context: options.enrichContext ?? true,
       enrich_book_path: options.enrichBookPath || undefined,
       source_kind: options.ocrFolderPath?.trim() ? "ocr_import" : "pdf_or_url",
+      pdf_path: options.pdfPath.trim() ? resolve(options.pdfPath) : undefined,
       ocr_folder_path: options.ocrFolderPath?.trim() ? resolve(options.ocrFolderPath) : undefined,
       ocr_import_mode: options.ocrImportMode,
       start_stage: options.startStage,

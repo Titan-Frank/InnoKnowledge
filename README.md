@@ -150,6 +150,18 @@ npm run server-pipeline-run -w packages/pipeline -- \
 
 If the PDF is already available at a public URL, use `--mineru-file-url` instead of `--pdf-path`. Remove `--skip-embeddings` only after configuring an embedding endpoint you trust.
 
+The pipeline workbench can also scan a paired subject library without copying the source files. The supported layout is:
+
+```text
+<library>/数学/<学段>/<书名>.pdf
+<library>/数学_mineru_hybrid_high_ocr/<学段>/<书名>/<书名>/hybrid_ocr/<书名>_content_list_v2.json
+```
+
+Enter the PDF subject directory in **扫描服务端 PDF 目录**. The adjacent
+`<学科>_mineru_hybrid_high_ocr` directory is detected automatically; alternatively, enter an explicit paired OCR root. Matching uses the relative school-stage directory plus the exact textbook filename. Matched books reuse Markdown, structured OCR JSON, images, and the separately stored original PDF in place. The server does not create `full.md` or otherwise modify an in-place OCR bundle.
+
+After upgrading an existing database, reapply `schemas/pg/knowledge_store.sql` so the reader can persist the separately paired PDF path.
+
 If a pipeline job is blocked, the pipeline workbench shows a **Continue from “failed stage”** button. It reruns that stage in the original job, preserving the job ID, completed upstream stages, event history, and durable artifacts. The CLI provides the same stage checkpoint selection:
 
 The workbench also lists recent jobs with their textbook, status, current stage, progress, and update time. Select a row to inspect its stages, workers, and events. Earlier stages reused by a resumed job are displayed as complete.

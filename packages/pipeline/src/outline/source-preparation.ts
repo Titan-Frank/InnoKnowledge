@@ -146,6 +146,7 @@ export function prepareSourceMarkdown(input: {
   outlinePath: string;
   repoRoot: string;
   sourceMarkdownPath?: string | null;
+  reuseSourceInPlace?: boolean;
 }): SourceMarkdownPreparationResult {
   if (input.sourceMarkdownPath && input.sourceMarkdownPath.trim()) {
     const sourcePath = resolveInputPath(input.sourceMarkdownPath, input.repoRoot);
@@ -156,7 +157,7 @@ export function prepareSourceMarkdown(input: {
     // attached to the source instead of copying only full.md elsewhere.
     const mineruRoot = resolve(input.repoRoot, "data", "mineru");
     const sourceIsManaged = sourcePath === mineruRoot || sourcePath.startsWith(`${mineruRoot}${sep}`);
-    const targetPath = sourceIsManaged
+    const targetPath = sourceIsManaged || input.reuseSourceInPlace
       ? sourcePath
       : resolve(mineruRoot, safePathToken(input.bookId), "full.md");
     mkdirSync(dirname(targetPath), { recursive: true });
@@ -882,7 +883,8 @@ function resolveInputPath(path: string, repoRoot: string): string {
 }
 
 function toRepoRelativePath(path: string, repoRoot: string): string {
-  return relative(repoRoot, path).split(sep).join("/");
+  const relativePath = relative(repoRoot, path).split(sep).join("/");
+  return relativePath.startsWith("../") ? resolve(path) : relativePath;
 }
 
 function readTextLines(path: string): string[] {

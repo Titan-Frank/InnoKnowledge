@@ -354,6 +354,56 @@ test('scanPdfFolder discovers nested PDFs and ignores non-PDF files', async () =
   }
 });
 
+test('scanPdfFolder pairs a sibling subject OCR library by stage and textbook filename', async () => {
+  const folder = await mkdtemp(join(tmpdir(), 'okm-subject-library-'));
+  const ocrRoot = `${folder}_mineru_hybrid_high_ocr`;
+  const textbookName = '初中_七年级_数学_人教版_上册';
+  const pdfPath = join(folder, '初中', `${textbookName}.pdf`);
+  const bundle = join(ocrRoot, '初中', textbookName, textbookName, 'hybrid_ocr');
+  await mkdir(dirname(pdfPath), { recursive: true });
+  await mkdir(bundle, { recursive: true });
+  await writeFile(pdfPath, '%PDF-1.7\nmath');
+  await writeFile(join(bundle, `${textbookName}_content_list_v2.json`), '[]');
+  try {
+    const result = await scanPdfFolder(folder);
+    assert.equal(result.ocr_folder_path, await realpath(ocrRoot));
+    assert.equal(result.matched_ocr_count, 1);
+    assert.equal(result.files[0]?.ocr_folder_path, await realpath(bundle));
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+    await rm(ocrRoot, { recursive: true, force: true });
+  }
+});
+
+test('scanPdfFolder discovers mixed-root OCR libraries and reports every book OCR status', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'okm-mixed-library-'));
+  const textbookName = '高中_数学_人教版_必修第一册';
+  const missingName = '高中_数学_人教版_必修第二册';
+  const pdfDir = join(root, '数学', '高中');
+  const ordinaryBundle = join(root, '数学_mineru_ocr', '高中', textbookName, textbookName, 'ocr');
+  const preferredBundle = join(root, '数学_mineru_hybrid_high_ocr', '高中', textbookName, textbookName, 'hybrid_ocr');
+  await mkdir(pdfDir, { recursive: true });
+  await mkdir(ordinaryBundle, { recursive: true });
+  await mkdir(preferredBundle, { recursive: true });
+  await writeFile(join(pdfDir, `${textbookName}.pdf`), '%PDF-1.7\nmath-1');
+  await writeFile(join(pdfDir, `${missingName}.pdf`), '%PDF-1.7\nmath-2');
+  await writeFile(join(ordinaryBundle, `${textbookName}_content_list_v2.json`), '[]');
+  await writeFile(join(preferredBundle, `${textbookName}_content_list_v2.json`), '[]');
+  try {
+    const result = await scanPdfFolder(root);
+    assert.equal(result.ocr_folder_paths.length, 2);
+    assert.equal(result.matched_ocr_count, 1);
+    assert.equal(result.unmatched_ocr_count, 1);
+    assert.deepEqual(result.files.map((file) => file.ocr_status).sort(), ['missing', 'ready']);
+    assert.equal(
+      result.files.find((file) => file.file_name === `${textbookName}.pdf`)?.ocr_folder_path,
+      await realpath(preferredBundle),
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test('resolveNpmInvocation uses the npm CLI inherited from npm', () => {
   assert.deepEqual(
     resolveNpmInvocation(['run', 'build'], {
@@ -406,6 +456,8 @@ test('buildPipelineCommand uses the Viewer database URL', () => {
   );
   const dbIndex = command.indexOf('--db');
 
+  assert.equal(command[0], process.execPath);
+  assert.match(command[1] ?? '', /packages[\\/]pipeline[\\/]dist[\\/]cli[\\/]server-pipeline-run\.js$/);
   assert.notEqual(dbIndex, -1);
   assert.equal(command[dbIndex + 1], dbUrl);
 });

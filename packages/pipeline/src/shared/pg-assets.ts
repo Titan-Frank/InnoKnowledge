@@ -21,6 +21,7 @@ export type MineruSourceRecord = {
   zipPath?: string;
   extractDir?: string;
   rawMarkdownPath?: string;
+  sourcePdfPath?: string;
   createdByMineru?: boolean;
 };
 
@@ -117,7 +118,7 @@ export function createPostgresPipelineAssetStore(databaseUrl: string): PipelineA
       await sql`
         INSERT INTO world_mineru_sources (
           dataset_id, book_id, status, source_markdown_path, batch_id,
-          zip_url, zip_path, extract_dir, raw_markdown_path,
+          zip_url, zip_path, extract_dir, raw_markdown_path, source_pdf_path,
           created_by_mineru, created_at, updated_at
         )
         VALUES (
@@ -130,6 +131,7 @@ export function createPostgresPipelineAssetStore(databaseUrl: string): PipelineA
           ${input.record.zipPath ?? null},
           ${input.record.extractDir ?? null},
           ${input.record.rawMarkdownPath ?? null},
+          ${input.record.sourcePdfPath ?? null},
           ${input.record.createdByMineru ? 1 : 0},
           ${now},
           ${now}
@@ -142,6 +144,7 @@ export function createPostgresPipelineAssetStore(databaseUrl: string): PipelineA
           zip_path = EXCLUDED.zip_path,
           extract_dir = EXCLUDED.extract_dir,
           raw_markdown_path = EXCLUDED.raw_markdown_path,
+          source_pdf_path = EXCLUDED.source_pdf_path,
           created_by_mineru = EXCLUDED.created_by_mineru,
           updated_at = EXCLUDED.updated_at
       `;

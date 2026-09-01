@@ -60,6 +60,32 @@ test("imports Markdown even when the outline does not exist yet", () => {
   }
 });
 
+test("keeps an external OCR Markdown and its sibling assets in place when requested", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-repo-"));
+  const externalRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-external-"));
+  try {
+    const markdownPath = join(externalRoot, "book.md");
+    mkdirSync(join(externalRoot, "images"), { recursive: true });
+    writeFileSync(markdownPath, "# 第一课\n![](images/figure.jpg)\n", "utf8");
+    writeFileSync(join(externalRoot, "images", "figure.jpg"), "image", "utf8");
+    const result = prepareSourceMarkdown({
+      bookId: "book-a",
+      outlinePath: join(repoRoot, "data", "outlines", "book-a.outline.json"),
+      repoRoot,
+      sourceMarkdownPath: markdownPath,
+      reuseSourceInPlace: true,
+    });
+    assert.equal(result.status, "completed");
+    assert.equal(result.markdown_path, markdownPath);
+    assert.equal(result.outline_source_path, markdownPath);
+    assert.equal(result.imported, false);
+    assert.equal(existsSync(join(repoRoot, "data", "mineru", "book-a", "full.md")), false);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+    rmSync(externalRoot, { recursive: true, force: true });
+  }
+});
+
 test("keeps MinerU Markdown beside its images when the book id needs path sanitizing", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-"));
   try {

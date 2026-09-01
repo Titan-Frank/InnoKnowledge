@@ -590,6 +590,8 @@ export interface TextbookReaderBookListResponse {
 
 export interface PipelineFolderScanRequest {
   folder_path: string;
+  /** Optional paired MinerU root. When omitted, sibling *_mineru_*_ocr folders are discovered. */
+  ocr_folder_path?: string;
   recursive?: boolean;
 }
 
@@ -598,11 +600,23 @@ export interface PipelineFolderPdf {
   file_name: string;
   relative_path: string;
   size_bytes: number;
+  /** Stable catalog identity used to avoid re-hashing large server-side textbooks during metadata inference. */
+  source_fingerprint: string;
+  /** Explicit OCR availability for selection-list rendering. */
+  ocr_status: 'ready' | 'missing';
+  /** Exact MinerU bundle directory matched by relative path and textbook filename. */
+  ocr_folder_path?: string;
 }
 
 export interface PipelineFolderScanResponse {
   folder_path: string;
+  /** Preferred OCR root, retained for backward compatibility. */
+  ocr_folder_path: string | null;
+  /** All OCR libraries discovered beside or inside the scanned root. */
+  ocr_folder_paths: string[];
   recursive: boolean;
+  matched_ocr_count: number;
+  unmatched_ocr_count: number;
   files: PipelineFolderPdf[];
 }
 

@@ -68,7 +68,12 @@ import {
 } from '@/lib/lucide-icons';
 import { PipelineBookWorkbench } from './PipelineBookWorkbench';
 import { MarkdownView } from './MarkdownView';
-import { buildConfirmedExtractionRequest, buildPipelineBatchStartRequest } from '@/lib/pipeline-start';
+import {
+  buildConfirmedExtractionRequest,
+  buildPipelineBatchStartRequest,
+  resolvePipelineResumeStage,
+  selectBatchResumeCandidates,
+} from '@/lib/pipeline-start';
 import { pipelineTaskDetail, pipelineTaskLabel } from '@/lib/pipeline-task-label';
 
 type PipelineStep = {
@@ -589,37 +594,8 @@ function stageLabel(stageId: string | undefined): string {
   return stageLabels[stageId] || stageId;
 }
 
-const RESUMABLE_STAGE_IDS = new Set<PipelineStartStage>([
-  'mineru_source_markdown',
-  'extract_pdf_outline',
-  'prepare_source_markdown',
-  'ensure_outline',
-  'prepare_outline_chunks',
-  'lesson_plan',
-  'lesson_staging',
-  'staging_quality',
-  'canonical_commit',
-  'assessment_staging',
-  'assessment_quality',
-  'assessment_commit',
-  'normalize',
-  'node_bodies',
-  'pedagogical_profiles',
-  'node_embeddings',
-  'unit_embeddings',
-  'strict_qa',
-  'graph_integrity',
-  'quality_dashboard',
-]);
-
 function resumeStageFor(stageId?: string | null): PipelineStartStage | null {
-  if (!stageId || stageId === 'check_postgres') return 'mineru_source_markdown';
-  if (stageId.startsWith('lesson_staging_retry_transport_')) return 'lesson_staging';
-  if (stageId.startsWith('assessment_staging_retry_')) return 'assessment_quality';
-  if (stageId.startsWith('lesson_staging_retry_')) return 'staging_quality';
-  return RESUMABLE_STAGE_IDS.has(stageId as PipelineStartStage)
-    ? stageId as PipelineStartStage
-    : null;
+  return resolvePipelineResumeStage(stageId);
 }
 
 function stageIn(stage: PipelineJobStatusResponse['current_stage'], ids: readonly string[]): boolean {
@@ -807,12 +783,15 @@ function PipelineJobListPanel({
   loading,
   starting,
   stopping,
+  batchResuming,
+  batchResumeCount,
   resumeStage,
   error,
   onSelect,
   onRefresh,
   onStop,
   onResume,
+  onResumeBlocked,
 }: {
   jobs: PipelineJobSummary[];
   selectedJobId: string | null;
@@ -820,12 +799,15 @@ function PipelineJobListPanel({
   loading: boolean;
   starting: boolean;
   stopping: boolean;
+  batchResuming: boolean;
+  batchResumeCount: number;
   resumeStage: PipelineStartStage | null;
   error: string;
   onSelect: (job: PipelineJobSummary) => void;
   onRefresh: () => void;
   onStop: () => void;
   onResume: (stage: PipelineStartStage) => void;
+  onResumeBlocked: () => void;
 }) {
   const failedResumeCount = progressNumber(activeJobStatus?.current_stage, 'failed');
   const resumeLabel = failedResumeCount > 0 && resumeStage === 'lesson_staging'
@@ -844,6 +826,17 @@ function PipelineJobListPanel({
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-text-muted">{jobs.length} 个作业</span>
+          {batchResumeCount > 1 && (
+            <button
+              type="button"
+              onClick={onResumeBlocked}
+              disabled={batchResuming || starting || stopping}
+              className="flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2.5 text-xs font-medium text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {batchResuming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+              并行继续 {batchResumeCount} 个阻断作业
+            </button>
+          )}
           {activeJobStatus?.status === 'running' && (
             <button
               type="button"
@@ -1424,6 +1417,7 @@ function chunkAssetUrl(sourceKey: string, assetBasePath: string | null, source: 
   const candidate = /^(?:data|ocr)\//.test(sourcePath)
     ? sourcePath
     : `${assetBasePath || ''}/${sourcePath}`;
+  const absoluteCandidate = candidate.startsWith('/');
   const segments: string[] = [];
   for (const segment of candidate.split('/')) {
     if (!segment || segment === '.') continue;
@@ -1434,7 +1428,7 @@ function chunkAssetUrl(sourceKey: string, assetBasePath: string | null, source: 
     }
     segments.push(segment);
   }
-  const assetPath = segments.join('/');
+  const assetPath = `${absoluteCandidate ? '/' : ''}${segments.join('/')}`;
   return assetPath
     ? `/api/source/${encodeURIComponent(sourceKey)}/assets/${encodeURIComponent(assetPath)}`
     : undefined;
@@ -1719,6 +1713,7 @@ export function PipelineDebugPage() {
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(false);
   const [stopping, setStopping] = useState(false);
+  const [batchResuming, setBatchResuming] = useState(false);
   const [startError, setStartError] = useState('');
   const [startResult, setStartResult] = useState<PipelineStartResponse | null>(null);
   const [jobStatus, setJobStatus] = useState<PipelineJobStatusResponse | null>(null);
@@ -1975,6 +1970,10 @@ export function PipelineDebugPage() {
   const resumeStage = activeJobStatus?.status === 'blocked'
     ? resumeStageFor(activeJobStatus.current_stage?.id)
     : null;
+  const batchResumeCandidates = useMemo(
+    () => selectBatchResumeCandidates(jobList?.jobs ?? []),
+    [jobList?.jobs],
+  );
   const autoRefreshing = starting || Boolean(startResult && !jobDone);
   const lastUpdatedAt = activeJobStatus?.updated_at ?? null;
 
@@ -1987,6 +1986,41 @@ export function PipelineDebugPage() {
       mineru_force: false,
       start_stage: stage,
     });
+  };
+
+  const resumeBlockedPipelines = async () => {
+    if (batchResuming || batchResumeCandidates.length === 0) return;
+    setBatchResuming(true);
+    setStartError('');
+    try {
+      const results = await Promise.allSettled(batchResumeCandidates.map(({ job, startStage }) => startPipeline(
+        activeSourceKey,
+        {
+          ...baseStartRequest(activeSourceKey),
+          resume_job_id: job.job_id,
+          book_id: job.book_id,
+          mineru_force: false,
+          start_stage: startStage,
+        },
+      )));
+      const started = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
+      const failures = results.flatMap((result) => result.status === 'rejected'
+        ? [(result.reason as Error)?.message || '启动失败']
+        : []);
+      const last = started.at(-1);
+      if (last) {
+        rememberPipelineJob(window.localStorage, activeSourceKey, last);
+        setStartResult(last);
+        setJobStatus(null);
+      }
+      if (failures.length > 0) {
+        setStartError(`已并行启动 ${started.length}/${results.length} 个作业；${failures.join('；')}`);
+      }
+      await refreshJobs({ silent: true });
+      void refresh({ silent: true });
+    } finally {
+      setBatchResuming(false);
+    }
   };
 
   const confirmOutline = async () => {
@@ -2101,6 +2135,8 @@ export function PipelineDebugPage() {
               loading={jobListLoading}
               starting={starting}
               stopping={stopping}
+              batchResuming={batchResuming}
+              batchResumeCount={batchResumeCandidates.length}
               resumeStage={resumeStage}
               error={jobListError}
               onSelect={(job) => {
@@ -2114,6 +2150,9 @@ export function PipelineDebugPage() {
               }}
               onResume={(stage) => {
                 void resumeActivePipeline(stage);
+              }}
+              onResumeBlocked={() => {
+                void resumeBlockedPipelines();
               }}
             />
 

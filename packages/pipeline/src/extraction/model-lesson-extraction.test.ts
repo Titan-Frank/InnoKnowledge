@@ -310,6 +310,7 @@ test("strictly keeps hybrid edges only when nodes and evidence anchors exist", (
     assert.equal(payload.counts.nodes, 2);
     assert.equal(payload.counts.edges, 1);
     assert.equal(payload.edges[0]?.from, "node:map");
+    assert.deepEqual(payload.domain_profiles[0]?.school_stages, ["senior-secondary"]);
     assert.equal(payload.edges[0]?.to, "node:repr");
     assert.ok(payload.issues.includes("stage1"));
     assert.ok(payload.issues.includes("stage2"));
@@ -472,7 +473,7 @@ test("converts a model bundle into Python-compatible staging artifacts", () => {
           { from: "node:map", to: "missing", type: "uses", directionality: "directed", confidence: 0.9, evidence_anchor: "ev1", notes: "" },
         ],
         evidence_units: [{ anchor: "ev1", excerpt: "知识图谱是一种表示方法", locator: "line:2", modality: "text", node_ids: ["node:map"] }],
-        domain_profiles: [{ node_id: "node:map", domain: "chemistry", school_stages: [], curriculum_roles: [], properties: {} }],
+        domain_profiles: [{ node_id: "node:map", domain: "chemistry", school_stages: ["higher"], curriculum_roles: [], properties: {} }],
         node_cards: [
           {
             node_id: "node:map",
@@ -503,6 +504,7 @@ test("converts a model bundle into Python-compatible staging artifacts", () => {
       node_cards: 2,
     });
     assert.equal(payload.edges[0]?.from, "node:map");
+    assert.deepEqual(payload.domain_profiles[0]?.school_stages, ["senior-secondary", "higher"]);
     assert.equal(payload.evidence[0]?.extraction_method, "openai_chat_completions");
     assert.equal(payload.evidence[1]?.extraction_method, "markdown_hint");
     assert.equal(payload.mentions.length, 1);

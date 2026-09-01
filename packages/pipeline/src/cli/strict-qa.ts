@@ -3,6 +3,8 @@
 import { isMainModule } from "../shared/cli-entry.js";
 
 import { runStrictQaFromDatabase } from "../qa/qa-store.js";
+import { repairNodeBodyMediaFromDatabase } from "../unit-bodies/repair-node-body-media.js";
+import { preparePostgresJsParams } from "../shared/postgres-executor.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 
 async function main(argv: string[]): Promise<number> {
@@ -23,8 +25,24 @@ async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promi
   const postgres = (await import("postgres")).default;
   const sql = postgres(dbUrl, { max: 1 });
   try {
-    return await runStrictQaFromDatabase({
-      datasetId: required(flags, "dataset-id"),
+    const datasetId = required(flags, "dataset-id");
+    const repair = flags.has("skip-body-media-repair") ? null : await repairNodeBodyMediaFromDatabase({
+      datasetId,
+      query: async (statement) => {
+        assertSelectStatement(statement);
+        const rows = await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
+        return Array.isArray(rows) ? rows.filter(isRecord) : [];
+      },
+      executeStatement: async (statement) => {
+        if (statement.name !== "repair-world-node-body-media") {
+          throw new Error(`Strict QA media repair refuses statement '${statement.name}'.`);
+        }
+        const rows = await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
+        return Array.isArray(rows) ? rows.filter(isRecord) : [];
+      },
+    });
+    const qa = await runStrictQaFromDatabase({
+      datasetId,
       bookId: flags.get("book-id") ?? "",
       query: async (statement) => {
         assertSelectStatement(statement);
@@ -32,6 +50,7 @@ async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promi
         return Array.isArray(rows) ? rows.filter(isRecord) : [];
       },
     });
+    return { ...qa, ...(repair ? { body_media_repair: repair } : {}) };
   } finally {
     await sql.end();
   }

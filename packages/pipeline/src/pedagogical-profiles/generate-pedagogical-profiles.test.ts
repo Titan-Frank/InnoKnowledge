@@ -438,8 +438,14 @@ test("runs pedagogical profile generation through database statements", async ()
       if (statement.name === "select-domain-profiles-for-pedagogy") return [{ ...profile, school_stages_json: ["primary"] }];
       if (statement.name === "select-nodes-for-pedagogy") return [node, relatedNode];
       if (statement.name === "select-node-cards-for-pedagogy") return [card];
-      if (statement.name === "select-mentions-for-pedagogy") return [mention];
-      if (statement.name === "select-evidence-for-pedagogy") return [evidence];
+      if (statement.name === "select-mentions-for-pedagogy") {
+        assert.deepEqual(statement.params, ["main", ""]);
+        return [mention];
+      }
+      if (statement.name === "select-evidence-for-pedagogy") {
+        assert.deepEqual(statement.params, ["main", ""]);
+        return [evidence];
+      }
       if (statement.name === "select-relations-for-pedagogy") return [relation];
       return [];
     },
@@ -466,9 +472,8 @@ test("runs pedagogical profile generation through database statements", async ()
   assert.deepEqual(output.executedStatements, executed);
 });
 
-test("refuses to overwrite a profile changed while model generation was running", async () => {
-  await assert.rejects(
-    runGeneratePedagogicalProfilesFromDatabase({
+test("protects a profile changed while model generation was running without failing the batch", async () => {
+  const output = await runGeneratePedagogicalProfilesFromDatabase({
       datasetId: "main",
       schoolStage: "primary",
       modelName: "test-model",
@@ -484,7 +489,58 @@ test("refuses to overwrite a profile changed while model generation was running"
       },
       generateProfile: () => generatedResult(),
       executeStatement: () => [],
-    }),
-    /changed while model generation was running/,
-  );
+    });
+
+  assert.equal(output.status, "success");
+  assert.equal(output.updated_profiles, 0);
+  assert.equal(output.skipped_concurrent, 1);
+  assert.deepEqual(output.executedStatements, ["update-world-domain-profile-pedagogy"]);
+});
+
+test("checkpoints generated profiles between model batches", async () => {
+  const secondNode = { ...node, id: "concept:steam", name: "水蒸气" };
+  const secondProfile = { ...profile, id: "domain-profile:steam-chemistry", node_id: secondNode.id };
+  const secondCard = { ...card, node_id: secondNode.id, title: "水蒸气" };
+  const secondMention = { ...mention, target_id: secondNode.id };
+  const executed: string[] = [];
+  let generationCalls = 0;
+
+  const output = await runGeneratePedagogicalProfilesFromDatabase({
+    datasetId: "main",
+    schoolStage: "primary",
+    modelName: "test-model",
+    now: "now",
+    concurrency: 2,
+    query: (statement) => {
+      if (statement.name === "select-domain-profiles-for-pedagogy") {
+        return [
+          { ...profile, school_stages_json: ["primary"] },
+          { ...secondProfile, school_stages_json: ["primary"] },
+        ];
+      }
+      if (statement.name === "select-nodes-for-pedagogy") return [node, secondNode, relatedNode];
+      if (statement.name === "select-node-cards-for-pedagogy") return [card, secondCard];
+      if (statement.name === "select-mentions-for-pedagogy") return [mention, secondMention];
+      if (statement.name === "select-evidence-for-pedagogy") return [evidence];
+      if (statement.name === "select-relations-for-pedagogy") return [relation];
+      return [];
+    },
+    generateProfile: async () => {
+      generationCalls += 1;
+      if (generationCalls === 2) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        assert.deepEqual(executed, [profile.id]);
+        throw new Error("second batch failed");
+      }
+      return generatedResult();
+    },
+    executeStatement: (statement) => {
+      executed.push(String(statement.params[1]));
+      return [{ id: statement.params[1] }];
+    },
+  });
+
+  assert.equal(output.generated, 1);
+  assert.equal(output.failed_model_generation, 1);
+  assert.deepEqual(executed, [profile.id]);
 });
