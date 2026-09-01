@@ -35,7 +35,7 @@ async function runDatabaseMode(flags: Map<string, string>, dbUrl: string): Promi
       },
       executeStatement: async (statement) => {
         if (statement.name !== "repair-world-node-body-media") {
-          throw new Error(`Strict QA media repair refuses statement '${statement.name}'.`);
+          throw new Error(`Final quality check media repair refuses statement '${statement.name}'.`);
         }
         const rows = await sql.unsafe(statement.sql, preparePostgresJsParams(statement.params) as never[]);
         return Array.isArray(rows) ? rows.filter(isRecord) : [];
@@ -86,7 +86,7 @@ function required(flags: Map<string, string>, name: string): string {
 
 function assertSelectStatement(statement: SqlStatement): void {
   if (!/^\s*SELECT\b/i.test(statement.sql)) {
-    throw new Error(`Strict QA query executor refuses non-SELECT statement '${statement.name}'.`);
+    throw new Error(`Final quality check refuses non-SELECT statement '${statement.name}'.`);
   }
 }
 

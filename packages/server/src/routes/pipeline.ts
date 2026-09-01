@@ -1790,7 +1790,7 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string, optio
     if (!stopped) {
       return c.json({ error: `Cannot stop '${jobId}' because its process is no longer available.` }, 409);
     }
-    const reason = '用户停止了 Pipeline 作业，可从当前阶段继续运行。';
+    const reason = '用户停止了教材处理任务，可从当前步骤继续运行。';
     await markPipelineJobStopped(sql, datasetRow.dataset_id, jobId, reason);
     runningProcesses.delete(processKey(datasetRow.dataset_id, jobId));
     const response: PipelineStopResponse = { job_id: jobId, status: 'stopped', message: reason };
@@ -1893,11 +1893,11 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string, optio
       const enrichBookPath = asString(effectiveBody.enrich_book_path);
       if (enrichBookPath && shouldValidateEnrichBook(effectiveBody)) {
         if (!datasetRow) {
-          throw new Error(`Cannot select an Enrich directory because dataset '${datasetKey}' does not exist.`);
+          throw new Error(`无法选择参考教材目录，因为数据集 '${datasetKey}' 不存在。`);
         }
         const enrichBook = await loadEnrichBookPayload(sql, datasetRow.dataset_id, enrichBookPath);
         if (!enrichBook) {
-          throw new Error(`Selected Enrich directory '${enrichBookPath}' does not exist in dataset '${datasetKey}'.`);
+          throw new Error(`所选参考教材目录 '${enrichBookPath}' 不在数据集 '${datasetKey}' 中。`);
         }
       }
       const outline = datasetRow ? await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId) : null;

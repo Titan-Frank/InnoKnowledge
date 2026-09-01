@@ -378,7 +378,7 @@ export function GraphCanvas() {
             <span className="h-0.5 w-4 bg-accent" />正式关系
           </span>
           <span className="inline-flex items-center gap-1.5 text-text-secondary">
-            <span className="w-4 border-t border-dashed border-slate-400" />Embedding 语义相似
+            <span className="w-4 border-t border-dashed border-slate-400" />内容语义相似
           </span>
           <span className="ml-2">语义相似不代表图谱中的正式关系</span>
           {semanticResult?.loading && <span className="ml-2 text-accent">正在查找相关节点…</span>}

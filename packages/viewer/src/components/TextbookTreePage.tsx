@@ -466,7 +466,7 @@ export function TextbookTreePage() {
       })
       .catch((error) => {
         if (cancelled) return;
-        setEnrichIndexError((error as Error).message || '富化教材索引加载失败');
+        setEnrichIndexError((error as Error).message || '参考教材目录加载失败');
       });
     return () => { cancelled = true; };
   }, [selectedSourceKey]);
@@ -746,8 +746,8 @@ export function TextbookTreePage() {
     }
 
     if (enrichIndexError) return <div className="p-4 text-sm text-text-muted">{enrichIndexError}</div>;
-    if (!enrichIndex) return <div className="p-4 text-sm text-text-muted">正在加载 Enrich 教材库。</div>;
-    if (!filteredEnrichBooks.length) return <div className="p-4 text-sm text-text-muted">没有匹配的富化教材。</div>;
+    if (!enrichIndex) return <div className="p-4 text-sm text-text-muted">正在加载参考教材库。</div>;
+    if (!filteredEnrichBooks.length) return <div className="p-4 text-sm text-text-muted">没有匹配的参考教材。</div>;
 
     return filteredEnrichBooks.slice(0, 500).map((book) => {
       const active = selectedEnrichPath === book.path;
@@ -1088,10 +1088,10 @@ export function TextbookTreePage() {
   };
 
   const activeTitle = sourceMode === 'enrich'
-    ? activeEnrichBook?.title || '富化教材库'
+    ? activeEnrichBook?.title || '参考教材库'
     : activeDatasetBook?.bookId || '当前数据源教材';
   const activeMeta = sourceMode === 'enrich'
-    ? activeEnrichBook ? describeBook(activeEnrichBook) : '从富化教材记录读取'
+    ? activeEnrichBook ? describeBook(activeEnrichBook) : '从参考教材库读取'
     : activeDatasetBook ? `${activeDatasetBook.mentions.length} 提及 · ${activeDatasetBook.evidence.length} 证据` : '从当前知识图数据源读取';
   const isTextbookLibraryView = sourceMode === 'dataset' && datasetSection === 'textbooks';
 
@@ -1133,7 +1133,7 @@ export function TextbookTreePage() {
               }}
               className={`cursor-pointer rounded-md px-2 py-1.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${sourceMode === 'enrich' ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}
             >
-              富化库
+              参考教材库
             </button>
           </div>
           <div className="mt-3 grid gap-2">
@@ -1183,7 +1183,7 @@ export function TextbookTreePage() {
               <input
                 value={bookQuery}
                 onChange={(event) => setBookQuery(event.target.value)}
-                aria-label={sourceMode === 'enrich' ? '搜索富化教材' : datasetSection === 'textbooks' ? '搜索电子教材' : '搜索教材大纲'}
+                aria-label={sourceMode === 'enrich' ? '搜索参考教材' : datasetSection === 'textbooks' ? '搜索电子教材' : '搜索教材大纲'}
                 placeholder={sourceMode === 'enrich' ? '搜索教材，例如：化学 人教 上册' : datasetSection === 'textbooks' ? '搜索电子教材' : '搜索教材大纲'}
                 className="min-w-0 flex-1 bg-transparent text-xs text-text-primary outline-none placeholder:text-text-muted"
               />

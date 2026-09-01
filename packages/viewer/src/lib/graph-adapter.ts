@@ -287,7 +287,7 @@ export function buildRadialFocusGraph(
     data: {
       edgeType: 'semantic_similarity',
       edgeLayer: 'semantic',
-      category: 'Embedding 语义相似',
+      category: '内容语义相似',
       similarity: similarityById.get(nodeId) ?? null,
     },
     style: {

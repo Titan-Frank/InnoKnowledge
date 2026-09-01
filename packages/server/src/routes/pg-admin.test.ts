@@ -372,7 +372,7 @@ test('book deletion targets canonical nodes created or queued for review by the 
   assert.match(targetNodeQuery.query, /cm\.resolution IN \('created', 'review'\)/);
 });
 
-test('book deletion rejects matched-only mappings whose reducer outputs cannot be attributed safely', async () => {
+test('book deletion rejects match-only mappings whose source textbook cannot be attributed safely', async () => {
   const { sql } = routeSql({ matchedOnlyCount: 1 });
   const app = new Hono();
   registerPgAdminRoutes(app, sql);
@@ -383,7 +383,7 @@ test('book deletion rejects matched-only mappings whose reducer outputs cannot b
     body: JSON.stringify({ confirmation: 'DELETE BOOK book-1' }),
   });
   assert.equal(response.status, 409);
-  assert.match((await response.json() as { error: string }).error, /matched.*schema.*reducer/);
+  assert.match((await response.json() as { error: string }).error, /只有匹配记录.*无法安全判断.*教材产生/);
 });
 
 test('book deletion discovers merge runs from selection JSON when lessons have no node mappings', async () => {

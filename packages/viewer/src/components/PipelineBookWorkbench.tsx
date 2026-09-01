@@ -76,14 +76,14 @@ function rowStatus(row: WorkbenchRow): { label: string; tone: string; detail: st
   if (row.job?.status === 'completed' && row.job.current_stage_id === 'prepare_outline_chunks') {
     return { label: '切分待确认', tone: 'warn', detail: '选择该任务并检查目录切分预览' };
   }
-  if (row.job?.status === 'completed') return { label: '已完成抽取', tone: 'ok', detail: row.job.completed_at || row.job.updated_at || '' };
-  if (row.job?.status === 'blocked') return { label: '抽取阻断', tone: 'warn', detail: row.job.error || row.job.current_stage_label || '需要检查任务详情' };
+  if (row.job?.status === 'completed') return { label: '处理完成', tone: 'ok', detail: row.job.completed_at || row.job.updated_at || '' };
+  if (row.job?.status === 'blocked') return { label: '处理受阻', tone: 'warn', detail: row.job.error || row.job.current_stage_label || '需要检查任务详情' };
   if (row.job?.status === 'running' || row.queueStatus === 'started') {
     const preparing = !row.job?.current_stage_id || ['check_postgres', 'mineru_source_markdown', 'extract_pdf_outline', 'prepare_source_markdown', 'ensure_outline', 'prepare_outline_chunks'].includes(row.job.current_stage_id);
-    return { label: preparing ? '生成切分中' : '抽取中', tone: 'active', detail: row.job?.current_stage_label || '后台任务已启动' };
+    return { label: preparing ? '划分课时中' : '提取知识中', tone: 'active', detail: row.job?.current_stage_label || '后台任务已启动' };
   }
-  if ((row.database?.canonical_nodes ?? 0) > 0) return { label: '已有抽取结果', tone: 'ok', detail: '数据库中已有教材节点' };
-  if ((row.pdfPath || row.ocrFolderPath) && row.enrichContext === null) return { label: '待确认 Enrich', tone: 'warn', detail: '选择对应大纲或明确不使用' };
+  if ((row.database?.canonical_nodes ?? 0) > 0) return { label: '已有处理结果', tone: 'ok', detail: '数据库中已有教材知识点' };
+  if ((row.pdfPath || row.ocrFolderPath) && row.enrichContext === null) return { label: '待确认参考教材', tone: 'warn', detail: '选择对应目录或明确不使用' };
   if (row.pdfPath || row.ocrFolderPath) return { label: '等待切分', tone: 'neutral', detail: row.selected ? '已加入本次批量准备' : '本次不处理' };
   return { label: '已有教材记录', tone: 'neutral', detail: '未关联可启动的 PDF 路径' };
 }
@@ -169,7 +169,7 @@ function BookNodesDialog({
                   </tr>
                 ))}
                 {payload?.nodes.length === 0 && (
-                  <tr><td colSpan={5} className="px-4 py-14 text-center text-text-muted">这本书还没有 canonical 节点映射。</td></tr>
+                  <tr><td colSpan={5} className="px-4 py-14 text-center text-text-muted">这本书还没有正式知识点。</td></tr>
                 )}
               </tbody>
             </table>
@@ -282,7 +282,7 @@ function EnrichOutlineDialog({
     void loadEnrichBooks(sourceKey).then((payload) => {
       if (!cancelled) setBooks(payload.books);
     }).catch((loadError) => {
-      if (!cancelled) setBooksError((loadError as Error).message || '读取 Enrich 教材库失败');
+      if (!cancelled) setBooksError((loadError as Error).message || '读取参考教材库失败');
     }).finally(() => {
       if (!cancelled) setBooksLoading(false);
     });
@@ -300,7 +300,7 @@ function EnrichOutlineDialog({
     void loadEnrichBook(sourceKey, activePath).then((payload) => {
       if (!cancelled) setOutline(payload);
     }).catch((loadError) => {
-      if (!cancelled) setOutlineError((loadError as Error).message || '读取 Enrich 目录失败');
+      if (!cancelled) setOutlineError((loadError as Error).message || '读取参考教材目录失败');
     }).finally(() => {
       if (!cancelled) setOutlineLoading(false);
     });
@@ -324,14 +324,14 @@ function EnrichOutlineDialog({
       <section className="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-t-xl border border-border-default bg-elevated shadow-panel sm:h-[82vh] sm:rounded-xl">
         <header className="flex items-start justify-between gap-4 border-b border-border-subtle px-4 py-3 sm:px-5">
           <div className="min-w-0">
-            <div id="enrich-dialog-title" className="flex items-center gap-2 text-sm font-semibold text-text-primary"><BookOpen className="h-4 w-4 text-accent" />为教材确认 Enrich 目录</div>
-            <div className="mt-1 truncate text-[11px] text-text-muted" title={item.title}>{item.title} · 选择后优先用该目录生成抽取大纲，并只从这一本 Enrich 教材检索辅助提示</div>
+            <div id="enrich-dialog-title" className="flex items-center gap-2 text-sm font-semibold text-text-primary"><BookOpen className="h-4 w-4 text-accent" />选择一本参考教材</div>
+            <div className="mt-1 truncate text-[11px] text-text-muted" title={item.title}>{item.title} · 系统会参考它的目录划分课时，并用它辅助统一知识点名称</div>
           </div>
-          <button type="button" onClick={onClose} className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-border-subtle text-text-muted transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" aria-label="关闭 Enrich 目录选择"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={onClose} className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-border-subtle text-text-muted transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" aria-label="关闭参考教材选择"><X className="h-4 w-4" /></button>
         </header>
 
         <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(300px,0.9fr)_minmax(0,1.4fr)]">
-          <section className="flex min-h-0 flex-col border-b border-border-subtle md:border-b-0 md:border-r" aria-label="Enrich 教材候选">
+          <section className="flex min-h-0 flex-col border-b border-border-subtle md:border-b-0 md:border-r" aria-label="参考教材候选">
             <div className="border-b border-border-subtle p-3">
               <label htmlFor="enrich-outline-search" className="mb-1.5 block text-[11px] font-medium text-text-secondary">检索教材名称、出版社或册次</label>
               <div className="relative">
@@ -358,10 +358,10 @@ function EnrichOutlineDialog({
             )}
           </section>
 
-          <section className="flex min-h-0 flex-col" aria-label="Enrich 目录预览">
+          <section className="flex min-h-0 flex-col" aria-label="参考教材目录预览">
             <div className="border-b border-border-subtle px-4 py-3">
               <div className="text-xs font-semibold text-text-primary">大纲预览</div>
-              <div className="mt-1 truncate text-[10px] text-text-muted" title={selectedBook?.path}>{selectedBook?.title || '请从左侧选择一本 Enrich 教材'}</div>
+              <div className="mt-1 truncate text-[10px] text-text-muted" title={selectedBook?.path}>{selectedBook?.title || '请从左侧选择一本参考教材'}</div>
             </div>
             {outlineLoading ? (
               <div className="flex min-h-52 flex-1 items-center justify-center gap-2 text-xs text-text-muted"><Loader2 className="h-4 w-4 animate-spin text-accent" />正在读取大纲…</div>
@@ -374,7 +374,7 @@ function EnrichOutlineDialog({
                     <span className={row.depth === 0 ? 'font-semibold text-text-primary' : ''}>{row.title}</span>
                   </div>
                 ))}
-                {outlineRows.length === 0 && <div className="px-3 py-12 text-center text-xs text-text-muted">这本 Enrich 教材没有可预览的大纲条目。</div>}
+                {outlineRows.length === 0 && <div className="px-3 py-12 text-center text-xs text-text-muted">这本参考教材没有可预览的目录条目。</div>}
               </div>
             ) : (
               <div className="flex min-h-52 flex-1 items-center justify-center px-6 text-center text-xs leading-5 text-text-muted">选择候选教材后，在这里核对章节与课时是否对应。</div>
@@ -383,7 +383,7 @@ function EnrichOutlineDialog({
         </div>
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle px-4 py-3 sm:px-5">
-          <button type="button" onClick={() => onConfirm({ enrichContext: false })} className="cursor-pointer rounded-md border border-border-default bg-surface px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">确认本书不使用 Enrich</button>
+          <button type="button" onClick={() => onConfirm({ enrichContext: false })} className="cursor-pointer rounded-md border border-border-default bg-surface px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">不使用参考教材</button>
           <div className="flex items-center gap-2">
             <button type="button" onClick={onClose} className="cursor-pointer rounded-md border border-border-default px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary">取消</button>
             <button type="button" disabled={!selectedBook || outlineLoading || Boolean(outlineError)} onClick={() => selectedBook && onConfirm({ enrichContext: true, enrichBookPath: selectedBook.path, enrichBookTitle: selectedBook.title })} className="cursor-pointer rounded-md bg-accent px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">确认使用此目录</button>
@@ -648,7 +648,7 @@ export function PipelineBookWorkbench({
       setFolderPath(result.folder_path);
       setNotice(
         `扫描到 ${result.files.length} 本教材：${result.matched_ocr_count} 本已 OCR，${result.unmatched_ocr_count} 本未 OCR；`
-        + '列表已按本次硬盘扫描结果刷新，系统会自动绑定 Enrich 检索第一名供人工确认。',
+        + '列表已按本次硬盘扫描结果刷新，系统会自动推荐最匹配的参考教材供人工确认。',
       );
     } catch (scanError) {
       setError((scanError as Error).message || '读取目录失败');
@@ -826,8 +826,8 @@ export function PipelineBookWorkbench({
       error: '',
     });
     setNotice(selection.enrichContext
-      ? `已为《${enrichItem.title}》锁定 Enrich 目录：${selection.enrichBookTitle}。`
-      : `已确认《${enrichItem.title}》本次不使用 Enrich。`);
+      ? `已为《${enrichItem.title}》选定参考教材：${selection.enrichBookTitle}。`
+      : `已确认《${enrichItem.title}》本次不使用参考教材。`);
     setEnrichItem(null);
   };
 
@@ -838,13 +838,13 @@ export function PipelineBookWorkbench({
       enrichConfirmedByUser: true,
       error: '',
     });
-    setNotice(`已确认《${item.title}》使用 Enrich 建议：${item.enrichBookTitle || item.enrichBookPath}。`);
+    setNotice(`已确认《${item.title}》使用推荐的参考教材：${item.enrichBookTitle || item.enrichBookPath}。`);
   };
 
   return (
     <section className="mb-5 overflow-hidden rounded-xl border border-border-default bg-elevated shadow-panel">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border-subtle px-4 py-4 sm:px-5">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-text-primary"><ListChecks className="h-5 w-5 text-accent" />教材抽取工作台</h2>
+        <h2 className="flex items-center gap-2 text-base font-semibold text-text-primary"><ListChecks className="h-5 w-5 text-accent" />教材处理工作台</h2>
         <button type="button" onClick={() => void startSelected()} disabled={batchStarting || selectedReady.length === 0} className="flex h-10 cursor-pointer items-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">
           {batchStarting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
           生成已选 {selectedReady.length} 本切分
@@ -852,7 +852,7 @@ export function PipelineBookWorkbench({
       </div>
 
       <div className="grid grid-cols-2 gap-y-2 border-b border-border-subtle bg-surface/40 px-4 py-3 text-xs sm:grid-cols-5 sm:px-5 sm:text-sm">
-        {['1  添加教材来源', '2  自动匹配 Enrich', '3  自动生成切分', '4  人工确认边界', '5  启动模型抽取'].map((label, index) => (
+        {['1  添加教材来源', '2  匹配参考教材', '3  自动划分课时', '4  人工确认边界', '5  开始提取知识'].map((label, index) => (
           <div key={label} className={`flex items-center gap-2 ${index === 0 ? 'font-medium text-accent' : 'text-text-muted'}`}>
             <span className={`h-1.5 w-1.5 rounded-full ${index === 0 ? 'bg-accent' : 'bg-border-strong'}`} />{label}
           </div>
@@ -952,12 +952,12 @@ export function PipelineBookWorkbench({
         <table className="w-full min-w-[1380px] text-left text-sm">
           <thead className="sticky top-0 z-10 bg-elevated text-text-muted">
             <tr>
-              <th className="w-20 px-4 py-2.5 font-semibold">是否抽取</th>
+              <th className="w-20 px-4 py-2.5 font-semibold">本次处理</th>
               <th className="px-3 py-2.5 font-semibold">来源</th>
               <th className="px-3 py-2.5 font-semibold">教材</th>
               <th className="px-3 py-2.5 font-semibold">来源路径与质量</th>
-              <th className="px-3 py-2.5 font-semibold">Enrich 目录</th>
-              <th className="px-3 py-2.5 font-semibold">抽取状态</th>
+              <th className="px-3 py-2.5 font-semibold">参考教材</th>
+              <th className="px-3 py-2.5 font-semibold">处理状态</th>
               <th className="px-3 py-2.5 font-semibold">节点结果</th>
               <th className="px-3 py-2.5 font-semibold">操作</th>
             </tr>
@@ -971,7 +971,7 @@ export function PipelineBookWorkbench({
                 <tr key={row.key} className="border-t border-border-subtle transition-colors hover:bg-hover/60">
                   <td className="px-4 py-3">
                     <label className={`inline-flex items-center gap-2 ${canSelect ? 'cursor-pointer' : 'cursor-not-allowed opacity-55'}`}>
-                      <input type="checkbox" checked={row.selected} disabled={!canSelect} onChange={(event) => updateSelected(row, event.target.checked)} className="h-4 w-4 accent-[var(--color-accent)]" aria-label={`${row.title} 是否参与抽取`} />
+                      <input type="checkbox" checked={row.selected} disabled={!canSelect} onChange={(event) => updateSelected(row, event.target.checked)} className="h-4 w-4 accent-[var(--color-accent)]" aria-label={`${row.title} 是否参与本次处理`} />
                       <span className="text-sm text-text-secondary">{row.selected ? '是' : '否'}</span>
                     </label>
                   </td>
@@ -1008,7 +1008,7 @@ export function PipelineBookWorkbench({
                           </div>
                         ) : (
                           <div className={`truncate text-sm font-medium ${queueItem.enrichContext === undefined ? 'text-node-event' : queueItem.enrichContext ? 'text-text-primary' : 'text-text-secondary'}`} title={queueItem.enrichBookTitle}>
-                            {queueItem.enrichContext === undefined ? '待生成 Enrich 建议' : queueItem.enrichContext ? queueItem.enrichBookTitle : '已确认不使用 Enrich'}
+                            {queueItem.enrichContext === undefined ? '正在查找参考教材' : queueItem.enrichContext ? queueItem.enrichBookTitle : '已确认不使用参考教材'}
                           </div>
                         )}
                         <div className="mt-1.5 flex flex-wrap gap-1.5">

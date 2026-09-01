@@ -103,7 +103,7 @@ function preparePostgresParamsForStatement(statement: SqlStatement): unknown[] {
 
 function assertSelectStatement(statement: SqlStatement): void {
   if (!/^\s*SELECT\b/i.test(statement.sql)) {
-    throw new Error(`Staging quality query executor refuses non-SELECT statement '${statement.name}'.`);
+    throw new Error(`Lesson result check refuses non-SELECT statement '${statement.name}'.`);
   }
 }
 
@@ -117,7 +117,7 @@ function assertAllowedStagingQualityWriteStatement(statement: SqlStatement): voi
     /'quality_review_required'/.test(trimmed) &&
     /'review_node_ids'/.test(trimmed);
   if (!allowed) {
-    throw new Error(`Staging quality executor refuses statement '${statement.name}' outside quality status updates.`);
+    throw new Error(`Lesson result check refuses statement '${statement.name}' outside quality status updates.`);
   }
 }
 

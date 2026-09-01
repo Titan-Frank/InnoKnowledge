@@ -401,7 +401,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
           result,
           progressStore,
           "ensure_outline",
-          `Selected Enrich directory '${enrichBookPath}' is no longer available in dataset '${options.datasetId}'.`,
+          `Selected reference-textbook directory '${enrichBookPath}' is no longer available in dataset '${options.datasetId}'.`,
         );
       }
       const enrichOutlineStage = enrichBook
@@ -662,7 +662,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
         stderr_tail: tail(canonicalResult.stderr),
       };
       if (canonicalResult.exitCode !== 0) {
-        canonicalStage.error = "Canonical reducer command failed.";
+        canonicalStage.error = "Merging approved knowledge results failed.";
         await recordStage(result, progressStore, canonicalStage);
         await progressStore.updateJob({
           datasetId: options.datasetId,
@@ -791,7 +791,7 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
       if (!pedagogicalProfilesOk) return result;
     }
     if (shouldRunStage(options, "strict_qa")) {
-      const qaOk = await runPipelineCommandStage(result, progressStore, options, "strict_qa", buildStrictQaCommand(options), "Strict QA command failed.");
+      const qaOk = await runPipelineCommandStage(result, progressStore, options, "strict_qa", buildStrictQaCommand(options), "Final quality check failed.");
       if (!qaOk) return result;
     }
     if (!options.skipEmbeddings && shouldRunStage(options, "node_embeddings")) {
@@ -961,7 +961,7 @@ async function runStagingQualityWithRetries(
     const retryCommands = retryCommandsForBlockedLessons(commands, attempt.parsed, retryIndex + 1, options);
     const canRetry = retryIndex < options.qualityRetryCount && retryCommands.length > 0;
     if (!canRetry) {
-      const error = "Staging quality command failed.";
+      const error = "Lesson result check failed.";
       const stage: ServerPipelineStage = {
         id: stageId,
         status: "blocked",
@@ -1370,12 +1370,12 @@ function stageFailureFromOutput(stageId: string, output: RawRecord | null): stri
   if (stageId === "strict_qa" && stringValue(output.status) === "blocked") {
     const errors = Array.isArray(output.errors) ? output.errors.filter(isRecord) : [];
     const first = errors[0];
-    if (!first) return "Strict QA reported blocked status without error details.";
+    if (!first) return "Final quality check reported blocked status without error details.";
     const category = stringValue(first.category);
     const id = stringValue(first.id);
-    const message = stringValue(first.message) || "Unknown strict QA error.";
+    const message = stringValue(first.message) || "Unknown final quality check error.";
     const subject = [category ? `[${category}]` : "", id].filter(Boolean).join(" ");
-    return `Strict QA blocked with ${errors.length} error(s): ${subject ? `${subject}: ` : ""}${message}`;
+    return `Final quality check blocked with ${errors.length} error(s): ${subject ? `${subject}: ` : ""}${message}`;
   }
   if (stageId === "node_bodies") {
     const failed = numberValue(output.failed_model_generation) ?? 0;
@@ -1824,26 +1824,26 @@ function stageLabel(stageId: string): string {
   }
   const labels: Record<string, string> = {
     check_postgres: "检查数据库",
-    mineru_source_markdown: "准备 OCR / MinerU 来源",
-    extract_pdf_outline: "读取 PDF 目录",
-    prepare_source_markdown: "准备解析文本",
-    ensure_outline: "生成教材目录",
-    prepare_outline_chunks: "切分课时",
-    lesson_plan: "生成抽取任务",
-    lesson_staging: "模型抽取课时",
-    staging_quality: "检查暂存质量",
-    canonical_commit: "合并知识与总结证据",
-    assessment_staging: "关联题目与已有能力点",
+    mineru_source_markdown: "准备教材解析文本",
+    extract_pdf_outline: "读取教材目录",
+    prepare_source_markdown: "整理教材文本",
+    ensure_outline: "生成教材章节",
+    prepare_outline_chunks: "划分课时内容",
+    lesson_plan: "安排处理任务",
+    lesson_staging: "提取课时知识",
+    staging_quality: "检查课时结果",
+    canonical_commit: "合并正式知识",
+    assessment_staging: "匹配题目与能力点",
     assessment_quality: "检查题目关联质量",
-    assessment_commit: "写入题目能力点关联",
-    normalize: "归一化知识对象",
-    node_bodies: "生成知识正文",
-    pedagogical_profiles: "生成教学画像",
-    node_embeddings: "生成节点向量",
-    unit_embeddings: "生成单元向量",
-    strict_qa: "严格质检",
-    graph_integrity: "图谱完整性检查",
-    quality_dashboard: "生成质量仪表盘",
+    assessment_commit: "保存题目与能力点关联",
+    normalize: "整理知识数据",
+    node_bodies: "编写知识正文",
+    pedagogical_profiles: "生成分学段教学说明",
+    node_embeddings: "建立知识点语义索引",
+    unit_embeddings: "建立知识单元语义索引",
+    strict_qa: "最终质量检查",
+    graph_integrity: "检查知识关系",
+    quality_dashboard: "汇总质量结果",
   };
   return labels[stageId] ?? stageId;
 }

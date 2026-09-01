@@ -46,11 +46,11 @@ type DialogTarget = { kind: 'book'; book: PgAdminBookSummary } | { kind: 'row'; 
 
 const GROUP_LABELS: Record<PgAdminTable['group'], string> = {
   catalog: '数据目录',
-  canonical: 'Canonical 图谱',
+  canonical: '正式知识数据',
   evidence: '证据与内容',
-  pipeline: '流水线',
-  staging: 'Staging',
-  runtime: '运行时',
+  pipeline: '处理任务',
+  staging: '临时处理结果',
+  runtime: '检索与生成',
 };
 
 const GROUP_ORDER: PgAdminTable['group'][] = ['catalog', 'canonical', 'evidence', 'pipeline', 'staging', 'runtime'];
@@ -142,7 +142,7 @@ function ConfirmDialog({
               <h2 id="pg-delete-title" className="truncate text-sm font-semibold text-text-primary">{title}</h2>
               <p className="mt-1 text-xs leading-5 text-text-muted">
                 {isBook
-                  ? '将在一个事务内删除教材目录、流水线记录、证据及未被其他教材复用的 canonical 数据。源文件不会删除。'
+                  ? '将在一个事务内删除教材目录、处理记录、证据及未被其他教材复用的正式知识数据。源文件不会删除。'
                   : '这是原始表级删除，PostgreSQL 外键级联可能同时删除关联记录。'}
               </p>
             </div>
@@ -154,7 +154,7 @@ function ConfirmDialog({
           <div className="grid grid-cols-3 gap-2 border-b border-border-subtle px-5 py-3 text-center text-[11px] sm:grid-cols-6">
             {[
               ['节点', target.book.canonical_nodes], ['边', target.book.edges], ['证据', target.book.evidence],
-              ['Mentions', target.book.mentions], ['课时', target.book.lesson_runs], ['任务', target.book.pipeline_jobs],
+              ['原文提及', target.book.mentions], ['课时', target.book.lesson_runs], ['任务', target.book.pipeline_jobs],
             ].map(([label, value]) => <div key={String(label)} className="rounded-md bg-surface p-2"><div className="font-mono font-semibold text-text-primary">{value}</div><div className="mt-0.5 text-text-muted">{label}</div></div>)}
           </div>
         )}
@@ -209,7 +209,7 @@ function BooksView({
       <div className="flex flex-col gap-3 border-b border-border-subtle px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold text-text-primary">教材数据</h2>
-          <p className="mt-0.5 text-[11px] text-text-muted">按 book_id 聚合目录、运行记录、canonical 节点与证据。</p>
+          <p className="mt-0.5 text-[11px] text-text-muted">按教材编号汇总目录、处理记录、正式知识点与证据。</p>
         </div>
         <label className="flex h-9 w-full items-center gap-2 rounded-md border border-border-subtle bg-surface px-3 sm:w-72 focus-within:border-accent">
           <Search className="h-3.5 w-3.5 text-text-muted" />
@@ -217,7 +217,7 @@ function BooksView({
         </label>
       </div>
       {loading ? (
-        <EmptyState icon={<Loader2 className="h-5 w-5 animate-spin" />} title="正在读取教材聚合数据" detail="统计会联合 lesson runs、canonical mappings 和 evidence。" />
+        <EmptyState icon={<Loader2 className="h-5 w-5 animate-spin" />} title="正在读取教材汇总数据" detail="统计会合并课时记录、正式知识点映射和证据。" />
       ) : books.length === 0 ? (
         <EmptyState icon={<BookOpen className="h-5 w-5" />} title="没有匹配的教材" detail="当前数据集没有教材记录，或搜索条件未命中。" />
       ) : (
@@ -230,7 +230,7 @@ function BooksView({
                 <th className="px-3 py-2.5 text-right font-medium">共享</th>
                 <th className="px-3 py-2.5 text-right font-medium">边</th>
                 <th className="px-3 py-2.5 text-right font-medium">证据</th>
-                <th className="px-3 py-2.5 text-right font-medium">Mentions</th>
+                <th className="px-3 py-2.5 text-right font-medium">原文提及</th>
                 <th className="px-3 py-2.5 text-right font-medium">课时 / 任务</th>
                 <th className="px-3 py-2.5 font-medium">更新</th>
                 <th className="px-4 py-2.5 text-right font-medium">操作</th>
@@ -650,7 +650,7 @@ export function PgAdminPage() {
       if (!next.tables.some((table) => table.name === activeTableName)) setActiveTableName(next.tables[0]?.name || 'world_nodes');
     } catch (loadError) {
       if (!isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, catalogRequestRef.current)) return;
-      setError((loadError as Error).message || '读取 PG 表目录失败');
+      setError((loadError as Error).message || '读取数据库表目录失败');
     } finally {
       if (isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, catalogRequestRef.current)) setLoadingCatalog(false);
     }
@@ -684,7 +684,7 @@ export function PgAdminPage() {
       setSelectedRow((current) => current ? payload.rows.find((row) => rowIdentity(payload.table, row) === rowIdentity(payload.table, current)) ?? null : null);
     } catch (loadError) {
       if (!isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, rowsRequestRef.current)) return;
-      setError((loadError as Error).message || '读取 PG 数据失败');
+      setError((loadError as Error).message || '读取数据库数据失败');
     } finally {
       if (isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, rowsRequestRef.current)) setLoadingRows(false);
     }
@@ -813,12 +813,12 @@ export function PgAdminPage() {
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-accent/35 bg-accent/10 text-accent"><Database className="h-5 w-5" /></div>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2"><h1 className="text-base font-semibold tracking-tight text-text-primary">PostgreSQL 数据管理台</h1><span className="rounded-full border border-node-process/30 bg-node-process/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-node-process">Live database</span></div>
-              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-text-muted"><span className="font-mono">{sourceKey}</span><span className="h-1 w-1 rounded-full bg-border-strong" /><span>{catalog?.schema_version ?? 'world-v1.2'}</span><span className="h-1 w-1 rounded-full bg-border-strong" /><span>所有变更直接写入 PG</span></div>
+              <div className="flex flex-wrap items-center gap-2"><h1 className="text-base font-semibold tracking-tight text-text-primary">数据库管理</h1><span className="rounded-full border border-node-process/30 bg-node-process/10 px-2 py-0.5 text-[9px] font-semibold tracking-[0.12em] text-node-process">实时数据</span></div>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-text-muted"><span className="font-mono">{sourceKey}</span><span className="h-1 w-1 rounded-full bg-border-strong" /><span>{catalog?.schema_version ?? 'world-v1.2'}</span><span className="h-1 w-1 rounded-full bg-border-strong" /><span>所有变更直接写入数据库</span></div>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <nav className="flex h-9 rounded-lg border border-border-subtle bg-elevated p-0.5" aria-label="PG 管理视图">
+            <nav className="flex h-9 rounded-lg border border-border-subtle bg-elevated p-0.5" aria-label="数据库管理视图">
               {([{ id: 'books', label: '教材管理', icon: BookOpen }, { id: 'tables', label: '数据表', icon: Table2 }] as const).map((item) => {
                 const Icon = item.icon;
                 return <button key={item.id} type="button" onClick={() => setView(item.id)} className={`flex min-w-24 cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 text-xs font-medium transition-colors ${view === item.id ? 'bg-accent text-white shadow-glow-soft' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}><Icon className="h-3.5 w-3.5" />{item.label}</button>;
@@ -863,7 +863,7 @@ export function PgAdminPage() {
               saving={saving}
             />
           ) : (
-            <section className="rounded-lg border border-border-subtle bg-elevated"><EmptyState icon={<Loader2 className="h-5 w-5 animate-spin" />} title="正在读取 PostgreSQL schema" detail="读取可管理表、列类型和主键。" /></section>
+            <section className="rounded-lg border border-border-subtle bg-elevated"><EmptyState icon={<Loader2 className="h-5 w-5 animate-spin" />} title="正在读取数据库结构" detail="读取可管理表、列类型和主键。" /></section>
           )}
         </div>
       </div>

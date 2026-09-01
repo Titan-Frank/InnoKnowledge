@@ -1077,7 +1077,7 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.ok(commands.slice(0, -10).every((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))));
 });
 
-test("server pipeline surfaces structured Strict QA errors before embeddings", async () => {
+test("server pipeline surfaces structured final quality check errors before embeddings", async () => {
   const commands: string[][] = [];
   const result = await runServerPipeline({
     bookId,
@@ -1127,7 +1127,7 @@ test("server pipeline surfaces structured Strict QA errors before embeddings", a
   assert.equal(qaStage?.status, "blocked");
   assert.equal(
     qaStage?.error,
-    "Strict QA blocked with 1 error(s): [node_body] node-1: Missing media ref for image images/a.jpg",
+    "Final quality check blocked with 1 error(s): [node_body] node-1: Missing media ref for image images/a.jpg",
   );
   assert.equal(commands.some((command) => command.some((part) => part.endsWith("backfill-embeddings.js"))), false);
 });

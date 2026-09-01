@@ -562,26 +562,26 @@ function reviewCount(payload: PipelineResponse | null, imageReviews: ImageReview
 
 const stageLabels: Record<string, string> = {
   check_postgres: '检查数据库',
-  mineru_source_markdown: '准备 OCR / MinerU 来源',
-  extract_pdf_outline: '读取 PDF 目录',
-  prepare_source_markdown: '准备解析文本',
-  ensure_outline: '生成教材目录',
-  prepare_outline_chunks: '切分课时',
-  lesson_plan: '生成抽取任务',
-  lesson_staging: '模型抽取课时',
-  staging_quality: '检查暂存质量',
-  canonical_commit: '合并知识与总结证据',
-  assessment_staging: '关联题目与已有能力点',
+  mineru_source_markdown: '准备教材解析文本',
+  extract_pdf_outline: '读取教材目录',
+  prepare_source_markdown: '整理教材文本',
+  ensure_outline: '生成教材章节',
+  prepare_outline_chunks: '划分课时内容',
+  lesson_plan: '安排处理任务',
+  lesson_staging: '提取课时知识',
+  staging_quality: '检查课时结果',
+  canonical_commit: '合并正式知识',
+  assessment_staging: '匹配题目与能力点',
   assessment_quality: '检查题目关联质量',
-  assessment_commit: '写入题目能力点关联',
-  normalize: '归一化知识对象',
-  node_bodies: '生成知识正文',
-  pedagogical_profiles: '生成教学画像',
-  node_embeddings: '生成节点向量',
-  unit_embeddings: '生成单元向量',
-  strict_qa: '严格质检',
-  graph_integrity: '图谱完整性检查',
-  quality_dashboard: '生成质量仪表盘',
+  assessment_commit: '保存题目与能力点关联',
+  normalize: '整理知识数据',
+  node_bodies: '编写知识正文',
+  pedagogical_profiles: '生成分学段教学说明',
+  node_embeddings: '建立知识点语义索引',
+  unit_embeddings: '建立知识单元语义索引',
+  strict_qa: '最终质量检查',
+  graph_integrity: '检查知识关系',
+  quality_dashboard: '汇总质量结果',
 };
 
 function stageLabel(stageId: string | undefined): string {
@@ -616,9 +616,9 @@ function buildPipelineSteps(input: {
   const currentStageText = currentStage ? `正在${stageLabel(currentStage.id)}` : '';
   const ensureOutlineStage = findJobStage(currentJobStatus, ['ensure_outline']);
   const outlineCompletedDetail = ensureOutlineStage?.progress.source_kind === 'enrich'
-    ? `已用 Enrich 目录生成 ${Number(ensureOutlineStage.progress.lesson_count) || 0} 个课时`
+    ? `已用参考教材目录生成 ${Number(ensureOutlineStage.progress.lesson_count) || 0} 个课时`
     : ensureOutlineStage?.progress.enrich_fallback
-      ? 'Enrich 目录未完全对齐，已回退到教材正文目录'
+      ? '参考教材目录未完全对齐，已改用当前教材正文目录'
       : '课时任务已经生成';
   const lessonStage = findJobStage(currentJobStatus, lessonStageIds);
   const lessonRuntimeDetail = lessonStage ? lessonProgressText(lessonStage, currentJobStatus) : '';
@@ -632,7 +632,7 @@ function buildPipelineSteps(input: {
   return [
     {
       id: 'source',
-      label: 'PDF 与 MinerU',
+      label: '读取教材文件',
       detail: statuses.source === 'active'
         ? stageIn(currentStage, sourceStageIds) ? currentStageText : '正在启动本轮任务'
         : statuses.source === 'complete'
@@ -644,7 +644,7 @@ function buildPipelineSteps(input: {
     },
     {
       id: 'outline',
-      label: '目录与切分',
+      label: '划分章节课时',
       detail: statuses.outline === 'active' && stageIn(currentStage, outlineStageIds)
         ? currentStageText
         : statuses.outline === 'complete'
@@ -656,7 +656,7 @@ function buildPipelineSteps(input: {
     },
     {
       id: 'lesson',
-      label: '模型抽取',
+      label: '提取知识',
       detail: statuses.lesson === 'active' && lessonRuntimeDetail
         ? lessonRuntimeDetail
         : statuses.lesson === 'complete'
@@ -668,14 +668,14 @@ function buildPipelineSteps(input: {
     },
     {
       id: 'merge',
-      label: '合并与质检',
+      label: '整理与检查',
       detail: statuses.merge === 'active' && stageIn(currentStage, mergeStageIds)
         ? currentStageText
         : statuses.merge === 'complete'
-          ? '当前任务的合并与质检已经完成'
+          ? '当前任务的知识整理与检查已经完成'
           : statuses.merge === 'blocked'
-            ? '当前任务的合并或质检被阻断'
-            : '等待当前任务进入合并与质检',
+            ? '当前任务的知识整理或检查被阻断'
+            : '等待当前任务进入知识整理与检查',
       status: statuses.merge,
     },
     {
@@ -822,7 +822,7 @@ function PipelineJobListPanel({
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
         <div className="flex items-center gap-2">
           <ClipboardList className="h-4 w-4 text-accent" />
-          <div className="text-base font-semibold text-text-primary">Pipeline 作业</div>
+          <div className="text-base font-semibold text-text-primary">教材处理任务</div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-text-muted">{jobs.length} 个作业</span>
@@ -921,7 +921,7 @@ function PipelineJobListPanel({
             })}
             {!loading && jobs.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-10 text-center text-text-muted">暂无 Pipeline 作业。</td>
+                <td colSpan={6} className="px-3 py-10 text-center text-text-muted">暂无教材处理任务。</td>
               </tr>
             )}
           </tbody>
@@ -1544,7 +1544,7 @@ function OutlineReviewPanel({
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 border-b border-border-subtle px-4 py-2 text-[10px] text-text-muted">
-            <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5">来源 {preview.source_kind === 'enrich' ? 'Enrich + MinerU v2' : preview.source_kind}</span>
+            <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5">目录来源 {preview.source_kind === 'enrich' ? '参考教材 + 当前教材解析结果' : '当前教材解析结果'}</span>
             {preview.toc_pages && <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5">TOC 第 {preview.toc_pages.start}–{preview.toc_pages.end} 页</span>}
             <span className={`rounded-full border px-2 py-0.5 ${confirmed ? 'border-node-process/40 bg-node-process/10 text-node-process' : 'border-node-event/40 bg-node-event/10 text-node-event'}`}>
               {confirmed ? '已人工确认' : '等待人工确认'}
@@ -1557,7 +1557,7 @@ function OutlineReviewPanel({
 
           {preview.source_kind !== 'enrich' && (
             <div className="mx-4 mt-3 flex items-start gap-2 rounded-md border border-node-event/40 bg-node-event/10 p-2.5 text-[11px] text-node-event">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />当前没有使用 Enrich 骨架，请重点检查章节层级和课节边界。
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />当前没有使用参考教材目录，请重点检查章节层级和课节边界。
             </div>
           )}
 
@@ -1751,7 +1751,7 @@ export function PipelineDebugPage() {
     try {
       setJobList(await loadPipelineJobs(activeSourceKey));
     } catch (err) {
-      setJobListError((err as Error).message || '读取 Pipeline 作业列表失败');
+      setJobListError((err as Error).message || '读取教材处理任务列表失败');
     } finally {
       if (!options.silent) setJobListLoading(false);
     }
@@ -2081,7 +2081,7 @@ export function PipelineDebugPage() {
       <div className="border-b border-border-subtle bg-surface px-4 py-4 sm:px-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight text-text-primary">教材知识抽取与合并运行台</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-text-primary">教材知识处理中心</h1>
           </div>
           <button
             type="button"
@@ -2172,8 +2172,8 @@ export function PipelineDebugPage() {
 
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <MetricCard label="课时运行" value={payload?.summary.lesson_runs ?? 0} detail={latestLesson ? `最近：${timeText(latestLesson.updated_at)}` : '暂无运行'} />
-              <MetricCard label="已暂存" value={payload?.summary.staged ?? 0} tone="active" detail="等待合并或质检" />
-              <MetricCard label="已通过 QA" value={payload?.summary.qa_passed ?? 0} tone="ok" detail={`通过率 ${percentValue(successRate)}`} />
+              <MetricCard label="待整理结果" value={payload?.summary.staged ?? 0} tone="active" detail="等待合并或检查" />
+              <MetricCard label="已通过质量检查" value={payload?.summary.qa_passed ?? 0} tone="ok" detail={`通过率 ${percentValue(successRate)}`} />
               <MetricCard label="阻断项" value={payload?.summary.blocked ?? 0} tone={(payload?.summary.blocked ?? 0) > 0 ? 'warn' : 'neutral'} detail="需要人工处理" />
             </div>
 
@@ -2238,7 +2238,7 @@ export function PipelineDebugPage() {
                     ))}
                     {!loading && recentLessons.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="px-3 py-12 text-center text-text-muted">暂无课时运行记录。可以从左侧启动第一轮抽取。</td>
+                        <td colSpan={6} className="px-3 py-12 text-center text-text-muted">暂无课时处理记录。可以从左侧启动第一次处理。</td>
                       </tr>
                     )}
                   </tbody>

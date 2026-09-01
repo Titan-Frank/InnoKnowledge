@@ -48,7 +48,7 @@ flowchart LR
     C --> D["world_staging_* tables"]
     D --> E["Reducer and normalization"]
     E --> F["Canonical world_* knowledge store"]
-    F --> G["Strict QA and graph integrity"]
+    F --> G["Final quality and knowledge-relation checks"]
     F --> H["ApiUnit assembly"]
     H --> I["Search and grounded generation"]
     H --> J["Viewer and review workbench"]
@@ -201,11 +201,11 @@ npm run verify
 The command performs TypeScript checks, pipeline, server, and viewer tests, and production builds. Database-backed quality checks are available separately:
 
 ```bash
-npm run strict-qa -w packages/pipeline -- \
+npm run final-quality-check -w packages/pipeline -- \
   --dataset-id main \
   --db "$DATABASE_URL"
 
-npm run graph-integrity -w packages/pipeline -- \
+npm run knowledge-relation-check -w packages/pipeline -- \
   --dataset-id main \
   --db "$DATABASE_URL"
 ```

@@ -630,7 +630,7 @@ test('selective model resume forwards only persisted failed batch anchors', () =
   const failedAnchors = failedBatchAnchorsForResume({
     id: 'lesson_staging',
     status: 'blocked',
-    label: '模型抽取课时',
+    label: '提取课时知识',
     progress: {
       results: [
         { batch_anchor: 'struct:math:chunk:1-a', exit_code: 0 },

@@ -376,9 +376,9 @@ async function loadBooks(sql: Sql | TransactionSql, datasetId: string): Promise<
         blocker: runningJobs > 0
           ? '当前数据集仍有运行中的流水线任务'
           : matchedOnlyNodes > 0
-            ? `${matchedOnlyNodes} 个 canonical 节点仅为 matched 映射，无法证明其输出归属`
+            ? `${matchedOnlyNodes} 个正式知识点只有匹配记录，无法确认由哪本教材产生`
           : sharedNodes > 0
-            ? `${sharedNodes} 个 canonical 节点已被其他教材复用`
+            ? `${sharedNodes} 个正式知识点已被其他教材复用`
             : undefined,
       };
     }),
@@ -420,7 +420,7 @@ async function deleteBook(sql: Sql, datasetId: string, bookId: string): Promise<
     await tx`CREATE TEMP TABLE _pg_admin_target_matched_only_nodes ON COMMIT DROP AS SELECT DISTINCT cm.canonical_node_id AS node_id FROM world_canonical_node_map cm JOIN _pg_admin_target_lessons tl ON tl.lesson_run_id = cm.lesson_run_id WHERE cm.dataset_id = ${datasetId} AND cm.canonical_node_id NOT IN (SELECT node_id FROM _pg_admin_target_nodes)`;
 
     const matchedOnly = await tx`SELECT count(*) AS count FROM _pg_admin_target_matched_only_nodes` as unknown as Row[];
-    if (numberValue(matchedOnly[0]?.count) > 0) throw new AdminConflictError('存在仅通过 matched 映射关联的 canonical 节点；当前 schema 无法安全判定其 reducer 输出归属。');
+    if (numberValue(matchedOnly[0]?.count) > 0) throw new AdminConflictError('存在只有匹配记录的正式知识点；当前数据结构无法安全判断它由哪本教材产生。');
     await tx`CREATE TEMP TABLE _pg_admin_target_edges ON COMMIT DROP AS SELECT id FROM world_edges WHERE dataset_id = ${datasetId} AND (from_id IN (SELECT node_id FROM _pg_admin_target_nodes) OR to_id IN (SELECT node_id FROM _pg_admin_target_nodes))`;
     await tx`CREATE TEMP TABLE _pg_admin_target_profiles ON COMMIT DROP AS SELECT id FROM world_domain_profiles WHERE dataset_id = ${datasetId} AND node_id IN (SELECT node_id FROM _pg_admin_target_nodes)`;
     await tx`CREATE TEMP TABLE _pg_admin_target_mentions ON COMMIT DROP AS SELECT id FROM world_mentions WHERE dataset_id = ${datasetId} AND (source_id = ${bookId} OR (target_type = 'node' AND target_id IN (SELECT node_id FROM _pg_admin_target_nodes)) OR (target_type = 'edge' AND target_id IN (SELECT id FROM _pg_admin_target_edges)) OR (target_type = 'domain_profile' AND target_id IN (SELECT id FROM _pg_admin_target_profiles)))`;
@@ -430,11 +430,11 @@ async function deleteBook(sql: Sql, datasetId: string, bookId: string): Promise<
     await tx`CREATE TEMP TABLE _pg_admin_target_merges ON COMMIT DROP AS SELECT DISTINCT merge_run_id FROM world_canonical_node_map WHERE dataset_id = ${datasetId} AND lesson_run_id IN (SELECT lesson_run_id FROM _pg_admin_target_lessons) UNION SELECT DISTINCT mr.merge_run_id FROM world_merge_runs mr CROSS JOIN LATERAL jsonb_array_elements_text(CASE WHEN jsonb_typeof(mr.selection_json) = 'array' THEN mr.selection_json ELSE '[]'::jsonb END) selected(lesson_run_id) JOIN _pg_admin_target_lessons tl ON tl.lesson_run_id = selected.lesson_run_id WHERE mr.dataset_id = ${datasetId}`;
 
     const shared = await tx`SELECT count(*) AS count FROM world_canonical_node_map cm WHERE cm.dataset_id = ${datasetId} AND cm.canonical_node_id IN (SELECT node_id FROM _pg_admin_target_nodes) AND cm.lesson_run_id NOT IN (SELECT lesson_run_id FROM _pg_admin_target_lessons)` as unknown as Row[];
-    if (numberValue(shared[0]?.count) > 0) throw new AdminConflictError('存在被其他教材复用的 canonical 节点；当前模型无法无损回滚已合并的定义。');
+    if (numberValue(shared[0]?.count) > 0) throw new AdminConflictError('存在被其他教材复用的正式知识点；当前系统无法在不丢失内容的情况下撤销已合并定义。');
     const mixedMerges = await tx`SELECT count(*) AS count FROM (SELECT cm.lesson_run_id FROM world_canonical_node_map cm WHERE cm.dataset_id = ${datasetId} AND cm.merge_run_id IN (SELECT merge_run_id FROM _pg_admin_target_merges) AND cm.lesson_run_id NOT IN (SELECT lesson_run_id FROM _pg_admin_target_lessons) UNION ALL SELECT selected.lesson_run_id FROM world_merge_runs mr CROSS JOIN LATERAL jsonb_array_elements_text(CASE WHEN jsonb_typeof(mr.selection_json) = 'array' THEN mr.selection_json ELSE '[]'::jsonb END) selected(lesson_run_id) WHERE mr.dataset_id = ${datasetId} AND mr.merge_run_id IN (SELECT merge_run_id FROM _pg_admin_target_merges) AND selected.lesson_run_id NOT IN (SELECT lesson_run_id FROM _pg_admin_target_lessons)) conflicts` as unknown as Row[];
     if (numberValue(mixedMerges[0]?.count) > 0) throw new AdminConflictError('目标 merge run 同时包含其他教材数据。');
     const externalMentions = await tx`SELECT count(*) AS count FROM world_mentions WHERE dataset_id = ${datasetId} AND source_id <> ${bookId} AND ((target_type = 'node' AND target_id IN (SELECT node_id FROM _pg_admin_target_nodes)) OR (target_type = 'edge' AND target_id IN (SELECT id FROM _pg_admin_target_edges)) OR (target_type = 'domain_profile' AND target_id IN (SELECT id FROM _pg_admin_target_profiles)))` as unknown as Row[];
-    if (numberValue(externalMentions[0]?.count) > 0) throw new AdminConflictError('其他教材的 mentions 仍引用目标知识对象。');
+    if (numberValue(externalMentions[0]?.count) > 0) throw new AdminConflictError('其他教材的原文提及记录仍在引用目标知识对象。');
     const externalLinks = await tx`SELECT count(*) AS count FROM world_evidence_links links JOIN world_evidence ev ON ev.dataset_id = links.dataset_id AND ev.id = links.evidence_id WHERE links.dataset_id = ${datasetId} AND ev.source_id <> ${bookId} AND ((links.owner_type = 'edge' AND links.owner_id IN (SELECT id FROM _pg_admin_target_edges)) OR (links.owner_type = 'domain_profile' AND links.owner_id IN (SELECT id FROM _pg_admin_target_profiles)) OR (links.owner_type = 'mention' AND links.owner_id IN (SELECT id FROM _pg_admin_target_mentions)) OR (links.owner_type = 'node_card' AND links.owner_id IN (SELECT id FROM _pg_admin_target_cards)) OR (links.owner_type = 'node_card_section' AND links.owner_id IN (SELECT owner_id FROM _pg_admin_target_section_owners)))` as unknown as Row[];
     if (numberValue(externalLinks[0]?.count) > 0) throw new AdminConflictError('其他教材的证据仍引用目标知识对象。');
 
