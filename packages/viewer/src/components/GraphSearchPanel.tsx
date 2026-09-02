@@ -22,9 +22,9 @@ import {
 } from '@/lib/lucide-icons';
 
 const MODE_OPTIONS: Array<{ value: UnitRetrievalMode; label: string }> = [
-  { value: 'hybrid', label: '混合' },
-  { value: 'text', label: '文本' },
-  { value: 'vector', label: '向量' },
+  { value: 'hybrid', label: '综合搜索' },
+  { value: 'text', label: '关键词' },
+  { value: 'vector', label: '按含义' },
 ];
 
 const SUGGESTED_QUERIES = ['什么是光子？', '静电场', '电容触摸屏'];
@@ -437,7 +437,7 @@ export function GraphSearchPanel() {
             <EmptyState label="等待检索" />
           ) : retrieval.hits.length === 0 ? (
             <EmptyState label="没有命中对象">
-              <div className="mt-2 text-[11px] text-text-muted">可以减少关键词，或切换到文本检索</div>
+              <div className="mt-2 text-[11px] text-text-muted">可以减少关键词，或切换到关键词搜索</div>
             </EmptyState>
           ) : (
             <div className="space-y-2">
@@ -699,9 +699,9 @@ function compactText(value: string): string {
 }
 
 function modeLabel(response: UnitRetrievalResponse): string {
-  if (response.requested_mode === 'vector') return response.mode === 'full' ? '向量' : '文本回退';
-  if (response.requested_mode === 'hybrid') return response.mode === 'full' ? '混合' : '文本回退';
-  return '文本';
+  if (response.requested_mode === 'vector') return response.mode === 'full' ? '按含义' : '已改用关键词';
+  if (response.requested_mode === 'hybrid') return response.mode === 'full' ? '综合搜索' : '已改用关键词';
+  return '关键词';
 }
 
 function groundingStatusLabel(value: GroundedGenerationResponse['grounding']['status']): { label: string; ok: boolean } {

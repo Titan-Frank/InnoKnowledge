@@ -2,9 +2,9 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState, type ChangeEven
 import type {
   PgAdminBookSummary,
   PipelineBookNodesResponse,
+  PipelineFolderPdf,
   PipelineJobSummary,
   PipelineOcrInspectResponse,
-  PipelinePdfUploadResponse,
   PipelineStartResponse,
 } from '@okm/types';
 import {
@@ -36,57 +36,32 @@ import {
 } from '@/lib/lucide-icons';
 import {
   buildPipelineBookWorkbenchRows,
+  reconcileScannedQueueSnapshot,
   reconcileTerminalBatchQueue,
   selectBatchLaunchCandidates,
   type PipelineBatchQueueItem,
   type PipelineBookWorkbenchRow as WorkbenchRow,
 } from '@/lib/pipeline-start';
+import { scoreEnrichBook, topEnrichBook } from '@/lib/enrich-book-matching';
 
 type QueueBook = PipelineBatchQueueItem & {
   fileName: string;
+  sourceFolder: string;
+  enrichConfirmedByUser?: boolean;
   jobId?: string;
   ocrInspection?: Pick<PipelineOcrInspectResponse, 'quality' | 'page_count' | 'block_count' | 'image_count'>;
 };
 
-function queueStorageKey(sourceKey: string): string {
-  return `okm.pipeline.batch-books.v2:${sourceKey}`;
+function sourceFolderFromPath(path: string, relative = false): string {
+  const parts = path.replace(/\\/g, '/').split('/').filter(Boolean);
+  if (parts.length <= 1) return '根目录';
+  const folders = parts.slice(0, -1);
+  return (relative ? folders : folders.slice(-2)).join(' / ') || '根目录';
 }
 
-function restoreQueue(sourceKey: string): QueueBook[] {
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(queueStorageKey(sourceKey)) || '[]') as unknown;
-    if (!Array.isArray(parsed)) return [];
-    return parsed.flatMap((value) => {
-      if (!value || typeof value !== 'object') return [];
-      const item = value as Partial<QueueBook>;
-      const pdfPath = String(item.pdfPath || '');
-      const ocrFolderPath = String(item.ocrFolderPath || '');
-      if ((!pdfPath && !ocrFolderPath) || !item.fileName || !item.bookId) return [];
-      return [{
-        id: String(item.id || pdfPath || ocrFolderPath),
-        pdfPath,
-        ocrFolderPath,
-        ocrImportMode: item.ocrImportMode === 'copy' ? 'copy' : 'in_place',
-        sourceKind: item.sourceKind === 'ocr' || ocrFolderPath ? 'ocr' : 'pdf',
-        enrichContext: typeof item.enrichContext === 'boolean' ? item.enrichContext : undefined,
-        enrichBookPath: String(item.enrichBookPath || ''),
-        enrichBookTitle: String(item.enrichBookTitle || ''),
-        fileName: String(item.fileName),
-        sizeBytes: Number(item.sizeBytes || 0),
-        bookId: String(item.bookId),
-        title: String(item.title || item.bookId),
-        sourceFingerprint: String(item.sourceFingerprint || ''),
-        selected: item.selected !== false,
-        status: 'ready' as const,
-        progress: 100,
-        error: '',
-        jobId: item.jobId ? String(item.jobId) : undefined,
-        ocrInspection: item.ocrInspection,
-      }];
-    });
-  } catch {
-    return [];
-  }
+function sourceFolderLevels(sourceFolder: string): { subject: string; subfolder: string } {
+  const [subject = '未分类', ...rest] = sourceFolder.split(/\s*\/\s*/).filter(Boolean);
+  return { subject, subfolder: rest.join(' / ') };
 }
 
 function fileSizeText(sizeBytes: number): string {
@@ -102,14 +77,14 @@ function rowStatus(row: WorkbenchRow): { label: string; tone: string; detail: st
   if (row.job?.status === 'completed' && row.job.current_stage_id === 'prepare_outline_chunks') {
     return { label: '切分待确认', tone: 'warn', detail: '选择该任务并检查目录切分预览' };
   }
-  if (row.job?.status === 'completed') return { label: '已完成抽取', tone: 'ok', detail: row.job.completed_at || row.job.updated_at || '' };
-  if (row.job?.status === 'blocked') return { label: '抽取阻断', tone: 'warn', detail: row.job.error || row.job.current_stage_label || '需要检查任务详情' };
+  if (row.job?.status === 'completed') return { label: '处理完成', tone: 'ok', detail: row.job.completed_at || row.job.updated_at || '' };
+  if (row.job?.status === 'blocked') return { label: '处理受阻', tone: 'warn', detail: row.job.error || row.job.current_stage_label || '需要检查任务详情' };
   if (row.job?.status === 'running' || row.queueStatus === 'started') {
     const preparing = !row.job?.current_stage_id || ['check_postgres', 'mineru_source_markdown', 'extract_pdf_outline', 'prepare_source_markdown', 'ensure_outline', 'prepare_outline_chunks'].includes(row.job.current_stage_id);
-    return { label: preparing ? '生成切分中' : '抽取中', tone: 'active', detail: row.job?.current_stage_label || '后台任务已启动' };
+    return { label: preparing ? '划分课时中' : '提取知识中', tone: 'active', detail: row.job?.current_stage_label || '后台任务已启动' };
   }
-  if ((row.database?.canonical_nodes ?? 0) > 0) return { label: '已有抽取结果', tone: 'ok', detail: '数据库中已有教材节点' };
-  if ((row.pdfPath || row.ocrFolderPath) && row.enrichContext === null) return { label: '待确认 Enrich', tone: 'warn', detail: '选择对应大纲或明确不使用' };
+  if ((row.database?.canonical_nodes ?? 0) > 0) return { label: '已有处理结果', tone: 'ok', detail: '数据库中已有教材知识点' };
+  if ((row.pdfPath || row.ocrFolderPath) && row.enrichContext === null) return { label: '待确认参考教材', tone: 'warn', detail: '选择对应目录或明确不使用' };
   if (row.pdfPath || row.ocrFolderPath) return { label: '等待切分', tone: 'neutral', detail: row.selected ? '已加入本次批量准备' : '本次不处理' };
   return { label: '已有教材记录', tone: 'neutral', detail: '未关联可启动的 PDF 路径' };
 }
@@ -195,7 +170,7 @@ function BookNodesDialog({
                   </tr>
                 ))}
                 {payload?.nodes.length === 0 && (
-                  <tr><td colSpan={5} className="px-4 py-14 text-center text-text-muted">这本书还没有 canonical 节点映射。</td></tr>
+                  <tr><td colSpan={5} className="px-4 py-14 text-center text-text-muted">这本书还没有正式知识点。</td></tr>
                 )}
               </tbody>
             </table>
@@ -204,55 +179,6 @@ function BookNodesDialog({
       </section>
     </div>
   );
-}
-
-function normalizeEnrichSearch(value: string): string {
-  return value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
-}
-
-function enrichSearchTerms(value: string): string[] {
-  const lower = value.toLowerCase();
-  const terms = value.split(/[\s/_·-]+/).map(normalizeEnrichSearch).filter((term) => term.length >= 2);
-  const aliases: Array<[RegExp, string[]]> = [
-    [/physics|物理/, ['物理']],
-    [/chemistry|chem|化学/, ['化学']],
-    [/biology|bio|生物/, ['生物']],
-    [/mathematics|math|数学/, ['数学']],
-    [/hukj|沪科技|沪科教/, ['沪科技', '沪科教']],
-    [/pep|\brj\b|人教/, ['人教']],
-    [/junior|初中/, ['初中']],
-    [/senior|高中/, ['高中']],
-  ];
-  aliases.forEach(([pattern, values]) => {
-    if (pattern.test(lower)) terms.push(...values.map(normalizeEnrichSearch));
-  });
-  const compulsory = lower.match(/(?:compulsory|必修)[\s_-]*(?:第)?([1-6一二三四五六])/);
-  if (compulsory?.[1]) {
-    const numerals: Record<string, string> = { '1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六' };
-    const numeral = numerals[compulsory[1]] || compulsory[1];
-    terms.push(normalizeEnrichSearch(`必修第${numeral}册`), normalizeEnrichSearch(`必修${numeral}`));
-  }
-  const selective = lower.match(/(?:xb|选择性必修)[\s_-]*([1-6一二三四五六])/);
-  if (selective?.[1]) {
-    const numerals: Record<string, string> = { '1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六' };
-    const numeral = numerals[selective[1]] || selective[1];
-    terms.push(normalizeEnrichSearch(`选择性必修第${numeral}册`), normalizeEnrichSearch(`选择性必修${numeral}`));
-  }
-  return [...new Set(terms)];
-}
-
-function scoreEnrichBook(book: EnrichBookSummary, query: string): number {
-  const haystack = normalizeEnrichSearch([
-    book.title, book.path, book.subject, book.stage, book.grade, book.course, book.publisher, book.volume,
-  ].filter(Boolean).join(' '));
-  const normalizedQuery = normalizeEnrichSearch(query);
-  const terms = enrichSearchTerms(query);
-  if (!normalizedQuery && terms.length === 0) return 1;
-  let score = normalizedQuery.length >= 3 && haystack.includes(normalizedQuery) ? 200 : 0;
-  terms.forEach((term) => {
-    if (haystack.includes(term)) score += Math.min(40, 8 + term.length * 2);
-  });
-  return score;
 }
 
 function flattenEnrichOutline(payload: EnrichBookResponse | null): Array<{ id: string; title: string; depth: number }> {
@@ -294,7 +220,7 @@ function EnrichOutlineDialog({
     void loadEnrichBooks(sourceKey).then((payload) => {
       if (!cancelled) setBooks(payload.books);
     }).catch((loadError) => {
-      if (!cancelled) setBooksError((loadError as Error).message || '读取 Enrich 教材库失败');
+      if (!cancelled) setBooksError((loadError as Error).message || '读取参考教材库失败');
     }).finally(() => {
       if (!cancelled) setBooksLoading(false);
     });
@@ -312,7 +238,7 @@ function EnrichOutlineDialog({
     void loadEnrichBook(sourceKey, activePath).then((payload) => {
       if (!cancelled) setOutline(payload);
     }).catch((loadError) => {
-      if (!cancelled) setOutlineError((loadError as Error).message || '读取 Enrich 目录失败');
+      if (!cancelled) setOutlineError((loadError as Error).message || '读取参考教材目录失败');
     }).finally(() => {
       if (!cancelled) setOutlineLoading(false);
     });
@@ -324,6 +250,10 @@ function EnrichOutlineDialog({
     .filter((entry) => entry.score > 0)
     .sort((left, right) => right.score - left.score || left.book.title.localeCompare(right.book.title, 'zh-CN'))
     .slice(0, 80), [books, deferredQuery]);
+
+  useEffect(() => {
+    if (!activePath && candidates[0]?.book.path) setActivePath(candidates[0].book.path);
+  }, [activePath, candidates]);
   const selectedBook = books.find((book) => book.path === activePath) || outline?.book || null;
   const outlineRows = useMemo(() => flattenEnrichOutline(outline), [outline]);
 
@@ -332,14 +262,14 @@ function EnrichOutlineDialog({
       <section className="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-t-xl border border-border-default bg-elevated shadow-panel sm:h-[82vh] sm:rounded-xl">
         <header className="flex items-start justify-between gap-4 border-b border-border-subtle px-4 py-3 sm:px-5">
           <div className="min-w-0">
-            <div id="enrich-dialog-title" className="flex items-center gap-2 text-sm font-semibold text-text-primary"><BookOpen className="h-4 w-4 text-accent" />为教材确认 Enrich 目录</div>
-            <div className="mt-1 truncate text-[11px] text-text-muted" title={item.title}>{item.title} · 选择后优先用该目录生成抽取大纲，并只从这一本 Enrich 教材检索辅助提示</div>
+            <div id="enrich-dialog-title" className="flex items-center gap-2 text-sm font-semibold text-text-primary"><BookOpen className="h-4 w-4 text-accent" />选择一本参考教材</div>
+            <div className="mt-1 truncate text-[11px] text-text-muted" title={item.title}>{item.title} · 系统会参考它的目录划分课时，并用它辅助统一知识点名称</div>
           </div>
-          <button type="button" onClick={onClose} className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-border-subtle text-text-muted transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" aria-label="关闭 Enrich 目录选择"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={onClose} className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-border-subtle text-text-muted transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" aria-label="关闭参考教材选择"><X className="h-4 w-4" /></button>
         </header>
 
         <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(300px,0.9fr)_minmax(0,1.4fr)]">
-          <section className="flex min-h-0 flex-col border-b border-border-subtle md:border-b-0 md:border-r" aria-label="Enrich 教材候选">
+          <section className="flex min-h-0 flex-col border-b border-border-subtle md:border-b-0 md:border-r" aria-label="参考教材候选">
             <div className="border-b border-border-subtle p-3">
               <label htmlFor="enrich-outline-search" className="mb-1.5 block text-[11px] font-medium text-text-secondary">检索教材名称、出版社或册次</label>
               <div className="relative">
@@ -366,10 +296,10 @@ function EnrichOutlineDialog({
             )}
           </section>
 
-          <section className="flex min-h-0 flex-col" aria-label="Enrich 目录预览">
+          <section className="flex min-h-0 flex-col" aria-label="参考教材目录预览">
             <div className="border-b border-border-subtle px-4 py-3">
               <div className="text-xs font-semibold text-text-primary">大纲预览</div>
-              <div className="mt-1 truncate text-[10px] text-text-muted" title={selectedBook?.path}>{selectedBook?.title || '请从左侧选择一本 Enrich 教材'}</div>
+              <div className="mt-1 truncate text-[10px] text-text-muted" title={selectedBook?.path}>{selectedBook?.title || '请从左侧选择一本参考教材'}</div>
             </div>
             {outlineLoading ? (
               <div className="flex min-h-52 flex-1 items-center justify-center gap-2 text-xs text-text-muted"><Loader2 className="h-4 w-4 animate-spin text-accent" />正在读取大纲…</div>
@@ -382,7 +312,7 @@ function EnrichOutlineDialog({
                     <span className={row.depth === 0 ? 'font-semibold text-text-primary' : ''}>{row.title}</span>
                   </div>
                 ))}
-                {outlineRows.length === 0 && <div className="px-3 py-12 text-center text-xs text-text-muted">这本 Enrich 教材没有可预览的大纲条目。</div>}
+                {outlineRows.length === 0 && <div className="px-3 py-12 text-center text-xs text-text-muted">这本参考教材没有可预览的目录条目。</div>}
               </div>
             ) : (
               <div className="flex min-h-52 flex-1 items-center justify-center px-6 text-center text-xs leading-5 text-text-muted">选择候选教材后，在这里核对章节与课时是否对应。</div>
@@ -391,7 +321,7 @@ function EnrichOutlineDialog({
         </div>
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle px-4 py-3 sm:px-5">
-          <button type="button" onClick={() => onConfirm({ enrichContext: false })} className="cursor-pointer rounded-md border border-border-default bg-surface px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">确认本书不使用 Enrich</button>
+          <button type="button" onClick={() => onConfirm({ enrichContext: false })} className="cursor-pointer rounded-md border border-border-default bg-surface px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">不使用参考教材</button>
           <div className="flex items-center gap-2">
             <button type="button" onClick={onClose} className="cursor-pointer rounded-md border border-border-default px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary">取消</button>
             <button type="button" disabled={!selectedBook || outlineLoading || Boolean(outlineError)} onClick={() => selectedBook && onConfirm({ enrichContext: true, enrichBookPath: selectedBook.path, enrichBookTitle: selectedBook.title })} className="cursor-pointer rounded-md bg-accent px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">确认使用此目录</button>
@@ -406,6 +336,7 @@ export function PipelineBookWorkbench({
   sourceKey,
   jobs,
   onStartBook,
+  onBatchStarted,
   onRefreshJobs,
 }: {
   sourceKey: string;
@@ -419,15 +350,22 @@ export function PipelineBookWorkbench({
     enrichContext: boolean;
     enrichBookPath?: string;
   }) => Promise<PipelineStartResponse>;
+  onBatchStarted: (jobIds: string[]) => void;
   onRefreshJobs: () => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const reinferredSourceKeyRef = useRef('');
-  const [queue, setQueue] = useState<QueueBook[]>(() => restoreQueue(sourceKey));
+  const enrichBooksPromiseRef = useRef<Promise<EnrichBookSummary[]> | null>(null);
+  const [queue, setQueue] = useState<QueueBook[]>([]);
   const [databaseBooks, setDatabaseBooks] = useState<PgAdminBookSummary[]>([]);
-  const [folderPath, setFolderPath] = useState('');
+  const [folderPath, setFolderPath] = useState('/srv/innospark-disks/disk06/05_enrich书名对齐');
+  const [pairedOcrFolderPath, setPairedOcrFolderPath] = useState('');
   const [ocrFolderPath, setOcrFolderPath] = useState('');
+  const [bookFilter, setBookFilter] = useState('');
+  const [subjectFilter, setSubjectFilter] = useState('all');
+  const [subfolderFilter, setSubfolderFilter] = useState('all');
+  const [ocrFilter, setOcrFilter] = useState<'all' | 'ready' | 'missing'>('all');
   const [scanning, setScanning] = useState(false);
   const [inspectingOcr, setInspectingOcr] = useState(false);
   const [batchStarting, setBatchStarting] = useState(false);
@@ -449,13 +387,17 @@ export function PipelineBookWorkbench({
   };
 
   useEffect(() => {
+    enrichBooksPromiseRef.current = null;
+  }, [sourceKey]);
+
+  useEffect(() => {
     void refreshBooks();
   }, [sourceKey, jobs.map((job) => `${job.job_id}:${job.status}:${job.updated_at}`).join('|')]);
 
   useEffect(() => {
-    const persistent = queue.filter((item) => item.pdfPath || item.ocrFolderPath);
-    window.localStorage.setItem(queueStorageKey(sourceKey), JSON.stringify(persistent));
-  }, [queue, sourceKey]);
+    setQueue([]);
+    window.localStorage.removeItem(`okm.pipeline.batch-books.v2:${sourceKey}`);
+  }, [sourceKey]);
 
   useEffect(() => {
     setQueue((current) => reconcileTerminalBatchQueue(current, jobs));
@@ -465,20 +407,71 @@ export function PipelineBookWorkbench({
     setQueue((current) => current.map((item) => item.id === id ? { ...item, ...changes } : item));
   };
 
+  const loadSuggestionBooks = async (): Promise<EnrichBookSummary[]> => {
+    if (!enrichBooksPromiseRef.current) {
+      enrichBooksPromiseRef.current = loadEnrichBooks(sourceKey)
+        .then((payload) => payload.books)
+        .catch((loadError) => {
+          enrichBooksPromiseRef.current = null;
+          throw loadError;
+        });
+    }
+    return enrichBooksPromiseRef.current;
+  };
+
+  const suggestEnrichBooks = async (items: QueueBook[]): Promise<number> => {
+    const pending = items.filter((item) => item.enrichContext === undefined && !item.enrichBookPath);
+    if (pending.length === 0) return 0;
+    try {
+      const books = await loadSuggestionBooks();
+      const suggestions = new Map<string, EnrichBookSummary>();
+      pending.forEach((item) => {
+        const suggestion = topEnrichBook(books, item.title || item.fileName);
+        if (suggestion) suggestions.set(item.id, suggestion);
+      });
+      if (suggestions.size > 0) {
+        setQueue((current) => current.map((item) => {
+          const suggestion = suggestions.get(item.id);
+          if (!suggestion || item.enrichContext !== undefined || item.enrichBookPath) return item;
+          return {
+            ...item,
+            enrichBookPath: suggestion.path,
+            enrichBookTitle: suggestion.title,
+            enrichConfirmedByUser: false,
+          };
+        }));
+      }
+      return suggestions.size;
+    } catch {
+      return 0;
+    }
+  };
+
   const inferQueueBook = async (item: QueueBook) => {
     try {
       const metadata = await inferTextbookMetadata(sourceKey, item.sourceKind === 'ocr'
-        ? { ocr_folder_path: item.ocrFolderPath, source_fingerprint: item.sourceFingerprint }
+        ? {
+            pdf_path: item.pdfPath || undefined,
+            ocr_folder_path: item.ocrFolderPath,
+            source_fingerprint: item.sourceFingerprint,
+          }
         : { pdf_path: item.pdfPath, source_fingerprint: item.sourceFingerprint });
-      updateQueue(item.id, {
+      const inferredItem: QueueBook = {
+        ...item,
         bookId: metadata.book_id,
         title: metadata.title,
-        ...(metadata.enrich_book_path ? {
-          enrichContext: true,
+      };
+      updateQueue(item.id, {
+        bookId: inferredItem.bookId,
+        title: inferredItem.title,
+        ...(metadata.enrich_book_path && item.enrichContext === undefined ? {
+          enrichContext: undefined,
           enrichBookPath: metadata.enrich_book_path,
           enrichBookTitle: metadata.enrich_book_title || metadata.enrich_book_path,
+          enrichConfirmedByUser: false,
         } : {}),
       });
+      if (!metadata.enrich_book_path && item.enrichContext === undefined) await suggestEnrichBooks([inferredItem]);
     } catch {
       // Filename-derived identifiers remain usable when metadata inference is unavailable.
     }
@@ -493,30 +486,33 @@ export function PipelineBookWorkbench({
   useEffect(() => {
     if (reinferredSourceKeyRef.current === sourceKey) return;
     reinferredSourceKeyRef.current = sourceKey;
-    const restoredItems = queue.filter((item) => item.pdfPath || item.ocrFolderPath);
+    const restoredItems = queue.filter((item) => item.selected && (item.pdfPath || item.ocrFolderPath));
     if (restoredItems.length > 0) void inferQueueBooks(restoredItems);
+    const itemsWithoutSuggestion = queue.filter((item) => item.enrichContext === undefined && !item.enrichBookPath);
+    if (itemsWithoutSuggestion.length > 0) void suggestEnrichBooks(itemsWithoutSuggestion);
   }, [sourceKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const addServerFiles = async (files: PipelinePdfUploadResponse[]) => {
-    const existingPaths = new Set(queue.map((item) => item.pdfPath));
-    const next = files.filter((file) => !existingPaths.has(file.pdf_path)).map<QueueBook>((file) => ({
+  const replaceScannedFiles = (files: PipelineFolderPdf[]): QueueBook[] => {
+    const next = files.map<QueueBook>((file) => ({
       id: file.pdf_path,
+      queueOrigin: 'scan',
       pdfPath: file.pdf_path,
-      ocrFolderPath: '',
-      sourceKind: 'pdf',
+      ocrFolderPath: file.ocr_folder_path || '',
+      ocrImportMode: file.ocr_folder_path ? 'in_place' : undefined,
+      sourceKind: file.ocr_folder_path ? 'ocr' : 'pdf',
       fileName: file.file_name,
+      sourceFolder: sourceFolderFromPath(file.relative_path, true),
       sizeBytes: file.size_bytes,
       sourceFingerprint: file.source_fingerprint,
       bookId: file.file_name.replace(/\.pdf$/i, ''),
       title: file.file_name.replace(/\.pdf$/i, ''),
-      selected: true,
+      selected: false,
       status: 'ready',
       progress: 100,
       error: '',
     }));
-    if (next.length === 0) return;
-    setQueue((current) => [...current, ...next]);
-    await inferQueueBooks(next);
+    setQueue((current) => reconcileScannedQueueSnapshot(current, next));
+    return next;
   };
 
   const uploadFiles = async (selectedFiles: File[]) => {
@@ -529,10 +525,12 @@ export function PipelineBookWorkbench({
     setNotice(`正在上传 ${files.length} 个 PDF…`);
     const pending = files.map<QueueBook>((file) => ({
       id: `upload:${file.name}:${file.size}:${file.lastModified}:${crypto.randomUUID()}`,
+      queueOrigin: 'upload',
       pdfPath: '',
       ocrFolderPath: '',
       sourceKind: 'pdf',
       fileName: file.name,
+      sourceFolder: '手动上传',
       sizeBytes: file.size,
       bookId: file.name.replace(/\.pdf$/i, ''),
       title: file.name.replace(/\.pdf$/i, ''),
@@ -580,15 +578,18 @@ export function PipelineBookWorkbench({
     setError('');
     setNotice('');
     try {
-      const result = await scanPipelineFolder(sourceKey, { folder_path: folderPath.trim(), recursive: true });
-      await addServerFiles(result.files.map((file) => ({
-        pdf_path: file.pdf_path,
-        file_name: file.file_name,
-        size_bytes: file.size_bytes,
-        source_fingerprint: '',
-      })));
+      const result = await scanPipelineFolder(sourceKey, {
+        folder_path: folderPath.trim(),
+        ...(pairedOcrFolderPath.trim() ? { ocr_folder_path: pairedOcrFolderPath.trim() } : {}),
+        recursive: true,
+      });
+      const refreshed = replaceScannedFiles(result.files);
+      if (refreshed.length > 0) void suggestEnrichBooks(refreshed);
       setFolderPath(result.folder_path);
-      setNotice(`目录中找到 ${result.files.length} 个 PDF，已加入批量列表。`);
+      setNotice(
+        `扫描到 ${result.files.length} 本教材：${result.matched_ocr_count} 本已 OCR，${result.unmatched_ocr_count} 本未 OCR；`
+        + '列表已按本次硬盘扫描结果刷新，系统会自动推荐最匹配的参考教材供人工确认。',
+      );
     } catch (scanError) {
       setError((scanError as Error).message || '读取目录失败');
     } finally {
@@ -613,11 +614,13 @@ export function PipelineBookWorkbench({
         || '已完成 OCR 教材';
       const item: QueueBook = {
         id: `ocr:${inspection.source_root_path}`,
+        queueOrigin: 'manual_ocr',
         pdfPath: '',
         ocrFolderPath: inspection.source_root_path,
         ocrImportMode: 'in_place',
         sourceKind: 'ocr',
         fileName: fallbackName,
+        sourceFolder: '单独加入的 OCR',
         sizeBytes: 0,
         sourceFingerprint: inspection.source_fingerprint,
         bookId: fallbackName,
@@ -651,6 +654,49 @@ export function PipelineBookWorkbench({
     [databaseBooks, jobs, queue],
   );
 
+  const folderHierarchy = useMemo(() => {
+    const hierarchy = new Map<string, { count: number; subfolders: Map<string, number> }>();
+    queue.forEach((item) => {
+      const { subject, subfolder } = sourceFolderLevels(item.sourceFolder);
+      const entry = hierarchy.get(subject) ?? { count: 0, subfolders: new Map<string, number>() };
+      entry.count += 1;
+      if (subfolder) entry.subfolders.set(subfolder, (entry.subfolders.get(subfolder) ?? 0) + 1);
+      hierarchy.set(subject, entry);
+    });
+    return hierarchy;
+  }, [queue]);
+
+  const subjectOptions = useMemo(() => [...folderHierarchy.entries()]
+    .map(([value, entry]) => ({ value, count: entry.count }))
+    .sort((left, right) => left.value.localeCompare(right.value, 'zh-CN', { numeric: true })), [folderHierarchy]);
+
+  const subfolderOptions = useMemo(() => [...(folderHierarchy.get(subjectFilter)?.subfolders.entries() ?? [])]
+    .map(([value, count]) => ({ value, count }))
+    .sort((left, right) => left.value.localeCompare(right.value, 'zh-CN', { numeric: true })), [folderHierarchy, subjectFilter]);
+
+  const folderByRowKey = useMemo(
+    () => new Map(queue.map((item) => [item.id, item.sourceFolder])),
+    [queue],
+  );
+
+  const visibleRows = useMemo(() => {
+    const query = bookFilter.trim().toLocaleLowerCase();
+    return rows.filter((row) => {
+      const sourceFolder = folderByRowKey.get(row.key) ?? '';
+      const { subject, subfolder } = sourceFolderLevels(sourceFolder);
+      const matchesQuery = !query || [row.title, row.bookId, row.pdfPath, row.ocrFolderPath, sourceFolder]
+        .some((value) => value.toLocaleLowerCase().includes(query));
+      const matchesSubject = subjectFilter === 'all' || subject === subjectFilter;
+      const matchesSubfolder = subfolderFilter === 'all' || subfolder === subfolderFilter;
+      const matchesOcr = ocrFilter === 'all'
+        || (ocrFilter === 'ready' ? row.sourceKind === 'ocr' : row.sourceKind === 'pdf' && Boolean(row.pdfPath));
+      return matchesQuery && matchesSubject && matchesSubfolder && matchesOcr;
+    });
+  }, [bookFilter, folderByRowKey, ocrFilter, rows, subjectFilter, subfolderFilter]);
+
+  const queueOcrCount = queue.filter((item) => Boolean(item.ocrFolderPath)).length;
+  const queueMissingOcrCount = queue.filter((item) => Boolean(item.pdfPath) && !item.ocrFolderPath).length;
+
   const selectedReady = useMemo(() => selectBatchLaunchCandidates(queue, jobs), [jobs, queue]);
 
   const startSelected = async () => {
@@ -659,6 +705,7 @@ export function PipelineBookWorkbench({
     setError('');
     setNotice(`正在为 ${selectedReady.length} 本教材生成目录切分…`);
     let started = 0;
+    const startedJobIds: string[] = [];
     for (const item of selectedReady) {
       updateQueue(item.id, { status: 'starting', error: '' });
       try {
@@ -672,6 +719,7 @@ export function PipelineBookWorkbench({
           enrichBookPath: item.enrichBookPath || undefined,
         });
         updateQueue(item.id, { status: 'started', jobId: result.job_id });
+        startedJobIds.push(result.job_id);
         started += 1;
       } catch (startError) {
         updateQueue(item.id, { status: 'error', error: (startError as Error).message || '启动失败' });
@@ -679,6 +727,7 @@ export function PipelineBookWorkbench({
     }
     setBatchStarting(false);
     setNotice(`已启动 ${started}/${selectedReady.length} 本教材的切分准备任务。`);
+    if (startedJobIds.length > 0) onBatchStarted(startedJobIds);
     onRefreshJobs();
   };
 
@@ -699,6 +748,15 @@ export function PipelineBookWorkbench({
 
   const updateSelected = (row: WorkbenchRow, selected: boolean) => {
     setQueue((current) => current.map((item) => item.id === row.key ? { ...item, selected } : item));
+    const item = queue.find((candidate) => candidate.id === row.key);
+    if (selected && item && item.enrichContext === undefined) void inferQueueBook(item);
+  };
+
+  const selectVisibleRows = (selected: boolean) => {
+    const visibleKeys = new Set(visibleRows
+      .filter((row) => (row.pdfPath || row.ocrFolderPath) && row.queueStatus !== 'uploading' && row.queueStatus !== 'starting' && row.job?.status !== 'running')
+      .map((row) => row.key));
+    setQueue((current) => current.map((item) => visibleKeys.has(item.id) ? { ...item, selected } : item));
   };
 
   const confirmEnrich = (selection: { enrichContext: boolean; enrichBookPath?: string; enrichBookTitle?: string }) => {
@@ -707,18 +765,29 @@ export function PipelineBookWorkbench({
       enrichContext: selection.enrichContext,
       enrichBookPath: selection.enrichBookPath || '',
       enrichBookTitle: selection.enrichBookTitle || '',
+      enrichConfirmedByUser: true,
       error: '',
     });
     setNotice(selection.enrichContext
-      ? `已为《${enrichItem.title}》锁定 Enrich 目录：${selection.enrichBookTitle}。`
-      : `已确认《${enrichItem.title}》本次不使用 Enrich。`);
+      ? `已为《${enrichItem.title}》选定参考教材：${selection.enrichBookTitle}。`
+      : `已确认《${enrichItem.title}》本次不使用参考教材。`);
     setEnrichItem(null);
+  };
+
+  const confirmSuggestedEnrich = (item: QueueBook) => {
+    if (!item.enrichBookPath) return;
+    updateQueue(item.id, {
+      enrichContext: true,
+      enrichConfirmedByUser: true,
+      error: '',
+    });
+    setNotice(`已确认《${item.title}》使用推荐的参考教材：${item.enrichBookTitle || item.enrichBookPath}。`);
   };
 
   return (
     <section className="mb-5 overflow-hidden rounded-xl border border-border-default bg-elevated shadow-panel">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border-subtle px-4 py-4 sm:px-5">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-text-primary"><ListChecks className="h-5 w-5 text-accent" />教材抽取工作台</h2>
+        <h2 className="flex items-center gap-2 text-base font-semibold text-text-primary"><ListChecks className="h-5 w-5 text-accent" />教材处理工作台</h2>
         <button type="button" onClick={() => void startSelected()} disabled={batchStarting || selectedReady.length === 0} className="flex h-10 cursor-pointer items-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">
           {batchStarting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
           生成已选 {selectedReady.length} 本切分
@@ -726,7 +795,7 @@ export function PipelineBookWorkbench({
       </div>
 
       <div className="grid grid-cols-2 gap-y-2 border-b border-border-subtle bg-surface/40 px-4 py-3 text-xs sm:grid-cols-5 sm:px-5 sm:text-sm">
-        {['1  添加教材来源', '2  自动匹配 Enrich', '3  自动生成切分', '4  人工确认边界', '5  启动模型抽取'].map((label, index) => (
+        {['1  添加教材来源', '2  匹配参考教材', '3  自动划分课时', '4  人工确认边界', '5  开始提取知识'].map((label, index) => (
           <div key={label} className={`flex items-center gap-2 ${index === 0 ? 'font-medium text-accent' : 'text-text-muted'}`}>
             <span className={`h-1.5 w-1.5 rounded-full ${index === 0 ? 'bg-accent' : 'bg-border-strong'}`} />{label}
           </div>
@@ -738,9 +807,9 @@ export function PipelineBookWorkbench({
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent"><FileText className="h-5 w-5" /></span>
-              <h3 id="pdf-source-title" className="text-base font-semibold text-text-primary">原始 PDF</h3>
+              <h3 id="pdf-source-title" className="text-base font-semibold text-text-primary">教材根目录</h3>
             </div>
-            <span className="rounded-full border border-border-default bg-elevated px-2.5 py-1 text-xs text-text-secondary">需要 OCR</span>
+            <span className="rounded-full border border-border-default bg-elevated px-2.5 py-1 text-xs text-text-secondary">自动识别 OCR</span>
           </div>
           <input ref={fileInputRef} type="file" accept=".pdf,application/pdf" multiple onChange={handleFiles} className="sr-only" aria-label="批量选择 PDF 文件" />
           <input ref={folderInputRef} type="file" accept=".pdf,application/pdf" multiple onChange={handleFiles} className="sr-only" aria-label="选择本地 PDF 文件夹" />
@@ -752,13 +821,18 @@ export function PipelineBookWorkbench({
               <FolderOpen className="h-5 w-5 shrink-0 text-accent" />选择 PDF 文件夹
             </button>
           </div>
-          <label htmlFor="pipeline-folder-path" className="mt-4 block text-sm font-medium text-text-secondary">扫描服务端 PDF 目录</label>
+          <label htmlFor="pipeline-folder-path" className="mt-4 block text-sm font-medium text-text-secondary">服务端根目录（自动扫描 PDF 与 OCR）</label>
           <div className="mt-1.5 flex flex-col gap-2 sm:flex-row">
-            <input id="pipeline-folder-path" value={folderPath} onChange={(event) => setFolderPath(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void scanFolder(); }} placeholder="/Users/.../textbooks" className="h-10 min-w-0 flex-1 rounded-md border border-border-default bg-elevated px-3 font-mono text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent" />
+            <input id="pipeline-folder-path" value={folderPath} onChange={(event) => setFolderPath(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void scanFolder(); }} placeholder="/srv/innospark-disks/disk06/05_enrich书名对齐" className="h-10 min-w-0 flex-1 rounded-md border border-border-default bg-elevated px-3 font-mono text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent" />
             <button type="button" onClick={() => void scanFolder()} disabled={scanning || !folderPath.trim()} className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-border-default bg-elevated px-3.5 text-sm font-medium text-text-secondary transition-colors hover:bg-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50">
-              {scanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}扫描 PDF
+              {scanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}扫描书籍
             </button>
           </div>
+          <details className="mt-3 text-xs text-text-muted">
+            <summary className="cursor-pointer select-none font-medium text-text-secondary">OCR 目录覆盖（通常无需填写）</summary>
+            <label htmlFor="pipeline-paired-ocr-folder-path" className="mt-2 block">填写后只在该 OCR 根目录中匹配；留空会自动发现根目录内及相邻的 *_mineru_*_ocr。</label>
+            <input id="pipeline-paired-ocr-folder-path" value={pairedOcrFolderPath} onChange={(event) => setPairedOcrFolderPath(event.target.value)} placeholder="/srv/.../数学_mineru_hybrid_high_ocr" className="mt-1.5 h-10 w-full rounded-md border border-border-default bg-elevated px-3 font-mono text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent" />
+          </details>
         </section>
 
         <section className="order-first rounded-lg border border-accent/40 bg-accent/5 p-4 xl:order-none" aria-labelledby="ocr-source-title">
@@ -786,30 +860,53 @@ export function PipelineBookWorkbench({
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-5">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1"><h3 className="text-base font-semibold text-text-primary">任务队列</h3><span className="text-sm text-text-secondary">{rows.length} 本任务 · {queue.filter((item) => item.selected).length} 本已选 · {queue.filter((item) => item.enrichContext === undefined).length} 本待确认</span></div>
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1"><h3 className="text-base font-semibold text-text-primary">书籍选择列表</h3><span className="text-sm text-text-secondary">{queue.length} 本已扫描 · <span className="text-node-process">{queueOcrCount} 本已 OCR</span> · <span className="text-node-event">{queueMissingOcrCount} 本未 OCR</span> · {queue.filter((item) => item.selected).length} 本已选</span></div>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setQueue((current) => current.map((item) => ({ ...item, selected: true })))} className="cursor-pointer text-sm font-medium text-accent transition-colors hover:text-accent-dim">全选待处理</button>
+          <button type="button" onClick={() => selectVisibleRows(true)} className="cursor-pointer text-sm font-medium text-accent transition-colors hover:text-accent-dim">全选当前列表</button>
           <span className="text-border-strong">/</span>
-          <button type="button" onClick={() => setQueue((current) => current.map((item) => ({ ...item, selected: false })))} className="cursor-pointer text-sm font-medium text-text-secondary transition-colors hover:text-text-primary">全部取消</button>
+          <button type="button" onClick={() => selectVisibleRows(false)} className="cursor-pointer text-sm font-medium text-text-secondary transition-colors hover:text-text-primary">取消当前列表</button>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-2 border-t border-border-subtle bg-surface/30 px-4 py-3 sm:flex-row sm:items-center sm:px-5">
+        <div className="relative min-w-0 flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-muted" />
+          <input value={bookFilter} onChange={(event) => setBookFilter(event.target.value)} placeholder="按书名、book ID 或路径筛选" aria-label="筛选教材列表" className="h-9 w-full rounded-md border border-border-default bg-elevated pl-9 pr-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent" />
+        </div>
+        <label htmlFor="pipeline-subject-filter" className="sr-only">按学科筛选教材</label>
+        <select id="pipeline-subject-filter" value={subjectFilter} onChange={(event) => { setSubjectFilter(event.target.value); setSubfolderFilter('all'); }} className="h-9 w-full cursor-pointer rounded-md border border-border-default bg-elevated px-3 text-sm font-medium text-text-secondary outline-none transition-colors hover:border-border-strong focus:border-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent sm:w-44" aria-label="按学科筛选教材">
+          <option value="all">全部学科（{queue.length}）</option>
+          {subjectOptions.map((subject) => <option key={subject.value} value={subject.value}>{subject.value}（{subject.count}）</option>)}
+        </select>
+        <label htmlFor="pipeline-subfolder-filter" className="sr-only">按学段或子文件夹筛选教材</label>
+        <select id="pipeline-subfolder-filter" value={subfolderFilter} onChange={(event) => setSubfolderFilter(event.target.value)} disabled={subjectFilter === 'all' || subfolderOptions.length === 0} className="h-9 w-full cursor-pointer rounded-md border border-border-default bg-elevated px-3 text-sm text-text-secondary outline-none transition-colors hover:border-border-strong focus:border-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50 sm:w-52" aria-label="按学段或子文件夹筛选教材">
+          <option value="all">{subjectFilter === 'all' ? '先选学科' : `全部学段 / 目录（${folderHierarchy.get(subjectFilter)?.count ?? 0}）`}</option>
+          {subfolderOptions.map((folder) => <option key={folder.value} value={folder.value}>{folder.value}（{folder.count}）</option>)}
+        </select>
+        <div className="flex gap-1 rounded-md border border-border-default bg-elevated p-1" aria-label="OCR 状态筛选">
+          {([['all', `全部 ${rows.length}`], ['ready', `已 OCR ${queueOcrCount}`], ['missing', `未 OCR ${queueMissingOcrCount}`]] as const).map(([value, label]) => (
+            <button key={value} type="button" onClick={() => setOcrFilter(value)} aria-pressed={ocrFilter === value} className={`cursor-pointer rounded px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-accent ${ocrFilter === value ? 'bg-accent text-white' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}>{label}</button>
+          ))}
+        </div>
+        <span className="shrink-0 text-xs text-text-muted">当前显示 {visibleRows.length} 本</span>
       </div>
 
       <div className="max-h-[480px] overflow-auto border-t border-border-subtle scrollbar-thin">
         <table className="w-full min-w-[1380px] text-left text-sm">
           <thead className="sticky top-0 z-10 bg-elevated text-text-muted">
             <tr>
-              <th className="w-20 px-4 py-2.5 font-semibold">是否抽取</th>
+              <th className="w-20 px-4 py-2.5 font-semibold">本次处理</th>
               <th className="px-3 py-2.5 font-semibold">来源</th>
               <th className="px-3 py-2.5 font-semibold">教材</th>
               <th className="px-3 py-2.5 font-semibold">来源路径与质量</th>
-              <th className="px-3 py-2.5 font-semibold">Enrich 目录</th>
-              <th className="px-3 py-2.5 font-semibold">抽取状态</th>
+              <th className="px-3 py-2.5 font-semibold">参考教材</th>
+              <th className="px-3 py-2.5 font-semibold">处理状态</th>
               <th className="px-3 py-2.5 font-semibold">节点结果</th>
               <th className="px-3 py-2.5 font-semibold">操作</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => {
+            {visibleRows.map((row) => {
               const queueItem = queue.find((item) => item.id === row.key);
               const canSelect = Boolean((row.pdfPath || row.ocrFolderPath) && row.queueStatus !== 'uploading' && row.queueStatus !== 'starting' && row.job?.status !== 'running');
               const sourcePath = row.ocrFolderPath || row.pdfPath;
@@ -817,14 +914,14 @@ export function PipelineBookWorkbench({
                 <tr key={row.key} className="border-t border-border-subtle transition-colors hover:bg-hover/60">
                   <td className="px-4 py-3">
                     <label className={`inline-flex items-center gap-2 ${canSelect ? 'cursor-pointer' : 'cursor-not-allowed opacity-55'}`}>
-                      <input type="checkbox" checked={row.selected} disabled={!canSelect} onChange={(event) => updateSelected(row, event.target.checked)} className="h-4 w-4 accent-[var(--color-accent)]" aria-label={`${row.title} 是否参与抽取`} />
+                      <input type="checkbox" checked={row.selected} disabled={!canSelect} onChange={(event) => updateSelected(row, event.target.checked)} className="h-4 w-4 accent-[var(--color-accent)]" aria-label={`${row.title} 是否参与本次处理`} />
                       <span className="text-sm text-text-secondary">{row.selected ? '是' : '否'}</span>
                     </label>
                   </td>
                   <td className="px-3 py-3">
                     {row.sourceKind ? (
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${row.sourceKind === 'ocr' ? 'border-node-process/40 bg-node-process/10 text-node-process' : 'border-accent/40 bg-accent/10 text-accent'}`}>
-                        {row.sourceKind === 'ocr' ? <FolderOpen className="h-3 w-3" /> : <FileText className="h-3 w-3" />}{row.sourceKind === 'ocr' ? '已 OCR' : 'PDF'}
+                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${row.sourceKind === 'ocr' ? 'border-node-process/40 bg-node-process/10 text-node-process' : 'border-node-event/40 bg-node-event/10 text-node-event'}`}>
+                        {row.sourceKind === 'ocr' ? <FolderOpen className="h-3 w-3" /> : <FileText className="h-3 w-3" />}{row.sourceKind === 'ocr' ? '已 OCR' : '未 OCR'}
                       </span>
                     ) : <span className="text-xs text-text-muted">数据库</span>}
                   </td>
@@ -832,7 +929,9 @@ export function PipelineBookWorkbench({
                     <div className="truncate font-medium text-text-primary" title={row.title}>{row.title}</div>
                   </td>
                   <td className="max-w-[390px] px-3 py-3">
-                    <div className="truncate text-text-secondary" title={sourcePath}>{sourcePath || '数据库已有记录'}</div>
+                    {row.pdfPath && <div className="truncate text-text-secondary" title={row.pdfPath}>PDF：{row.pdfPath}</div>}
+                    {row.ocrFolderPath && <div className="mt-1 truncate text-node-process" title={row.ocrFolderPath}>OCR：{row.ocrFolderPath}</div>}
+                    {!sourcePath && <div className="text-text-secondary">数据库已有记录</div>}
                     {row.sourceKind === 'ocr' && row.ocrImportMode === 'in_place' && (
                       <div className="mt-1 text-[10px] font-medium text-node-process">使用原目录 · 不复制教材文件</div>
                     )}
@@ -845,12 +944,26 @@ export function PipelineBookWorkbench({
                   <td className="max-w-[300px] px-3 py-3">
                     {queueItem ? (
                       <div>
-                        <div className={`truncate text-sm font-medium ${queueItem.enrichContext === undefined ? 'text-node-event' : queueItem.enrichContext ? 'text-text-primary' : 'text-text-secondary'}`} title={queueItem.enrichBookTitle}>
-                          {queueItem.enrichContext === undefined ? '待人工确认' : queueItem.enrichContext ? queueItem.enrichBookTitle : '已确认不使用 Enrich'}
+                        {queueItem.enrichContext === undefined && queueItem.enrichBookPath ? (
+                          <div title={queueItem.enrichBookTitle || queueItem.enrichBookPath}>
+                            <div className="text-[10px] font-semibold text-node-event">检索第一名 · 待确认</div>
+                            <div className="mt-0.5 truncate text-sm font-medium text-text-primary">{queueItem.enrichBookTitle || queueItem.enrichBookPath}</div>
+                          </div>
+                        ) : (
+                          <div className={`truncate text-sm font-medium ${queueItem.enrichContext === undefined ? 'text-node-event' : queueItem.enrichContext ? 'text-text-primary' : 'text-text-secondary'}`} title={queueItem.enrichBookTitle}>
+                            {queueItem.enrichContext === undefined ? '正在查找参考教材' : queueItem.enrichContext ? queueItem.enrichBookTitle : '已确认不使用参考教材'}
+                          </div>
+                        )}
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {queueItem.enrichContext === undefined && queueItem.enrichBookPath && (
+                            <button type="button" onClick={() => confirmSuggestedEnrich(queueItem)} disabled={row.queueStatus === 'starting' || row.job?.status === 'running'} className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50">
+                              <Check className="h-3.5 w-3.5" />确认建议
+                            </button>
+                          )}
+                          <button type="button" onClick={() => setEnrichItem(queueItem)} disabled={row.queueStatus === 'starting' || row.job?.status === 'running'} className="cursor-pointer rounded-md border border-border-default bg-surface px-2.5 py-1.5 text-xs font-medium text-accent transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50">
+                            {queueItem.enrichContext === undefined && !queueItem.enrichBookPath ? '检索并选择' : '修改'}
+                          </button>
                         </div>
-                        <button type="button" onClick={() => setEnrichItem(queueItem)} disabled={row.queueStatus === 'starting' || row.job?.status === 'running'} className="mt-1.5 cursor-pointer rounded-md border border-border-default bg-surface px-2.5 py-1.5 text-xs font-medium text-accent transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50">
-                          {queueItem.enrichContext === undefined ? '检索并选择' : '重新确认'}
-                        </button>
                       </div>
                     ) : <span className="text-xs text-text-muted">仅查看</span>}
                   </td>
@@ -867,8 +980,8 @@ export function PipelineBookWorkbench({
                 </tr>
               );
             })}
-            {rows.length === 0 && (
-              <tr><td colSpan={8} className="px-4 py-14 text-center text-text-muted">添加 PDF 或已完成 OCR 的教材后，这里会出现统一任务队列。</td></tr>
+            {visibleRows.length === 0 && (
+              <tr><td colSpan={8} className="px-4 py-14 text-center text-text-muted">{rows.length === 0 ? '输入根目录并扫描后，这里会列出可选教材及 OCR 状态。' : '当前筛选条件下没有教材。'}</td></tr>
             )}
           </tbody>
         </table>

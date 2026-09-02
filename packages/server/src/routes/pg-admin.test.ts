@@ -1,13 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { strFromU8, unzipSync } from 'fflate';
 import { Hono } from 'hono';
 import type { Sql } from '../db/connection.js';
 import {
   PG_ADMIN_DATASET_ADVISORY_LOCK_SQL,
   PG_ADMIN_EXPORT_MAX_BYTES,
   PG_ADMIN_PIPELINE_MUTATION_LOCK_SQL,
+  PG_ADMIN_TABLES,
   isPgAdminTable,
   isPgAdminTableMutable,
+  pgAdminBookScopePredicate,
   quoteIdentifier,
   registerPgAdminRoutes,
   rowDeleteConfirmation,
@@ -140,6 +143,16 @@ test('PG admin catalog advertises the enforced export size limit', async () => {
   assert.equal(response.status, 200);
   const payload = await response.json() as { export_max_bytes: number };
   assert.equal(payload.export_max_bytes, PG_ADMIN_EXPORT_MAX_BYTES);
+  assert.equal(payload.export_max_bytes, 512 * 1024 * 1024);
+});
+
+test('PG admin configures every export table for optional textbook scoping', () => {
+  const globalTables = new Set(['world_datasets', 'world_enrich_library', 'world_enrich_books', 'world_taxonomy_terms', 'world_taxonomy_edges']);
+  for (const table of PG_ADMIN_TABLES) {
+    const predicate = pgAdminBookScopePredicate(table);
+    if (globalTables.has(table)) assert.equal(predicate, '', table);
+    else assert.match(predicate, /\$2::text\[\]/, table);
+  }
 });
 
 test('PG admin exports selected tables from one bounded repeatable-read snapshot', async () => {
@@ -204,6 +217,73 @@ test('PG admin preserves exact JSONB numeric tokens in exported rows', async () 
   assert.doesNotMatch(json, /9007199254740992|1234567890\.1234567(?:\D|$)/);
 });
 
+test('PG admin limits table exports to selected textbooks and records the scope', async () => {
+  const { sql, unsafeCalls } = routeSql({
+    exportRows: {
+      world_datasets: [{ dataset_id: 'main' }],
+      world_nodes: [{ dataset_id: 'main', id: 'node-1', name: 'Motion' }],
+    },
+  });
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tables: ['world_datasets', 'world_nodes'], include_books: false, book_ids: ['book-a', 'book-a'] }),
+  });
+
+  assert.equal(response.status, 200);
+  const payload = await response.json() as { book_ids: string[]; tables: Record<string, { rows: unknown[] }> };
+  assert.deepEqual(payload.book_ids, ['book-a']);
+  assert.equal(payload.tables.world_datasets?.rows.length, 1);
+  assert.equal(payload.tables.world_nodes?.rows.length, 1);
+  assert.equal(unsafeCalls.length, 4);
+  const globalCalls = unsafeCalls.filter((call) => call.query.includes('"world_datasets"'));
+  assert.equal(globalCalls.length, 2);
+  for (const call of globalCalls) {
+    assert.doesNotMatch(call.query, /\$2/);
+    assert.deepEqual(call.values, ['main']);
+  }
+  const scopedCalls = unsafeCalls.filter((call) => call.query.includes('"world_nodes"'));
+  assert.equal(scopedCalls.length, 2);
+  for (const call of scopedCalls) {
+    assert.match(call.query, /world_canonical_node_map/);
+    assert.match(call.query, /lr\.book_id = ANY\(\$2::text\[\]\)/);
+    assert.deepEqual(call.values, ['main', ['book-a']]);
+  }
+});
+
+test('PG admin can package every selected table as an individual JSON file', async () => {
+  const { sql } = routeSql({
+    exportRowJson: {
+      world_nodes: ['{"dataset_id":"main","id":"node-1","properties_json":{"exact":9007199254740993}}'],
+      world_evidence: ['{"dataset_id":"main","id":"evidence-1","source_id":"book-a"}'],
+    },
+  });
+  const app = new Hono();
+  registerPgAdminRoutes(app, sql);
+
+  const response = await app.request('/api/source/main/pg/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tables: ['world_nodes', 'world_evidence'], include_books: true, format: 'separate' }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Content-Type'), 'application/zip');
+  assert.match(response.headers.get('Content-Disposition') ?? '', /^attachment; filename="okm-pg-main-\d{4}-\d{2}-\d{2}-tables\.zip"$/);
+  const files = unzipSync(new Uint8Array(await response.arrayBuffer()));
+  assert.deepEqual(Object.keys(files).sort(), ['books.json', 'manifest.json', 'world_evidence.json', 'world_nodes.json']);
+  const manifest = JSON.parse(strFromU8(files['manifest.json']!)) as { format: string; files: string[] };
+  assert.equal(manifest.format, 'separate-json');
+  assert.deepEqual(manifest.files, ['books.json', 'world_nodes.json', 'world_evidence.json']);
+  assert.match(strFromU8(files['books.json']!), /"type":"textbook-summary"/);
+  assert.match(strFromU8(files['world_nodes.json']!), /"table":"world_nodes"/);
+  assert.match(strFromU8(files['world_nodes.json']!), /"exact":9007199254740993/);
+  assert.match(strFromU8(files['world_evidence.json']!), /"table":"world_evidence"/);
+});
+
 test('PG admin rejects oversized exports before materializing table rows', async () => {
   const { sql, unsafeCalls, transactionOptions } = routeSql({
     exportJsonBytes: { world_nodes: PG_ADMIN_EXPORT_MAX_BYTES + 1 },
@@ -218,7 +298,7 @@ test('PG admin rejects oversized exports before materializing table rows', async
   });
 
   assert.equal(response.status, 413);
-  assert.match((await response.json() as { error: string }).error, /limit is 32 MiB.*Select fewer tables/);
+  assert.match((await response.json() as { error: string }).error, /limit is 512 MiB.*Select fewer tables/);
   assert.deepEqual(transactionOptions, ['ISOLATION LEVEL REPEATABLE READ READ ONLY']);
   assert.equal(unsafeCalls.length, 1);
   assert.match(unsafeCalls[0]?.query ?? '', /AS json_bytes FROM "world_nodes"/);
@@ -239,7 +319,7 @@ test('PG admin rejects oversized book summaries before loading the aggregate pay
   });
 
   assert.equal(response.status, 413);
-  assert.match((await response.json() as { error: string }).error, /limit is 32 MiB.*Select fewer tables/);
+  assert.match((await response.json() as { error: string }).error, /limit is 512 MiB.*Select fewer tables/);
   assert.deepEqual(transactionOptions, ['ISOLATION LEVEL REPEATABLE READ READ ONLY']);
   assert.equal(unsafeCalls.length, 0);
   assert.equal(queryCalls.filter((call) => call.query.includes('book_export_rows')).length, 1);
@@ -266,6 +346,22 @@ test('PG admin export rejects empty and unsupported selections without reading t
   });
   assert.equal(unsupportedResponse.status, 400);
   assert.match((await unsupportedResponse.json() as { error: string }).error, /unsupported PostgreSQL table/);
+
+  const emptyBookScopeResponse = await app.request('/api/source/main/pg/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tables: ['world_nodes'], include_books: false, book_ids: [] }),
+  });
+  assert.equal(emptyBookScopeResponse.status, 400);
+  assert.match((await emptyBookScopeResponse.json() as { error: string }).error, /book_ids must be a non-empty array/);
+
+  const invalidFormatResponse = await app.request('/api/source/main/pg/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tables: ['world_nodes'], include_books: false, format: 'csv' }),
+  });
+  assert.equal(invalidFormatResponse.status, 400);
+  assert.match((await invalidFormatResponse.json() as { error: string }).error, /Unsupported export format/);
   assert.equal(unsafeCalls.length, 0);
 });
 
@@ -372,7 +468,7 @@ test('book deletion targets canonical nodes created or queued for review by the 
   assert.match(targetNodeQuery.query, /cm\.resolution IN \('created', 'review'\)/);
 });
 
-test('book deletion rejects matched-only mappings whose reducer outputs cannot be attributed safely', async () => {
+test('book deletion rejects match-only mappings whose source textbook cannot be attributed safely', async () => {
   const { sql } = routeSql({ matchedOnlyCount: 1 });
   const app = new Hono();
   registerPgAdminRoutes(app, sql);
@@ -383,7 +479,7 @@ test('book deletion rejects matched-only mappings whose reducer outputs cannot b
     body: JSON.stringify({ confirmation: 'DELETE BOOK book-1' }),
   });
   assert.equal(response.status, 409);
-  assert.match((await response.json() as { error: string }).error, /matched.*schema.*reducer/);
+  assert.match((await response.json() as { error: string }).error, /只有匹配记录.*无法安全判断.*教材产生/);
 });
 
 test('book deletion discovers merge runs from selection JSON when lessons have no node mappings', async () => {

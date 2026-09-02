@@ -3,19 +3,14 @@ import {
   CanvasEvent,
   CommonEvent,
   Graph as G6Graph,
-  GraphEvent,
   NodeEvent,
   type GraphData,
-  type LayoutOptions,
 } from '@antv/g6';
 import type { G6EdgePair } from '@/lib/graph-adapter';
 import type { ThemeMode } from '@/core/graph/types';
 import {
   clampGraphDevicePixelRatio,
-  reuseGraphNodePositions,
-  resolveLightweightForceLayout,
   resolveStyledPreviewNodeId,
-  seedGraphNodePositions,
   positionGraphPreset,
   type GraphPresetPositioning,
 } from '@/lib/graph-performance';
@@ -24,7 +19,6 @@ interface UseG6Options {
   onNodeClick?: (nodeId: string) => void;
   onNodeHover?: (nodeId: string | null) => void;
   onStageClick?: () => void;
-  onLayoutRunningChange?: (running: boolean) => void;
   selectedNodeId: string | null;
   searchHitIds: Set<string>;
   previewNodeId: string | null;
@@ -36,7 +30,7 @@ interface SetGraphPayload {
   data: GraphData;
   nodeIds: string[];
   edgePairs: G6EdgePair[];
-  positioning?: GraphPresetPositioning;
+  positioning: GraphPresetPositioning;
 }
 
 const VIEWPORT_ANIMATION = { duration: 360, easing: 'ease-in-out' as const };
@@ -98,11 +92,12 @@ function createStyleSnapshot(data: GraphData): GraphStyleSnapshot {
 
 function getBaseNodeStyle(snapshot: GraphStyleSnapshot | null, nodeId: string, showLabels: boolean): ElementStyle {
   const base = cloneStyle(snapshot?.nodeStyles.get(nodeId));
+  const labelVisible = showLabels && base.label !== false;
   return {
     ...base,
-    label: showLabels,
+    label: labelVisible,
     opacity: 1,
-    labelOpacity: 1,
+    labelOpacity: labelVisible ? 1 : 0,
     zIndex: DEFAULT_NODE_Z_INDEX,
     halo: base.halo ?? false,
     haloStrokeOpacity: base.haloStrokeOpacity ?? 0,
@@ -124,22 +119,15 @@ function waitForNextFrame(): Promise<void> {
   });
 }
 
-function getDefaultLayout(nodeCount = 0): LayoutOptions {
-  const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-  return resolveLightweightForceLayout(prefersReducedMotion, nodeCount);
-}
-
 export function useG6(options: UseG6Options) {
   const styledPreviewNodeId = resolveStyledPreviewNodeId(options.searchHitIds, options.previewNodeId);
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<G6Graph | null>(null);
   const dataRef = useRef<SetGraphPayload | null>(null);
-  const stopLayoutWaitRef = useRef<(() => void) | null>(null);
   const callbacksRef = useRef({
     onNodeClick: options.onNodeClick,
     onNodeHover: options.onNodeHover,
     onStageClick: options.onStageClick,
-    onLayoutRunningChange: options.onLayoutRunningChange,
   });
   const selectedNodeRef = useRef<string | null>(options.selectedNodeId);
   const searchHitIdsRef = useRef<Set<string>>(options.searchHitIds);
@@ -172,7 +160,6 @@ export function useG6(options: UseG6Options) {
   const enqueueGraphMutation = useCallback((mutation: () => Promise<void>): Promise<void> => {
     const operation = graphMutationQueueRef.current.catch(() => undefined).then(mutation);
     const guardedOperation = operation.catch((error: unknown) => {
-      callbacksRef.current.onLayoutRunningChange?.(false);
       console.error('图谱更新失败', error);
     });
     graphMutationQueueRef.current = guardedOperation;
@@ -196,37 +183,13 @@ export function useG6(options: UseG6Options) {
     callbacksRef.current.onStageClick?.();
   }, []);
 
-  const stopActiveLayout = useCallback(() => {
-    const stopWaiting = stopLayoutWaitRef.current;
-    if (stopWaiting) {
-      graphRef.current?.stopLayout();
-      stopWaiting();
-    }
-    stopLayoutWaitRef.current = null;
-    callbacksRef.current.onLayoutRunningChange?.(false);
-  }, []);
-
-  const waitForLayout = useCallback(async (operation: () => Promise<void>) => {
-    let stopWaiting = () => {};
-    const stopped = new Promise<void>((resolve) => {
-      stopWaiting = resolve;
-    });
-    stopLayoutWaitRef.current = stopWaiting;
-    try {
-      await Promise.race([operation(), stopped]);
-    } finally {
-      if (stopLayoutWaitRef.current === stopWaiting) stopLayoutWaitRef.current = null;
-    }
-  }, []);
-
   useEffect(() => {
     callbacksRef.current = {
       onNodeClick: options.onNodeClick,
       onNodeHover: options.onNodeHover,
       onStageClick: options.onStageClick,
-      onLayoutRunningChange: options.onLayoutRunningChange,
     };
-  }, [options.onNodeClick, options.onNodeHover, options.onStageClick, options.onLayoutRunningChange]);
+  }, [options.onNodeClick, options.onNodeHover, options.onStageClick]);
 
   useEffect(() => {
     selectedNodeRef.current = options.selectedNodeId;
@@ -305,6 +268,8 @@ export function useG6(options: UseG6Options) {
                 ...baseStyle,
                 lineWidth: 3,
                 strokeOpacity: 0.92,
+                label: showLabelsRef.current,
+                labelOpacity: showLabelsRef.current ? 1 : 0,
                 zIndex: 10,
               },
             });
@@ -316,6 +281,8 @@ export function useG6(options: UseG6Options) {
                 ...baseStyle,
                 lineWidth: 3,
                 strokeOpacity: 0.92,
+                label: showLabelsRef.current,
+                labelOpacity: showLabelsRef.current ? 1 : 0,
                 zIndex: 10,
               },
             });
@@ -342,6 +309,8 @@ export function useG6(options: UseG6Options) {
               id: nodeId,
               style: {
                 ...baseStyle,
+                label: showLabelsRef.current,
+                labelOpacity: showLabelsRef.current ? 1 : 0,
                 lineWidth: 4,
                 halo: true,
                 haloLineWidth: 16,
@@ -354,6 +323,8 @@ export function useG6(options: UseG6Options) {
               id: nodeId,
               style: {
                 ...baseStyle,
+                label: showLabelsRef.current,
+                labelOpacity: showLabelsRef.current ? 1 : 0,
                 lineWidth: 3,
                 halo: true,
                 haloLineWidth: 10,
@@ -366,6 +337,7 @@ export function useG6(options: UseG6Options) {
               id: nodeId,
               style: {
                 ...baseStyle,
+                label: showLabelsRef.current,
                 opacity: isPreview ? 0.92 : 0.62,
                 labelOpacity: showLabelsRef.current ? (isPreview ? 1 : 0.78) : 0,
                 lineWidth: isPreview ? 4 : 2.5,
@@ -418,6 +390,8 @@ export function useG6(options: UseG6Options) {
               id: nodeId,
               style: {
                 ...baseStyle,
+                label: showLabelsRef.current,
+                labelOpacity: showLabelsRef.current ? 1 : 0,
                 lineWidth: 4,
                 halo: true,
                 haloLineWidth: 16,
@@ -430,6 +404,7 @@ export function useG6(options: UseG6Options) {
               id: nodeId,
               style: {
                 ...baseStyle,
+                label: showLabelsRef.current,
                 opacity: 0.95,
                 labelOpacity: showLabelsRef.current ? 1 : 0,
                 lineWidth: 3,
@@ -444,6 +419,7 @@ export function useG6(options: UseG6Options) {
               id: nodeId,
               style: {
                 ...baseStyle,
+                label: showLabelsRef.current,
                 opacity: 0.72,
                 labelOpacity: showLabelsRef.current ? 0.7 : 0,
                 lineWidth: 2,
@@ -493,7 +469,6 @@ export function useG6(options: UseG6Options) {
       theme: getThemeName(options.themeMode),
       animation: ELEMENT_UPDATE_ANIMATION,
       data: { nodes: [], edges: [] },
-      layout: getDefaultLayout(),
       node: {
         type: 'circle',
       },
@@ -504,8 +479,11 @@ export function useG6(options: UseG6Options) {
         'drag-canvas',
         'zoom-canvas',
         'drag-element',
-        'auto-adapt-label',
-        'optimize-viewport-transform',
+        {
+          type: 'optimize-viewport-transform',
+          shapes: { node: ['key'] },
+          debounce: 120,
+        },
       ],
     });
 
@@ -585,21 +563,7 @@ export function useG6(options: UseG6Options) {
     container.addEventListener('pointerdown', onContainerPointerDown);
     container.addEventListener('pointermove', onContainerPointerMove);
     container.addEventListener('pointerup', onContainerPointerUp);
-    graph.on(GraphEvent.BEFORE_LAYOUT, () => {
-      callbacksRef.current.onLayoutRunningChange?.(true);
-    });
-    graph.on(GraphEvent.AFTER_LAYOUT, () => {
-      callbacksRef.current.onLayoutRunningChange?.(false);
-    });
-
     return () => {
-      const stopWaiting = stopLayoutWaitRef.current;
-      if (stopWaiting) {
-        graph.stopLayout();
-        stopWaiting();
-      }
-      stopLayoutWaitRef.current = null;
-      callbacksRef.current.onLayoutRunningChange?.(false);
       container.removeEventListener('pointerdown', onContainerPointerDown);
       container.removeEventListener('pointermove', onContainerPointerMove);
       container.removeEventListener('pointerup', onContainerPointerUp);
@@ -631,7 +595,6 @@ export function useG6(options: UseG6Options) {
   const setGraph = useCallback((payload: SetGraphPayload): Promise<void> => {
     const token = ++renderTokenRef.current;
     selectionVersionRef.current += 1;
-    stopActiveLayout();
     return enqueueGraphMutation(async () => {
       const graph = graphRef.current;
       if (!graph || graph.destroyed || token !== renderTokenRef.current) return;
@@ -644,73 +607,32 @@ export function useG6(options: UseG6Options) {
             Math.max(0, (containerBounds?.width ?? 0) / 2),
             Math.max(0, (containerBounds?.height ?? 0) / 2),
           ];
-      if (payload.positioning) {
-        const positionedData = positionGraphPreset(payload.data, { x: centerX, y: centerY }, payload.positioning);
-        const nextPayload = { ...payload, data: positionedData };
-        dataRef.current = nextPayload;
-        styleSnapshotRef.current = createStyleSnapshot(nextPayload.data);
-        graph.setData(nextPayload.data);
-        await graph.draw();
-        if (
-          token !== renderTokenRef.current ||
-          graphRef.current !== graph ||
-          graph.destroyed
-        ) return;
-        applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
-        await graph.fitView({ when: 'always', direction: 'both' }, VIEWPORT_ANIMATION);
-        if (payload.positioning.type === 'radial-focus' && payload.positioning.viewportRightInset) {
-          const viewportWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
-          const availableWidthRatio = viewportWidth > 0
-            ? Math.max(0.1, (viewportWidth - payload.positioning.viewportRightInset - 48) / viewportWidth)
-            : 1;
-          const visibleRatio = viewportWidth > 0
-            ? Math.max(0.7, Math.min(0.95, Math.sqrt(Math.sqrt(availableWidthRatio))))
-            : 1;
-          await graph.zoomBy(visibleRatio, false);
-          await graph.translateBy([-payload.positioning.viewportRightInset / 2, 0], VIEWPORT_ANIMATION);
-        }
-        callbacksRef.current.onLayoutRunningChange?.(false);
-        return;
-      }
-      const positionResult = reuseGraphNodePositions(
-        payload.data,
-        previousPayload ? graph.getNodeData() : [],
-        { x: centerX, y: centerY },
-      );
-      const positionedData = positionResult.shouldReusePositions
-        ? positionResult.data
-        : seedGraphNodePositions(positionResult.data, { x: centerX, y: centerY });
+      const positionedData = positionGraphPreset(payload.data, { x: centerX, y: centerY }, payload.positioning);
       const nextPayload = { ...payload, data: positionedData };
       dataRef.current = nextPayload;
       styleSnapshotRef.current = createStyleSnapshot(nextPayload.data);
       graph.setData(nextPayload.data);
-      const layout = getDefaultLayout(payload.nodeIds.length);
-      graph.setLayout(layout);
-
-      try {
-        if (positionResult.shouldReusePositions) {
-          await graph.draw();
-          callbacksRef.current.onLayoutRunningChange?.(true);
-          await waitForLayout(() => graph.layout(layout));
-        } else {
-          callbacksRef.current.onLayoutRunningChange?.(true);
-          await waitForLayout(() => graph.render());
-        }
-        if (
-          token !== renderTokenRef.current ||
-          graphRef.current !== graph ||
-          graph.destroyed
-        ) return;
-        applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
-      } finally {
-        if (
-          token === renderTokenRef.current &&
-          graphRef.current === graph &&
-          !graph.destroyed
-        ) callbacksRef.current.onLayoutRunningChange?.(false);
+      await graph.draw();
+      if (
+        token !== renderTokenRef.current ||
+        graphRef.current !== graph ||
+        graph.destroyed
+      ) return;
+      applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
+      await graph.fitView({ when: 'always', direction: 'both' }, VIEWPORT_ANIMATION);
+      if (payload.positioning.type === 'radial-focus' && payload.positioning.viewportRightInset) {
+        const viewportWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
+        const availableWidthRatio = viewportWidth > 0
+          ? Math.max(0.1, (viewportWidth - payload.positioning.viewportRightInset - 48) / viewportWidth)
+          : 1;
+        const visibleRatio = viewportWidth > 0
+          ? Math.max(0.7, Math.min(0.95, Math.sqrt(Math.sqrt(availableWidthRatio))))
+          : 1;
+        await graph.zoomBy(visibleRatio, false);
+        await graph.translateBy([-payload.positioning.viewportRightInset / 2, 0], VIEWPORT_ANIMATION);
       }
     });
-  }, [applySelectionStyle, enqueueGraphMutation, stopActiveLayout, waitForLayout]);
+  }, [applySelectionStyle, enqueueGraphMutation]);
 
   const zoomIn = useCallback(() => {
     void graphRef.current?.zoomBy(1.35, VIEWPORT_ANIMATION);
@@ -744,45 +666,6 @@ export function useG6(options: UseG6Options) {
     void graphRef.current?.focusElement(nodeId, VIEWPORT_ANIMATION);
   }, []);
 
-  const startLayout = useCallback(() => {
-    const token = renderTokenRef.current;
-    selectionVersionRef.current += 1;
-    void enqueueGraphMutation(async () => {
-      const graph = graphRef.current;
-      const payload = dataRef.current;
-      if (
-        !graph ||
-        graph.destroyed ||
-        token !== renderTokenRef.current ||
-        !payload ||
-        payload.nodeIds.length === 0
-      ) return;
-
-      callbacksRef.current.onLayoutRunningChange?.(true);
-      try {
-        const layout = getDefaultLayout(payload.nodeIds.length);
-        graph.setLayout(layout);
-        await waitForLayout(() => graph.layout(layout));
-        if (
-          token !== renderTokenRef.current ||
-          graphRef.current !== graph ||
-          graph.destroyed
-        ) return;
-        applySelectionStyle(selectedNodeRef.current, searchHitIdsRef.current, previewNodeIdRef.current);
-      } finally {
-        if (
-          token === renderTokenRef.current &&
-          graphRef.current === graph &&
-          !graph.destroyed
-        ) callbacksRef.current.onLayoutRunningChange?.(false);
-      }
-    });
-  }, [applySelectionStyle, enqueueGraphMutation, waitForLayout]);
-
-  const stopLayout = useCallback(() => {
-    stopActiveLayout();
-  }, [stopActiveLayout]);
-
   return {
     containerRef,
     graphRef,
@@ -791,8 +674,6 @@ export function useG6(options: UseG6Options) {
     zoomOut,
     focusNode,
     fitToScreen,
-    startLayout,
-    stopLayout,
     containerReady,
   };
 }

@@ -5,10 +5,16 @@ import {
   buildPipelineBatchStartRequest,
   buildConfirmedExtractionRequest,
   buildPipelineBookWorkbenchRows,
+  isOutlineReviewReady,
   MAX_ACTIVE_PIPELINE_JOBS,
+  reconcileScannedQueueSnapshot,
   reconcileTerminalBatchQueue,
+  resolvePipelineResumeStage,
   resolvePipelineStartBookId,
+  resolveOutlineExtractionStatus,
   selectBatchLaunchCandidates,
+  selectBatchResumeCandidates,
+  selectOutlineBatchJobs,
 } from '../src/lib/pipeline-start.ts';
 
 function job(bookId: string, status: PipelineJobSummary['status']): PipelineJobSummary {
@@ -40,6 +46,88 @@ test('batch launch candidates are unique by book and exclude the latest running 
     selectBatchLaunchCandidates(queue, [job('physics', 'running'), job('physics', 'completed')]).map((item) => item.id),
     ['chem-a'],
   );
+});
+
+test('outline review candidates stay scoped to the selected batch and include the active job', () => {
+  const first = { ...job('math-a', 'completed'), job_id: 'job-a', current_stage_id: 'prepare_outline_chunks' };
+  const second = { ...job('math-b', 'completed'), job_id: 'job-b', current_stage_id: 'prepare_outline_chunks' };
+  const unrelated = { ...job('physics', 'completed'), job_id: 'job-c', current_stage_id: 'prepare_outline_chunks' };
+  assert.deepEqual(
+    selectOutlineBatchJobs([first, second, unrelated], ['job-b', 'job-a', 'missing', 'job-b'], 'job-c').map((item) => item.job_id),
+    ['job-c', 'job-b', 'job-a'],
+  );
+});
+
+test('outline review candidates recover the current preparation batch after a reload', () => {
+  const first = {
+    ...job('math-a', 'completed'),
+    job_id: 'job-a',
+    current_stage_id: 'prepare_outline_chunks',
+    created_at: '2026-09-01T10:00:00.000Z',
+  };
+  const second = {
+    ...job('math-b', 'completed'),
+    job_id: 'job-b',
+    current_stage_id: 'prepare_outline_chunks',
+    created_at: '2026-09-01T10:02:00.000Z',
+  };
+  const old = {
+    ...job('old-book', 'completed'),
+    job_id: 'job-old',
+    current_stage_id: 'prepare_outline_chunks',
+    created_at: '2026-08-31T10:00:00.000Z',
+  };
+  assert.deepEqual(
+    selectOutlineBatchJobs([old, second, first], [], 'job-b').map((item) => item.job_id),
+    ['job-a', 'job-b'],
+  );
+});
+
+test('outline review appears only for completed preparation jobs', () => {
+  assert.equal(isOutlineReviewReady({
+    status: 'completed',
+    currentStageId: 'prepare_outline_chunks',
+  }), true);
+  assert.equal(isOutlineReviewReady({
+    status: 'completed',
+    currentStageId: 'quality_dashboard',
+    prepareOnly: true,
+  }), true);
+  assert.equal(isOutlineReviewReady({
+    status: 'running',
+    currentStageId: 'prepare_outline_chunks',
+  }), false);
+  assert.equal(isOutlineReviewReady({
+    status: 'completed',
+    currentStageId: 'quality_dashboard',
+  }), false);
+});
+
+test('outline extraction status remains active while the new job status is loading', () => {
+  assert.equal(resolveOutlineExtractionStatus({
+    launching: true, extractionJobId: null, selectedJobId: null, jobStatus: null,
+  }), 'starting');
+  assert.equal(resolveOutlineExtractionStatus({
+    launching: false, extractionJobId: 'extract-1', selectedJobId: 'extract-1', jobStatus: null,
+  }), 'starting');
+  assert.equal(resolveOutlineExtractionStatus({
+    launching: false,
+    extractionJobId: 'extract-1',
+    selectedJobId: 'extract-1',
+    jobStatus: { ...job('math', 'running'), job_id: 'extract-1', book_id: 'math', status: 'running', context: {}, progress: {}, stages: [], current_stage: null, worker_states: [], recent_events: [], updated_at: null, completed_at: null },
+  }), 'running');
+  assert.equal(resolveOutlineExtractionStatus({
+    launching: false,
+    extractionJobId: 'extract-1',
+    selectedJobId: 'extract-1',
+    jobStatus: { ...job('math', 'completed'), job_id: 'extract-1', book_id: 'math', status: 'completed', context: {}, progress: {}, stages: [], current_stage: null, worker_states: [], recent_events: [], updated_at: null, completed_at: null },
+  }), 'completed');
+  assert.equal(resolveOutlineExtractionStatus({
+    launching: false,
+    extractionJobId: 'extract-1',
+    selectedJobId: 'extract-1',
+    jobStatus: { ...job('math', 'blocked'), job_id: 'extract-1', book_id: 'math', status: 'blocked', context: {}, progress: {}, stages: [], current_stage: null, worker_states: [], recent_events: [], updated_at: null, completed_at: null },
+  }), 'blocked');
 });
 
 test('batch launch candidates use only the remaining active job slots', () => {
@@ -134,6 +222,27 @@ test('fresh and resumed starts preserve the selected textbook identifier', () =>
   assert.equal(resolvePipelineStartBookId('', null, false), undefined);
 });
 
+test('batch resume fills free slots with resumable blocked jobs', () => {
+  const jobs = [
+    { ...job('running-book', 'running'), current_stage_id: 'lesson_staging' },
+    { ...job('math-7-up', 'blocked'), current_stage_id: 'pedagogical_profiles' },
+    { ...job('math-9-up', 'blocked'), current_stage_id: 'strict_qa' },
+    { ...job('math-9-down', 'blocked'), current_stage_id: 'lesson_staging_retry_2' },
+    { ...job('unknown-stage', 'blocked'), current_stage_id: 'custom_stage' },
+    { ...job('extra', 'blocked'), current_stage_id: 'node_embeddings' },
+  ];
+
+  assert.deepEqual(
+    selectBatchResumeCandidates(jobs).map(({ job: candidate, startStage }) => [candidate.book_id, startStage]),
+    [
+      ['math-7-up', 'pedagogical_profiles'],
+      ['math-9-up', 'strict_qa'],
+      ['math-9-down', 'staging_quality'],
+    ],
+  );
+  assert.equal(resolvePipelineResumeStage('assessment_staging_retry_1'), 'assessment_quality');
+});
+
 test('batch requests keep shared runtime settings but infer metadata for each book', () => {
   const request = buildPipelineBatchStartRequest({
     book_id: 'chemistry',
@@ -186,6 +295,7 @@ test('batch OCR requests clear stale PDF fields and forward the OCR folder', () 
     book_id: 'math-grade7',
     book_title: '七年级数学上册',
     ocr_folder_path: '/data/math/hybrid_ocr',
+    ocr_import_mode: 'in_place',
     enrich_context: false,
     prepare_only: true,
     parallelism: 4,
@@ -231,4 +341,56 @@ test('workbench rows preserve every duplicate-ID queue entry', () => {
     ['first', '/tmp/a.pdf', true],
     ['second', '/tmp/b.pdf', false],
   ]);
+});
+
+test('folder rescans replace the previous scan snapshot and preserve explicit sources', () => {
+  const current = [
+    { id: '/disk02/math.pdf', queueOrigin: 'scan' as const, bookId: 'math', title: '数学', pdfPath: '/disk02/math.pdf', sizeBytes: 10, selected: false, status: 'ready' as const, progress: 100, error: '' },
+    { id: '/disk02/removed.pdf', queueOrigin: 'scan' as const, bookId: 'removed', title: '已删除', pdfPath: '/disk02/removed.pdf', sizeBytes: 10, selected: false, status: 'ready' as const, progress: 100, error: '' },
+    { id: 'upload:physics', queueOrigin: 'upload' as const, bookId: 'physics', title: '物理', pdfPath: '/uploads/physics.pdf', sizeBytes: 20, selected: true, status: 'ready' as const, progress: 100, error: '' },
+  ];
+  const scanned = [
+    { id: '/disk06/math.pdf', queueOrigin: 'scan' as const, bookId: 'math', title: '数学', pdfPath: '/disk06/math.pdf', sizeBytes: 10, selected: false, status: 'ready' as const, progress: 100, error: '' },
+    { id: '/disk06/chemistry.pdf', queueOrigin: 'scan' as const, bookId: 'chemistry', title: '化学', pdfPath: '/disk06/chemistry.pdf', sizeBytes: 30, selected: false, status: 'ready' as const, progress: 100, error: '' },
+  ];
+
+  assert.deepEqual(
+    reconcileScannedQueueSnapshot(current, scanned).map((item) => item.id),
+    ['upload:physics', '/disk06/math.pdf', '/disk06/chemistry.pdf'],
+  );
+});
+
+test('folder rescans keep review state for unchanged paths', () => {
+  const current = [{
+    id: '/disk06/math.pdf',
+    queueOrigin: 'scan' as const,
+    bookId: 'math',
+    title: '旧标题',
+    pdfPath: '/disk06/math.pdf',
+    sizeBytes: 10,
+    selected: true,
+    status: 'ready' as const,
+    progress: 100,
+    error: '',
+    enrichContext: true,
+    enrichBookPath: '/enrich/math.json',
+  }];
+  const scanned = [{
+    id: '/disk06/math.pdf',
+    queueOrigin: 'scan' as const,
+    bookId: 'math',
+    title: '当前硬盘标题',
+    pdfPath: '/disk06/math.pdf',
+    sizeBytes: 12,
+    selected: false,
+    status: 'ready' as const,
+    progress: 100,
+    error: '',
+  }];
+
+  assert.deepEqual(reconcileScannedQueueSnapshot(current, scanned)[0], {
+    ...current[0],
+    title: '当前硬盘标题',
+    sizeBytes: 12,
+  });
 });

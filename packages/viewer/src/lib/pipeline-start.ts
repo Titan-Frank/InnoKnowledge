@@ -1,14 +1,132 @@
-import type { PgAdminBookSummary, PipelineJobSummary, PipelineStartRequest } from '@okm/types';
+import type { PgAdminBookSummary, PipelineJobStatusResponse, PipelineJobSummary, PipelineStartRequest, PipelineStartStage } from '@okm/types';
 
 export type PipelineQueueStatus = 'uploading' | 'ready' | 'starting' | 'started' | 'error';
 export type PipelineSourceKind = 'pdf' | 'ocr';
+export type PipelineQueueOrigin = 'scan' | 'upload' | 'manual_ocr';
 
 export const MAX_ACTIVE_PIPELINE_JOBS = 4;
+export type OutlineExtractionStatus = 'idle' | 'starting' | 'running' | 'completed' | 'blocked';
+const OUTLINE_PREPARATION_STAGE_IDS = new Set([
+  'check_postgres',
+  'mineru_source_markdown',
+  'extract_pdf_outline',
+  'prepare_source_markdown',
+  'ensure_outline',
+  'prepare_outline_chunks',
+]);
+
+export function isOutlineReviewReady(input: {
+  status: string;
+  currentStageId?: string | null;
+  prepareOnly?: unknown;
+}): boolean {
+  return input.status === 'completed'
+    && (input.currentStageId === 'prepare_outline_chunks' || input.prepareOnly === true);
+}
+
+export function resolveOutlineExtractionStatus(input: {
+  launching: boolean;
+  extractionJobId: string | null;
+  selectedJobId: string | null;
+  jobStatus: PipelineJobStatusResponse | null;
+}): OutlineExtractionStatus {
+  if (input.launching) return 'starting';
+  if (!input.extractionJobId) return 'idle';
+  if (input.selectedJobId !== input.extractionJobId || input.jobStatus?.job_id !== input.extractionJobId) return 'starting';
+  if (input.jobStatus.status === 'running') return 'running';
+  if (input.jobStatus.status === 'completed') return 'completed';
+  if (input.jobStatus.status === 'blocked') return 'blocked';
+  return 'starting';
+}
+
+export function selectOutlineBatchJobs(
+  jobs: PipelineJobSummary[],
+  batchJobIds: string[],
+  activeJobId?: string | null,
+): PipelineJobSummary[] {
+  const byId = new Map(jobs.map((job) => [job.job_id, job]));
+  const candidates = [...new Set(batchJobIds)].flatMap((jobId) => {
+    const job = byId.get(jobId);
+    return job ? [job] : [];
+  });
+  const activeJob = activeJobId ? byId.get(activeJobId) : null;
+  if (candidates.length === 0 && activeJob) {
+    const activeCreatedAt = Date.parse(activeJob.created_at || '');
+    if (Number.isFinite(activeCreatedAt)) {
+      jobs
+        .filter((job) => OUTLINE_PREPARATION_STAGE_IDS.has(job.current_stage_id || ''))
+        .filter((job) => {
+          const createdAt = Date.parse(job.created_at || '');
+          return Number.isFinite(createdAt) && Math.abs(createdAt - activeCreatedAt) <= 15 * 60 * 1000;
+        })
+        .sort((left, right) => (left.created_at || '').localeCompare(right.created_at || ''))
+        .forEach((job) => candidates.push(job));
+    }
+  }
+  if (activeJob && !candidates.some((job) => job.job_id === activeJob.job_id)) candidates.unshift(activeJob);
+  return candidates;
+}
+
+const RESUMABLE_PIPELINE_STAGE_IDS = new Set<PipelineStartStage>([
+  'mineru_source_markdown',
+  'extract_pdf_outline',
+  'prepare_source_markdown',
+  'ensure_outline',
+  'prepare_outline_chunks',
+  'lesson_plan',
+  'lesson_staging',
+  'staging_quality',
+  'canonical_commit',
+  'assessment_staging',
+  'assessment_quality',
+  'assessment_commit',
+  'normalize',
+  'node_bodies',
+  'pedagogical_profiles',
+  'node_embeddings',
+  'unit_embeddings',
+  'strict_qa',
+  'graph_integrity',
+  'quality_dashboard',
+]);
+
+export type PipelineBatchResumeCandidate = {
+  job: PipelineJobSummary;
+  startStage: PipelineStartStage;
+};
+
+export function resolvePipelineResumeStage(stageId?: string | null): PipelineStartStage | null {
+  if (!stageId || stageId === 'check_postgres') return 'mineru_source_markdown';
+  if (stageId.startsWith('lesson_staging_retry_transport_')) return 'lesson_staging';
+  if (stageId.startsWith('assessment_staging_retry_')) return 'assessment_quality';
+  if (stageId.startsWith('lesson_staging_retry_')) return 'staging_quality';
+  return RESUMABLE_PIPELINE_STAGE_IDS.has(stageId as PipelineStartStage)
+    ? stageId as PipelineStartStage
+    : null;
+}
+
+export function selectBatchResumeCandidates(
+  jobs: PipelineJobSummary[],
+  maxActiveJobs = MAX_ACTIVE_PIPELINE_JOBS,
+): PipelineBatchResumeCandidate[] {
+  const availableSlots = Math.max(
+    0,
+    Math.floor(maxActiveJobs) - jobs.filter((job) => job.status === 'running').length,
+  );
+  if (availableSlots === 0) return [];
+
+  return jobs.flatMap<PipelineBatchResumeCandidate>((job) => {
+    if (job.status !== 'blocked') return [];
+    const startStage = resolvePipelineResumeStage(job.current_stage_id);
+    return startStage ? [{ job, startStage }] : [];
+  }).slice(0, availableSlots);
+}
 
 export interface PipelineBatchQueueItem {
   id: string;
   bookId: string;
   title: string;
+  queueOrigin?: PipelineQueueOrigin;
   sourceFingerprint?: string;
   pdfPath: string;
   ocrFolderPath?: string;
@@ -22,6 +140,29 @@ export interface PipelineBatchQueueItem {
   status: PipelineQueueStatus;
   progress: number;
   error: string;
+}
+
+export function reconcileScannedQueueSnapshot<T extends PipelineBatchQueueItem>(
+  current: T[],
+  scanned: T[],
+): T[] {
+  const currentScannedById = new Map(
+    current.filter((item) => item.queueOrigin === 'scan').map((item) => [item.id, item]),
+  );
+  const explicitSources = current.filter((item) => item.queueOrigin !== 'scan');
+  const refreshedScanned = scanned.map((item) => {
+    const previous = currentScannedById.get(item.id);
+    if (!previous) return item;
+    return {
+      ...previous,
+      ...item,
+      selected: previous.selected,
+      status: previous.status,
+      progress: previous.progress,
+      error: previous.error,
+    };
+  });
+  return [...explicitSources, ...refreshedScanned];
 }
 
 export interface PipelineBookWorkbenchRow {

@@ -23,8 +23,8 @@ export type {
   PipelineQualityLessonRow, PipelineQualityDashboardResponse,
   PipelineQualityReviewAction, PipelineQualityReviewUpdateRequest, PipelineQualityReviewUpdateResponse,
   PipelineLessonBackendKind, PipelineExtractionTemplateId, PipelineStartStage, PipelineStartRequest, PipelineStartResponse, PipelinePdfUploadResponse,
-  PipelineOutlineReviewStatus, PipelineOutlinePreviewItem, PipelineOutlinePreviewResponse, PipelineOutlineChunkContentResponse,
-  PipelineOutlineConfirmRequest, PipelineOutlineConfirmResponse,
+  PipelineOutlineReviewStatus, PipelineOutlinePreviewItem, PipelineOutlineAlignmentReport, PipelineOutlinePreviewResponse, PipelineOutlineChunkContentResponse,
+  PipelineOutlineConfirmRequest, PipelineOutlineConfirmResponse, PipelineOutlineRejectRequest, PipelineOutlineRejectResponse,
   PipelineOcrImportQuality, PipelineOcrPreferredInput, PipelineOcrInspectRequest, PipelineOcrInspectResponse,
   TextbookReaderBlockType, TextbookReaderInlineSegment, TextbookReaderBlock, TextbookReaderEvidenceMatchKind,
   TextbookReaderEvidenceMatch, TextbookReaderRelatedUnit, TextbookReaderPageResponse,
@@ -38,7 +38,7 @@ export type {
   PgAdminColumn, PgAdminTable, PgAdminCatalogResponse, PgAdminRowsResponse,
   PgAdminUpdateRequest, PgAdminDeleteRequest, PgAdminMutationResponse,
   PgAdminBookSummary, PgAdminBooksResponse, PgAdminBookDeleteRequest, PgAdminBookDeleteResponse,
-  PgAdminExportRequest, PgAdminExportTable, PgAdminExportPayload,
+  PgAdminExportFormat, PgAdminExportRequest, PgAdminExportTable, PgAdminExportPayload,
 } from './api.js';
 
 export type {

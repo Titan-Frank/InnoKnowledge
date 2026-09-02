@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   ImageReviewAction,
   ImageReviewItem,
@@ -26,6 +26,7 @@ import {
   loadImageReviews,
   loadPipeline,
   loadPipelineQuality,
+  rejectPipelineOutline,
   updatePipelineQualityReview,
   startPipeline,
   stopPipeline,
@@ -67,8 +68,18 @@ import {
   BookOpen,
 } from '@/lib/lucide-icons';
 import { PipelineBookWorkbench } from './PipelineBookWorkbench';
+import { OutlineBatchCandidatesPanel } from './OutlineBatchCandidatesPanel';
 import { MarkdownView } from './MarkdownView';
-import { buildConfirmedExtractionRequest, buildPipelineBatchStartRequest } from '@/lib/pipeline-start';
+import {
+  buildConfirmedExtractionRequest,
+  buildPipelineBatchStartRequest,
+  isOutlineReviewReady,
+  resolveOutlineExtractionStatus,
+  resolvePipelineResumeStage,
+  selectBatchResumeCandidates,
+  selectOutlineBatchJobs,
+  type OutlineExtractionStatus,
+} from '@/lib/pipeline-start';
 import { pipelineTaskDetail, pipelineTaskLabel } from '@/lib/pipeline-task-label';
 
 type PipelineStep = {
@@ -557,26 +568,26 @@ function reviewCount(payload: PipelineResponse | null, imageReviews: ImageReview
 
 const stageLabels: Record<string, string> = {
   check_postgres: '检查数据库',
-  mineru_source_markdown: '准备 OCR / MinerU 来源',
-  extract_pdf_outline: '读取 PDF 目录',
-  prepare_source_markdown: '准备解析文本',
-  ensure_outline: '生成教材目录',
-  prepare_outline_chunks: '切分课时',
-  lesson_plan: '生成抽取任务',
-  lesson_staging: '模型抽取课时',
-  staging_quality: '检查暂存质量',
-  canonical_commit: '合并知识与总结证据',
-  assessment_staging: '关联题目与已有能力点',
+  mineru_source_markdown: '准备教材解析文本',
+  extract_pdf_outline: '读取教材目录',
+  prepare_source_markdown: '整理教材文本',
+  ensure_outline: '生成教材章节',
+  prepare_outline_chunks: '划分课时内容',
+  lesson_plan: '安排处理任务',
+  lesson_staging: '提取课时知识',
+  staging_quality: '检查课时结果',
+  canonical_commit: '合并正式知识',
+  assessment_staging: '匹配题目与能力点',
   assessment_quality: '检查题目关联质量',
-  assessment_commit: '写入题目能力点关联',
-  normalize: '归一化知识对象',
-  node_bodies: '生成知识正文',
-  pedagogical_profiles: '生成教学画像',
-  node_embeddings: '生成节点向量',
-  unit_embeddings: '生成单元向量',
-  strict_qa: '严格质检',
-  graph_integrity: '图谱完整性检查',
-  quality_dashboard: '生成质量仪表盘',
+  assessment_commit: '保存题目与能力点关联',
+  normalize: '整理知识数据',
+  node_bodies: '编写知识正文',
+  pedagogical_profiles: '生成分学段教学说明',
+  node_embeddings: '建立知识点语义索引',
+  unit_embeddings: '建立知识单元语义索引',
+  strict_qa: '最终质量检查',
+  graph_integrity: '检查知识关系',
+  quality_dashboard: '汇总质量结果',
 };
 
 function stageLabel(stageId: string | undefined): string {
@@ -589,37 +600,8 @@ function stageLabel(stageId: string | undefined): string {
   return stageLabels[stageId] || stageId;
 }
 
-const RESUMABLE_STAGE_IDS = new Set<PipelineStartStage>([
-  'mineru_source_markdown',
-  'extract_pdf_outline',
-  'prepare_source_markdown',
-  'ensure_outline',
-  'prepare_outline_chunks',
-  'lesson_plan',
-  'lesson_staging',
-  'staging_quality',
-  'canonical_commit',
-  'assessment_staging',
-  'assessment_quality',
-  'assessment_commit',
-  'normalize',
-  'node_bodies',
-  'pedagogical_profiles',
-  'node_embeddings',
-  'unit_embeddings',
-  'strict_qa',
-  'graph_integrity',
-  'quality_dashboard',
-]);
-
 function resumeStageFor(stageId?: string | null): PipelineStartStage | null {
-  if (!stageId || stageId === 'check_postgres') return 'mineru_source_markdown';
-  if (stageId.startsWith('lesson_staging_retry_transport_')) return 'lesson_staging';
-  if (stageId.startsWith('assessment_staging_retry_')) return 'assessment_quality';
-  if (stageId.startsWith('lesson_staging_retry_')) return 'staging_quality';
-  return RESUMABLE_STAGE_IDS.has(stageId as PipelineStartStage)
-    ? stageId as PipelineStartStage
-    : null;
+  return resolvePipelineResumeStage(stageId);
 }
 
 function stageIn(stage: PipelineJobStatusResponse['current_stage'], ids: readonly string[]): boolean {
@@ -640,9 +622,9 @@ function buildPipelineSteps(input: {
   const currentStageText = currentStage ? `正在${stageLabel(currentStage.id)}` : '';
   const ensureOutlineStage = findJobStage(currentJobStatus, ['ensure_outline']);
   const outlineCompletedDetail = ensureOutlineStage?.progress.source_kind === 'enrich'
-    ? `已用 Enrich 目录生成 ${Number(ensureOutlineStage.progress.lesson_count) || 0} 个课时`
+    ? `已用参考教材目录生成 ${Number(ensureOutlineStage.progress.lesson_count) || 0} 个课时`
     : ensureOutlineStage?.progress.enrich_fallback
-      ? 'Enrich 目录未完全对齐，已回退到教材正文目录'
+      ? '参考教材目录未完全对齐，已改用当前教材正文目录'
       : '课时任务已经生成';
   const lessonStage = findJobStage(currentJobStatus, lessonStageIds);
   const lessonRuntimeDetail = lessonStage ? lessonProgressText(lessonStage, currentJobStatus) : '';
@@ -656,7 +638,7 @@ function buildPipelineSteps(input: {
   return [
     {
       id: 'source',
-      label: 'PDF 与 MinerU',
+      label: '读取教材文件',
       detail: statuses.source === 'active'
         ? stageIn(currentStage, sourceStageIds) ? currentStageText : '正在启动本轮任务'
         : statuses.source === 'complete'
@@ -668,7 +650,7 @@ function buildPipelineSteps(input: {
     },
     {
       id: 'outline',
-      label: '目录与切分',
+      label: '划分章节课时',
       detail: statuses.outline === 'active' && stageIn(currentStage, outlineStageIds)
         ? currentStageText
         : statuses.outline === 'complete'
@@ -680,7 +662,7 @@ function buildPipelineSteps(input: {
     },
     {
       id: 'lesson',
-      label: '模型抽取',
+      label: '提取知识',
       detail: statuses.lesson === 'active' && lessonRuntimeDetail
         ? lessonRuntimeDetail
         : statuses.lesson === 'complete'
@@ -692,14 +674,14 @@ function buildPipelineSteps(input: {
     },
     {
       id: 'merge',
-      label: '合并与质检',
+      label: '整理与检查',
       detail: statuses.merge === 'active' && stageIn(currentStage, mergeStageIds)
         ? currentStageText
         : statuses.merge === 'complete'
-          ? '当前任务的合并与质检已经完成'
+          ? '当前任务的知识整理与检查已经完成'
           : statuses.merge === 'blocked'
-            ? '当前任务的合并或质检被阻断'
-            : '等待当前任务进入合并与质检',
+            ? '当前任务的知识整理或检查被阻断'
+            : '等待当前任务进入知识整理与检查',
       status: statuses.merge,
     },
     {
@@ -807,12 +789,15 @@ function PipelineJobListPanel({
   loading,
   starting,
   stopping,
+  batchResuming,
+  batchResumeCount,
   resumeStage,
   error,
   onSelect,
   onRefresh,
   onStop,
   onResume,
+  onResumeBlocked,
 }: {
   jobs: PipelineJobSummary[];
   selectedJobId: string | null;
@@ -820,12 +805,15 @@ function PipelineJobListPanel({
   loading: boolean;
   starting: boolean;
   stopping: boolean;
+  batchResuming: boolean;
+  batchResumeCount: number;
   resumeStage: PipelineStartStage | null;
   error: string;
   onSelect: (job: PipelineJobSummary) => void;
   onRefresh: () => void;
   onStop: () => void;
   onResume: (stage: PipelineStartStage) => void;
+  onResumeBlocked: () => void;
 }) {
   const failedResumeCount = progressNumber(activeJobStatus?.current_stage, 'failed');
   const resumeLabel = failedResumeCount > 0 && resumeStage === 'lesson_staging'
@@ -840,10 +828,21 @@ function PipelineJobListPanel({
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
         <div className="flex items-center gap-2">
           <ClipboardList className="h-4 w-4 text-accent" />
-          <div className="text-base font-semibold text-text-primary">Pipeline 作业</div>
+          <div className="text-base font-semibold text-text-primary">教材处理任务</div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-text-muted">{jobs.length} 个作业</span>
+          {batchResumeCount > 1 && (
+            <button
+              type="button"
+              onClick={onResumeBlocked}
+              disabled={batchResuming || starting || stopping}
+              className="flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2.5 text-xs font-medium text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {batchResuming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+              并行继续 {batchResumeCount} 个阻断作业
+            </button>
+          )}
           {activeJobStatus?.status === 'running' && (
             <button
               type="button"
@@ -928,7 +927,7 @@ function PipelineJobListPanel({
             })}
             {!loading && jobs.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-10 text-center text-text-muted">暂无 Pipeline 作业。</td>
+                <td colSpan={6} className="px-3 py-10 text-center text-text-muted">暂无教材处理任务。</td>
               </tr>
             )}
           </tbody>
@@ -1424,6 +1423,7 @@ function chunkAssetUrl(sourceKey: string, assetBasePath: string | null, source: 
   const candidate = /^(?:data|ocr)\//.test(sourcePath)
     ? sourcePath
     : `${assetBasePath || ''}/${sourcePath}`;
+  const absoluteCandidate = candidate.startsWith('/');
   const segments: string[] = [];
   for (const segment of candidate.split('/')) {
     if (!segment || segment === '.') continue;
@@ -1434,7 +1434,7 @@ function chunkAssetUrl(sourceKey: string, assetBasePath: string | null, source: 
     }
     segments.push(segment);
   }
-  const assetPath = segments.join('/');
+  const assetPath = `${absoluteCandidate ? '/' : ''}${segments.join('/')}`;
   return assetPath
     ? `/api/source/${encodeURIComponent(sourceKey)}/assets/${encodeURIComponent(assetPath)}`
     : undefined;
@@ -1452,9 +1452,11 @@ function OutlineReviewPanel({
   loading,
   error,
   confirming,
-  starting,
+  rejecting,
+  extractionStatus,
   onRefresh,
   onConfirm,
+  onReject,
   onStart,
 }: {
   sourceKey: string;
@@ -1462,12 +1464,33 @@ function OutlineReviewPanel({
   loading: boolean;
   error: string;
   confirming: boolean;
-  starting: boolean;
+  rejecting: boolean;
+  extractionStatus: OutlineExtractionStatus;
   onRefresh: () => void;
   onConfirm: () => void;
+  onReject: () => void;
   onStart: () => void;
 }) {
   const confirmed = preview?.review_status === 'confirmed';
+  const rejected = preview?.review_status === 'rejected';
+  const unmatchedCount = preview?.alignment_report?.unmatched_item_ids.length ?? 0;
+  const warningCount = preview?.alignment_report?.warning_item_ids.length ?? 0;
+  const extractionActive = extractionStatus === 'starting' || extractionStatus === 'running';
+  const extractionStatusLabel = extractionStatus === 'starting'
+    ? '正在启动抽取'
+    : extractionStatus === 'running'
+      ? '模型抽取中'
+      : extractionStatus === 'completed'
+        ? '抽取已完成'
+        : extractionStatus === 'blocked'
+          ? '抽取已阻断'
+          : '';
+  const usesDirectorySkeleton = preview?.source_kind === 'enrich' || preview?.source_kind === 'auto_toc';
+  const outlineSourceLabel = preview?.source_kind === 'enrich'
+    ? '参考教材目录 + 当前正文对齐'
+    : preview?.source_kind === 'auto_toc'
+      ? '自动发现当前教材目录 + 正文对齐'
+      : '当前教材标题解析结果';
   const [selectedChunkId, setSelectedChunkId] = useState<string | null>(null);
   const [selectedChunk, setSelectedChunk] = useState<PipelineOutlineChunkContentResponse | null>(null);
   const [chunkLoading, setChunkLoading] = useState(false);
@@ -1511,7 +1534,7 @@ function OutlineReviewPanel({
   };
 
   return (
-    <section className={`overflow-hidden rounded-lg border bg-elevated ${confirmed ? 'border-node-process/40' : 'border-accent/35'}`} aria-labelledby="outline-review-title">
+    <section className={`overflow-hidden rounded-lg border bg-elevated ${confirmed ? 'border-node-process/40' : rejected ? 'border-node-event/40' : 'border-accent/35'}`} aria-labelledby="outline-review-title">
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border-subtle px-4 py-3">
         <div className="flex min-w-0 items-start gap-2.5">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent"><BookOpen className="h-4 w-4" /></span>
@@ -1550,20 +1573,43 @@ function OutlineReviewPanel({
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 border-b border-border-subtle px-4 py-2 text-[10px] text-text-muted">
-            <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5">来源 {preview.source_kind === 'enrich' ? 'Enrich + MinerU v2' : preview.source_kind}</span>
+            <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5">目录来源 {outlineSourceLabel}</span>
             {preview.toc_pages && <span className="rounded-full border border-border-subtle bg-surface px-2 py-0.5">TOC 第 {preview.toc_pages.start}–{preview.toc_pages.end} 页</span>}
             <span className={`rounded-full border px-2 py-0.5 ${confirmed ? 'border-node-process/40 bg-node-process/10 text-node-process' : 'border-node-event/40 bg-node-event/10 text-node-event'}`}>
-              {confirmed ? '已人工确认' : '等待人工确认'}
+              {confirmed ? '已人工确认' : rejected ? '已驳回' : '等待人工确认'}
             </span>
+            {extractionStatus !== 'idle' && (
+              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${extractionStatus === 'blocked' ? 'border-node-event/40 bg-node-event/10 text-node-event' : extractionStatus === 'completed' ? 'border-node-process/40 bg-node-process/10 text-node-process' : 'border-accent/40 bg-accent/10 text-accent'}`}>
+                {extractionActive && <Loader2 className="h-2.5 w-2.5 animate-spin" />}{extractionStatusLabel}
+              </span>
+            )}
             <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-accent">知识 {preview.summary.knowledge_chunks}</span>
             <span className="rounded-full border border-node-process/30 bg-node-process/10 px-2 py-0.5 text-node-process">总结 {preview.summary.summary_chunks}</span>
             <span className="rounded-full border border-node-event/30 bg-node-event/10 px-2 py-0.5 text-node-event">题目 {preview.summary.assessment_chunks}</span>
+            {(unmatchedCount > 0 || warningCount > 0) && (
+              <span className="rounded-full border border-node-event/30 bg-node-event/10 px-2 py-0.5 text-node-event">待校准 {unmatchedCount + warningCount}</span>
+            )}
             <span className="ml-auto truncate font-mono" title={preview.fingerprint}>版本 {preview.fingerprint.slice(0, 10)}</span>
           </div>
 
-          {preview.source_kind !== 'enrich' && (
+          {!usesDirectorySkeleton && (
             <div className="mx-4 mt-3 flex items-start gap-2 rounded-md border border-node-event/40 bg-node-event/10 p-2.5 text-[11px] text-node-event">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />当前没有使用 Enrich 骨架，请重点检查章节层级和课节边界。
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />当前没有使用参考教材目录，请重点检查章节层级和课节边界。
+            </div>
+          )}
+          {preview.source_kind === 'auto_toc' && unmatchedCount === 0 && warningCount === 0 && (
+            <div className="mx-4 mt-3 flex items-start gap-2 rounded-md border border-node-process/30 bg-node-process/10 p-2.5 text-[11px] text-node-process">
+              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0" />已自动发现当前教材目录，并将目录课节按顺序对齐到 OCR 正文。
+            </div>
+          )}
+          {usesDirectorySkeleton && unmatchedCount > 0 && (
+            <div className="mx-4 mt-3 flex items-start gap-2 rounded-md border border-node-event/40 bg-node-event/10 p-2.5 text-[11px] text-node-event">
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{preview.source_kind === 'enrich' ? '参考教材' : '自动发现的当前教材'}目录骨架已保留，但仍有 {unmatchedCount} 个课节没有可靠的正文起止位置；可以继续确认，未定位课节不会进入本轮抽取。
+            </div>
+          )}
+          {usesDirectorySkeleton && unmatchedCount === 0 && warningCount > 0 && (
+            <div className="mx-4 mt-3 flex items-start gap-2 rounded-md border border-accent/35 bg-accent/10 p-2.5 text-[11px] text-accent">
+              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />有 {warningCount} 个课节通过 OCR 模糊匹配定位，请重点核对其 start/end 边界。
             </div>
           )}
 
@@ -1584,6 +1630,9 @@ function OutlineReviewPanel({
                         <span className={`rounded border px-1.5 py-0.5 text-[9px] ${chunkRole?.className ?? 'border-border-subtle bg-surface text-text-muted'}`}>
                           {chunkRole?.label ?? outlineItemKindLabel(item.kind)}
                         </span>
+                        {item.alignment_status === 'unmatched' && <span className="rounded border border-node-event/40 bg-node-event/10 px-1.5 py-0.5 text-[9px] text-node-event">未对齐</span>}
+                        {item.alignment_status === 'warning' && <span className="rounded border border-accent/40 bg-accent/10 px-1.5 py-0.5 text-[9px] text-accent">低置信度 {item.alignment_confidence == null ? '' : Math.round(item.alignment_confidence * 100) + '%'}</span>}
+                        {item.alignment_status === 'inferred_from_children' && <span className="rounded border border-border-subtle bg-surface px-1.5 py-0.5 text-[9px] text-text-muted">由子节推断</span>}
                       </div>
                       <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-text-muted">
                         {pageRange && <span>{pageRange}</span>}
@@ -1688,17 +1737,33 @@ function OutlineReviewPanel({
             )}
           </div>
 
-          <footer className="grid gap-3 border-t border-border-subtle bg-surface/50 p-4 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
+          <footer className="grid gap-3 border-t border-border-subtle bg-surface/50 p-4 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center">
             <div className="text-[11px] leading-5 text-text-muted">
-              {confirmed
-                ? `已于 ${timeText(preview.confirmed_at)} 确认；若重新生成切分，确认会自动失效。`
-                : '请检查章节归属、页码范围以及是否存在跨课节 chunk，确认后才可开始抽取。'}
+              {extractionActive
+                ? '模型抽取已在后台运行；可以留在当前页面继续查看切分结果，状态会自动刷新。'
+                : extractionStatus === 'completed'
+                  ? '本书模型抽取已完成；可以返回运行详情查看质量结果。'
+                  : extractionStatus === 'blocked'
+                    ? '模型抽取已阻断；切分审核页保持不变，可返回运行详情处理失败原因。'
+                    : confirmed
+                ? unmatchedCount > 0
+                  ? `已于 ${timeText(preview.confirmed_at)} 带 ${unmatchedCount} 个未对齐课节确认；这些课节未纳入本轮抽取。`
+                  : `已于 ${timeText(preview.confirmed_at)} 确认；若重新生成切分，确认会自动失效。`
+                : rejected
+                  ? `已于 ${timeText(preview.rejected_at)} 驳回；请修正目录来源后重新生成切分预览。`
+                  : unmatchedCount > 0
+                    ? `还有 ${unmatchedCount} 个课节未对齐；可以强制确认并跳过这些课节，也可以先修正目录。`
+                    : '请检查章节归属、页码范围以及是否存在跨课节 chunk，确认后才可开始抽取。'}
             </div>
-            <button type="button" onClick={onConfirm} disabled={confirming || confirmed} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-accent/50 bg-accent/10 px-3 text-xs font-semibold text-accent transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-surface disabled:text-text-muted">
-              {confirming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}{confirmed ? '切分已确认' : '确认切分结果'}
+            <button type="button" onClick={onReject} disabled={rejecting || rejected || extractionStatus !== 'idle'} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-node-event/50 bg-node-event/10 px-3 text-xs font-semibold text-node-event transition-colors hover:bg-node-event/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-node-event/40 disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-surface disabled:text-text-muted">
+              {rejecting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}{confirmed ? '撤销确认并驳回' : rejected ? '切分已驳回' : '驳回切分结果'}
             </button>
-            <button type="button" onClick={onStart} disabled={!confirmed || starting} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-xs font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">
-              {starting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}开始模型抽取
+            <button type="button" onClick={onConfirm} disabled={confirming || confirmed || rejected} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-accent/50 bg-accent/10 px-3 text-xs font-semibold text-accent transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-surface disabled:text-text-muted">
+              {confirming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}{confirmed ? '切分已确认' : unmatchedCount > 0 ? '跳过未对齐并确认' : '确认切分结果'}
+            </button>
+            <button type="button" onClick={onStart} disabled={!confirmed || extractionStatus !== 'idle'} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-xs font-semibold text-white transition-colors hover:bg-accent-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-surface disabled:text-text-muted">
+              {extractionActive ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : extractionStatus === 'completed' ? <Check className="h-3.5 w-3.5" /> : extractionStatus === 'blocked' ? <AlertCircle className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+              {extractionStatusLabel || '开始模型抽取'}
             </button>
           </footer>
         </>
@@ -1719,6 +1784,7 @@ export function PipelineDebugPage() {
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(false);
   const [stopping, setStopping] = useState(false);
+  const [batchResuming, setBatchResuming] = useState(false);
   const [startError, setStartError] = useState('');
   const [startResult, setStartResult] = useState<PipelineStartResponse | null>(null);
   const [jobStatus, setJobStatus] = useState<PipelineJobStatusResponse | null>(null);
@@ -1737,6 +1803,14 @@ export function PipelineDebugPage() {
   const [outlinePreviewLoading, setOutlinePreviewLoading] = useState(false);
   const [outlinePreviewError, setOutlinePreviewError] = useState('');
   const [outlineConfirming, setOutlineConfirming] = useState(false);
+  const [outlineRejecting, setOutlineRejecting] = useState(false);
+  const [outlineBatchJobIds, setOutlineBatchJobIds] = useState<string[]>([]);
+  const [outlineReviewFocus, setOutlineReviewFocus] = useState(true);
+  const [outlineReviewJobId, setOutlineReviewJobId] = useState<string | null>(null);
+  const [outlineExtractionJobId, setOutlineExtractionJobId] = useState<string | null>(null);
+  const [outlineExtractionStarting, setOutlineExtractionStarting] = useState(false);
+  const outlineReviewRef = useRef<HTMLDivElement | null>(null);
+  const pendingOutlineReviewJobRef = useRef<string | null>(null);
 
   const refresh = async (options: { silent?: boolean } = {}) => {
     if (!options.silent) setLoading(true);
@@ -1756,7 +1830,7 @@ export function PipelineDebugPage() {
     try {
       setJobList(await loadPipelineJobs(activeSourceKey));
     } catch (err) {
-      setJobListError((err as Error).message || '读取 Pipeline 作业列表失败');
+      setJobListError((err as Error).message || '读取教材处理任务列表失败');
     } finally {
       if (!options.silent) setJobListLoading(false);
     }
@@ -1823,11 +1897,13 @@ export function PipelineDebugPage() {
     }
   };
 
-  const launchPipeline = async (request: PipelineStartRequest) => {
+  const launchPipeline = async (request: PipelineStartRequest, options: { preserveActiveJob?: boolean } = {}) => {
     setStarting(true);
     setStartError('');
-    setStartResult(null);
-    setJobStatus(null);
+    if (!options.preserveActiveJob) {
+      setStartResult(null);
+      setJobStatus(null);
+    }
     try {
       if (request.prepare_only) {
         setOutlinePreview(null);
@@ -1843,8 +1919,10 @@ export function PipelineDebugPage() {
         void refreshImageReviews({ silent: true });
         void refreshQuality({ silent: true });
       }, 1200);
+      return result;
     } catch (err) {
       setStartError((err as Error).message || '启动失败');
+      return null;
     } finally {
       setStarting(false);
     }
@@ -1888,6 +1966,9 @@ export function PipelineDebugPage() {
 
   useEffect(() => {
     let cancelled = false;
+    setOutlineReviewJobId(null);
+    setOutlineExtractionJobId(null);
+    setOutlineExtractionStarting(false);
     const restoredJob = restorePipelineJob(window.localStorage, activeSourceKey);
     setStartResult(restoredJob);
     setJobStatus(null);
@@ -1917,6 +1998,15 @@ export function PipelineDebugPage() {
   }, [activeSourceKey]);
 
   const selectJob = async (job: PipelineJobSummary) => {
+    setOutlineExtractionJobId(null);
+    setOutlineExtractionStarting(false);
+    setOutlineReviewJobId(job.job_id);
+    pendingOutlineReviewJobRef.current = isOutlineReviewReady({
+      status: job.status,
+      currentStageId: job.current_stage_id,
+    })
+      ? job.job_id
+      : null;
     const selected: PipelineStartResponse = {
       job_id: job.job_id,
       status: 'started',
@@ -1966,6 +2056,11 @@ export function PipelineDebugPage() {
     && jobStatus.status !== 'unknown'
     ? jobStatus
     : null;
+  const showOutlineReview = activeJobStatus ? isOutlineReviewReady({
+    status: activeJobStatus.status,
+    currentStageId: activeJobStatus.current_stage?.id,
+    prepareOnly: activeJobStatus.context.prepare_only,
+  }) : false;
   const steps = useMemo(
     () => buildPipelineSteps({ payload, imageReviews, jobStatus: activeJobStatus, starting, startResult }),
     [payload, imageReviews, activeJobStatus, starting, startResult],
@@ -1975,8 +2070,32 @@ export function PipelineDebugPage() {
   const resumeStage = activeJobStatus?.status === 'blocked'
     ? resumeStageFor(activeJobStatus.current_stage?.id)
     : null;
+  const batchResumeCandidates = useMemo(
+    () => selectBatchResumeCandidates(jobList?.jobs ?? []),
+    [jobList?.jobs],
+  );
+  const outlineExtractionStatus = resolveOutlineExtractionStatus({
+    launching: outlineExtractionStarting,
+    extractionJobId: outlineExtractionJobId,
+    selectedJobId: startResult?.job_id ?? null,
+    jobStatus: activeJobStatus,
+  });
+  const outlineSessionActive = showOutlineReview || outlineExtractionStatus !== 'idle';
+  const outlineCandidateActiveJobId = outlineExtractionStatus !== 'idle'
+    ? outlineReviewJobId
+    : activeJobStatus?.job_id;
+  const outlineBatchCandidates = useMemo(() => {
+    return selectOutlineBatchJobs(jobList?.jobs ?? [], outlineBatchJobIds, outlineCandidateActiveJobId);
+  }, [jobList?.jobs, outlineBatchJobIds, outlineCandidateActiveJobId]);
   const autoRefreshing = starting || Boolean(startResult && !jobDone);
   const lastUpdatedAt = activeJobStatus?.updated_at ?? null;
+  const reviewMode = outlineSessionActive && outlineReviewFocus;
+
+  const rememberOutlineBatch = (jobIds: string[]) => {
+    const uniqueJobIds = [...new Set(jobIds.filter(Boolean))];
+    setOutlineBatchJobIds(uniqueJobIds);
+    window.localStorage.setItem(`okm.pipeline.outline-review-batch.v1:${activeSourceKey}`, JSON.stringify(uniqueJobIds));
+  };
 
   const resumeActivePipeline = async (stage: PipelineStartStage) => {
     if (!activeJobStatus?.book_id || starting) return;
@@ -1989,16 +2108,59 @@ export function PipelineDebugPage() {
     });
   };
 
+  const resumeBlockedPipelines = async () => {
+    if (batchResuming || batchResumeCandidates.length === 0) return;
+    setBatchResuming(true);
+    setStartError('');
+    try {
+      const results = await Promise.allSettled(batchResumeCandidates.map(({ job, startStage }) => startPipeline(
+        activeSourceKey,
+        {
+          ...baseStartRequest(activeSourceKey),
+          resume_job_id: job.job_id,
+          book_id: job.book_id,
+          mineru_force: false,
+          start_stage: startStage,
+        },
+      )));
+      const started = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
+      const failures = results.flatMap((result) => result.status === 'rejected'
+        ? [(result.reason as Error)?.message || '启动失败']
+        : []);
+      const last = started.at(-1);
+      if (last) {
+        rememberPipelineJob(window.localStorage, activeSourceKey, last);
+        setStartResult(last);
+        setJobStatus(null);
+      }
+      if (failures.length > 0) {
+        setStartError(`已并行启动 ${started.length}/${results.length} 个作业；${failures.join('；')}`);
+      }
+      await refreshJobs({ silent: true });
+      void refresh({ silent: true });
+    } finally {
+      setBatchResuming(false);
+    }
+  };
+
   const confirmOutline = async () => {
     if (!outlinePreview || outlineConfirming || outlinePreview.review_status === 'confirmed') return;
+    const unmatchedCount = outlinePreview.alignment_report?.unmatched_item_ids.length ?? 0;
+    if (unmatchedCount > 0) {
+      const confirmed = window.confirm(
+        `仍有 ${unmatchedCount} 个课节未对齐正文。继续后，这些课节不会进入本轮模型抽取，但会保留在目录中供后续修复。确定继续吗？`,
+      );
+      if (!confirmed) return;
+    }
     setOutlineConfirming(true);
     setOutlinePreviewError('');
     try {
       const result = await confirmPipelineOutline(activeSourceKey, outlinePreview.book_id, {
         fingerprint: outlinePreview.fingerprint,
+        allow_unmatched: unmatchedCount > 0,
       });
       setOutlinePreview((current) => current && current.fingerprint === result.fingerprint
-        ? { ...current, review_status: 'confirmed', confirmed_at: result.confirmed_at }
+        ? { ...current, review_status: 'confirmed', confirmed_at: result.confirmed_at, rejected_at: null }
         : current);
     } catch (err) {
       setOutlinePreviewError((err as Error).message || '确认切分结果失败');
@@ -2008,12 +2170,43 @@ export function PipelineDebugPage() {
     }
   };
 
+  const rejectOutline = async () => {
+    if (!outlinePreview || outlineRejecting || outlinePreview.review_status === 'rejected') return;
+    const message = outlinePreview.review_status === 'confirmed'
+      ? '确定撤销确认并驳回这份切分结果吗？已经生成的抽取数据不会被删除，但该版本不能再启动新的模型抽取。'
+      : '确定驳回这份切分结果吗？驳回后需要重新生成并确认新版预览，才能开始模型抽取。';
+    if (!window.confirm(message)) return;
+    setOutlineRejecting(true);
+    setOutlinePreviewError('');
+    try {
+      const result = await rejectPipelineOutline(activeSourceKey, outlinePreview.book_id, {
+        fingerprint: outlinePreview.fingerprint,
+      });
+      setOutlinePreview((current) => current && current.fingerprint === result.fingerprint
+        ? { ...current, review_status: 'rejected', confirmed_at: null, rejected_at: result.rejected_at }
+        : current);
+    } catch (err) {
+      setOutlinePreviewError((err as Error).message || '驳回切分结果失败');
+      await refreshOutlinePreview(outlinePreview.book_id, { silent: true });
+    } finally {
+      setOutlineRejecting(false);
+    }
+  };
+
   const launchConfirmedExtraction = async () => {
-    if (!outlinePreview || outlinePreview.review_status !== 'confirmed' || starting) return;
-    await launchPipeline(buildConfirmedExtractionRequest(baseStartRequest(activeSourceKey), {
-      bookId: outlinePreview.book_id,
-      fingerprint: outlinePreview.fingerprint,
-    }));
+    if (!outlinePreview || outlinePreview.review_status !== 'confirmed' || starting || outlineExtractionStatus !== 'idle') return;
+    setOutlineReviewFocus(true);
+    setOutlineReviewJobId((current) => current || activeJobStatus?.job_id || null);
+    setOutlineExtractionStarting(true);
+    try {
+      const result = await launchPipeline(buildConfirmedExtractionRequest(baseStartRequest(activeSourceKey), {
+        bookId: outlinePreview.book_id,
+        fingerprint: outlinePreview.fingerprint,
+      }), { preserveActiveJob: true });
+      setOutlineExtractionJobId(result?.job_id ?? null);
+    } finally {
+      setOutlineExtractionStarting(false);
+    }
   };
 
   useEffect(() => {
@@ -2023,12 +2216,39 @@ export function PipelineDebugPage() {
   }, [activeSourceKey, activeJobStatus?.status, startResult?.job_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(`okm.pipeline.outline-review-batch.v1:${activeSourceKey}`) || '[]');
+      setOutlineBatchJobIds(Array.isArray(stored) ? stored.filter((value): value is string => typeof value === 'string') : []);
+    } catch {
+      setOutlineBatchJobIds([]);
+    }
+  }, [activeSourceKey]);
+
+  useEffect(() => {
+    if (showOutlineReview && activeJobStatus?.job_id) {
+      setOutlineReviewJobId(activeJobStatus.job_id);
+      setOutlineReviewFocus(true);
+    }
+  }, [activeJobStatus?.job_id, showOutlineReview]);
+
+  useEffect(() => {
     if (!activeJobStatus?.book_id) return;
-    const preparationComplete = activeJobStatus.status === 'completed'
-      && (activeJobStatus.current_stage?.id === 'prepare_outline_chunks' || activeJobStatus.context.prepare_only === true);
-    if (!preparationComplete) return;
+    if (!showOutlineReview) return;
     void refreshOutlinePreview(activeJobStatus.book_id);
-  }, [activeSourceKey, activeJobStatus?.book_id, activeJobStatus?.job_id, activeJobStatus?.status]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeSourceKey, activeJobStatus?.book_id, activeJobStatus?.job_id, showOutlineReview]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!showOutlineReview || pendingOutlineReviewJobRef.current !== activeJobStatus?.job_id) return undefined;
+    pendingOutlineReviewJobRef.current = null;
+    const frame = window.requestAnimationFrame(() => {
+      const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+      outlineReviewRef.current?.scrollIntoView({
+        behavior: reducedMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeJobStatus?.job_id, showOutlineReview]);
 
   useEffect(() => {
     if (!autoRefreshing) return undefined;
@@ -2047,7 +2267,7 @@ export function PipelineDebugPage() {
       <div className="border-b border-border-subtle bg-surface px-4 py-4 sm:px-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight text-text-primary">教材知识抽取与合并运行台</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-text-primary">教材知识处理中心</h1>
           </div>
           <button
             type="button"
@@ -2074,16 +2294,19 @@ export function PipelineDebugPage() {
           </div>
         )}
 
-        <PipelineBookWorkbench
-          key={activeSourceKey}
-          sourceKey={activeSourceKey}
-          jobs={jobList?.jobs ?? []}
-          onStartBook={launchBatchBook}
-          onRefreshJobs={() => {
-            void refreshJobs();
-            void refresh({ silent: true });
-          }}
-        />
+        {!reviewMode && (
+          <PipelineBookWorkbench
+            key={activeSourceKey}
+            sourceKey={activeSourceKey}
+            jobs={jobList?.jobs ?? []}
+            onStartBook={launchBatchBook}
+            onBatchStarted={rememberOutlineBatch}
+            onRefreshJobs={() => {
+              void refreshJobs();
+              void refresh({ silent: true });
+            }}
+          />
+        )}
 
         {startError && (
           <div className="mb-5 flex items-start gap-2 rounded-lg border border-node-event/40 bg-node-event/10 p-3 text-sm text-node-event" role="alert">
@@ -2092,73 +2315,88 @@ export function PipelineDebugPage() {
           </div>
         )}
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
           <section className="min-w-0 space-y-5">
-            <PipelineJobListPanel
-              jobs={jobList?.jobs ?? []}
-              selectedJobId={startResult?.job_id ?? null}
-              activeJobStatus={activeJobStatus}
-              loading={jobListLoading}
-              starting={starting}
-              stopping={stopping}
-              resumeStage={resumeStage}
-              error={jobListError}
-              onSelect={(job) => {
-                void selectJob(job);
-              }}
-              onRefresh={() => {
-                void refreshJobs();
-              }}
-              onStop={() => {
-                void stopActivePipeline();
-              }}
-              onResume={(stage) => {
-                void resumeActivePipeline(stage);
-              }}
-            />
+            {!reviewMode && (
+              <PipelineJobListPanel
+                jobs={jobList?.jobs ?? []}
+                selectedJobId={startResult?.job_id ?? null}
+                activeJobStatus={activeJobStatus}
+                loading={jobListLoading}
+                starting={starting}
+                stopping={stopping}
+                batchResuming={batchResuming}
+                batchResumeCount={batchResumeCandidates.length}
+                resumeStage={resumeStage}
+                error={jobListError}
+                onSelect={(job) => {
+                  void selectJob(job);
+                }}
+                onRefresh={() => {
+                  void refreshJobs();
+                }}
+                onStop={() => {
+                  void stopActivePipeline();
+                }}
+                onResume={(stage) => {
+                  void resumeActivePipeline(stage);
+                }}
+                onResumeBlocked={() => {
+                  void resumeBlockedPipelines();
+                }}
+              />
+            )}
 
-            <OutlineReviewPanel
-              sourceKey={activeSourceKey}
-              preview={outlinePreview}
-              loading={outlinePreviewLoading}
-              error={outlinePreviewError}
-              confirming={outlineConfirming}
-              starting={starting}
-              onRefresh={() => void refreshOutlinePreview()}
-              onConfirm={() => void confirmOutline()}
-              onStart={() => void launchConfirmedExtraction()}
-            />
+            {outlineSessionActive && (
+              <div ref={outlineReviewRef} className="scroll-mt-4">
+                <OutlineReviewPanel
+                  sourceKey={activeSourceKey}
+                  preview={outlinePreview}
+                  loading={outlinePreviewLoading}
+                  error={outlinePreviewError}
+                  confirming={outlineConfirming}
+                  rejecting={outlineRejecting}
+                  extractionStatus={outlineExtractionStatus}
+                  onRefresh={() => void refreshOutlinePreview()}
+                  onConfirm={() => void confirmOutline()}
+                  onReject={() => void rejectOutline()}
+                  onStart={() => void launchConfirmedExtraction()}
+                />
+              </div>
+            )}
 
-            <PipelineProgressPanel steps={steps} jobStatus={activeJobStatus} autoRefreshing={autoRefreshing} lastUpdatedAt={lastUpdatedAt} />
+            {!reviewMode && (
+              <>
+                <PipelineProgressPanel steps={steps} jobStatus={activeJobStatus} autoRefreshing={autoRefreshing} lastUpdatedAt={lastUpdatedAt} />
 
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              <MetricCard label="课时运行" value={payload?.summary.lesson_runs ?? 0} detail={latestLesson ? `最近：${timeText(latestLesson.updated_at)}` : '暂无运行'} />
-              <MetricCard label="已暂存" value={payload?.summary.staged ?? 0} tone="active" detail="等待合并或质检" />
-              <MetricCard label="已通过 QA" value={payload?.summary.qa_passed ?? 0} tone="ok" detail={`通过率 ${percentValue(successRate)}`} />
-              <MetricCard label="阻断项" value={payload?.summary.blocked ?? 0} tone={(payload?.summary.blocked ?? 0) > 0 ? 'warn' : 'neutral'} detail="需要人工处理" />
-            </div>
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                  <MetricCard label="课时运行" value={payload?.summary.lesson_runs ?? 0} detail={latestLesson ? `最近：${timeText(latestLesson.updated_at)}` : '暂无运行'} />
+                  <MetricCard label="待整理结果" value={payload?.summary.staged ?? 0} tone="active" detail="等待合并或检查" />
+                  <MetricCard label="已通过质量检查" value={payload?.summary.qa_passed ?? 0} tone="ok" detail={`通过率 ${percentValue(successRate)}`} />
+                  <MetricCard label="阻断项" value={payload?.summary.blocked ?? 0} tone={(payload?.summary.blocked ?? 0) > 0 ? 'warn' : 'neutral'} detail="需要人工处理" />
+                </div>
 
-            <ManualReviewSummary payload={payload} imageReviews={imageReviews} pipelineDone={pipelineDone} />
+                <ManualReviewSummary payload={payload} imageReviews={imageReviews} pipelineDone={pipelineDone} />
 
-            <QualityDashboardPanel
-              quality={quality}
-              loading={qualityLoading}
-              error={qualityError}
-              reviewUpdatingId={qualityReviewUpdating}
-              onRefresh={() => void refreshQuality()}
-              onReviewAction={(lessonRunId, action, note) => void submitQualityReview(lessonRunId, action, note)}
-            />
+                <QualityDashboardPanel
+                  quality={quality}
+                  loading={qualityLoading}
+                  error={qualityError}
+                  reviewUpdatingId={qualityReviewUpdating}
+                  onRefresh={() => void refreshQuality()}
+                  onReviewAction={(lessonRunId, action, note) => void submitQualityReview(lessonRunId, action, note)}
+                />
 
-            <ImageReviewPanel
-              reviews={imageReviews}
-              loading={imageReviewLoading}
-              error={imageReviewError}
-              updatingId={imageReviewUpdating}
-              onRefresh={() => void refreshImageReviews()}
-              onAction={(item, action) => void submitImageReview(item, action)}
-            />
+                <ImageReviewPanel
+                  reviews={imageReviews}
+                  loading={imageReviewLoading}
+                  error={imageReviewError}
+                  updatingId={imageReviewUpdating}
+                  onRefresh={() => void refreshImageReviews()}
+                  onAction={(item, action) => void submitImageReview(item, action)}
+                />
 
-            <div className="overflow-hidden rounded-lg border border-border-subtle bg-elevated">
+                <div className="overflow-hidden rounded-lg border border-border-subtle bg-elevated">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
                 <div className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-accent" />
@@ -2199,16 +2437,33 @@ export function PipelineDebugPage() {
                     ))}
                     {!loading && recentLessons.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="px-3 py-12 text-center text-text-muted">暂无课时运行记录。可以从左侧启动第一轮抽取。</td>
+                        <td colSpan={6} className="px-3 py-12 text-center text-text-muted">暂无课时处理记录。可以从左侧启动第一次处理。</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
-            </div>
+                </div>
+              </>
+            )}
           </section>
 
-          <aside className="min-w-0 space-y-5">
+          <aside className={`min-w-0 space-y-5 ${reviewMode ? 'order-first xl:order-last' : ''}`}>
+            {reviewMode ? (
+              <div className="sticky top-4 z-20">
+                <OutlineBatchCandidatesPanel
+                  jobs={outlineBatchCandidates}
+                  selectedJobId={outlineCandidateActiveJobId ?? null}
+                  activeReviewStatus={outlinePreview?.review_status ?? null}
+                  loading={jobListLoading}
+                  onSelect={(job) => void selectJob(job)}
+                  onRefresh={() => void refreshJobs()}
+                  onExitFocus={() => setOutlineReviewFocus(false)}
+                />
+              </div>
+            ) : (
+              <>
+
             <section className="rounded-lg border border-border-subtle bg-elevated p-4">
               <div className="mb-3 flex items-center gap-2">
                 <Info className="h-4 w-4 text-accent" />
@@ -2276,6 +2531,8 @@ export function PipelineDebugPage() {
               </div>
               <ReviewList items={payload?.review_items ?? []} />
             </section>
+              </>
+            )}
           </aside>
         </div>
       </div>

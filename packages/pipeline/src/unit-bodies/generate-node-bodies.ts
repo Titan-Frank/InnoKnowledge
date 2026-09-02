@@ -242,7 +242,8 @@ export function buildModelNodeBodyPrompt(input: ModelNodeBodyInput): ModelNodeBo
     "4. 如果证据不足以支持某个小节，就省略该小节，不要硬写。",
     "5. 如果在正文句末标注证据，直接用完整证据 ID 加方括号，例如 `[evidence:auto-64c1ee9124ae]`，不要用反引号包裹证据标记。",
     "6. Markdown 不要使用一级标题；正文可以包含 `## 定义`、`## 核心解释`、`## 关键要点`、`## 示例或应用`、`## 易错点` 等二级标题。",
-    "7. 输出必须是可由 JSON.parse 直接解析的单个 JSON 对象；只能以一个左花括号开始、一个右花括号结束，不要输出额外解释。",
+    "7. 只有输入 evidence 中存在对应图片证据时，才能在正文使用 Markdown 图片；必须原样使用该证据 excerpt 里的图片路径，不能编造、改写或引用其他本地路径。",
+    "8. 输出必须是可由 JSON.parse 直接解析的单个 JSON 对象；只能以一个左花括号开始、一个右花括号结束，不要输出额外解释。",
   ].join("\n");
   const userPayload = JSON.stringify({
     dataset_id: input.datasetId,
@@ -484,6 +485,16 @@ export async function planModelNodeBodies(input: {
           failure: { node_id: task.node.id, message: "Model output did not cite any provided evidence id." },
         };
       }
+      const resolvedMedia = resolveBodyMediaRefs(content, sourceRefs, task.evidenceRows);
+      if (resolvedMedia.unresolvedRefs.length > 0) {
+        return {
+          kind: "model_failure" as const,
+          failure: {
+            node_id: task.node.id,
+            message: `Model output contains local image reference(s) without matching cited image evidence: ${resolvedMedia.unresolvedRefs.join(", ")}`,
+          },
+        };
+      }
       return {
         kind: "row" as const,
         row: {
@@ -491,7 +502,7 @@ export async function planModelNodeBodies(input: {
           node_id: task.node.id,
           format: "markdown" as const,
           content,
-          media_refs_json: Array.isArray(generated.media_refs) ? generated.media_refs.filter(isRecord) : [],
+          media_refs_json: resolvedMedia.mediaRefs,
           source_refs_json: sourceRefs,
           generated_from: "model_generation" as const,
           properties_json: {
@@ -519,6 +530,74 @@ export async function planModelNodeBodies(input: {
   }
 
   return { rows, skippedExisting, skippedMissingSourceRefs, skippedEmptyContent, skippedBackfilledOnly, modelFailures };
+}
+
+export function resolveBodyMediaRefs(
+  content: string,
+  sourceRefs: string[],
+  evidenceRows: NodeBodyInputEvidenceRow[],
+): { mediaRefs: RawRecord[]; unresolvedRefs: string[] } {
+  const citedEvidenceIds = new Set(sourceRefs);
+  const imageEvidence = evidenceRows.filter((row) => row.modality === "image" && citedEvidenceIds.has(row.id));
+  const mediaRefs: RawRecord[] = [];
+  const unresolvedRefs: string[] = [];
+
+  for (const ref of uniqueStrings(markdownImageRefs(content))) {
+    if (isExternalImageRef(ref)) continue;
+    const evidence = imageEvidence.find((row) => evidenceMatchesAssetRef(row, ref));
+    if (!evidence) {
+      unresolvedRefs.push(ref);
+      continue;
+    }
+    mediaRefs.push({ evidence_id: evidence.id, path: ref });
+  }
+
+  return { mediaRefs, unresolvedRefs };
+}
+
+function evidenceMatchesAssetRef(evidence: NodeBodyInputEvidenceRow, ref: string): boolean {
+  const candidates = new Set(markdownImageRefs(evidence.excerpt));
+  const properties = recordValue(evidence.properties_json);
+  for (const key of ["path", "url", "src"]) {
+    const value = textValue(properties[key]);
+    if (value) candidates.add(value);
+  }
+  const imageRelevance = recordValue(properties.image_relevance);
+  for (const key of ["path", "url", "src"]) {
+    const value = textValue(imageRelevance[key]);
+    if (value) candidates.add(value);
+  }
+  return [...candidates].some((candidate) => assetRefsMatch(candidate, ref));
+}
+
+function markdownImageRefs(markdown: string): string[] {
+  return Array.from(markdown.matchAll(/!\[[^\]]*\]\(([^)\n]+)\)/g))
+    .map((match) => match[1]!.trim())
+    .filter(Boolean);
+}
+
+function isExternalImageRef(value: string): boolean {
+  return /^(https?:|data:|blob:|\/api\/source\/)/i.test(value.trim());
+}
+
+function assetRefsMatch(left: string, right: string): boolean {
+  const normalizedLeft = normalizeAssetRef(left);
+  const normalizedRight = normalizeAssetRef(right);
+  const leftFileName = normalizedLeft.split("/").filter(Boolean).pop() ?? normalizedLeft;
+  const rightFileName = normalizedRight.split("/").filter(Boolean).pop() ?? normalizedRight;
+  return normalizedLeft === normalizedRight
+    || normalizedLeft.endsWith(`/${normalizedRight}`)
+    || normalizedRight.endsWith(`/${normalizedLeft}`)
+    || (leftFileName.length > 0 && leftFileName === rightFileName);
+}
+
+function normalizeAssetRef(value: string): string {
+  const clean = value.trim().split(/[?#]/, 1)[0] ?? "";
+  try {
+    return decodeURIComponent(clean).replace(/\\/g, "/").toLowerCase();
+  } catch {
+    return clean.replace(/\\/g, "/").toLowerCase();
+  }
 }
 
 type ModelNodeBodyTask = {

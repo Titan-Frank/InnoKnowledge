@@ -33,7 +33,7 @@ export function registerTextbookReaderRoutes(app: Hono, sql: Sql) {
     const datasetRow = await resolveDatasetRow(sql, key);
     if (!datasetRow) return c.json({ error: `Unknown source '${key}'` }, 404);
     const sourceRows = await sql<RawRecord[]>`
-      SELECT book_id, source_markdown_path, raw_markdown_path, extract_dir
+      SELECT book_id, source_markdown_path, raw_markdown_path, extract_dir, source_pdf_path
       FROM world_mineru_sources
       WHERE dataset_id = ${datasetRow.dataset_id}
     `;
@@ -44,6 +44,7 @@ export function registerTextbookReaderRoutes(app: Hono, sql: Sql) {
         source_markdown_path: String(row.source_markdown_path ?? ''),
         raw_markdown_path: String(row.raw_markdown_path ?? ''),
         extract_dir: String(row.extract_dir ?? ''),
+        source_pdf_path: String(row.source_pdf_path ?? ''),
       }))),
     });
   });
@@ -54,7 +55,7 @@ export function registerTextbookReaderRoutes(app: Hono, sql: Sql) {
     const datasetRow = await resolveDatasetRow(sql, key);
     if (!datasetRow) return c.json({ error: `Unknown source '${key}'` }, 404);
     const sourceRows = await sql<RawRecord[]>`
-      SELECT source_markdown_path, raw_markdown_path, extract_dir
+      SELECT source_markdown_path, raw_markdown_path, extract_dir, source_pdf_path
       FROM world_mineru_sources
       WHERE dataset_id = ${datasetRow.dataset_id}
         AND book_id = ${bookId}
@@ -66,6 +67,7 @@ export function registerTextbookReaderRoutes(app: Hono, sql: Sql) {
       dataRoot: DATA_DIR,
       datasetId: datasetRow.dataset_id,
       bookId,
+      pdfPath: String(source.source_pdf_path ?? ''),
       sourcePaths: [
         String(source.source_markdown_path ?? ''),
         String(source.raw_markdown_path ?? ''),
@@ -101,7 +103,7 @@ export function registerTextbookReaderRoutes(app: Hono, sql: Sql) {
     }
 
     const sourceRows = await sql<RawRecord[]>`
-      SELECT source_markdown_path, raw_markdown_path, extract_dir
+      SELECT source_markdown_path, raw_markdown_path, extract_dir, source_pdf_path
       FROM world_mineru_sources
       WHERE dataset_id = ${datasetRow.dataset_id}
         AND book_id = ${bookId}
@@ -137,6 +139,7 @@ export function registerTextbookReaderRoutes(app: Hono, sql: Sql) {
         dataRoot: DATA_DIR,
         datasetId: datasetRow.dataset_id,
         bookId,
+        pdfPath: String(source.source_pdf_path ?? ''),
         requestedPage,
         evidence,
         sourcePaths: [

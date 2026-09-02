@@ -5,6 +5,7 @@ import type {
   PipelineBookNodesResponse, PipelineFolderScanRequest, PipelineFolderScanResponse,
   PipelineJobListResponse, PipelineJobStatusResponse, PipelineOcrInspectRequest, PipelineOcrInspectResponse, PipelinePdfUploadResponse, PipelineQualityDashboardResponse, PipelineResponse, PipelineStartRequest, PipelineStartResponse, PipelineStopResponse,
   PipelineOutlineChunkContentResponse, PipelineOutlineConfirmRequest, PipelineOutlineConfirmResponse, PipelineOutlinePreviewResponse,
+  PipelineOutlineRejectRequest, PipelineOutlineRejectResponse,
   PipelineQualityReviewUpdateRequest, PipelineQualityReviewUpdateResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
   ImageReviewResponse, ImageReviewUpdateRequest, ImageReviewUpdateResponse,
@@ -518,6 +519,17 @@ export async function confirmPipelineOutline(
 ): Promise<PipelineOutlineConfirmResponse> {
   return postJson<PipelineOutlineConfirmResponse>(
     `/api/source/${encodeURIComponent(sourceKey)}/pipeline/books/${encodeURIComponent(bookId)}/outline-confirmation`,
+    payload,
+  );
+}
+
+export async function rejectPipelineOutline(
+  sourceKey: string,
+  bookId: string,
+  payload: PipelineOutlineRejectRequest,
+): Promise<PipelineOutlineRejectResponse> {
+  return postJson<PipelineOutlineRejectResponse>(
+    `/api/source/${encodeURIComponent(sourceKey)}/pipeline/books/${encodeURIComponent(bookId)}/outline-rejection`,
     payload,
   );
 }

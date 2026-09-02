@@ -24,6 +24,7 @@ export type TextbookReaderSourceMapping = {
   source_markdown_path?: string | null;
   raw_markdown_path?: string | null;
   extract_dir?: string | null;
+  source_pdf_path?: string | null;
 };
 
 export type LoadTextbookReaderInput = {
@@ -32,6 +33,7 @@ export type LoadTextbookReaderInput = {
   datasetId: string;
   bookId: string;
   sourcePaths?: string[];
+  pdfPath?: string | null;
   requestedPage?: number;
   evidence?: ReaderEvidence | null;
 };
@@ -104,7 +106,8 @@ function relativeAssetPath(repoRoot: string, dataRoot: string, jsonPath: string,
     return `data/${relativeToData.split(path.sep).join('/')}`;
   }
   const relative = path.relative(path.resolve(repoRoot), resolved);
-  if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) return null;
+  if (!relative) return null;
+  if (relative.startsWith('..') || path.isAbsolute(relative)) return resolved;
   return relative.split(path.sep).join('/');
 }
 
@@ -228,9 +231,7 @@ export async function resolveTextbookReaderPdf(input: LoadTextbookReaderInput): 
   const dataRoot = path.resolve(input.dataRoot ?? path.resolve(input.repoRoot, 'data'));
   const mineruRoot = path.resolve(dataRoot, 'mineru');
   const bookRoot = path.resolve(mineruRoot, input.bookId);
-  const allowedRoots = [mineruRoot, path.resolve(input.repoRoot, 'ocr')];
-  const candidates = [bookRoot, ...(input.sourcePaths ?? [])];
-  const searchRoots: string[] = [];
+  const candidates = [input.pdfPath ?? '', bookRoot, ...(input.sourcePaths ?? [])];
   for (const candidate of candidates) {
     if (!candidate || /^https?:/i.test(candidate)) continue;
     const resolved = path.isAbsolute(candidate)
@@ -238,26 +239,21 @@ export async function resolveTextbookReaderPdf(input: LoadTextbookReaderInput): 
       : candidate.replace(/\\/g, '/').startsWith('data/')
         ? path.resolve(dataRoot, candidate.replace(/\\/g, '/').slice('data/'.length))
         : path.resolve(input.repoRoot, candidate);
-    const allowedRoot = allowedRoots.find((root) => resolved === root || resolved.startsWith(`${root}${path.sep}`));
-    if (!allowedRoot) continue;
     const info = await stat(resolved).catch(() => null);
+    if (info?.isFile() && /\.pdf$/i.test(resolved)) return resolved;
     let directory = info?.isDirectory() ? resolved : info?.isFile() ? path.dirname(resolved) : null;
-    while (directory && (directory === allowedRoot || directory.startsWith(`${allowedRoot}${path.sep}`))) {
-      if (!searchRoots.includes(directory)) searchRoots.push(directory);
-      if (directory === allowedRoot) break;
-      directory = path.dirname(directory);
+    for (let level = 0; directory && level <= 2; level += 1) {
+      const found = await findReaderPdf(directory, input.bookId, 0);
+      if (found) return found;
+      const parent = path.dirname(directory);
+      directory = parent === directory ? null : parent;
     }
-  }
-  for (const root of searchRoots) {
-    const found = await findReaderPdf(root, input.bookId, 0);
-    if (found) return found;
   }
   return null;
 }
 
 async function sourceDirectory(input: LoadTextbookReaderInput): Promise<string> {
   const dataRoot = path.resolve(input.dataRoot ?? path.resolve(input.repoRoot, 'data'));
-  const allowedRoots = [path.resolve(dataRoot, 'mineru'), path.resolve(input.repoRoot, 'ocr')];
   const candidates = [
     ...(input.sourcePaths ?? []),
     path.join(dataRoot, 'mineru', input.bookId),
@@ -269,8 +265,6 @@ async function sourceDirectory(input: LoadTextbookReaderInput): Promise<string> 
       : candidate.replace(/\\/g, '/').startsWith('data/')
         ? path.resolve(dataRoot, candidate.replace(/\\/g, '/').slice('data/'.length))
         : path.resolve(input.repoRoot, candidate);
-    const allowed = allowedRoots.some((root) => resolved === root || resolved.startsWith(`${root}${path.sep}`));
-    if (!allowed) continue;
     const info = await stat(resolved).catch(() => null);
     const directory = info?.isDirectory() ? resolved : info?.isFile() ? path.dirname(resolved) : null;
     if (directory && await findReaderJson(directory)) return directory;
@@ -338,10 +332,54 @@ export async function listTextbookReaderBooks(
       if (root !== preferredRoot) legacyRoots.add(root);
     }
   }
-  return books
+  const catalogBooks = books
     .filter((book) => !legacyRoots.has(book.book_id) || canonicalByRoot.has(book.book_id))
-    .map((book) => ({ ...book, book_id: canonicalByRoot.get(book.book_id) ?? book.book_id }))
-    .sort((left, right) => left.title.localeCompare(right.title, 'zh-CN', { numeric: true }));
+    .map((book) => ({ ...book, book_id: canonicalByRoot.get(book.book_id) ?? book.book_id }));
+  const catalogIds = new Set(catalogBooks.map((book) => book.book_id));
+  for (const source of sourceMappings) {
+    if (!source.book_id || catalogIds.has(source.book_id)) continue;
+    const candidates = [source.extract_dir, source.raw_markdown_path, source.source_markdown_path]
+      .map((value) => String(value ?? '').trim())
+      .filter(Boolean);
+    let jsonPath: string | null = null;
+    for (const candidate of candidates) {
+      const resolved = path.isAbsolute(candidate) ? path.resolve(candidate) : path.resolve(path.dirname(dataRoot), candidate);
+      const info = await stat(resolved).catch(() => null);
+      const directory = info?.isDirectory() ? resolved : info?.isFile() ? path.dirname(resolved) : null;
+      if (!directory) continue;
+      jsonPath = await findReaderJson(directory).catch(() => null);
+      if (jsonPath) break;
+    }
+    if (!jsonPath) continue;
+    try {
+      const parsed = JSON.parse(await readFile(jsonPath, 'utf8')) as unknown;
+      const sourceFormat = /_v2\.json$/i.test(jsonPath) ? 'content_list_v2' as const : 'content_list' as const;
+      const pageCount = sourceFormat === 'content_list_v2'
+        ? Array.isArray(parsed) ? parsed.length : 0
+        : Array.isArray(parsed)
+          ? parsed.filter(isRecord).reduce((max, row) => Math.max(max, (Number(row.page_idx) || 0) + 1), 0)
+          : 0;
+      if (pageCount <= 0) continue;
+      catalogBooks.push({
+        book_id: source.book_id,
+        title: path.basename(jsonPath).replace(/_content_list(?:_v2)?\.json$/i, '') || source.book_id,
+        page_count: pageCount,
+        source_format: sourceFormat,
+        pdf_available: Boolean(await resolveTextbookReaderPdf({
+          repoRoot: path.dirname(dataRoot),
+          dataRoot,
+          datasetId: '',
+          bookId: source.book_id,
+          sourcePaths: candidates,
+          pdfPath: source.source_pdf_path,
+        })),
+      });
+      catalogIds.add(source.book_id);
+    } catch {
+      // Invalid external bundles are reported by the pipeline inspection surface.
+    }
+  }
+  return catalogBooks.sort((left, right) => left.title.localeCompare(right.title, 'zh-CN', { numeric: true }));
 }
 
 async function parseBook(input: LoadTextbookReaderInput): Promise<ParsedBook> {

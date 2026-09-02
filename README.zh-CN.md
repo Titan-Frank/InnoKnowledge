@@ -28,12 +28,12 @@ Open Knowledge Map 把教材视为**来源证据**，而不是知识的最终计
 - TypeScript 优先的 PDF 与 MinerU 处理链路。
 - 教材目录对齐和课时/切块规划。
 - 基于模型的知识对象与关系抽取。
-- 课时隔离暂存表和事务化正式归并器。
+- 相互隔离的课时临时结果和事务化正式知识合并。
 - 节点、关系、领域画像、提及、证据、卡片与知识正文。
 - 正式数据归一化后，按学段生成带证据编号、等待审核的教学画像。
 - 始终可用的文本知识对象检索，以及在查询向量和库内向量齐备时运行的向量与混合检索。
 - 带证据编号归属校验的依据生成，以及证据不足时的明确结果。
-- 图片相关性复核、合并复核、严格质量检查和图完整性检查。
+- 图片相关性复核、合并复核、最终质量检查和知识关系检查。
 - PostgreSQL 服务接口和 React 图谱/调试工作台。
 
 ```mermaid
@@ -41,9 +41,9 @@ flowchart LR
     A["PDF 或 MinerU Markdown"] --> B["目录与课时规划"]
     B --> C["课时工作器"]
     C --> D["world_staging_* 暂存表"]
-    D --> E["归并与规范化"]
+    D --> E["合并并整理知识数据"]
     E --> F["正式 world_* 知识库"]
-    F --> G["严格质检与图完整性"]
+    F --> G["最终质量与知识关系检查"]
     F --> H["ApiUnit 组装"]
     H --> I["检索与带依据生成"]
     H --> J["图谱与复核工作台"]
@@ -147,7 +147,7 @@ npm run server-pipeline-run -w packages/pipeline -- \
 
 如果流水线任务被阻断，流水线工作台会显示“从失败步骤继续运行”按钮。系统会在原作业上从该步骤重新运行，保留作业编号、前序完成状态、历史事件以及已经生成的文件、目录、暂存记录和正式图谱数据。命令行也可以使用相同的分阶段运行能力：
 
-流水线工作台同时提供最近作业列表，显示每个作业的教材、状态、当前阶段、进度和更新时间。点击一行可以查看该作业的阶段、Worker 与事件详情。续跑作业中被复用的前序阶段会显示为已完成。
+教材处理工作台同时提供最近任务列表，显示每个任务的教材、状态、当前步骤、进度和更新时间。点击一行可以查看该任务的步骤、并行课时与事件详情。续跑任务中被复用的前序步骤会显示为已完成。
 
 ```bash
 npm run server-pipeline-run -w packages/pipeline -- \
@@ -182,7 +182,7 @@ npm run generate-pedagogical-profiles -w packages/pipeline -- \
 - 无法判断的图片会保留为待确认状态，只在调试页出现。
 - 人工标为核心、辅助或保留后才进入普通知识单元详情；标为删除后继续隐藏。
 
-富化内容只帮助判断术语边界、命名和节点粒度，不能作为知识对象或关系成立的正式证据。正式结果仍必须由当前课时的 Markdown、图片、表格或公式支撑。
+参考教材内容只帮助判断术语边界、命名和知识点粒度，不能作为知识对象或关系成立的正式证据。正式结果仍必须由当前课时的 Markdown、图片、表格或公式支撑。
 
 ## 验证
 
@@ -195,11 +195,11 @@ npm run verify
 该命令依次执行类型检查、流水线测试、服务端测试、前端测试和正式构建。数据库质量检查单独运行：
 
 ```bash
-npm run strict-qa -w packages/pipeline -- \
+npm run final-quality-check -w packages/pipeline -- \
   --dataset-id main \
   --db "$DATABASE_URL"
 
-npm run graph-integrity -w packages/pipeline -- \
+npm run knowledge-relation-check -w packages/pipeline -- \
   --dataset-id main \
   --db "$DATABASE_URL"
 ```
@@ -224,14 +224,16 @@ PostgreSQL 是唯一正式应用存储。`data`、`runs`、`storage`、`tmp` 和
 - `npm run server-pipeline-run -w packages/pipeline`
 - `npm run extract-lesson-openai -w packages/pipeline`
 - `npm run generate-node-bodies -w packages/pipeline`
-- `npm run store-staging -w packages/pipeline`
-- `npm run staging-quality -w packages/pipeline`
-- `npm run strict-qa -w packages/pipeline`
-- `npm run graph-integrity -w packages/pipeline`
+- `npm run store-staging -w packages/pipeline`（保存课时临时结果）
+- `npm run lesson-result-check -w packages/pipeline`（检查课时结果）
+- `npm run final-quality-check -w packages/pipeline`（最终质量检查）
+- `npm run knowledge-relation-check -w packages/pipeline`（检查知识关系）
 - `npm run parallel-lesson-pipeline -w packages/pipeline`
 - `npm run retrieve-candidates -w packages/pipeline`
 - `npm run merge-staged-lessons -w packages/pipeline`
-- `npm run normalize -w packages/pipeline`
+- `npm run organize-knowledge -w packages/pipeline`（整理知识数据）
+
+旧命令 `staging-quality`、`strict-qa`、`graph-integrity` 和 `normalize` 仍保留兼容。
 
 ## 研究状态
 

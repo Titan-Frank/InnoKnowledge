@@ -4,6 +4,7 @@ import type {
   PgAdminBooksResponse,
   PgAdminCatalogResponse,
   PgAdminColumn,
+  PgAdminExportFormat,
   PgAdminRowsResponse,
   PgAdminTable,
 } from '@okm/types';
@@ -16,6 +17,7 @@ import {
   ChevronRight,
   Database,
   Download,
+  Info,
   KeyRound,
   Loader2,
   Pencil,
@@ -46,15 +48,71 @@ type DialogTarget = { kind: 'book'; book: PgAdminBookSummary } | { kind: 'row'; 
 
 const GROUP_LABELS: Record<PgAdminTable['group'], string> = {
   catalog: '数据目录',
-  canonical: 'Canonical 图谱',
+  canonical: '正式知识数据',
   evidence: '证据与内容',
-  pipeline: '流水线',
-  staging: 'Staging',
-  runtime: '运行时',
+  pipeline: '处理任务',
+  staging: '临时处理结果',
+  runtime: '检索与生成',
 };
 
 const GROUP_ORDER: PgAdminTable['group'][] = ['catalog', 'canonical', 'evidence', 'pipeline', 'staging', 'runtime'];
 const PAGE_SIZE = 50;
+
+const TABLE_DESCRIPTIONS: Record<string, string> = {
+  world_datasets: '数据集本身的名称、架构版本、启用状态、根目录和更新时间等元数据。按教材导出时仍会保留当前数据集这一行。',
+  world_source_artifacts: '已登记的教材源文件与产物，包括 source_id、book_id、标题、文件路径、目录路径和扩展属性。',
+  world_textbook_outlines: '教材目录及切分结构，包括书名、章节树、课时与分块数量、来源路径和更新时间。',
+  world_enrich_library: '参考教材目录库的整体统计与生成信息，属于数据集共享配置；按教材导出时仍会完整保留。',
+  world_enrich_books: '参考教材库中的书目、学科、学段、年级、出版社和目录树；它们是抽取辅助资料，不等同于本次处理教材。',
+  world_mineru_sources: '教材的 MinerU/OCR 处理状态及 Markdown、PDF、压缩包和解压目录等来源路径。',
+  world_nodes: '归并后的正式知识点，包含名称、类型、定义、别名、领域、标签、状态及扩展属性。',
+  world_node_terms: '从正式知识点生成的规范名、别名和标签检索词，用于关键词搜索和去重匹配。',
+  world_edges: '正式知识点之间的关系边，包含关系类型、起止节点、方向、置信度、来源引用和状态。',
+  world_taxonomy_terms: '领域、知识形态、学习方式、学段等共享分类词表；按教材导出时仍会完整保留。',
+  world_taxonomy_edges: '共享分类词之间的上下位或关联关系；按教材导出时仍会完整保留。',
+  world_domain_profiles: '知识点在特定学科中的教学画像，包括适用学段、课程角色、属性和来源引用。',
+  world_mentions: '教材原文对知识点、关系或领域画像的提及位置、角色、锚点和识别置信度。',
+  world_evidence: '可追溯的教材证据片段，包括原文摘录、页码、定位信息、模态和抽取方式。',
+  world_evidence_links: '证据与关系、画像、提及、知识卡片及卡片章节之间的关联记录。',
+  world_node_cards: '知识点的精简知识卡片，包含标题、摘要、定义、要点、例子、应用和误区等结构化章节。',
+  world_node_bodies: '知识点的扩展 Markdown 正文、媒体引用、生成来源和状态，供阅读与内容生成使用。',
+  world_unit_embeddings: '知识单元的向量、检索文本、内容哈希、向量模型和生成时间，用于语义检索。',
+  retrieval_candidates: '检索过程产生的候选知识点、排名、得分、检索方式和过滤条件，主要用于调试与评估。',
+  world_lesson_runs: '每个教材课时的抽取批次、状态、数量统计和处理属性，是教材与暂存/正式数据之间的主链路。',
+  world_pipeline_jobs: '整本教材处理任务的状态、当前阶段、进度、命令、上下文、日志路径和错误信息。',
+  world_pipeline_job_stages: '教材处理任务中每个阶段的顺序、状态、进度、开始/完成时间和错误。',
+  world_pipeline_job_events: '处理任务的事件流水，记录阶段变化、工作槽、课时、明细和结构化事件数据。',
+  world_pipeline_worker_states: '并行工作槽的当前状态、正在处理的课时、阶段、时间和错误信息。',
+  world_staging_nodes: '课时抽取后、正式归并前的临时知识点，包含原始 ID、定义、分类、置信信息和来源引用。',
+  world_staging_edges: '课时抽取后、正式归并前的临时关系边及其原始起止节点、类型、方向和置信度。',
+  world_staging_domain_profiles: '课时抽取阶段生成的临时学科教学画像，尚未写入正式知识数据。',
+  world_staging_mentions: '课时抽取阶段生成的临时原文提及及其目标、角色、锚点和置信度。',
+  world_staging_evidence: '课时抽取阶段生成的临时证据摘录、页码、定位信息和规范化主张。',
+  world_staging_node_cards: '课时抽取阶段生成的临时知识卡片和结构化章节，等待归并与质量检查。',
+  world_merge_runs: '归并器每次运行选择了哪些课时、执行状态和统计结果；指定教材时包含涉及其课时的归并记录。',
+  world_canonical_node_map: '临时知识点到正式知识点的映射、处理方式、相似度和判定依据。',
+};
+
+function InfoTooltip({ label, text }: { label: string; text: string }) {
+  const id = `pg-info-${label.replace(/[^a-z0-9_-]/gi, '-')}`;
+  return (
+    <span className="group/info relative inline-flex shrink-0">
+      <button
+        type="button"
+        aria-label={`查看 ${label} 的中文说明`}
+        aria-describedby={id}
+        onClick={(event) => event.stopPropagation()}
+        className="flex h-6 w-6 cursor-help items-center justify-center rounded-md text-text-muted transition-colors hover:bg-accent/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      >
+        <Info className="h-3.5 w-3.5" />
+      </button>
+      <span id={id} role="tooltip" className="pointer-events-none absolute bottom-full right-0 z-30 mb-2 hidden w-72 rounded-lg border border-border-default bg-elevated px-3 py-2.5 text-left text-[11px] font-normal leading-5 tracking-normal text-text-secondary shadow-panel group-hover/info:block group-focus-within/info:block">
+        <span className="mb-1 block font-mono text-[10px] font-semibold text-text-primary">{label}</span>
+        {text}
+      </span>
+    </span>
+  );
+}
 
 function primaryKeyFor(table: PgAdminTable, row: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(table.primary_key.map((column) => [column, row[column]]));
@@ -142,7 +200,7 @@ function ConfirmDialog({
               <h2 id="pg-delete-title" className="truncate text-sm font-semibold text-text-primary">{title}</h2>
               <p className="mt-1 text-xs leading-5 text-text-muted">
                 {isBook
-                  ? '将在一个事务内删除教材目录、流水线记录、证据及未被其他教材复用的 canonical 数据。源文件不会删除。'
+                  ? '将在一个事务内删除教材目录、处理记录、证据及未被其他教材复用的正式知识数据。源文件不会删除。'
                   : '这是原始表级删除，PostgreSQL 外键级联可能同时删除关联记录。'}
               </p>
             </div>
@@ -154,7 +212,7 @@ function ConfirmDialog({
           <div className="grid grid-cols-3 gap-2 border-b border-border-subtle px-5 py-3 text-center text-[11px] sm:grid-cols-6">
             {[
               ['节点', target.book.canonical_nodes], ['边', target.book.edges], ['证据', target.book.evidence],
-              ['Mentions', target.book.mentions], ['课时', target.book.lesson_runs], ['任务', target.book.pipeline_jobs],
+              ['原文提及', target.book.mentions], ['课时', target.book.lesson_runs], ['任务', target.book.pipeline_jobs],
             ].map(([label, value]) => <div key={String(label)} className="rounded-md bg-surface p-2"><div className="font-mono font-semibold text-text-primary">{value}</div><div className="mt-0.5 text-text-muted">{label}</div></div>)}
           </div>
         )}
@@ -209,7 +267,7 @@ function BooksView({
       <div className="flex flex-col gap-3 border-b border-border-subtle px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold text-text-primary">教材数据</h2>
-          <p className="mt-0.5 text-[11px] text-text-muted">按 book_id 聚合目录、运行记录、canonical 节点与证据。</p>
+          <p className="mt-0.5 text-[11px] text-text-muted">按教材编号汇总目录、处理记录、正式知识点与证据。</p>
         </div>
         <label className="flex h-9 w-full items-center gap-2 rounded-md border border-border-subtle bg-surface px-3 sm:w-72 focus-within:border-accent">
           <Search className="h-3.5 w-3.5 text-text-muted" />
@@ -217,7 +275,7 @@ function BooksView({
         </label>
       </div>
       {loading ? (
-        <EmptyState icon={<Loader2 className="h-5 w-5 animate-spin" />} title="正在读取教材聚合数据" detail="统计会联合 lesson runs、canonical mappings 和 evidence。" />
+        <EmptyState icon={<Loader2 className="h-5 w-5 animate-spin" />} title="正在读取教材汇总数据" detail="统计会合并课时记录、正式知识点映射和证据。" />
       ) : books.length === 0 ? (
         <EmptyState icon={<BookOpen className="h-5 w-5" />} title="没有匹配的教材" detail="当前数据集没有教材记录，或搜索条件未命中。" />
       ) : (
@@ -230,7 +288,7 @@ function BooksView({
                 <th className="px-3 py-2.5 text-right font-medium">共享</th>
                 <th className="px-3 py-2.5 text-right font-medium">边</th>
                 <th className="px-3 py-2.5 text-right font-medium">证据</th>
-                <th className="px-3 py-2.5 text-right font-medium">Mentions</th>
+                <th className="px-3 py-2.5 text-right font-medium">原文提及</th>
                 <th className="px-3 py-2.5 text-right font-medium">课时 / 任务</th>
                 <th className="px-3 py-2.5 font-medium">更新</th>
                 <th className="px-4 py-2.5 text-right font-medium">操作</th>
@@ -482,22 +540,36 @@ function TableView({
 
 function ExportDialog({
   catalog,
+  books,
   includeBooks,
+  exportFormat,
+  bookScope,
+  selectedBookIds,
   selectedTables,
   busy,
   error,
   onIncludeBooksChange,
+  onExportFormatChange,
+  onBookScopeChange,
+  onSelectedBookIdsChange,
   onSelectedTablesChange,
   onSelectCurrent,
   onClose,
   onExport,
 }: {
   catalog: PgAdminCatalogResponse;
+  books: PgAdminBooksResponse | null;
   includeBooks: boolean;
+  exportFormat: PgAdminExportFormat;
+  bookScope: 'all' | 'selected';
+  selectedBookIds: string[];
   selectedTables: string[];
   busy: boolean;
   error: string;
   onIncludeBooksChange: (value: boolean) => void;
+  onExportFormatChange: (value: PgAdminExportFormat) => void;
+  onBookScopeChange: (value: 'all' | 'selected') => void;
+  onSelectedBookIdsChange: (bookIds: string[]) => void;
   onSelectedTablesChange: (tables: string[]) => void;
   onSelectCurrent: () => void;
   onClose: () => void;
@@ -508,6 +580,8 @@ function ExportDialog({
   const estimatedRows = catalog.tables
     .filter((table) => selected.has(table.name))
     .reduce((sum, table) => sum + table.estimated_rows, 0);
+  const availableBooks = books?.books ?? [];
+  const hasValidBookScope = bookScope === 'all' || selectedBookIds.length > 0;
 
   const toggleTable = (tableName: string, checked: boolean) => {
     onSelectedTablesChange(checked
@@ -523,6 +597,12 @@ function ExportDialog({
     onSelectedTablesChange(next);
   };
 
+  const toggleBook = (bookId: string, checked: boolean) => {
+    onSelectedBookIdsChange(checked
+      ? [...new Set([...selectedBookIds, bookId])]
+      : selectedBookIds.filter((id) => id !== bookId));
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-void/75 p-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div className="flex max-h-[min(820px,calc(100vh-2rem))] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-border-default bg-elevated shadow-panel" role="dialog" aria-modal="true" aria-labelledby="pg-export-title">
@@ -531,7 +611,7 @@ function ExportDialog({
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/12 text-accent"><Download className="h-4.5 w-4.5" /></div>
             <div className="min-w-0">
               <h2 id="pg-export-title" className="text-sm font-semibold text-text-primary">导出 PostgreSQL 数据</h2>
-              <p className="mt-1 text-xs leading-5 text-text-muted">选择要写入 JSON 文件的教材汇总和原始数据表。所有表均限定为当前数据集。</p>
+              <p className="mt-1 text-xs leading-5 text-text-muted">选择教材范围、文件组织方式，以及要导出的汇总和原始数据表。</p>
             </div>
           </div>
           <button type="button" onClick={onClose} disabled={busy} className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-text-muted transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50" aria-label="关闭导出面板"><X className="h-4 w-4" /></button>
@@ -543,17 +623,70 @@ function ExportDialog({
             <button type="button" onClick={() => { onIncludeBooksChange(true); onSelectedTablesChange(catalog.tables.map((table) => table.name)); }} className="h-7 cursor-pointer rounded-md border border-border-subtle bg-elevated px-2.5 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary">全选</button>
             <button type="button" onClick={() => { onIncludeBooksChange(false); onSelectedTablesChange([]); }} className="h-7 cursor-pointer rounded-md border border-border-subtle bg-elevated px-2.5 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary">清空</button>
           </div>
-          <div className="text-[11px] text-text-muted">已选 <span className="font-mono font-semibold text-text-primary">{selectionCount}</span> 项 · 约 <span className="font-mono text-text-primary">{estimatedRows.toLocaleString()}</span> 行表数据</div>
+          <div className="text-[11px] text-text-muted">已选 <span className="font-mono font-semibold text-text-primary">{selectionCount}</span> 项 · {bookScope === 'selected' ? `${selectedBookIds.length} 本教材` : '全部教材'} · 表总量约 <span className="font-mono text-text-primary">{estimatedRows.toLocaleString()}</span> 行</div>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 scrollbar-thin">
-          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border-subtle bg-surface px-3 py-2.5 transition-colors hover:border-border-default hover:bg-hover/60">
-            <span className="flex min-w-0 items-center gap-2.5">
+          <fieldset className="rounded-lg border border-border-subtle bg-surface p-3">
+            <legend className="px-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">教材范围</legend>
+            <div className="flex flex-wrap gap-x-5 gap-y-2">
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-text-primary">
+                <input type="radio" name="pg-export-book-scope" checked={bookScope === 'all'} onChange={() => onBookScopeChange('all')} className="h-3.5 w-3.5 cursor-pointer accent-accent" />
+                全部教材
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-text-primary">
+                <input type="radio" name="pg-export-book-scope" checked={bookScope === 'selected'} onChange={() => onBookScopeChange('selected')} className="h-3.5 w-3.5 cursor-pointer accent-accent" />
+                指定教材
+              </label>
+            </div>
+            <p className="mt-2 text-[10px] leading-4 text-text-muted">指定教材后，各表会按教材及其关联的课时、知识点、关系、证据和任务过滤；共享分类与参考教材库会保留当前数据集的完整记录。</p>
+            {bookScope === 'selected' && (
+              <div className="mt-3 border-t border-border-subtle pt-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="text-[10px] text-text-muted">已选 {selectedBookIds.length}/{availableBooks.length} 本</span>
+                  <span className="flex gap-1.5">
+                    <button type="button" onClick={() => onSelectedBookIdsChange(availableBooks.map((book) => book.book_id))} className="cursor-pointer text-[10px] text-accent transition-colors hover:text-accent/80">全选教材</button>
+                    <button type="button" onClick={() => onSelectedBookIdsChange([])} className="cursor-pointer text-[10px] text-text-muted transition-colors hover:text-text-primary">清空</button>
+                  </span>
+                </div>
+                {availableBooks.length ? (
+                  <div className="grid max-h-36 gap-1.5 overflow-y-auto pr-1 scrollbar-thin sm:grid-cols-2">
+                    {availableBooks.map((book) => (
+                      <label key={book.book_id} className="flex cursor-pointer items-start gap-2 rounded-md border border-border-subtle bg-elevated px-2.5 py-2 transition-colors hover:border-border-default hover:bg-hover/60">
+                        <input type="checkbox" checked={selectedBookIds.includes(book.book_id)} onChange={(event) => toggleBook(book.book_id, event.target.checked)} className="mt-0.5 h-3.5 w-3.5 shrink-0 cursor-pointer accent-accent" />
+                        <span className="min-w-0"><span className="block truncate text-[11px] font-medium text-text-primary" title={book.title}>{book.title}</span><span className="mt-0.5 block truncate font-mono text-[9px] text-text-muted" title={book.book_id}>{book.book_id}</span></span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-md border border-node-event/30 bg-node-event/8 px-3 py-2 text-[10px] text-node-event">当前数据集没有可选教材，请返回后刷新教材列表。</div>
+                )}
+                {availableBooks.length > 0 && selectedBookIds.length === 0 && <p className="mt-2 text-[10px] text-node-event">请至少选择一本教材后再下载。</p>}
+              </div>
+            )}
+          </fieldset>
+
+          <fieldset className="mt-4 rounded-lg border border-border-subtle bg-surface p-3">
+            <legend className="px-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">文件组织</legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className={`flex cursor-pointer items-start gap-2 rounded-md border px-3 py-2.5 transition-colors ${exportFormat === 'combined' ? 'border-accent/50 bg-accent/8' : 'border-border-subtle bg-elevated hover:border-border-default'}`}>
+                <input type="radio" name="pg-export-format" checked={exportFormat === 'combined'} onChange={() => onExportFormatChange('combined')} className="mt-0.5 h-3.5 w-3.5 cursor-pointer accent-accent" />
+                <span><span className="block text-[11px] font-medium text-text-primary">合并为一个 JSON</span><span className="mt-0.5 block text-[10px] leading-4 text-text-muted">所有表放在同一个文件的 tables 对象中</span></span>
+              </label>
+              <label className={`flex cursor-pointer items-start gap-2 rounded-md border px-3 py-2.5 transition-colors ${exportFormat === 'separate' ? 'border-accent/50 bg-accent/8' : 'border-border-subtle bg-elevated hover:border-border-default'}`}>
+                <input type="radio" name="pg-export-format" checked={exportFormat === 'separate'} onChange={() => onExportFormatChange('separate')} className="mt-0.5 h-3.5 w-3.5 cursor-pointer accent-accent" />
+                <span><span className="block text-[11px] font-medium text-text-primary">每个表单独一个 JSON</span><span className="mt-0.5 block text-[10px] leading-4 text-text-muted">统一打包为 ZIP；另附 manifest.json</span></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-border-subtle bg-surface px-3 py-2.5 transition-colors hover:border-border-default hover:bg-hover/60">
+            <label className="flex min-w-0 cursor-pointer items-center gap-2.5">
               <input type="checkbox" checked={includeBooks} onChange={(event) => onIncludeBooksChange(event.target.checked)} className="h-3.5 w-3.5 cursor-pointer accent-accent" />
               <span><span className="block text-xs font-medium text-text-primary">教材汇总</span><span className="mt-0.5 block text-[10px] text-text-muted">教材名称、课时、任务、节点、边和证据统计</span></span>
-            </span>
-            <BookOpen className="h-4 w-4 shrink-0 text-text-muted" />
-          </label>
+            </label>
+            <InfoTooltip label="教材汇总" text="便于快速了解导出教材的数据规模。这不是 PostgreSQL 原始表；勾选后会在 JSON 顶层增加 books 数组，并自动遵循上方教材范围。" />
+          </div>
 
           <div className="mt-4 space-y-4">
             {GROUP_ORDER.map((group) => {
@@ -572,13 +705,14 @@ function ExportDialog({
                   </legend>
                   <div className="grid gap-1.5 sm:grid-cols-2">
                     {tables.map((table) => (
-                      <label key={table.name} className="flex cursor-pointer items-center justify-between gap-3 rounded-md border border-border-subtle bg-surface px-3 py-2 transition-colors hover:border-border-default hover:bg-hover/60">
-                        <span className="flex min-w-0 items-center gap-2">
+                      <div key={table.name} className="flex items-center justify-between gap-2 rounded-md border border-border-subtle bg-surface px-2 py-1.5 transition-colors hover:border-border-default hover:bg-hover/60">
+                        <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 px-1 py-0.5">
                           <input type="checkbox" checked={selected.has(table.name)} onChange={(event) => toggleTable(table.name, event.target.checked)} className="h-3.5 w-3.5 shrink-0 cursor-pointer accent-accent" />
                           <span className="truncate font-mono text-[11px] text-text-primary">{table.name}</span>
-                        </span>
+                        </label>
                         <span className="shrink-0 font-mono text-[10px] text-text-muted">~{table.estimated_rows.toLocaleString()}</span>
-                      </label>
+                        <InfoTooltip label={table.name} text={TABLE_DESCRIPTIONS[table.name] ?? '当前数据集中的 PostgreSQL 原始表数据。'} />
+                      </div>
                     ))}
                   </div>
                 </fieldset>
@@ -589,12 +723,12 @@ function ExportDialog({
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-border-subtle bg-surface/50 px-5 py-3">
-          <span className="text-[10px] text-text-muted">单次导出上限 {Math.floor(catalog.export_max_bytes / 1024 / 1024)} MiB；超限时请减少所选数据表。</span>
+          <span className="text-[10px] text-text-muted">单次导出上限 {Math.floor(catalog.export_max_bytes / 1024 / 1024)} MiB；指定教材可显著缩小文件。</span>
           <div className="flex shrink-0 gap-2">
             <button type="button" onClick={onClose} disabled={busy} className="h-9 cursor-pointer rounded-md border border-border-subtle bg-elevated px-4 text-xs text-text-secondary transition-colors hover:bg-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50">取消</button>
-            <button type="button" onClick={onExport} disabled={busy || selectionCount === 0} className="flex h-9 cursor-pointer items-center gap-1.5 rounded-md bg-accent px-4 text-xs font-medium text-white transition-colors hover:bg-accent/85 disabled:cursor-not-allowed disabled:opacity-40">
+            <button type="button" onClick={onExport} disabled={busy || selectionCount === 0 || !hasValidBookScope} className="flex h-9 cursor-pointer items-center gap-1.5 rounded-md bg-accent px-4 text-xs font-medium text-white transition-colors hover:bg-accent/85 disabled:cursor-not-allowed disabled:opacity-40">
               {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-              {busy ? '正在导出' : '下载 JSON'}
+              {busy ? '正在导出' : exportFormat === 'separate' ? '下载 ZIP' : '下载 JSON'}
             </button>
           </div>
         </div>
@@ -629,6 +763,9 @@ export function PgAdminPage() {
   const [exportOpen, setExportOpen] = useState(false);
   const [exportTables, setExportTables] = useState<string[]>([]);
   const [exportBooks, setExportBooks] = useState(false);
+  const [exportFormat, setExportFormat] = useState<PgAdminExportFormat>('combined');
+  const [exportBookScope, setExportBookScope] = useState<'all' | 'selected'>('all');
+  const [exportBookIds, setExportBookIds] = useState<string[]>([]);
   const [exportBusy, setExportBusy] = useState(false);
   const [exportError, setExportError] = useState('');
   const sourceKeyRef = useRef(sourceKey);
@@ -650,7 +787,7 @@ export function PgAdminPage() {
       if (!next.tables.some((table) => table.name === activeTableName)) setActiveTableName(next.tables[0]?.name || 'world_nodes');
     } catch (loadError) {
       if (!isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, catalogRequestRef.current)) return;
-      setError((loadError as Error).message || '读取 PG 表目录失败');
+      setError((loadError as Error).message || '读取数据库表目录失败');
     } finally {
       if (isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, catalogRequestRef.current)) setLoadingCatalog(false);
     }
@@ -684,7 +821,7 @@ export function PgAdminPage() {
       setSelectedRow((current) => current ? payload.rows.find((row) => rowIdentity(payload.table, row) === rowIdentity(payload.table, current)) ?? null : null);
     } catch (loadError) {
       if (!isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, rowsRequestRef.current)) return;
-      setError((loadError as Error).message || '读取 PG 数据失败');
+      setError((loadError as Error).message || '读取数据库数据失败');
     } finally {
       if (isCurrentPgAdminRequest(requestSourceKey, requestId, sourceKeyRef.current, rowsRequestRef.current)) setLoadingRows(false);
     }
@@ -700,6 +837,9 @@ export function PgAdminPage() {
     setSelectedRow(null);
     setDialogTarget(null);
     setExportOpen(false);
+    setExportFormat('combined');
+    setExportBookScope('all');
+    setExportBookIds([]);
     setConfirmation('');
     setMutationError('');
     setError('');
@@ -776,16 +916,24 @@ export function PgAdminPage() {
 
   const openExport = () => {
     selectCurrentExportContent();
+    setExportFormat('combined');
+    setExportBookScope('all');
+    setExportBookIds([]);
     setExportError('');
     setExportOpen(true);
   };
 
   const runExport = async () => {
-    if (!catalog || (!exportBooks && exportTables.length === 0)) return;
+    if (!catalog || (!exportBooks && exportTables.length === 0) || (exportBookScope === 'selected' && exportBookIds.length === 0)) return;
     setExportBusy(true);
     setExportError('');
     try {
-      const { blob, filename } = await exportPgAdminData(sourceKey, { tables: exportTables, include_books: exportBooks });
+      const { blob, filename } = await exportPgAdminData(sourceKey, {
+        tables: exportTables,
+        include_books: exportBooks,
+        format: exportFormat,
+        ...(exportBookScope === 'selected' ? { book_ids: exportBookIds } : {}),
+      });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
@@ -796,7 +944,7 @@ export function PgAdminPage() {
       anchor.remove();
       URL.revokeObjectURL(url);
       setExportOpen(false);
-      setNotice(`已导出 ${exportTables.length + (exportBooks ? 1 : 0)} 项内容：${filename}`);
+      setNotice(`已导出 ${exportTables.length + (exportBooks ? 1 : 0)} 项内容（${exportBookScope === 'selected' ? `${exportBookIds.length} 本教材` : '全部教材'}，${exportFormat === 'separate' ? '每表一个 JSON' : '合并 JSON'}）：${filename}`);
     } catch (downloadError) {
       setExportError((downloadError as Error).message || '导出失败');
     } finally {
@@ -813,12 +961,12 @@ export function PgAdminPage() {
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-accent/35 bg-accent/10 text-accent"><Database className="h-5 w-5" /></div>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2"><h1 className="text-base font-semibold tracking-tight text-text-primary">PostgreSQL 数据管理台</h1><span className="rounded-full border border-node-process/30 bg-node-process/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-node-process">Live database</span></div>
-              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-text-muted"><span className="font-mono">{sourceKey}</span><span className="h-1 w-1 rounded-full bg-border-strong" /><span>{catalog?.schema_version ?? 'world-v1.2'}</span><span className="h-1 w-1 rounded-full bg-border-strong" /><span>所有变更直接写入 PG</span></div>
+              <div className="flex flex-wrap items-center gap-2"><h1 className="text-base font-semibold tracking-tight text-text-primary">数据库管理</h1><span className="rounded-full border border-node-process/30 bg-node-process/10 px-2 py-0.5 text-[9px] font-semibold tracking-[0.12em] text-node-process">实时数据</span></div>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-text-muted"><span className="font-mono">{sourceKey}</span><span className="h-1 w-1 rounded-full bg-border-strong" /><span>{catalog?.schema_version ?? 'world-v1.2'}</span><span className="h-1 w-1 rounded-full bg-border-strong" /><span>所有变更直接写入数据库</span></div>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <nav className="flex h-9 rounded-lg border border-border-subtle bg-elevated p-0.5" aria-label="PG 管理视图">
+            <nav className="flex h-9 rounded-lg border border-border-subtle bg-elevated p-0.5" aria-label="数据库管理视图">
               {([{ id: 'books', label: '教材管理', icon: BookOpen }, { id: 'tables', label: '数据表', icon: Table2 }] as const).map((item) => {
                 const Icon = item.icon;
                 return <button key={item.id} type="button" onClick={() => setView(item.id)} className={`flex min-w-24 cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 text-xs font-medium transition-colors ${view === item.id ? 'bg-accent text-white shadow-glow-soft' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}><Icon className="h-3.5 w-3.5" />{item.label}</button>;
@@ -863,13 +1011,13 @@ export function PgAdminPage() {
               saving={saving}
             />
           ) : (
-            <section className="rounded-lg border border-border-subtle bg-elevated"><EmptyState icon={<Loader2 className="h-5 w-5 animate-spin" />} title="正在读取 PostgreSQL schema" detail="读取可管理表、列类型和主键。" /></section>
+            <section className="rounded-lg border border-border-subtle bg-elevated"><EmptyState icon={<Loader2 className="h-5 w-5 animate-spin" />} title="正在读取数据库结构" detail="读取可管理表、列类型和主键。" /></section>
           )}
         </div>
       </div>
 
       {dialogTarget && <ConfirmDialog target={dialogTarget} table={activeTable} confirmation={confirmation} setConfirmation={setConfirmation} busy={mutationBusy} error={mutationError} onClose={closeDialog} onConfirm={() => void confirmDelete()} />}
-      {exportOpen && catalog && <ExportDialog catalog={catalog} includeBooks={exportBooks} selectedTables={exportTables} busy={exportBusy} error={exportError} onIncludeBooksChange={setExportBooks} onSelectedTablesChange={setExportTables} onSelectCurrent={selectCurrentExportContent} onClose={() => !exportBusy && setExportOpen(false)} onExport={() => void runExport()} />}
+      {exportOpen && catalog && <ExportDialog catalog={catalog} books={books} includeBooks={exportBooks} exportFormat={exportFormat} bookScope={exportBookScope} selectedBookIds={exportBookIds} selectedTables={exportTables} busy={exportBusy} error={exportError} onIncludeBooksChange={setExportBooks} onExportFormatChange={setExportFormat} onBookScopeChange={setExportBookScope} onSelectedBookIdsChange={setExportBookIds} onSelectedTablesChange={setExportTables} onSelectCurrent={selectCurrentExportContent} onClose={() => !exportBusy && setExportOpen(false)} onExport={() => void runExport()} />}
     </main>
   );
 }

@@ -7,6 +7,7 @@ import {
   buildUpsertNodeBodyStatement,
   parseModelNodeBodyResultText,
   planModelNodeBodies,
+  resolveBodyMediaRefs,
   renderNodeCardBodyMarkdown,
   runGenerateNodeBodiesFromDatabase,
 } from "./generate-node-bodies.js";
@@ -152,6 +153,77 @@ test("parses model node body JSON from plain or fenced output", () => {
     parseModelNodeBodyResultText('{{"content":"正文","source_refs":["ev1"]}}'),
     { content: "正文", source_refs: ["ev1"], media_refs: [], properties: {} },
   );
+});
+
+test("resolves local body images from cited image evidence", () => {
+  const imageEvidence = {
+    ...evidence,
+    id: "ev-image",
+    modality: "image",
+    excerpt: "![](images/triangle.jpg)",
+    properties_json: { path: "images/triangle.jpg" },
+  };
+  assert.deepEqual(
+    resolveBodyMediaRefs(
+      "## Example\n\n![triangle](images/triangle.jpg) [ev-image]",
+      ["ev-image"],
+      [imageEvidence],
+    ),
+    {
+      mediaRefs: [{ evidence_id: "ev-image", path: "images/triangle.jpg" }],
+      unresolvedRefs: [],
+    },
+  );
+});
+
+test("rejects local body images without matching cited image evidence", async () => {
+  const plan = await planModelNodeBodies({
+    datasetId: "main",
+    nodes: [node],
+    cards: [card],
+    mentions: [{ target_id: node.id, source_id: "book", anchor_ref: "lesson:1", source_refs_json: ["ev1"] }],
+    evidence: [evidence],
+    existingBodies: [],
+    modelName: "test-model",
+    now: "now",
+    generateBody: () => ({
+      content: "## Example\n\n![invented](images/invented.jpg)",
+      source_refs: ["ev1"],
+    }),
+  });
+
+  assert.equal(plan.rows.length, 0);
+  assert.deepEqual(plan.modelFailures, [{
+    node_id: node.id,
+    message: "Model output contains local image reference(s) without matching cited image evidence: images/invented.jpg",
+  }]);
+});
+
+test("writes deterministic media refs for model body image evidence", async () => {
+  const imageEvidence = {
+    ...evidence,
+    id: "ev-image",
+    modality: "image",
+    excerpt: "![](images/triangle.jpg)",
+    properties_json: { path: "images/triangle.jpg" },
+  };
+  const plan = await planModelNodeBodies({
+    datasetId: "main",
+    nodes: [node],
+    cards: [{ ...card, source_refs_json: ["ev-image"] }],
+    mentions: [{ target_id: node.id, source_id: "book", anchor_ref: "lesson:1", source_refs_json: ["ev-image"] }],
+    evidence: [imageEvidence],
+    existingBodies: [],
+    modelName: "test-model",
+    now: "now",
+    generateBody: () => ({
+      content: "## Example\n\n![triangle](images/triangle.jpg) [ev-image]",
+      source_refs: ["ev-image"],
+    }),
+  });
+
+  assert.deepEqual(plan.modelFailures, []);
+  assert.deepEqual(plan.rows[0]?.media_refs_json, [{ evidence_id: "ev-image", path: "images/triangle.jpg" }]);
 });
 
 test("builds model body node query scoped to a source book", () => {

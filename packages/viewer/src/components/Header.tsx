@@ -10,7 +10,7 @@ const WORKSPACE_ITEMS = [
   { id: 'graph', label: '图谱', icon: Network },
   { id: 'textbook', label: '教材', icon: BookOpen },
   { id: 'pipeline', label: '工作台', icon: BarChart3 },
-  { id: 'pg', label: 'PG', icon: Table2 },
+  { id: 'pg', label: '数据', icon: Table2 },
 ] as const;
 
 type ExportState =

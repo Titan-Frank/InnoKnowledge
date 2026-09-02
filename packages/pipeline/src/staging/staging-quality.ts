@@ -69,6 +69,8 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
   const lessonProperties = rows.lesson_run.properties_json ?? {};
   const lessonDisposition = typeof lessonProperties.lesson_disposition === "string" ? lessonProperties.lesson_disposition : "";
   const noKnowledgeReason = typeof lessonProperties.no_knowledge_reason === "string" ? lessonProperties.no_knowledge_reason.trim() : "";
+  const isExistingNodeAssessment = lessonProperties.content_role === "assessment"
+    && lessonProperties.extraction_policy === "existing_nodes_only";
   const artifactCount = rows.nodes.length
     + rows.edges.length
     + rows.domain_profiles.length
@@ -110,8 +112,11 @@ export function checkLessonStagingQuality(rows: StagingTableRows): LessonStaging
     if (!profileNodeIds.has(nodeId)) {
       errors.push(`Node ${nodeId} is missing a domain profile.`);
     }
-    if (!cardByNode.has(nodeId)) {
+    if (!cardByNode.has(nodeId) && !isExistingNodeAssessment) {
       errors.push(`Node ${nodeId} is missing a node card.`);
+    }
+    if (isExistingNodeAssessment && !existingCanonicalNodeId(node)) {
+      errors.push(`Assessment node ${nodeId} is missing existing_canonical_node_id.`);
     }
     if (!mentionByTarget.has(nodeId)) {
       errors.push(`Node ${nodeId} is missing a mention.`);
@@ -215,6 +220,11 @@ function isQualityExcludedEvidence(row: StagingEvidenceRow): boolean {
 
 function hasQualityEvidenceRef(refs: string[], qualityEvidenceIds: Set<string>): boolean {
   return refs.some((ref) => qualityEvidenceIds.has(ref));
+}
+
+function existingCanonicalNodeId(node: StagingNodeRow): string {
+  const value = node.properties_json.existing_canonical_node_id;
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function formatPythonStringList(values: string[]): string {

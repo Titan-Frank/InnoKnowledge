@@ -29,3 +29,13 @@ test('keeps a citation after a multi-line display formula outside the formula bl
   assert.match(html, /后续正文。/);
   assert.equal(html.includes('$$'), false);
 });
+
+test('renders vector notation and subscripts with KaTeX', () => {
+  const html = renderToStaticMarkup(createElement(MarkdownView, {
+    content: '所以，\n\n$\\overrightarrow{OA}\\cdot\\overrightarrow{OB}=x_1x_2+y_1y_2$',
+  }));
+
+  assert.match(html, /class="katex"/);
+  assert.match(html, /<mover accent="true">/);
+  assert.match(html, /<msub>/);
+});
