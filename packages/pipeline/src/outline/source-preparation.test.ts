@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import test from "node:test";
 
 import {
@@ -135,17 +135,105 @@ test("derives a basic outline from Markdown headings when outline is missing", (
 
     assert.equal(result.status, "completed");
     assert.equal(result.created, true);
-    assert.equal(result.item_count, 2);
+    assert.equal(result.item_count, 3);
     const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { title: string; source_path: string; items: Array<Record<string, unknown>> };
     assert.equal(outline.title, "测试教材");
     assert.equal(outline.source_path, "data/mineru/book-a/full.md");
     assert.deepEqual(
       outline.items.map((item) => [item.id, item.kind, item.label, item.title, item.md_start, item.md_end]),
       [
-        ["struct:book-a:lesson:1", "lesson", "第1章", "原子结构", 1, 4],
+        ["struct:book-a:theme:1", "theme", "第1章", "原子结构", 1, 4],
+        ["struct:book-a:lesson:1-1", "lesson", "1.1", "氢原子", 3, 4],
         ["struct:book-a:lesson:2", "lesson", "第2章", "分子结构", 5, 6],
       ],
     );
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("automatically excludes a Markdown TOC, front matter, and answer appendix", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-auto-toc-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const markdownPath = join(repoRoot, "data", "mineru", "book-a", "full.md");
+    mkdirSync(dirname(markdownPath), { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 数学",
+      "# 主编寄语",
+      "# 目录",
+      "## 第一章 集合……1",
+      "## 第二章 函数……20",
+      "# 第一章 集合",
+      "## 1.1 集合的概念",
+      "正文",
+      "# 第二章 函数",
+      "## 2.1 函数的概念",
+      "正文",
+      "# 参考答案",
+      "答案正文",
+    ].join("\n"), "utf8");
+
+    const result = ensureOutlineFromMarkdown({ bookId: "book-a", outlinePath, repoRoot, markdownPath });
+
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    assert.deepEqual(outline.items.map((item) => [item.kind, item.title, item.md_start, item.md_end]), [
+      ["theme", "集合", 6, 8],
+      ["lesson", "集合的概念", 7, 8],
+      ["theme", "函数", 9, 11],
+      ["lesson", "函数的概念", 10, 11],
+    ]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("uses an automatically discovered structured TOC as the outline skeleton", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-structured-auto-toc-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    const markdownPath = join(sourceDir, "full.md");
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 目录",
+      "# 第一章 集合",
+      "## 1.1 集合的概念",
+      "正文一",
+      "## 思考",
+      "思考正文",
+      "## 1.2 集合间的关系",
+      "正文二",
+    ].join("\n"), "utf8");
+    writeFileSync(join(sourceDir, "book_content_list_v2.json"), JSON.stringify([
+      [
+        mineruTitle("目录", 1),
+        mineruTitle("第一章 集合 …… 1"),
+        mineruList(["1.1 集合的概念…… 2", "1.2 集合间的关系…… 7"]),
+      ],
+      [
+        mineruTitle("第一章 集合", 1),
+        mineruTitle("1.1 集合的概念"),
+        mineruParagraph("正文一"),
+        mineruTitle("思考"),
+        mineruParagraph("思考正文"),
+        mineruTitle("1.2 集合间的关系"),
+        mineruParagraph("正文二"),
+      ],
+    ]), "utf8");
+
+    const result = ensureOutlineFromMarkdown({ bookId: "book-a", outlinePath, repoRoot, markdownPath });
+
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { source_kind: string; toc_pages: unknown; items: Array<Record<string, unknown>> };
+    assert.equal(outline.source_kind, "auto_toc");
+    assert.deepEqual(outline.toc_pages, { start: 1, end: 1 });
+    assert.deepEqual(outline.items.map((item) => [item.kind, item.title, item.md_start, item.md_end]), [
+      ["theme", "集合", 2, 8],
+      ["lesson", "集合的概念", 3, 6],
+      ["lesson", "集合间的关系", 7, 8],
+    ]);
   } finally {
     rmSync(repoRoot, { recursive: true, force: true });
   }
@@ -201,7 +289,7 @@ test("uses a confirmed Enrich tree as the outline skeleton and aligns it to Mark
     assert.deepEqual(
       outline.items.map((item) => [item.id, item.kind, item.parent_id ?? null, item.md_start, item.md_end, item.page_start, item.page_end]),
       [
-        ["struct:book-a:theme:1", "theme", null, 1, 2, 1, 1],
+        ["struct:book-a:theme:1", "theme", null, 1, 6, 1, 3],
         ["struct:book-a:lesson:1-1", "lesson", "struct:book-a:theme:1", 3, 4, 2, 2],
         ["struct:book-a:lesson:1-2", "lesson", "struct:book-a:theme:1", 5, 6, 3, 3],
       ],
@@ -261,10 +349,10 @@ test("uses Enrich hierarchy and document order to disambiguate repeated lesson h
     assert.equal(result.status, "completed");
     const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
     assert.deepEqual(outline.items.map((item) => [item.title, item.md_start, item.md_end]), [
-      ["第一章 有理数", 1, 1],
+      ["第一章 有理数", 1, 5],
       ["1.1 正数和负数", 2, 3],
       ["小结", 4, 5],
-      ["第二章 整式", 6, 6],
+      ["第二章 整式", 6, 10],
       ["2.1 单项式", 7, 8],
       ["小结", 9, 10],
     ]);
@@ -314,10 +402,103 @@ test("lets one Enrich lesson cover consecutive OCR sections with distinct sectio
     assert.equal(result.status, "completed");
     const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
     assert.deepEqual(outline.items.map((item) => [item.title, item.md_start, item.md_end]), [
-      ["第二章 有理数的运算", 1, 1],
+      ["第二章 有理数的运算", 1, 7],
       ["2.3.2 科学记数法 2.3.3 近似数", 2, 5],
       ["小结", 6, 7],
     ]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("globally aligns OCR-damaged headings instead of taking a later greedy exact match", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-global-fuzzy-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    const markdownPath = join(sourceDir, "full.md");
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 课程",
+      "## 机器学刁基础",
+      "第一课正文",
+      "## 机器学习基础",
+      "机器学习基础应用正文",
+    ].join("\n"), "utf8");
+    writeFileSync(join(sourceDir, "book_content_list_v2.json"), JSON.stringify([[
+      mineruTitle("课程", 1),
+      mineruTitle("机器学刁基础"),
+      mineruParagraph("第一课正文"),
+      mineruTitle("机器学习基础"),
+      mineruParagraph("机器学习基础应用正文"),
+    ]]), "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/book-a.json",
+      enrichTree: [{
+        title: "课程",
+        child_nodes: [{ title: "机器学习基础" }, { title: "机器学习基础应用" }],
+      }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "completed");
+    assert.deepEqual(result.status === "completed" ? result.unmatched_item_ids : [], []);
+    assert.deepEqual(result.status === "completed" ? result.warning_item_ids : [], ["struct:book-a:lesson:1-1"]);
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    const lessons = outline.items.filter((item) => item.kind === "lesson");
+    assert.deepEqual(lessons.map((item) => [item.title, item.md_start, item.md_end]), [
+      ["机器学习基础", 2, 3],
+      ["机器学习基础应用", 4, 5],
+    ]);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+test("combines a split section number and OCR-damaged title for alignment", () => {
+  const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-split-heading-"));
+  try {
+    const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
+    const sourceDir = join(repoRoot, "data", "mineru", "book-a");
+    const markdownPath = join(sourceDir, "full.md");
+    mkdirSync(sourceDir, { recursive: true });
+    writeFileSync(markdownPath, [
+      "# 第二章",
+      "## 2 . 3",
+      "## 知识图谙的构建方法",
+      "正文",
+      "## 2.4 知识图谱的应用",
+      "正文",
+    ].join("\n"), "utf8");
+    writeFileSync(join(sourceDir, "book_content_list_v2.json"), JSON.stringify([[
+      mineruTitle("第二章", 1),
+      mineruTitle("2 . 3"),
+      mineruTitle("知识图谙的构建方法"),
+      mineruParagraph("正文"),
+      mineruTitle("2.4 知识图谱的应用"),
+      mineruParagraph("正文"),
+    ]]), "utf8");
+
+    const result = ensureOutlineFromEnrich({
+      bookId: "book-a",
+      enrichBookPath: "data/enrich/book-a.json",
+      enrichTree: [{
+        title: "第二章",
+        child_nodes: [{ title: "2.3 知识图谱的构建方法" }, { title: "2.4 知识图谱的应用" }],
+      }],
+      outlinePath,
+      repoRoot,
+      markdownPath,
+    });
+
+    assert.equal(result.status, "completed");
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
+    const lessons = outline.items.filter((item) => item.kind === "lesson");
+    assert.deepEqual(lessons.map((item) => [item.md_start, item.md_end]), [[2, 4], [5, 6]]);
   } finally {
     rmSync(repoRoot, { recursive: true, force: true });
   }
@@ -379,7 +560,7 @@ test("rejects Enrich alignment when the OCR source has no content_list_v2 JSON",
   }
 });
 
-test("uses MinerU v2 pages to reject a lesson sequence fabricated across TOC and body", () => {
+test("keeps a partially aligned Enrich skeleton without matching lessons against TOC pages", () => {
   const repoRoot = mkdtempSync(join(tmpdir(), "okm-source-prep-enrich-v2-cross-region-"));
   try {
     const outlinePath = join(repoRoot, "data", "outlines", "book-a.outline.json");
@@ -408,9 +589,14 @@ test("uses MinerU v2 pages to reject a lesson sequence fabricated across TOC and
       markdownPath,
     });
 
-    assert.equal(result.status, "skipped");
-    assert.match(result.status === "skipped" ? result.reason : "", /did not align completely to Markdown/);
-    assert.equal(existsSync(outlinePath), false);
+    assert.equal(result.status, "completed");
+    assert.deepEqual(result.status === "completed" ? result.unmatched_item_ids : [], ["struct:book-a:lesson:1"]);
+    const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { source_kind: string; items: Array<Record<string, unknown>> };
+    assert.equal(outline.source_kind, "enrich");
+    assert.deepEqual(outline.items.map((item) => [item.title, item.md_start, item.md_end]), [
+      ["第一课", undefined, undefined],
+      ["第二课", 28, 29],
+    ]);
   } finally {
     rmSync(repoRoot, { recursive: true, force: true });
   }
@@ -453,7 +639,7 @@ test("uses MinerU v2 pages to prefer a lower-scoring body title over an exact TO
     assert.equal(result.status, "completed");
     const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
     assert.deepEqual(outline.items.map((item) => [item.id, item.md_start, item.md_end, item.page_start, item.page_end]), [
-      ["struct:book-a:theme:1", undefined, undefined, 2, 2],
+      ["struct:book-a:theme:1", 28, 31, 2, 2],
       ["struct:book-a:lesson:1-1", 28, 29, 2, 2],
       ["struct:book-a:lesson:1-2", 30, 31, 2, 2],
     ]);
@@ -504,7 +690,7 @@ test("uses MinerU v2 pages to align Enrich lessons only to the textbook body", (
     };
     assert.deepEqual(outline.toc_pages, { start: 1, end: 2 });
     assert.deepEqual(outline.items.map((item) => [item.id, item.md_start, item.md_end]), [
-      ["struct:book-a:theme:1", 4, 4],
+      ["struct:book-a:theme:1", 4, 8],
       ["struct:book-a:lesson:1-1", 5, 6],
       ["struct:book-a:lesson:1-2", 7, 8],
     ]);
@@ -552,7 +738,7 @@ test("uses a structured appendix boundary to keep the final Enrich lesson out of
     assert.equal(result.status, "completed");
     const outline = JSON.parse(readFileSync(outlinePath, "utf8")) as { items: Array<Record<string, unknown>> };
     assert.deepEqual(outline.items.map((item) => [item.id, item.md_start, item.md_end]), [
-      ["struct:book-a:theme:1", 1, 1],
+      ["struct:book-a:theme:1", 1, 5],
       ["struct:book-a:lesson:1-1", 2, 3],
       ["struct:book-a:lesson:1-2", 4, 5],
     ]);
@@ -707,7 +893,7 @@ test("aligns an existing outline to Markdown headings", () => {
     assert.deepEqual(
       outline.items.map((item) => [item.id, item.md_start, item.md_end]),
       [
-        ["struct:book-a:theme:1", 1, 2],
+        ["struct:book-a:theme:1", 1, 5],
         ["struct:book-a:lesson:1-1", 3, 5],
       ],
     );
@@ -1107,6 +1293,17 @@ function mineruParagraph(text: string): Record<string, unknown> {
   return {
     type: "paragraph",
     content: { paragraph_content: [{ type: "text", content: text }] },
+    bbox: [0, 30, 100, 80],
+  };
+}
+
+function mineruList(items: string[]): Record<string, unknown> {
+  return {
+    type: "list",
+    content: {
+      list_type: "text_list",
+      list_items: items.map((item) => ({ item_type: "text", item_content: [{ type: "text", content: item }] })),
+    },
     bbox: [0, 30, 100, 80],
   };
 }

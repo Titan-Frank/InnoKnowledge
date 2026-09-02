@@ -13,6 +13,31 @@ export const ASSOCIATION_TYPES = new Set(['related_to', 'same_as', 'about']);
 export const CAUSAL_TYPES = new Set(['causes', 'affects']);
 export const OPERATIONAL_TYPES = new Set(['uses', 'produces', 'represents', 'has_property']);
 
+const EDGE_TYPE_LABELS: Record<string, string> = {
+  is_a: '属于',
+  instance_of: '实例',
+  prerequisite_for: '前置知识',
+  depends_on: '依赖',
+  part_of: '组成部分',
+  contains: '包含',
+  related_to: '相关',
+  same_as: '等同',
+  causes: '导致',
+  affects: '影响',
+  uses: '使用',
+  produces: '生成',
+  represents: '表征',
+  about: '关于',
+  has_property: '具有性质',
+};
+
+export function resolveEdgeLabel(edgeType: string, displayLabel?: string | null): string {
+  const customLabel = displayLabel?.trim();
+  if (customLabel) return customLabel;
+  if (EDGE_TYPE_LABELS[edgeType]) return EDGE_TYPE_LABELS[edgeType];
+  return edgeType.replaceAll('_', ' ').replaceAll('-', ' ').trim() || '关联';
+}
+
 export function resolveEdgeVisual(edgeType: string): EdgeVisual {
   if (HIERARCHY_TYPES.has(edgeType)) {
     return { stroke: '#555AFF', labelTone: 'accent', category: '层级关系' };

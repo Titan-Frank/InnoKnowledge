@@ -425,6 +425,9 @@ export async function runServerPipeline(options: RunnerOptions): Promise<ServerP
             outline_path: enrichOutlineStage.outline_path,
             item_count: enrichOutlineStage.item_count,
             source_path: enrichOutlineStage.source_path,
+            unmatched_item_ids: enrichOutlineStage.unmatched_item_ids,
+            warning_item_ids: enrichOutlineStage.warning_item_ids,
+            average_confidence: enrichOutlineStage.average_confidence,
           }
         : ensureOutlineFromMarkdown({
             bookId: options.bookId,

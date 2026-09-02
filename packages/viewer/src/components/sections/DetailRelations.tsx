@@ -1,6 +1,6 @@
 import type { OKMNode } from '@/core/graph/types';
 import { useAppState } from '@/hooks/useAppState';
-import { resolveEdgeVisual } from '@/lib/edge-styles';
+import { resolveEdgeLabel, resolveEdgeVisual } from '@/lib/edge-styles';
 
 export function DetailRelations({ node }: { node: OKMNode }) {
   const { knowledgeGraph, setSelectedNodeId } = useAppState();
@@ -20,7 +20,7 @@ export function DetailRelations({ node }: { node: OKMNode }) {
           const otherNode = knowledgeGraph.nodeById.get(otherId);
           const visual = resolveEdgeVisual(edge.edgeType);
           const edgeColor = edge.displayColor || visual.stroke;
-          const edgeLabel = edge.displayCategory || edge.displayLabel || visual.category;
+          const edgeLabel = resolveEdgeLabel(edge.edgeType, edge.displayLabel);
           const isOutgoing = edge.from === node.id;
 
           return (

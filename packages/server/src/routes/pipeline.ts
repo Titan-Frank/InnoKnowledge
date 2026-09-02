@@ -2,7 +2,7 @@ import type { Hono } from 'hono';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream, createWriteStream, mkdirSync } from 'node:fs';
-import { mkdir, readFile, readdir, realpath, rm, stat } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, realpath, rm, stat } from 'node:fs/promises';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { pipeline as streamPipeline } from 'node:stream/promises';
@@ -10,6 +10,7 @@ import type {
   PipelineBookNodesResponse, PipelineFolderPdf, PipelineFolderScanRequest, PipelineFolderScanResponse,
   PipelineJobStage, PipelineOcrInspectRequest, PipelineOcrInspectResponse, PipelinePdfUploadResponse, PipelineStartRequest, PipelineStartResponse, PipelineStartStage, PipelineStopResponse,
   PipelineOutlineChunkContentResponse, PipelineOutlineConfirmRequest, PipelineOutlineConfirmResponse, PipelineOutlinePreviewItem, PipelineOutlinePreviewResponse,
+  PipelineOutlineRejectRequest, PipelineOutlineRejectResponse,
   PipelineQualityReviewAction, PipelineQualityReviewUpdateRequest, PipelineQualityReviewUpdateResponse,
   TextbookMetadataRequest, TextbookMetadataResponse,
 } from '@okm/types';
@@ -632,6 +633,30 @@ export function safeToken(value: string): string {
     .replace(/^[._-]+|[._-]+$/g, '') || 'job';
 }
 
+export type PipelineRuntimeSnapshot = {
+  runtime_dir: string;
+  entry_path: string;
+};
+
+export async function createPipelineRuntimeSnapshot(
+  jobId: string,
+  options: { source_dir?: string; runtime_root?: string } = {},
+): Promise<PipelineRuntimeSnapshot> {
+  const sourceDir = resolve(options.source_dir ?? resolve(REPO_ROOT, 'packages', 'pipeline', 'dist'));
+  const runtimeRoot = resolve(options.runtime_root ?? resolve(REPO_ROOT, 'tmp', 'pipeline-runtimes'));
+  const runtimeDir = join(runtimeRoot, `${safeToken(jobId)}-${randomUUID()}`);
+  await mkdir(runtimeRoot, { recursive: true });
+  try {
+    await cp(sourceDir, runtimeDir, { recursive: true, errorOnExist: true, force: false });
+    const entryPath = resolve(runtimeDir, 'cli', 'server-pipeline-run.js');
+    if (!(await stat(entryPath)).isFile()) throw new Error(`Pipeline runtime entry is not a file: ${entryPath}`);
+    return { runtime_dir: runtimeDir, entry_path: entryPath };
+  } catch (error) {
+    await rm(runtimeDir, { recursive: true, force: true }).catch(() => undefined);
+    throw error;
+  }
+}
+
 export function createPipelineJobId(bookId: string, now = new Date()): string {
   const compactTimestamp = now.toISOString().replace(/[-:.]/g, '');
   return `${safeToken(bookId)}.${compactTimestamp}`;
@@ -777,6 +802,13 @@ export function outlineFingerprint(outline: Record<string, unknown>): string {
   })).digest('hex');
 }
 
+export function unmatchedOutlineItemIds(outline: Record<string, unknown>): string[] {
+  const alignment = asRecord(outline.alignment_report);
+  return Array.isArray(alignment.unmatched_item_ids)
+    ? [...new Set(alignment.unmatched_item_ids.map(String).filter(Boolean))]
+    : [];
+}
+
 export function buildOutlinePreview(
   datasetId: string,
   bookId: string,
@@ -830,10 +862,19 @@ export function buildOutlinePreview(
     line_count: finiteNumber(item.md_start) != null && finiteNumber(item.md_end) != null
       ? Math.max(0, (finiteNumber(item.md_end) ?? 0) - (finiteNumber(item.md_start) ?? 0) + 1)
       : null,
+    alignment_status: (['matched', 'warning', 'inferred_from_children', 'unmatched'] as const).includes(asString(item.alignment_status) as never)
+      ? asString(item.alignment_status) as PipelineOutlinePreviewItem['alignment_status']
+      : ((finiteNumber(item.md_start) == null || finiteNumber(item.md_end) == null) && (item.kind === 'lesson' || item.kind === 'activity') ? 'unmatched' : null),
+    alignment_confidence: finiteNumber(item.alignment_confidence),
+    alignment_match_type: asString(item.alignment_match_type) || null,
   }));
   const fingerprint = outlineFingerprint(outline);
   const review = asRecord(outline.outline_review);
   const confirmed = review.status === 'confirmed' && asString(review.fingerprint) === fingerprint;
+  const rejected = review.status === 'rejected' && asString(review.fingerprint) === fingerprint;
+  const alignment = asRecord(outline.alignment_report);
+  const warningItemIds = Array.isArray(alignment.warning_item_ids) ? alignment.warning_item_ids.map(String) : [];
+  const unmatchedItemIds = Array.isArray(alignment.unmatched_item_ids) ? alignment.unmatched_item_ids.map(String) : [];
   const pageStarts = items.flatMap((item) => item.page_start == null ? [] : [item.page_start]);
   const pageEnds = items.flatMap((item) => item.page_end == null ? [] : [item.page_end]);
   const toc = asRecord(outline.toc_pages);
@@ -848,8 +889,20 @@ export function buildOutlinePreview(
     source_path: asString(outline.source_path) || null,
     toc_pages: tocStart == null || tocEnd == null ? null : { start: tocStart, end: tocEnd },
     fingerprint,
-    review_status: confirmed ? 'confirmed' : 'pending',
+    review_status: confirmed ? 'confirmed' : rejected ? 'rejected' : 'pending',
     confirmed_at: confirmed ? asString(review.confirmed_at) || null : null,
+    rejected_at: rejected ? asString(review.rejected_at) || null : null,
+    alignment_report: Object.keys(alignment).length === 0 ? null : {
+      strategy: asString(alignment.strategy, 'unknown'),
+      matched_items: asInt(alignment.matched_items, 0),
+      total_items: asInt(alignment.total_items, 0),
+      matched_lessons: asInt(alignment.matched_lessons, 0),
+      total_lessons: asInt(alignment.total_lessons, 0),
+      average_confidence: finiteNumber(alignment.average_confidence) ?? 0,
+      warning_item_ids: warningItemIds,
+      unmatched_item_ids: unmatchedItemIds,
+      requires_review: alignment.requires_review === true || warningItemIds.length > 0 || unmatchedItemIds.length > 0,
+    },
     summary: {
       themes: items.filter((item) => item.kind === 'theme').length,
       topics: items.filter((item) => item.kind === 'topic').length,
@@ -1296,6 +1349,7 @@ export function buildPipelineCommand(
   logPath: string,
   dbUrl: string,
   outline: Record<string, unknown> | null = null,
+  pipelineEntryPath = resolve(REPO_ROOT, 'packages', 'pipeline', 'dist', 'cli', 'server-pipeline-run.js'),
 ): string[] {
   const bookId = resolvePipelineBookId(body);
   if (!bookId) throw new Error('Textbook name, PDF path, OCR folder, MinerU file URL, or book_id is required.');
@@ -1312,7 +1366,7 @@ export function buildPipelineCommand(
   const lessonBackendKind = parseLessonBackendKind(body.lesson_backend_kind);
   const command = [
     process.execPath,
-    resolve(REPO_ROOT, 'packages', 'pipeline', 'dist', 'cli', 'server-pipeline-run.js'),
+    pipelineEntryPath,
     '--book-id',
     bookId,
     '--dataset-id',
@@ -1411,13 +1465,18 @@ export function buildPipelineCommand(
 
 export function failedBatchAnchorsForResume(stage: PipelineJobStage | null): string[] {
   const results = Array.isArray(stage?.progress.results) ? stage.progress.results : [];
-  return uniqueStrings(results.flatMap((result) => {
+  const failedExtractionAnchors = results.flatMap((result) => {
     const record = asRecord(result);
     const exitCode = Number(record.exit_code);
     if (!Number.isFinite(exitCode) || exitCode === 0) return [];
     const anchor = asString(record.batch_anchor);
     return anchor ? [anchor] : [];
-  }));
+  });
+  const qualityAttempts = Array.isArray(stage?.progress.attempts) ? stage.progress.attempts : [];
+  const failedQualityAnchors = qualityAttempts.flatMap((attempt) => (
+    uniqueStrings(asRecord(attempt).blocked_batch_anchors)
+  ));
+  return uniqueStrings([...failedExtractionAnchors, ...failedQualityAnchors]);
 }
 
 export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string, options: PipelineRouteOptions = {}) {
@@ -1672,6 +1731,10 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string, optio
     if (fingerprint !== asString(body.fingerprint)) {
       return c.json({ error: '切分结果已经变化，请刷新后重新确认。' }, 409);
     }
+    const unmatchedItemIds = unmatchedOutlineItemIds(outline);
+    if (unmatchedItemIds.length > 0 && body.allow_unmatched !== true) {
+      return c.json({ error: `仍有 ${unmatchedItemIds.length} 个课节未对齐正文；如需继续，请明确允许跳过这些课节。` }, 409);
+    }
     const confirmedAt = new Date().toISOString();
     const patch = {
       outline_review: {
@@ -1679,6 +1742,8 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string, optio
         fingerprint,
         confirmed_at: confirmedAt,
         confirmed_via: 'viewer',
+        confirmed_with_unmatched: unmatchedItemIds.length > 0,
+        confirmed_unmatched_item_ids: unmatchedItemIds,
       },
     };
     const rows = await sql<{ book_id: string }[]>`
@@ -1696,6 +1761,49 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string, optio
       book_id: bookId,
       fingerprint,
       confirmed_at: confirmedAt,
+      confirmed_with_unmatched: unmatchedItemIds.length > 0,
+      unmatched_item_ids: unmatchedItemIds,
+    };
+    return c.json(response);
+  });
+
+  app.post('/api/source/:key/pipeline/books/:book_id/outline-rejection', async (c) => {
+    const key = c.req.param('key');
+    const bookId = c.req.param('book_id');
+    const body = await c.req.json<PipelineOutlineRejectRequest>().catch(() => null);
+    if (!body || !asString(body.fingerprint)) return c.json({ error: 'fingerprint is required.' }, 400);
+    const datasetRow = await resolveDatasetRow(sql, key);
+    if (!datasetRow) return c.json({ error: `Unknown source '${key}'` }, 404);
+    const outline = await loadTextbookOutlinePayload(sql, datasetRow.dataset_id, bookId);
+    if (!outline) return c.json({ error: `尚未生成教材 '${bookId}' 的切分预览。` }, 404);
+    const fingerprint = outlineFingerprint(outline);
+    if (fingerprint !== asString(body.fingerprint)) {
+      return c.json({ error: '切分结果已经变化，请刷新后重新审核。' }, 409);
+    }
+    const rejectedAt = new Date().toISOString();
+    const patch = {
+      outline_review: {
+        status: 'rejected',
+        fingerprint,
+        rejected_at: rejectedAt,
+        rejected_via: 'viewer',
+      },
+    };
+    const rows = await sql<{ book_id: string }[]>`
+      UPDATE world_textbook_outlines
+      SET outline_json = COALESCE(outline_json, '{}'::jsonb) || ${sql.json(patch)}::jsonb,
+          updated_at = ${rejectedAt}
+      WHERE dataset_id = ${datasetRow.dataset_id}
+        AND book_id = ${bookId}
+        AND outline_json = ${sql.json(outline as JsonValue)}::jsonb
+      RETURNING book_id
+    `;
+    if (rows.length !== 1) return c.json({ error: '切分结果在驳回时发生变化，请刷新后重试。' }, 409);
+    const response: PipelineOutlineRejectResponse = {
+      status: 'rejected',
+      book_id: bookId,
+      fingerprint,
+      rejected_at: rejectedAt,
     };
     return c.json(response);
   });
@@ -1823,6 +1931,7 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string, optio
     let logPath = join(jobDir, `${safeToken(jobId)}.log`);
 
     let command: string[];
+    let runtimeSnapshot: PipelineRuntimeSnapshot | null = null;
     let datasetKey: string;
     let statusDatasetId: string;
     let resumeDatasetId: string | null = null;
@@ -1938,6 +2047,20 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string, optio
       }
     }
 
+    try {
+      runtimeSnapshot = await createPipelineRuntimeSnapshot(jobId);
+      command[1] = runtimeSnapshot.entry_path;
+    } catch (error) {
+      const message = `Failed to prepare an isolated pipeline runtime: ${(error as Error).message}`;
+      await markPipelineProcessFailed(sql, statusDatasetId, jobId, message);
+      return c.json({ error: message }, 500);
+    }
+    const cleanupPipelineRuntime = async () => {
+      const runtimeDir = runtimeSnapshot?.runtime_dir;
+      runtimeSnapshot = null;
+      if (runtimeDir) await rm(runtimeDir, { recursive: true, force: true });
+    };
+
     const startedAt = Date.now();
     const targetDatabase = databaseTarget(dbUrl);
     logPipelineEvent('info', 'starting', {
@@ -1962,6 +2085,7 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string, optio
       cwd: REPO_ROOT,
       env: {
         ...process.env,
+        OKM_REPO_ROOT: REPO_ROOT,
         DATABASE_URL: dbUrl,
         ...(vlmApiKey ? { VLM_API_KEY: vlmApiKey } : {}),
       },
@@ -1987,6 +2111,7 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string, optio
         endLog(`\n[${timestamp()}] [pipeline] spawn-error message=${JSON.stringify(error.message)}\n`);
       });
     } catch (error) {
+      await cleanupPipelineRuntime().catch(() => undefined);
       await markPipelineProcessFailed(
         sql,
         statusDatasetId,
@@ -2044,6 +2169,12 @@ export function registerPipelineRoutes(app: Hono, sql: Sql, dbUrl: string, optio
           });
         });
       }
+      void cleanupPipelineRuntime().catch((error) => {
+        logPipelineEvent('error', 'runtime-cleanup-error', {
+          jobId,
+          message: (error as Error).message,
+        });
+      });
     });
     child.unref();
 

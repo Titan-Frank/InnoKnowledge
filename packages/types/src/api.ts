@@ -392,7 +392,7 @@ export interface PipelineStartResponse {
   log_path: string;
 }
 
-export type PipelineOutlineReviewStatus = 'pending' | 'confirmed';
+export type PipelineOutlineReviewStatus = 'pending' | 'confirmed' | 'rejected';
 
 export interface PipelineOutlinePreviewItem {
   id: string;
@@ -410,6 +410,21 @@ export interface PipelineOutlinePreviewItem {
   content_role: 'knowledge' | 'summary' | 'assessment' | 'excluded' | null;
   preview_text: string | null;
   line_count: number | null;
+  alignment_status: 'matched' | 'warning' | 'inferred_from_children' | 'unmatched' | null;
+  alignment_confidence: number | null;
+  alignment_match_type: string | null;
+}
+
+export interface PipelineOutlineAlignmentReport {
+  strategy: string;
+  matched_items: number;
+  total_items: number;
+  matched_lessons: number;
+  total_lessons: number;
+  average_confidence: number;
+  warning_item_ids: string[];
+  unmatched_item_ids: string[];
+  requires_review: boolean;
 }
 
 export interface PipelineOutlinePreviewResponse {
@@ -423,6 +438,8 @@ export interface PipelineOutlinePreviewResponse {
   fingerprint: string;
   review_status: PipelineOutlineReviewStatus;
   confirmed_at: string | null;
+  rejected_at: string | null;
+  alignment_report: PipelineOutlineAlignmentReport | null;
   summary: {
     themes: number;
     topics: number;
@@ -454,6 +471,8 @@ export interface PipelineOutlineChunkContentResponse {
 
 export interface PipelineOutlineConfirmRequest {
   fingerprint: string;
+  /** Explicit human override: confirm while leaving unmatched lessons out of extraction. */
+  allow_unmatched?: boolean;
 }
 
 export interface PipelineOutlineConfirmResponse {
@@ -461,6 +480,19 @@ export interface PipelineOutlineConfirmResponse {
   book_id: string;
   fingerprint: string;
   confirmed_at: string;
+  confirmed_with_unmatched: boolean;
+  unmatched_item_ids: string[];
+}
+
+export interface PipelineOutlineRejectRequest {
+  fingerprint: string;
+}
+
+export interface PipelineOutlineRejectResponse {
+  status: 'rejected';
+  book_id: string;
+  fingerprint: string;
+  rejected_at: string;
 }
 
 export interface PipelineStopResponse {
@@ -890,9 +922,15 @@ export interface PgAdminBookDeleteResponse {
   deleted: Record<string, number>;
 }
 
+export type PgAdminExportFormat = 'combined' | 'separate';
+
 export interface PgAdminExportRequest {
   tables: string[];
   include_books: boolean;
+  /** When omitted, export the whole dataset. When present, export rows related to these textbooks. */
+  book_ids?: string[];
+  /** combined returns one JSON file; separate returns a ZIP containing one JSON file per table. */
+  format?: PgAdminExportFormat;
 }
 
 export interface PgAdminExportTable {
@@ -905,6 +943,7 @@ export interface PgAdminExportPayload {
   exported_at: string;
   dataset_id: string;
   schema_version: string;
+  book_ids?: string[];
   books?: PgAdminBookSummary[];
   tables: Record<string, PgAdminExportTable>;
 }

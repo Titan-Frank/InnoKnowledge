@@ -271,6 +271,8 @@ export function FilterPanel() {
             <button
               onClick={() => setShowLabels(!showLabels)}
               aria-pressed={showLabels}
+              aria-label={showLabels ? '隐藏节点与关系标签' : '显示节点与关系标签'}
+              title={showLabels ? '隐藏节点名称和聚焦关系名称' : '显示节点名称和聚焦关系名称'}
               className={`flex flex-1 items-center justify-center gap-1 rounded-md border px-2 py-1.5 text-xs transition-colors ${
                 showLabels ? 'border-accent/50 bg-accent/15 text-accent' : 'border-border-subtle bg-surface text-text-secondary hover:bg-hover hover:text-text-primary'
               }`}

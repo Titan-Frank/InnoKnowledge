@@ -1,10 +1,71 @@
-import type { PgAdminBookSummary, PipelineJobSummary, PipelineStartRequest, PipelineStartStage } from '@okm/types';
+import type { PgAdminBookSummary, PipelineJobStatusResponse, PipelineJobSummary, PipelineStartRequest, PipelineStartStage } from '@okm/types';
 
 export type PipelineQueueStatus = 'uploading' | 'ready' | 'starting' | 'started' | 'error';
 export type PipelineSourceKind = 'pdf' | 'ocr';
 export type PipelineQueueOrigin = 'scan' | 'upload' | 'manual_ocr';
 
 export const MAX_ACTIVE_PIPELINE_JOBS = 4;
+export type OutlineExtractionStatus = 'idle' | 'starting' | 'running' | 'completed' | 'blocked';
+const OUTLINE_PREPARATION_STAGE_IDS = new Set([
+  'check_postgres',
+  'mineru_source_markdown',
+  'extract_pdf_outline',
+  'prepare_source_markdown',
+  'ensure_outline',
+  'prepare_outline_chunks',
+]);
+
+export function isOutlineReviewReady(input: {
+  status: string;
+  currentStageId?: string | null;
+  prepareOnly?: unknown;
+}): boolean {
+  return input.status === 'completed'
+    && (input.currentStageId === 'prepare_outline_chunks' || input.prepareOnly === true);
+}
+
+export function resolveOutlineExtractionStatus(input: {
+  launching: boolean;
+  extractionJobId: string | null;
+  selectedJobId: string | null;
+  jobStatus: PipelineJobStatusResponse | null;
+}): OutlineExtractionStatus {
+  if (input.launching) return 'starting';
+  if (!input.extractionJobId) return 'idle';
+  if (input.selectedJobId !== input.extractionJobId || input.jobStatus?.job_id !== input.extractionJobId) return 'starting';
+  if (input.jobStatus.status === 'running') return 'running';
+  if (input.jobStatus.status === 'completed') return 'completed';
+  if (input.jobStatus.status === 'blocked') return 'blocked';
+  return 'starting';
+}
+
+export function selectOutlineBatchJobs(
+  jobs: PipelineJobSummary[],
+  batchJobIds: string[],
+  activeJobId?: string | null,
+): PipelineJobSummary[] {
+  const byId = new Map(jobs.map((job) => [job.job_id, job]));
+  const candidates = [...new Set(batchJobIds)].flatMap((jobId) => {
+    const job = byId.get(jobId);
+    return job ? [job] : [];
+  });
+  const activeJob = activeJobId ? byId.get(activeJobId) : null;
+  if (candidates.length === 0 && activeJob) {
+    const activeCreatedAt = Date.parse(activeJob.created_at || '');
+    if (Number.isFinite(activeCreatedAt)) {
+      jobs
+        .filter((job) => OUTLINE_PREPARATION_STAGE_IDS.has(job.current_stage_id || ''))
+        .filter((job) => {
+          const createdAt = Date.parse(job.created_at || '');
+          return Number.isFinite(createdAt) && Math.abs(createdAt - activeCreatedAt) <= 15 * 60 * 1000;
+        })
+        .sort((left, right) => (left.created_at || '').localeCompare(right.created_at || ''))
+        .forEach((job) => candidates.push(job));
+    }
+  }
+  if (activeJob && !candidates.some((job) => job.job_id === activeJob.job_id)) candidates.unshift(activeJob);
+  return candidates;
+}
 
 const RESUMABLE_PIPELINE_STAGE_IDS = new Set<PipelineStartStage>([
   'mineru_source_markdown',

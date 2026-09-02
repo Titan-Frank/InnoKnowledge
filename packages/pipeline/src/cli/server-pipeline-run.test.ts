@@ -826,7 +826,7 @@ test("server pipeline runner plans TypeScript lesson extraction commands", async
   assert.equal(result.stages[0]?.status, "completed");
   const lessonPlan = result.stages.find((stage) => stage.id === "lesson_plan");
   const commands = lessonPlan?.output?.commands as string[][];
-  assert.equal(commands.length, 37);
+  assert.equal(commands.length, 32);
   assert.ok(commands[0]?.some((part) => part.endsWith("extract-lesson-openai.js")));
   assert.ok(commands[0]?.includes("--write-staging"));
   assert.ok(commands[0]?.includes("--extraction-template"));
@@ -836,7 +836,7 @@ test("server pipeline runner plans TypeScript lesson extraction commands", async
   assert.ok(commands[0]?.includes("--enrich-context"));
   assert.ok(commands[0]?.includes("--enrich-context-limit"));
   assert.ok(!commands[0]?.some((part) => part.includes("run_okm_harness.py")));
-  assert.equal(executed.filter((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))).length, 37);
+  assert.equal(executed.filter((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))).length, 32);
 });
 
 test("server pipeline retries only lessons with transient extraction failures", async () => {
@@ -1074,7 +1074,10 @@ test("server pipeline runner executes TypeScript quality gate and canonical redu
   assert.ok(commands.at(-3)?.some((part) => part.endsWith("backfill-unit-embeddings.js")));
   assert.ok(commands.at(-2)?.some((part) => part.endsWith("graph-integrity.js")));
   assert.ok(commands.at(-1)?.some((part) => part.endsWith("quality-dashboard.js")));
-  assert.ok(commands.slice(0, -10).every((command) => command.some((part) => part.endsWith("extract-lesson-openai.js"))));
+  const firstStagingQualityIndex = commands.findIndex(isStagingQualityCommand);
+  assert.ok(firstStagingQualityIndex > 0);
+  assert.ok(commands.slice(0, firstStagingQualityIndex).every(isExtractionCommand));
+  assert.equal(commands.filter(isExtractionCommand).length, 32);
 });
 
 test("server pipeline surfaces structured final quality check errors before embeddings", async () => {
@@ -1271,7 +1274,7 @@ test("server pipeline retries chunks that fail staging quality", async () => {
             exitCode: 2,
             stdout: JSON.stringify({
               status: "blocked",
-              checked: 37,
+              checked: 32,
               blocked: 1,
               results: [
                 {
@@ -1285,14 +1288,15 @@ test("server pipeline retries chunks that fail staging quality", async () => {
             stderr: "",
           };
         }
-        return { exitCode: 0, stdout: JSON.stringify({ status: "success", checked: 37, blocked: 0, results: [] }), stderr: "" };
+        return { exitCode: 0, stdout: JSON.stringify({ status: "success", checked: 32, blocked: 0, results: [] }), stderr: "" };
       }
       return { exitCode: 0, stdout: "{}", stderr: "" };
     },
   });
 
   assert.equal(result.status, "completed");
-  assert.equal(qualityCalls, 2);
+  // Two knowledge-quality attempts are followed by one assessment-quality pass.
+  assert.equal(qualityCalls, 3);
   const firstQualityIndex = commands.findIndex(isStagingQualityCommand);
   const secondQualityIndex = commands.findIndex((command, index) => index > firstQualityIndex && isStagingQualityCommand(command));
   const retryExtractionCommands = commands.slice(firstQualityIndex + 1, secondQualityIndex).filter(isExtractionCommand);
@@ -1309,7 +1313,7 @@ test("server pipeline retries chunks that fail staging quality", async () => {
   assert.doesNotMatch(retryPrompt, /不要让节点数为 0/);
   assert.doesNotMatch(retryPrompt, /domain_profile|node_card/);
   assert.doesNotMatch(retryPrompt, /高中物理|物理量/);
-  assert.equal(commands.filter(isExtractionCommand).length, 38);
+  assert.equal(commands.filter(isExtractionCommand).length, 33);
   assert.equal(result.stages.find((stage) => stage.id === "lesson_staging_retry_1")?.status, "completed");
   assert.equal(result.stages.find((stage) => stage.id === "staging_quality")?.status, "completed");
 });

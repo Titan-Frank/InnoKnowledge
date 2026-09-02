@@ -68,6 +68,70 @@ test("passes a complete staged lesson quality check", () => {
   });
 });
 
+test("allows assessment links to reuse canonical node cards", () => {
+  const rows = buildStagingTableRows(
+    {
+      ...context,
+      contentRole: "assessment",
+      extractionPolicy: "existing_nodes_only",
+      lessonDisposition: "extracted",
+    },
+    normalizeLessonArtifacts(
+      {
+        nodes: [
+          {
+            id: "n1",
+            name: "Water",
+            kind: "concept",
+            definition: "A substance",
+            source_refs: ["ev1"],
+            properties: { existing_canonical_node_id: "n1" },
+          },
+        ],
+        edges: [],
+        domainProfiles: [{ id: "p1", node_id: "n1", domain: "chemistry", source_refs: ["ev1"] }],
+        mentions: [{ id: "m1", target_id: "n1", role: "assesses", source_refs: ["ev1"] }],
+        evidence: [{ id: "ev1", excerpt: "assessment claim" }],
+        nodeCards: [],
+      },
+      context.bookId,
+      context.batchAnchor,
+    ),
+  );
+
+  const result = checkLessonStagingQuality(rows);
+  assert.equal(result.status, "success");
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.counts.node_cards, 0);
+});
+
+test("requires assessment links to identify their canonical node", () => {
+  const rows = buildStagingTableRows(
+    {
+      ...context,
+      contentRole: "assessment",
+      extractionPolicy: "existing_nodes_only",
+      lessonDisposition: "extracted",
+    },
+    normalizeLessonArtifacts(
+      {
+        nodes: [{ id: "n1", name: "Water", kind: "concept", definition: "A substance", source_refs: ["ev1"] }],
+        edges: [],
+        domainProfiles: [{ id: "p1", node_id: "n1", domain: "chemistry", source_refs: ["ev1"] }],
+        mentions: [{ id: "m1", target_id: "n1", role: "assesses", source_refs: ["ev1"] }],
+        evidence: [{ id: "ev1", excerpt: "assessment claim" }],
+        nodeCards: [],
+      },
+      context.bookId,
+      context.batchAnchor,
+    ),
+  );
+
+  assert.deepEqual(checkLessonStagingQuality(rows).errors, [
+    "Assessment node n1 is missing existing_canonical_node_id.",
+  ]);
+});
+
 test("reports Python-compatible staged lesson quality errors and warnings", () => {
   const rows = buildStagingTableRows(
     context,

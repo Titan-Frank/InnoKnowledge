@@ -1,7 +1,7 @@
 import type { GraphData } from '@antv/g6';
 import type { SemanticNeighbor } from '@okm/types';
 import type { KnowledgeGraph, ThemeMode } from '@/core/graph/types';
-import { resolveEdgeVisual } from './edge-styles';
+import { resolveEdgeLabel, resolveEdgeVisual } from './edge-styles';
 import { COMMUNITY_EDGE_TYPES, getCommunityColor, TYPE_META } from './constants';
 import { lightenForBorder } from './utils';
 
@@ -192,6 +192,7 @@ export function okmKnowledgeGraphToG6(
     .map((edge) => {
       const visual = resolveEdgeVisual(edge.edgeType);
       const edgeColor = edge.displayColor || visual.stroke;
+      const edgeLabel = resolveEdgeLabel(edge.edgeType, edge.displayLabel);
       edgePairs.push({ id: edge.id, source: edge.from, target: edge.to });
       return {
         id: edge.id,
@@ -200,7 +201,8 @@ export function okmKnowledgeGraphToG6(
         data: {
           edgeType: edge.edgeType,
           edgeLayer: edge.edgeLayer,
-          category: edge.displayCategory || edge.displayLabel || visual.category,
+          label: edgeLabel,
+          category: edge.displayCategory || visual.category,
         },
         style: {
           stroke: edgeColor,
@@ -210,6 +212,20 @@ export function okmKnowledgeGraphToG6(
           endArrow: true,
           endArrowSize: 6,
           label: false,
+          labelText: edgeLabel,
+          labelFill: mode === 'light' ? '#334155' : '#e2e8f0',
+          labelFontFamily: 'PingFang SC, Microsoft YaHei, Noto Sans SC, sans-serif',
+          labelFontSize: 11,
+          labelFontWeight: 500,
+          labelPlacement: 'center' as const,
+          labelBackground: true,
+          labelBackgroundFill: mode === 'light' ? '#ffffff' : '#171a21',
+          labelBackgroundOpacity: mode === 'light' ? 0.92 : 0.9,
+          labelBackgroundStroke: edgeColor,
+          labelBackgroundStrokeOpacity: 0.42,
+          labelBackgroundLineWidth: 1,
+          labelBackgroundRadius: 4,
+          labelBackgroundPadding: [3, 6, 3, 6],
         },
       };
     });
@@ -287,6 +303,7 @@ export function buildRadialFocusGraph(
     data: {
       edgeType: 'semantic_similarity',
       edgeLayer: 'semantic',
+      label: '内容语义相似',
       category: '内容语义相似',
       similarity: similarityById.get(nodeId) ?? null,
     },
@@ -297,6 +314,20 @@ export function buildRadialFocusGraph(
       lineDash: [5, 5],
       endArrow: false,
       label: false,
+      labelText: '内容语义相似',
+      labelFill: mode === 'light' ? '#475569' : '#cbd5e1',
+      labelFontFamily: 'PingFang SC, Microsoft YaHei, Noto Sans SC, sans-serif',
+      labelFontSize: 11,
+      labelFontWeight: 500,
+      labelPlacement: 'center' as const,
+      labelBackground: true,
+      labelBackgroundFill: mode === 'light' ? '#ffffff' : '#171a21',
+      labelBackgroundOpacity: mode === 'light' ? 0.92 : 0.9,
+      labelBackgroundStroke: mode === 'light' ? '#94a3b8' : '#64748b',
+      labelBackgroundStrokeOpacity: 0.42,
+      labelBackgroundLineWidth: 1,
+      labelBackgroundRadius: 4,
+      labelBackgroundPadding: [3, 6, 3, 6],
     },
   }));
 

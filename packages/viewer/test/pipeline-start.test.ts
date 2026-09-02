@@ -5,13 +5,16 @@ import {
   buildPipelineBatchStartRequest,
   buildConfirmedExtractionRequest,
   buildPipelineBookWorkbenchRows,
+  isOutlineReviewReady,
   MAX_ACTIVE_PIPELINE_JOBS,
   reconcileScannedQueueSnapshot,
   reconcileTerminalBatchQueue,
   resolvePipelineResumeStage,
   resolvePipelineStartBookId,
+  resolveOutlineExtractionStatus,
   selectBatchLaunchCandidates,
   selectBatchResumeCandidates,
+  selectOutlineBatchJobs,
 } from '../src/lib/pipeline-start.ts';
 
 function job(bookId: string, status: PipelineJobSummary['status']): PipelineJobSummary {
@@ -43,6 +46,88 @@ test('batch launch candidates are unique by book and exclude the latest running 
     selectBatchLaunchCandidates(queue, [job('physics', 'running'), job('physics', 'completed')]).map((item) => item.id),
     ['chem-a'],
   );
+});
+
+test('outline review candidates stay scoped to the selected batch and include the active job', () => {
+  const first = { ...job('math-a', 'completed'), job_id: 'job-a', current_stage_id: 'prepare_outline_chunks' };
+  const second = { ...job('math-b', 'completed'), job_id: 'job-b', current_stage_id: 'prepare_outline_chunks' };
+  const unrelated = { ...job('physics', 'completed'), job_id: 'job-c', current_stage_id: 'prepare_outline_chunks' };
+  assert.deepEqual(
+    selectOutlineBatchJobs([first, second, unrelated], ['job-b', 'job-a', 'missing', 'job-b'], 'job-c').map((item) => item.job_id),
+    ['job-c', 'job-b', 'job-a'],
+  );
+});
+
+test('outline review candidates recover the current preparation batch after a reload', () => {
+  const first = {
+    ...job('math-a', 'completed'),
+    job_id: 'job-a',
+    current_stage_id: 'prepare_outline_chunks',
+    created_at: '2026-09-01T10:00:00.000Z',
+  };
+  const second = {
+    ...job('math-b', 'completed'),
+    job_id: 'job-b',
+    current_stage_id: 'prepare_outline_chunks',
+    created_at: '2026-09-01T10:02:00.000Z',
+  };
+  const old = {
+    ...job('old-book', 'completed'),
+    job_id: 'job-old',
+    current_stage_id: 'prepare_outline_chunks',
+    created_at: '2026-08-31T10:00:00.000Z',
+  };
+  assert.deepEqual(
+    selectOutlineBatchJobs([old, second, first], [], 'job-b').map((item) => item.job_id),
+    ['job-a', 'job-b'],
+  );
+});
+
+test('outline review appears only for completed preparation jobs', () => {
+  assert.equal(isOutlineReviewReady({
+    status: 'completed',
+    currentStageId: 'prepare_outline_chunks',
+  }), true);
+  assert.equal(isOutlineReviewReady({
+    status: 'completed',
+    currentStageId: 'quality_dashboard',
+    prepareOnly: true,
+  }), true);
+  assert.equal(isOutlineReviewReady({
+    status: 'running',
+    currentStageId: 'prepare_outline_chunks',
+  }), false);
+  assert.equal(isOutlineReviewReady({
+    status: 'completed',
+    currentStageId: 'quality_dashboard',
+  }), false);
+});
+
+test('outline extraction status remains active while the new job status is loading', () => {
+  assert.equal(resolveOutlineExtractionStatus({
+    launching: true, extractionJobId: null, selectedJobId: null, jobStatus: null,
+  }), 'starting');
+  assert.equal(resolveOutlineExtractionStatus({
+    launching: false, extractionJobId: 'extract-1', selectedJobId: 'extract-1', jobStatus: null,
+  }), 'starting');
+  assert.equal(resolveOutlineExtractionStatus({
+    launching: false,
+    extractionJobId: 'extract-1',
+    selectedJobId: 'extract-1',
+    jobStatus: { ...job('math', 'running'), job_id: 'extract-1', book_id: 'math', status: 'running', context: {}, progress: {}, stages: [], current_stage: null, worker_states: [], recent_events: [], updated_at: null, completed_at: null },
+  }), 'running');
+  assert.equal(resolveOutlineExtractionStatus({
+    launching: false,
+    extractionJobId: 'extract-1',
+    selectedJobId: 'extract-1',
+    jobStatus: { ...job('math', 'completed'), job_id: 'extract-1', book_id: 'math', status: 'completed', context: {}, progress: {}, stages: [], current_stage: null, worker_states: [], recent_events: [], updated_at: null, completed_at: null },
+  }), 'completed');
+  assert.equal(resolveOutlineExtractionStatus({
+    launching: false,
+    extractionJobId: 'extract-1',
+    selectedJobId: 'extract-1',
+    jobStatus: { ...job('math', 'blocked'), job_id: 'extract-1', book_id: 'math', status: 'blocked', context: {}, progress: {}, stages: [], current_stage: null, worker_states: [], recent_events: [], updated_at: null, completed_at: null },
+  }), 'blocked');
 });
 
 test('batch launch candidates use only the remaining active job slots', () => {
