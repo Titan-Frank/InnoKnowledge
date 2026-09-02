@@ -122,3 +122,41 @@ test('2D edges carry readable relation labels while keeping them hidden in overv
   assert.equal((renderedEdge?.style as Record<string, unknown>).label, false);
   assert.equal((renderedEdge?.style as Record<string, unknown>).labelBackground, true);
 });
+
+test('dense 2D overview uses compact nodes and limits labels to important nodes', () => {
+  const nodes = Array.from({ length: 100 }, (_, index) => ({
+    ...makeNode(`node-${index}`),
+    nodeLayer: index < 8 ? 'backbone' as const : 'support' as const,
+    degree: 100 - index,
+    communityId: Math.floor(index / 20),
+  }));
+  const graph = {
+    nodes,
+    edges: [],
+    nodeById: new Map(nodes.map((node) => [node.id, node])),
+    edgeById: new Map(),
+    booksById: new Map(),
+    frameworkTopics: new Map(),
+    frameworkDomains: new Map(),
+    patternsById: new Map(),
+    patternsByType: new Map(),
+    evidenceById: new Map(),
+    availableTypes: ['concept'],
+    loadWarnings: [],
+    source: { key: 'main' },
+    manifest: null,
+    nodeCount: nodes.length,
+    edgeCount: 0,
+  } satisfies KnowledgeGraph;
+
+  const result = okmKnowledgeGraphToG6(graph, new Set(nodes.map((node) => node.id)), 'dark');
+  const renderedNodes = result.data.nodes ?? [];
+  const labelledNodes = renderedNodes.filter((node) => node.style?.label === true);
+  const labelledIds = new Set(labelledNodes.map((node) => String(node.id)));
+
+  assert.equal(labelledNodes.length, 25);
+  assert.ok(Array.from({ length: 8 }, (_, index) => `node-${index}`).every((id) => labelledIds.has(id)));
+  assert.ok(['node-0', 'node-20', 'node-40', 'node-60', 'node-80'].every((id) => labelledIds.has(id)));
+  assert.equal(renderedNodes[0]?.style?.size, 23);
+  assert.equal(renderedNodes[99]?.style?.size, 20);
+});

@@ -107,7 +107,8 @@ const GraphCanvas3D = forwardRef<GraphCanvas3DHandle, GraphCanvas3DProps>(functi
     selectedNodeId,
     searchHitIds,
     previewNodeId,
-  ), [graphData.nodes, previewNodeId, searchHitIds, selectedNodeId, showLabels]);
+    focusedGraph ? 48 : 28,
+  ), [focusedGraph, graphData.nodes, previewNodeId, searchHitIds, selectedNodeId, showLabels]);
   const transitionMs = reducedMotion ? 0 : CAMERA_TRANSITION_MS;
 
   useEffect(() => () => {
@@ -212,9 +213,9 @@ const GraphCanvas3D = forwardRef<GraphCanvas3DHandle, GraphCanvas3DProps>(functi
     onLayoutRunningChange(true);
     const chargeForce = graph?.d3Force('charge');
     const linkForce = graph?.d3Force('link');
-    chargeForce?.strength?.(focusedGraph ? -125 : -48);
-    chargeForce?.distanceMax?.(focusedGraph ? 420 : 260);
-    linkForce?.distance?.(focusedGraph ? 78 : 34);
+    chargeForce?.strength?.(focusedGraph ? -125 : -72);
+    chargeForce?.distanceMax?.(focusedGraph ? 420 : 340);
+    linkForce?.distance?.(focusedGraph ? 78 : 56);
     graph?.d3ReheatSimulation();
   }, [active, focusedGraph, graphData, onLayoutRunningChange]);
 
@@ -340,7 +341,7 @@ const GraphCanvas3D = forwardRef<GraphCanvas3DHandle, GraphCanvas3DProps>(functi
         nodeLabel={nodeLabel}
         nodeColor={nodeColor}
         nodeVal={nodeValue}
-        nodeRelSize={4.2}
+        nodeRelSize={3.8}
         nodeOpacity={0.94}
         nodeResolution={12}
         nodeThreeObject={nodeThreeObject}

@@ -62,4 +62,5 @@ test('places formal and semantic neighbors on separate rings', () => {
   assert.ok(distance('semantic-a') > distance('formal-a'));
   assert.equal(nodes.get('center')?.data?.focusRole, 'center');
   assert.equal(nodes.get('semantic-a')?.data?.focusRole, 'semantic');
+  assert.equal(nodes.get('formal-a')?.style?.label, true);
 });

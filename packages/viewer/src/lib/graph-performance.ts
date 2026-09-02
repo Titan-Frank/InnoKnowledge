@@ -56,7 +56,9 @@ export function positionEmbeddingCommunities(data: GraphData, center: GraphPoint
     grouped.set(community, [...(grouped.get(community) ?? []), node]);
   }
   const groups = [...grouped.entries()].sort((left, right) => left[0] - right[0]);
-  const clusterRingRadius = Math.max(420, Math.min(720, groups.length * 92));
+  const largestGroupSize = Math.max(1, ...groups.map(([, nodes]) => nodes.length));
+  const largestGroupRadius = 60 * Math.sqrt(Math.max(0, largestGroupSize - 1));
+  const clusterRingRadius = Math.max(460, Math.min(1080, groups.length * 110 + largestGroupRadius * 0.75));
   const positions = new Map<string, GraphPoint>();
 
   groups.forEach(([community, nodes], groupIndex) => {
@@ -74,7 +76,7 @@ export function positionEmbeddingCommunities(data: GraphData, center: GraphPoint
     ));
     ordered.forEach((node, rank) => {
       const angle = rank * GOLDEN_ANGLE + stableAngle(`${community}:${String(node.id)}`) * 0.06;
-      const distance = rank === 0 ? 0 : 44 * Math.sqrt(rank);
+      const distance = rank === 0 ? 0 : 60 * Math.sqrt(rank);
       positions.set(String(node.id), {
         x: clusterCenter.x + Math.cos(angle) * distance,
         y: clusterCenter.y + Math.sin(angle) * distance,
@@ -123,6 +125,7 @@ export function positionRadialFocus(
       const id = String(node.id);
       const isCenter = id === focus.centerNodeId;
       const role = isCenter ? 'center' : formalSet.has(id) ? 'formal' : semanticSet.has(id) ? 'semantic' : 'other';
+      const nodeLabel = (node.data as Record<string, unknown> | undefined)?.label;
       return {
         ...node,
         data: { ...(node.data as Record<string, unknown> | undefined), focusRole: role },
@@ -131,6 +134,10 @@ export function positionRadialFocus(
           ...positions.get(id),
           size: isCenter ? 42 : node.style?.size,
           label: true,
+          labelText: typeof nodeLabel === 'string' || typeof nodeLabel === 'number'
+            ? nodeLabel
+            : node.style?.labelText,
+          labelFontSize: isCenter ? 14 : 12,
           labelPlacement: isCenter ? 'bottom' : node.style?.labelPlacement,
           labelOffsetY: isCenter ? 14 : node.style?.labelOffsetY,
         },

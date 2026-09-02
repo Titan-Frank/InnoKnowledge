@@ -92,11 +92,12 @@ function createStyleSnapshot(data: GraphData): GraphStyleSnapshot {
 
 function getBaseNodeStyle(snapshot: GraphStyleSnapshot | null, nodeId: string, showLabels: boolean): ElementStyle {
   const base = cloneStyle(snapshot?.nodeStyles.get(nodeId));
+  const labelVisible = showLabels && base.label !== false;
   return {
     ...base,
-    label: showLabels,
+    label: labelVisible,
     opacity: 1,
-    labelOpacity: 1,
+    labelOpacity: labelVisible ? 1 : 0,
     zIndex: DEFAULT_NODE_Z_INDEX,
     halo: base.halo ?? false,
     haloStrokeOpacity: base.haloStrokeOpacity ?? 0,
@@ -308,6 +309,8 @@ export function useG6(options: UseG6Options) {
               id: nodeId,
               style: {
                 ...baseStyle,
+                label: showLabelsRef.current,
+                labelOpacity: showLabelsRef.current ? 1 : 0,
                 lineWidth: 4,
                 halo: true,
                 haloLineWidth: 16,
@@ -320,6 +323,8 @@ export function useG6(options: UseG6Options) {
               id: nodeId,
               style: {
                 ...baseStyle,
+                label: showLabelsRef.current,
+                labelOpacity: showLabelsRef.current ? 1 : 0,
                 lineWidth: 3,
                 halo: true,
                 haloLineWidth: 10,
@@ -332,6 +337,7 @@ export function useG6(options: UseG6Options) {
               id: nodeId,
               style: {
                 ...baseStyle,
+                label: showLabelsRef.current,
                 opacity: isPreview ? 0.92 : 0.62,
                 labelOpacity: showLabelsRef.current ? (isPreview ? 1 : 0.78) : 0,
                 lineWidth: isPreview ? 4 : 2.5,
@@ -384,6 +390,8 @@ export function useG6(options: UseG6Options) {
               id: nodeId,
               style: {
                 ...baseStyle,
+                label: showLabelsRef.current,
+                labelOpacity: showLabelsRef.current ? 1 : 0,
                 lineWidth: 4,
                 halo: true,
                 haloLineWidth: 16,
@@ -396,6 +404,7 @@ export function useG6(options: UseG6Options) {
               id: nodeId,
               style: {
                 ...baseStyle,
+                label: showLabelsRef.current,
                 opacity: 0.95,
                 labelOpacity: showLabelsRef.current ? 1 : 0,
                 lineWidth: 3,
@@ -410,6 +419,7 @@ export function useG6(options: UseG6Options) {
               id: nodeId,
               style: {
                 ...baseStyle,
+                label: showLabelsRef.current,
                 opacity: 0.72,
                 labelOpacity: showLabelsRef.current ? 0.7 : 0,
                 lineWidth: 2,
