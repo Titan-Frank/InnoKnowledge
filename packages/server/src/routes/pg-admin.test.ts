@@ -21,6 +21,7 @@ function sqlText(strings: TemplateStringsArray): string {
 }
 
 function routeSql(options: {
+  catalogRowCounts?: Record<string, number>;
   exportBookJsonBytes?: number;
   exportBookRowCount?: number;
   exportJsonBytes?: Record<string, number>;
@@ -98,6 +99,9 @@ function routeSql(options: {
   query.unsafe = (async (sql: string, values: unknown[] = []) => {
     unsafeCalls.push({ query: sql, values });
     if (options.stopBookDeleteAtLock) throw new Error('book-delete-reached-shared-lock');
+    if (sql.startsWith('SELECT (SELECT count(*) FROM')) {
+      return [options.catalogRowCounts ?? {}];
+    }
     const sizeTable = sql.match(/AS json_bytes FROM "([a-z0-9_]+)" t WHERE t\.dataset_id = \$1/)?.[1];
     if (sizeTable) {
       const rowJson = options.exportRowJson?.[sizeTable]
@@ -135,15 +139,21 @@ test('PG admin table allowlist exposes world-v1.2 tables without accepting arbit
 });
 
 test('PG admin catalog advertises the enforced export size limit', async () => {
-  const { sql } = routeSql();
+  const { sql, unsafeCalls } = routeSql({
+    catalogRowCounts: { world_nodes: 2460, world_evidence: 13247 },
+  });
   const app = new Hono();
   registerPgAdminRoutes(app, sql);
 
   const response = await app.request('/api/source/main/pg/tables');
   assert.equal(response.status, 200);
-  const payload = await response.json() as { export_max_bytes: number };
+  const payload = await response.json() as { export_max_bytes: number; tables: Array<{ name: string; estimated_rows: number }> };
   assert.equal(payload.export_max_bytes, PG_ADMIN_EXPORT_MAX_BYTES);
   assert.equal(payload.export_max_bytes, 512 * 1024 * 1024);
+  assert.equal(payload.tables.find((table) => table.name === 'world_nodes')?.estimated_rows, 2460);
+  assert.equal(payload.tables.find((table) => table.name === 'world_evidence')?.estimated_rows, 13247);
+  assert.deepEqual(unsafeCalls.at(-1)?.values, ['main']);
+  assert.match(unsafeCalls.at(-1)?.query ?? '', /FROM "world_nodes" WHERE dataset_id = \$1/);
 });
 
 test('PG admin configures every export table for optional textbook scoping', () => {

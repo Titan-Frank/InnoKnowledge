@@ -318,6 +318,24 @@ async function loadTableMetadata(sql: Sql | TransactionSql, onlyTable?: string):
   return PG_ADMIN_TABLES.flatMap((name) => byTable.get(name) ?? []);
 }
 
+async function loadExactDatasetTableCounts(
+  sql: Sql | TransactionSql,
+  datasetId: string,
+  tables: PgAdminTable[],
+): Promise<void> {
+  if (tables.length === 0) return;
+  const projections = tables.map((table) => (
+    `(SELECT count(*) FROM ${quoteIdentifier(table.name)} WHERE dataset_id = $1) AS ${quoteIdentifier(table.name)}`
+  ));
+  const rows = await sql.unsafe(`SELECT ${projections.join(', ')}`, [datasetId]) as unknown as Row[];
+  const counts = rows[0] ?? {};
+  for (const table of tables) {
+    // Keep the existing API field for compatibility; catalog counts are exact
+    // and scoped to the resolved dataset rather than PostgreSQL planner stats.
+    table.estimated_rows = numberValue(counts[table.name]);
+  }
+}
+
 function requireAdminTable(tableName: string, tables: PgAdminTable[]): PgAdminTable {
   if (!isPgAdminTable(tableName)) throw new Error(`Unsupported PostgreSQL table: ${tableName}`);
   const table = tables.find((item) => item.name === tableName);
@@ -572,11 +590,14 @@ export function registerPgAdminRoutes(app: Hono, sql: Sql): void {
     try {
       const dataset = await resolveDatasetRow(sql, c.req.param('key'));
       if (!dataset) return c.json({ error: 'Unknown source' }, 404);
+      const datasetId = textValue(dataset.dataset_id);
+      const tables = await loadTableMetadata(sql);
+      await loadExactDatasetTableCounts(sql, datasetId, tables);
       const payload: PgAdminCatalogResponse = {
-        dataset_id: textValue(dataset.dataset_id),
+        dataset_id: datasetId,
         schema_version: textValue(dataset.schema_version) || 'world-v1.2',
         export_max_bytes: PG_ADMIN_EXPORT_MAX_BYTES,
-        tables: await loadTableMetadata(sql),
+        tables,
       };
       return c.json(payload);
     } catch (error) {

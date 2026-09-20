@@ -344,7 +344,7 @@ function TableSidebar({ catalog, activeTable, onSelect }: { catalog: PgAdminCata
                 <button key={table.name} type="button" onClick={() => onSelect(table.name)} className={`flex min-w-0 cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-left transition-colors ${activeTable === table.name ? 'bg-accent text-white shadow-glow-soft' : 'text-text-secondary hover:bg-hover hover:text-text-primary'}`}>
                   <Table2 className="h-3.5 w-3.5 shrink-0" />
                   <span className="min-w-0 flex-1 truncate font-mono text-[10px]">{table.name}</span>
-                  <span className={`shrink-0 font-mono text-[9px] ${activeTable === table.name ? 'text-white/70' : 'text-text-muted'}`}>~{table.estimated_rows}</span>
+                  <span className={`shrink-0 font-mono text-[9px] ${activeTable === table.name ? 'text-white/70' : 'text-text-muted'}`}>{table.estimated_rows.toLocaleString()}</span>
                 </button>
               ))}
             </div>
@@ -623,7 +623,7 @@ function ExportDialog({
             <button type="button" onClick={() => { onIncludeBooksChange(true); onSelectedTablesChange(catalog.tables.map((table) => table.name)); }} className="h-7 cursor-pointer rounded-md border border-border-subtle bg-elevated px-2.5 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary">全选</button>
             <button type="button" onClick={() => { onIncludeBooksChange(false); onSelectedTablesChange([]); }} className="h-7 cursor-pointer rounded-md border border-border-subtle bg-elevated px-2.5 text-[11px] text-text-secondary transition-colors hover:bg-hover hover:text-text-primary">清空</button>
           </div>
-          <div className="text-[11px] text-text-muted">已选 <span className="font-mono font-semibold text-text-primary">{selectionCount}</span> 项 · {bookScope === 'selected' ? `${selectedBookIds.length} 本教材` : '全部教材'} · 表总量约 <span className="font-mono text-text-primary">{estimatedRows.toLocaleString()}</span> 行</div>
+          <div className="text-[11px] text-text-muted">已选 <span className="font-mono font-semibold text-text-primary">{selectionCount}</span> 项 · {bookScope === 'selected' ? `${selectedBookIds.length} 本教材` : '全部教材'} · 表总量 <span className="font-mono text-text-primary">{estimatedRows.toLocaleString()}</span> 行</div>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 scrollbar-thin">
@@ -710,7 +710,7 @@ function ExportDialog({
                           <input type="checkbox" checked={selected.has(table.name)} onChange={(event) => toggleTable(table.name, event.target.checked)} className="h-3.5 w-3.5 shrink-0 cursor-pointer accent-accent" />
                           <span className="truncate font-mono text-[11px] text-text-primary">{table.name}</span>
                         </label>
-                        <span className="shrink-0 font-mono text-[10px] text-text-muted">~{table.estimated_rows.toLocaleString()}</span>
+                        <span className="shrink-0 font-mono text-[10px] text-text-muted">{table.estimated_rows.toLocaleString()}</span>
                         <InfoTooltip label={table.name} text={TABLE_DESCRIPTIONS[table.name] ?? '当前数据集中的 PostgreSQL 原始表数据。'} />
                       </div>
                     ))}
@@ -983,7 +983,7 @@ export function PgAdminPage() {
           <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
             <Metric label="Dataset" value={sourceKey} icon={<Server className="h-3 w-3" />} />
             <Metric label="Tables" value={catalog?.tables.length ?? 0} icon={<Table2 className="h-3 w-3" />} />
-            <Metric label="Estimated rows" value={estimatedRows} icon={<Rows3 className="h-3 w-3" />} />
+            <Metric label="Rows" value={estimatedRows} icon={<Rows3 className="h-3 w-3" />} />
             <Metric label="Books" value={books?.books.length ?? 0} icon={<BookOpen className="h-3 w-3" />} />
           </div>
 
