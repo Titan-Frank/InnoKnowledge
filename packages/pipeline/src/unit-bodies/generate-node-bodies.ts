@@ -556,7 +556,10 @@ export function resolveBodyMediaRefs(
 }
 
 function evidenceMatchesAssetRef(evidence: NodeBodyInputEvidenceRow, ref: string): boolean {
-  const candidates = new Set(markdownImageRefs(evidence.excerpt));
+  const candidates = new Set([
+    ...markdownImageRefs(evidence.excerpt),
+    ...inlineImageRefs(evidence.excerpt),
+  ]);
   const properties = recordValue(evidence.properties_json);
   for (const key of ["path", "url", "src"]) {
     const value = textValue(properties[key]);
@@ -568,6 +571,12 @@ function evidenceMatchesAssetRef(evidence: NodeBodyInputEvidenceRow, ref: string
     if (value) candidates.add(value);
   }
   return [...candidates].some((candidate) => assetRefsMatch(candidate, ref));
+}
+
+function inlineImageRefs(value: string): string[] {
+  return Array.from(value.matchAll(/\[image:\s*([^\]\n]+)\]/gi))
+    .map((match) => match[1]!.trim())
+    .filter(Boolean);
 }
 
 function markdownImageRefs(markdown: string): string[] {

@@ -176,6 +176,29 @@ test("resolves local body images from cited image evidence", () => {
   );
 });
 
+test("resolves local body images from cited inline image evidence", () => {
+  const imageEvidence = {
+    ...evidence,
+    id: "ev-inline-image",
+    modality: "image",
+    excerpt: "Figure caption [image: triangle.jpg]",
+    properties_json: {
+      image_relevance: { path: "/images/unrelated.jpg" },
+    },
+  };
+  assert.deepEqual(
+    resolveBodyMediaRefs(
+      "## Example\n\n![triangle](images/triangle.jpg) [ev-inline-image]",
+      ["ev-inline-image"],
+      [imageEvidence],
+    ),
+    {
+      mediaRefs: [{ evidence_id: "ev-inline-image", path: "images/triangle.jpg" }],
+      unresolvedRefs: [],
+    },
+  );
+});
+
 test("rejects local body images without matching cited image evidence", async () => {
   const plan = await planModelNodeBodies({
     datasetId: "main",
