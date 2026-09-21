@@ -135,6 +135,7 @@ export type GeneratePedagogicalProfilesDatabaseOutput = {
   updated_profiles: number;
   skipped_existing: number;
   skipped_protected: number;
+  skipped_concurrent: number;
   skipped_missing_stage: number;
   skipped_missing_context: number;
   skipped_missing_evidence: number;
@@ -389,6 +390,7 @@ export async function planModelPedagogicalProfiles(input: {
   concurrency?: number;
   overwriteGenerated?: boolean;
   generateProfile: ModelPedagogicalProfileGenerator;
+  onGeneratedRow?: (row: GeneratedPedagogicalProfileUpdate) => Promise<void> | void;
 }): Promise<GeneratePedagogicalProfilesPlan> {
   const nodeById = new Map(input.nodes.map((node) => [node.id, node]));
   const cardByNodeId = new Map(input.cards.map((card) => [card.node_id, card]));
@@ -507,7 +509,7 @@ export async function planModelPedagogicalProfiles(input: {
       if (sourceRefs.length === 0) {
         throw new Error("Model output did not cite any provided evidence id.");
       }
-      return {
+      const result = {
         kind: "success" as const,
         task,
         stageProfile: {
@@ -533,6 +535,17 @@ export async function planModelPedagogicalProfiles(input: {
         } satisfies RawRecord,
         sourceRefs,
       };
+      if (input.onGeneratedRow) {
+        await input.onGeneratedRow({
+          dataset_id: input.datasetId,
+          profile_id: task.profile.id,
+          stage_profiles_json: { [task.schoolStage]: result.stageProfile },
+          expected_stage_profiles_json: { [task.schoolStage]: task.expectedStageProfile },
+          source_refs_json: sourceRefs,
+          updated_at: input.now,
+        });
+      }
+      return result;
     } catch (error) {
       return {
         kind: "failure" as const,
@@ -675,6 +688,7 @@ export async function runGeneratePedagogicalProfilesFromDatabase(input: {
   const readStatements: string[] = [];
   const statements: string[] = [];
   const executedStatements: string[] = [];
+  const concurrentConflicts: string[] = [];
   const query = async (statement: SqlStatement): Promise<RawRecord[]> => {
     readStatements.push(statement.name);
     const rows = await input.query(statement);
@@ -682,42 +696,71 @@ export async function runGeneratePedagogicalProfilesFromDatabase(input: {
     return rows;
   };
 
-  const plan = await planModelPedagogicalProfiles({
+  const profiles = (await query(buildSelectDomainProfilesForPedagogyQuery({
     datasetId: input.datasetId,
-    profiles: (await query(buildSelectDomainProfilesForPedagogyQuery({
-      datasetId: input.datasetId,
-      nodeId: input.nodeId,
-      limit: input.limit,
-      bookId: input.bookId,
-    }))).map(toDomainProfileRow),
-    nodes: (await query(buildSelectNodesForPedagogyQuery(input.datasetId))).map(toNodeRow),
-    cards: (await query(buildSelectCardsForPedagogyQuery(input.datasetId))).map(toCardRow),
-    mentions: (await query(buildSelectMentionsForPedagogyQuery(input.datasetId, input.bookId ?? ""))).map(toMentionRow),
-    evidence: (await query(buildSelectEvidenceForPedagogyQuery(input.datasetId, input.bookId ?? ""))).map(toEvidenceRow),
-    relations: (await query(buildSelectRelationsForPedagogyQuery(input.datasetId))).map(toRelationRow),
-    modelName: input.modelName ?? "",
-    now,
-    schoolStage: input.schoolStage,
-    gradeBand: input.gradeBand,
-    maxEvidencePerContext: input.maxEvidencePerContext ?? undefined,
-    concurrency: input.concurrency ?? 8,
-    overwriteGenerated: input.overwriteGenerated,
-    generateProfile: input.generateProfile ?? missingModelGenerator,
-  });
-
-  for (const row of plan.rows) {
+    nodeId: input.nodeId,
+    limit: input.limit,
+    bookId: input.bookId,
+  }))).map(toDomainProfileRow);
+  const nodes = (await query(buildSelectNodesForPedagogyQuery(input.datasetId))).map(toNodeRow);
+  const cards = (await query(buildSelectCardsForPedagogyQuery(input.datasetId))).map(toCardRow);
+  // Profiles are canonical dataset records even when the set of profiles to
+  // process is selected by one book. Build their input from dataset-wide
+  // mentions/evidence so shared profiles have one stable fingerprint instead
+  // of being regenerated with a different context for every textbook.
+  const mentions = (await query(buildSelectMentionsForPedagogyQuery(input.datasetId))).map(toMentionRow);
+  const evidence = (await query(buildSelectEvidenceForPedagogyQuery(input.datasetId))).map(toEvidenceRow);
+  const relations = (await query(buildSelectRelationsForPedagogyQuery(input.datasetId))).map(toRelationRow);
+  const plan: GeneratePedagogicalProfilesPlan = {
+    rows: [],
+    generatedContexts: 0,
+    skippedExisting: [],
+    skippedProtected: [],
+    skippedMissingStage: [],
+    skippedMissingContext: [],
+    skippedMissingEvidence: [],
+    modelFailures: [],
+  };
+  const checkpointBatchSize = Math.max(1, input.concurrency ?? 8);
+  const checkpointEachResult = Boolean(textValue(input.schoolStage));
+  const writeRow = async (row: GeneratedPedagogicalProfileUpdate): Promise<void> => {
     const statement = buildUpdatePedagogicalProfileStatement(row);
     statements.push(statement.name);
     const writtenRows = await input.executeStatement(statement);
+    executedStatements.push(statement.name);
     if (writtenRows !== undefined) {
       assertRecordRows(statement.name, writtenRows);
-      if (writtenRows.length !== 1) {
-        throw new Error(
-          `Pedagogical profile '${row.profile_id}' changed while model generation was running; protected the newer database value.`,
-        );
-      }
+      if (writtenRows.length !== 1) concurrentConflicts.push(row.profile_id);
     }
-    executedStatements.push(statement.name);
+  };
+
+  for (let offset = 0; offset < profiles.length; offset += checkpointBatchSize) {
+    const batchPlan = await planModelPedagogicalProfiles({
+      datasetId: input.datasetId,
+      profiles: profiles.slice(offset, offset + checkpointBatchSize),
+      nodes,
+      cards,
+      mentions,
+      evidence,
+      relations,
+      modelName: input.modelName ?? "",
+      now,
+      schoolStage: input.schoolStage,
+      gradeBand: input.gradeBand,
+      maxEvidencePerContext: input.maxEvidencePerContext ?? undefined,
+      concurrency: input.concurrency ?? 8,
+      overwriteGenerated: input.overwriteGenerated,
+      generateProfile: input.generateProfile ?? missingModelGenerator,
+      onGeneratedRow: checkpointEachResult ? writeRow : undefined,
+    });
+    appendPedagogicalPlan(plan, batchPlan);
+
+    // Unscoped runs may generate multiple stages for one profile, so retain
+    // the grouped batch write there. Book-scoped runs have one requested
+    // stage and checkpoint each result immediately in the worker above.
+    if (!checkpointEachResult) {
+      for (const row of batchPlan.rows) await writeRow(row);
+    }
   }
 
   const selected = plan.generatedContexts
@@ -733,9 +776,10 @@ export async function runGeneratePedagogicalProfilesFromDatabase(input: {
     dataset_id: input.datasetId,
     selected,
     generated: plan.generatedContexts,
-    updated_profiles: plan.rows.length,
+    updated_profiles: plan.rows.length - concurrentConflicts.length,
     skipped_existing: plan.skippedExisting.length,
     skipped_protected: plan.skippedProtected.length,
+    skipped_concurrent: concurrentConflicts.length,
     skipped_missing_stage: plan.skippedMissingStage.length,
     skipped_missing_context: plan.skippedMissingContext.length,
     skipped_missing_evidence: plan.skippedMissingEvidence.length,
@@ -745,6 +789,17 @@ export async function runGeneratePedagogicalProfilesFromDatabase(input: {
     statements,
     executedStatements,
   };
+}
+
+function appendPedagogicalPlan(target: GeneratePedagogicalProfilesPlan, batch: GeneratePedagogicalProfilesPlan): void {
+  target.rows.push(...batch.rows);
+  target.generatedContexts += batch.generatedContexts;
+  target.skippedExisting.push(...batch.skippedExisting);
+  target.skippedProtected.push(...batch.skippedProtected);
+  target.skippedMissingStage.push(...batch.skippedMissingStage);
+  target.skippedMissingContext.push(...batch.skippedMissingContext);
+  target.skippedMissingEvidence.push(...batch.skippedMissingEvidence);
+  target.modelFailures.push(...batch.modelFailures);
 }
 
 type PedagogicalGenerationTask = {

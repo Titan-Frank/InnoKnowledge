@@ -182,65 +182,189 @@ function OcrCoordinateBlock({
   );
 }
 
-function ReadingPane({
+function ContinuousReadingPage({
+  pageIndex,
   response,
   sourceKey,
-  highlighted,
   selectedBlockId,
+  active,
+  onPageRef,
+  onSelect,
+}: {
+  pageIndex: number;
+  response: TextbookReaderPageResponse | null;
+  sourceKey: string;
+  selectedBlockId: string | null;
+  active: boolean;
+  onPageRef: (pageIndex: number, element: HTMLElement | null) => void;
+  onSelect: (pageIndex: number, blockId: string) => void;
+}) {
+  const highlighted = response?.evidence_match?.page_index === pageIndex
+    ? new Set(response.evidence_match.block_ids)
+    : new Set<string>();
+  const contentBlocks = response?.blocks.filter((block) => !['page_header', 'page_footer', 'page_number'].includes(block.type)) ?? [];
+
+  return (
+    <section
+      ref={(element) => onPageRef(pageIndex, element)}
+      data-page-index={pageIndex}
+      aria-label={`Markdown 第 ${pageIndex + 1} 页`}
+      aria-current={active ? 'page' : undefined}
+      className="min-h-[36rem] scroll-mt-4 border-b border-slate-200 px-5 py-8 last:border-b-0 sm:px-10 sm:py-10 dark:border-border-subtle"
+    >
+      <div className="mb-7 flex items-center gap-3 text-xs text-slate-500 dark:text-text-muted">
+        <span className={`h-px flex-1 ${active ? 'bg-indigo-400/70' : 'bg-slate-200 dark:bg-border-subtle'}`} />
+        <span className={`shrink-0 rounded-full px-2.5 py-1 font-medium transition-colors ${active ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-surface'}`}>
+          第 {pageIndex + 1} 页
+        </span>
+        <span className={`h-px flex-1 ${active ? 'bg-indigo-400/70' : 'bg-slate-200 dark:bg-border-subtle'}`} />
+      </div>
+      {response ? (
+        <>
+          {contentBlocks.map((block) => {
+            const active = highlighted.has(block.id) || selectedBlockId === block.id;
+            return (
+              <section
+                key={block.id}
+                tabIndex={0}
+                aria-label={`${blockLabel(block)}，内容块 ${block.order_index + 1}`}
+                onClick={() => onSelect(pageIndex, block.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onSelect(pageIndex, block.id);
+                  }
+                }}
+                className={`group relative cursor-pointer rounded-lg px-3 py-1 outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                  active ? 'bg-amber-100 ring-2 ring-amber-500 dark:bg-amber-400/10' : 'hover:bg-indigo-50 dark:hover:bg-hover'
+                }`}
+              >
+                <span className="absolute -left-1 top-2 hidden -translate-x-full rounded bg-slate-900 px-1.5 py-0.5 text-[10px] text-white group-focus-within:block group-hover:block dark:bg-accent">
+                  {blockLabel(block)}
+                </span>
+                <ReaderBlockContent block={block} sourceKey={sourceKey} />
+              </section>
+            );
+          })}
+        </>
+      ) : (
+        <div className="grid min-h-[26rem] place-items-center text-sm text-slate-400 dark:text-text-muted">
+          正在载入第 {pageIndex + 1} 页…
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ContinuousReadingPane({
+  response,
+  pageResponses,
+  sourceKey,
+  selectedBlockId,
+  navigationRequest,
+  onPageEnter,
+  onEnsurePage,
   onSelect,
 }: {
   response: TextbookReaderPageResponse;
+  pageResponses: ReadonlyMap<number, TextbookReaderPageResponse>;
   sourceKey: string;
-  highlighted: Set<string>;
   selectedBlockId: string | null;
+  navigationRequest: PageNavigationRequest | null;
+  onPageEnter: (pageIndex: number) => void;
+  onEnsurePage: (pageIndex: number) => void;
   onSelect: (blockId: string) => void;
 }) {
-  const refs = useRef(new Map<string, HTMLElement>());
+  const [visiblePageIndex, setVisiblePageIndex] = useState(response.page_index);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const pageRefs = useRef(new Map<number, HTMLElement>());
+  const animationFrameRef = useRef<number | null>(null);
+
+  const updateVisiblePage = useCallback(() => {
+    const root = scrollRef.current;
+    if (!root) return;
+    const rootRect = root.getBoundingClientRect();
+    const pages = Array.from(pageRefs.current, ([pageIndex, element]) => {
+      const rect = element.getBoundingClientRect();
+      return { pageIndex, top: rect.top, bottom: rect.bottom };
+    });
+    const nearest = nearestReaderPage(pages, rootRect.top + rootRect.height / 2);
+    if (nearest == null) return;
+    setVisiblePageIndex((current) => current === nearest ? current : nearest);
+    onPageEnter(nearest);
+  }, [onPageEnter]);
+
+  const scheduleVisiblePageUpdate = useCallback(() => {
+    if (animationFrameRef.current != null) return;
+    animationFrameRef.current = window.requestAnimationFrame(() => {
+      animationFrameRef.current = null;
+      updateVisiblePage();
+    });
+  }, [updateVisiblePage]);
 
   useEffect(() => {
-    const targetId = selectedBlockId || [...highlighted][0];
-    if (!targetId) return;
-    refs.current.get(targetId)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  }, [highlighted, selectedBlockId]);
+    for (const pageIndex of continuousReaderPageWindow(visiblePageIndex, response.page_count)) onEnsurePage(pageIndex);
+  }, [onEnsurePage, response.page_count, visiblePageIndex]);
 
-  const contentBlocks = response.blocks.filter((block) => !['page_header', 'page_footer', 'page_number'].includes(block.type));
+  useEffect(() => {
+    if (!navigationRequest) return;
+    const root = scrollRef.current;
+    const page = pageRefs.current.get(navigationRequest.pageIndex);
+    if (!root || !page) return;
+    const rootRect = root.getBoundingClientRect();
+    const pageRect = page.getBoundingClientRect();
+    const top = root.scrollTop + pageRect.top - rootRect.top;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setVisiblePageIndex(navigationRequest.pageIndex);
+    root.scrollTo({ top, behavior: reducedMotion ? 'auto' : navigationRequest.behavior });
+    onEnsurePage(navigationRequest.pageIndex);
+  }, [navigationRequest, onEnsurePage]);
+
+  useEffect(() => {
+    const root = scrollRef.current;
+    if (!root || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(scheduleVisiblePageUpdate);
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, [scheduleVisiblePageUpdate]);
+
+  useEffect(() => () => {
+    if (animationFrameRef.current != null) window.cancelAnimationFrame(animationFrameRef.current);
+  }, []);
+
+  const setPageRef = useCallback((pageIndex: number, element: HTMLElement | null) => {
+    if (element) pageRefs.current.set(pageIndex, element);
+    else pageRefs.current.delete(pageIndex);
+  }, []);
+
+  const selectBlock = (pageIndex: number, blockId: string) => {
+    setVisiblePageIndex(pageIndex);
+    onPageEnter(pageIndex);
+    onSelect(blockId);
+  };
+
   return (
-    <section aria-label="舒适阅读" className="h-full min-h-0 overflow-y-auto overscroll-contain bg-[#f8f6f0] p-4 text-slate-900 scrollbar-thin [scrollbar-gutter:stable] sm:p-8 dark:bg-surface dark:text-text-primary">
-      <article className="mx-auto max-w-3xl rounded-xl border border-black/10 bg-white px-6 py-8 shadow-panel sm:px-10 dark:border-border-subtle dark:bg-elevated">
-        <div className="mb-8 flex items-center justify-between border-b border-slate-200 pb-4 text-xs text-slate-500 dark:border-border-subtle dark:text-text-muted">
-          <span>第 {response.page_number} 页</span>
-          <span>{response.block_count} 个 OCR 内容块</span>
-        </div>
-        {contentBlocks.map((block) => {
-          const active = highlighted.has(block.id) || selectedBlockId === block.id;
-          return (
-            <section
-              key={block.id}
-              ref={(element) => {
-                if (element) refs.current.set(block.id, element);
-                else refs.current.delete(block.id);
-              }}
-              tabIndex={0}
-              aria-label={`${blockLabel(block)}，内容块 ${block.order_index + 1}`}
-              onClick={() => onSelect(block.id)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  onSelect(block.id);
-                }
-              }}
-              className={`group relative cursor-pointer rounded-lg px-3 py-1 outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-                active ? 'bg-amber-100 ring-2 ring-amber-500 dark:bg-amber-400/10' : 'hover:bg-indigo-50 dark:hover:bg-hover'
-              }`}
-            >
-              <span className="absolute -left-1 top-2 hidden -translate-x-full rounded bg-slate-900 px-1.5 py-0.5 text-[10px] text-white group-focus-within:block group-hover:block dark:bg-accent">
-                {blockLabel(block)}
-              </span>
-              <ReaderBlockContent block={block} sourceKey={sourceKey} />
-            </section>
-          );
-        })}
-      </article>
+    <section aria-label="Markdown 连续阅读" className="h-full min-h-0 bg-[#f8f6f0] text-slate-900 dark:bg-surface dark:text-text-primary">
+      <div
+        ref={scrollRef}
+        onScroll={scheduleVisiblePageUpdate}
+        className="h-full min-h-0 overflow-y-auto overscroll-contain px-0 scrollbar-thin [scrollbar-gutter:stable] sm:px-8"
+      >
+        <article className="mx-auto min-h-full min-w-0 max-w-4xl border-x border-black/10 bg-white shadow-panel dark:border-border-subtle dark:bg-elevated">
+          {Array.from({ length: response.page_count }, (_, pageIndex) => (
+            <ContinuousReadingPage
+              key={pageIndex}
+              pageIndex={pageIndex}
+              response={pageResponses.get(pageIndex) ?? null}
+              sourceKey={sourceKey}
+              selectedBlockId={visiblePageIndex === pageIndex ? selectedBlockId : null}
+              active={visiblePageIndex === pageIndex}
+              onPageRef={setPageRef}
+              onSelect={selectBlock}
+            />
+          ))}
+        </article>
+      </div>
     </section>
   );
 }
@@ -792,11 +916,6 @@ export function TextbookReader({ sourceKey, target, onClose }: TextbookReaderPro
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [navigateToPage, onClose, response]);
 
-  const highlighted = useMemo(() => new Set(
-    response && response.evidence_match?.page_index === response.page_index
-      ? response.evidence_match.block_ids
-      : [],
-  ), [response]);
   const match = response?.evidence_match;
   const originalPdf = response?.pdf_available ? pdfUrl(sourceKey, target.bookId) : null;
   const matchText = match?.kind === 'asset'
@@ -891,7 +1010,7 @@ export function TextbookReader({ sourceKey, target, onClose }: TextbookReaderPro
           mode === 'reading'
             ? target.markdown
               ? <MarkdownReadingPane content={target.markdown} sourceKey={sourceKey} />
-              : <ReadingPane response={response} sourceKey={sourceKey} highlighted={highlighted} selectedBlockId={selectedBlockId} onSelect={setSelectedBlockId} />
+              : <ContinuousReadingPane response={response} pageResponses={pageResponses} sourceKey={sourceKey} selectedBlockId={selectedBlockId} navigationRequest={navigationRequest} onPageEnter={activatePage} onEnsurePage={requestPage} onSelect={setSelectedBlockId} />
             : <SourcePane response={response} pageResponses={pageResponses} sourceKey={sourceKey} selectedBlockId={selectedBlockId} zoom={zoom} pdf={originalPdf} navigationRequest={navigationRequest} onPageEnter={activatePage} onEnsurePage={requestPage} onSelect={setSelectedBlockId} onOpenUnit={openRelatedUnit} />
         ) : null}
       </main>

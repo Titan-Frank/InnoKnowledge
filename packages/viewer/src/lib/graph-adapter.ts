@@ -1,7 +1,7 @@
 import type { GraphData } from '@antv/g6';
 import type { SemanticNeighbor } from '@okm/types';
 import type { KnowledgeGraph, ThemeMode } from '@/core/graph/types';
-import { resolveEdgeVisual } from './edge-styles';
+import { resolveEdgeLabel, resolveEdgeVisual } from './edge-styles';
 import { COMMUNITY_EDGE_TYPES, getCommunityColor, TYPE_META } from './constants';
 import { lightenForBorder } from './utils';
 
@@ -29,14 +29,42 @@ export interface BuildResult {
 }
 
 const NODE_SIZE_MAP: Record<string, number> = {
-  concept: 26, rule: 24, process: 21, entity: 20, property: 18,
-  method: 18, representation: 17, resource: 16, event: 16,
-  substance: 20, experiment: 18, symbol: 17, other: 16,
+  concept: 20, rule: 19, process: 17, entity: 16, property: 15,
+  method: 15, representation: 14, resource: 13, event: 13,
+  substance: 16, experiment: 15, symbol: 14, other: 13,
 };
 
 function getNodeSize(nodeType: string, nodeLayer: string | null | undefined): number {
   const base = NODE_SIZE_MAP[nodeType] ?? NODE_SIZE_MAP.other;
-  return nodeLayer === 'backbone' ? base * 1.18 : base;
+  return nodeLayer === 'backbone' ? base * 1.15 : base;
+}
+
+function resolveOverviewLabelIds(
+  nodes: KnowledgeGraph['nodes'],
+  communityMemberships: Map<string, number>,
+): Set<string> {
+  if (nodes.length <= 36) return new Set(nodes.map((node) => node.id));
+
+  const limit = Math.min(42, Math.max(18, Math.round(Math.sqrt(nodes.length) * 2.5)));
+  const ranked = [...nodes].sort((left, right) => (
+    Number(right.nodeLayer === 'backbone') - Number(left.nodeLayer === 'backbone')
+    || right.degree - left.degree
+    || left.id.localeCompare(right.id)
+  ));
+  const labelIds = new Set<string>();
+  const representedCommunities = new Set<number>();
+
+  for (const node of ranked) {
+    const communityId = communityMemberships.get(node.id);
+    if (communityId == null || representedCommunities.has(communityId)) continue;
+    labelIds.add(node.id);
+    representedCommunities.add(communityId);
+  }
+  for (const node of ranked) {
+    if (labelIds.size >= limit) break;
+    labelIds.add(node.id);
+  }
+  return labelIds;
 }
 
 function getTypeColor(type: string): string {
@@ -148,6 +176,7 @@ export function okmKnowledgeGraphToG6(
   const communityResult = detectCommunities(data, visibleNodeIds);
   const communityMemberships = communityResult.memberships;
   const communityCount = communityResult.count > 1 ? communityResult.count : 0;
+  const overviewLabelIds = resolveOverviewLabelIds(visibleNodes, communityMemberships);
 
   const nodes = visibleNodes.map((node) => {
     const communityId = communityMemberships.get(node.id);
@@ -169,19 +198,19 @@ export function okmKnowledgeGraphToG6(
         size,
         fill: color,
         stroke: borderColor,
-        lineWidth: node.nodeLayer === 'backbone' ? 2.4 : 1.6,
-        label: true,
+        lineWidth: node.nodeLayer === 'backbone' ? 2 : 1.35,
+        label: overviewLabelIds.has(node.id),
         labelText: node.name,
         labelFill: mode === 'light' ? '#1a1a2e' : '#e4e4ed',
         labelFontFamily: 'PingFang SC, Microsoft YaHei, Noto Sans SC, sans-serif',
-        labelFontSize: node.nodeLayer === 'backbone' ? 14 : 13,
+        labelFontSize: node.nodeLayer === 'backbone' ? 12 : 11,
         labelFontWeight: node.nodeLayer === 'backbone' ? 600 : 500,
         labelPlacement: 'right' as const,
-        labelOffsetX: 10,
+        labelOffsetX: 7,
         halo: node.nodeLayer === 'backbone',
         haloStroke: color,
         haloStrokeOpacity: mode === 'light' ? 0.18 : 0.24,
-        haloLineWidth: 10,
+        haloLineWidth: 7,
       },
     };
   });
@@ -192,6 +221,7 @@ export function okmKnowledgeGraphToG6(
     .map((edge) => {
       const visual = resolveEdgeVisual(edge.edgeType);
       const edgeColor = edge.displayColor || visual.stroke;
+      const edgeLabel = resolveEdgeLabel(edge.edgeType, edge.displayLabel);
       edgePairs.push({ id: edge.id, source: edge.from, target: edge.to });
       return {
         id: edge.id,
@@ -200,7 +230,8 @@ export function okmKnowledgeGraphToG6(
         data: {
           edgeType: edge.edgeType,
           edgeLayer: edge.edgeLayer,
-          category: edge.displayCategory || edge.displayLabel || visual.category,
+          label: edgeLabel,
+          category: edge.displayCategory || visual.category,
         },
         style: {
           stroke: edgeColor,
@@ -210,6 +241,20 @@ export function okmKnowledgeGraphToG6(
           endArrow: true,
           endArrowSize: 6,
           label: false,
+          labelText: edgeLabel,
+          labelFill: mode === 'light' ? '#334155' : '#e2e8f0',
+          labelFontFamily: 'PingFang SC, Microsoft YaHei, Noto Sans SC, sans-serif',
+          labelFontSize: 11,
+          labelFontWeight: 500,
+          labelPlacement: 'center' as const,
+          labelBackground: true,
+          labelBackgroundFill: mode === 'light' ? '#ffffff' : '#171a21',
+          labelBackgroundOpacity: mode === 'light' ? 0.92 : 0.9,
+          labelBackgroundStroke: edgeColor,
+          labelBackgroundStrokeOpacity: 0.42,
+          labelBackgroundLineWidth: 1,
+          labelBackgroundRadius: 4,
+          labelBackgroundPadding: [3, 6, 3, 6],
         },
       };
     });
@@ -287,7 +332,8 @@ export function buildRadialFocusGraph(
     data: {
       edgeType: 'semantic_similarity',
       edgeLayer: 'semantic',
-      category: 'Embedding 语义相似',
+      label: '内容语义相似',
+      category: '内容语义相似',
       similarity: similarityById.get(nodeId) ?? null,
     },
     style: {
@@ -297,6 +343,20 @@ export function buildRadialFocusGraph(
       lineDash: [5, 5],
       endArrow: false,
       label: false,
+      labelText: '内容语义相似',
+      labelFill: mode === 'light' ? '#475569' : '#cbd5e1',
+      labelFontFamily: 'PingFang SC, Microsoft YaHei, Noto Sans SC, sans-serif',
+      labelFontSize: 11,
+      labelFontWeight: 500,
+      labelPlacement: 'center' as const,
+      labelBackground: true,
+      labelBackgroundFill: mode === 'light' ? '#ffffff' : '#171a21',
+      labelBackgroundOpacity: mode === 'light' ? 0.92 : 0.9,
+      labelBackgroundStroke: mode === 'light' ? '#94a3b8' : '#64748b',
+      labelBackgroundStrokeOpacity: 0.42,
+      labelBackgroundLineWidth: 1,
+      labelBackgroundRadius: 4,
+      labelBackgroundPadding: [3, 6, 3, 6],
     },
   }));
 

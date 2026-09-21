@@ -4,6 +4,7 @@ import { useAppState } from '@/hooks/useAppState';
 import { useUnitLoader } from '@/hooks/useUnitLoader';
 import { BookOpen, ChevronDown, ChevronRight, FileText, Loader2, X } from '@/lib/lucide-icons';
 import { resolveEdgeVisual } from '@/lib/edge-styles';
+import { evidenceIdsForSourceFragment } from '@/lib/source-fragment-evidence';
 import {
   CURRICULUM_ROLE_LABELS,
   DOMAIN_LABELS,
@@ -41,10 +42,6 @@ function asRecord(value: unknown): Row {
 
 function textList(value: unknown): string[] {
   return Array.isArray(value) ? value.map((item) => text(item).trim()).filter(Boolean) : [];
-}
-
-function uniqueValues(values: string[]): string[] {
-  return [...new Set(values.filter(Boolean))];
 }
 
 function text(value: unknown): string {
@@ -101,20 +98,8 @@ function evidenceAnchorId(evidenceId: string): string {
   return `evidence-${evidenceId.replace(/[^A-Za-z0-9_-]/g, '-')}`;
 }
 
-function evidenceIdsFromRows(rows: Row[]): string[] {
-  return uniqueValues(rows.map((row) => text(row.id)).filter(Boolean));
-}
-
 function evidenceIdsForFragment(fragment: Row, evidenceRows: Row[]): string[] {
-  const ids = evidenceIdsFromRows(asRows(fragment.excerpts));
-  const sourceId = text(fragment.source_id);
-  const anchorRef = text(fragment.anchor_ref);
-  if (!sourceId || !anchorRef) return ids;
-  const matchingEvidenceIds = evidenceRows
-    .filter((row) => text(row.source_id) === sourceId && text(row.anchor_ref) === anchorRef)
-    .map((row) => text(row.id))
-    .filter(Boolean);
-  return uniqueValues([...ids, ...matchingEvidenceIds]);
+  return evidenceIdsForSourceFragment(fragment, evidenceRows);
 }
 
 function fragmentTitle(fragment: Row, index: number): string {

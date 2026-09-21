@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import katex from 'katex';
 
 type MarkdownViewProps = {
   content: string;
@@ -107,153 +108,32 @@ function isBlockStart(lines: string[], index: number): boolean {
   );
 }
 
-function readBraceGroup(value: string, start: number): { content: string; end: number } | null {
-  if (value[start] !== '{') return null;
-  let depth = 0;
-  for (let i = start; i < value.length; i += 1) {
-    const char = value[i];
-    if (char === '{') depth += 1;
-    if (char === '}') depth -= 1;
-    if (depth === 0) return { content: value.slice(start + 1, i), end: i + 1 };
-  }
-  return null;
-}
-
-function skipSpaces(value: string, start: number): number {
-  let index = start;
-  while (/\s/.test(value[index] ?? '')) index += 1;
-  return index;
-}
-
-function renderMathNodes(value: string, keyPrefix: string): ReactNode[] {
-  const nodes: ReactNode[] = [];
-  const commandText: Record<string, string> = {
-    cdot: '·',
-    circ: '°',
-    Delta: 'Δ',
-    delta: 'δ',
-    alpha: 'α',
-    beta: 'β',
-    gamma: 'γ',
-    pi: 'π',
-    sigma: 'σ',
-    mu: 'μ',
-    times: '×',
-    quad: ' ',
-    qquad: '  ',
-    to: '→',
-    rightarrow: '→',
-    leftrightarrow: '↔',
-  };
-  let textBuffer = '';
-  let i = 0;
-  let partIndex = 0;
-
-  const flushText = () => {
-    if (!textBuffer) return;
-    nodes.push(textBuffer);
-    textBuffer = '';
-  };
-
-  while (i < value.length) {
-    const char = value[i];
-
-    if (char === '\\') {
-      const match = value.slice(i + 1).match(/^[A-Za-z]+/);
-      const command = match?.[0] ?? '';
-      if (!command) {
-        i += 1;
-        continue;
-      }
-      i += command.length + 1;
-
-      if (command === 'left' || command === 'right') continue;
-
-      if (command === 'mathrm' || command === 'text') {
-        const groupStart = skipSpaces(value, i);
-        const group = readBraceGroup(value, groupStart);
-        if (group) {
-          flushText();
-          nodes.push(...renderMathNodes(group.content, `${keyPrefix}:rm:${partIndex}`));
-          partIndex += 1;
-          i = group.end;
-        }
-        continue;
-      }
-
-      if (command === 'frac') {
-        const numeratorStart = skipSpaces(value, i);
-        const numerator = readBraceGroup(value, numeratorStart);
-        const denominatorStart = numerator ? skipSpaces(value, numerator.end) : numeratorStart;
-        const denominator = readBraceGroup(value, denominatorStart);
-        if (numerator && denominator) {
-          flushText();
-          nodes.push(
-            <span key={`${keyPrefix}:frac:${partIndex}`} className="inline-flex items-center gap-0.5 align-middle">
-              <sup className="text-[0.72em] leading-none">{renderMathNodes(numerator.content, `${keyPrefix}:frac-n:${partIndex}`)}</sup>
-              <span>/</span>
-              <sub className="text-[0.72em] leading-none">{renderMathNodes(denominator.content, `${keyPrefix}:frac-d:${partIndex}`)}</sub>
-            </span>,
-          );
-          partIndex += 1;
-          i = denominator.end;
-          continue;
-        }
-      }
-
-      textBuffer += commandText[command] ?? command;
-      continue;
-    }
-
-    if (char === '_' || char === '^') {
-      const isSubscript = char === '_';
-      let script = '';
-      i += 1;
-      const scriptStart = skipSpaces(value, i);
-      const group = readBraceGroup(value, scriptStart);
-      if (group) {
-        script = group.content;
-        i = group.end;
-      } else {
-        script = value[scriptStart] ?? '';
-        i = scriptStart + 1;
-      }
-      flushText();
-      const Tag = isSubscript ? 'sub' : 'sup';
-      nodes.push(
-        <Tag key={`${keyPrefix}:script:${partIndex}`} className="text-[0.72em] leading-none">
-          {renderMathNodes(script, `${keyPrefix}:script:${partIndex}`)}
-        </Tag>,
-      );
-      partIndex += 1;
-      continue;
-    }
-
-    if (char === '{' || char === '}') {
-      i += 1;
-      continue;
-    }
-
-    textBuffer += char;
-    i += 1;
-  }
-
-  flushText();
-  return nodes;
-}
-
 function renderMath(value: string, key: string): ReactNode {
+  let html = '';
+  try {
+    html = katex.renderToString(value, { displayMode: false, throwOnError: false, strict: false });
+  } catch {
+    return <span key={key} className="font-mono text-[0.98em] text-text-primary">{value}</span>;
+  }
   return (
-    <span key={key} className="font-mono text-[0.98em] text-text-primary">
-      {renderMathNodes(value, key)}
-    </span>
+    <span
+      key={key}
+      className="inline text-[0.98em] text-text-primary"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
   );
 }
 
 function renderDisplayMath(value: string, key: string): ReactNode {
+  let html = '';
+  try {
+    html = katex.renderToString(value, { displayMode: true, throwOnError: false, strict: false });
+  } catch {
+    return <div key={key} className="overflow-x-auto border border-border-subtle bg-surface px-3 py-2 text-center font-mono text-sm text-text-primary">{value}</div>;
+  }
   return (
     <div key={key} className="overflow-x-auto border border-border-subtle bg-surface px-3 py-2 text-center">
-      <span className="font-mono text-sm text-text-primary">{renderMathNodes(value, key)}</span>
+      <span className="block min-w-max text-sm text-text-primary" dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   );
 }

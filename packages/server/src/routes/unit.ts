@@ -1,7 +1,7 @@
 import type { Hono } from 'hono';
 import type { Sql } from '../db/connection.js';
 import { resolveDatasetRow, loadUnit } from '../db/queries.js';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { DATA_DIR, REPO_ROOT } from '../utils/paths.js';
 import { resolveExistingMineruAssetPath } from '../utils/markdown-image-paths.js';
@@ -16,7 +16,7 @@ const MIME_TYPES: Record<string, string> = {
   '.svg': 'image/svg+xml',
 };
 
-function resolveAssetPath(encodedPath: string): string | null {
+function decodeAssetPath(encodedPath: string): string {
   const decoded = decodeURIComponent(encodedPath);
   const normalized = decoded.replace(/\\/g, '/');
   const resolved = path.isAbsolute(decoded)
@@ -24,14 +24,28 @@ function resolveAssetPath(encodedPath: string): string | null {
     : normalized.startsWith('data/')
       ? path.resolve(DATA_DIR, normalized.slice('data/'.length))
       : path.resolve(REPO_ROOT, decoded);
-  const allowedRoots = [
+  return resolved;
+}
+
+async function allowedAssetPath(filePath: string, sourceRows: Record<string, unknown>[]): Promise<string | null> {
+  const realFilePath = await realpath(filePath).catch(() => null);
+  if (!realFilePath) return null;
+  const candidates = [
     path.resolve(DATA_DIR),
     path.resolve(REPO_ROOT, 'ocr'),
+    ...sourceRows.flatMap((row) => [row.source_markdown_path, row.raw_markdown_path, row.extract_dir]),
   ];
-  if (!allowedRoots.some((root) => resolved === root || resolved.startsWith(`${root}${path.sep}`))) {
-    return null;
+  for (const value of candidates) {
+    const sourcePath = String(value ?? '').trim();
+    if (!sourcePath || /^https?:/i.test(sourcePath)) continue;
+    const resolved = path.isAbsolute(sourcePath) ? path.resolve(sourcePath) : path.resolve(REPO_ROOT, sourcePath);
+    const info = await stat(resolved).catch(() => null);
+    const directory = info?.isDirectory() ? resolved : info?.isFile() ? path.dirname(resolved) : null;
+    if (!directory) continue;
+    const root = await realpath(directory).catch(() => null);
+    if (root && (realFilePath === root || realFilePath.startsWith(`${root}${path.sep}`))) return realFilePath;
   }
-  return resolved;
+  return null;
 }
 
 export function registerUnitRoutes(app: Hono, sql: Sql) {
@@ -43,11 +57,16 @@ export function registerUnitRoutes(app: Hono, sql: Sql) {
       return c.json({ error: `Unknown source '${key}'` }, 404);
     }
 
-    const requestedPath = resolveAssetPath(assetPath);
-    if (!requestedPath) {
+    const sourceRows = await sql<Record<string, unknown>[]>`
+      SELECT source_markdown_path, raw_markdown_path, extract_dir
+      FROM world_mineru_sources
+      WHERE dataset_id = ${datasetRow.dataset_id}
+    `;
+    const requestedPath = decodeAssetPath(assetPath);
+    const resolvedPath = await allowedAssetPath(resolveExistingMineruAssetPath(requestedPath), sourceRows);
+    if (!resolvedPath) {
       return c.json({ error: 'Asset path is not allowed' }, 403);
     }
-    const resolvedPath = resolveExistingMineruAssetPath(requestedPath);
 
     try {
       const info = await stat(resolvedPath);

@@ -8,7 +8,19 @@ import { iterOutlineItems, safePathToken, type OutlineItem } from "../shared/pat
 
 type RawRecord = Record<string, unknown>;
 
-type MarkdownHeading = { line: number; norm: string; raw: string };
+type MarkdownHeading = { line: number; level: number; title: string; norm: string; raw: string };
+
+type HeadingMatch = {
+  confidence: number;
+  matchType: "exact" | "number_and_title" | "containment" | "fuzzy_title" | "marker" | "existing";
+};
+
+type MatchedOutlineItem = {
+  item: RawRecord;
+  line: number;
+  confidence: number;
+  matchType: HeadingMatch["matchType"];
+};
 
 type MineruV2Heading = {
   pageIndex: number;
@@ -33,6 +45,8 @@ type MarkdownAlignmentResult = {
   matched_items: number;
   total_items: number;
   unmatched_item_ids: string[];
+  warning_item_ids: string[];
+  average_confidence: number;
   source_path: string;
 };
 
@@ -88,6 +102,9 @@ export type EnrichOutlinePreparationResult =
       lesson_count: number;
       source_path: string;
       source_ref: string;
+      unmatched_item_ids: string[];
+      warning_item_ids: string[];
+      average_confidence: number;
     }
   | {
       status: "skipped";
@@ -146,6 +163,7 @@ export function prepareSourceMarkdown(input: {
   outlinePath: string;
   repoRoot: string;
   sourceMarkdownPath?: string | null;
+  reuseSourceInPlace?: boolean;
 }): SourceMarkdownPreparationResult {
   if (input.sourceMarkdownPath && input.sourceMarkdownPath.trim()) {
     const sourcePath = resolveInputPath(input.sourceMarkdownPath, input.repoRoot);
@@ -156,7 +174,7 @@ export function prepareSourceMarkdown(input: {
     // attached to the source instead of copying only full.md elsewhere.
     const mineruRoot = resolve(input.repoRoot, "data", "mineru");
     const sourceIsManaged = sourcePath === mineruRoot || sourcePath.startsWith(`${mineruRoot}${sep}`);
-    const targetPath = sourceIsManaged
+    const targetPath = sourceIsManaged || input.reuseSourceInPlace
       ? sourcePath
       : resolve(mineruRoot, safePathToken(input.bookId), "full.md");
     mkdirSync(dirname(targetPath), { recursive: true });
@@ -226,15 +244,22 @@ export function ensureOutlineFromMarkdown(input: {
   if (!existsSync(markdownPath)) return { status: "blocked", outline_path: input.outlinePath, error: `Markdown not found: ${markdownPath}` };
 
   const lines = readPlainLines(markdownPath);
-  const headingRows = lines
+  const contentListV2Path = findSiblingContentListV2(markdownPath);
+  const headingSelection = selectEnrichHeadingSequence(lines, contentListV2Path);
+  const structuredConstraint = headingSelection.ambiguous ? null : headingSelection.constraint;
+  const allowedHeadingLines = structuredConstraint ? new Set(structuredConstraint.headingLines) : null;
+  const pageByHeadingLine = new Map((structuredConstraint?.headingPages ?? []).map((entry) => [entry.line, entry.page]));
+  const allHeadingRows = lines
     .map((line, index) => {
       const match = /^(#{1,6})\s+(.+?)\s*$/.exec(line);
       if (!match) return null;
+      if (allowedHeadingLines && !allowedHeadingLines.has(index + 1)) return null;
       const heading = match[2]!.trim();
       if (!heading || normalizeHeadingText(heading).length < 2) return null;
       return { line: index + 1, level: match[1]!.length, heading, raw: line.trim() };
     })
     .filter((row): row is { line: number; level: number; heading: string; raw: string } => row !== null);
+  const headingRows = structuredConstraint ? allHeadingRows : selectMarkdownBodyHeadingRows(allHeadingRows);
 
   if (headingRows.length === 0) {
     return {
@@ -244,38 +269,69 @@ export function ensureOutlineFromMarkdown(input: {
     };
   }
 
-  const h1Rows = headingRows.filter((row) => row.level === 1);
-  const selected = h1Rows.length >= 2 ? h1Rows : headingRows.filter((row) => row.level <= 2);
-  const selectedRows = selected.length > 0 ? selected : headingRows.slice(0, 1);
-  const items = selectedRows.map((row, index) => {
-    const nextStart = selectedRows[index + 1]?.line ?? lines.length + 1;
-    const heading = row.heading.trim();
-    const labelMatch = /^((?:第\s*)?[0-9一二三四五六七八九十百千万]+[章节课题单元]+)\s*(.*)$/.exec(heading);
-    const label = labelMatch ? labelMatch[1]!.replace(/\s+/g, "") : `第${index + 1}课`;
-    const itemTitle = labelMatch ? labelMatch[2]!.trim() || heading : heading;
-    return {
-      id: `struct:${input.bookId}:lesson:${index + 1}`,
-      kind: "lesson",
-      label,
-      title: itemTitle,
-      page_start: 1,
-      page_end: 1,
-      level: 1,
-      order_path: String(index + 1),
-      raw_line: row.raw,
-      md_start: row.line,
-      md_end: Math.max(row.line, nextStart - 1),
-    };
-  });
-
   const sourcePath = toRepoRelativePath(markdownPath, input.repoRoot);
+  const automaticTocItems = structuredConstraint?.tocPages && contentListV2Path
+    ? extractStructuredTocOutlineItems(input.bookId, contentListV2Path, structuredConstraint.tocPages)
+    : [];
+  if (automaticTocItems.length > 0) {
+    mkdirSync(dirname(input.outlinePath), { recursive: true });
+    writeOutlineRecord(input.outlinePath, {
+      book_id: input.bookId,
+      title: input.title?.trim() || input.bookId,
+      source_path: sourcePath,
+      source_kind: "auto_toc",
+      generated_at: input.generatedAt ?? new Date().toISOString(),
+      toc_pages: structuredConstraint?.tocPages,
+      items: automaticTocItems,
+    });
+    const alignment = alignOutlineToMarkdown({
+      outlinePath: input.outlinePath,
+      markdownPath,
+      repoRoot: input.repoRoot,
+      headingLines: structuredConstraint?.headingLines,
+      headingPages: structuredConstraint?.headingPages,
+      markdownEndLine: structuredConstraint?.markdownEndLine,
+      pageEnd: structuredConstraint?.pageEnd,
+    });
+    const lessonCount = automaticTocItems.filter((item) => item.kind === "lesson" || item.kind === "activity").length;
+    const matchedLessonRatio = (lessonCount - alignment.unmatched_item_ids.length) / Math.max(1, lessonCount);
+    if (matchedLessonRatio >= 0.5) {
+      return {
+        status: "completed",
+        created: true,
+        outline_path: input.outlinePath,
+        item_count: automaticTocItems.length,
+        source_path: sourcePath,
+      };
+    }
+  }
+
+  const markdownAppendixLine = structuredConstraint ? undefined : allHeadingRows
+    .find((row) => isAppendixHeadingTitle(normalizeHeadingText(row.heading)))?.line;
+  const finalMarkdownLine = Math.max(1, Math.min(
+    lines.length,
+    structuredConstraint?.markdownEndLine ?? (markdownAppendixLine === undefined ? lines.length : markdownAppendixLine - 1),
+  ));
+  const items = buildMarkdownOutlineItems(input.bookId, headingRows, pageByHeadingLine, finalMarkdownLine, structuredConstraint?.pageEnd);
+
   const outline = {
     book_id: input.bookId,
     title: input.title?.trim() || input.bookId,
     source_path: sourcePath,
     source_kind: "markdown",
     generated_at: input.generatedAt ?? new Date().toISOString(),
-    toc_pages: { start: input.tocStart ?? 1, end: input.tocEnd ?? 1 },
+    toc_pages: structuredConstraint?.tocPages ?? { start: input.tocStart ?? 1, end: input.tocEnd ?? 1 },
+    alignment_report: {
+      strategy: structuredConstraint ? "structured_body_headings_v1" : "markdown_heading_hierarchy_v1",
+      matched_items: items.length,
+      total_items: items.length,
+      matched_lessons: items.filter((item) => item.kind === "lesson" || item.kind === "activity").length,
+      total_lessons: items.filter((item) => item.kind === "lesson" || item.kind === "activity").length,
+      average_confidence: 1,
+      warning_item_ids: [],
+      unmatched_item_ids: [],
+      requires_review: !structuredConstraint,
+    },
     items,
   };
   mkdirSync(dirname(input.outlinePath), { recursive: true });
@@ -350,12 +406,14 @@ export function ensureOutlineFromEnrich(input: {
       markdownEndLine: headingSelection.constraint.markdownEndLine,
       pageEnd: headingSelection.constraint.pageEnd,
     });
-    if (alignment.unmatched_item_ids.length > 0) {
+    const matchedLessonCount = lessonCount - alignment.unmatched_item_ids.length;
+    const matchedLessonRatio = matchedLessonCount / Math.max(1, lessonCount);
+    if (matchedLessonRatio < 0.5) {
       restoreOutline(input.outlinePath, previousOutline);
       return {
         status: "skipped",
         outline_path: input.outlinePath,
-        reason: `Enrich outline did not align completely to Markdown (${alignment.unmatched_item_ids.length} unmatched lesson item(s)).`,
+        reason: `Enrich outline coverage was too low (${matchedLessonCount}/${lessonCount} lesson item(s) matched).`,
         unmatched_item_ids: alignment.unmatched_item_ids,
       };
     }
@@ -378,6 +436,9 @@ export function ensureOutlineFromEnrich(input: {
       lesson_count: lessonCount,
       source_path: alignment.source_path,
       source_ref: input.enrichBookPath,
+      unmatched_item_ids: alignment.unmatched_item_ids,
+      warning_item_ids: alignment.warning_item_ids,
+      average_confidence: alignment.average_confidence,
     };
   } catch (error) {
     restoreOutline(input.outlinePath, previousOutline);
@@ -404,103 +465,116 @@ export function alignOutlineToMarkdown(input: {
   const itemKey = Array.isArray(outline.items) ? "items" : Array.isArray(outline.structure) ? "structure" : null;
   if (!itemKey) throw new Error(`Outline has no items list: ${input.outlinePath}`);
   const rootItems = (outline[itemKey] as unknown[]).filter(isRecord) as OutlineItem[];
-  const items = iterOutlineItems(rootItems) as RawRecord[];
+  const items = (iterOutlineItems(rootItems) as RawRecord[]).filter((item) => item.kind !== "chunk");
   const lines = readPlainLines(markdownPath);
   const markerLines = new Map<string, number>();
   const allowedHeadingLines = input.headingLines ? new Set(input.headingLines) : null;
   const pageByHeadingLine = new Map((input.headingPages ?? []).map((entry) => [entry.line, entry.page]));
-  const headings = parseMarkdownHeadings(lines)
-    .filter((heading) => !allowedHeadingLines || allowedHeadingLines.has(heading.line));
+  const parsedHeadings = parseMarkdownHeadings(lines);
+  const eligibleHeadings = allowedHeadingLines
+    ? parsedHeadings.filter((heading) => allowedHeadingLines.has(heading.line))
+    : selectMarkdownBodyHeadingRows(parsedHeadings);
+  const headings = combineSplitMarkdownHeadings(eligibleHeadings);
   lines.forEach((line, index) => {
     const lineNumber = index + 1;
     const marker = /LESSON_START\s+id="([^"]+)"/.exec(line);
     if (marker) markerLines.set(marker[1]!, lineNumber);
   });
 
-  const usedLines = new Set<number>();
-  const matched: Array<{ item: RawRecord; line: number }> = [];
-  let lastLine = 0;
-  for (const item of [...items].sort(compareHierarchyOrder)) {
+  const orderedItems = [...items].sort(compareHierarchyOrder);
+  const matched: MatchedOutlineItem[] = [];
+  let pendingItems: RawRecord[] = [];
+  let previousFixedLine = 0;
+  const flushPending = (nextFixedLine = Number.POSITIVE_INFINITY) => {
+    if (pendingItems.length === 0) return;
+    const available = headings.filter((heading) => heading.line > previousFixedLine && heading.line < nextFixedLine);
+    matched.push(...alignHeadingSequence(pendingItems, available));
+    pendingItems = [];
+  };
+  for (const item of orderedItems) {
     const itemId = typeof item.id === "string" ? item.id : "";
-    if (hasNumber(item.md_start) && hasNumber(item.md_end)) {
-      const line = Number(item.md_start);
-      lastLine = Math.max(lastLine, line);
-      matched.push({ item, line });
+    const existingLine = hasNumber(item.md_start) && hasNumber(item.md_end) ? Number(item.md_start) : null;
+    const markerLine = itemId ? markerLines.get(itemId) ?? null : null;
+    const fixedLine = existingLine ?? markerLine;
+    if (fixedLine === null || fixedLine <= previousFixedLine) {
+      pendingItems.push(item);
       continue;
     }
-    if (itemId && markerLines.has(itemId)) {
-      const line = markerLines.get(itemId)!;
-      if (line <= lastLine) continue;
-      item.md_start = line;
-      usedLines.add(line);
-      lastLine = Math.max(lastLine, line);
-      matched.push({ item, line });
-      continue;
+    flushPending(fixedLine);
+    matched.push({
+      item,
+      line: fixedLine,
+      confidence: 1,
+      matchType: existingLine === null ? "marker" : "existing",
+    });
+    previousFixedLine = fixedLine;
+  }
+  flushPending();
+
+  const headingByLine = new Map(headings.map((heading) => [heading.line, heading]));
+  for (const item of items) {
+    delete item.alignment_confidence;
+    delete item.alignment_match_type;
+    delete item.alignment_status;
+    if (!matched.some((row) => row.item === item) && !(hasNumber(item.md_start) && hasNumber(item.md_end))) {
+      delete item.md_start;
+      delete item.md_end;
     }
-    const titleNorm = normalizeHeadingText(item.title);
-    const labelNorm = normalizeHeadingText(item.label);
-    if (!titleNorm && !labelNorm) continue;
-    const candidates = headings
-      .filter((heading) => !usedLines.has(heading.line) && heading.line > lastLine)
-      .map((heading) => ({
-        score: headingScore(
-          heading.norm,
-          titleNorm,
-          labelNorm,
-          heading.raw,
-          String(item.title ?? ""),
-          String(item.label ?? ""),
-        ),
-        heading,
-      }))
-      .filter((candidate) => candidate.score > 0);
-    if (candidates.length === 0) continue;
-    const chosen = [...candidates].sort((left, right) => right.score - left.score || left.heading.line - right.heading.line)[0]!.heading;
-    item.md_start = chosen.line;
-    item.raw_line = item.raw_line || chosen.raw;
-    const headingPage = pageByHeadingLine.get(chosen.line);
-    if (headingPage !== undefined) item.page_start = headingPage;
-    usedLines.add(chosen.line);
-    lastLine = Math.max(lastLine, chosen.line);
-    matched.push({ item, line: chosen.line });
+  }
+  const matchedSorted = matched.sort((left, right) => left.line - right.line);
+  for (const row of matchedSorted) {
+    row.item.md_start = row.line;
+    row.item.alignment_confidence = roundConfidence(row.confidence);
+    row.item.alignment_match_type = row.matchType;
+    row.item.alignment_status = row.confidence < 0.85 ? "warning" : "matched";
+    const heading = headingByLine.get(row.line);
+    if (heading) row.item.raw_line = heading.raw;
+    const headingPage = pageByHeadingLine.get(row.line);
+    if (headingPage !== undefined) row.item.page_start = headingPage;
   }
 
-  const matchedSorted = matched.sort((left, right) => left.line - right.line);
   const finalMarkdownLine = Math.max(1, Math.min(lines.length, input.markdownEndLine ?? lines.length));
-  matchedSorted.forEach((row, index) => {
-    row.item.md_end = index + 1 < matchedSorted.length
-      ? Math.max(row.line, matchedSorted[index + 1]!.line - 1)
-      : Math.max(row.line, finalMarkdownLine);
-  });
-
-  matchedSorted.forEach((row, index) => {
-    if (!hasNumber(row.item.page_start) || !pageByHeadingLine.has(row.line)) return;
-    const currentPage = Number(row.item.page_start);
-    const later = matchedSorted.slice(index + 1).find((candidate) => hasNumber(candidate.item.page_start));
-    row.item.page_end = later
-      ? Math.max(currentPage, Number(later.item.page_start) - 1)
-      : Math.max(currentPage, input.pageEnd ?? currentPage);
-  });
-
-  fillParentPageRanges(items);
-
-  const orderedItems = [...items].sort(compareOrderPath);
-  orderedItems.forEach((item, index) => {
-    if (hasNumber(item.page_end) || !hasNumber(item.page_start)) return;
-    const later = orderedItems.slice(index + 1).find((candidate) => hasNumber(candidate.page_start));
-    if (later) item.page_end = Math.max(Number(item.page_start), Number(later.page_start) - 1);
-  });
+  inferParentRangeStarts(items, "md_start");
+  applyHierarchicalRangeEnds(items, "md_start", "md_end", finalMarkdownLine);
+  inferParentRangeStarts(items, "page_start");
+  applyHierarchicalRangeEnds(items, "page_start", "page_end", input.pageEnd);
 
   const sourcePath = toRepoRelativePath(markdownPath, input.repoRoot);
-  writeOutlineRecord(input.outlinePath, { ...outline, source_path: sourcePath, [itemKey]: rootItems });
   const unmatchedItemIds = items
     .filter((item) => (item.kind === "lesson" || item.kind === "activity") && (!hasNumber(item.md_start) || !hasNumber(item.md_end)))
     .map((item) => typeof item.id === "string" && item.id ? item.id : String(item.title ?? item.label ?? "unknown-item"));
+  const warningItemIds = items
+    .filter((item) => (item.kind === "lesson" || item.kind === "activity") && item.alignment_status === "warning")
+    .map((item) => String(item.id ?? item.title ?? "unknown-item"));
+  const directConfidences = matchedSorted.map((row) => row.confidence);
+  const averageConfidence = directConfidences.length > 0
+    ? roundConfidence(directConfidences.reduce((sum, value) => sum + value, 0) / directConfidences.length)
+    : 0;
+  const lessonItems = items.filter((item) => item.kind === "lesson" || item.kind === "activity");
+  const alignmentReport = {
+    strategy: "global_monotonic_fuzzy_v1",
+    matched_items: matchedSorted.length,
+    total_items: items.length,
+    matched_lessons: lessonItems.length - unmatchedItemIds.length,
+    total_lessons: lessonItems.length,
+    average_confidence: averageConfidence,
+    warning_item_ids: warningItemIds,
+    unmatched_item_ids: unmatchedItemIds,
+    requires_review: warningItemIds.length > 0 || unmatchedItemIds.length > 0,
+  };
+  writeOutlineRecord(input.outlinePath, {
+    ...outline,
+    source_path: sourcePath,
+    alignment_report: alignmentReport,
+    [itemKey]: rootItems,
+  });
   return {
     updated: true,
     matched_items: matchedSorted.length,
     total_items: items.length,
     unmatched_item_ids: unmatchedItemIds,
+    warning_item_ids: warningItemIds,
+    average_confidence: averageConfidence,
     source_path: sourcePath,
   };
 }
@@ -543,11 +617,14 @@ export function ensureChunkedOutline(input: {
   const headings = sourcePath && existsSync(sourcePath) ? parseHeadings(readTextLines(sourcePath)) : [];
   const rootsWithoutChunks = stripChunkItems(rootItems);
   const itemsWithoutChunks = (iterOutlineItems(rootsWithoutChunks) as ChunkOutlineItem[]).sort(compareDocumentOrder);
-  const plan = planChunkOutline(itemsWithoutChunks, headings, {
+  const chunkableItems = itemsWithoutChunks.filter((item) => (
+    (item.kind !== "lesson" && item.kind !== "activity") || (hasNumber(item.md_start) && hasNumber(item.md_end))
+  ));
+  const plan = planChunkOutline(chunkableItems, headings, {
     minLines: input.minLines,
     maxLines: input.maxLines,
     targetLines: input.targetLines,
-    preserveLeafBoundaries: outline.source_kind === "enrich",
+    preserveLeafBoundaries: outline.source_kind === "enrich" || outline.source_kind === "auto_toc",
   });
   if (plan.chunks.length === 0) {
     return { status: "skipped", outline_path: input.outlinePath, reason: "No chunks generated from outline items." };
@@ -588,6 +665,92 @@ function loadOutlineRecord(path: string): RawRecord {
 
 function writeOutlineRecord(path: string, outline: RawRecord): void {
   writeFileSync(path, `${JSON.stringify(outline, null, 2)}\n`, "utf8");
+}
+
+function selectMarkdownBodyHeadingRows<T extends { level: number; raw: string; heading?: string; title?: string }>(rows: T[]): T[] {
+  const rowTitle = (row: T) => row.heading ?? row.title ?? "";
+  const tocIndex = rows.findIndex((row) => isTocHeadingTitle(normalizeHeadingText(rowTitle(row))));
+  let selected = rows;
+  if (tocIndex >= 0) {
+    const tocLevel = rows[tocIndex]!.level;
+    const bodyOffset = rows.slice(tocIndex + 1).findIndex((row) => (
+      row.level <= tocLevel
+      && !isTocHeadingTitle(normalizeHeadingText(rowTitle(row)))
+      && !isLikelyTocEntry(rowTitle(row))
+      && !isAppendixHeadingTitle(normalizeHeadingText(rowTitle(row)))
+    ));
+    if (bodyOffset >= 0) selected = rows.slice(tocIndex + 1 + bodyOffset);
+  }
+  const appendixIndex = selected.findIndex((row) => isAppendixHeadingTitle(normalizeHeadingText(rowTitle(row))));
+  return appendixIndex < 0 ? selected : selected.slice(0, appendixIndex);
+}
+
+function isLikelyTocEntry(value: string): boolean {
+  return /(?:\.{2,}|…+|·+|\s{2,})\s*\d{1,4}\s*$/.test(value);
+}
+
+function buildMarkdownOutlineItems(
+  bookId: string,
+  rows: Array<{ line: number; level: number; heading: string; raw: string }>,
+  pageByHeadingLine: Map<number, number>,
+  markdownEndLine: number,
+  pageEnd?: number,
+): RawRecord[] {
+  type ProvisionalItem = {
+    row: { line: number; level: number; heading: string; raw: string };
+    parentIndex: number | null;
+    order: number[];
+  };
+  const provisional: ProvisionalItem[] = [];
+  const stack: Array<{ rowLevel: number; itemIndex: number; order: number[] }> = [];
+  const childCounts = new Map<number | null, number>();
+  for (const row of rows) {
+    while (stack.length > 0 && stack[stack.length - 1]!.rowLevel >= row.level) stack.pop();
+    const parent = stack.at(-1);
+    const parentIndex = parent?.itemIndex ?? null;
+    const siblingNumber = (childCounts.get(parentIndex) ?? 0) + 1;
+    childCounts.set(parentIndex, siblingNumber);
+    const order = [...(parent?.order ?? []), siblingNumber];
+    provisional.push({ row, parentIndex, order });
+    stack.push({ rowLevel: row.level, itemIndex: provisional.length - 1, order });
+  }
+
+  const parentIndexes = new Set(provisional.flatMap((item) => item.parentIndex === null ? [] : [item.parentIndex]));
+  const identities = provisional.map((item, index) => {
+    const depth = item.order.length;
+    const kind = parentIndexes.has(index) ? (depth === 1 ? "theme" : "topic") : "lesson";
+    const token = item.order.join("-");
+    return { kind, id: `struct:${bookId}:${kind}:${token}` };
+  });
+  const items = provisional.map((item, index): RawRecord => {
+    const identity = identities[index]!;
+    const parsed = parseOutlineHeading(item.row.heading, item.order.at(-1) ?? index + 1);
+    return {
+      id: identity.id,
+      kind: identity.kind,
+      label: parsed.label,
+      title: parsed.title,
+      level: item.order.length,
+      order_path: item.order.join("."),
+      raw_line: item.row.raw,
+      md_start: item.row.line,
+      page_start: pageByHeadingLine.get(item.row.line) ?? 1,
+      alignment_confidence: 1,
+      alignment_match_type: "exact",
+      alignment_status: "matched",
+      ...(item.parentIndex === null ? {} : { parent_id: identities[item.parentIndex]!.id }),
+    };
+  });
+  applyHierarchicalRangeEnds(items, "md_start", "md_end", markdownEndLine);
+  applyHierarchicalRangeEnds(items, "page_start", "page_end", pageEnd ?? 1);
+  return items;
+}
+
+function parseOutlineHeading(heading: string, fallbackIndex: number): { label: string; title: string } {
+  const match = /^((?:第\s*)?[0-9一二三四五六七八九十百千万]+(?:章|节|课|题|单元)|\d+(?:\s*[.．]\s*\d+)+|[一二三四五六七八九十百千万]+[、.])\s*(.*)$/.exec(heading.trim());
+  if (!match) return { label: `第${fallbackIndex}课`, title: heading.trim() };
+  const label = match[1]!.replace(/\s+/g, "").replace(/．/g, ".");
+  return { label, title: match[2]!.trim() || heading.trim() };
 }
 
 function flattenEnrichOutline(bookId: string, roots: RawRecord[]): RawRecord[] {
@@ -634,6 +797,124 @@ function selectEnrichHeadingSequence(lines: string[], contentListV2Path: string 
       reason: `Could not verify Enrich alignment against MinerU content_list_v2.json: ${(error as Error).message}`,
     };
   }
+}
+
+function extractStructuredTocOutlineItems(
+  bookId: string,
+  contentListV2Path: string,
+  tocPages: { start: number; end: number },
+): RawRecord[] {
+  const parsed = JSON.parse(readFileSync(contentListV2Path, "utf8")) as unknown;
+  if (!Array.isArray(parsed) || !parsed.every(Array.isArray)) return [];
+  const entries = parsed
+    .slice(Math.max(0, tocPages.start - 1), Math.max(tocPages.start, tocPages.end))
+    .flatMap((page) => page.filter(isRecord))
+    .flatMap((block): Array<{ text: string; blockType: string }> => {
+      const blockType = String(block.type ?? "");
+      const content = isRecord(block.content) ? block.content : {};
+      if (blockType === "title") return [{ text: mineruInlineText(content.title_content), blockType }];
+      if (blockType === "paragraph") return [{ text: mineruInlineText(content.paragraph_content), blockType }];
+      if (blockType === "list" && Array.isArray(content.list_items)) {
+        return content.list_items.map((item) => ({ text: mineruInlineText(item), blockType }));
+      }
+      return [];
+    })
+    .filter((entry) => entry.text);
+
+  const items: RawRecord[] = [];
+  let rootIndex = 0;
+  let currentChapter: { id: string; orderPath: string; childIndex: number } | null = null;
+  for (const entry of entries) {
+    const parsedEntry = parseTocEntry(entry.text, entry.blockType);
+    if (!parsedEntry) continue;
+    if (parsedEntry.kind === "chapter") {
+      rootIndex += 1;
+      const id = `struct:${bookId}:theme:${rootIndex}`;
+      items.push({
+        id,
+        kind: "theme",
+        label: parsedEntry.label,
+        title: parsedEntry.title,
+        level: 1,
+        order_path: String(rootIndex),
+        raw_line: entry.text,
+        toc_declared_page: parsedEntry.page,
+      });
+      currentChapter = { id, orderPath: String(rootIndex), childIndex: 0 };
+      continue;
+    }
+    if (parsedEntry.kind === "section" && currentChapter) {
+      currentChapter.childIndex += 1;
+      const orderPath = `${currentChapter.orderPath}.${currentChapter.childIndex}`;
+      items.push({
+        id: `struct:${bookId}:lesson:${orderPath.replace(/\./g, "-")}`,
+        kind: "lesson",
+        parent_id: currentChapter.id,
+        label: parsedEntry.label,
+        title: parsedEntry.title,
+        level: 2,
+        order_path: orderPath,
+        raw_line: entry.text,
+        toc_declared_page: parsedEntry.page,
+      });
+      continue;
+    }
+    if (parsedEntry.kind === "special") {
+      rootIndex += 1;
+      items.push({
+        id: `struct:${bookId}:lesson:${rootIndex}`,
+        kind: "lesson",
+        label: `第${rootIndex}课`,
+        title: parsedEntry.title,
+        level: 1,
+        order_path: String(rootIndex),
+        raw_line: entry.text,
+        toc_declared_page: parsedEntry.page,
+      });
+      currentChapter = null;
+    }
+  }
+  return items;
+}
+
+function parseTocEntry(value: string, blockType: string): {
+  kind: "chapter" | "section" | "special";
+  label: string;
+  title: string;
+  page: number;
+} | null {
+  const normalized = value.normalize("NFKC").replace(/[．]/g, ".").replace(/\s+/g, " ").trim();
+  const pageMatch = /(?:\.{2,}|…+|·+|\s)\s*(\d{1,4})\s*$/.exec(normalized);
+  if (!pageMatch) return null;
+  const page = Number(pageMatch[1]);
+  const heading = normalized.slice(0, pageMatch.index).replace(/[.…·\s]+$/, "").trim();
+  const chapter = /^(第\s*[0-9一二三四五六七八九十百千万]+\s*章)\s*(.+)$/.exec(heading);
+  if (chapter) {
+    return {
+      kind: "chapter",
+      label: chapter[1]!.replace(/\s+/g, ""),
+      title: chapter[2]!.trim(),
+      page,
+    };
+  }
+  const section = /^(\d+(?:\s*\.\s*\d+)+)\s*(.+)$/.exec(heading);
+  if (section) {
+    return {
+      kind: "section",
+      label: section[1]!.replace(/\s+/g, ""),
+      title: section[2]!.trim(),
+      page,
+    };
+  }
+  const normalizedHeading = normalizeHeadingText(heading);
+  if (blockType === "title"
+    && heading.length >= 4
+    && !isTocHeadingTitle(normalizedHeading)
+    && !isAppendixHeadingTitle(normalizedHeading)
+    && !normalizedHeading.includes("索引")) {
+    return { kind: "special", label: "", title: heading, page };
+  }
+  return null;
 }
 
 function selectStructuredEnrichHeadingSequence(
@@ -712,10 +993,125 @@ function selectStructuredEnrichHeadingSequence(
 
 function parseMarkdownHeadings(lines: string[]): MarkdownHeading[] {
   return lines.flatMap((line, index): MarkdownHeading[] => {
-    if (!/^#{1,6}\s+\S/.test(line)) return [];
-    const title = line.replace(/^#{1,6}\s+/, "").trim();
-    return [{ line: index + 1, norm: normalizeHeadingText(title), raw: line.trim() }];
+    const match = /^(#{1,6})\s+(\S.*)$/.exec(line);
+    if (!match) return [];
+    const title = match[2]!.trim();
+    return [{ line: index + 1, level: match[1]!.length, title, norm: normalizeHeadingText(title), raw: line.trim() }];
   });
+}
+
+function combineSplitMarkdownHeadings(headings: MarkdownHeading[]): MarkdownHeading[] {
+  const combined: MarkdownHeading[] = [];
+  for (let index = 0; index < headings.length; index += 1) {
+    const current = headings[index]!;
+    const next = headings[index + 1];
+    const currentTitle = current.raw.replace(/^#{1,6}\s+/, "").trim();
+    const nextTitle = next?.raw.replace(/^#{1,6}\s+/, "").trim() ?? "";
+    if (next && next.line - current.line <= 3 && isSectionNumberOnly(currentTitle) && !hasExplicitSectionNumber(nextTitle)) {
+      const raw = `${current.raw} ${nextTitle}`;
+      combined.push({
+        line: current.line,
+        level: Math.min(current.level, next.level),
+        title: `${current.title} ${next.title}`,
+        norm: normalizeHeadingText(raw),
+        raw,
+      });
+      index += 1;
+      continue;
+    }
+    combined.push(current);
+  }
+  return combined;
+}
+
+function alignHeadingSequence(items: RawRecord[], headings: MarkdownHeading[]): MatchedOutlineItem[] {
+  if (items.length === 0 || headings.length === 0) return [];
+  const width = headings.length + 1;
+  const choices = new Uint8Array((items.length + 1) * width);
+  let previous = new Float64Array(width);
+  let current = new Float64Array(width);
+  for (let itemIndex = 1; itemIndex <= items.length; itemIndex += 1) {
+    current.fill(0);
+    choices[itemIndex * width] = 1;
+    for (let headingIndex = 1; headingIndex <= headings.length; headingIndex += 1) {
+      let best = previous[headingIndex]!;
+      let choice = 1;
+      if (current[headingIndex - 1]! > best + 1e-9) {
+        best = current[headingIndex - 1]!;
+        choice = 2;
+      }
+      const match = headingMatch(items[itemIndex - 1]!, headings[headingIndex - 1]!);
+      if (match && match.confidence >= 0.55) {
+        const matchedScore = previous[headingIndex - 1]! + 1 + match.confidence;
+        if (matchedScore > best + 1e-9) {
+          best = matchedScore;
+          choice = 3;
+        }
+      }
+      current[headingIndex] = best;
+      choices[itemIndex * width + headingIndex] = choice;
+    }
+    [previous, current] = [current, previous];
+  }
+
+  const result: MatchedOutlineItem[] = [];
+  let itemIndex = items.length;
+  let headingIndex = headings.length;
+  while (itemIndex > 0 && headingIndex > 0) {
+    const choice = choices[itemIndex * width + headingIndex];
+    if (choice === 3) {
+      const item = items[itemIndex - 1]!;
+      const heading = headings[headingIndex - 1]!;
+      const match = headingMatch(item, heading);
+      if (match) result.push({ item, line: heading.line, confidence: match.confidence, matchType: match.matchType });
+      itemIndex -= 1;
+      headingIndex -= 1;
+    } else if (choice === 2) {
+      headingIndex -= 1;
+    } else {
+      itemIndex -= 1;
+    }
+  }
+  return result.reverse();
+}
+
+function headingMatch(item: RawRecord, heading: MarkdownHeading): HeadingMatch | null {
+  const titleRaw = String(item.title ?? "");
+  const labelRaw = String(item.label ?? "");
+  const titleNorm = normalizeHeadingText(titleRaw);
+  const labelNorm = normalizeHeadingText(labelRaw);
+  if (!titleNorm && !labelNorm) return null;
+  const headingNorm = heading.norm;
+  const combinedNorm = normalizeHeadingText(`${labelRaw}${titleRaw}`);
+  if (headingNorm === titleNorm || (combinedNorm && headingNorm === combinedNorm)) {
+    return { confidence: 0.99, matchType: "exact" };
+  }
+
+  const headingTitle = normalizeHeadingText(stripSectionNumber(heading.raw));
+  const outlineTitle = normalizeHeadingText(stripSectionNumber(titleRaw));
+  const titleSimilarity = characterSimilarity(headingTitle || headingNorm, outlineTitle || titleNorm);
+  const level = Number(item.level);
+  const levelCompatibility = Number.isFinite(level)
+    ? Math.max(0, 1 - Math.abs(level - heading.level) * 0.25)
+    : 0.5;
+  const headingTokens = extractSectionTokens(heading.raw);
+  const outlineTokens = new Set([...extractSectionTokens(titleRaw), ...extractSectionTokens(labelRaw)]);
+  const sharedNumber = [...headingTokens].some((token) => outlineTokens.has(token));
+  const conflictingNumbers = headingTokens.size > 0 && outlineTokens.size > 0 && !sharedNumber;
+
+  if (!conflictingNumbers && titleNorm && (headingNorm.includes(titleNorm) || titleNorm.includes(headingNorm))) {
+    const ratio = Math.min(headingNorm.length, titleNorm.length) / Math.max(1, Math.max(headingNorm.length, titleNorm.length));
+    if (ratio >= 0.55) return { confidence: roundConfidence(0.88 + ratio * 0.08), matchType: "containment" };
+  }
+  if (sharedNumber) {
+    const confidence = 0.42 + titleSimilarity * 0.53 + levelCompatibility * 0.05;
+    return { confidence: roundConfidence(confidence), matchType: "number_and_title" };
+  }
+  if (conflictingNumbers && titleSimilarity < 0.92) return null;
+  const labelSimilarity = labelNorm ? characterSimilarity(headingNorm, labelNorm) : 0;
+  const confidence = Math.max(titleSimilarity * 0.92 + levelCompatibility * 0.08, labelSimilarity * 0.88);
+  if (confidence < 0.5) return null;
+  return { confidence: roundConfidence(confidence), matchType: "fuzzy_title" };
 }
 
 function mapMineruHeadingsToMarkdown(
@@ -858,7 +1254,7 @@ function outOfOrderLessonIds(items: RawRecord[]): string[] {
   return outOfOrder;
 }
 
-function fillParentPageRanges(items: RawRecord[]): void {
+function inferParentRangeStarts(items: RawRecord[], key: "md_start" | "page_start"): void {
   const childrenByParent = new Map<string, RawRecord[]>();
   for (const item of items) {
     const parentId = typeof item.parent_id === "string" ? item.parent_id : "";
@@ -870,11 +1266,51 @@ function fillParentPageRanges(items: RawRecord[]): void {
   for (const item of [...items].sort(compareHierarchyOrder).reverse()) {
     const itemId = typeof item.id === "string" ? item.id : "";
     const children = itemId ? childrenByParent.get(itemId) ?? [] : [];
-    const childStarts = children.flatMap((child): number[] => hasNumber(child.page_start) ? [Number(child.page_start)] : []);
-    const childEnds = children.flatMap((child): number[] => hasNumber(child.page_end) ? [Number(child.page_end)] : []);
-    if (!hasNumber(item.page_start) && childStarts.length > 0) item.page_start = Math.min(...childStarts);
-    if (!hasNumber(item.page_end) && childEnds.length > 0) item.page_end = Math.max(...childEnds);
+    const childStarts = children.flatMap((child): number[] => hasNumber(child[key]) ? [Number(child[key])] : []);
+    if (!hasNumber(item[key]) && childStarts.length > 0) {
+      item[key] = Math.min(...childStarts);
+      if (key === "md_start") item.alignment_status = "inferred_from_children";
+    }
   }
+}
+
+function applyHierarchicalRangeEnds(
+  items: RawRecord[],
+  startKey: "md_start" | "page_start",
+  endKey: "md_end" | "page_end",
+  fallbackEnd?: number,
+): void {
+  const ordered = [...items].sort(compareHierarchyOrder);
+  const byId = new Map(ordered.flatMap((item): Array<[string, RawRecord]> => {
+    const id = typeof item.id === "string" ? item.id : "";
+    return id ? [[id, item]] : [];
+  }));
+  const isDescendant = (candidate: RawRecord, ancestor: RawRecord): boolean => {
+    const ancestorId = typeof ancestor.id === "string" ? ancestor.id : "";
+    let parentId = typeof candidate.parent_id === "string" ? candidate.parent_id : "";
+    const visited = new Set<string>();
+    while (parentId && !visited.has(parentId)) {
+      if (parentId === ancestorId) return true;
+      visited.add(parentId);
+      const parent = byId.get(parentId);
+      parentId = parent && typeof parent.parent_id === "string" ? parent.parent_id : "";
+    }
+    return false;
+  };
+  ordered.forEach((item, index) => {
+    if (!hasNumber(item[startKey])) {
+      delete item[endKey];
+      return;
+    }
+    const start = Number(item[startKey]);
+    const next = ordered.slice(index + 1).find((candidate) => (
+      hasNumber(candidate[startKey]) && !isDescendant(candidate, item)
+    ));
+    const resolvedEnd = next
+      ? Math.max(start, Number(next[startKey]) - 1)
+      : Math.max(start, fallbackEnd ?? (hasNumber(item[endKey]) ? Number(item[endKey]) : start));
+    item[endKey] = resolvedEnd;
+  });
 }
 
 function resolveInputPath(path: string, repoRoot: string): string {
@@ -882,7 +1318,8 @@ function resolveInputPath(path: string, repoRoot: string): string {
 }
 
 function toRepoRelativePath(path: string, repoRoot: string): string {
-  return relative(repoRoot, path).split(sep).join("/");
+  const relativePath = relative(repoRoot, path).split(sep).join("/");
+  return relativePath.startsWith("../") ? resolve(path) : relativePath;
 }
 
 function readTextLines(path: string): string[] {
@@ -899,36 +1336,71 @@ function readPlainLines(path: string): string[] {
   return normalized.endsWith("\n") ? normalized.slice(0, -1).split("\n") : normalized.split("\n");
 }
 
-function headingScore(
-  headingNorm: string,
-  titleNorm: string,
-  labelNorm: string,
-  headingRaw = "",
-  titleRaw = "",
-  labelRaw = "",
-): number {
-  if (titleNorm && labelNorm && headingNorm.includes(titleNorm) && headingNorm.includes(labelNorm)) return 110;
-  if (titleNorm && titleNorm === headingNorm) return 100;
-  if (titleNorm && headingNorm.includes(titleNorm)) return 90;
-  if (sharesSectionPath(headingRaw, titleRaw, labelRaw)) return 85;
-  if (titleNorm && titleNorm.includes(headingNorm) && headingNorm.length / Math.max(1, titleNorm.length) >= 0.75) return 70;
-  if (labelNorm && headingNorm.includes(labelNorm)) return 50;
-  return 0;
+function characterSimilarity(leftValue: string, rightValue: string): number {
+  const left = Array.from(leftValue);
+  const right = Array.from(rightValue);
+  if (left.length === 0 || right.length === 0) return 0;
+  if (leftValue === rightValue) return 1;
+  let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    const current = [leftIndex];
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      const substitution = previous[rightIndex - 1]! + (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1);
+      current[rightIndex] = Math.min(previous[rightIndex]! + 1, current[rightIndex - 1]! + 1, substitution);
+    }
+    previous = current;
+  }
+  const editSimilarity = 1 - previous[right.length]! / Math.max(left.length, right.length);
+  const leftBigrams = characterBigrams(left);
+  const rightBigrams = characterBigrams(right);
+  if (leftBigrams.length === 0 || rightBigrams.length === 0) return Math.max(0, editSimilarity);
+  const counts = new Map<string, number>();
+  leftBigrams.forEach((value) => counts.set(value, (counts.get(value) ?? 0) + 1));
+  let overlap = 0;
+  for (const value of rightBigrams) {
+    const count = counts.get(value) ?? 0;
+    if (count <= 0) continue;
+    overlap += 1;
+    counts.set(value, count - 1);
+  }
+  const diceSimilarity = (2 * overlap) / (leftBigrams.length + rightBigrams.length);
+  return Math.max(0, Math.min(1, Math.max(editSimilarity, diceSimilarity)));
 }
 
-function sharesSectionPath(heading: string, ...outlineValues: string[]): boolean {
-  const headingPaths = extractSectionPaths(heading);
-  if (headingPaths.size === 0) return false;
-  return outlineValues.some((value) => [...extractSectionPaths(value)].some((path) => headingPaths.has(path)));
+function characterBigrams(value: string[]): string[] {
+  if (value.length < 2) return [];
+  return value.slice(0, -1).map((character, index) => `${character}${value[index + 1]!}`);
 }
 
-function extractSectionPaths(value: string): Set<string> {
-  const normalized = value.replace(/[．。]/g, ".");
-  return new Set(
-    [...normalized.matchAll(/(?:^|[^\d.])(\d+(?:\.\d+)+)(?=$|[^\d.])/g)]
-      .map((match) => match[1]!)
-      .filter(Boolean),
-  );
+function extractSectionTokens(value: string): Set<string> {
+  const normalized = value.normalize("NFKC").replace(/[．。]/g, ".").replace(/\s+/g, "");
+  const tokens = [
+    ...normalized.matchAll(/\d+(?:\.\d+)+/g),
+    ...normalized.matchAll(/第[0-9一二三四五六七八九十百千万]+(?:章|节|课|单元)/g),
+    ...normalized.matchAll(/(?:^|[^一二三四五六七八九十百千万])([一二三四五六七八九十百千万]+)[、.]/g),
+  ].map((match) => (match[1] ?? match[0]).replace(/^[^0-9一二三四五六七八九十百千万第]+/, ""));
+  return new Set(tokens.filter(Boolean));
+}
+
+function hasExplicitSectionNumber(value: string): boolean {
+  return extractSectionTokens(value).size > 0;
+}
+
+function isSectionNumberOnly(value: string): boolean {
+  const normalized = value.normalize("NFKC").replace(/[．。]/g, ".").replace(/\s+/g, "");
+  return /^(?:\d+(?:\.\d+)+|第[0-9一二三四五六七八九十百千万]+(?:章|节|课|单元)|[一二三四五六七八九十百千万]+[、.])$/.test(normalized);
+}
+
+function stripSectionNumber(value: string): string {
+  return value
+    .normalize("NFKC")
+    .replace(/^#{1,6}\s*/, "")
+    .replace(/^\s*(?:\d+(?:\s*[.．]\s*\d+)+|第\s*[0-9一二三四五六七八九十百千万]+\s*(?:章|节|课|单元)|[一二三四五六七八九十百千万]+[、.])\s*/, "")
+    .trim();
+}
+
+function roundConfidence(value: number): number {
+  return Math.round(Math.max(0, Math.min(1, value)) * 1000) / 1000;
 }
 
 function compareOrderPath(left: RawRecord, right: RawRecord): number {

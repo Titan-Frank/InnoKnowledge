@@ -49,7 +49,7 @@ type ImagePromptContext = {
 };
 
 const DEFAULT_VLM_MODEL = "gpt-4.1-mini";
-const DEFAULT_VLM_TIMEOUT_MS = 60_000;
+const DEFAULT_VLM_TIMEOUT_MS = 180_000;
 const DEFAULT_VLM_CONCURRENCY = 8;
 const CACHE_VERSION = 1;
 const PROMPT_VERSION = "textbook-image-relevance-v5-visual-summary";

@@ -17,8 +17,11 @@ export type NodeTermsPlan = {
 export type NodeTermsSqlPlan = {
   delete: SqlStatement;
   insert: SqlStatement | null;
+  inserts: SqlStatement[];
   statements: SqlStatement[];
 };
+
+export const NODE_TERM_UPSERT_BATCH_SIZE = 10_000;
 
 export function planNodeTerms(datasetId: string, nodes: Array<Record<string, unknown>>): NodeTermsPlan {
   const rows: NodeTermRow[] = [];
@@ -56,12 +59,28 @@ export function buildNodeTermsSqlPlan(datasetId: string, rows: NodeTermRow[]): N
     sql: "DELETE FROM world_node_terms WHERE dataset_id = $1",
     params: [datasetId],
   };
-  const insertStatement = buildNodeTermsUpsertStatement(rows);
+  const insertStatements = buildNodeTermsUpsertStatements(rows);
   return {
     delete: deleteStatement,
-    insert: insertStatement,
-    statements: insertStatement ? [deleteStatement, insertStatement] : [deleteStatement],
+    insert: insertStatements[0] ?? null,
+    inserts: insertStatements,
+    statements: [deleteStatement, ...insertStatements],
   };
+}
+
+export function buildNodeTermsUpsertStatements(
+  rows: NodeTermRow[],
+  batchSize = NODE_TERM_UPSERT_BATCH_SIZE,
+): SqlStatement[] {
+  if (!Number.isSafeInteger(batchSize) || batchSize <= 0) {
+    throw new Error("Node term upsert batch size must be a positive safe integer.");
+  }
+  const uniqueRows = deduplicateNodeTermRows(rows);
+  const statements: SqlStatement[] = [];
+  for (let offset = 0; offset < uniqueRows.length; offset += batchSize) {
+    statements.push(buildNodeTermsInsertStatement(uniqueRows.slice(offset, offset + batchSize)));
+  }
+  return statements;
 }
 
 export function buildNodeTermsUpsertStatement(rows: NodeTermRow[]): SqlStatement | null {

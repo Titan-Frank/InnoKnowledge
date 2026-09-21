@@ -4,7 +4,7 @@ import {
   DATASET_TRANSACTION_BEGIN_SQL,
   rollbackTransaction,
 } from "../shared/dataset-transaction.js";
-import { planNodeTerms, type NodeTermsPlan } from "../shared/node-terms.js";
+import { buildNodeTermsSqlPlan, planNodeTerms, type NodeTermsPlan } from "../shared/node-terms.js";
 import type { SqlStatement } from "../staging/staging-sql.js";
 import { normalizeNodeCardRows, type NodeCardLike } from "./normalize-cards.js";
 import { planDomainProfileDeduplication, type CanonicalDomainProfileLike, type DomainProfileDeduplicationPlan } from "./normalize-domain-profiles.js";
@@ -286,34 +286,7 @@ function buildDomainProfileDeduplicationStatements(
 }
 
 function buildNodeTermsStatements(datasetId: string, rows: NodeTermsPlan["rows"]): SqlStatement[] {
-  const deleteStatement: SqlStatement = {
-    name: "delete-world-node-terms",
-    sql: "DELETE FROM world_node_terms WHERE dataset_id = $1",
-    params: [datasetId],
-  };
-  if (rows.length === 0) return [deleteStatement];
-  const columns = ["dataset_id", "node_id", "term", "term_norm", "term_type"] as const;
-  const params: unknown[] = [];
-  const values = rows.map((row) => {
-    const placeholders = columns.map((column) => {
-      params.push(row[column]);
-      return `$${params.length}`;
-    });
-    return `(${placeholders.join(", ")})`;
-  });
-  return [
-    deleteStatement,
-    {
-      name: "upsert-world-node-terms",
-      sql: [
-        `INSERT INTO world_node_terms (${columns.join(", ")})`,
-        `VALUES ${values.join(", ")}`,
-        "ON CONFLICT (dataset_id, node_id, term_norm, term_type)",
-        "DO UPDATE SET term = EXCLUDED.term",
-      ].join("\n"),
-      params,
-    },
-  ];
+  return buildNodeTermsSqlPlan(datasetId, rows).statements;
 }
 
 function toNodeCard(row: RawRecord): NodeCardLike {

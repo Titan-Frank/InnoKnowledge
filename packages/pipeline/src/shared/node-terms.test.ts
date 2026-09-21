@@ -5,6 +5,7 @@ import {
   buildNodeTermsSqlPlan,
   buildNodeTermsUpsertStatement,
   buildSelectNodesForNodeTermsQuery,
+  NODE_TERM_UPSERT_BATCH_SIZE,
   planNodeTerms,
 } from "./node-terms.js";
 
@@ -194,10 +195,31 @@ test("builds node term SQL plan without executing database operations", () => {
 test("builds node term SQL plan with no insert for empty rows", () => {
   const sqlPlan = buildNodeTermsSqlPlan("main", []);
   assert.equal(sqlPlan.insert, null);
+  assert.deepEqual(sqlPlan.inserts, []);
   assert.deepEqual(
     sqlPlan.statements.map((statement) => statement.name),
     ["delete-world-node-terms"],
   );
+});
+
+test("splits large node term rebuilds below the PostgreSQL parameter limit", () => {
+  const rowCount = NODE_TERM_UPSERT_BATCH_SIZE * 2 + 1;
+  const rows = Array.from({ length: rowCount }, (_, index) => ({
+    dataset_id: "main",
+    node_id: `concept:${index}`,
+    term: `Term ${index}`,
+    term_norm: `term ${index}`,
+    term_type: "canonical" as const,
+  }));
+
+  const sqlPlan = buildNodeTermsSqlPlan("main", rows);
+
+  assert.equal(sqlPlan.inserts.length, 3);
+  assert.equal(sqlPlan.insert, sqlPlan.inserts[0]);
+  assert.deepEqual(sqlPlan.inserts.map((statement) => statement.params.length), [50_000, 50_000, 5]);
+  assert.ok(sqlPlan.inserts.every((statement) => statement.params.length < 65_535));
+  assert.equal(sqlPlan.inserts.reduce((total, statement) => total + statement.params.length, 0), rowCount * 5);
+  assert.equal(sqlPlan.statements[0]?.name, "delete-world-node-terms");
 });
 
 test("builds select query for node term rebuild source rows", () => {

@@ -11,7 +11,7 @@ import {
 import { getVisibleNodes } from '@/lib/visibility';
 import { getNodeTypeLabel } from '@/core/graph/knowledge-data';
 import { loadSemanticNeighbors } from '@/services/backend-client';
-import { ZoomIn, ZoomOut, Maximize2, RefreshCw, Pause, RotateCcw, Network, Box, Loader2 } from '@/lib/lucide-icons';
+import { ZoomIn, ZoomOut, Maximize2, RotateCcw, Network, Box, Loader2 } from '@/lib/lucide-icons';
 import type { GraphCanvas3DHandle } from './GraphCanvas3D';
 
 const LazyGraphCanvas3D = lazy(() => import('./GraphCanvas3D'));
@@ -167,12 +167,11 @@ export function GraphCanvas() {
 
   const {
     containerRef, setGraph, zoomIn, zoomOut, fitToScreen,
-    focusNode, startLayout, stopLayout, containerReady,
+    focusNode, containerReady,
   } = useG6({
     onNodeClick: handleNodeClick,
     onNodeHover: handleNodeHover,
     onStageClick: handleStageClick,
-    onLayoutRunningChange: setIsLayoutRunning,
     selectedNodeId,
     searchHitIds,
     previewNodeId: hoveredNode?.id ?? hoverNodeId,
@@ -186,10 +185,6 @@ export function GraphCanvas() {
     if (mode === '3d') setHasLoaded3D(true);
     setDisplayModeState(mode);
   }, [canUse3D]);
-
-  useEffect(() => {
-    if (displayMode === '3d') stopLayout();
-  }, [displayMode, stopLayout]);
 
   // Community metadata is shared by both renderers.
   useEffect(() => {
@@ -209,9 +204,7 @@ export function GraphCanvas() {
           semanticNeighborIds: graphBuild.semanticNeighborIds,
           viewportRightInset: getDetailPanelRightInset(),
         }
-      : graphBuild.communitySource === 'embedding'
-        ? { type: 'embedding-overview' as const }
-        : undefined;
+      : { type: 'embedding-overview' as const };
     void setGraph({
       data: graphBuild.data,
       nodeIds: graphBuild.nodeIds,
@@ -247,8 +240,6 @@ export function GraphCanvas() {
     setSelectedNodeId(null);
     handleFitToScreen();
   }, [setSelectedNodeId, handleFitToScreen]);
-
-  const isLayoutRunning = appState.isLayoutRunning;
 
   return (
     <div className="relative h-full w-full bg-void">
@@ -378,7 +369,7 @@ export function GraphCanvas() {
             <span className="h-0.5 w-4 bg-accent" />正式关系
           </span>
           <span className="inline-flex items-center gap-1.5 text-text-secondary">
-            <span className="w-4 border-t border-dashed border-slate-400" />Embedding 语义相似
+            <span className="w-4 border-t border-dashed border-slate-400" />内容语义相似
           </span>
           <span className="ml-2">语义相似不代表图谱中的正式关系</span>
           {semanticResult?.loading && <span className="ml-2 text-accent">正在查找相关节点…</span>}
@@ -420,24 +411,6 @@ export function GraphCanvas() {
           <button onClick={handleFocusSelected} aria-label="聚焦选中节点" className="flex h-9 w-9 items-center justify-center rounded-md bg-accent/15 text-accent transition-colors hover:bg-accent/25" title="聚焦选中节点">
             <RotateCcw className="h-4 w-4" />
           </button>
-        )}
-        {displayMode === '2d' && !selectedNode && graphBuild?.communitySource !== 'embedding' && (
-          <>
-            <div className="my-1 h-px bg-border-subtle" />
-            <button
-              onClick={isLayoutRunning ? stopLayout : startLayout}
-              aria-label={isLayoutRunning ? '停止自动布局' : '重新整理图谱'}
-              aria-pressed={isLayoutRunning}
-              className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${
-                isLayoutRunning
-                  ? 'animate-pulse bg-accent text-white shadow-glow'
-                  : 'text-text-secondary hover:bg-hover hover:text-text-primary'
-              }`}
-              title={isLayoutRunning ? '停止自动布局' : '重新整理图谱'}
-            >
-              {isLayoutRunning ? <Pause className="h-4 w-4" /> : <RefreshCw className="h-4 w-4" />}
-            </button>
-          </>
         )}
       </div>
     </div>

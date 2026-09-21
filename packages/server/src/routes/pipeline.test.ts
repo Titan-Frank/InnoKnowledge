@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { Hono } from 'hono';
-import type { PipelinePdfUploadResponse, PipelineStopResponse } from '@okm/types';
+import type { PipelineOutlineConfirmResponse, PipelinePdfUploadResponse, PipelineStopResponse } from '@okm/types';
 import type { Sql } from '../db/connection.js';
 import { DATASET_ADVISORY_LOCK_SQL } from '../db/dataset-lock.js';
 import {
@@ -15,6 +15,7 @@ import {
   buildOutlinePreview,
   buildPipelineCommand,
   claimPipelineJobResume,
+  createPipelineRuntimeSnapshot,
   createPipelineJobId,
   failedBatchAnchorsForResume,
   generatedBookId,
@@ -25,6 +26,7 @@ import {
   MAX_ACTIVE_PIPELINE_JOBS,
   pipelineBookNodeLimit,
   outlineFingerprint,
+  unmatchedOutlineItemIds,
   qualityReviewPatch,
   redactCommand,
   registerPipelineRoutes,
@@ -74,9 +76,20 @@ test('outline preview exposes hierarchy, ranges, fingerprint, and confirmation s
     toc_pages: { start: 5, end: 7 },
     items: [
       { id: 'theme-1', kind: 'theme', title: '第一章', order_path: '1', page_start: 8, page_end: 20, md_start: 10, md_end: 100 },
-      { id: 'lesson-1', kind: 'lesson', parent_id: 'theme-1', title: '1.1 正数', order_path: '1.1', page_start: 9, page_end: 12, md_start: 20, md_end: 60 },
+      { id: 'lesson-1', kind: 'lesson', parent_id: 'theme-1', title: '1.1 正数', order_path: '1.1', page_start: 9, page_end: 12, md_start: 20, md_end: 60, alignment_status: 'warning', alignment_confidence: 0.81, alignment_match_type: 'fuzzy_title' },
       { id: 'chunk-1', kind: 'chunk', parent_id: 'lesson-1', title: '1.1 正数', content_role: 'summary', order_path: '1.1-a', page_start: 9, page_end: 12, md_start: 20, md_end: 60, source_ids: ['lesson-1'] },
     ],
+    alignment_report: {
+      strategy: 'global_monotonic_fuzzy_v1',
+      matched_items: 3,
+      total_items: 3,
+      matched_lessons: 1,
+      total_lessons: 1,
+      average_confidence: 0.91,
+      warning_item_ids: ['lesson-1'],
+      unmatched_item_ids: [],
+      requires_review: true,
+    },
   };
   const fingerprint = outlineFingerprint(outline);
   const pending = buildOutlinePreview('main', 'math-7', outline);
@@ -95,6 +108,9 @@ test('outline preview exposes hierarchy, ranges, fingerprint, and confirmation s
     pages: 13,
   });
   assert.equal(pending.items[2]?.content_role, 'summary');
+  assert.equal(pending.items[1]?.alignment_status, 'warning');
+  assert.equal(pending.items[1]?.alignment_confidence, 0.81);
+  assert.deepEqual(pending.alignment_report?.warning_item_ids, ['lesson-1']);
   assert.deepEqual(pending.items.map((item) => [item.id, item.depth]), [
     ['theme-1', 0],
     ['lesson-1', 1],
@@ -107,10 +123,83 @@ test('outline preview exposes hierarchy, ranges, fingerprint, and confirmation s
   };
   assert.equal(buildOutlinePreview('main', 'math-7', confirmedOutline).review_status, 'confirmed');
   assert.doesNotThrow(() => assertOutlineConfirmed(confirmedOutline, fingerprint));
+  const rejectedAt = '2026-08-27T13:00:00.000Z';
+  const rejectedOutline = {
+    ...outline,
+    outline_review: { status: 'rejected', fingerprint, rejected_at: rejectedAt },
+  };
+  const rejected = buildOutlinePreview('main', 'math-7', rejectedOutline);
+  assert.equal(rejected.review_status, 'rejected');
+  assert.equal(rejected.rejected_at, rejectedAt);
+  assert.throws(() => assertOutlineConfirmed(rejectedOutline, fingerprint), /尚未人工确认/);
   assert.throws(() => assertOutlineConfirmed(outline, fingerprint), /尚未人工确认/);
   assert.throws(() => assertOutlineConfirmed(confirmedOutline, 'stale'), /已经变化/);
   assert.notEqual(outlineFingerprint({ ...outline, items: outline.items.map((item, index) => index === 2 ? { ...item, md_end: 61 } : item) }), fingerprint);
   assert.notEqual(outlineFingerprint({ ...outline, items: outline.items.map((item, index) => index === 2 ? { ...item, content_role: 'assessment' } : item) }), fingerprint);
+});
+
+test('unmatched outline item IDs are normalized for explicit confirmation overrides', () => {
+  assert.deepEqual(unmatchedOutlineItemIds({
+    alignment_report: { unmatched_item_ids: ['lesson-2', 'lesson-2', 3, ''] },
+  }), ['lesson-2', '3']);
+  assert.deepEqual(unmatchedOutlineItemIds({}), []);
+});
+
+test('outline confirmation requires and records an explicit unmatched override', async () => {
+  const outline = {
+    title: '数学',
+    items: [{ id: 'lesson-1', kind: 'lesson', title: '未定位课节', order_path: '1' }],
+    alignment_report: { unmatched_item_ids: ['lesson-1'] },
+  };
+  const updateParameters: unknown[][] = [];
+  const sql = ((strings: TemplateStringsArray, ...parameters: unknown[]) => {
+    const statement = strings.join(' ').replace(/\s+/g, ' ').trim();
+    if (statement.includes('FROM world_datasets')) return Promise.resolve([{
+      dataset_id: 'main', version_key: 'main', schema_version: 'world-v1.2', root_path: '', is_active: 1,
+    }]);
+    if (statement.includes('SELECT outline_json') && statement.includes('FROM world_textbook_outlines')) {
+      return Promise.resolve([{ outline_json: outline }]);
+    }
+    if (statement.includes('UPDATE world_textbook_outlines')) {
+      updateParameters.push(parameters);
+      return Promise.resolve([{ book_id: 'math' }]);
+    }
+    return Promise.resolve([]);
+  }) as unknown as Sql;
+  sql.json = ((value: unknown) => value) as Sql['json'];
+  const app = new Hono();
+  registerPipelineRoutes(app, sql, 'postgresql://okm:okm@localhost:5432/knowledge');
+  const fingerprint = outlineFingerprint(outline);
+
+  const blocked = await app.request('/api/source/main/pipeline/books/math/outline-confirmation', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ fingerprint }),
+  });
+  assert.equal(blocked.status, 409);
+
+  const confirmed = await app.request('/api/source/main/pipeline/books/math/outline-confirmation', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ fingerprint, allow_unmatched: true }),
+  });
+  const response = await confirmed.json() as PipelineOutlineConfirmResponse;
+  assert.equal(confirmed.status, 200);
+  assert.equal(response.confirmed_with_unmatched, true);
+  assert.deepEqual(response.unmatched_item_ids, ['lesson-1']);
+  assert.equal(updateParameters.length, 1);
+  assert.deepEqual(updateParameters[0]?.find((value) => (
+    value != null && typeof value === 'object' && 'outline_review' in value
+  )), {
+    outline_review: {
+      status: 'confirmed',
+      fingerprint,
+      confirmed_at: response.confirmed_at,
+      confirmed_via: 'viewer',
+      confirmed_with_unmatched: true,
+      confirmed_unmatched_item_ids: ['lesson-1'],
+    },
+  });
 });
 
 test('outline chunk preview exposes a compact hover excerpt and full on-demand content', () => {
@@ -354,6 +443,56 @@ test('scanPdfFolder discovers nested PDFs and ignores non-PDF files', async () =
   }
 });
 
+test('scanPdfFolder pairs a sibling subject OCR library by stage and textbook filename', async () => {
+  const folder = await mkdtemp(join(tmpdir(), 'okm-subject-library-'));
+  const ocrRoot = `${folder}_mineru_hybrid_high_ocr`;
+  const textbookName = '初中_七年级_数学_人教版_上册';
+  const pdfPath = join(folder, '初中', `${textbookName}.pdf`);
+  const bundle = join(ocrRoot, '初中', textbookName, textbookName, 'hybrid_ocr');
+  await mkdir(dirname(pdfPath), { recursive: true });
+  await mkdir(bundle, { recursive: true });
+  await writeFile(pdfPath, '%PDF-1.7\nmath');
+  await writeFile(join(bundle, `${textbookName}_content_list_v2.json`), '[]');
+  try {
+    const result = await scanPdfFolder(folder);
+    assert.equal(result.ocr_folder_path, await realpath(ocrRoot));
+    assert.equal(result.matched_ocr_count, 1);
+    assert.equal(result.files[0]?.ocr_folder_path, await realpath(bundle));
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+    await rm(ocrRoot, { recursive: true, force: true });
+  }
+});
+
+test('scanPdfFolder discovers mixed-root OCR libraries and reports every book OCR status', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'okm-mixed-library-'));
+  const textbookName = '高中_数学_人教版_必修第一册';
+  const missingName = '高中_数学_人教版_必修第二册';
+  const pdfDir = join(root, '数学', '高中');
+  const ordinaryBundle = join(root, '数学_mineru_ocr', '高中', textbookName, textbookName, 'ocr');
+  const preferredBundle = join(root, '数学_mineru_hybrid_high_ocr', '高中', textbookName, textbookName, 'hybrid_ocr');
+  await mkdir(pdfDir, { recursive: true });
+  await mkdir(ordinaryBundle, { recursive: true });
+  await mkdir(preferredBundle, { recursive: true });
+  await writeFile(join(pdfDir, `${textbookName}.pdf`), '%PDF-1.7\nmath-1');
+  await writeFile(join(pdfDir, `${missingName}.pdf`), '%PDF-1.7\nmath-2');
+  await writeFile(join(ordinaryBundle, `${textbookName}_content_list_v2.json`), '[]');
+  await writeFile(join(preferredBundle, `${textbookName}_content_list_v2.json`), '[]');
+  try {
+    const result = await scanPdfFolder(root);
+    assert.equal(result.ocr_folder_paths.length, 2);
+    assert.equal(result.matched_ocr_count, 1);
+    assert.equal(result.unmatched_ocr_count, 1);
+    assert.deepEqual(result.files.map((file) => file.ocr_status).sort(), ['missing', 'ready']);
+    assert.equal(
+      result.files.find((file) => file.file_name === `${textbookName}.pdf`)?.ocr_folder_path,
+      await realpath(preferredBundle),
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test('resolveNpmInvocation uses the npm CLI inherited from npm', () => {
   assert.deepEqual(
     resolveNpmInvocation(['run', 'build'], {
@@ -406,8 +545,32 @@ test('buildPipelineCommand uses the Viewer database URL', () => {
   );
   const dbIndex = command.indexOf('--db');
 
+  assert.equal(command[0], process.execPath);
+  assert.match(command[1] ?? '', /packages[\\/]pipeline[\\/]dist[\\/]cli[\\/]server-pipeline-run\.js$/);
   assert.notEqual(dbIndex, -1);
   assert.equal(command[dbIndex + 1], dbUrl);
+});
+
+test('createPipelineRuntimeSnapshot keeps a job entry isolated from later dist cleanup', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'okm-pipeline-runtime-'));
+  const sourceDir = join(root, 'dist');
+  const runtimeRoot = join(root, 'runtimes');
+  const sourceEntry = join(sourceDir, 'cli', 'server-pipeline-run.js');
+  await mkdir(dirname(sourceEntry), { recursive: true });
+  await writeFile(sourceEntry, 'console.log("snapshot");\n');
+
+  try {
+    const snapshot = await createPipelineRuntimeSnapshot('math/job:1', {
+      source_dir: sourceDir,
+      runtime_root: runtimeRoot,
+    });
+    await rm(sourceDir, { recursive: true, force: true });
+
+    assert.equal(await readFile(snapshot.entry_path, 'utf8'), 'console.log("snapshot");\n');
+    assert.equal(dirname(dirname(snapshot.entry_path)), snapshot.runtime_dir);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test('buildPipelineCommand forwards an imported OCR folder without requiring a PDF', () => {
@@ -578,7 +741,7 @@ test('selective model resume forwards only persisted failed batch anchors', () =
   const failedAnchors = failedBatchAnchorsForResume({
     id: 'lesson_staging',
     status: 'blocked',
-    label: '模型抽取课时',
+    label: '提取课时知识',
     progress: {
       results: [
         { batch_anchor: 'struct:math:chunk:1-a', exit_code: 0 },
@@ -607,6 +770,31 @@ test('selective model resume forwards only persisted failed batch anchors', () =
   const anchorsIndex = command.indexOf('--resume-batch-anchors');
   assert.notEqual(anchorsIndex, -1);
   assert.deepEqual(JSON.parse(command[anchorsIndex + 1] ?? '[]'), failedAnchors);
+});
+
+test('selective model resume recovers quality-blocked batch anchors', () => {
+  const failedAnchors = failedBatchAnchorsForResume({
+    id: 'assessment_quality',
+    status: 'blocked',
+    label: '检查题目关联质量',
+    progress: {
+      attempts: [
+        {
+          retry: 1,
+          blocked_batch_anchors: [
+            'struct:math:chunk:1-b',
+            'struct:math:chunk:1-c',
+            'struct:math:chunk:1-b',
+          ],
+        },
+      ],
+    },
+    started_at: null,
+    completed_at: null,
+    updated_at: null,
+  });
+
+  assert.deepEqual(failedAnchors, ['struct:math:chunk:1-b', 'struct:math:chunk:1-c']);
 });
 
 test('claimPipelineJobResume reuses one blocked job and resets its runtime state', async () => {

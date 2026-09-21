@@ -106,12 +106,16 @@ CREATE TABLE IF NOT EXISTS world_mineru_sources (
   zip_path TEXT,
   extract_dir TEXT,
   raw_markdown_path TEXT,
+  source_pdf_path TEXT,
   created_by_mineru SMALLINT NOT NULL DEFAULT 0 CHECK (created_by_mineru IN (0, 1)),
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   PRIMARY KEY (dataset_id, book_id),
   FOREIGN KEY (dataset_id) REFERENCES world_datasets(dataset_id) ON DELETE CASCADE
 );
+
+ALTER TABLE world_mineru_sources
+  ADD COLUMN IF NOT EXISTS source_pdf_path TEXT;
 
 ALTER TABLE world_mineru_sources
   DROP COLUMN IF EXISTS manifest_path,

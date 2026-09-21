@@ -51,7 +51,7 @@ test("inspects and imports a nested MinerU OCR bundle without a PDF or API call"
   }
 });
 
-test("normalizes an OCR bundle in place without replacing its PDF or nested assets", () => {
+test("reuses an OCR bundle in place without writing into the source directory", () => {
   const root = mkdtempSync(join(tmpdir(), "okm-ocr-in-place-"));
   const bundle = join(root, "book", "hybrid_ocr");
   const pdf = join(root, "book.pdf");
@@ -69,8 +69,9 @@ test("normalizes an OCR bundle in place without replacing its PDF or nested asse
       mode: "in_place",
     });
 
-    assert.equal(result.source_markdown_path, join(bundle, "full.md"));
+    assert.equal(result.source_markdown_path, join(bundle, "book.md"));
     assert.equal(readFileSync(result.source_markdown_path, "utf8"), "# 原目录教材\n![](images/a.jpg)\n");
+    assert.equal(existsSync(join(bundle, "full.md")), false);
     assert.equal(readFileSync(pdf, "utf8"), "%PDF-1.4 original");
     assert.equal(existsSync(join(bundle, "images", "a.jpg")), true);
     assert.equal(existsSync(join(root, "must-not-be-created")), false);

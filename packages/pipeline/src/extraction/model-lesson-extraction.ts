@@ -1189,7 +1189,10 @@ export function buildExtractionPayloadFromModelBundle(input: BuildModelLessonPay
       id: makeDomainProfileId(nodeId, domain),
       node_id: nodeId,
       domain,
-      school_stages: trimmedStrings(raw.school_stages).length > 0 ? trimmedStrings(raw.school_stages) : [schoolStage],
+      // The extraction request's stage is authoritative for this textbook.
+      // Model-provided stages may add cross-stage applicability, but must not
+      // erase the stage that supplied the evidence.
+      school_stages: uniqueStrings([schoolStage, ...trimmedStrings(raw.school_stages)]),
       curriculum_roles: trimmedStrings(raw.curriculum_roles).length > 0 ? trimmedStrings(raw.curriculum_roles) : ["core"],
       source_refs: sourceRefs.slice(0, 1),
       properties: applyProfileTemplateProperties(isRecord(raw.properties) ? raw.properties : { subject, grade_band: gradeBand }, extractionTemplate),

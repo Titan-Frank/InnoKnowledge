@@ -14,7 +14,7 @@ export type OutlineItem = {
 };
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
-export const REPO_ROOT = resolve(MODULE_DIR, "../../../..");
+export const REPO_ROOT = resolve(process.env.OKM_REPO_ROOT?.trim() || resolve(MODULE_DIR, "../../../.."));
 export const OUTLINES_DIR = resolve(REPO_ROOT, "data/outlines");
 export const SAMPLE_OUTLINES_DIR = resolve(REPO_ROOT, "examples/sample-data/outlines");
 const ANCHOR_ID_PATTERN = /^struct:(?<bookId>[^:]+):(?<kind>[^:]+):(?<local>.+)$/;

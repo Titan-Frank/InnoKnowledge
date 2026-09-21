@@ -142,3 +142,45 @@ test('resolves the original PDF through an in-place OCR source path when book_id
     await rm(repoRoot, { recursive: true, force: true });
   }
 });
+
+test('loads an external in-place OCR bundle and its separately paired PDF', async () => {
+  const repoRoot = await mkdtemp(path.join(tmpdir(), 'okm-reader-external-repo-'));
+  const libraryRoot = await mkdtemp(path.join(tmpdir(), 'okm-reader-external-library-'));
+  const bookName = '高中_物理_人教版_必修第一册';
+  const bundle = path.join(libraryRoot, '物理_mineru_hybrid_high_ocr', '高中', bookName, bookName, 'hybrid_ocr');
+  const pdf = path.join(libraryRoot, '物理', '高中', `${bookName}.pdf`);
+  try {
+    await mkdir(path.join(bundle, 'images'), { recursive: true });
+    await mkdir(path.dirname(pdf), { recursive: true });
+    await writeFile(path.join(bundle, `${bookName}.md`), '# 第一章');
+    await writeFile(path.join(bundle, `${bookName}_content_list_v2.json`), JSON.stringify([[
+      { type: 'image', content: { image_source: { path: 'images/figure.jpg' } } },
+    ]]));
+    await writeFile(path.join(bundle, 'images', 'figure.jpg'), 'image');
+    await writeFile(pdf, '%PDF-1.4 original');
+
+    const mapping = {
+      book_id: 'physics-book',
+      source_markdown_path: path.join(bundle, `${bookName}.md`),
+      raw_markdown_path: path.join(bundle, `${bookName}.md`),
+      extract_dir: bundle,
+      source_pdf_path: pdf,
+    };
+    const catalog = await listTextbookReaderBooks(path.join(repoRoot, 'data'), [mapping]);
+    assert.equal(catalog[0]?.book_id, 'physics-book');
+    assert.equal(catalog[0]?.pdf_available, true);
+    const page = await loadTextbookReaderPage({
+      repoRoot,
+      dataRoot: path.join(repoRoot, 'data'),
+      datasetId: 'main',
+      bookId: 'physics-book',
+      sourcePaths: [mapping.source_markdown_path, mapping.extract_dir],
+      pdfPath: pdf,
+    });
+    assert.equal(page.pdf_available, true);
+    assert.equal(page.blocks[0]?.image_path, path.join(bundle, 'images', 'figure.jpg'));
+  } finally {
+    await rm(repoRoot, { recursive: true, force: true });
+    await rm(libraryRoot, { recursive: true, force: true });
+  }
+});

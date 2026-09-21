@@ -4,7 +4,7 @@ import test from "node:test";
 import { parallelPlanOutputPath, runParallelBatchPlan } from "./parallel-batch-runner.js";
 
 test("computes the Python-compatible parallel plan output path", () => {
-  assert.equal(parallelPlanOutputPath("/tmp/okm", "chem/hukj xb2"), "/tmp/okm/runs/parallel/chem__hukj__xb2.parallel-plan.json");
+  assert.equal(parallelPlanOutputPath("/tmp/okm", "chem/hukj xb2"), "/tmp/okm/runs/parallel/chem-hukj-xb2.parallel-plan.json");
 });
 
 test("plans a parallel batch from repository outline items", () => {
@@ -18,10 +18,10 @@ test("plans a parallel batch from repository outline items", () => {
   assert.equal(output.status, "success");
   assert.equal(output.output_path, "/tmp/okm/runs/parallel/chem-hukj-xb2-structure.parallel-plan.json");
   assert.equal(output.unit_kind, "chunk");
-  assert.equal(output.total_units, 37);
-  assert.equal(output.workers.length, 37);
+  assert.equal(output.total_units, 32);
+  assert.equal(output.workers.length, 32);
   assert.deepEqual(output.workers.slice(0, 4).map((worker) => worker.worker_slot), [0, 1, 2, 0]);
-  assert.equal(output.task_lines?.length, 37);
+  assert.equal(output.task_lines?.length, 32);
   assert.match(output.task_lines?.[0] ?? "", /^worker-0: struct:chem-hukj-xb2-structure:chunk:/);
 });
 
@@ -48,7 +48,7 @@ test("plan can include TypeScript model extraction commands", () => {
     subject: "chemistry",
   });
 
-  assert.equal(output.extraction_commands?.length, 37);
+  assert.equal(output.extraction_commands?.length, 32);
   assert.equal(output.extraction_commands?.[0]?.worker_slot, 0);
   assert.deepEqual(output.extraction_commands?.[0]?.command.slice(0, 8), [
     "node",
